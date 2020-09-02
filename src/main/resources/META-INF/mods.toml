@@ -1,0 +1,27 @@
+modLoader = "javafml"
+loaderVersion = "[31,)"
+issueTrackerURL = "https://github.com/MightyPirates/Circuity/issues"
+
+[[mods]]
+modId = "circuity"
+version = "${mod_version}"
+displayName = "Circuity"
+displayURL = "https://github.com/MightyPirates/Circuity"
+#logoFile = "logo.png"
+authors = "Sangar"
+description = '''
+Modern computers for the modern player.
+'''
+
+[[dependencies.scannable]]
+modId = "forge"
+mandatory = true
+versionRange = "[31,)"
+ordering = "NONE"
+side = "BOTH"
+[[dependencies.scannable]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[${minecraft_version}]"
+ordering = "NONE"
+side = "BOTH"

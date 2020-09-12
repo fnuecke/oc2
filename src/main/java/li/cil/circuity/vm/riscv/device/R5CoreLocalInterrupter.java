@@ -55,7 +55,8 @@ public final class R5CoreLocalInterrupter implements Steppable, InterruptSource,
     }
 
     @Override
-    public int load32(final int offset) {
+    public int load(final int offset, final int sizeLog2) {
+        assert sizeLog2 == 2;
         switch (offset) {
             case 0x4000: {
                 return (int) mtimecmp;
@@ -76,7 +77,8 @@ public final class R5CoreLocalInterrupter implements Steppable, InterruptSource,
     }
 
     @Override
-    public void store32(final int offset, final int value) {
+    public void store(final int offset, final int value, final int sizeLog2) {
+        assert sizeLog2 == 2;
         switch (offset) {
             case 0x4000: {
                 mtimecmp = (mtimecmp & ~0xFFFFFFFFL) | (value & 0xFFFFFFFFL);

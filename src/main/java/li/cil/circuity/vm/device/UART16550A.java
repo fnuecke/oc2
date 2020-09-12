@@ -220,7 +220,8 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
     }
 
     @Override
-    public byte load8(final int offset) {
+    public int load(final int offset, final int sizeLog2) {
+        assert sizeLog2 == 0;
         switch (offset) {
             // case UART_DLL_OFFSET:
             case UART_RBR_OFFSET: {
@@ -316,7 +317,8 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
     }
 
     @Override
-    public void store8(final int offset, final byte value) {
+    public void store(final int offset, final int value, final int sizeLog2) {
+        assert sizeLog2 == 0;
         switch (offset) {
             // case UART_DLL_OFFSET:
             case UART_THR_OFFSET: {
@@ -324,7 +326,7 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
                     dl = (short) ((dl & 0xFF00) | (value & 0x00FF));
                 } else { // UART_RBR
                     synchronized (lock) {
-                        thr = value;
+                        thr = (byte) value;
                         if ((fcr & UART_FCR_FE) != 0) {
                             if (transmitFifo.size() >= FIFO_QUEUE_CAPACITY) {
                                 transmitFifo.dequeueByte();
@@ -347,7 +349,7 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
                     dl = (short) ((value << 8) | (dl & 0x00FF));
                 } else { // UART_IER
                     synchronized (lock) {
-                        final int changes = ier ^ value;
+                        final int changes = ier ^ (byte) value;
                         ier = (byte) (value & 0b1111);
 
                         if ((changes & UART_IER_THRI) != 0) {
@@ -364,17 +366,17 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
 
             case UART_FCR_OFFSET: {
                 synchronized (lock) {
-                    final int changes = fcr ^ value;
+                    final int changes = fcr ^ (byte) value;
                     final boolean forceClear = (changes & UART_FCR_FE) != 0;
 
-                    if (forceClear || ((int) value & UART_FCR_RFR) != 0) {
+                    if (forceClear || (value & UART_FCR_RFR) != 0) {
                         synchronized (receiveFifo) {
                             lsr &= ~(UART_LSR_DR | UART_LSR_BI);
                             timeoutInterruptPending = false;
                             receiveFifo.clear();
                         }
                     }
-                    if (forceClear || ((int) value & UART_FCR_XFR) != 0) {
+                    if (forceClear || (value & UART_FCR_XFR) != 0) {
                         synchronized (transmitFifo) {
                             lsr |= UART_LSR_THRE;
                             transmitInterruptPending = true;
@@ -382,11 +384,11 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
                         }
                     }
 
-                    fcr = (byte) ((int) value & 0b11001001);
+                    fcr = (byte) (value & 0b11001001);
 
-                    if (((int) value & UART_FCR_FE) != 0) {
+                    if ((value & UART_FCR_FE) != 0) {
                         iir |= UART_IIR_FIFO_ENABLED;
-                        switch ((int) value & UART_FCR_ITL_MASK) {
+                        switch (value & UART_FCR_ITL_MASK) {
                             case UART_FCR_ITL1: {
                                 triggerLevel = 1;
                                 break;
@@ -414,7 +416,7 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
             }
 
             case UART_LCR_OFFSET: {
-                lcr = value;
+                lcr = (byte) value;
                 break;
             }
 
@@ -424,7 +426,7 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
             }
 
             case UART_SCR_OFFSET: {
-                scr = value;
+                scr = (byte) value;
                 break;
             }
         }

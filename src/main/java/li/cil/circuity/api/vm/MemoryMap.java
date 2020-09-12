@@ -31,15 +31,7 @@ public interface MemoryMap {
 
     void setDirty(final MemoryRange range, final int offset);
 
-    byte load8(final int address) throws MemoryAccessException;
+    int load(final int address, final int sizeLog2) throws MemoryAccessException;
 
-    void store8(final int address, final byte value) throws MemoryAccessException;
-
-    short load16(final int address) throws MemoryAccessException;
-
-    void store16(final int address, final short value) throws MemoryAccessException;
-
-    int load32(final int address) throws MemoryAccessException;
-
-    void store32(final int address, final int value) throws MemoryAccessException;
+    void store(final int address, final int value, final int sizeLog2) throws MemoryAccessException;
 }

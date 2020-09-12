@@ -24,56 +24,52 @@ public class ByteBufferMemory implements PhysicalMemory {
     }
 
     @Override
-    public byte load8(final int offset) throws MemoryAccessException {
+    public int load(final int offset, final int sizeLog2) throws MemoryAccessException {
         try {
-            return data.get(offset);
+            switch (sizeLog2) {
+                case 0:
+                    return data.get(offset);
+                case 1:
+                    return data.getShort(offset);
+                case 2:
+                    return data.getInt(offset);
+                default:
+                    throw new IllegalArgumentException();
+            }
         } catch (final IndexOutOfBoundsException e) {
             throw new LoadFaultException(offset);
         }
     }
 
     @Override
-    public void store8(final int offset, final byte value) throws MemoryAccessException {
+    public void store(final int offset, final int value, final int sizeLog2) throws MemoryAccessException {
         try {
-            data.put(offset, value);
+            switch (sizeLog2) {
+                case 0:
+                    data.put(offset, (byte) value);
+                    break;
+                case 1:
+                    data.putShort(offset, (short) value);
+                    break;
+                case 2:
+                    data.putInt(offset, value);
+                    break;
+                default:
+                    throw new IllegalArgumentException();
+            }
         } catch (final IndexOutOfBoundsException e) {
             throw new StoreFaultException(offset);
         }
     }
 
     @Override
-    public short load16(final int offset) throws MemoryAccessException {
-        try {
-            return data.getShort(offset);
-        } catch (final IndexOutOfBoundsException e) {
-            throw new LoadFaultException(offset);
-        }
-    }
-
-    @Override
-    public void store16(final int offset, final short value) throws MemoryAccessException {
-        try {
-            data.putShort(offset, value);
-        } catch (final IndexOutOfBoundsException e) {
-            throw new StoreFaultException(offset);
-        }
-    }
-
-    @Override
-    public int load32(final int offset) throws MemoryAccessException {
-        try {
-            return data.getInt(offset);
-        } catch (final IndexOutOfBoundsException e) {
-            throw new LoadFaultException(offset);
-        }
-    }
-
-    @Override
-    public void store32(final int offset, final int value) throws MemoryAccessException {
-        try {
-            data.putInt(offset, value);
-        } catch (final IndexOutOfBoundsException e) {
-            throw new StoreFaultException(offset);
-        }
+    public ByteBuffer slice(final int offset, final int length) {
+        final int limit = data.limit();
+        data.position(offset);
+        data.limit(offset + length);
+        final ByteBuffer result = data.slice();
+        result.order(ByteOrder.LITTLE_ENDIAN);
+        data.limit(limit);
+        return result;
     }
 }

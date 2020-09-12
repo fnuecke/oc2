@@ -98,53 +98,19 @@ public final class SimpleMemoryMap implements MemoryMap {
     }
 
     @Override
-    public byte load8(final int address) throws MemoryAccessException {
+    public int load(final int address, final int sizeLog2) throws MemoryAccessException {
         final MemoryRange range = getMemoryRange(address);
         if (range != null) {
-            return range.device.load8(address - range.start);
+            return range.device.load(address - range.start, sizeLog2);
         }
         return 0;
     }
 
     @Override
-    public void store8(final int address, final byte value) throws MemoryAccessException {
+    public void store(final int address, final int value, final int sizeLog2) throws MemoryAccessException {
         final MemoryRange range = getMemoryRange(address);
         if (range != null) {
-            range.device.store8(address - range.start, value);
-        }
-    }
-
-    @Override
-    public short load16(final int address) throws MemoryAccessException {
-        final MemoryRange range = getMemoryRange(address);
-        if (range != null) {
-            return range.device.load16(address - range.start);
-        }
-        return 0;
-    }
-
-    @Override
-    public void store16(final int address, final short value) throws MemoryAccessException {
-        final MemoryRange range = getMemoryRange(address);
-        if (range != null) {
-            range.device.store16(address - range.start, value);
-        }
-    }
-
-    @Override
-    public int load32(final int address) throws MemoryAccessException {
-        final MemoryRange range = getMemoryRange(address);
-        if (range != null) {
-            return range.device.load32(address - range.start);
-        }
-        return 0;
-    }
-
-    @Override
-    public void store32(final int address, final int value) throws MemoryAccessException {
-        final MemoryRange range = getMemoryRange(address);
-        if (range != null) {
-            range.device.store32(address - range.start, value);
+            range.device.store(address - range.start, value, sizeLog2);
         }
     }
 }

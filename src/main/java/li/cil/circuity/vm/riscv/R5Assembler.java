@@ -403,7 +403,7 @@ public final class R5Assembler {
                 instAssembled = inst.assemble(Collections.emptyMap());
             }
 
-            memory.store32(writeIndex, instAssembled);
+            memory.store(writeIndex, instAssembled, 2);
             writeIndex += 4;
         }
     }

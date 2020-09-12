@@ -9,15 +9,17 @@ import java.io.FileInputStream;
 
 public final class Main {
     public static void main(final String[] args) throws Exception {
-        final PhysicalMemory memory = new ByteBufferMemory(64 * 1014 * 1024);
+        final PhysicalMemory rom = new ByteBufferMemory(128 * 1024);
+        final PhysicalMemory memory = new ByteBufferMemory(48 * 1014 * 1024);
         final R5Board board = new R5Board();
-        board.addDevice(0x80000000, memory);
+        board.addDevice(0x80000000, rom);
+        board.addDevice(0x80000000 + 0x400000, memory);
 
         final String firmware = "C:\\Users\\fnuecke\\Documents\\Repositories\\Circuity-1.15\\buildroot\\fw_jump.bin";
-        loadProgramFile(memory, 0, firmware);
+        loadProgramFile(rom, 0, firmware);
 
         final String kernel = "C:\\Users\\fnuecke\\Documents\\Repositories\\Circuity-1.15\\buildroot\\Image";
-        loadProgramFile(memory, 0x400000, kernel);
+        loadProgramFile(memory, 0, kernel);
 
         final UARTReader reader = new UARTReader(board);
         final Thread thread = new Thread(reader);
@@ -29,9 +31,9 @@ public final class Main {
 
         final long start = System.currentTimeMillis();
 
-        final int n = 100000;
+        final int n = 40000;
         for (int i = 0; i < n; i++) {
-            board.step(100000);
+            board.step(10000);
         }
 
         final long duration = System.currentTimeMillis() - start;
@@ -46,7 +48,7 @@ public final class Main {
         try (final FileInputStream is = new FileInputStream(path)) {
             final BufferedInputStream bis = new BufferedInputStream(is);
             for (int value = bis.read(); value != -1; value = bis.read()) {
-                memory.store8(address++, (byte) value);
+                memory.store(address++, (byte) value, 0);
             }
         }
     }

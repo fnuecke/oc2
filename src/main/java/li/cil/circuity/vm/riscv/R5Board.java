@@ -151,7 +151,7 @@ public final class R5Board {
             final FlattenedDeviceTree fdt = buildDeviceTree().flatten();
             final byte[] dtb = fdt.toDTB();
             for (int i = 0; i < dtb.length; i++) {
-                memoryMap.store8(FDT_ADDRESS + i, dtb[i]);
+                memoryMap.store(FDT_ADDRESS + i, dtb[i], 0);
             }
         } catch (final MemoryAccessException e) {
             throw new AssertionError();
@@ -168,15 +168,15 @@ public final class R5Board {
             int pc = 0x1000; // R5CPU starts executing at 0x1000.
 
             // lui a1, FDT_ADDRESS  -> store FDT address in a1 for firmware
-            memoryMap.store32(pc, lui | rd_x11 + FDT_ADDRESS);
+            memoryMap.store(pc, lui | rd_x11 + FDT_ADDRESS, 2);
             pc += 4;
 
             // lui t0, PHYSICAL_MEMORY_FIRST  -> load address of firmware
-            memoryMap.store32(pc, lui | rd_x5 + PHYSICAL_MEMORY_FIRST);
+            memoryMap.store(pc, lui | rd_x5 + PHYSICAL_MEMORY_FIRST, 2);
             pc += 4;
 
             // jalr zero, t0, 0  -> jump to firmware
-            memoryMap.store32(pc, jalr | rs1_x5);
+            memoryMap.store(pc, jalr | rs1_x5, 2);
         } catch (final MemoryAccessException e) {
             LOGGER.error(e);
         }

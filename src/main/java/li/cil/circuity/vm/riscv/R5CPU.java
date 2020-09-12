@@ -1,7 +1,7 @@
 package li.cil.circuity.vm.riscv;
 
-import io.netty.util.collection.IntObjectHashMap;
-import io.netty.util.collection.IntObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import li.cil.circuity.api.vm.MemoryMap;
 import li.cil.circuity.api.vm.MemoryRange;
 import li.cil.circuity.api.vm.device.InterruptController;
@@ -10,14 +10,11 @@ import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.device.rtc.RealTimeCounter;
 import li.cil.circuity.vm.device.memory.exception.*;
-import li.cil.circuity.vm.riscv.exception.R5BreakpointException;
-import li.cil.circuity.vm.riscv.exception.R5ECallException;
-import li.cil.circuity.vm.riscv.exception.R5Exception;
-import li.cil.circuity.vm.riscv.exception.R5IllegalInstructionException;
+import li.cil.circuity.vm.riscv.exception.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.function.Consumer;
+import java.nio.ByteBuffer;
 
 /**
  * RISC-V
@@ -179,7 +176,7 @@ public class R5CPU implements Steppable, InterruptController {
         // sufficiently small to be a positive integer.
         while (!waitingForInterrupt && cycleLimit > mcycle) {
             if ((mip & mie) != 0 && raiseInterrupt()) {
-                return;
+                continue;
             }
 
             try {
@@ -225,6 +222,7 @@ public class R5CPU implements Steppable, InterruptController {
             final int rd = getField(inst, 7, 11, 0);
             final int rs1 = getField(inst, 15, 19, 0);
             final int rs2 = getField(inst, 20, 24, 0);
+            final int funct3 = getField(inst, 12, 14, 0);
 
             // Opcode values, see Volume I: RISC-V Unprivileged ISA V20191214-draft page 130ff. They appear in the order
             // they are introduced in the spec. Immediate value decoding follows the layouts described in 2.3.
@@ -237,7 +235,6 @@ public class R5CPU implements Steppable, InterruptController {
                 ///////////////////////////////////////////////////////////////////
                 // Integer Register-Immediate Instructions
                 case 0b0010011: { // OP-IMM (register-immediate operation)
-                    final int funct3 = getField(inst, 12, 14, 0);
                     final int imm = inst >> 20; // inst[31:20], sign extended
                     final int result;
                     switch (funct3) {
@@ -334,7 +331,6 @@ public class R5CPU implements Steppable, InterruptController {
                             // Chapter 7 "M" Standard Extension for Integer Multiplication and Division, Version 2.0
                             ///////////////////////////////////////////////////////////////////
 
-                            final int funct3 = getField(inst, 12, 14, 0);
                             final int result;
                             switch (funct3) {
                                 ///////////////////////////////////////////////////////////////////
@@ -410,7 +406,6 @@ public class R5CPU implements Steppable, InterruptController {
                         }
                         case 0b0000000:
                         case 0b0100000: { // Integer Register-Register Operations
-                            final int funct3 = getField(inst, 12, 14, 0);
                             final int result;
                             switch (funct3 | funct7) {
                                 case 0b000: { // ADD
@@ -510,7 +505,8 @@ public class R5CPU implements Steppable, InterruptController {
                 ///////////////////////////////////////////////////////////////////
                 // Conditional Branches
                 case 0b1100011: { // BRANCH
-                    final int funct3 = getField(inst, 12, 14, 0);
+                    final boolean invert = (funct3 & 0b1) != 0;
+
                     final boolean condition;
                     switch (funct3 >>> 1) {
                         case 0b00: { // BEQ / BNE
@@ -530,8 +526,7 @@ public class R5CPU implements Steppable, InterruptController {
                         }
                     }
 
-                    final boolean invertCondition = (funct3 & 0b1) != 0;
-                    if (condition ^ invertCondition) {
+                    if (condition ^ invert) {
                         final int imm = extendSign(getField(inst, 31, 31, 12) |
                                                    getField(inst, 25, 30, 5) |
                                                    getField(inst, 8, 11, 1) |
@@ -550,9 +545,9 @@ public class R5CPU implements Steppable, InterruptController {
                 ///////////////////////////////////////////////////////////////////
 
                 case 0b0000011: { // LOAD
-                    final int funct3 = getField(inst, 12, 14, 0);
                     final int imm = inst >> 20; // inst[31:20], sign extended
                     final int address = x[rs1] + imm;
+
                     final int result;
                     switch (funct3) {
                         case 0b000: { // LB
@@ -590,11 +585,12 @@ public class R5CPU implements Steppable, InterruptController {
                 }
 
                 case 0b0100011: { // STORE
-                    final int funct3 = getField(inst, 12, 14, 0);
                     final int imm = extendSign(getField(inst, 25, 31, 5) |
                                                getField(inst, 7, 11, 0), 12);
+
                     final int address = x[rs1] + imm;
                     final int value = x[rs2];
+
                     switch (funct3) {
                         case 0b000: { // SB
                             store8(address, (byte) value);
@@ -622,7 +618,6 @@ public class R5CPU implements Steppable, InterruptController {
                 ///////////////////////////////////////////////////////////////////
 
                 case 0b0001111: { // MISC-MEM
-                    final int funct3 = getField(inst, 12, 14, 0);
                     switch (funct3) {
                         case 0b000: { // FENCE
 //                        if ((inst & 0b1111_00000000_11111_111_11111_0000000) != 0) // Not supporting any flags.
@@ -653,7 +648,6 @@ public class R5CPU implements Steppable, InterruptController {
                 ///////////////////////////////////////////////////////////////////
 
                 case 0b1110011: { // SYSTEM
-                    final int funct3 = getField(inst, 12, 14, 0);
                     if (funct3 == 0b100) {
                         throw new R5IllegalInstructionException(inst);
                     }
@@ -793,7 +787,6 @@ public class R5CPU implements Steppable, InterruptController {
                 ///////////////////////////////////////////////////////////////////
 
                 case 0b0101111: { // AMO
-                    final int funct3 = getField(inst, 12, 14, 0);
                     switch (funct3) { // width
                         case 0b010: { // 32
                             final int funct5 = inst >>> 27; // inst[31:27], not sign-extended
@@ -1143,12 +1136,15 @@ public class R5CPU implements Steppable, InterruptController {
                         }
                         // 0b001: C.FLDSP
                         case 0b010: { // C.LWSP
+                            if (rd == 0) { // Reserved.
+                                throw new R5IllegalInstructionException(inst);
+                            }
+
                             final int offset = getField(inst, 12, 12, 5) |
                                                getField(inst, 4, 6, 2) |
                                                getField(inst, 2, 3, 6);
-                            if (rd != 0) {
-                                x[rd] = load32(x[2] + offset);
-                            }
+
+                            x[rd] = load32(x[2] + offset);
 
                             pc += 2;
                             break;
@@ -1848,22 +1844,6 @@ public class R5CPU implements Steppable, InterruptController {
         return true;
     }
 
-    private void flushTLB() {
-        for (int i = 0; i < TLB_SIZE; i++) {
-            tlb_fetch[i].virtualAddress = -1;
-        }
-        for (int i = 0; i < TLB_SIZE; i++) {
-            tlb_read[i].virtualAddress = -1;
-        }
-        for (int i = 0; i < TLB_SIZE; i++) {
-            tlb_write[i].virtualAddress = -1;
-        }
-    }
-
-    private void flushTLB(final int address) {
-        flushTLB();
-    }
-
     private byte load8(final int address) throws MemoryAccessException {
         return (byte) load(address, 8, 0);
     }
@@ -1889,12 +1869,15 @@ public class R5CPU implements Steppable, InterruptController {
     }
 
     private int fetch(final int address) throws MemoryAccessException {
-        assert (address & 1) == 0 : "misaligned fetch";
+        if ((address & 1) != 0) {
+            throw new MisalignedFetchException(address);
+        }
+
         final int tlbIndex = (address >>> R5.PAGE_ADDRESS_SHIFT) & (TLB_SIZE - 1);
         final int virtualAddress = address & ~R5.PAGE_ADDRESS_MASK;
         final TLBEntry entry = tlb_fetch[tlbIndex];
         if (entry.virtualAddress == virtualAddress) {
-            return entry.memory.load32(address + entry.toLocal);
+            return entry.memory.getInt(address + entry.toLocal);
         } else {
             return fetchSlow(address);
         }
@@ -1909,13 +1892,13 @@ public class R5CPU implements Steppable, InterruptController {
         if (entry.virtualAddress == virtualAddress) {
             switch (sizeLog2) {
                 case 0:
-                    return entry.memory.load8(address + entry.toLocal);
+                    return entry.memory.get(address + entry.toLocal);
                 case 1:
-                    return entry.memory.load16(address + entry.toLocal);
+                    return entry.memory.getShort(address + entry.toLocal);
                 case 2:
-                    return entry.memory.load32(address + entry.toLocal);
+                    return entry.memory.getInt(address + entry.toLocal);
                 default:
-                    throw new IllegalArgumentException();
+                    throw new AssertionError();
             }
         } else {
             return loadSlow(address, sizeLog2);
@@ -1931,16 +1914,16 @@ public class R5CPU implements Steppable, InterruptController {
         if (entry.virtualAddress == virtualAddress) {
             switch (sizeLog2) {
                 case 0:
-                    entry.memory.store8(address + entry.toLocal, (byte) value);
+                    entry.memory.put(address + entry.toLocal, (byte) value);
                     break;
                 case 1:
-                    entry.memory.store16(address + entry.toLocal, (short) value);
+                    entry.memory.putShort(address + entry.toLocal, (short) value);
                     break;
                 case 2:
-                    entry.memory.store32(address + entry.toLocal, value);
+                    entry.memory.putInt(address + entry.toLocal, value);
                     break;
                 default:
-                    throw new IllegalArgumentException();
+                    throw new AssertionError();
             }
         } else {
             storeSlow(address, value, sizeLog2);
@@ -1954,39 +1937,15 @@ public class R5CPU implements Steppable, InterruptController {
             throw new FetchFaultException(address);
         }
 
-        final int offset = physicalAddress - range.start;
-        final int tlbIndex = (address >>> R5.PAGE_ADDRESS_SHIFT) & (TLB_SIZE - 1);
-        final int virtualAddress = address & ~R5.PAGE_ADDRESS_MASK;
-
-        final TLBEntry entry = tlb_fetch[tlbIndex];
-        entry.memory = (PhysicalMemory) range.device;
-        entry.virtualAddress = virtualAddress;
-        entry.toLocal = offset - address;
-
-        return entry.memory.load32(offset);
+        final TLBEntry entry = updateTLB(tlb_fetch, address, physicalAddress, range);
+        return entry.memory.getInt(address + entry.toLocal);
     }
 
     private int loadSlow(final int address, final int sizeLog2) throws MemoryAccessException {
-        final int widthInBytes = 1 << sizeLog2;
-        final int alignment = address & (widthInBytes - 1);
+        final int size = 1 << sizeLog2;
+        final int alignment = address & (size - 1);
         if (alignment != 0) {
-            // Unaligned access, manually perform aligned loads.
-            // TODO: SBI might actually handle this for us, need to test
-            //       throw new MisalignedLoadException(address);
-            switch (sizeLog2) {
-                case 1: {
-                    final byte v0 = load8(address);
-                    final byte v1 = load8(address + 1);
-                    return v0 | (v1 << 8);
-                }
-                case 2: {
-                    final int v0 = load32(address - alignment);
-                    final int v1 = load32(address - alignment + 4);
-                    return (v0 >>> (alignment * 8)) | (v1 << (32 - alignment * 8));
-                }
-                default:
-                    throw new IllegalArgumentException();
-            }
+            throw new MisalignedLoadException(address);
         } else {
             final int physicalAddress = getPhysicalAddress(address, AccessType.READ);
             final MemoryRange range = physicalMemory.getMemoryRange(physicalAddress);
@@ -1994,37 +1953,20 @@ public class R5CPU implements Steppable, InterruptController {
                 LOGGER.debug("Trying to load from invalid physical address [{}].", address);
                 return 0;
             } else if (range.device instanceof PhysicalMemory) {
-                final int offset = physicalAddress - range.start;
-                final int tlbIndex = (address >>> R5.PAGE_ADDRESS_SHIFT) & (TLB_SIZE - 1);
-                final int virtualAddress = address & ~R5.PAGE_ADDRESS_MASK;
-
-                final TLBEntry entry = tlb_read[tlbIndex];
-                entry.memory = (PhysicalMemory) range.device;
-                entry.virtualAddress = virtualAddress;
-                entry.toLocal = offset - address;
-
+                final TLBEntry entry = updateTLB(tlb_read, address, physicalAddress, range);
+                final int offset = address + entry.toLocal;
                 switch (sizeLog2) {
                     case 0:
-                        return entry.memory.load8(offset);
+                        return entry.memory.get(offset);
                     case 1:
-                        return entry.memory.load16(offset);
+                        return entry.memory.getShort(offset);
                     case 2:
-                        return entry.memory.load32(offset);
+                        return entry.memory.getInt(offset);
                     default:
-                        throw new IllegalArgumentException();
+                        throw new AssertionError();
                 }
             } else {
-                final int offset = physicalAddress - range.start;
-                switch (sizeLog2) {
-                    case 0:
-                        return range.device.load8(offset);
-                    case 1:
-                        return range.device.load16(offset);
-                    case 2:
-                        return range.device.load32(offset);
-                    default:
-                        throw new IllegalArgumentException();
-                }
+                return range.device.load(physicalAddress - range.start, sizeLog2);
             }
         }
     }
@@ -2033,58 +1975,32 @@ public class R5CPU implements Steppable, InterruptController {
         final int size = 1 << sizeLog2;
         final int alignment = address & (size - 1);
         if (alignment != 0) {
-            // Unaligned access, manually perform aligned stores.
-            // TODO: should avoid modifying memory in case of exception
-            // TODO: SBI might actually handle this for us, need to test
-            //       throw new MisalignedStoreException(address);
-            for (int i = 0; i < size; i++) {
-                store8(address + i, (byte) (value >>> (8 * i)));
-            }
+            throw new MisalignedStoreException(address);
         } else {
             final int physicalAddress = getPhysicalAddress(address, AccessType.WRITE);
             final MemoryRange range = physicalMemory.getMemoryRange(physicalAddress);
             if (range == null) {
                 LOGGER.debug("Trying to store to invalid physical address [{}].", address);
             } else if (range.device instanceof PhysicalMemory) {
-                final int offset = physicalAddress - range.start;
-                final int tlbIndex = (address >>> R5.PAGE_ADDRESS_SHIFT) & (TLB_SIZE - 1);
-                final int virtualAddress = address & ~R5.PAGE_ADDRESS_MASK;
-
-                final TLBEntry entry = tlb_write[tlbIndex];
-                entry.memory = (PhysicalMemory) range.device;
-                entry.virtualAddress = virtualAddress;
-                entry.toLocal = offset - address;
-
+                final TLBEntry entry = updateTLB(tlb_write, address, physicalAddress, range);
+                final int offset = address + entry.toLocal;
                 switch (sizeLog2) {
                     case 0:
-                        entry.memory.store8(offset, (byte) value);
+                        entry.memory.put(offset, (byte) value);
                         break;
                     case 1:
-                        entry.memory.store16(offset, (short) value);
+                        entry.memory.putShort(offset, (short) value);
                         break;
                     case 2:
-                        entry.memory.store32(offset, value);
+                        entry.memory.putInt(offset, value);
                         break;
                     default:
-                        throw new IllegalArgumentException();
+                        throw new AssertionError();
                 }
 
                 physicalMemory.setDirty(range, offset);
             } else {
-                final int offset = physicalAddress - range.start;
-                switch (sizeLog2) {
-                    case 0:
-                        range.device.store8(offset, (byte) value);
-                        break;
-                    case 1:
-                        range.device.store16(offset, (short) value);
-                        break;
-                    case 2:
-                        range.device.store32(offset, value);
-                        break;
-                    default:
-                        throw new IllegalArgumentException();
-                }
+                range.device.store(physicalAddress - range.start, value, sizeLog2);
             }
         }
     }
@@ -2115,7 +2031,7 @@ public class R5CPU implements Steppable, InterruptController {
             final int vpnShift = R5.PAGE_ADDRESS_SHIFT + R5.SV32_XPN_SIZE * i;
             final int vpn = (virtualAddress >>> vpnShift) & R5.SV32_XPN_MASK;
             pteAddress += vpn << R5.SV32_PTE_SIZE_LOG2; // equivalent to vpn * PTE size
-            int pte = physicalMemory.load32(pteAddress); // 3.
+            int pte = physicalMemory.load(pteAddress, 2); // 3.
 
             if ((pte & R5.PTE_V_MASK) == 0 || ((pte & R5.PTE_R_MASK) == 0 && (pte & R5.PTE_W_MASK) != 0)) { // 4.
                 throw getPageFaultException(accessType, virtualAddress);
@@ -2163,7 +2079,7 @@ public class R5CPU implements Steppable, InterruptController {
                     pte |= R5.PTE_D_MASK;
                 }
 
-                physicalMemory.store32(pteAddress, pte);
+                physicalMemory.store(pteAddress, pte, 2);
             }
 
             // 9. physical address = pte.ppn[LEVELS-1:i], va.vpn[i-1:0], va.pgoff
@@ -2186,6 +2102,39 @@ public class R5CPU implements Steppable, InterruptController {
             default:
                 throw new AssertionError();
         }
+    }
+
+    private static TLBEntry updateTLB(final TLBEntry[] tlb, final int address, final int physicalAddress, final MemoryRange range) {
+        final int tlbIndex = (address >>> R5.PAGE_ADDRESS_SHIFT) & (TLB_SIZE - 1);
+        final int virtualAddress = address & ~R5.PAGE_ADDRESS_MASK;
+
+        // TODO Only grab a slice as big as the memory region covered by the TLB entry... I can't math right now.
+
+        final TLBEntry entry = tlb[tlbIndex];
+        entry.virtualAddress = virtualAddress;
+        entry.toLocal = physicalAddress - address - range.start;
+        entry.memory = ((PhysicalMemory) range.device).slice(0, range.end - range.start + 1);
+
+        return entry;
+    }
+
+    private void flushTLB() {
+        // Only reset the most necessary field, the virtual address (which we use to check if an entry is applicable).
+        // Reset per-array for *much* faster clears due to it being a faster memory access pattern/the JIT being able
+        // to more efficiently optimize it (probably the latter, expect this gets replaced by a memset).
+        for (int i = 0; i < TLB_SIZE; i++) {
+            tlb_fetch[i].virtualAddress = -1;
+        }
+        for (int i = 0; i < TLB_SIZE; i++) {
+            tlb_read[i].virtualAddress = -1;
+        }
+        for (int i = 0; i < TLB_SIZE; i++) {
+            tlb_write[i].virtualAddress = -1;
+        }
+    }
+
+    private void flushTLB(final int address) {
+        flushTLB();
     }
 
     /**
@@ -2228,7 +2177,7 @@ public class R5CPU implements Steppable, InterruptController {
     private static final class TLBEntry {
         public int virtualAddress = -1;
         public int toLocal;
-        public PhysicalMemory memory;
+        public ByteBuffer memory;
     }
 
     public R5CPUStateSnapshot getState() {

@@ -13,7 +13,8 @@ public final class R5HostTargetInterface implements MemoryMappedDevice {
     }
 
     @Override
-    public int load32(final int offset) {
+    public int load(final int offset, final int sizeLog2) {
+        assert sizeLog2 == 2;
         switch (offset) {
             case 0: {
                 return (int) toHost;
@@ -35,7 +36,8 @@ public final class R5HostTargetInterface implements MemoryMappedDevice {
     }
 
     @Override
-    public void store32(final int offset, final int value) {
+    public void store(final int offset, final int value, final int sizeLog2) {
+        assert sizeLog2 == 2;
         switch (offset) {
             case 0: {
                 toHost = (toHost & ~0xFFFFFFFFL) | value;

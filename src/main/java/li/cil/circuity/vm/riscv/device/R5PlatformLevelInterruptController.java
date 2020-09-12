@@ -85,7 +85,8 @@ public class R5PlatformLevelInterruptController implements MemoryMappedDevice, I
     }
 
     @Override
-    public int load32(final int offset) {
+    public int load(final int offset, final int sizeLog2) {
+        assert sizeLog2 == 2;
         switch (offset) {
             // 0x0: Reserved.
             // 0x1 - 0x000FFC: Priorities; hardcoded to zero.
@@ -106,7 +107,8 @@ public class R5PlatformLevelInterruptController implements MemoryMappedDevice, I
     }
 
     @Override
-    public void store32(final int offset, final int value) {
+    public void store(final int offset, final int value, final int sizeLog2) {
+        assert sizeLog2 == 2;
         switch (offset) {
             case PLIC_CONTEXT_BASE + 4: { // Claim/complete for context 0
                 complete(value);

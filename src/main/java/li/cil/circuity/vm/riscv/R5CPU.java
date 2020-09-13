@@ -1845,27 +1845,27 @@ public class R5CPU implements Steppable, InterruptController {
     }
 
     private byte load8(final int address) throws MemoryAccessException {
-        return (byte) load(address, 8, 0);
+        return (byte) load(address, Sizes.SIZE_8, Sizes.SIZE_8_LOG2);
     }
 
     private void store8(final int address, final byte value) throws MemoryAccessException {
-        store(address, value, 8, 0);
+        store(address, value, Sizes.SIZE_8, Sizes.SIZE_8_LOG2);
     }
 
     private short load16(final int address) throws MemoryAccessException {
-        return (short) load(address, 16, 1);
+        return (short) load(address, Sizes.SIZE_16, Sizes.SIZE_16_LOG2);
     }
 
     private void store16(final int address, final short value) throws MemoryAccessException {
-        store(address, value, 16, 1);
+        store(address, value, Sizes.SIZE_16, Sizes.SIZE_16_LOG2);
     }
 
     private int load32(final int address) throws MemoryAccessException {
-        return load(address, 32, 2);
+        return load(address, Sizes.SIZE_32, Sizes.SIZE_32_LOG2);
     }
 
     private void store32(final int address, final int value) throws MemoryAccessException {
-        store(address, value, 32, 2);
+        store(address, value, Sizes.SIZE_32, Sizes.SIZE_32_LOG2);
     }
 
     private int fetch(final int address) throws MemoryAccessException {
@@ -1890,16 +1890,7 @@ public class R5CPU implements Steppable, InterruptController {
         final int virtualAddress = address & ~(R5.PAGE_ADDRESS_MASK & ~alignmentMask);
         final TLBEntry entry = tlb_read[tlbIndex];
         if (entry.virtualAddress == virtualAddress) {
-            switch (sizeLog2) {
-                case 0:
-                    return entry.memory.get(address + entry.toLocal);
-                case 1:
-                    return entry.memory.getShort(address + entry.toLocal);
-                case 2:
-                    return entry.memory.getInt(address + entry.toLocal);
-                default:
-                    throw new AssertionError();
-            }
+            return entry.device.load(address + entry.toOffset, sizeLog2);
         } else {
             return loadSlow(address, sizeLog2);
         }
@@ -1912,19 +1903,7 @@ public class R5CPU implements Steppable, InterruptController {
         final int virtualAddress = address & ~(R5.PAGE_ADDRESS_MASK & ~alignmentMask);
         final TLBEntry entry = tlb_write[tlbIndex];
         if (entry.virtualAddress == virtualAddress) {
-            switch (sizeLog2) {
-                case 0:
-                    entry.memory.put(address + entry.toLocal, (byte) value);
-                    break;
-                case 1:
-                    entry.memory.putShort(address + entry.toLocal, (short) value);
-                    break;
-                case 2:
-                    entry.memory.putInt(address + entry.toLocal, value);
-                    break;
-                default:
-                    throw new AssertionError();
-            }
+            entry.device.store(address + entry.toOffset, value, sizeLog2);
         } else {
             storeSlow(address, value, sizeLog2);
         }
@@ -1954,17 +1933,7 @@ public class R5CPU implements Steppable, InterruptController {
                 return 0;
             } else if (range.device instanceof PhysicalMemory) {
                 final TLBEntry entry = updateTLB(tlb_read, address, physicalAddress, range);
-                final int offset = address + entry.toLocal;
-                switch (sizeLog2) {
-                    case 0:
-                        return entry.memory.get(offset);
-                    case 1:
-                        return entry.memory.getShort(offset);
-                    case 2:
-                        return entry.memory.getInt(offset);
-                    default:
-                        throw new AssertionError();
-                }
+                return entry.device.load(address + entry.toOffset, sizeLog2);
             } else {
                 return range.device.load(physicalAddress - range.start, sizeLog2);
             }
@@ -1983,21 +1952,8 @@ public class R5CPU implements Steppable, InterruptController {
                 LOGGER.debug("Trying to store to invalid physical address [{}].", address);
             } else if (range.device instanceof PhysicalMemory) {
                 final TLBEntry entry = updateTLB(tlb_write, address, physicalAddress, range);
-                final int offset = address + entry.toLocal;
-                switch (sizeLog2) {
-                    case 0:
-                        entry.memory.put(offset, (byte) value);
-                        break;
-                    case 1:
-                        entry.memory.putShort(offset, (short) value);
-                        break;
-                    case 2:
-                        entry.memory.putInt(offset, value);
-                        break;
-                    default:
-                        throw new AssertionError();
-                }
-
+                final int offset = address + entry.toOffset;
+                entry.device.store(offset, value, sizeLog2);
                 physicalMemory.setDirty(range, offset);
             } else {
                 range.device.store(physicalAddress - range.start, value, sizeLog2);
@@ -2108,12 +2064,10 @@ public class R5CPU implements Steppable, InterruptController {
         final int tlbIndex = (address >>> R5.PAGE_ADDRESS_SHIFT) & (TLB_SIZE - 1);
         final int virtualAddress = address & ~R5.PAGE_ADDRESS_MASK;
 
-        // TODO Only grab a slice as big as the memory region covered by the TLB entry... I can't math right now.
-
         final TLBEntry entry = tlb[tlbIndex];
         entry.virtualAddress = virtualAddress;
-        entry.toLocal = physicalAddress - address - range.start;
-        entry.memory = ((PhysicalMemory) range.device).slice(0, range.end - range.start + 1);
+        entry.toOffset = physicalAddress - address - range.start;
+        entry.device = range.device;
 
         return entry;
     }
@@ -2176,8 +2130,8 @@ public class R5CPU implements Steppable, InterruptController {
 
     private static final class TLBEntry {
         public int virtualAddress = -1;
-        public int toLocal;
-        public ByteBuffer memory;
+        public int toOffset;
+        public MemoryMappedDevice device;
     }
 
     public R5CPUStateSnapshot getState() {

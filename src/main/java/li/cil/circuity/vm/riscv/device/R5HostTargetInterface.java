@@ -1,6 +1,7 @@
 package li.cil.circuity.vm.riscv.device;
 
 import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
+import li.cil.circuity.api.vm.device.memory.Sizes;
 
 public final class R5HostTargetInterface implements MemoryMappedDevice {
     public static final int COMMAND_POWER_OFF = 1;
@@ -14,7 +15,7 @@ public final class R5HostTargetInterface implements MemoryMappedDevice {
 
     @Override
     public int load(final int offset, final int sizeLog2) {
-        assert sizeLog2 == 2;
+        assert sizeLog2 == Sizes.SIZE_32_LOG2;
         switch (offset) {
             case 0: {
                 return (int) toHost;
@@ -37,7 +38,7 @@ public final class R5HostTargetInterface implements MemoryMappedDevice {
 
     @Override
     public void store(final int offset, final int value, final int sizeLog2) {
-        assert sizeLog2 == 2;
+        assert sizeLog2 == Sizes.SIZE_32_LOG2;
         switch (offset) {
             case 0: {
                 toHost = (toHost & ~0xFFFFFFFFL) | value;

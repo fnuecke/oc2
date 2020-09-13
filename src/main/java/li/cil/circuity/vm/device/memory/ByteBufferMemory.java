@@ -62,14 +62,4 @@ public class ByteBufferMemory implements PhysicalMemory {
         }
     }
 
-    @Override
-    public ByteBuffer slice(final int offset, final int length) {
-        final int limit = data.limit();
-        data.position(offset);
-        data.limit(offset + length);
-        final ByteBuffer result = data.slice();
-        result.order(ByteOrder.LITTLE_ENDIAN);
-        data.limit(limit);
-        return result;
-    }
 }

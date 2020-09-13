@@ -7,6 +7,7 @@ import li.cil.circuity.api.vm.device.InterruptSource;
 import li.cil.circuity.api.vm.device.Resettable;
 import li.cil.circuity.api.vm.device.Steppable;
 import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
+import li.cil.circuity.api.vm.device.memory.Sizes;
 
 import java.util.Collections;
 
@@ -221,7 +222,7 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
 
     @Override
     public int load(final int offset, final int sizeLog2) {
-        assert sizeLog2 == 0;
+        assert sizeLog2 == Sizes.SIZE_8_LOG2;
         switch (offset) {
             // case UART_DLL_OFFSET:
             case UART_RBR_OFFSET: {
@@ -318,7 +319,7 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
 
     @Override
     public void store(final int offset, final int value, final int sizeLog2) {
-        assert sizeLog2 == 0;
+        assert sizeLog2 == Sizes.SIZE_8_LOG2;
         switch (offset) {
             // case UART_DLL_OFFSET:
             case UART_THR_OFFSET: {

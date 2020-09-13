@@ -1,7 +1,7 @@
 package li.cil.circuity;
 
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
-import li.cil.circuity.vm.device.memory.ByteBufferMemory;
+import li.cil.circuity.vm.device.memory.UnsafeMemory;
 import li.cil.circuity.vm.riscv.R5Board;
 
 import java.io.BufferedInputStream;
@@ -9,8 +9,8 @@ import java.io.FileInputStream;
 
 public final class Main {
     public static void main(final String[] args) throws Exception {
-        final PhysicalMemory rom = new ByteBufferMemory(128 * 1024);
-        final PhysicalMemory memory = new ByteBufferMemory(48 * 1014 * 1024);
+        final PhysicalMemory rom = new UnsafeMemory(128 * 1024);
+        final PhysicalMemory memory = new UnsafeMemory(128 * 1014 * 1024);
         final R5Board board = new R5Board();
         board.addDevice(0x80000000, rom);
         board.addDevice(0x80000000 + 0x400000, memory);
@@ -31,9 +31,26 @@ public final class Main {
 
         final long start = System.currentTimeMillis();
 
-        final int n = 40000;
+        final long n = 400_000_000;
+        final int stepn = 10_000;
+        final int hz = 30_000_000;
+
+        long remaining = 0;
         for (int i = 0; i < n; i++) {
-            board.step(10000);
+            final long stepStart = System.currentTimeMillis();
+            remaining += hz;
+            while (remaining > 0) {
+                board.step(stepn);
+                remaining -= stepn;
+            }
+
+            final long elapsed = System.currentTimeMillis() - stepStart;
+            final long sleep = 1000 - elapsed;
+            if (sleep > 0) {
+//                Thread.sleep(sleep);
+            } else {
+                System.out.println("Running behind by " + (-sleep) + "ms...");
+            }
         }
 
         final long duration = System.currentTimeMillis() - start;

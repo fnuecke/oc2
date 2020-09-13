@@ -4,6 +4,7 @@ import li.cil.circuity.api.vm.Interrupt;
 import li.cil.circuity.api.vm.device.InterruptSource;
 import li.cil.circuity.api.vm.device.Steppable;
 import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
+import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.api.vm.device.rtc.RealTimeCounter;
 import li.cil.circuity.vm.riscv.R5;
 
@@ -56,7 +57,7 @@ public final class R5CoreLocalInterrupter implements Steppable, InterruptSource,
 
     @Override
     public int load(final int offset, final int sizeLog2) {
-        assert sizeLog2 == 2;
+        assert sizeLog2 == Sizes.SIZE_32_LOG2;
         switch (offset) {
             case 0x4000: {
                 return (int) mtimecmp;
@@ -78,7 +79,7 @@ public final class R5CoreLocalInterrupter implements Steppable, InterruptSource,
 
     @Override
     public void store(final int offset, final int value, final int sizeLog2) {
-        assert sizeLog2 == 2;
+        assert sizeLog2 == Sizes.SIZE_32_LOG2;
         switch (offset) {
             case 0x4000: {
                 mtimecmp = (mtimecmp & ~0xFFFFFFFFL) | (value & 0xFFFFFFFFL);

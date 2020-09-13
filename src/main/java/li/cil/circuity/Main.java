@@ -3,6 +3,7 @@ package li.cil.circuity;
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.vm.device.memory.UnsafeMemory;
 import li.cil.circuity.vm.riscv.R5Board;
+import li.cil.circuity.vm.riscv.R5CPU;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -16,48 +17,67 @@ public final class Main {
         board.addDevice(0x80000000 + 0x400000, memory);
 
         final String firmware = "C:\\Users\\fnuecke\\Documents\\Repositories\\Circuity-1.15\\buildroot\\fw_jump.bin";
-        loadProgramFile(rom, 0, firmware);
-
         final String kernel = "C:\\Users\\fnuecke\\Documents\\Repositories\\Circuity-1.15\\buildroot\\Image";
-        loadProgramFile(memory, 0, kernel);
 
         final UARTReader reader = new UARTReader(board);
         final Thread thread = new Thread(reader);
         thread.start();
 
-//        System.out.println("Waiting for VisualVM...");
-//        Thread.sleep(10 * 1000);
-//        System.out.println("Starting!");
+        System.out.println("Waiting for profiler...");
+        Thread.sleep(5 * 1000);
+        System.out.println("Starting!");
 
-        final long start = System.currentTimeMillis();
+        final long cyclesPerRun = 300_000_000;
+        final int cyclesPerStep = 10_000;
+        final int hz = 50_000_000;
 
-        final long n = 400_000_000;
-        final int stepn = 10_000;
-        final int hz = 30_000_000;
+        final int samples = 10;
+        int minRunDuration = Integer.MAX_VALUE;
+        int maxRunDuration = Integer.MIN_VALUE;
+        int accRunDuration = 0;
 
-        long remaining = 0;
-        for (int i = 0; i < n; i++) {
-            final long stepStart = System.currentTimeMillis();
-            remaining += hz;
-            while (remaining > 0) {
-                board.step(stepn);
-                remaining -= stepn;
-            }
+        final R5CPU cpu = board.getCpu();
 
-            final long elapsed = System.currentTimeMillis() - stepStart;
-            final long sleep = 1000 - elapsed;
-            if (sleep > 0) {
+        for (int i = 0; i < 10; i++) {
+            loadProgramFile(memory, 0, kernel);
+            loadProgramFile(rom, 0, firmware);
+            cpu.reset();
+
+            final long runStart = System.currentTimeMillis();
+
+            int remaining = 0;
+            while (cpu.getTime() < cyclesPerRun) {
+                final long stepStart = System.currentTimeMillis();
+
+                remaining += hz;
+                while (remaining > 0) {
+                    board.step(cyclesPerStep);
+                    remaining -= cyclesPerStep;
+                }
+
+                final long stepDuration = System.currentTimeMillis() - stepStart;
+                final long sleep = 1000 - stepDuration;
+                if (sleep > 0) {
 //                Thread.sleep(sleep);
-            } else {
-                System.out.println("Running behind by " + (-sleep) + "ms...");
+                } else {
+                    System.out.println("Running behind by " + (-sleep) + "ms...");
+                }
             }
+
+            final int runDuration = (int) (System.currentTimeMillis() - runStart);
+            accRunDuration += runDuration;
+            minRunDuration = Integer.min(minRunDuration, runDuration);
+            maxRunDuration = Integer.max(maxRunDuration, runDuration);
+
+            System.out.printf("\n\ntime: %.2fs\n", runDuration / 1000.0);
         }
 
-        final long duration = System.currentTimeMillis() - start;
-
-        System.out.printf("Took: %.2fs\n", duration / 1000.0);
-
         reader.stop();
+
+        final int avgDuration = accRunDuration / samples;
+        System.out.printf("\n\ntimes: min=%.2fs, max=%.2fs, avg=%.2fs\n",
+                minRunDuration / 1000.0, maxRunDuration / 1000.0, avgDuration / 1000.0);
+
         thread.join();
     }
 
@@ -85,10 +105,17 @@ public final class Main {
         @Override
         public void run() {
             try {
+                final StringBuilder sb = new StringBuilder();
                 while (keepRunning) {
                     final int i = board.readValue();
                     if (i >= 0) {
-                        System.out.print((char) i);
+                        final char ch = (char) i;
+                        sb.append(ch);
+                        if (ch == '\r' || ch == '\n') {
+                            final String line = sb.toString();
+                            System.out.print(line);
+                            sb.setLength(0);
+                        }
                     }
                     Thread.yield();
                 }

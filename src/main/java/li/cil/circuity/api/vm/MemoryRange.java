@@ -22,6 +22,14 @@ public final class MemoryRange {
         this(device, address, address + device.getLength() - 1);
     }
 
+    public int address() {
+        return start;
+    }
+
+    public final int size() {
+        return end - start + 1;
+    }
+
     public boolean contains(final int address) {
         return Integer.compareUnsigned(address, start) >= 0 && Integer.compareUnsigned(address, end) <= 0;
     }

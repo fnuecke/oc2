@@ -8,6 +8,7 @@ import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.OptionalInt;
 
 public final class SimpleMemoryMap implements MemoryMap {
@@ -65,13 +66,8 @@ public final class SimpleMemoryMap implements MemoryMap {
     }
 
     @Override
-    public int getDeviceAddress(final MemoryMappedDevice device) {
-        final MemoryRange range = devices.get(device);
-        if (range != null) {
-            return range.start;
-        } else {
-            return -1;
-        }
+    public Optional<MemoryRange> getMemoryRange(final MemoryMappedDevice device) {
+        return Optional.ofNullable(devices.get(device));
     }
 
     @Nullable

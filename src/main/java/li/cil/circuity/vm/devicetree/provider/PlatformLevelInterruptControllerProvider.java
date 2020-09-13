@@ -1,6 +1,7 @@
 package li.cil.circuity.vm.devicetree.provider;
 
 import li.cil.circuity.api.vm.MemoryMap;
+import li.cil.circuity.api.vm.MemoryRange;
 import li.cil.circuity.api.vm.device.Device;
 import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
 import li.cil.circuity.api.vm.devicetree.DeviceNames;
@@ -21,7 +22,8 @@ public final class PlatformLevelInterruptControllerProvider implements DeviceTre
 
     @Override
     public Optional<DeviceTree> createNode(final DeviceTree root, final MemoryMap memoryMap, final Device device, final String deviceName) {
-        return Optional.of(root.find("/soc").getChild(deviceName, memoryMap.getDeviceAddress((MemoryMappedDevice) device)));
+        final Optional<MemoryRange> range = memoryMap.getMemoryRange((MemoryMappedDevice) device);
+        return range.map(r -> root.find("/soc").getChild(deviceName, r.address()));
     }
 
     @Override

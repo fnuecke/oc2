@@ -19,6 +19,6 @@ public class PhysicalMemoryProvider implements DeviceTreeProvider {
 
     @Override
     public void visit(final DeviceTree node, final MemoryMap memoryMap, final Device device) {
-        node.addProp(DeviceTreePropertyNames.DEVICE_TYPE, "memory");
+        node.addProp(DeviceTreePropertyNames.DEVICE_TYPE, DeviceNames.MEMORY);
     }
 }

@@ -1,8 +1,9 @@
 package li.cil.circuity.vm.device.memory;
 
-import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.device.memory.Sizes;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 import sun.misc.VM;
@@ -10,18 +11,19 @@ import sun.misc.VM;
 import java.lang.reflect.Field;
 
 public final class UnsafeMemory implements PhysicalMemory {
+    private static final Logger LOGGER = LogManager.getLogger();
+
     private static final Unsafe unsafe;
-    private static int pageSize = -1;
 
     static {
-        final Field f;
         Unsafe instance = null;
+        final Field field;
         try {
-            f = Unsafe.class.getDeclaredField("theUnsafe");
-            f.setAccessible(true);
-            instance = (Unsafe) f.get(null);
+            field = Unsafe.class.getDeclaredField("theUnsafe");
+            field.setAccessible(true);
+            instance = (Unsafe) field.get(null);
         } catch (final NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
+            LOGGER.error(e);
         }
 
         unsafe = instance;
@@ -65,8 +67,8 @@ public final class UnsafeMemory implements PhysicalMemory {
     }
 
     @Override
-    public int load(final int offset, final int sizeLog2) throws MemoryAccessException {
-        assert  offset >= 0 && offset < size;
+    public int load(final int offset, final int sizeLog2) {
+        assert offset >= 0 && offset < size;
         switch (sizeLog2) {
             case Sizes.SIZE_8_LOG2:
                 return unsafe.getByte(address + offset);
@@ -82,8 +84,8 @@ public final class UnsafeMemory implements PhysicalMemory {
     }
 
     @Override
-    public void store(final int offset, final int value, final int sizeLog2) throws MemoryAccessException {
-        assert  offset >= 0 && offset < size;
+    public void store(final int offset, final int value, final int sizeLog2) {
+        assert offset >= 0 && offset < size;
         switch (sizeLog2) {
             case Sizes.SIZE_8_LOG2:
                 unsafe.putByte(address + offset, (byte) value);

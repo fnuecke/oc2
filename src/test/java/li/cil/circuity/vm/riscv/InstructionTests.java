@@ -2,6 +2,7 @@ package li.cil.circuity.vm.riscv;
 
 import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
+import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.vm.device.memory.ByteBufferMemory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -115,7 +116,7 @@ public class InstructionTests {
         try (final FileInputStream is = new FileInputStream(path)) {
             final BufferedInputStream bis = new BufferedInputStream(is);
             for (int value = bis.read(); value != -1; value = bis.read()) {
-                memory.store8(address++, (byte) value);
+                memory.store(address++, (byte) value, Sizes.SIZE_8_LOG2);
             }
         }
     }

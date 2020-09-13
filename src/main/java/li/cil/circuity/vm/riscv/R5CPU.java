@@ -1,20 +1,21 @@
 package li.cil.circuity.vm.riscv;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import li.cil.circuity.api.vm.MemoryMap;
 import li.cil.circuity.api.vm.MemoryRange;
 import li.cil.circuity.api.vm.device.InterruptController;
 import li.cil.circuity.api.vm.device.Steppable;
 import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
+import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
+import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.api.vm.device.rtc.RealTimeCounter;
 import li.cil.circuity.vm.device.memory.exception.*;
-import li.cil.circuity.vm.riscv.exception.*;
+import li.cil.circuity.vm.riscv.exception.R5BreakpointException;
+import li.cil.circuity.vm.riscv.exception.R5ECallException;
+import li.cil.circuity.vm.riscv.exception.R5Exception;
+import li.cil.circuity.vm.riscv.exception.R5IllegalInstructionException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.nio.ByteBuffer;
 
 /**
  * RISC-V
@@ -1877,7 +1878,14 @@ public class R5CPU implements Steppable, InterruptController {
         final int virtualAddress = address & ~R5.PAGE_ADDRESS_MASK;
         final TLBEntry entry = tlb_fetch[tlbIndex];
         if (entry.virtualAddress == virtualAddress) {
-            return entry.memory.getInt(address + entry.toLocal);
+            final int offset = address + entry.toOffset;
+//                // TODO Cannot assume device contains offset + 2
+//            if ((offset & 0b11) == 0) {
+                return entry.device.load(offset, Sizes.SIZE_32_LOG2);
+//            } else {
+//                return (entry.device.load(offset, Sizes.SIZE_16_LOG2) & 0xFFFF) |
+//                       (entry.device.load(offset + 2, Sizes.SIZE_16_LOG2) << 16);
+//            }
         } else {
             return fetchSlow(address);
         }
@@ -1917,7 +1925,14 @@ public class R5CPU implements Steppable, InterruptController {
         }
 
         final TLBEntry entry = updateTLB(tlb_fetch, address, physicalAddress, range);
-        return entry.memory.getInt(address + entry.toLocal);
+        final int offset = address + entry.toOffset;
+//            // TODO Cannot assume device contains offset + 2
+//        if ((offset & 0b11) == 0) {
+            return entry.device.load(offset, Sizes.SIZE_32_LOG2);
+//        } else {
+//            return (entry.device.load(offset, Sizes.SIZE_16_LOG2) & 0xFFFF) |
+//                   (entry.device.load(offset + 2, Sizes.SIZE_16_LOG2) << 16);
+//        }
     }
 
     private int loadSlow(final int address, final int sizeLog2) throws MemoryAccessException {

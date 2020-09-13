@@ -2,6 +2,7 @@ package li.cil.circuity.vm.device.memory;
 
 import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
+import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.vm.device.memory.exception.LoadFaultException;
 import li.cil.circuity.vm.device.memory.exception.StoreFaultException;
 
@@ -27,11 +28,11 @@ public class ByteBufferMemory implements PhysicalMemory {
     public int load(final int offset, final int sizeLog2) throws MemoryAccessException {
         try {
             switch (sizeLog2) {
-                case 0:
+                case Sizes.SIZE_8_LOG2:
                     return data.get(offset);
-                case 1:
+                case Sizes.SIZE_16_LOG2:
                     return data.getShort(offset);
-                case 2:
+                case Sizes.SIZE_32_LOG2:
                     return data.getInt(offset);
                 default:
                     throw new IllegalArgumentException();
@@ -45,13 +46,13 @@ public class ByteBufferMemory implements PhysicalMemory {
     public void store(final int offset, final int value, final int sizeLog2) throws MemoryAccessException {
         try {
             switch (sizeLog2) {
-                case 0:
+                case Sizes.SIZE_8_LOG2:
                     data.put(offset, (byte) value);
                     break;
-                case 1:
+                case Sizes.SIZE_16_LOG2:
                     data.putShort(offset, (short) value);
                     break;
-                case 2:
+                case Sizes.SIZE_32_LOG2:
                     data.putInt(offset, value);
                     break;
                 default:
@@ -61,5 +62,4 @@ public class ByteBufferMemory implements PhysicalMemory {
             throw new StoreFaultException(offset);
         }
     }
-
 }

@@ -249,7 +249,6 @@ public class R5CPU implements Steppable, InterruptController {
                     final int rd = getField(inst, 7, 11, 0);
                     final int rs1 = getField(inst, 15, 19, 0);
                     final int rs2 = getField(inst, 20, 24, 0);
-                    final int funct3 = getField(inst, 12, 14, 0);
 
                     // Opcode values, see Volume I: RISC-V Unprivileged ISA V20191214-draft page 130ff. They appear in the order
                     // they are introduced in the spec. Immediate value decoding follows the layouts described in 2.3.
@@ -259,7 +258,7 @@ public class R5CPU implements Steppable, InterruptController {
                         // 2.4 Integer Computational Instructions
                         ///////////////////////////////////////////////////////////////////
                         case 0b0010011: { // OP-IMM (register-immediate operation)
-                            op_imm(inst, rd, rs1, funct3);
+                            op_imm(inst, rd, rs1);
 
                             instOffset += 4;
                             break;
@@ -280,18 +279,17 @@ public class R5CPU implements Steppable, InterruptController {
                         }
 
                         case 0b0110011: { // OP (register-register operation aka R-type)
-                            final int a = x[rs1];
-                            final int b = x[rs2];
+                            final int funct3 = getField(inst, 12, 14, 0);
                             final int funct7 = getField(inst, 25, 31, 0);
                             switch (funct7) {
                                 case 0b000001: {
-                                    op_m(inst, rd, funct3, a, b);
+                                    op_m(inst, rd, rs1, rs2, funct3);
 
                                     break;
                                 }
                                 case 0b0000000:
                                 case 0b0100000: {
-                                    op_rr(inst, rd, funct3, funct7, a, b);
+                                    op_rr(inst, rd, rs1, rs2, funct3, funct7);
 
                                     break;
                                 }
@@ -324,6 +322,7 @@ public class R5CPU implements Steppable, InterruptController {
                         ///////////////////////////////////////////////////////////////////
                         // Conditional Branches
                         case 0b1100011: { // BRANCH
+                            final int funct3 = getField(inst, 12, 14, 0);
                             final boolean invert = (funct3 & 0b1) != 0;
 
                             final boolean condition;
@@ -365,14 +364,14 @@ public class R5CPU implements Steppable, InterruptController {
                         ///////////////////////////////////////////////////////////////////
 
                         case 0b0000011: { // LOAD
-                            load(inst, rd, x[rs1], funct3);
+                            load(inst, rd, x[rs1]);
 
                             instOffset += 4;
                             break;
                         }
 
                         case 0b0100011: { // STORE
-                            store(inst, x[rs1], x[rs2], funct3);
+                            store(inst, x[rs1], x[rs2]);
 
                             instOffset += 4;
                             break;
@@ -383,6 +382,7 @@ public class R5CPU implements Steppable, InterruptController {
                         ///////////////////////////////////////////////////////////////////
 
                         case 0b0001111: { // MISC-MEM
+                            final int funct3 = getField(inst, 12, 14, 0);
                             switch (funct3) {
                                 case 0b000: { // FENCE
 //                                    if ((inst & 0b1111_00000000_11111_111_11111_0000000) != 0) // Not supporting any flags.
@@ -414,6 +414,7 @@ public class R5CPU implements Steppable, InterruptController {
                         ///////////////////////////////////////////////////////////////////
 
                         case 0b1110011: { // SYSTEM
+                            final int funct3 = getField(inst, 12, 14, 0);
                             if (funct3 == 0b100) {
                                 throw new R5IllegalInstructionException(inst);
                             }
@@ -518,6 +519,7 @@ public class R5CPU implements Steppable, InterruptController {
                         ///////////////////////////////////////////////////////////////////
 
                         case 0b0101111: { // AMO
+                            final int funct3 = getField(inst, 12, 14, 0);
                             switch (funct3) { // width
                                 case 0b010: { // 32
                                     amo32(inst, rd, rs1, rs2);
@@ -677,6 +679,7 @@ public class R5CPU implements Steppable, InterruptController {
                                     } else {
                                         instOffset += 2;
                                     }
+
                                     break;
                                 }
 
@@ -784,52 +787,242 @@ public class R5CPU implements Steppable, InterruptController {
         }
     }
 
-    private void op_imm(final int inst, final int rd, final int rs1, final int funct3) throws R5Exception {
+    private void op_m(final int inst, final int rd, final int rs1, final int rs2, final int funct3) throws R5IllegalInstructionException {
+        ///////////////////////////////////////////////////////////////////
+        // Chapter 7 "M" Standard Extension for Integer Multiplication and Division, Version 2.0
+        ///////////////////////////////////////////////////////////////////
+
+        switch (funct3) {
+            ///////////////////////////////////////////////////////////////////
+            // 7.1 Multiplication Operations
+
+            case 0b000: { // MUL
+                mul(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b001: { // MULH
+                mulh(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b010: { // MULHSU
+                mulhsu(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b011: { // MULHU
+                mulhu(rd, rs1, rs2);
+
+                break;
+            }
+
+            ///////////////////////////////////////////////////////////////////
+            // 7.2 Division Operations, special cases from table 7.1 on p45.
+
+            case 0b100: { // DIV
+                div(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b101: { // DIVU
+                divu(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b110: { // REM
+                rem(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b111: { // REMU
+                remu(rd, rs1, rs2);
+
+                break;
+            }
+
+            default: {
+                throw new R5IllegalInstructionException(inst);
+            }
+        }
+    }
+
+    private void op_rr(final int inst, final int rd, final int rs1, final int rs2, final int funct3, final int funct7) throws R5IllegalInstructionException {
+        // Integer Register-Register Operations
+        switch (funct3 | funct7) {
+            case 0b000: { // ADD
+                add(rd, rs1, rs2);
+
+                break;
+            }
+            //noinspection PointlessBitwiseExpression
+            case 0b000 | 0b0100000: { // SUB
+                sub(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b001: { // SLL
+                sll(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b010: { // SLT
+                slt(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b011: { // SLTU
+                sltu(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b100: { // XOR
+                xor(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b101: { // SRL
+                srl(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b101 | 0b0100000: { // SRA
+                sra(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b110: { // OR
+                or(rd, rs1, rs2);
+
+                break;
+            }
+            case 0b111: { // AND
+                and(rd, rs1, rs2);
+
+                break;
+            }
+
+            default: {
+                throw new R5IllegalInstructionException(inst);
+            }
+        }
+    }
+
+    private void add(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = x[rs1] + x[rs2];
+        }
+    }
+
+    private void sub(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = x[rs1] - x[rs2];
+        }
+    }
+
+    private void sll(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = x[rs1] << x[rs2];
+        }
+    }
+
+    private void slt(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = x[rs1] < x[rs2] ? 1 : 0;
+        }
+    }
+
+    private void sltu(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = Integer.compareUnsigned(x[rs1], x[rs2]) < 0 ? 1 : 0;
+        }
+    }
+
+    private void xor(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = x[rs1] ^ x[rs2];
+        }
+    }
+
+    private void srl(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = x[rs1] >>> x[rs2];
+        }
+    }
+
+    private void sra(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = x[rs1] >> x[rs2];
+        }
+    }
+
+    private void or(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = x[rs1] | x[rs2];
+        }
+    }
+
+    private void and(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = x[rs1] & x[rs2];
+        }
+    }
+
+    private void op_imm(final int inst, final int rd, final int rs1) throws R5Exception {
         ///////////////////////////////////////////////////////////////////
         // Integer Register-Immediate Instructions
+        final int funct3 = getField(inst, 12, 14, 0);
         final int imm = inst >> 20; // inst[31:20], sign extended
-        final int result;
         switch (funct3) {
             case 0b000: { // ADDI
-                result = x[rs1] + imm;
+                addi(rd, rs1, imm);
+
                 break;
             }
             case 0b010: { // SLTI
-                result = x[rs1] < imm ? 1 : 0;
+                slti(rd, rs1, imm);
+
                 break;
             }
             case 0b011: { // SLTIU
-                result = Integer.compareUnsigned(x[rs1], imm) < 0 ? 1 : 0;
+                sltiu(rd, rs1, imm);
+
                 break;
             }
             case 0b100: { // XORI
-                result = x[rs1] ^ imm;
+                xori(rd, rs1, imm);
+
                 break;
             }
             case 0b110: { // ORI
-                result = x[rs1] | imm;
+                ori(rd, rs1, imm);
+
                 break;
             }
             case 0b111: { // ANDI
-                result = x[rs1] & imm;
+                andi(rd, rs1, imm);
+
                 break;
             }
             case 0b001: { // SLLI
                 if ((inst & 0b1111111_00000_00000_000_00000_0000000) != 0)
                     throw new R5IllegalInstructionException(inst);
 
-                result = x[rs1] << (imm & 0b11111);
+                slli(rd, rs1, imm);
+
                 break;
             }
             case 0b101: { // SRLI/SRAI
                 final int funct7 = getField(imm, 5, 11, 0); // imm[11:5]
                 switch (funct7) {
                     case 0b0000000: { // SRLI
-                        result = x[rs1] >>> (imm & 0b11111);
+                        srli(rd, rs1, imm);
+
                         break;
                     }
                     case 0b0100000: { // SRAI
-                        result = x[rs1] >> (imm & 0b11111);
+                        srai(rd, rs1, imm);
+
                         break;
                     }
 
@@ -844,9 +1037,59 @@ public class R5CPU implements Steppable, InterruptController {
                 throw new R5IllegalInstructionException(inst);
             }
         }
+    }
 
+    private void addi(final int rd, final int rs1, final int imm) {
         if (rd != 0) {
-            x[rd] = result;
+            x[rd] = x[rs1] + imm;
+        }
+    }
+
+    private void slti(final int rd, final int rs1, final int imm) {
+        if (rd != 0) {
+            x[rd] = x[rs1] < imm ? 1 : 0;
+        }
+    }
+
+    private void sltiu(final int rd, final int rs1, final int imm) {
+        if (rd != 0) {
+            x[rd] = Integer.compareUnsigned(x[rs1], imm) < 0 ? 1 : 0;
+        }
+    }
+
+    private void xori(final int rd, final int rs1, final int imm) {
+        if (rd != 0) {
+            x[rd] = x[rs1] ^ imm;
+        }
+    }
+
+    private void ori(final int rd, final int rs1, final int imm) {
+        if (rd != 0) {
+            x[rd] = x[rs1] | imm;
+        }
+    }
+
+    private void andi(final int rd, final int rs1, final int imm) {
+        if (rd != 0) {
+            x[rd] = x[rs1] & imm;
+        }
+    }
+
+    private void slli(final int rd, final int rs1, final int imm) {
+        if (rd != 0) {
+            x[rd] = x[rs1] << (imm & 0b11111);
+        }
+    }
+
+    private void srli(final int rd, final int rs1, final int imm) {
+        if (rd != 0) {
+            x[rd] = x[rs1] >>> (imm & 0b11111);
+        }
+    }
+
+    private void srai(final int rd, final int rs1, final int imm) {
+        if (rd != 0) {
+            x[rd] = x[rs1] >> (imm & 0b11111);
         }
     }
 
@@ -864,136 +1107,71 @@ public class R5CPU implements Steppable, InterruptController {
         }
     }
 
-    private void op_m(final int inst, final int rd, final int funct3, final int a, final int b) throws R5Exception {
-        ///////////////////////////////////////////////////////////////////
-        // Chapter 7 "M" Standard Extension for Integer Multiplication and Division, Version 2.0
-        ///////////////////////////////////////////////////////////////////
-
-        final int result;
-        switch (funct3) {
-            ///////////////////////////////////////////////////////////////////
-            // 7.1 Multiplication Operations
-
-            case 0b000: { // MUL
-                result = a * b;
-                break;
-            }
-            case 0b001: { // MULH
-                result = (int) (((long) a * (long) b) >> 32);
-                break;
-            }
-            case 0b010: { // MULHSU
-                result = (int) (((long) a * Integer.toUnsignedLong(b)) >> 32);
-                break;
-            }
-            case 0b011: { // MULHU
-                result = (int) ((Integer.toUnsignedLong(a) * Integer.toUnsignedLong(b)) >>> 32);
-                break;
-            }
-
-            ///////////////////////////////////////////////////////////////////
-            // 7.2 Division Operations, special cases from table 7.1 on p45.
-
-            case 0b100: { // DIV
-                if (b == 0) {
-                    result = -1;
-                } else if (a == Integer.MIN_VALUE && b == -1) {
-                    result = a;
-                } else {
-                    result = a / b;
-                }
-                break;
-            }
-            case 0b101: { // DIVU
-                if (b == 0) {
-                    result = Integer.MAX_VALUE;
-                } else {
-                    result = Integer.divideUnsigned(a, b);
-                }
-                break;
-            }
-            case 0b110: { // REM
-                if (b == 0) {
-                    result = a;
-                } else if (a == Integer.MIN_VALUE && b == -1) {
-                    result = 0;
-                } else {
-                    result = a % b;
-                }
-                break;
-            }
-            case 0b111: { // REMU
-                if (b == 0) {
-                    result = a;
-                } else {
-                    result = Integer.remainderUnsigned(a, b);
-                }
-                break;
-            }
-
-            default: {
-                throw new R5IllegalInstructionException(inst);
-            }
-        }
-
+    private void mul(final int rd, final int rs1, final int rs2) {
         if (rd != 0) {
-            x[rd] = result;
+            x[rd] = x[rs1] * x[rs2];
         }
     }
 
-    private void op_rr(final int inst, final int rd, final int funct3, final int funct7, final int a, final int b) throws R5Exception {
-        // Integer Register-Register Operations
-        final int result;
-        switch (funct3 | funct7) {
-            case 0b000: { // ADD
-                result = a + b;
-                break;
-            }
-            //noinspection PointlessBitwiseExpression
-            case 0b000 | 0b0100000: { // SUB
-                result = a - b;
-                break;
-            }
-            case 0b001: { // SLL
-                result = a << b;
-                break;
-            }
-            case 0b010: { // SLT
-                result = a < b ? 1 : 0;
-                break;
-            }
-            case 0b011: { // SLTU
-                result = Integer.compareUnsigned(a, b) < 0 ? 1 : 0;
-                break;
-            }
-            case 0b100: { // XOR
-                result = a ^ b;
-                break;
-            }
-            case 0b101: { // SRL
-                result = a >>> b;
-                break;
-            }
-            case 0b101 | 0b0100000: { // SRA
-                result = a >> b;
-                break;
-            }
-            case 0b110: { // OR
-                result = a | b;
-                break;
-            }
-            case 0b111: { // AND
-                result = a & b;
-                break;
-            }
+    private void mulh(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = (int) (((long) x[rs1] * (long) x[rs2]) >> 32);
+        }
+    }
 
-            default: {
-                throw new R5IllegalInstructionException(inst);
+    private void mulhsu(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = (int) (((long) x[rs1] * Integer.toUnsignedLong(x[rs2])) >> 32);
+        }
+    }
+
+    private void mulhu(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            x[rd] = (int) ((Integer.toUnsignedLong(x[rs1]) * Integer.toUnsignedLong(x[rs2])) >>> 32);
+        }
+    }
+
+    private void div(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            if (x[rs2] == 0) {
+                x[rd] = -1;
+            } else if (x[rs1] == Integer.MIN_VALUE && x[rs2] == -1) {
+                x[rd] = x[rs1];
+            } else {
+                x[rd] = x[rs1] / x[rs2];
             }
         }
+    }
 
+    private void divu(final int rd, final int rs1, final int rs2) {
         if (rd != 0) {
-            x[rd] = result;
+            if (x[rs2] == 0) {
+                x[rd] = Integer.MAX_VALUE;
+            } else {
+                x[rd] = Integer.divideUnsigned(x[rs1], x[rs2]);
+            }
+        }
+    }
+
+    private void rem(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            if (x[rs2] == 0) {
+                x[rd] = x[rs1];
+            } else if (x[rs1] == Integer.MIN_VALUE && x[rs2] == -1) {
+                x[rd] = 0;
+            } else {
+                x[rd] = x[rs1] % x[rs2];
+            }
+        }
+    }
+
+    private void remu(final int rd, final int rs1, final int rs2) {
+        if (rd != 0) {
+            if (x[rs2] == 0) {
+                x[rd] = x[rs1];
+            } else {
+                x[rd] = Integer.remainderUnsigned(x[rs1], x[rs2]);
+            }
         }
     }
 
@@ -1020,7 +1198,8 @@ public class R5CPU implements Steppable, InterruptController {
         pc = address;
     }
 
-    private void load(final int inst, final int rd, final int x1, final int funct3) throws R5Exception, MemoryAccessException {
+    private void load(final int inst, final int rd, final int x1) throws R5Exception, MemoryAccessException {
+        final int funct3 = getField(inst, 12, 14, 0);
         final int imm = inst >> 20; // inst[31:20], sign extended
         final int address = x1 + imm;
 
@@ -1057,7 +1236,8 @@ public class R5CPU implements Steppable, InterruptController {
         }
     }
 
-    private void store(final int inst, final int x1, final int x2, final int funct3) throws R5Exception, MemoryAccessException {
+    private void store(final int inst, final int x1, final int x2) throws R5Exception, MemoryAccessException {
+        final int funct3 = getField(inst, 12, 14, 0);
         final int imm = extendSign(getField(inst, 25, 31, 5) |
                                    getField(inst, 7, 11, 0), 12);
 

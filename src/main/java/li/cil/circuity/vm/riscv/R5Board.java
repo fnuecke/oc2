@@ -6,7 +6,6 @@ import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
 import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.device.rtc.RealTimeCounter;
-import li.cil.circuity.api.vm.device.rtc.SystemTimeRealTimeCounter;
 import li.cil.circuity.api.vm.devicetree.DeviceNames;
 import li.cil.circuity.api.vm.devicetree.DeviceTree;
 import li.cil.circuity.api.vm.devicetree.DeviceTreePropertyNames;
@@ -51,9 +50,8 @@ public final class R5Board {
     private final List<Steppable> steppableDevices = new ArrayList<>();
 
     public R5Board() {
-        rtc = SystemTimeRealTimeCounter.create();
         memoryMap = new SimpleMemoryMap();
-        cpu = new R5CPU(rtc, memoryMap);
+        rtc = cpu = new R5CPU(memoryMap);
         uart = new UART16550A();
 
         final PhysicalMemory flash = new UnsafeMemory(LOW_MEMORY_SIZE);
@@ -207,7 +205,7 @@ public final class R5Board {
                         .addProp("riscv,isa", "rv32imacsu")
 
                         .addProp("mmu-type", "riscv,sv32")
-                        .addProp("clock-frequency", 50_000_000)
+                        .addProp("clock-frequency", cpu.getFrequency())
 
                         .putChild(DeviceNames.INTERRUPT_CONTROLLER, ic -> ic
                                 .addProp("#interrupt-cells", 1)

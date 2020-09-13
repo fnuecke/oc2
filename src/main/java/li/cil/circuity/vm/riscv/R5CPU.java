@@ -17,6 +17,8 @@ import li.cil.circuity.vm.riscv.exception.R5IllegalInstructionException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nullable;
+
 /**
  * RISC-V
  * <p>
@@ -38,7 +40,7 @@ import org.apache.logging.log4j.Logger;
  * <li>"C" Standard Extension for Compressed Instructions, Version 2.0</li>
  * </ul>
  */
-public class R5CPU implements Steppable, InterruptController {
+public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static final int PC_INIT = 0x1000; // Initial position of program counter.
@@ -131,8 +133,8 @@ public class R5CPU implements Steppable, InterruptController {
     // halting the system.
     private final RealTimeCounter rtc;
 
-    public R5CPU(final RealTimeCounter rtc, final MemoryMap physicalMemory) {
-        this.rtc = rtc;
+    public R5CPU(final MemoryMap physicalMemory, @Nullable final RealTimeCounter rtc) {
+        this.rtc = rtc != null ? rtc : this;
         this.physicalMemory = physicalMemory;
 
         for (int i = 0; i < TLB_SIZE; i++) {
@@ -148,8 +150,14 @@ public class R5CPU implements Steppable, InterruptController {
         reset();
     }
 
+    public R5CPU(final MemoryMap physicalMemory) {
+        this(physicalMemory, null);
+    }
+
     public void reset() {
         pc = PC_INIT;
+        mcycle = 0;
+        waitingForInterrupt = false;
 
         // Volume 2, 3.3 Reset
         priv = R5.PRIVILEGE_M;
@@ -158,6 +166,16 @@ public class R5CPU implements Steppable, InterruptController {
         mcause = 0;
 
         flushTLB();
+    }
+
+    @Override
+    public long getTime() {
+        return mcycle;
+    }
+
+    @Override
+    public int getFrequency() {
+        return 50_000_000;
     }
 
     public void raiseInterrupts(final int mask) {
@@ -523,9 +541,10 @@ public class R5CPU implements Steppable, InterruptController {
                     }
 
                     final int op = inst & 0b11;
+                    final int funct3 = getField(inst, 13, 15, 0);
+
                     switch (op) {
                         case 0b00: { // Quadrant 0
-                            final int funct3 = getField(inst, 13, 15, 0);
                             final int rd = getField(inst, 2, 4, 0) + 8; // V1p100
                             switch (funct3) {
                                 case 0b000: { // C.ADDI4SPN
@@ -555,7 +574,6 @@ public class R5CPU implements Steppable, InterruptController {
                         }
 
                         case 0b01: { // Quadrant 1
-                            final int funct3 = getField(inst, 13, 15, 0);
                             switch (funct3) {
                                 case 0b000: { // C.NOP / C.ADDI
                                     c_addi(inst);
@@ -666,7 +684,6 @@ public class R5CPU implements Steppable, InterruptController {
                         }
 
                         case 0b10: { // Quadrant 2
-                            final int funct3 = getField(inst, 13, 15, 0);
                             final int rd = getField(inst, 7, 11, 0);
                             switch (funct3) {
                                 case 0b000: { // C.SLLI

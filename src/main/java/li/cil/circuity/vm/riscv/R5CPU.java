@@ -206,7 +206,6 @@ public class R5CPU implements Steppable, InterruptController {
         }
     }
 
-    //    @SuppressWarnings("DuplicateBranchesInSwitch")
     private void interpret() throws R5Exception, MemoryAccessException {
         // The idea here is to run many sequential instructions with very little overhead.
         // We only need to exit the inner loop when we either leave the page we started in,
@@ -248,7 +247,6 @@ public class R5CPU implements Steppable, InterruptController {
                     final int opcode = getField(inst, 0, 6, 0);
                     final int rd = getField(inst, 7, 11, 0);
                     final int rs1 = getField(inst, 15, 19, 0);
-                    final int rs2 = getField(inst, 20, 24, 0);
 
                     // Opcode values, see Volume I: RISC-V Unprivileged ISA V20191214-draft page 130ff. They appear in the order
                     // they are introduced in the spec. Immediate value decoding follows the layouts described in 2.3.
@@ -279,25 +277,7 @@ public class R5CPU implements Steppable, InterruptController {
                         }
 
                         case 0b0110011: { // OP (register-register operation aka R-type)
-                            final int funct3 = getField(inst, 12, 14, 0);
-                            final int funct7 = getField(inst, 25, 31, 0);
-                            switch (funct7) {
-                                case 0b000001: {
-                                    op_m(inst, rd, rs1, rs2, funct3);
-
-                                    break;
-                                }
-                                case 0b0000000:
-                                case 0b0100000: {
-                                    op_rr(inst, rd, rs1, rs2, funct3, funct7);
-
-                                    break;
-                                }
-
-                                default: {
-                                    throw new R5IllegalInstructionException(inst);
-                                }
-                            }
+                            op(inst, rd, rs1);
 
                             instOffset += 4;
                             break;
@@ -315,13 +295,14 @@ public class R5CPU implements Steppable, InterruptController {
                         }
 
                         case 0b110_0111: { // JALR
-                            jalr(inst, rd, x[rs1], instOffset + toPC);
+                            jalr(inst, rd, rs1, instOffset + toPC);
                             return; // Invalidate fetch cache
                         }
 
                         ///////////////////////////////////////////////////////////////////
                         // Conditional Branches
                         case 0b1100011: { // BRANCH
+                            final int rs2 = getField(inst, 20, 24, 0);
                             final int funct3 = getField(inst, 12, 14, 0);
                             final boolean invert = (funct3 & 0b1) != 0;
 
@@ -364,14 +345,14 @@ public class R5CPU implements Steppable, InterruptController {
                         ///////////////////////////////////////////////////////////////////
 
                         case 0b0000011: { // LOAD
-                            load(inst, rd, x[rs1]);
+                            load(inst, rd, rs1);
 
                             instOffset += 4;
                             break;
                         }
 
                         case 0b0100011: { // STORE
-                            store(inst, x[rs1], x[rs2]);
+                            store(inst, rs1);
 
                             instOffset += 4;
                             break;
@@ -520,17 +501,10 @@ public class R5CPU implements Steppable, InterruptController {
 
                         case 0b0101111: { // AMO
                             final int funct3 = getField(inst, 12, 14, 0);
-                            switch (funct3) { // width
-                                case 0b010: { // 32
-                                    amo32(inst, rd, rs1, rs2);
-
-                                    break;
-                                }
-                                // 0b011: 64
-
-                                default: {
-                                    throw new R5IllegalInstructionException(inst);
-                                }
+                            if (funct3 == 0b010) { // 32 bit width
+                                amo32(inst, rd, rs1);
+                            } else {
+                                throw new R5IllegalInstructionException(inst);
                             }
 
                             instOffset += 4;
@@ -787,6 +761,29 @@ public class R5CPU implements Steppable, InterruptController {
         }
     }
 
+    private void op(final int inst, final int rd, final int rs1) throws R5IllegalInstructionException {
+        final int rs2 = getField(inst, 20, 24, 0);
+        final int funct3 = getField(inst, 12, 14, 0);
+        final int funct7 = getField(inst, 25, 31, 0);
+        switch (funct7) {
+            case 0b000001: {
+                op_m(inst, rd, rs1, rs2, funct3);
+
+                break;
+            }
+            case 0b0000000:
+            case 0b0100000: {
+                op_rr(inst, rd, rs1, rs2, funct3, funct7);
+
+                break;
+            }
+
+            default: {
+                throw new R5IllegalInstructionException(inst);
+            }
+        }
+    }
+
     private void op_m(final int inst, final int rd, final int rs1, final int rs2, final int funct3) throws R5IllegalInstructionException {
         ///////////////////////////////////////////////////////////////////
         // Chapter 7 "M" Standard Extension for Integer Multiplication and Division, Version 2.0
@@ -850,7 +847,8 @@ public class R5CPU implements Steppable, InterruptController {
     private void op_rr(final int inst, final int rd, final int rs1, final int rs2, final int funct3, final int funct7) throws R5IllegalInstructionException {
         // Integer Register-Register Operations
         switch (funct3 | funct7) {
-            case 0b000: { // ADD
+            //noinspection PointlessBitwiseExpression
+            case 0b000 | 0b0000000: { // ADD
                 add(rd, rs1, rs2);
 
                 break;
@@ -881,7 +879,8 @@ public class R5CPU implements Steppable, InterruptController {
 
                 break;
             }
-            case 0b101: { // SRL
+            //noinspection PointlessBitwiseExpression
+            case 0b101 | 0b0000000: { // SRL
                 srl(rd, rs1, rs2);
 
                 break;
@@ -1187,9 +1186,9 @@ public class R5CPU implements Steppable, InterruptController {
         pc = nextpc + imm;
     }
 
-    private void jalr(final int inst, final int rd, final int x1, final int nextpc) {
+    private void jalr(final int inst, final int rd, final int rs1, final int nextpc) {
         final int imm = inst >> 20; // inst[31:20], sign extended
-        final int address = (x1 + imm) & ~0b1; // Compute first in case rs1 == rd.
+        final int address = (x[rs1] + imm) & ~0b1; // Compute first in case rs1 == rd.
         // Note: we just mask here, but technically we should raise an exception for misaligned jumps.
         if (rd != 0) {
             x[rd] = nextpc + 4;
@@ -1198,10 +1197,10 @@ public class R5CPU implements Steppable, InterruptController {
         pc = address;
     }
 
-    private void load(final int inst, final int rd, final int x1) throws R5Exception, MemoryAccessException {
+    private void load(final int inst, final int rd, final int rs1) throws R5Exception, MemoryAccessException {
         final int funct3 = getField(inst, 12, 14, 0);
         final int imm = inst >> 20; // inst[31:20], sign extended
-        final int address = x1 + imm;
+        final int address = x[rs1] + imm;
 
         final int result;
         switch (funct3) {
@@ -1236,13 +1235,14 @@ public class R5CPU implements Steppable, InterruptController {
         }
     }
 
-    private void store(final int inst, final int x1, final int x2) throws R5Exception, MemoryAccessException {
+    private void store(final int inst, final int rs1) throws R5Exception, MemoryAccessException {
+        final int rs2 = getField(inst, 20, 24, 0);
         final int funct3 = getField(inst, 12, 14, 0);
         final int imm = extendSign(getField(inst, 25, 31, 5) |
                                    getField(inst, 7, 11, 0), 12);
 
-        final int address = x1 + imm;
-        final int value = x2;
+        final int address = x[rs1] + imm;
+        final int value = x[rs2];
 
         switch (funct3) {
             case 0b000: { // SB
@@ -1365,7 +1365,8 @@ public class R5CPU implements Steppable, InterruptController {
         return invalidateFetchCache;
     }
 
-    private void amo32(final int inst, final int rd, final int rs1, final int rs2) throws R5Exception, MemoryAccessException {
+    private void amo32(final int inst, final int rd, final int rs1) throws R5Exception, MemoryAccessException {
+        final int rs2 = getField(inst, 20, 24, 0);
         final int funct5 = inst >>> 27; // inst[31:27], not sign-extended
         final int address = x[rs1];
         final int result;

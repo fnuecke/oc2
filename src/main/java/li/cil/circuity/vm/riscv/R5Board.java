@@ -207,7 +207,7 @@ public final class R5Board {
                         .addProp("riscv,isa", "rv32imacsu")
 
                         .addProp("mmu-type", "riscv,sv32")
-                        .addProp("clock-frequency", 30_000_000)
+                        .addProp("clock-frequency", 50_000_000)
 
                         .putChild(DeviceNames.INTERRUPT_CONTROLLER, ic -> ic
                                 .addProp("#interrupt-cells", 1)

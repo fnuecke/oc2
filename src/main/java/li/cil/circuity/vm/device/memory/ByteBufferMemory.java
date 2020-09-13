@@ -14,7 +14,7 @@ public class ByteBufferMemory implements PhysicalMemory {
     public ByteBufferMemory(final int size) {
         if ((size & 0b11) != 0)
             throw new IllegalArgumentException("size must be a multiple of four");
-        this.data = ByteBuffer.allocate(size);
+        this.data = ByteBuffer.allocateDirect(size);
         data.order(ByteOrder.LITTLE_ENDIAN);
     }
 

@@ -12,7 +12,7 @@ import li.cil.circuity.api.vm.devicetree.DeviceTree;
 import li.cil.circuity.api.vm.devicetree.DeviceTreePropertyNames;
 import li.cil.circuity.vm.SimpleMemoryMap;
 import li.cil.circuity.vm.device.UART16550A;
-import li.cil.circuity.vm.device.memory.ByteBufferMemory;
+import li.cil.circuity.vm.device.memory.UnsafeMemory;
 import li.cil.circuity.vm.devicetree.DeviceTreeRegistry;
 import li.cil.circuity.vm.devicetree.FlattenedDeviceTree;
 import li.cil.circuity.vm.riscv.device.R5CoreLocalInterrupter;
@@ -56,7 +56,7 @@ public final class R5Board {
         cpu = new R5CPU(rtc, memoryMap);
         uart = new UART16550A();
 
-        final PhysicalMemory flash = new ByteBufferMemory(LOW_MEMORY_SIZE);
+        final PhysicalMemory flash = new UnsafeMemory(LOW_MEMORY_SIZE);
         final R5HostTargetInterface htif = new R5HostTargetInterface();
         final R5CoreLocalInterrupter clint = new R5CoreLocalInterrupter(rtc);
         final R5PlatformLevelInterruptController plic = new R5PlatformLevelInterruptController();
@@ -191,10 +191,8 @@ public final class R5Board {
         root
                 .addProp(DeviceTreePropertyNames.NUM_ADDRESS_CELLS, 2)
                 .addProp(DeviceTreePropertyNames.NUM_SIZE_CELLS, 2)
-                .addProp(DeviceTreePropertyNames.COMPATIBLE, "riscv-virtio")
-                .addProp(DeviceTreePropertyNames.MODEL, "riscv-virtio,qemu");
-//                .addProp(DeviceTreePropertyNames.COMPATIBLE, "ucbbar,riscvemu-bar_dev")
-//                .addProp(DeviceTreePropertyNames.MODEL, "ucbbar,riscvemu-bar");
+                .addProp(DeviceTreePropertyNames.COMPATIBLE, "riscv-circuity")
+                .addProp(DeviceTreePropertyNames.MODEL, "riscv-circuity,generic");
 
         root.putChild(DeviceNames.CPUS, cpus -> cpus
                 .addProp(DeviceTreePropertyNames.NUM_ADDRESS_CELLS, 1)
@@ -209,7 +207,7 @@ public final class R5Board {
                         .addProp("riscv,isa", "rv32imacsu")
 
                         .addProp("mmu-type", "riscv,sv32")
-                        .addProp("clock-frequency", 1_000_000)
+                        .addProp("clock-frequency", 30_000_000)
 
                         .putChild(DeviceNames.INTERRUPT_CONTROLLER, ic -> ic
                                 .addProp("#interrupt-cells", 1)
@@ -230,8 +228,6 @@ public final class R5Board {
         root.putChild("chosen", chosen -> chosen
                 .addProp("bootargs", "console=ttyS0")
                 .addProp("stdout-path", String.format("uart@%x", UART_ADDRESS)));
-//                .addProp("riscv,kernel-start", 0x400000)
-//                .addProp("riscv,kernel-end", 0x400000 + 14676260 /*8032596*/));
 
         return root;
     }

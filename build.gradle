@@ -111,6 +111,12 @@ processResources {
     }
 }
 
+compileJava {
+    options.compilerArgs << '-XDignore.symbol.file'
+    options.fork = true
+    options.forkOptions.executable = 'javac'
+}
+
 dependencies {
     minecraft "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}"
 

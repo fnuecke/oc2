@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * RISC-V
@@ -95,7 +96,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     private int mstatus; // Machine Status Register; mstatush is always zero for us, SD is computed
     private int mtvec; // Machine Trap-Vector Base-Address Register; 0b11=Mode: 0=direct, 1=vectored
     private int medeleg, mideleg; // Machine Trap Delegation Registers
-    private int mip, mie; // Machine Interrupt Registers
+    private final AtomicInteger mip = new AtomicInteger(); // Pending Interrupts
+    private int mie; // Enabled Interrupts
     private int mcounteren; // Machine Counter-Enable Register
     private int mscratch; // Machine Scratch Register
     private int mepc; // Machine Exception Program Counter
@@ -180,27 +182,28 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
     @Override
     public void raiseInterrupts(final int mask) {
-        mip |= mask;
-        if (waitingForInterrupt && (mip & mie) != 0) {
+        mip.updateAndGet(operand -> operand | mask);
+        if (waitingForInterrupt && (mip.get() & mie) != 0) {
             waitingForInterrupt = false;
         }
     }
 
     @Override
     public void lowerInterrupts(final int mask) {
-        mip &= ~mask;
+        mip.updateAndGet(operand -> operand & ~mask);
     }
 
     @Override
     public int getRaisedInterrupts() {
-        return mip;
+        return mip.get();
     }
 
     public void step(final int cycles) {
         final long cycleLimit = mcycle + cycles;
         while (!waitingForInterrupt && mcycle < cycleLimit) {
-            if ((mip & mie) != 0) {
-                raiseInterrupt();
+            final int pending = mip.get() & mie;
+            if (pending != 0) {
+                raiseInterrupt(pending);
             }
 
             try {
@@ -1327,7 +1330,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             throw new R5IllegalInstructionException(inst);
         }
 
-        if ((mip & mie) != 0) {
+        if ((mip.get() & mie) != 0) {
             return false;
         }
 
@@ -1730,7 +1733,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 return stval;
             }
             case 0x144: { // sip Supervisor interrupt pending.
-                return mip & mideleg; // Effectively read-only because we don't implement N.
+                return mip.get() & mideleg; // Effectively read-only because we don't implement N.
             }
 
             // Supervisor Protection and Translation
@@ -1792,7 +1795,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 return mtval;
             }
             case 0x344: { // mip Machine interrupt pending.
-                return mip;
+                return mip.get();
             }
             // 0x34A: mtinst, Machine trap instruction (transformed).
             // 0x34B: mtval2, Machine bad guest physical address.
@@ -1977,7 +1980,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             }
             case 0x144: { // sip Supervisor interrupt pending.
                 final int mask = mideleg; // Can only set stuff that's delegated to S mode.
-                mip = (mip & ~mask) | (value & mask);
+                mip.updateAndGet(operand -> (operand & ~mask) | (value & mask));
                 break;
             }
 
@@ -2062,7 +2065,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             case 0x344: { // mip Machine interrupt pending.
                 // p32: MEIP, MTIP, MSIP are readonly in mip.
                 final int mask = R5.STIP_MASK | R5.SSIP_MASK;
-                mip = (mip & ~mask) | (value & mask);
+                mip.updateAndGet(operand -> (operand & ~mask) | (value & mask));
                 break;
             }
             // 0x34A: mtinst, Machine trap instruction (transformed).
@@ -2213,62 +2216,22 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         raiseException(cause, 0);
     }
 
-    private void raiseInterrupt() {
-        int pending = mip & mie;
-        assert pending != 0;
+    private void raiseInterrupt(final int pending) {
+        final boolean mieEnabled = (mstatus & R5.STATUS_MIE_MASK) != 0;
+        final boolean sieEnabled = (mstatus & R5.STATUS_SIE_MASK) != 0;
 
-        int enabled = 0;
-        switch (priv) {
-            case R5.PRIVILEGE_M: {
-                // Check global MIE flag.
-                if ((mstatus & R5.STATUS_MIE_MASK) != 0)
-                    enabled = ~mideleg;
-                break;
-            }
-            case R5.PRIVILEGE_S: {
-                // V2p21: interrupts handled by a higher privilege level, i.e. that are not delegated
-                // to a lower privilege level, will always fire -- even if their global flag is false!
-                enabled = ~mideleg;
+        // V2p21: interrupts handled by a higher privilege level, i.e. that are not delegated
+        // to a lower privilege level, will always fire -- even if their global flag is false!
+        final int mieMask = priv < R5.PRIVILEGE_M || mieEnabled ? 0xFFFFFFFF : 0;
+        final int sieMask = priv < R5.PRIVILEGE_S || (priv == R5.PRIVILEGE_S && sieEnabled) ? 0xFFFFFFFF : 0;
 
-                // Check global SIE flag.
-                if ((mstatus & R5.STATUS_SIE_MASK) != 0)
-                    enabled |= mideleg;
-                break;
-            }
-            // We don't have the "N" extension for user-level interrupts, so all our interrupts will
-            // always be of M or S level, hence always enabled while in U mode (V2p21).
-            case R5.PRIVILEGE_U:
-            default: {
-                enabled = 0b1111_1111_1111_1111_1111_1111_1111_1111;
-                break;
-            }
+        final int interrupts = (pending & ~mideleg & mieMask) | (pending & mideleg & sieMask);
+        if (interrupts != 0) {
+            // TODO p33: Interrupt order is handled in decreasing order of privilege mode,
+            //      and inside a single privilege mode in order E,S,T.
+            final int interrupt = Integer.numberOfTrailingZeros(interrupts);
+            raiseException(interrupt | R5.INTERRUPT);
         }
-
-        pending = pending & enabled;
-        if (pending == 0) {
-            return;
-        }
-
-        // p33: Interrupt order is handled in decreasing order of privilege mode, and inside a single
-        // privilege mode in order E,S,T.
-        // TODO custom interrupts have highest prio and are processed low to high
-        raiseException(Integer.numberOfTrailingZeros(pending) | R5.INTERRUPT);
-//        if ((pending & R5.MEIP_MASK) != 0) {
-//            raiseException(R5.MEIP_SHIFT | R5.INTERRUPT);
-//        } else if ((pending & R5.MSIP_MASK) != 0) {
-//            raiseException(R5.MSIP_SHIFT | R5.INTERRUPT);
-//        } else if ((pending & R5.MTIP_MASK) != 0) {
-//            raiseException(R5.MTIP_SHIFT | R5.INTERRUPT);
-//        } else if ((pending & R5.SEIP_MASK) != 0) {
-//            raiseException(R5.SEIP_SHIFT | R5.INTERRUPT);
-//        } else if ((pending & R5.SSIP_MASK) != 0) {
-//            raiseException(R5.SSIP_SHIFT | R5.INTERRUPT);
-//        } else if ((pending & R5.STIP_MASK) != 0) {
-//            raiseException(R5.STIP_SHIFT | R5.INTERRUPT);
-//        } else {
-//            return false; // We don't support custom interrupts for now.
-//        }
-
     }
 
     private byte load8(final int address) throws MemoryAccessException {
@@ -2579,7 +2542,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         state.mtvec = mtvec;
         state.medeleg = medeleg;
         state.mideleg = mideleg;
-        state.mip = mip;
+        state.mip = mip.get();
         state.mie = mie;
         state.mcounteren = mcounteren;
         state.mscratch = mscratch;
@@ -2618,7 +2581,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         mtvec = state.mtvec;
         medeleg = state.medeleg;
         mideleg = state.mideleg;
-        mip = state.mip;
+        mip.set(state.mip);
         mie = state.mie;
         mcounteren = state.mcounteren;
         mscratch = state.mscratch;

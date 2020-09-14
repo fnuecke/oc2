@@ -199,6 +199,11 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     }
 
     public void step(final int cycles) {
+        if (waitingForInterrupt) {
+            mcycle += cycles;
+            return;
+        }
+
         final long cycleLimit = mcycle + cycles;
         while (!waitingForInterrupt && mcycle < cycleLimit) {
             final int pending = mip.get() & mie;
@@ -231,6 +236,10 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             } catch (final R5Exception e) {
                 raiseException(e.getExceptionCause(), e.getExceptionValue());
             }
+        }
+
+        if (waitingForInterrupt && mcycle < cycleLimit) {
+            mcycle = cycleLimit;
         }
     }
 

@@ -63,8 +63,7 @@ public final class R5Board {
 
         // Wire up interrupts.
         clint.putHart(0, cpu);
-        plic.getMachineExternalInterrupt().controller = cpu;
-        plic.getSupervisorExternalInterrupt().controller = cpu;
+        plic.setHart(cpu);
         uart.getInterrupt().id = 0xA;
         uart.getInterrupt().controller = plic;
 
@@ -181,6 +180,10 @@ public final class R5Board {
 
     public int readValue() {
         return uart.getByte();
+    }
+
+    public void putValue(final byte b) {
+        uart.putByte(b);
     }
 
     private DeviceTree buildDeviceTree() {

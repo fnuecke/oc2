@@ -78,12 +78,12 @@ public final class R5CoreLocalInterrupter implements Steppable, InterruptSource,
                     return msips.get(hartId).isRaised() ? 1 : 0;
                 } else {
                     LOGGER.debug("invalid sip read [{}]", Integer.toHexString(offset));
-                    return 0;
                 }
             } else {
                 LOGGER.debug("invalid sip hartid [{}]", hartId);
-                return 0;
             }
+
+            return 0;
         } else if (offset >= CLINT_TIMECMP_BASE && offset < CLINT_TIME_BASE) {
             final int hartId = (offset - CLINT_TIMECMP_BASE) >>> 3;
             if (mtimecmps.containsKey(hartId)) {
@@ -95,19 +95,19 @@ public final class R5CoreLocalInterrupter implements Steppable, InterruptSource,
                     return (int) (mtimecmp >>> 32);
                 } else {
                     LOGGER.debug("invalid timecmp read [{}]", Integer.toHexString(offset));
-                    return 0;
                 }
             } else {
                 LOGGER.debug("invalid timecmp hartid [{}]", hartId);
-                return 0;
             }
+
+            return 0;
         } else if (offset == CLINT_TIME_BASE) {
             return (int) rtc.getTime();
         } else if (offset == CLINT_TIME_BASE + 4) {
             return (int) (rtc.getTime() >>> 32);
         }
 
-        LOGGER.debug("invalid read [{}]", Integer.toHexString(offset));
+        LOGGER.debug("invalid read offset [{}]", Integer.toHexString(offset));
         return 0;
     }
 
@@ -130,6 +130,7 @@ public final class R5CoreLocalInterrupter implements Steppable, InterruptSource,
             } else {
                 LOGGER.debug("invalid sip hartid [{}]", hartId);
             }
+
             return;
         } else if (offset >= CLINT_TIMECMP_BASE && offset < CLINT_TIME_BASE) {
             final int hartId = (offset - CLINT_TIMECMP_BASE) >>> 3;
@@ -160,10 +161,17 @@ public final class R5CoreLocalInterrupter implements Steppable, InterruptSource,
             } else {
                 LOGGER.debug("invalid timecmp hartid [{}]", hartId);
             }
+
+            return;
+        } else if (offset == CLINT_TIME_BASE) {
+            LOGGER.debug("invalid time write");
+            return;
+        } else if (offset == CLINT_TIME_BASE + 4) {
+            LOGGER.debug("invalid timeh write");
             return;
         }
 
-        LOGGER.debug("invalid write [{}]", Integer.toHexString(offset));
+        LOGGER.debug("invalid write offset [{}]", Integer.toHexString(offset));
     }
 
     private void checkTimeComparators() {

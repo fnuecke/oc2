@@ -651,6 +651,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                                     throw new R5IllegalInstructionException(inst);
                                                 }
                                             }
+
                                             break;
                                         }
                                     }
@@ -1028,8 +1029,9 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 break;
             }
             case 0b001: { // SLLI
-                if ((inst & 0b1111111_00000_00000_000_00000_0000000) != 0)
+                if ((inst & 0b1111111_00000_00000_000_00000_0000000) != 0) {
                     throw new R5IllegalInstructionException(inst);
+                }
 
                 slli(rd, rs1, imm);
 

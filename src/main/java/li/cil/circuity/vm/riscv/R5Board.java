@@ -62,8 +62,7 @@ public final class R5Board {
         steppableDevices.add(cpu);
 
         // Wire up interrupts.
-        clint.getMachineSoftwareInterrupt().controller = cpu;
-        clint.getMachineTimerInterrupt().controller = cpu;
+        clint.putHart(0, cpu);
         plic.getMachineExternalInterrupt().controller = cpu;
         plic.getSupervisorExternalInterrupt().controller = cpu;
         uart.getInterrupt().id = 0xA;

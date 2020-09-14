@@ -23,4 +23,13 @@ public interface InterruptController extends Device {
      * @param mask the mask of interrupts to set inactive.
      */
     void lowerInterrupts(final int mask);
+
+    /**
+     * Mask representing the currently raised interrupts via active bits.
+     * <p>
+     * Each set bit represents a raised interrupt, e.g. in the mask 0b0101 the interrupts 0 and 2 are raised.
+     *
+     * @return the mask containing the currently raised interrupts.
+     */
+    int getRaisedInterrupts();
 }

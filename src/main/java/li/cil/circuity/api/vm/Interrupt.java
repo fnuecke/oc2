@@ -24,4 +24,8 @@ public final class Interrupt {
             controller.lowerInterrupts(1 << id);
         }
     }
+
+    public boolean isRaised() {
+        return controller != null && ((controller.getRaisedInterrupts() & (1 << id)) != 0);
+    }
 }

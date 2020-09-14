@@ -178,6 +178,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         return 50_000_000;
     }
 
+    @Override
     public void raiseInterrupts(final int mask) {
         mip |= mask;
         if (waitingForInterrupt && (mip & mie) != 0) {
@@ -185,8 +186,14 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
+    @Override
     public void lowerInterrupts(final int mask) {
         mip &= ~mask;
+    }
+
+    @Override
+    public int getRaisedInterrupts() {
+        return mip;
     }
 
     public void step(final int cycles) {

@@ -2,32 +2,13 @@ package li.cil.circuity.vm.device.memory;
 
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.device.memory.Sizes;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import li.cil.circuity.vm.UnsafeGetter;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 import sun.misc.VM;
 
-import java.lang.reflect.Field;
-
 public final class UnsafeMemory implements PhysicalMemory {
-    private static final Logger LOGGER = LogManager.getLogger();
-
-    private static final Unsafe unsafe;
-
-    static {
-        Unsafe instance = null;
-        final Field field;
-        try {
-            field = Unsafe.class.getDeclaredField("theUnsafe");
-            field.setAccessible(true);
-            instance = (Unsafe) field.get(null);
-        } catch (final NoSuchFieldException | IllegalAccessException e) {
-            LOGGER.error(e);
-        }
-
-        unsafe = instance;
-    }
+    private static final Unsafe UNSAFE = UnsafeGetter.get();
 
     private final long address;
     private final long size;
@@ -40,13 +21,13 @@ public final class UnsafeMemory implements PhysicalMemory {
         // Handling for page aligned memory taken from DirectByteBuffer.
 
         final boolean isAligned = VM.isDirectMemoryPageAligned();
-        final int pageSize = unsafe.pageSize();
+        final int pageSize = UNSAFE.pageSize();
 
         this.size = Math.max(4L, (long) size + (isAligned ? pageSize : 0));
 
-        final long base = unsafe.allocateMemory(this.size);
+        final long base = UNSAFE.allocateMemory(this.size);
 
-        unsafe.setMemory(base, this.size, (byte) 0);
+        UNSAFE.setMemory(base, this.size, (byte) 0);
 
         if (isAligned && (base % pageSize != 0)) {
             address = base + pageSize - (base & (pageSize - 1));
@@ -71,13 +52,13 @@ public final class UnsafeMemory implements PhysicalMemory {
         assert offset >= 0 && offset < size;
         switch (sizeLog2) {
             case Sizes.SIZE_8_LOG2:
-                return unsafe.getByte(address + offset);
+                return UNSAFE.getByte(address + offset);
             case Sizes.SIZE_16_LOG2:
                 assert (offset & 0b1) == 0;
-                return unsafe.getShort(address + offset);
+                return UNSAFE.getShort(address + offset);
             case Sizes.SIZE_32_LOG2:
                 assert (offset & 0b11) == 0;
-                return unsafe.getInt(address + offset);
+                return UNSAFE.getInt(address + offset);
             default:
                 throw new IllegalArgumentException();
         }
@@ -88,15 +69,15 @@ public final class UnsafeMemory implements PhysicalMemory {
         assert offset >= 0 && offset < size;
         switch (sizeLog2) {
             case Sizes.SIZE_8_LOG2:
-                unsafe.putByte(address + offset, (byte) value);
+                UNSAFE.putByte(address + offset, (byte) value);
                 break;
             case Sizes.SIZE_16_LOG2:
                 assert (offset & 0b1) == 0;
-                unsafe.putShort(address + offset, (short) value);
+                UNSAFE.putShort(address + offset, (short) value);
                 break;
             case Sizes.SIZE_32_LOG2:
                 assert (offset & 0b11) == 0;
-                unsafe.putInt(address + offset, value);
+                UNSAFE.putInt(address + offset, value);
                 break;
             default:
                 throw new IllegalArgumentException();
@@ -113,7 +94,7 @@ public final class UnsafeMemory implements PhysicalMemory {
         @Override
         public void run() {
             if (address != 0) {
-                unsafe.freeMemory(address);
+                UNSAFE.freeMemory(address);
                 address = 0;
             }
         }

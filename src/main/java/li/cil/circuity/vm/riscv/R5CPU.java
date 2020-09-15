@@ -156,6 +156,11 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         void execute(final R5CPU cpu) throws R5Exception, MemoryAccessException;
     }
 
+    @FunctionalInterface
+    public interface Fetch {
+        TLBEntry apply(final int pc) throws MemoryAccessException;
+    }
+
     private static final String executeMethodName;
     private static final String executeMethodDesc;
 
@@ -198,14 +203,12 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     }
 
     private final class TraceClassLoader extends ClassLoader {
-        private int nextTraceSuffix;
-
         public Trace translateTrace(final int pc) {
             final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
             cw.visit(Opcodes.V1_8,
                     Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
-                    "li/cil/circuity/vm/riscv/Trace" + nextTraceSuffix++,
+                    "li/cil/circuity/vm/riscv/Trace$" + Integer.toHexString(pc),
                     null,
                     Type.getInternalName(Object.class),
                     new String[]{Type.getInternalName(Trace.class)});
@@ -215,12 +218,30 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
             cw.visitEnd();
 
-            final byte[] clazzBytes = cw.toByteArray();
-            final Class<?> trace = super.defineClass(null, clazzBytes, 0, clazzBytes.length);
+//            final Class<?> proxy = UNSAFE.defineAnonymousClass(java.lang.invoke.MethodHandles.class, cw.toByteArray(), null);
+//            MethodHandle mh = MethodHandles.lookup().findVirtual(proxy, "execute", MethodType.methodType(Trace.class));
+//            return mh::invokeExact;
+
+            return newTrace(defineClass(cw.toByteArray()));
+        }
+
+        private Class<?> defineClass(final byte[] data) {
+//            return UNSAFE.defineAnonymousClass(R5CPU.class, data, null);
+
+            final Class<?> trace = super.defineClass(null, data, 0, data.length);
             resolveClass(trace);
+            return trace;
+        }
+
+        private Trace newTrace(final Class<?> clazz) {
+//            try {
+//                return (Trace) UNSAFE.allocateInstance(clazz);
+//            } catch (final InstantiationException e) {
+//                throw new AssertionError();
+//            }
 
             try {
-                return (Trace) trace.newInstance();
+                return (Trace) clazz.newInstance();
             } catch (final InstantiationException | IllegalAccessException e) {
                 throw new AssertionError();
             }
@@ -248,135 +269,74 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
             mv.visitCode();
 
-            translateTrace(mv, pc);
+            new Translator(mv, R5CPU.this::fetch).translateTrace(pc);
 
             mv.visitMaxs(-1, -1);
             mv.visitEnd();
         }
+    }
 
-        private final class Translator {
-            public final int cpuArg = 1; // R5CPU ref, length = 1
-            public final int pcLocal = 2; // int, length = 1
-            public final int mcycleLocal = 3; // long, length = 2
+    private static final class Translator {
+        // First argument to the method, the reference to the CPU we're working on.
+        public final int cpuArg = 1; // R5CPU ref, length = 1
 
-            public final MethodVisitor mv;
-            public int instOffset;
-            public int toPC;
+        // On-demand updated local holding current actual PC.
+        // Used to bake instOffset for pc fixup on runtime exceptions.
+        public final int pcLocal = 2; // int, length = 1
 
-            public Translator(final MethodVisitor mv, final int startPC) {
-                this.mv = mv;
-                this.instOffset = startPC;
-            }
+        // Local for holding current cycles. Saves the GETFIELD for each increment.
+        public final int mcycleLocal = 3; // long, length = 2
 
-            public void invokeOp(final String methodName, final int... args) {
-                invokeOp(null, methodName, args);
-            }
+        public final MethodVisitor mv;
+        private final Fetch fetch;
+        public int instOffset;
+        public int toPC;
 
-            public void invokeOp(@Nullable final Class<?> expectedReturnType, final String methodName, final int... args) {
-                final Method method = getOpcodeMethod(methodName);
-                final Class<?>[] argTypes = method.getParameterTypes();
-                if (argTypes.length != args.length) {
-                    throw new IllegalArgumentException("invalid argument count for method [" + methodName + "]");
-                }
-
-                if (expectedReturnType != null && method.getReturnType() != expectedReturnType) {
-                    throw new IllegalArgumentException("invalid return type for method [" + methodName + "]");
-                }
-
-                // Update pc local if method may throw an exception so we can path the pc field in the cpu
-                // appropriately in the exception handler in case it does throw an exception.
-                // Note that RuntimeExceptions will bypass this and completely break the program state.
-                // However, we can expect that these will bubble through to the top anyway, so we don't care.
-                if (method.getExceptionTypes().length > 0) {
-                    flushPCToLocal();
-                }
-
-                mv.visitVarInsn(Opcodes.ALOAD, cpuArg);
-
-                for (int i = 0; i < args.length; i++) {
-                    if (!ClassUtils.isAssignable(argTypes[i], int.class)) {
-                        throw new IllegalArgumentException("invalid argument type for argument [" + (i + 1) + "] for method [" + methodName + "]");
-                    }
-                    mv.visitLdcInsn(args[i]);
-                }
-
-                final Type methodType = Type.getType(method);
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, CPU_TYPE.getInternalName(), methodName, methodType.getDescriptor(), false);
-
-                if (expectedReturnType == null && method.getReturnType() != void.class) {
-                    mv.visitInsn(Opcodes.POP);
-                }
-            }
-
-            public void flushPCToCPU(final int offset) {
-                mv.visitVarInsn(Opcodes.ALOAD, cpuArg);
-                mv.visitLdcInsn(instOffset + toPC + offset);
-                mv.visitFieldInsn(Opcodes.PUTFIELD, CPU_TYPE.getInternalName(), "pc", Type.INT_TYPE.getInternalName());
-            }
-
-            public void flushPCToCPU() {
-                flushPCToCPU(0);
-            }
-
-            public void flushPCToLocal() {
-                mv.visitLdcInsn(instOffset + toPC);
-                mv.visitVarInsn(Opcodes.ISTORE, pcLocal);
-            }
+        public Translator(final MethodVisitor mv, final Fetch fetch) {
+            this.mv = mv;
+            this.fetch = fetch;
         }
 
-        private void translateTrace(final MethodVisitor mv, final int startPC) {
-            final Translator t = new Translator(mv, startPC);
-
+        private void translateTrace(final int startPC) {
             final Label startLabel = new Label();
             final Label returnLabel = new Label();
             final Label catchLabel = new Label();
             final Label endLabel = new Label();
 
-            mv.visitLocalVariable("currentPC", Type.INT_TYPE.getInternalName(), null, startLabel, endLabel, t.pcLocal);
-            mv.visitLocalVariable("mcycle", Type.LONG_TYPE.getInternalName(), null, startLabel, returnLabel, t.mcycleLocal);
+            mv.visitLocalVariable("currentPC", Type.INT_TYPE.getInternalName(), null, startLabel, endLabel, pcLocal);
+            mv.visitLocalVariable("mcycle", Type.LONG_TYPE.getInternalName(), null, startLabel, returnLabel, mcycleLocal);
 
             mv.visitTryCatchBlock(startLabel, returnLabel, catchLabel, null);
 
-            // Initialize pc local variable. Used to bake instOffset for pc fixup on runtime exceptions.
-            mv.visitLdcInsn(t.instOffset);
-            mv.visitVarInsn(Opcodes.ISTORE, t.pcLocal);
-
-            // Initialize mcycle local variable.
-            mv.visitVarInsn(Opcodes.ALOAD, t.cpuArg);
-            mv.visitFieldInsn(Opcodes.GETFIELD, CPU_TYPE.getInternalName(), "mcycle", Type.LONG_TYPE.getInternalName());
-            mv.visitVarInsn(Opcodes.LSTORE, t.mcycleLocal);
+            generatePCLocal();
+            generateMcycleLocal();
 
             mv.visitLabel(startLabel);
 
             try { // Catch illegal instruction exceptions to generate final throw instruction.
-                final TLBEntry cache = fetch(startPC);
-                t.instOffset += cache.toOffset;
-                t.toPC = -cache.toOffset;
-                final int instEnd = t.instOffset - (startPC & R5.PAGE_ADDRESS_MASK) // Page start.
+                final TLBEntry cache = fetch.apply(startPC);
+                instOffset = startPC + cache.toOffset;
+                toPC = -cache.toOffset;
+                final int instEnd = instOffset - (startPC & R5.PAGE_ADDRESS_MASK) // Page start.
                                     + ((1 << R5.PAGE_ADDRESS_SHIFT) - 2); // Page size minus 16bit.
 
                 int inst;
-                if (t.instOffset < instEnd) { // Likely case, instruction fully inside page.
-                    inst = cache.device.load(t.instOffset, Sizes.SIZE_32_LOG2);
+                if (instOffset < instEnd) { // Likely case, instruction fully inside page.
+                    inst = cache.device.load(instOffset, Sizes.SIZE_32_LOG2);
                 } else { // Unlikely case, instruction may leave page if it is 32bit.
-                    inst = cache.device.load(t.instOffset, Sizes.SIZE_16_LOG2) & 0xFFFF;
+                    inst = cache.device.load(instOffset, Sizes.SIZE_16_LOG2) & 0xFFFF;
                     if ((inst & 0b11) == 0b11) { // 32bit instruction.
-                        final TLBEntry highCache = fetchSlow(startPC + 2);
+                        final TLBEntry highCache = fetch.apply(startPC + 2);
                         inst |= highCache.device.load(startPC + 2 + highCache.toOffset, Sizes.SIZE_16_LOG2) << 16;
                     }
                 }
 
                 // TODO trim nops completely, i.e. anything where rd = 0 that just computes and writes to it
+                // TODO pre-resolve more switches in op methods
+                // TODO test if incrementing instOffset/pc in generated method is better than generating a ton of constants
 
                 for (; ; ) { // End of page check at the bottom since we enter with a valid inst.
-                    // mcycle++;
-                    mv.visitVarInsn(Opcodes.ALOAD, t.cpuArg);
-                    mv.visitVarInsn(Opcodes.LLOAD, t.mcycleLocal);
-                    mv.visitLdcInsn(1L);
-                    mv.visitInsn(Opcodes.LADD);
-                    mv.visitInsn(Opcodes.DUP2);
-                    mv.visitVarInsn(Opcodes.LSTORE, t.mcycleLocal);
-                    mv.visitFieldInsn(Opcodes.PUTFIELD, CPU_TYPE.getInternalName(), "mcycle", Type.LONG_TYPE.getInternalName());
+                    incCycle();
 
                     if ((inst & 0b11) == 0b11) {
                         final int opcode = getField(inst, 0, 6, 0);
@@ -385,62 +345,62 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
                         switch (opcode) {
                             case 0b0010011: { // OP-IMM (register-immediate operation)
-                                t.invokeOp("op_imm", inst, rd, rs1);
+                                invokeOp("op_imm", inst, rd, rs1);
 
-                                t.instOffset += 4;
+                                instOffset += 4;
                                 break;
                             }
 
                             case 0b0110111: { // LUI
-                                t.invokeOp("lui", inst, rd);
+                                invokeOp("lui", inst, rd);
 
-                                t.instOffset += 4;
+                                instOffset += 4;
                                 break;
                             }
 
                             case 0b0010111: { // AUIPC
-                                t.invokeOp("auipc", inst, rd, t.instOffset + t.toPC);
+                                invokeOp("auipc", inst, rd, instOffset + toPC);
 
-                                t.instOffset += 4;
+                                instOffset += 4;
                                 break;
                             }
 
                             case 0b0110011: { // OP (register-register operation aka R-type)
-                                t.invokeOp("op", inst, rd, rs1);
+                                invokeOp("op", inst, rd, rs1);
 
-                                t.instOffset += 4;
+                                instOffset += 4;
                                 break;
                             }
 
                             case 0b1101111: { // JAL
-                                t.invokeOp("jal", inst, rd, t.instOffset + t.toPC);
+                                invokeOp("jal", inst, rd, instOffset + toPC);
                                 return; // May have jumped out of page. Also avoid infinite loops.
                             }
 
                             case 0b110_0111: { // JALR
-                                t.invokeOp("jalr", inst, rd, rs1, t.instOffset + t.toPC);
+                                invokeOp("jalr", inst, rd, rs1, instOffset + toPC);
                                 return; // May have jumped out of page. Also avoid infinite loops.
                             }
 
                             case 0b1100011: { // BRANCH
-                                t.invokeOp(boolean.class, "branch", inst, rs1, t.instOffset + t.toPC);
+                                invokeOp(boolean.class, "branch", inst, rs1, instOffset + toPC);
                                 mv.visitJumpInsn(Opcodes.IFNE, returnLabel);
 
-                                t.instOffset += 4;
+                                instOffset += 4;
                                 break;
                             }
 
                             case 0b0000011: { // LOAD
-                                t.invokeOp("load", inst, rd, rs1);
+                                invokeOp("load", inst, rd, rs1);
 
-                                t.instOffset += 4;
+                                instOffset += 4;
                                 break;
                             }
 
                             case 0b0100011: { // STORE
-                                t.invokeOp("store", inst, rs1);
+                                invokeOp("store", inst, rs1);
 
-                                t.instOffset += 4;
+                                instOffset += 4;
                                 break;
                             }
 
@@ -464,7 +424,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                     }
                                 }
 
-                                t.instOffset += 4;
+                                instOffset += 4;
                                 break;
                             }
 
@@ -483,10 +443,10 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                                     throw new R5IllegalInstructionException(inst);
                                                 }
 
-                                                t.flushPCToLocal();
+                                                storePCInLocal();
                                                 mv.visitTypeInsn(Opcodes.NEW, ECALL_EXCEPTION_TYPE.getInternalName());
                                                 mv.visitInsn(Opcodes.DUP);
-                                                mv.visitVarInsn(Opcodes.ALOAD, t.cpuArg);
+                                                mv.visitVarInsn(Opcodes.ALOAD, cpuArg);
                                                 mv.visitFieldInsn(Opcodes.GETFIELD, CPU_TYPE.getInternalName(), "priv", Type.INT_TYPE.getInternalName());
                                                 mv.visitMethodInsn(Opcodes.INVOKESPECIAL, ECALL_EXCEPTION_TYPE.getInternalName(), INIT_INT.getName(), INIT_INT.getDescriptor(), false);
                                                 mv.visitInsn(Opcodes.ATHROW);
@@ -497,7 +457,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                                     throw new R5IllegalInstructionException(inst);
                                                 }
 
-                                                t.flushPCToLocal();
+                                                storePCInLocal();
                                                 mv.visitTypeInsn(Opcodes.NEW, BREAKPOINT_EXCEPTION_TYPE.getInternalName());
                                                 mv.visitInsn(Opcodes.DUP);
                                                 mv.visitMethodInsn(Opcodes.INVOKESPECIAL, BREAKPOINT_EXCEPTION_TYPE.getInternalName(), INIT_VOID.getName(), INIT_VOID.getDescriptor(), false);
@@ -509,7 +469,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                                     throw new R5IllegalInstructionException(inst);
                                                 }
 
-                                                t.invokeOp("sret", inst);
+                                                invokeOp("sret", inst);
                                                 return; // Invalidate fetch cache
                                             }
                                             case 0b0011000_00010: { // MRET
@@ -517,16 +477,16 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                                     throw new R5IllegalInstructionException(inst);
                                                 }
 
-                                                t.invokeOp("mret", inst);
+                                                invokeOp("mret", inst);
                                                 return; // Invalidate fetch cache
                                             }
 
                                             case 0b0001000_00101: { // WFI
-                                                t.invokeOp(boolean.class, "wfi", inst);
+                                                invokeOp(boolean.class, "wfi", inst);
 
                                                 final Label noreturn = new Label();
                                                 mv.visitJumpInsn(Opcodes.IFEQ, noreturn);
-                                                t.flushPCToCPU(4);
+                                                storePCInCPU(4);
                                                 mv.visitJumpInsn(Opcodes.GOTO, returnLabel);
                                                 mv.visitLabel(noreturn);
 
@@ -536,8 +496,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                             default: {
                                                 final int funct7 = funct12 >>> 5;
                                                 if (funct7 == 0b0001001) { // SFENCE.VMA
-                                                    t.invokeOp("sfence_vma", inst, rs1);
-                                                    t.flushPCToCPU(4);
+                                                    invokeOp("sfence_vma", inst, rs1);
+                                                    storePCInCPU(4);
                                                     mv.visitJumpInsn(Opcodes.GOTO, returnLabel);
                                                     return; // Invalidate fetch cache
                                                 } else {
@@ -554,11 +514,11 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                         final int funct3lb = funct3 & 0b11;
                                         switch (funct3lb) {
                                             case 0b01: { // CSRRW[I]
-                                                t.invokeOp(boolean.class, "csrrw", inst, rd, rs1, funct3, csr);
+                                                invokeOp(boolean.class, "csrrw", inst, rd, rs1, funct3, csr);
 
                                                 final Label noreturn = new Label();
                                                 mv.visitJumpInsn(Opcodes.IFEQ, noreturn);
-                                                t.flushPCToCPU(4);
+                                                storePCInCPU(4);
                                                 mv.visitJumpInsn(Opcodes.GOTO, returnLabel);
                                                 mv.visitLabel(noreturn);
 
@@ -566,11 +526,11 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                             }
                                             case 0b10:   // CSRRS[I]
                                             case 0b11: { // CSRRC[I]
-                                                t.invokeOp(boolean.class, "csrrx", inst, rd, rs1, funct3, csr);
+                                                invokeOp(boolean.class, "csrrx", inst, rd, rs1, funct3, csr);
 
                                                 final Label noreturn = new Label();
                                                 mv.visitJumpInsn(Opcodes.IFEQ, noreturn);
-                                                t.flushPCToCPU(4);
+                                                storePCInCPU(4);
                                                 mv.visitJumpInsn(Opcodes.GOTO, returnLabel);
                                                 mv.visitLabel(noreturn);
 
@@ -581,19 +541,19 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                     }
                                 }
 
-                                t.instOffset += 4;
+                                instOffset += 4;
                                 break;
                             }
 
                             case 0b0101111: { // AMO
                                 final int funct3 = getField(inst, 12, 14, 0);
                                 if (funct3 == 0b010) { // 32 bit
-                                    t.invokeOp("amo32", inst, rd, rs1);
+                                    invokeOp("amo32", inst, rd, rs1);
                                 } else {
                                     throw new R5IllegalInstructionException(inst);
                                 }
 
-                                t.instOffset += 4;
+                                instOffset += 4;
                                 break;
                             }
 
@@ -614,18 +574,18 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                 final int rd = getField(inst, 2, 4, 0) + 8;
                                 switch (funct3) {
                                     case 0b000: { // C.ADDI4SPN
-                                        t.invokeOp("c_addi4spn", inst, rd);
+                                        invokeOp("c_addi4spn", inst, rd);
                                         break;
                                     }
                                     // 0b001: C.FLD
                                     case 0b010: { // C.LW
-                                        t.invokeOp("c_lw", inst, rd);
+                                        invokeOp("c_lw", inst, rd);
                                         break;
                                     }
                                     // 0b011: C.FLW
                                     // 0b101: C.FSD
                                     case 0b110: { // C.SW
-                                        t.invokeOp("c_sw", inst, rd);
+                                        invokeOp("c_sw", inst, rd);
                                         break;
                                     }
                                     // 0b111: C.FSW
@@ -635,7 +595,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                     }
                                 }
 
-                                t.instOffset += 2;
+                                instOffset += 2;
                                 break;
                             }
 
@@ -644,31 +604,31 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                     case 0b000: {
                                         final int rd = getField(inst, 7, 11, 0);
                                         if (rd != 0) { // C.ADDI
-                                            t.invokeOp("c_addi", inst);
+                                            invokeOp("c_addi", inst);
                                         } // else: C.NOP
 
-                                        t.instOffset += 2;
+                                        instOffset += 2;
                                         break;
                                     }
                                     case 0b001: { // C.JAL
-                                        t.invokeOp("c_jal", inst, t.instOffset + t.toPC);
+                                        invokeOp("c_jal", inst, instOffset + toPC);
                                         return; // May have jumped out of page. Also avoid infinite loops.
                                     }
                                     case 0b010: { // C.LI
-                                        t.invokeOp("c_li", inst);
+                                        invokeOp("c_li", inst);
 
-                                        t.instOffset += 2;
+                                        instOffset += 2;
                                         break;
                                     }
                                     case 0b011: {
                                         final int rd = getField(inst, 7, 11, 0);
                                         if (rd == 2) { // C.ADDI16SP
-                                            t.invokeOp("c_addi16sp", inst);
+                                            invokeOp("c_addi16sp", inst);
                                         } else if (rd != 0) { // C.LUI
-                                            t.invokeOp("c_lui", inst, rd);
+                                            invokeOp("c_lui", inst, rd);
                                         } // else: HINT
 
-                                        t.instOffset += 2;
+                                        instOffset += 2;
                                         break;
                                     }
                                     case 0b100: {
@@ -677,11 +637,11 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                         switch (funct2) {
                                             case 0b00:   // C.SRLI
                                             case 0b01: { // C.SRAI
-                                                t.invokeOp("c_srxi", inst, funct2, rd);
+                                                invokeOp("c_srxi", inst, funct2, rd);
                                                 break;
                                             }
                                             case 0b10: { // C.ANDI
-                                                t.invokeOp("c_andi", inst, rd);
+                                                invokeOp("c_andi", inst, rd);
                                                 break;
                                             }
                                             case 0b11: {
@@ -690,19 +650,19 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                                 final int rs2 = getField(inst, 2, 4, 0) + 8;
                                                 switch (funct3b) {
                                                     case 0b000: { // C.SUB
-                                                        t.invokeOp("c_sub", rd, rs2);
+                                                        invokeOp("c_sub", rd, rs2);
                                                         break;
                                                     }
                                                     case 0b001: { // C.XOR
-                                                        t.invokeOp("c_xor", rd, rs2);
+                                                        invokeOp("c_xor", rd, rs2);
                                                         break;
                                                     }
                                                     case 0b010: { // C.OR
-                                                        t.invokeOp("c_or", rd, rs2);
+                                                        invokeOp("c_or", rd, rs2);
                                                         break;
                                                     }
                                                     case 0b011: { // C.AND
-                                                        t.invokeOp("c_and", rd, rs2);
+                                                        invokeOp("c_and", rd, rs2);
                                                         break;
                                                     }
                                                     // 0b100: C.SUBW
@@ -717,19 +677,19 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                             }
                                         }
 
-                                        t.instOffset += 2;
+                                        instOffset += 2;
                                         break;
                                     }
                                     case 0b101: { // C.J
-                                        t.invokeOp("c_j", inst, t.instOffset + t.toPC);
+                                        invokeOp("c_j", inst, instOffset + toPC);
                                         return; // May have jumped out of page. Also avoid infinite loops.
                                     }
                                     case 0b110:   // C.BEQZ
                                     case 0b111: { // C.BNEZ
-                                        t.invokeOp(boolean.class, "c_branch", inst, funct3, t.instOffset + t.toPC);
+                                        invokeOp(boolean.class, "c_branch", inst, funct3, instOffset + toPC);
                                         mv.visitJumpInsn(Opcodes.IFNE, returnLabel);
 
-                                        t.instOffset += 2;
+                                        instOffset += 2;
                                         break;
                                     }
 
@@ -745,9 +705,9 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                 final int rd = getField(inst, 7, 11, 0);
                                 switch (funct3) {
                                     case 0b000: { // C.SLLI
-                                        t.invokeOp("c_slli", inst, rd);
+                                        invokeOp("c_slli", inst, rd);
 
-                                        t.instOffset += 2;
+                                        instOffset += 2;
                                         break;
                                     }
                                     // 0b001: C.FLDSP
@@ -756,9 +716,9 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                             throw new R5IllegalInstructionException(inst);
                                         }
 
-                                        t.invokeOp("c_lwsp", inst, rd);
+                                        invokeOp("c_lwsp", inst, rd);
 
-                                        t.instOffset += 2;
+                                        instOffset += 2;
                                         break;
                                     }
                                     // 0b011: C.FLWSP
@@ -770,30 +730,30 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                                     throw new R5IllegalInstructionException(inst);
                                                 }
 
-                                                t.invokeOp("c_jr", rd);
+                                                invokeOp("c_jr", rd);
                                                 return; // May have jumped out of page. Also avoid infinite loops.
                                             } else { // C.MV
-                                                t.invokeOp("c_mv", rd, rs2);
+                                                invokeOp("c_mv", rd, rs2);
 
-                                                t.instOffset += 2;
+                                                instOffset += 2;
                                             }
                                         } else {
                                             if (rs2 == 0) {
                                                 if (rd == 0) { // C.EBREAK
-                                                    t.flushPCToLocal();
+                                                    storePCInLocal();
                                                     mv.visitTypeInsn(Opcodes.NEW, BREAKPOINT_EXCEPTION_TYPE.getInternalName());
                                                     mv.visitInsn(Opcodes.DUP);
                                                     mv.visitMethodInsn(Opcodes.INVOKESPECIAL, BREAKPOINT_EXCEPTION_TYPE.getInternalName(), INIT_VOID.getName(), INIT_VOID.getDescriptor(), false);
                                                     mv.visitInsn(Opcodes.ATHROW);
                                                     return;
                                                 } else { // C.JALR
-                                                    t.invokeOp("c_jalr", rd, t.instOffset + t.toPC);
+                                                    invokeOp("c_jalr", rd, instOffset + toPC);
                                                     return; // May have jumped out of page. Also avoid infinite loops.
                                                 }
                                             } else { // C.ADD
-                                                t.invokeOp("c_add", rd, rs2);
+                                                invokeOp("c_add", rd, rs2);
 
-                                                t.instOffset += 2;
+                                                instOffset += 2;
                                             }
                                         }
 
@@ -801,9 +761,9 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                                     }
                                     // 0b101: C.FSDSP
                                     case 0b110: { // C.SWSP
-                                        t.invokeOp("c_swsp", inst);
+                                        invokeOp("c_swsp", inst);
 
-                                        t.instOffset += 2;
+                                        instOffset += 2;
                                         break;
                                     }
 
@@ -821,15 +781,15 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                         }
                     }
 
-                    if (t.instOffset < instEnd) { // Likely case: we're still fully in the page.
-                        inst = cache.device.load(t.instOffset, Sizes.SIZE_32_LOG2);
+                    if (instOffset < instEnd) { // Likely case: we're still fully in the page.
+                        inst = cache.device.load(instOffset, Sizes.SIZE_32_LOG2);
                     } else { // Unlikely case: we reached the end of the page. Leave to do interrupts and cycle check.
-                        t.flushPCToCPU();
+                        storePCInCPU();
                         return;
                     }
                 }
             } catch (final R5IllegalInstructionException e) {
-                t.flushPCToCPU();
+                storePCInCPU();
                 mv.visitTypeInsn(Opcodes.NEW, ILLEGAL_INSTRUCTION_EXCEPTION_TYPE.getInternalName());
                 mv.visitInsn(Opcodes.DUP);
                 mv.visitLdcInsn(e.getExceptionValue());
@@ -837,7 +797,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 mv.visitInsn(Opcodes.ATHROW);
             } catch (final MemoryAccessException e) {
                 final Type type = Type.getType(e.getClass());
-                t.flushPCToCPU();
+                storePCInCPU();
                 mv.visitTypeInsn(Opcodes.NEW, type.getInternalName());
                 mv.visitInsn(Opcodes.DUP);
                 mv.visitLdcInsn(e.getAddress());
@@ -849,15 +809,89 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
                 mv.visitLabel(catchLabel);
 
-                mv.visitVarInsn(Opcodes.ALOAD, t.cpuArg);
-                mv.visitVarInsn(Opcodes.ILOAD, t.pcLocal);
+                mv.visitVarInsn(Opcodes.ALOAD, cpuArg);
+                mv.visitVarInsn(Opcodes.ILOAD, pcLocal);
                 mv.visitFieldInsn(Opcodes.PUTFIELD, CPU_TYPE.getInternalName(), "pc", Type.INT_TYPE.getInternalName());
                 mv.visitInsn(Opcodes.ATHROW);
 
                 mv.visitLabel(endLabel);
-
-//                LOGGER.info("Generated trace of length [{}]", (s.instOffset + s.toPC) - startPC);
             }
+        }
+
+        private void generatePCLocal() {
+            mv.visitLdcInsn(instOffset);
+            mv.visitVarInsn(Opcodes.ISTORE, pcLocal);
+        }
+
+        private void generateMcycleLocal() {
+            mv.visitVarInsn(Opcodes.ALOAD, cpuArg);
+            mv.visitFieldInsn(Opcodes.GETFIELD, CPU_TYPE.getInternalName(), "mcycle", Type.LONG_TYPE.getInternalName());
+            mv.visitVarInsn(Opcodes.LSTORE, mcycleLocal);
+        }
+
+        private void incCycle() {
+            mv.visitVarInsn(Opcodes.ALOAD, cpuArg);
+            mv.visitVarInsn(Opcodes.LLOAD, mcycleLocal);
+            mv.visitLdcInsn(1L);
+            mv.visitInsn(Opcodes.LADD);
+            mv.visitInsn(Opcodes.DUP2);
+            mv.visitVarInsn(Opcodes.LSTORE, mcycleLocal);
+            mv.visitFieldInsn(Opcodes.PUTFIELD, CPU_TYPE.getInternalName(), "mcycle", Type.LONG_TYPE.getInternalName());
+        }
+
+        public void invokeOp(final String methodName, final int... args) {
+            invokeOp(null, methodName, args);
+        }
+
+        public void invokeOp(@Nullable final Class<?> expectedReturnType, final String methodName, final int... args) {
+            final Method method = getOpcodeMethod(methodName);
+            final Class<?>[] argTypes = method.getParameterTypes();
+            if (argTypes.length != args.length) {
+                throw new IllegalArgumentException("invalid argument count for method [" + methodName + "]");
+            }
+
+            if (expectedReturnType != null && method.getReturnType() != expectedReturnType) {
+                throw new IllegalArgumentException("invalid return type for method [" + methodName + "]");
+            }
+
+            // Update pc local if method may throw an exception so we can path the pc field in the cpu
+            // appropriately in the exception handler in case it does throw an exception.
+            // Note that RuntimeExceptions will bypass this and completely break the program state.
+            // However, we can expect that these will bubble through to the top anyway, so we don't care.
+            if (method.getExceptionTypes().length > 0) {
+                storePCInLocal();
+            }
+
+            mv.visitVarInsn(Opcodes.ALOAD, cpuArg);
+
+            for (int i = 0; i < args.length; i++) {
+                if (!ClassUtils.isAssignable(argTypes[i], int.class)) {
+                    throw new IllegalArgumentException("invalid argument type for argument [" + (i + 1) + "] for method [" + methodName + "]");
+                }
+                mv.visitLdcInsn(args[i]);
+            }
+
+            final Type methodType = Type.getType(method);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, CPU_TYPE.getInternalName(), methodName, methodType.getDescriptor(), false);
+
+            if (expectedReturnType == null && method.getReturnType() != void.class) {
+                mv.visitInsn(Opcodes.POP);
+            }
+        }
+
+        public void storePCInLocal() {
+            mv.visitLdcInsn(instOffset + toPC);
+            mv.visitVarInsn(Opcodes.ISTORE, pcLocal);
+        }
+
+        public void storePCInCPU() {
+            storePCInCPU(0);
+        }
+
+        public void storePCInCPU(final int offset) {
+            mv.visitVarInsn(Opcodes.ALOAD, cpuArg);
+            mv.visitLdcInsn(instOffset + toPC + offset);
+            mv.visitFieldInsn(Opcodes.PUTFIELD, CPU_TYPE.getInternalName(), "pc", Type.INT_TYPE.getInternalName());
         }
     }
 
@@ -957,7 +991,9 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             }
 
             try {
-                interpret();
+                if (!trace()) {
+                    interpret();
+                }
             } catch (final LoadPageFaultException e) {
                 raiseException(R5.EXCEPTION_LOAD_PAGE_FAULT, e.getAddress());
             } catch (final StorePageFaultException e) {
@@ -988,10 +1024,13 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    private void interpret() throws R5Exception, MemoryAccessException {
+    private boolean trace() throws R5Exception, MemoryAccessException {
+//        traces.computeIfAbsent(pc, traceClassLoader::translateTrace).execute(this);
+//        return true;
+
         if (traces.containsKey(pc)) {
             traces.get(pc).execute(this);
-            return;
+            return true;
         } else {
             int writeTrace = 0;
             int writeTraceCount = hotTraces[0].count;
@@ -1015,10 +1054,14 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 hotTraces[writeTrace].pc = -1;
                 hotTraces[writeTrace].count = 0;
                 trace.execute(this);
-                return;
+                return true;
             }
         }
 
+        return false;
+    }
+
+    private void interpret() throws R5Exception, MemoryAccessException {
         // The idea here is to run many sequential instructions with very little overhead.
         // We only need to exit the inner loop when we either leave the page we started in,
         // jump around (jumps, conditionals) or some state that influences how memory access

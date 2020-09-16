@@ -2217,6 +2217,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             }
             case 0x344: { // mip Machine interrupt pending.
                 // p32: MEIP, MTIP, MSIP are readonly in mip.
+                // Additionally, SEIP is controlled by a PLIC in our case, so we must not allow
+                // software to reset it, as this could lead to lost interrupts.
                 final int mask = R5.STIP_MASK | R5.SSIP_MASK;
                 mip.updateAndGet(operand -> (operand & ~mask) | (value & mask));
                 break;

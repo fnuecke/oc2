@@ -80,6 +80,11 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     // Translation look-aside buffer config.
     private static final int TLB_SIZE = 256; // Must be a power of two for fast modulo via `& (TLB_SIZE - 1)`.
 
+    // Knobs for tweaking dynamic binary translation.
+    private static final int HOT_TRACE_COUNT = 16; // Must be a power of to for (x - 1) masking.
+    private static final int TRACE_COUNT_THRESHOLD = 30;
+    private static final int EXPECTED_MAX_TRACE_COUNT = 1024;
+
     ///////////////////////////////////////////////////////////////////
     // RV32I
     public int pc; // Program counter.
@@ -139,17 +144,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
     ///////////////////////////////////////////////////////////////////
     // Dynamic binary translation
-    private static final int MAX_TRACKED_TRACES = 50;
-    private static final int MAX_TRACES = 1000;
-    private static final int TRACE_COUNT_THRESHOLD = 20;
-    private final HotTrace[] hotTraces = new HotTrace[MAX_TRACKED_TRACES];
-    private final Int2ObjectMap<Trace> traces = new Int2ObjectOpenHashMap<>(MAX_TRACES);
-    private TraceClassLoader traceClassLoader = new TraceClassLoader();
-
-    private static final class HotTrace {
-        public int pc = -1;
-        public int count;
-    }
+    private final HotTrace[] hotTraces = new HotTrace[HOT_TRACE_COUNT];
+    private final Int2ObjectMap<Trace> traces = new Int2ObjectOpenHashMap<>(EXPECTED_MAX_TRACE_COUNT);
 
     @FunctionalInterface
     public interface Trace {
@@ -1029,36 +1025,30 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 //        return true;
 
         if (traces.containsKey(pc)) {
-            traces.get(pc).execute(this);
+            invokeTrace(traces.get(pc));
             return true;
         } else {
-            int writeTrace = 0;
-            int writeTraceCount = hotTraces[0].count;
-            for (int i = 1; i < hotTraces.length && hotTraces[writeTrace].pc != pc; i++) {
-                final int count = hotTraces[i].count;
-                if (count < writeTraceCount || hotTraces[i].pc == pc) {
-                    writeTrace = i;
-                    writeTraceCount = count;
-                }
-            }
+            final int hotTraceIndex = (pc >> 1) & (HOT_TRACE_COUNT - 1);
+            final HotTrace hotTrace = hotTraces[hotTraceIndex];
+            if (hotTrace.pc != pc) {
+                hotTrace.pc = pc;
+                hotTrace.count = 1;
+            } else if (++hotTrace.count >= TRACE_COUNT_THRESHOLD) {
+                hotTrace.pc = -1;
 
-            if (hotTraces[writeTrace].pc != pc) {
-                hotTraces[writeTrace].pc = pc;
-                hotTraces[writeTrace].count = 0;
-            }
-            hotTraces[writeTrace].count++;
-
-            if (hotTraces[writeTrace].count >= TRACE_COUNT_THRESHOLD) {
-                final Trace trace = traceClassLoader.translateTrace(pc);
+                final Trace trace = translateTrace(pc);
                 traces.put(pc, trace);
-                hotTraces[writeTrace].pc = -1;
-                hotTraces[writeTrace].count = 0;
-                trace.execute(this);
+                invokeTrace(trace);
+
                 return true;
             }
         }
 
         return false;
+    }
+
+    private void invokeTrace(final Trace trace) throws R5Exception, MemoryAccessException {
+        trace.execute(this);
     }
 
     private void interpret() throws R5Exception, MemoryAccessException {
@@ -3365,6 +3355,11 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         public int hash = -1;
         public int toOffset;
         public MemoryMappedDevice device;
+    }
+
+    private static final class HotTrace {
+        public int pc = -1;
+        public int count;
     }
 
     public R5CPUStateSnapshot getState() {

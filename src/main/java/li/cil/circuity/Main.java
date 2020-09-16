@@ -1,6 +1,7 @@
 package li.cil.circuity;
 
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
+import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.vm.device.memory.UnsafeMemory;
 import li.cil.circuity.vm.riscv.R5Board;
 import li.cil.circuity.vm.riscv.R5CPU;
@@ -85,7 +86,7 @@ public final class Main {
         try (final FileInputStream is = new FileInputStream(path)) {
             final BufferedInputStream bis = new BufferedInputStream(is);
             for (int value = bis.read(); value != -1; value = bis.read()) {
-                memory.store(address++, (byte) value, 0);
+                memory.store(address++, (byte) value, Sizes.SIZE_8_LOG2);
             }
         }
     }

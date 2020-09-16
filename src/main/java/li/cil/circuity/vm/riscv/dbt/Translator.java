@@ -15,7 +15,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -653,7 +652,7 @@ public final class Translator {
     }
 
     private static OpcodeMethod findOpcodeMethod(final String name) {
-        for (final Method method : R5CPU.class.getDeclaredMethods()) {
+        for (final java.lang.reflect.Method method : R5CPU.class.getDeclaredMethods()) {
             if (name.equals(method.getName())) {
                 return new OpcodeMethod(method);
             }
@@ -668,7 +667,7 @@ public final class Translator {
         public final boolean throwsExceptions;
         public final String descriptor;
 
-        public OpcodeMethod(final Method method) {
+        public OpcodeMethod(final java.lang.reflect.Method method) {
             argTypes = method.getParameterTypes();
             returnType = method.getReturnType();
             throwsExceptions = method.getExceptionTypes().length > 0;

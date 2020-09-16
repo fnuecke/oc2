@@ -12,7 +12,6 @@ import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.api.vm.device.rtc.RealTimeCounter;
 import li.cil.circuity.vm.BitUtils;
-import li.cil.circuity.vm.UnsafeGetter;
 import li.cil.circuity.vm.device.memory.exception.*;
 import li.cil.circuity.vm.riscv.dbt.Trace;
 import li.cil.circuity.vm.riscv.dbt.Translator;
@@ -22,8 +21,6 @@ import li.cil.circuity.vm.riscv.exception.R5Exception;
 import li.cil.circuity.vm.riscv.exception.R5IllegalInstructionException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.objectweb.asm.*;
-import sun.misc.Unsafe;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,7 +48,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final Unsafe UNSAFE = UnsafeGetter.get();
 
     public static final int PC_INIT = 0x1000; // Initial position of program counter.
 
@@ -148,72 +144,6 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     // Dynamic binary translation
     private final HotTrace[] hotTraces = new HotTrace[HOT_TRACE_COUNT];
     private final Int2ObjectMap<Trace> traces = new Int2ObjectOpenHashMap<>(EXPECTED_MAX_TRACE_COUNT);
-
-    // Bytecode generation.
-    private static final String TRACE_EXECUTE_NAME = "execute";
-    private static final String TRACE_EXECUTE_DESC = "(Lli/cil/circuity/vm/riscv/R5CPU;)V";
-    private static final Type OBJECT_TYPE = Type.getType(Object.class);
-    private static final Type TRACE_TYPE = Type.getType(Trace.class);
-    private static final org.objectweb.asm.commons.Method INIT_VOID = org.objectweb.asm.commons.Method.getMethod("void <init> ()");
-
-    private Trace translateTrace(final int pc) {
-        final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-
-        cw.visit(Opcodes.V1_8,
-                Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
-                TRACE_TYPE.getInternalName() + "$" + Integer.toHexString(pc),
-                null,
-                OBJECT_TYPE.getInternalName(),
-                new String[]{TRACE_TYPE.getInternalName()});
-
-        generateDefaultConstructor(cw);
-        generateExecuteMethod(cw, pc);
-
-        cw.visitEnd();
-
-        return instantiateTrace(defineClass(cw.toByteArray()));
-    }
-
-    private static Class<Trace> defineClass(final byte[] data) {
-        @SuppressWarnings("unchecked") final Class<Trace> traceClass = (Class<Trace>) UNSAFE.defineAnonymousClass(R5CPU.class, data, null);
-        UNSAFE.ensureClassInitialized(traceClass);
-        return traceClass;
-    }
-
-    private static Trace instantiateTrace(final Class<Trace> traceClass) {
-        try {
-            return (Trace) UNSAFE.allocateInstance(traceClass);
-        } catch (final InstantiationException e) {
-            throw new AssertionError();
-        }
-    }
-
-    private void generateDefaultConstructor(final ClassVisitor cv) {
-        final MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
-
-        mv.visitCode();
-
-        mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, OBJECT_TYPE.getInternalName(), INIT_VOID.getName(), INIT_VOID.getDescriptor(), false);
-        mv.visitInsn(Opcodes.RETURN);
-
-        mv.visitMaxs(-1, -1);
-        mv.visitEnd();
-    }
-
-    private void generateExecuteMethod(final ClassVisitor cv, final int pc) {
-        final MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, TRACE_EXECUTE_NAME, TRACE_EXECUTE_DESC, null, new String[]{
-                Type.getInternalName(R5Exception.class),
-                Type.getInternalName(MemoryAccessException.class)
-        });
-
-        mv.visitCode();
-
-        new Translator(mv, R5CPU.this::fetchPage).translateTrace(pc);
-
-        mv.visitMaxs(-1, -1);
-        mv.visitEnd();
-    }
 
     ///////////////////////////////////////////////////////////////////
     // Real time counter -- at least in RISC-V Linux 5.1 the mtime CSR is needed in add_device_randomness
@@ -354,7 +284,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             } else if (++hotTrace.count >= TRACE_COUNT_THRESHOLD) {
                 hotTrace.pc = -1;
 
-                final Trace trace = translateTrace(pc);
+                final Trace trace = Translator.translateTrace(this::fetchPage, pc);
                 traces.put(pc, trace);
                 invokeTrace(trace);
 

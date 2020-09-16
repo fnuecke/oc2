@@ -3,26 +3,34 @@ package li.cil.circuity.vm.riscv.dbt;
 import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
 import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.vm.BitUtils;
+import li.cil.circuity.vm.UnsafeGetter;
 import li.cil.circuity.vm.riscv.R5;
 import li.cil.circuity.vm.riscv.R5CPU;
 import li.cil.circuity.vm.riscv.exception.R5BreakpointException;
 import li.cil.circuity.vm.riscv.exception.R5ECallException;
+import li.cil.circuity.vm.riscv.exception.R5Exception;
 import li.cil.circuity.vm.riscv.exception.R5IllegalInstructionException;
 import org.apache.commons.lang3.ClassUtils;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
+import sun.misc.Unsafe;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
 public final class Translator {
+    private static final Unsafe UNSAFE = UnsafeGetter.get();
+
+    private static final String TRACE_EXECUTE_NAME = "execute";
+    private static final String TRACE_EXECUTE_DESC = "(Lli/cil/circuity/vm/riscv/R5CPU;)V";
+
+    private static final Type OBJECT_TYPE = Type.getType(Object.class);
     private static final Type CPU_TYPE = Type.getType(R5CPU.class);
+    private static final Type TRACE_TYPE = Type.getType(Trace.class);
     private static final Type ECALL_EXCEPTION_TYPE = Type.getType(R5ECallException.class);
     private static final Type BREAKPOINT_EXCEPTION_TYPE = Type.getType(R5BreakpointException.class);
     private static final Type ILLEGAL_INSTRUCTION_EXCEPTION_TYPE = Type.getType(R5IllegalInstructionException.class);
+
     private static final org.objectweb.asm.commons.Method INIT_VOID = org.objectweb.asm.commons.Method.getMethod("void <init> ()");
     private static final org.objectweb.asm.commons.Method INIT_INT = org.objectweb.asm.commons.Method.getMethod("void <init> (int)");
 
@@ -39,17 +47,76 @@ public final class Translator {
     // Cached opcode implementations by name for faster lookup in generation.
     private static final Map<String, OpcodeMethod> OPCODE_METHODS = new HashMap<>();
 
-    public final MethodVisitor mv;
+    private final MethodVisitor mv;
     private final InstructionAccess fetch;
     private int instOffset;
     private int toPC;
 
-    public Translator(final MethodVisitor mv, final InstructionAccess fetch) {
+    private Translator(final MethodVisitor mv, final InstructionAccess fetch) {
         this.mv = mv;
         this.fetch = fetch;
     }
 
-    public void translateTrace(final int startPC) {
+    public static Trace translateTrace(final InstructionAccess access, final int pc) {
+        final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+
+        cw.visit(Opcodes.V1_8,
+                Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
+                TRACE_TYPE.getInternalName() + "$" + Integer.toHexString(pc),
+                null,
+                OBJECT_TYPE.getInternalName(),
+                new String[]{TRACE_TYPE.getInternalName()});
+
+        generateDefaultConstructor(cw);
+        generateExecuteMethod(cw, access, pc);
+
+        cw.visitEnd();
+
+        return instantiateTrace(defineClass(cw.toByteArray()));
+    }
+
+    private static Class<Trace> defineClass(final byte[] data) {
+        @SuppressWarnings("unchecked") final Class<Trace> traceClass = (Class<Trace>) UNSAFE.defineAnonymousClass(R5CPU.class, data, null);
+        UNSAFE.ensureClassInitialized(traceClass);
+        return traceClass;
+    }
+
+    private static Trace instantiateTrace(final Class<Trace> traceClass) {
+        try {
+            return (Trace) UNSAFE.allocateInstance(traceClass);
+        } catch (final InstantiationException e) {
+            throw new AssertionError();
+        }
+    }
+
+    private static void generateDefaultConstructor(final ClassVisitor cv) {
+        final MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+
+        mv.visitCode();
+
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, OBJECT_TYPE.getInternalName(), INIT_VOID.getName(), INIT_VOID.getDescriptor(), false);
+        mv.visitInsn(Opcodes.RETURN);
+
+        mv.visitMaxs(-1, -1);
+        mv.visitEnd();
+    }
+
+    private static void generateExecuteMethod(final ClassVisitor cv, final InstructionAccess access, final int pc) {
+        final MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, TRACE_EXECUTE_NAME, TRACE_EXECUTE_DESC, null, new String[]{
+                Type.getInternalName(R5Exception.class),
+                Type.getInternalName(MemoryAccessException.class)
+        });
+
+        mv.visitCode();
+
+        new Translator(mv, access).translateTrace(pc);
+
+        mv.visitMaxs(-1, -1);
+        mv.visitEnd();
+    }
+
+    private void translateTrace(final int startPC) {
         final Label startLabel = new Label();
         final Label returnLabel = new Label();
         final Label catchLabel = new Label();
@@ -662,12 +729,12 @@ public final class Translator {
     }
 
     private static final class OpcodeMethod {
-        public final Class<?>[] argTypes;
-        public final Class<?> returnType;
-        public final boolean throwsExceptions;
-        public final String descriptor;
+        final Class<?>[] argTypes;
+        final Class<?> returnType;
+        final boolean throwsExceptions;
+        final String descriptor;
 
-        public OpcodeMethod(final java.lang.reflect.Method method) {
+        OpcodeMethod(final java.lang.reflect.Method method) {
             argTypes = method.getParameterTypes();
             returnType = method.getReturnType();
             throwsExceptions = method.getExceptionTypes().length > 0;

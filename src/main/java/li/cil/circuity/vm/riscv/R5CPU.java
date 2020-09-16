@@ -11,6 +11,7 @@ import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.api.vm.device.rtc.RealTimeCounter;
+import li.cil.circuity.vm.UnsafeGetter;
 import li.cil.circuity.vm.device.memory.exception.*;
 import li.cil.circuity.vm.riscv.exception.R5BreakpointException;
 import li.cil.circuity.vm.riscv.exception.R5ECallException;
@@ -20,6 +21,7 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.*;
+import sun.misc.Unsafe;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
@@ -50,6 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final Unsafe UNSAFE = UnsafeGetter.get();
 
     public static final int PC_INIT = 0x1000; // Initial position of program counter.
 
@@ -153,29 +156,16 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     }
 
     @FunctionalInterface
-    public interface Fetch {
-        TLBEntry apply(final int pc) throws MemoryAccessException;
+    public interface InstructionMemoryAccess {
+        TLBEntry fetch(final int pc) throws MemoryAccessException;
     }
 
-    private static final String executeMethodName;
-    private static final String executeMethodDesc;
-
-    static {
-        String mn = null;
-        String md = null;
-        try {
-            final Method m = Trace.class.getMethod("execute", R5CPU.class);
-            mn = m.getName();
-            md = Type.getMethodDescriptor(m);
-        } catch (final NoSuchMethodException e) {
-            e.printStackTrace();
-        }
-        executeMethodName = mn;
-        executeMethodDesc = md;
-    }
-
+    // Bytecode generation.
+    private static final String TRACE_EXECUTE_NAME = "execute";
+    private static final String TRACE_EXECUTE_DESC = "(Lli/cil/circuity/vm/riscv/R5CPU;)V";
     private static final Type OBJECT_TYPE = Type.getType(Object.class);
     private static final Type CPU_TYPE = Type.getType(R5CPU.class);
+    private static final Type TRACE_TYPE = Type.getType(Trace.class);
     private static final Type ECALL_EXCEPTION_TYPE = Type.getType(R5ECallException.class);
     private static final Type BREAKPOINT_EXCEPTION_TYPE = Type.getType(R5BreakpointException.class);
     private static final Type ILLEGAL_INSTRUCTION_EXCEPTION_TYPE = Type.getType(R5IllegalInstructionException.class);
@@ -198,78 +188,63 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         throw new IllegalArgumentException("invalid method name [" + name + "]");
     }
 
-    private final class TraceClassLoader extends ClassLoader {
-        public Trace translateTrace(final int pc) {
-            final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+    private Trace translateTrace(final int pc) {
+        final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
-            cw.visit(Opcodes.V1_8,
-                    Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
-                    "li/cil/circuity/vm/riscv/Trace$" + Integer.toHexString(pc),
-                    null,
-                    Type.getInternalName(Object.class),
-                    new String[]{Type.getInternalName(Trace.class)});
+        cw.visit(Opcodes.V1_8,
+                Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
+                TRACE_TYPE.getInternalName() + "$" + Integer.toHexString(pc),
+                null,
+                OBJECT_TYPE.getInternalName(),
+                new String[]{TRACE_TYPE.getInternalName()});
 
-            generateDefaultConstructor(cw);
-            generateExecuteMethod(cw, pc);
+        generateDefaultConstructor(cw);
+        generateExecuteMethod(cw, pc);
 
-            cw.visitEnd();
+        cw.visitEnd();
 
-//            final Class<?> proxy = UNSAFE.defineAnonymousClass(java.lang.invoke.MethodHandles.class, cw.toByteArray(), null);
-//            MethodHandle mh = MethodHandles.lookup().findVirtual(proxy, "execute", MethodType.methodType(Trace.class));
-//            return mh::invokeExact;
+        return instantiateTrace(defineClass(cw.toByteArray()));
+    }
 
-            return newTrace(defineClass(cw.toByteArray()));
+    private static Class<Trace> defineClass(final byte[] data) {
+        @SuppressWarnings("unchecked") final Class<Trace> traceClass = (Class<Trace>) UNSAFE.defineAnonymousClass(R5CPU.class, data, null);
+        UNSAFE.ensureClassInitialized(traceClass);
+        return traceClass;
+    }
+
+    private static Trace instantiateTrace(final Class<Trace> traceClass) {
+        try {
+            return (Trace) UNSAFE.allocateInstance(traceClass);
+        } catch (final InstantiationException e) {
+            throw new AssertionError();
         }
+    }
 
-        private Class<?> defineClass(final byte[] data) {
-//            return UNSAFE.defineAnonymousClass(R5CPU.class, data, null);
+    private void generateDefaultConstructor(final ClassVisitor cv) {
+        final MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
 
-            final Class<?> trace = super.defineClass(null, data, 0, data.length);
-            resolveClass(trace);
-            return trace;
-        }
+        mv.visitCode();
 
-        private Trace newTrace(final Class<?> clazz) {
-//            try {
-//                return (Trace) UNSAFE.allocateInstance(clazz);
-//            } catch (final InstantiationException e) {
-//                throw new AssertionError();
-//            }
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, OBJECT_TYPE.getInternalName(), INIT_VOID.getName(), INIT_VOID.getDescriptor(), false);
+        mv.visitInsn(Opcodes.RETURN);
 
-            try {
-                return (Trace) clazz.newInstance();
-            } catch (final InstantiationException | IllegalAccessException e) {
-                throw new AssertionError();
-            }
-        }
+        mv.visitMaxs(-1, -1);
+        mv.visitEnd();
+    }
 
-        private void generateDefaultConstructor(final ClassVisitor cv) {
-            final MethodVisitor mv = cv.visitMethod(
-                    Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+    private void generateExecuteMethod(final ClassVisitor cv, final int pc) {
+        final MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, TRACE_EXECUTE_NAME, TRACE_EXECUTE_DESC, null, new String[]{
+                Type.getInternalName(R5Exception.class),
+                Type.getInternalName(MemoryAccessException.class)
+        });
 
-            mv.visitCode();
+        mv.visitCode();
 
-            mv.visitVarInsn(Opcodes.ALOAD, 0);
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, OBJECT_TYPE.getInternalName(), INIT_VOID.getName(), INIT_VOID.getDescriptor(), false);
-            mv.visitInsn(Opcodes.RETURN);
+        new Translator(mv, R5CPU.this::fetch).translateTrace(pc);
 
-            mv.visitMaxs(-1, -1);
-            mv.visitEnd();
-        }
-
-        private void generateExecuteMethod(final ClassVisitor cv, final int pc) {
-            final MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, executeMethodName, executeMethodDesc, null, new String[]{
-                    Type.getInternalName(R5Exception.class),
-                    Type.getInternalName(MemoryAccessException.class)
-            });
-
-            mv.visitCode();
-
-            new Translator(mv, R5CPU.this::fetch).translateTrace(pc);
-
-            mv.visitMaxs(-1, -1);
-            mv.visitEnd();
-        }
+        mv.visitMaxs(-1, -1);
+        mv.visitEnd();
     }
 
     private static final class Translator {
@@ -284,11 +259,11 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         public final int mcycleLocal = 3; // long, length = 2
 
         public final MethodVisitor mv;
-        private final Fetch fetch;
+        private final InstructionMemoryAccess fetch;
         public int instOffset;
         public int toPC;
 
-        public Translator(final MethodVisitor mv, final Fetch fetch) {
+        public Translator(final MethodVisitor mv, final InstructionMemoryAccess fetch) {
             this.mv = mv;
             this.fetch = fetch;
         }
@@ -310,7 +285,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             mv.visitLabel(startLabel);
 
             try { // Catch illegal instruction exceptions to generate final throw instruction.
-                final TLBEntry cache = fetch.apply(startPC);
+                final TLBEntry cache = fetch.fetch(startPC);
                 instOffset = startPC + cache.toOffset;
                 toPC = -cache.toOffset;
                 final int instEnd = instOffset - (startPC & R5.PAGE_ADDRESS_MASK) // Page start.
@@ -322,7 +297,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 } else { // Unlikely case, instruction may leave page if it is 32bit.
                     inst = cache.device.load(instOffset, Sizes.SIZE_16_LOG2) & 0xFFFF;
                     if ((inst & 0b11) == 0b11) { // 32bit instruction.
-                        final TLBEntry highCache = fetch.apply(startPC + 2);
+                        final TLBEntry highCache = fetch.fetch(startPC + 2);
                         inst |= highCache.device.load(startPC + 2 + highCache.toOffset, Sizes.SIZE_16_LOG2) << 16;
                     }
                 }
@@ -936,13 +911,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         mcause = 0;
 
         flushTLB();
-
-        for (final HotTrace hotTrace : hotTraces) {
-            hotTrace.pc = -1;
-            hotTrace.count = 0;
-        }
-        traces.clear();
-        traceClassLoader = new TraceClassLoader();
+        flushTraces();
     }
 
     @Override
@@ -3312,6 +3281,13 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
     private void flushTLB(final int address) {
         flushTLB();
+    }
+
+    private void flushTraces() {
+        for (int i = 0; i < HOT_TRACE_COUNT; i++) {
+            hotTraces[i].pc = -1;
+        }
+        traces.clear();
     }
 
     /**

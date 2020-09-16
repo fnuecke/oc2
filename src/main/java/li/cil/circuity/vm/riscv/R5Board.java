@@ -5,6 +5,7 @@ import li.cil.circuity.api.vm.device.Steppable;
 import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
 import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
+import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.api.vm.device.rtc.RealTimeCounter;
 import li.cil.circuity.api.vm.devicetree.DeviceNames;
 import li.cil.circuity.api.vm.devicetree.DeviceTree;
@@ -144,6 +145,14 @@ public final class R5Board {
         cpu.reset(true);
 
         try {
+            for (final MemoryMappedDevice device : devices) {
+                if (device instanceof PhysicalMemory) {
+                    for (int offset = 0; offset < device.getLength(); offset += 4) {
+                        device.store(offset, 0, Sizes.SIZE_32_LOG2);
+                    }
+                }
+            }
+
             final FlattenedDeviceTree fdt = buildDeviceTree().flatten();
             final byte[] dtb = fdt.toDTB();
             for (int i = 0; i < dtb.length; i++) {

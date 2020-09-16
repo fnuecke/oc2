@@ -809,7 +809,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    public void op(final int inst, final int rd, final int rs1) throws R5IllegalInstructionException {
+    private void op(final int inst, final int rd, final int rs1) throws R5IllegalInstructionException {
         final int rs2 = BitUtils.getField(inst, 20, 24, 0);
         final int funct3 = BitUtils.getField(inst, 12, 14, 0);
         final int funct7 = BitUtils.getField(inst, 25, 31, 0);
@@ -1015,7 +1015,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    public void op_imm(final int inst, final int rd, final int rs1) throws R5Exception {
+    private void op_imm(final int inst, final int rd, final int rs1) throws R5Exception {
         ///////////////////////////////////////////////////////////////////
         // Integer Register-Immediate Instructions
         final int funct3 = BitUtils.getField(inst, 12, 14, 0);
@@ -1141,14 +1141,14 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    public void lui(final int inst, final int rd) {
+    private void lui(final int inst, final int rd) {
         final int imm = inst & 0b11111111111111111111_00000_0000000; // inst[31:12]
         if (rd != 0) {
             x[rd] = imm;
         }
     }
 
-    public void auipc(final int inst, final int rd, final int pc) {
+    private void auipc(final int inst, final int rd, final int pc) {
         final int imm = inst & 0b11111111111111111111_00000_0000000; // inst[31:12]
         if (rd != 0) {
             x[rd] = pc + imm;
@@ -1223,7 +1223,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    public void jal(final int inst, final int rd, final int pc) {
+    private void jal(final int inst, final int rd, final int pc) {
         final int imm = BitUtils.extendSign(BitUtils.getField(inst, 31, 31, 20) |
                                             BitUtils.getField(inst, 21, 30, 1) |
                                             BitUtils.getField(inst, 20, 20, 11) |
@@ -1235,7 +1235,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         this.pc = pc + imm;
     }
 
-    public void jalr(final int inst, final int rd, final int rs1, final int pc) {
+    private void jalr(final int inst, final int rd, final int rs1, final int pc) {
         final int imm = inst >> 20; // inst[31:20], sign extended
         final int address = (x[rs1] + imm) & ~0b1; // Compute first in case rs1 == rd.
         // Note: we just mask here, but technically we should raise an exception for misaligned jumps.
@@ -1246,7 +1246,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         this.pc = address;
     }
 
-    public boolean branch(final int inst, final int rs1, final int pc) throws R5IllegalInstructionException {
+    private boolean branch(final int inst, final int rs1, final int pc) throws R5IllegalInstructionException {
         final int rs2 = BitUtils.getField(inst, 20, 24, 0);
         final int funct3 = BitUtils.getField(inst, 12, 14, 0);
         final boolean invert = (funct3 & 0b1) != 0;
@@ -1283,7 +1283,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    public void load(final int inst, final int rd, final int rs1) throws R5Exception, MemoryAccessException {
+    private void load(final int inst, final int rd, final int rs1) throws R5Exception, MemoryAccessException {
         final int funct3 = BitUtils.getField(inst, 12, 14, 0);
         final int imm = inst >> 20; // inst[31:20], sign extended
         final int address = x[rs1] + imm;
@@ -1321,7 +1321,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    public void store(final int inst, final int rs1) throws R5Exception, MemoryAccessException {
+    private void store(final int inst, final int rs1) throws R5Exception, MemoryAccessException {
         final int rs2 = BitUtils.getField(inst, 20, 24, 0);
         final int funct3 = BitUtils.getField(inst, 12, 14, 0);
         final int imm = BitUtils.extendSign(BitUtils.getField(inst, 25, 31, 5) |
@@ -1349,7 +1349,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    public void sret(final int inst) throws R5Exception {
+    private void sret(final int inst) throws R5Exception {
         if (priv < R5.PRIVILEGE_S) {
             throw new R5IllegalInstructionException(inst);
         }
@@ -1364,7 +1364,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         pc = sepc;
     }
 
-    public void mret(final int inst) throws R5Exception {
+    private void mret(final int inst) throws R5Exception {
         if (priv < R5.PRIVILEGE_M) {
             throw new R5IllegalInstructionException(inst);
         }
@@ -1379,7 +1379,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         pc = mepc;
     }
 
-    public boolean wfi(final int inst) throws R5Exception {
+    private boolean wfi(final int inst) throws R5Exception {
         if ((inst & 0b000000000000_11111_111_11111_0000000) != 0) {
             throw new R5IllegalInstructionException(inst);
         }
@@ -1399,7 +1399,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         return true;
     }
 
-    public void sfence_vma(final int inst, final int rs1) throws R5Exception {
+    private void sfence_vma(final int inst, final int rs1) throws R5Exception {
         if ((inst & 0b0000000_00000_00000_111_11111_0000000) != 0) {
             throw new R5IllegalInstructionException(inst);
         }
@@ -1414,7 +1414,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    public boolean csrrw(final int inst, final int rd, final int rs1, final int funct3, final int csr) throws R5Exception {
+    private boolean csrrw(final int inst, final int rd, final int rs1, final int funct3, final int csr) throws R5Exception {
         final boolean invalidateFetchCache;
 
         final int a = (funct3 & 0b100) == 0 ? x[rs1] : rs1; // 0b1XX are immediate versions.
@@ -1430,7 +1430,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         return invalidateFetchCache;
     }
 
-    public boolean csrrx(final int inst, final int rd, final int rs1, final int funct3, final int csr) throws R5Exception {
+    private boolean csrrx(final int inst, final int rd, final int rs1, final int funct3, final int csr) throws R5Exception {
         final boolean invalidateFetchCache;
 
         final int a = (funct3 & 0b100) == 0 ? x[rs1] : rs1; // 0b1XX are immediate versions.
@@ -1456,7 +1456,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         return invalidateFetchCache;
     }
 
-    public void amo32(final int inst, final int rd, final int rs1) throws R5Exception, MemoryAccessException {
+    private void amo32(final int inst, final int rd, final int rs1) throws R5Exception, MemoryAccessException {
         final int rs2 = BitUtils.getField(inst, 20, 24, 0);
         final int funct5 = inst >>> 27; // inst[31:27], not sign-extended
         final int address = x[rs1];
@@ -1559,7 +1559,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    public void c_addi4spn(final int inst, final int rd) throws R5Exception {
+    private void c_addi4spn(final int inst, final int rd) throws R5Exception {
         final int imm = BitUtils.getField(inst, 11, 12, 4) |
                         BitUtils.getField(inst, 7, 10, 6) |
                         BitUtils.getField(inst, 6, 6, 2) |
@@ -1571,7 +1571,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         x[rd] = x[2] + imm;
     }
 
-    public void c_lw(final int inst, final int rd) throws MemoryAccessException {
+    private void c_lw(final int inst, final int rd) throws MemoryAccessException {
         final int offset = BitUtils.getField(inst, 10, 12, 3) |
                            BitUtils.getField(inst, 6, 6, 2) |
                            BitUtils.getField(inst, 5, 5, 6);
@@ -1579,7 +1579,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         x[rd] = load32(x[rs1] + offset);
     }
 
-    public void c_sw(final int inst, final int rs2) throws MemoryAccessException {
+    private void c_sw(final int inst, final int rs2) throws MemoryAccessException {
         final int offset = BitUtils.getField(inst, 10, 12, 3) |
                            BitUtils.getField(inst, 6, 6, 2) |
                            BitUtils.getField(inst, 5, 5, 6);
@@ -1587,7 +1587,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         store32(x[rs1] + offset, x[rs2]);
     }
 
-    public void c_addi(final int inst) {
+    private void c_addi(final int inst) {
         final int rd = BitUtils.getField(inst, 7, 11, 0);
         if (rd != 0) { // C.ADDI
             final int imm = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 5) |
@@ -1596,7 +1596,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         } // else: imm != 0 ? HINT : C.NOP
     }
 
-    public void c_jal(final int inst, final int pc) {
+    private void c_jal(final int inst, final int pc) {
         final int offset = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 11) |
                                                BitUtils.getField(inst, 11, 11, 4) |
                                                BitUtils.getField(inst, 9, 10, 8) |
@@ -1609,7 +1609,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         this.pc = pc + offset;
     }
 
-    public void c_li(final int inst) {
+    private void c_li(final int inst) {
         final int rd = BitUtils.getField(inst, 7, 11, 0);
         if (rd != 0) {
             final int imm = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 5) |
@@ -1618,7 +1618,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         } // else: HINT
     }
 
-    public void c_addi16sp(final int inst) throws R5Exception {
+    private void c_addi16sp(final int inst) throws R5Exception {
         final int imm = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 9) |
                                             BitUtils.getField(inst, 6, 6, 4) |
                                             BitUtils.getField(inst, 5, 5, 6) |
@@ -1630,7 +1630,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         x[2] += imm;
     }
 
-    public void c_lui(final int inst, final int rd) throws R5Exception {
+    private void c_lui(final int inst, final int rd) throws R5Exception {
         final int imm = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 17) |
                                             BitUtils.getField(inst, 2, 6, 12), 18);
         if (imm == 0) { // Reserved.
@@ -1639,7 +1639,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         x[rd] = imm;
     }
 
-    public void c_srxi(final int inst, final int funct2, final int rd) {
+    private void c_srxi(final int inst, final int funct2, final int rd) {
         final int imm = BitUtils.getField(inst, 12, 12, 5) |
                         BitUtils.getField(inst, 2, 6, 0);
         // imm[5] = 0 reserved for custom extensions; same as = 1 for us.
@@ -1650,29 +1650,29 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    public void c_andi(final int inst, final int rd) {
+    private void c_andi(final int inst, final int rd) {
         final int imm = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 5) |
                                             BitUtils.getField(inst, 2, 6, 0), 6);
         x[rd] &= imm;
     }
 
-    public void c_sub(final int rd, final int rs2) {
+    private void c_sub(final int rd, final int rs2) {
         x[rd] = x[rd] - x[rs2];
     }
 
-    public void c_xor(final int rd, final int rs2) {
+    private void c_xor(final int rd, final int rs2) {
         x[rd] = x[rd] ^ x[rs2];
     }
 
-    public void c_or(final int rd, final int rs2) {
+    private void c_or(final int rd, final int rs2) {
         x[rd] = x[rd] | x[rs2];
     }
 
-    public void c_and(final int rd, final int rs2) {
+    private void c_and(final int rd, final int rs2) {
         x[rd] = x[rd] & x[rs2];
     }
 
-    public void c_j(final int inst, final int pc) {
+    private void c_j(final int inst, final int pc) {
         final int offset = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 11) |
                                                BitUtils.getField(inst, 11, 11, 4) |
                                                BitUtils.getField(inst, 9, 10, 8) |
@@ -1684,7 +1684,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         this.pc = pc + offset;
     }
 
-    public boolean c_branch(final int inst, final int funct3, final int pc) {
+    private boolean c_branch(final int inst, final int funct3, final int pc) {
         final int rs1 = BitUtils.getField(inst, 7, 9, 0) + 8;
         final boolean condition = x[rs1] == 0;
         if (condition ^ ((funct3 & 0b1) != 0)) {
@@ -1700,7 +1700,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    public void c_slli(final int inst, final int rd) {
+    private void c_slli(final int inst, final int rd) {
         if (rd != 0) {
             // imm[5] = 0 reserved for custom extensions; same as = 1 for us.
             final int imm = BitUtils.getField(inst, 12, 12, 5) |
@@ -1709,36 +1709,36 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         } // else: HINT
     }
 
-    public void c_lwsp(final int inst, final int rd) throws MemoryAccessException {
+    private void c_lwsp(final int inst, final int rd) throws MemoryAccessException {
         final int offset = BitUtils.getField(inst, 12, 12, 5) |
                            BitUtils.getField(inst, 4, 6, 2) |
                            BitUtils.getField(inst, 2, 3, 6);
         x[rd] = load32(x[2] + offset);
     }
 
-    public void c_jr(final int rs1) {
+    private void c_jr(final int rs1) {
         pc = x[rs1] & ~1;
     }
 
-    public void c_mv(final int rd, final int rs2) {
+    private void c_mv(final int rd, final int rs2) {
         if (rd != 0) {
             x[rd] = x[rs2];
         } // else: HINT
     }
 
-    public void c_jalr(final int rs1, final int pc) {
+    private void c_jalr(final int rs1, final int pc) {
         final int address = x[rs1] & ~1; // Technically should raise exception on misaligned jump.
         x[1] = pc + 2;
         this.pc = address;
     }
 
-    public void c_add(final int rd, final int rs2) {
+    private void c_add(final int rd, final int rs2) {
         if (rd != 0) {
             x[rd] += x[rs2];
         } // else: HINT
     }
 
-    public void c_swsp(final int inst) throws MemoryAccessException {
+    private void c_swsp(final int inst) throws MemoryAccessException {
         final int offset = BitUtils.getField(inst, 9, 12, 2) |
                            BitUtils.getField(inst, 7, 8, 6);
         final int rs2 = BitUtils.getField(inst, 2, 6, 0);

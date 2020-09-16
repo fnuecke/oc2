@@ -721,6 +721,7 @@ public final class Translator {
     private static OpcodeMethod findOpcodeMethod(final String name) {
         for (final java.lang.reflect.Method method : R5CPU.class.getDeclaredMethods()) {
             if (name.equals(method.getName())) {
+                method.setAccessible(true);
                 return new OpcodeMethod(method);
             }
         }

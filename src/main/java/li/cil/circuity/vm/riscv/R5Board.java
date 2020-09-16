@@ -155,11 +155,7 @@ public final class R5Board {
             for (int i = 0; i < dtb.length; i++) {
                 memoryMap.store(FDT_ADDRESS + i, dtb[i], 0);
             }
-        } catch (final MemoryAccessException e) {
-            throw new AssertionError();
-        }
 
-        try {
             final int lui = 0b0110111;
             final int jalr = 0b1100111;
 

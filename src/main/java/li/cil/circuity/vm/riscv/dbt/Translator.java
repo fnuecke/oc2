@@ -26,22 +26,6 @@ public final class Translator {
     private static final Type ILLEGAL_INSTRUCTION_EXCEPTION_TYPE = Type.getType(R5IllegalInstructionException.class);
     private static final org.objectweb.asm.commons.Method INIT_VOID = org.objectweb.asm.commons.Method.getMethod("void <init> ()");
     private static final org.objectweb.asm.commons.Method INIT_INT = org.objectweb.asm.commons.Method.getMethod("void <init> (int)");
-    private static final Map<String, Method> OPCODE_METHODS = new HashMap<>();
-
-    private static Method getOpcodeMethod(final String name) {
-        if (OPCODE_METHODS.containsKey(name)) {
-            return OPCODE_METHODS.get(name);
-        } else {
-            for (final Method method : R5CPU.class.getDeclaredMethods()) {
-                if (name.equals(method.getName())) {
-                    OPCODE_METHODS.put(name, method);
-                    return method;
-                }
-            }
-        }
-
-        throw new IllegalArgumentException("invalid method name [" + name + "]");
-    }
 
     // First argument to the method, the reference to the CPU we're working on.
     private static final int CPU_ARG_INDEX = 1; // R5CPU ref, length = 1
@@ -52,6 +36,9 @@ public final class Translator {
 
     // Local for holding current cycles. Saves the GETFIELD for each increment.
     private static final int MCYCLE_LOCAL_INDEX = 3; // long, length = 2
+
+    // Cached opcode implementations by name for faster lookup in generation.
+    private static final Map<String, OpcodeMethod> OPCODE_METHODS = new HashMap<>();
 
     public final MethodVisitor mv;
     private final InstructionAccess fetch;
@@ -613,13 +600,12 @@ public final class Translator {
     }
 
     private void invokeOp(@Nullable final Class<?> expectedReturnType, final String methodName, final int... args) {
-        final Method method = getOpcodeMethod(methodName);
-        final Class<?>[] argTypes = method.getParameterTypes();
-        if (argTypes.length != args.length) {
+        final OpcodeMethod method = getOpcodeMethod(methodName);
+        if (method.argTypes.length != args.length) {
             throw new IllegalArgumentException("invalid argument count for method [" + methodName + "]");
         }
 
-        if (expectedReturnType != null && method.getReturnType() != expectedReturnType) {
+        if (expectedReturnType != null && method.returnType != expectedReturnType) {
             throw new IllegalArgumentException("invalid return type for method [" + methodName + "]");
         }
 
@@ -627,23 +613,22 @@ public final class Translator {
         // appropriately in the exception handler in case it does throw an exception.
         // Note that RuntimeExceptions will bypass this and completely break the program state.
         // However, we can expect that these will bubble through to the top anyway, so we don't care.
-        if (method.getExceptionTypes().length > 0) {
+        if (method.throwsExceptions) {
             storePCInLocal();
         }
 
         mv.visitVarInsn(Opcodes.ALOAD, CPU_ARG_INDEX);
 
         for (int i = 0; i < args.length; i++) {
-            if (!ClassUtils.isAssignable(argTypes[i], int.class)) {
+            if (!ClassUtils.isAssignable(method.argTypes[i], int.class)) {
                 throw new IllegalArgumentException("invalid argument type for argument [" + (i + 1) + "] for method [" + methodName + "]");
             }
             mv.visitLdcInsn(args[i]);
         }
 
-        final Type methodType = Type.getType(method);
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, CPU_TYPE.getInternalName(), methodName, methodType.getDescriptor(), false);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, CPU_TYPE.getInternalName(), methodName, method.descriptor, false);
 
-        if (expectedReturnType == null && method.getReturnType() != void.class) {
+        if (expectedReturnType == null && method.returnType != void.class) {
             mv.visitInsn(Opcodes.POP);
         }
     }
@@ -661,5 +646,33 @@ public final class Translator {
         mv.visitVarInsn(Opcodes.ALOAD, CPU_ARG_INDEX);
         mv.visitLdcInsn(instOffset + toPC + offset);
         mv.visitFieldInsn(Opcodes.PUTFIELD, CPU_TYPE.getInternalName(), "pc", Type.INT_TYPE.getInternalName());
+    }
+
+    private static OpcodeMethod getOpcodeMethod(final String name) {
+        return OPCODE_METHODS.computeIfAbsent(name, Translator::findOpcodeMethod);
+    }
+
+    private static OpcodeMethod findOpcodeMethod(final String name) {
+        for (final Method method : R5CPU.class.getDeclaredMethods()) {
+            if (name.equals(method.getName())) {
+                return new OpcodeMethod(method);
+            }
+        }
+
+        throw new IllegalArgumentException("invalid method name [" + name + "]");
+    }
+
+    private static final class OpcodeMethod {
+        public final Class<?>[] argTypes;
+        public final Class<?> returnType;
+        public final boolean throwsExceptions;
+        public final String descriptor;
+
+        public OpcodeMethod(final Method method) {
+            argTypes = method.getParameterTypes();
+            returnType = method.getReturnType();
+            throwsExceptions = method.getExceptionTypes().length > 0;
+            descriptor = Type.getType(method).getDescriptor();
+        }
     }
 }

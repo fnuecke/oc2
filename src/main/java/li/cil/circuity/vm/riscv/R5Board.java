@@ -108,7 +108,6 @@ public final class R5Board {
             steppableDevices.add((Steppable) device);
         }
 
-        reset();
         return true;
     }
 
@@ -137,8 +136,6 @@ public final class R5Board {
         if (device instanceof Steppable) {
             steppableDevices.remove(device);
         }
-
-        reset();
     }
 
     public void reset() {

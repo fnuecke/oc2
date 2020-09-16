@@ -7,6 +7,7 @@ import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 import sun.misc.VM;
 
+// Tends to be around 10% faster than ByteBufferMemory during regular emulation.
 public final class UnsafeMemory implements PhysicalMemory {
     private static final Unsafe UNSAFE = UnsafeGetter.get();
 

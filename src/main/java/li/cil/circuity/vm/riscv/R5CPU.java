@@ -23,6 +23,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -169,18 +170,15 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             hotTraces[i] = new HotTrace();
         }
 
-        reset();
+        reset(true);
     }
 
     public R5CPU(final MemoryMap physicalMemory) {
         this(physicalMemory, null);
     }
 
-    public void reset() {
-        LOGGER.warn("#compiled traces = {}", traces.size());
-
+    public void reset(final boolean hard) {
         pc = PC_INIT;
-        mcycle = 0;
         waitingForInterrupt = false;
 
         // Volume 2, 3.3 Reset
@@ -191,6 +189,34 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
         flushTLB();
         flushTraces();
+
+        if (hard) {
+            Arrays.fill(x, 0);
+
+            reservation_set = -1;
+
+            mcycle = 0;
+
+            mstatus = 0;
+            mtvec = 0;
+            medeleg = 0;
+            mideleg = 0;
+            mip.set(0);
+            mie = 0;
+            mcounteren = 0;
+            mscratch = 0;
+            mepc = 0;
+            mtval = 0;
+            fs = 0;
+
+            stvec = 0;
+            scounteren = 0;
+            sscratch = 0;
+            sepc = 0;
+            scause = 0;
+            stval = 0;
+            satp = 0;
+        }
     }
 
     @Override

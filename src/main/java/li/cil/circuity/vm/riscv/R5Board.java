@@ -141,7 +141,7 @@ public final class R5Board {
     }
 
     public void reset() {
-        cpu.reset();
+        cpu.reset(true);
 
         try {
             final FlattenedDeviceTree fdt = buildDeviceTree().flatten();

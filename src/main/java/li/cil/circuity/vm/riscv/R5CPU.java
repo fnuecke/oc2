@@ -209,7 +209,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
         mv.visitCode();
 
-        new Translator(mv, R5CPU.this::fetch).translateTrace(pc);
+        new Translator(mv, R5CPU.this::fetchPage).translateTrace(pc);
 
         mv.visitMaxs(-1, -1);
         mv.visitEnd();
@@ -383,7 +383,9 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         // instruction would fully fit a page. The last 16bit in a page may be the start of
         // a 32bit instruction spanning two pages, a special case we handle outside the loop.
 
-        final TLBEntry cache = fetch(pc);
+        // Note: this code is duplicated in Translator.translateTrace(). Moving this to a
+        // separate state class slows things down by 5-10%, sadly.
+        final TLBEntry cache = fetchPage(pc);
         int instOffset = pc + cache.toOffset;
         final int instEnd = instOffset - (pc & R5.PAGE_ADDRESS_MASK) // Page start.
                             + ((1 << R5.PAGE_ADDRESS_SHIFT) - 2); // Page size minus 16bit.
@@ -395,7 +397,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         } else { // Unlikely case, instruction may leave page if it is 32bit.
             inst = cache.device.load(instOffset, Sizes.SIZE_16_LOG2) & 0xFFFF;
             if ((inst & 0b11) == 0b11) { // 32bit instruction.
-                final TLBEntry highCache = fetchSlow(pc + 2);
+                final TLBEntry highCache = fetchPage(pc + 2);
                 inst |= highCache.device.load(pc + 2 + highCache.toOffset, Sizes.SIZE_16_LOG2) << 16;
             }
         }
@@ -2409,7 +2411,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         storex(address, value, Sizes.SIZE_32, Sizes.SIZE_32_LOG2);
     }
 
-    private TLBEntry fetch(final int address) throws MemoryAccessException {
+    private TLBEntry fetchPage(final int address) throws MemoryAccessException {
         if ((address & 1) != 0) {
             throw new MisalignedFetchException(address);
         }
@@ -2420,7 +2422,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         if (entry.hash == hash) {
             return entry;
         } else {
-            return fetchSlow(address);
+            return fetchPageSlow(address);
         }
     }
 
@@ -2450,7 +2452,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    private TLBEntry fetchSlow(final int address) throws MemoryAccessException {
+    private TLBEntry fetchPageSlow(final int address) throws MemoryAccessException {
         final int physicalAddress = getPhysicalAddress(address, AccessType.FETCH);
         final MemoryRange range = physicalMemory.getMemoryRange(physicalAddress);
         if (range == null || !(range.device instanceof PhysicalMemory)) {

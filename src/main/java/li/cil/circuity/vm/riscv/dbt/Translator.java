@@ -80,7 +80,10 @@ public final class Translator {
         mv.visitLabel(startLabel);
 
         try { // Catch illegal instruction exceptions to generate final throw instruction.
-            final R5CPU.TLBEntry cache = fetch.fetch(startPC);
+
+            // Note: this code is duplicated in R5CPU.interpret(). Moving this to a
+            // separate state class slows things down by 5-10%, sadly.
+            final R5CPU.TLBEntry cache = fetch.fetchPage(startPC);
             instOffset = startPC + cache.toOffset;
             toPC = -cache.toOffset;
             final int instEnd = instOffset - (startPC & R5.PAGE_ADDRESS_MASK) // Page start.
@@ -92,7 +95,7 @@ public final class Translator {
             } else { // Unlikely case, instruction may leave page if it is 32bit.
                 inst = cache.device.load(instOffset, Sizes.SIZE_16_LOG2) & 0xFFFF;
                 if ((inst & 0b11) == 0b11) { // 32bit instruction.
-                    final R5CPU.TLBEntry highCache = fetch.fetch(startPC + 2);
+                    final R5CPU.TLBEntry highCache = fetch.fetchPage(startPC + 2);
                     inst |= highCache.device.load(startPC + 2 + highCache.toOffset, Sizes.SIZE_16_LOG2) << 16;
                 }
             }

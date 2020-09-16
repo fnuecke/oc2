@@ -5,5 +5,5 @@ import li.cil.circuity.vm.riscv.R5CPU;
 
 @FunctionalInterface
 public interface InstructionAccess {
-    R5CPU.TLBEntry fetch(final int pc) throws MemoryAccessException;
+    R5CPU.TLBEntry fetchPage(final int pc) throws MemoryAccessException;
 }

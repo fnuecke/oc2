@@ -2318,7 +2318,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
         // TODO Need multiple trace lists for each combination of MPRV&MPP, SUM, MXR and priv, otherwise we have to flush traces here.
     }
 
-    private void raiseException(final int cause, final int value) {
+    private void raiseException(final int exception, final int value) {
         // Exceptions take cycle.
         mcycle++;
 
@@ -2327,17 +2327,9 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
         // currently in S or U privilege level we'll run the S level trap handler
         // either way -- assuming that the current interrupt/exception is allowed
         // to be delegated by M level.
-        final boolean runInSupervisorMode;
-        final int exception = cause & ~R5.INTERRUPT;
-        if (priv <= R5.PRIVILEGE_S) {
-            if (cause != exception) { // Interrupt.
-                runInSupervisorMode = ((mideleg >>> exception) & 0b1) != 0;
-            } else {
-                runInSupervisorMode = ((medeleg >>> exception) & 0b1) != 0;
-            }
-        } else {
-            runInSupervisorMode = false;
-        }
+        final boolean async = (exception & R5.INTERRUPT) != 0;
+        final int cause = exception & ~R5.INTERRUPT;
+        final int deleg = async ? mideleg : medeleg;
 
         // Was interrupt for current priv level enabled? There are cases we can
         // get here even for interrupts! Specifically when an M level interrupt
@@ -2346,8 +2338,8 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
         final int oldIE = (mstatus >>> priv) & 0b1;
 
         final int vec;
-        if (runInSupervisorMode) {
-            scause = cause;
+        if (priv <= R5.PRIVILEGE_S && ((deleg >>> cause) & 0b1) != 0) {
+            scause = exception;
             sepc = pc;
             stval = value;
             mstatus = (mstatus & ~R5.STATUS_SPIE_MASK) |
@@ -2358,7 +2350,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
             setPrivilege(R5.PRIVILEGE_S);
             vec = stvec;
         } else {
-            mcause = cause;
+            mcause = exception;
             mepc = pc;
             mtval = value;
             mstatus = (mstatus & ~R5.STATUS_MPIE_MASK) |
@@ -2373,8 +2365,8 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
         final int mode = vec & 0b11;
         switch (mode) {
             case 0b01: { // Vectored
-                if ((cause & R5.INTERRUPT) != 0) {
-                    pc = vec + 4 * exception;
+                if (async) {
+                    pc = (vec & ~0b1) + 4 * cause;
                 } else {
                     pc = vec & ~0b1;
                 }

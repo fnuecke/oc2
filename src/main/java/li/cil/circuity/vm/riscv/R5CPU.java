@@ -1423,11 +1423,16 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
 
         final int spp = (mstatus & R5.STATUS_SPP_MASK) >>> R5.STATUS_SPP_SHIFT; // Previous privilege level.
         final int spie = (mstatus & R5.STATUS_SPIE_MASK) >>> R5.STATUS_SPIE_SHIFT; // Preview interrupt-enable state.
+        mstatus = (mstatus & ~R5.STATUS_SIE_MASK) | ((R5.STATUS_SIE_MASK * spie) << R5.STATUS_SIE_SHIFT);
         mstatus = (mstatus & ~(1 << spp)) |
                   (spie << spp);
         mstatus |= R5.STATUS_SPIE_MASK;
         mstatus &= ~R5.STATUS_SPP_MASK;
+
+        // set MPRV = 0
+
         setPrivilege(spp);
+
         pc = sepc;
     }
 
@@ -1438,11 +1443,16 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
 
         final int mpp = (mstatus & R5.STATUS_MPP_MASK) >>> R5.STATUS_MPP_SHIFT; // Previous privilege level.
         final int mpie = (mstatus & R5.STATUS_MPIE_MASK) >>> R5.STATUS_MPIE_SHIFT; // Preview interrupt-enable state.
-        mstatus = (mstatus & ~(1 << mpp)) |
-                  (mpie << mpp);
+        mstatus = (mstatus & ~R5.STATUS_MIE_MASK) | ((R5.STATUS_MIE_MASK * mpie) << R5.STATUS_MIE_SHIFT);
         mstatus |= R5.STATUS_MPIE_MASK;
         mstatus &= ~R5.STATUS_MPP_MASK;
+
+        if (mpp != R5.PRIVILEGE_M) {
+            // set MPRV = 0
+        }
+
         setPrivilege(mpp);
+
         pc = mepc;
     }
 

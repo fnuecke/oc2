@@ -64,13 +64,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
     private static final int MISA = (R5.mxl(XLEN) << (XLEN - 2)) | R5.isa('I', 'M', 'A', 'S', 'U', 'C'); // 'F', 'D'
 
     // UBE, SBE, MBE hardcoded to zero for little endianness.
-    // SD is computed.
-    // TVM, TW, TSR are unsupported and hardwired to zero.
-    private static final int MSTATUS_MASK = (R5.STATUS_UIE_MASK | R5.STATUS_SIE_MASK | R5.STATUS_MIE_MASK |
-                                             R5.STATUS_UPIE_MASK | R5.STATUS_SPIE_MASK | R5.STATUS_MPIE_MASK |
-                                             R5.STATUS_SPP_MASK | R5.STATUS_MPP_MASK |
-                                             R5.STATUS_FS_MASK |
-                                             R5.STATUS_MPRV_MASK | R5.STATUS_SUM_MASK | R5.STATUS_MXR_MASK);
+    private static final int MSTATUS_MASK = ~R5.STATUS_UBE_MASK;
 
     // No time and no high perf counters.
     private static final int COUNTEREN_MASK = R5.MCOUNTERN_CY | R5.MCOUNTERN_IR;
@@ -78,9 +72,9 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
     // Supervisor status (sstatus) CSR mask over mstatus.
     private static final int SSTATUS_MASK = (R5.STATUS_UIE_MASK | R5.STATUS_SIE_MASK |
                                              R5.STATUS_UPIE_MASK | R5.STATUS_SPIE_MASK |
-                                             R5.STATUS_SPP_MASK |
-                                             R5.STATUS_FS_MASK | R5.STATUS_XS_MASK |
-                                             R5.STATUS_SUM_MASK | R5.STATUS_MXR_MASK);
+                                             R5.STATUS_SPP_MASK | R5.STATUS_FS_MASK |
+                                             R5.STATUS_XS_MASK | R5.STATUS_SUM_MASK |
+                                             R5.STATUS_MXR_MASK | R5.STATUS_SD_MASK);
 
     // Translation look-aside buffer config.
     private static final int TLB_SIZE = 256; // Must be a power of two for fast modulo via `& (TLB_SIZE - 1)`.
@@ -110,7 +104,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
     private long mcycle;
 
     // Machine-level CSRs
-    private int mstatus; // Machine Status Register; mstatush is always zero for us, SD is computed
+    private int mstatus, mstatush; // Machine Status Register
     private int mtvec; // Machine Trap-Vector Base-Address Register; 0b11=Mode: 0=direct, 1=vectored
     private int medeleg, mideleg; // Machine Trap Delegation Registers
     private final AtomicInteger mip = new AtomicInteger(); // Pending Interrupts
@@ -120,7 +114,6 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
     private int mepc; // Machine Exception Program Counter
     private int mcause; // Machine Cause Register
     private int mtval; //  Machine Trap Value Register
-    private byte fs; // part of mstatus, store separate for convenience
 
     // Supervisor-level CSRs
     private int stvec; // Supervisor Trap Vector Base Address Register; 0b11=Mode: 0=direct, 1=vectored
@@ -221,7 +214,6 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
             mscratch = 0;
             mepc = 0;
             mtval = 0;
-            fs = 0;
 
             stvec = 0;
             scounteren = 0;
@@ -1874,7 +1866,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
 
             // Supervisor Trap Setup
             case 0x100: { // sstatus, Supervisor status register.
-                return getStatus(SSTATUS_MASK);
+                return mstatus & SSTATUS_MASK;
             }
             // 0x102: sedeleg, Supervisor exception delegation register.
             // 0x103: sideleg, Supervisor interrupt delegation register.
@@ -1926,7 +1918,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
 
             // Machine Trap Setup
             case 0x300: { // mstatus Machine status register.
-                return getStatus(MSTATUS_MASK);
+                return mstatus;
             }
             case 0x301: { // misa ISA and extensions
                 return MISA;
@@ -1947,7 +1939,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
                 return mcounteren;
             }
             case 0x310: {// mstatush, Additional machine status register, RV32 only.
-                return 0; // Hardcoded to zero. MBE = 0, SBE = 0 -> always little-endian.
+                return mstatush;
             }
 
             // Machine Trap Handling
@@ -2184,7 +2176,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
 
             // Machine Trap Setup
             case 0x300: { // mstatus Machine status register.
-                setStatus(value);
+                setStatus(value & MSTATUS_MASK);
                 break;
             }
             case 0x301: { // misa ISA and extensions
@@ -2213,7 +2205,14 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
                 mcounteren = value & COUNTEREN_MASK;
                 break;
             }
-            // 0x310: mstatush, Additional machine status register, RV32 only.
+            case 0x310: { // mstatush Additional machine status register, RV32 only.
+                if (((value ^ mstatush) & R5.STATUSH_MPV_MASK) != 0) {
+                    flushTLB();
+                }
+
+                mstatush = value & (R5.STATUSH_MPV_MASK | R5.STATUSH_GVA_MASK);
+                break;
+            }
 
             // Machine Trap Handling
             case 0x340: { // mscratch Scratch register for machine trap handlers.
@@ -2281,14 +2280,6 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
         return false;
     }
 
-    private int getStatus(final int mask) {
-        final int value = (mstatus | (fs << R5.STATUS_FS_SHIFT)) & mask;
-        if (((value & R5.STATUS_FS_MASK) == R5.STATUS_FS_MASK) || ((value & R5.STATUS_XS_MASK) == R5.STATUS_XS_MASK)) {
-            return value | R5.STATUS_SD_MASK;
-        }
-        return value;
-    }
-
     private void setStatus(final int value) {
         final int change = mstatus ^ value;
         final boolean mmuConfigChanged =
@@ -2300,7 +2291,9 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
             // TODO Need multiple trace lists for each combination of MPRV&MPP, SUM, MXR and priv, otherwise we have to flush traces here.
         }
 
-        fs = (byte) ((value & R5.STATUS_FS_MASK) >>> R5.STATUS_FS_SHIFT);
+        final boolean dirty = ((mstatus & R5.STATUS_FS_MASK) == R5.STATUS_FS_MASK) ||
+                              ((mstatus & R5.STATUS_XS_MASK) == R5.STATUS_XS_MASK);
+        mstatus = (mstatus & ~R5.STATUS_SD_MASK) | (dirty ? R5.STATUS_SD_MASK : 0);
 
         final int mask = MSTATUS_MASK & ~R5.STATUS_FS_MASK;
         mstatus = (mstatus & ~mask) | (value & mask);
@@ -2716,6 +2709,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
         state.mcycle = mcycle;
 
         state.mstatus = mstatus;
+        state.mstatush = mstatush;
         state.mtvec = mtvec;
         state.medeleg = medeleg;
         state.mideleg = mideleg;
@@ -2726,7 +2720,6 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
         state.mepc = mepc;
         state.mcause = mcause;
         state.mtval = mtval;
-        state.fs = fs;
 
         state.stvec = stvec;
         state.scounteren = scounteren;
@@ -2755,6 +2748,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
         mcycle = state.mcycle;
 
         mstatus = state.mstatus;
+        mstatush = state.mstatush;
         mtvec = state.mtvec;
         medeleg = state.medeleg;
         mideleg = state.mideleg;
@@ -2765,7 +2759,6 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
         mepc = state.mepc;
         mcause = state.mcause;
         mtval = state.mtval;
-        fs = state.fs;
 
         stvec = state.stvec;
         scounteren = state.scounteren;

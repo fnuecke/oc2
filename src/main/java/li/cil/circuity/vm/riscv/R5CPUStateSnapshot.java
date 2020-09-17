@@ -13,7 +13,7 @@ public final class R5CPUStateSnapshot {
 
     public long mcycle;
 
-    public int mstatus;
+    public int mstatus, mstatush;
     public int mtvec;
     public int medeleg, mideleg;
     public int mip, mie;

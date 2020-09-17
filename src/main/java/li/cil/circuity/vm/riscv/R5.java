@@ -59,8 +59,8 @@ public final class R5 {
     public static final int STATUS_TW_SHIFT = 21; // Timeout Wait
     public static final int STATUS_TSR_SHIFT = 22; // Trap SRET
     public static final int STATUS_SD_SHIFT = 31; // State Dirty
-    public static final int STATUS_SBE_SHIFT = 34; // S-mode fetch/store endianness (0 = little, 1 = big).
-    public static final int STATUS_MBE_SHIFT = 35; // M-mode fetch/store endianness (0 = little, 1 = big).
+    public static final int STATUSH_GVA_SHIFT = 6; // Guest Virtual Address
+    public static final int STATUSH_MPV_SHIFT = 6; // Machine Previous Virtualization Mode
 
     public static final int STATUS_UIE_MASK = 1 << STATUS_UIE_SHIFT;
     public static final int STATUS_SIE_MASK = 1 << STATUS_SIE_SHIFT;
@@ -80,8 +80,8 @@ public final class R5 {
     public static final int STATUS_TW_MASK = 1 << STATUS_TW_SHIFT;
     public static final int STATUS_TSR_MASK = 1 << STATUS_TSR_SHIFT;
     public static final int STATUS_SD_MASK = 1 << STATUS_SD_SHIFT;
-    public static final long STATUS_SBE_MASK = 1L << STATUS_SBE_SHIFT;
-    public static final long STATUS_MBE_MASK = 1L << STATUS_MBE_SHIFT;
+    public static final int STATUSH_GVA_MASK = 1 << STATUSH_GVA_SHIFT;
+    public static final int STATUSH_MPV_MASK = 1 << STATUSH_MPV_SHIFT;
 
     // Exception codes used mep/medeleg CSRs.
     public static final int EXCEPTION_MISALIGNED_FETCH = 0;

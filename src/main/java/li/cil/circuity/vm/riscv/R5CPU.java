@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <li>"C" Standard Extension for Compressed Instructions, Version 2.0</li>
  * </ul>
  */
-public final class R5CPU implements Steppable, RealTimeCounter, InterruptController {
+public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final int PC_INIT = 0x1000; // Initial position of program counter.
@@ -2322,7 +2322,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
         // TODO Need multiple trace lists for each combination of MPRV&MPP, SUM, MXR and priv, otherwise we have to flush traces here.
     }
 
-    private void raiseException(final int exception, final int value) {
+    protected void raiseException(final int exception, final int value) {
         // Exceptions take cycle.
         mcycle++;
 

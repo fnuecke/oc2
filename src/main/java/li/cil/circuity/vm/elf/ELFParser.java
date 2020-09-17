@@ -2,10 +2,7 @@ package li.cil.circuity.vm.elf;
 
 import org.apache.commons.io.IOUtils;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +11,11 @@ public final class ELFParser {
     private static final byte[] EI_MAG = {0x7F, 'E', 'L', 'F'};
 
     public static ELF parse(final String path) throws IOException {
-        try (final FileInputStream fis = new FileInputStream(path)) {
+        return parse(new File(path));
+    }
+
+    public static ELF parse(final File file) throws IOException {
+        try (final FileInputStream fis = new FileInputStream(file)) {
             return parse(new BufferedInputStream(fis));
         }
     }

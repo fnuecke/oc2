@@ -4,7 +4,6 @@ import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
 import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.vm.BitUtils;
 import li.cil.circuity.vm.UnsafeGetter;
-import li.cil.circuity.vm.riscv.R5;
 import li.cil.circuity.vm.riscv.R5CPU;
 import li.cil.circuity.vm.riscv.exception.R5BreakpointException;
 import li.cil.circuity.vm.riscv.exception.R5ECallException;
@@ -21,10 +20,11 @@ import java.util.Map;
 public final class Translator {
     private static final Unsafe UNSAFE = UnsafeGetter.get();
 
-    private static final String TRACE_EXECUTE_NAME = "execute";
-    private static final String TRACE_EXECUTE_DESC = "(Lli/cil/circuity/vm/riscv/R5CPU;)V";
+    // Threshold of instructions to emit to generate class. There's a point where they
+    // can be too small to justify the overhead of calling them (since they have to be
+    // called via INVOKEVIRTUAL).
+    private static final int MIN_INSTRUCTIONS = 2;//9;
 
-    private static final Type OBJECT_TYPE = Type.getType(Object.class);
     private static final Type CPU_TYPE = Type.getType(R5CPU.class);
     private static final Type TRACE_TYPE = Type.getType(Trace.class);
     private static final Type ECALL_EXCEPTION_TYPE = Type.getType(R5ECallException.class);
@@ -34,8 +34,10 @@ public final class Translator {
     private static final org.objectweb.asm.commons.Method INIT_VOID = org.objectweb.asm.commons.Method.getMethod("void <init> ()");
     private static final org.objectweb.asm.commons.Method INIT_INT = org.objectweb.asm.commons.Method.getMethod("void <init> (int)");
 
+    private static final String CPU_FIELD_NAME = "cpu";
+
     // First argument to the method, the reference to the CPU we're working on.
-    private static final int CPU_ARG_INDEX = 1; // R5CPU ref, length = 1
+    private static final int CPU_LOCAL_INDEX = 1; // R5CPU ref, length = 1
 
     // On-demand updated local holding current actual PC.
     // Used to bake instOffset for pc fixup on runtime exceptions.
@@ -47,32 +49,40 @@ public final class Translator {
     // Cached opcode implementations by name for faster lookup in generation.
     private static final Map<String, OpcodeMethod> OPCODE_METHODS = new HashMap<>();
 
+    private final TranslatorJob request;
+    private final String className;
     private final MethodVisitor mv;
-    private final InstructionAccess fetch;
     private int instOffset;
-    private int toPC;
+    int emittedInstructions;
 
-    private Translator(final MethodVisitor mv, final InstructionAccess fetch) {
+    private Translator(final TranslatorJob request, final String className, final MethodVisitor mv) {
+        this.request = request;
+        this.className = className;
         this.mv = mv;
-        this.fetch = fetch;
     }
 
-    public static Trace translateTrace(final InstructionAccess access, final int pc) {
-        final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+    @Nullable
+    public static Trace translateTrace(final TranslatorJob request) {
+        final String className = TRACE_TYPE.getInternalName() + "$" + Integer.toHexString(request.pc);
 
+        final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visit(Opcodes.V1_8,
                 Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
-                TRACE_TYPE.getInternalName() + "$" + Integer.toHexString(pc),
+                className,
                 null,
-                OBJECT_TYPE.getInternalName(),
-                new String[]{TRACE_TYPE.getInternalName()});
+                TRACE_TYPE.getInternalName(),
+                null);
 
-        generateDefaultConstructor(cw);
-        generateExecuteMethod(cw, access, pc);
+        cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, CPU_FIELD_NAME, CPU_TYPE.getDescriptor(), null, null);
+
+        generateConstructor(cw, className);
+        if (!generateExecuteMethod(cw, className, request)) {
+            return null;
+        }
 
         cw.visitEnd();
 
-        return instantiateTrace(defineClass(cw.toByteArray()));
+        return instantiateTrace(defineClass(cw.toByteArray()), request.cpu);
     }
 
     private static Class<Trace> defineClass(final byte[] data) {
@@ -81,52 +91,62 @@ public final class Translator {
         return traceClass;
     }
 
-    private static Trace instantiateTrace(final Class<Trace> traceClass) {
+    private static Trace instantiateTrace(final Class<Trace> traceClass, final R5CPU cpu) {
         try {
-            return (Trace) UNSAFE.allocateInstance(traceClass);
-        } catch (final InstantiationException e) {
-            throw new AssertionError();
+            return traceClass.getDeclaredConstructor(R5CPU.class).newInstance(cpu);
+        } catch (final Throwable e) {
+            throw new AssertionError("Failed instantiating trace.", e);
         }
     }
 
-    private static void generateDefaultConstructor(final ClassVisitor cv) {
-        final MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+    private static void generateConstructor(final ClassVisitor cv, final String className) {
+        final MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, CPU_TYPE), null, null);
 
         mv.visitCode();
 
         mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, OBJECT_TYPE.getInternalName(), INIT_VOID.getName(), INIT_VOID.getDescriptor(), false);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, TRACE_TYPE.getInternalName(), INIT_VOID.getName(), INIT_VOID.getDescriptor(), false);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitVarInsn(Opcodes.ALOAD, 1);
+        mv.visitFieldInsn(Opcodes.PUTFIELD, className, CPU_FIELD_NAME, CPU_TYPE.getDescriptor());
         mv.visitInsn(Opcodes.RETURN);
 
         mv.visitMaxs(-1, -1);
         mv.visitEnd();
     }
 
-    private static void generateExecuteMethod(final ClassVisitor cv, final InstructionAccess access, final int pc) {
-        final MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, TRACE_EXECUTE_NAME, TRACE_EXECUTE_DESC, null, new String[]{
+    private static boolean generateExecuteMethod(final ClassVisitor cv, final String className, final TranslatorJob request) {
+        final MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, "execute", "()V", null, new String[]{
                 Type.getInternalName(R5Exception.class),
                 Type.getInternalName(MemoryAccessException.class)
         });
 
         mv.visitCode();
 
-        new Translator(mv, access).translateTrace(pc);
+        final Translator translator = new Translator(request, className, mv);
+        translator.translateTrace();
+        if (translator.emittedInstructions < MIN_INSTRUCTIONS) {
+            return false;
+        }
 
         mv.visitMaxs(-1, -1);
         mv.visitEnd();
+        return true;
     }
 
-    private void translateTrace(final int startPC) {
+    private void translateTrace() {
         final Label startLabel = new Label();
         final Label returnLabel = new Label();
         final Label catchLabel = new Label();
         final Label endLabel = new Label();
 
-        mv.visitLocalVariable("currentPC", Type.INT_TYPE.getInternalName(), null, startLabel, endLabel, PC_LOCAL_INDEX);
-        mv.visitLocalVariable("mcycle", Type.LONG_TYPE.getInternalName(), null, startLabel, returnLabel, MCYCLE_LOCAL_INDEX);
+        mv.visitLocalVariable("cpu", CPU_TYPE.getDescriptor(), null, startLabel, endLabel, CPU_LOCAL_INDEX);
+        mv.visitLocalVariable("currentPC", Type.INT_TYPE.getDescriptor(), null, startLabel, endLabel, PC_LOCAL_INDEX);
+        mv.visitLocalVariable("mcycle", Type.LONG_TYPE.getDescriptor(), null, startLabel, returnLabel, MCYCLE_LOCAL_INDEX);
 
         mv.visitTryCatchBlock(startLabel, returnLabel, catchLabel, null);
 
+        generateCPULocal();
         generatePCLocal();
         generateMcycleLocal();
 
@@ -134,30 +154,17 @@ public final class Translator {
 
         try { // Catch illegal instruction exceptions to generate final throw instruction.
 
-            // Note: this code is duplicated in R5CPU.interpret(). Moving this to a
-            // separate state class slows things down by 5-10%, sadly.
-            final R5CPU.TLBEntry cache = fetch.fetchPage(startPC);
-            instOffset = startPC + cache.toOffset;
-            toPC = -cache.toOffset;
-            final int instEnd = instOffset - (startPC & R5.PAGE_ADDRESS_MASK) // Page start.
-                                + ((1 << R5.PAGE_ADDRESS_SHIFT) - 2); // Page size minus 16bit.
-
-            int inst;
-            if (instOffset < instEnd) { // Likely case, instruction fully inside page.
-                inst = cache.device.load(instOffset, Sizes.SIZE_32_LOG2);
-            } else { // Unlikely case, instruction may leave page if it is 32bit.
-                inst = cache.device.load(instOffset, Sizes.SIZE_16_LOG2) & 0xFFFF;
-                if ((inst & 0b11) == 0b11) { // 32bit instruction.
-                    final R5CPU.TLBEntry highCache = fetch.fetchPage(startPC + 2);
-                    inst |= highCache.device.load(startPC + 2 + highCache.toOffset, Sizes.SIZE_16_LOG2) << 16;
-                }
-            }
+            instOffset = request.instOffset;
+            final int instEnd = request.instEnd;
+            int inst = request.firstInst;
 
             // TODO trim nops completely, i.e. anything where rd = 0 that just computes and writes to it
             // TODO pre-resolve more switches in op methods
             // TODO test if incrementing instOffset/pc in generated method is better than generating a ton of constants
 
             for (; ; ) { // End of page check at the bottom since we enter with a valid inst.
+                emittedInstructions++;
+
                 incCycle();
 
                 if ((inst & 0b11) == 0b11) {
@@ -181,7 +188,7 @@ public final class Translator {
                         }
 
                         case 0b0010111: { // AUIPC
-                            invokeOp("auipc", inst, rd, instOffset + toPC);
+                            invokeOp("auipc", inst, rd, instOffset + request.toPC);
 
                             instOffset += 4;
                             break;
@@ -195,17 +202,17 @@ public final class Translator {
                         }
 
                         case 0b1101111: { // JAL
-                            invokeOp("jal", inst, rd, instOffset + toPC);
+                            invokeOp("jal", inst, rd, instOffset + request.toPC);
                             return; // May have jumped out of page. Also avoid infinite loops.
                         }
 
                         case 0b110_0111: { // JALR
-                            invokeOp("jalr", inst, rd, rs1, instOffset + toPC);
+                            invokeOp("jalr", inst, rd, rs1, instOffset + request.toPC);
                             return; // May have jumped out of page. Also avoid infinite loops.
                         }
 
                         case 0b1100011: { // BRANCH
-                            invokeOp(boolean.class, "branch", inst, rs1, instOffset + toPC);
+                            invokeOp(boolean.class, "branch", inst, rs1, instOffset + request.toPC);
                             mv.visitJumpInsn(Opcodes.IFNE, returnLabel);
 
                             instOffset += 4;
@@ -268,8 +275,8 @@ public final class Translator {
                                             storePCInLocal();
                                             mv.visitTypeInsn(Opcodes.NEW, ECALL_EXCEPTION_TYPE.getInternalName());
                                             mv.visitInsn(Opcodes.DUP);
-                                            mv.visitVarInsn(Opcodes.ALOAD, CPU_ARG_INDEX);
-                                            mv.visitFieldInsn(Opcodes.GETFIELD, CPU_TYPE.getInternalName(), "priv", Type.INT_TYPE.getInternalName());
+                                            mv.visitVarInsn(Opcodes.ALOAD, CPU_LOCAL_INDEX);
+                                            mv.visitFieldInsn(Opcodes.GETFIELD, CPU_TYPE.getInternalName(), "priv", Type.INT_TYPE.getDescriptor());
                                             mv.visitMethodInsn(Opcodes.INVOKESPECIAL, ECALL_EXCEPTION_TYPE.getInternalName(), INIT_INT.getName(), INIT_INT.getDescriptor(), false);
                                             mv.visitInsn(Opcodes.ATHROW);
                                             return;
@@ -433,7 +440,7 @@ public final class Translator {
                                     break;
                                 }
                                 case 0b001: { // C.JAL
-                                    invokeOp("c_jal", inst, instOffset + toPC);
+                                    invokeOp("c_jal", inst, instOffset + request.toPC);
                                     return; // May have jumped out of page. Also avoid infinite loops.
                                 }
                                 case 0b010: { // C.LI
@@ -503,12 +510,12 @@ public final class Translator {
                                     break;
                                 }
                                 case 0b101: { // C.J
-                                    invokeOp("c_j", inst, instOffset + toPC);
+                                    invokeOp("c_j", inst, instOffset + request.toPC);
                                     return; // May have jumped out of page. Also avoid infinite loops.
                                 }
                                 case 0b110:   // C.BEQZ
                                 case 0b111: { // C.BNEZ
-                                    invokeOp(boolean.class, "c_branch", inst, funct3, instOffset + toPC);
+                                    invokeOp(boolean.class, "c_branch", inst, funct3, instOffset + request.toPC);
                                     mv.visitJumpInsn(Opcodes.IFNE, returnLabel);
 
                                     instOffset += 2;
@@ -569,7 +576,7 @@ public final class Translator {
                                                 mv.visitInsn(Opcodes.ATHROW);
                                                 return;
                                             } else { // C.JALR
-                                                invokeOp("c_jalr", rd, instOffset + toPC);
+                                                invokeOp("c_jalr", rd, instOffset + request.toPC);
                                                 return; // May have jumped out of page. Also avoid infinite loops.
                                             }
                                         } else { // C.ADD
@@ -604,7 +611,7 @@ public final class Translator {
                 }
 
                 if (instOffset < instEnd) { // Likely case: we're still fully in the page.
-                    inst = cache.device.load(instOffset, Sizes.SIZE_32_LOG2);
+                    inst = request.device.load(instOffset, Sizes.SIZE_32_LOG2);
                 } else { // Unlikely case: we reached the end of the page. Leave to do interrupts and cycle check.
                     storePCInCPU();
                     return;
@@ -631,13 +638,19 @@ public final class Translator {
 
             mv.visitLabel(catchLabel);
 
-            mv.visitVarInsn(Opcodes.ALOAD, CPU_ARG_INDEX);
+            mv.visitVarInsn(Opcodes.ALOAD, CPU_LOCAL_INDEX);
             mv.visitVarInsn(Opcodes.ILOAD, PC_LOCAL_INDEX);
-            mv.visitFieldInsn(Opcodes.PUTFIELD, CPU_TYPE.getInternalName(), "pc", Type.INT_TYPE.getInternalName());
+            mv.visitFieldInsn(Opcodes.PUTFIELD, CPU_TYPE.getInternalName(), "pc", Type.INT_TYPE.getDescriptor());
             mv.visitInsn(Opcodes.ATHROW);
 
             mv.visitLabel(endLabel);
         }
+    }
+
+    private void generateCPULocal() {
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitFieldInsn(Opcodes.GETFIELD, className, CPU_FIELD_NAME, CPU_TYPE.getDescriptor());
+        mv.visitVarInsn(Opcodes.ASTORE, CPU_LOCAL_INDEX);
     }
 
     private void generatePCLocal() {
@@ -646,19 +659,19 @@ public final class Translator {
     }
 
     private void generateMcycleLocal() {
-        mv.visitVarInsn(Opcodes.ALOAD, CPU_ARG_INDEX);
-        mv.visitFieldInsn(Opcodes.GETFIELD, CPU_TYPE.getInternalName(), "mcycle", Type.LONG_TYPE.getInternalName());
+        mv.visitVarInsn(Opcodes.ALOAD, CPU_LOCAL_INDEX);
+        mv.visitFieldInsn(Opcodes.GETFIELD, CPU_TYPE.getInternalName(), "mcycle", Type.LONG_TYPE.getDescriptor());
         mv.visitVarInsn(Opcodes.LSTORE, MCYCLE_LOCAL_INDEX);
     }
 
     private void incCycle() {
-        mv.visitVarInsn(Opcodes.ALOAD, CPU_ARG_INDEX);
+        mv.visitVarInsn(Opcodes.ALOAD, CPU_LOCAL_INDEX);
         mv.visitVarInsn(Opcodes.LLOAD, MCYCLE_LOCAL_INDEX);
         mv.visitLdcInsn(1L);
         mv.visitInsn(Opcodes.LADD);
         mv.visitInsn(Opcodes.DUP2);
         mv.visitVarInsn(Opcodes.LSTORE, MCYCLE_LOCAL_INDEX);
-        mv.visitFieldInsn(Opcodes.PUTFIELD, CPU_TYPE.getInternalName(), "mcycle", Type.LONG_TYPE.getInternalName());
+        mv.visitFieldInsn(Opcodes.PUTFIELD, CPU_TYPE.getInternalName(), "mcycle", Type.LONG_TYPE.getDescriptor());
     }
 
     private void invokeOp(final String methodName, final int... args) {
@@ -683,7 +696,7 @@ public final class Translator {
             storePCInLocal();
         }
 
-        mv.visitVarInsn(Opcodes.ALOAD, CPU_ARG_INDEX);
+        mv.visitVarInsn(Opcodes.ALOAD, CPU_LOCAL_INDEX);
 
         for (int i = 0; i < args.length; i++) {
             if (!ClassUtils.isAssignable(method.argTypes[i], int.class)) {
@@ -700,7 +713,7 @@ public final class Translator {
     }
 
     private void storePCInLocal() {
-        mv.visitLdcInsn(instOffset + toPC);
+        mv.visitLdcInsn(instOffset + request.toPC);
         mv.visitVarInsn(Opcodes.ISTORE, PC_LOCAL_INDEX);
     }
 
@@ -709,8 +722,8 @@ public final class Translator {
     }
 
     private void storePCInCPU(final int offset) {
-        mv.visitVarInsn(Opcodes.ALOAD, CPU_ARG_INDEX);
-        mv.visitLdcInsn(instOffset + toPC + offset);
+        mv.visitVarInsn(Opcodes.ALOAD, CPU_LOCAL_INDEX);
+        mv.visitLdcInsn(instOffset + request.toPC + offset);
         mv.visitFieldInsn(Opcodes.PUTFIELD, CPU_TYPE.getInternalName(), "pc", Type.INT_TYPE.getInternalName());
     }
 

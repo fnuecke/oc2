@@ -2,6 +2,8 @@ package li.cil.circuity.vm.riscv;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import li.cil.circuity.api.vm.MemoryMap;
 import li.cil.circuity.api.vm.MemoryRange;
 import li.cil.circuity.api.vm.device.InterruptController;
@@ -15,6 +17,7 @@ import li.cil.circuity.vm.BitUtils;
 import li.cil.circuity.vm.device.memory.exception.*;
 import li.cil.circuity.vm.riscv.dbt.Trace;
 import li.cil.circuity.vm.riscv.dbt.Translator;
+import li.cil.circuity.vm.riscv.dbt.TranslatorJob;
 import li.cil.circuity.vm.riscv.exception.R5BreakpointException;
 import li.cil.circuity.vm.riscv.exception.R5ECallException;
 import li.cil.circuity.vm.riscv.exception.R5Exception;
@@ -24,6 +27,9 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -47,7 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <li>"C" Standard Extension for Compressed Instructions, Version 2.0</li>
  * </ul>
  */
-public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
+public final class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static final int PC_INIT = 0x1000; // Initial position of program counter.
@@ -81,8 +87,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
     // Knobs for tweaking dynamic binary translation.
     private static final int HOT_TRACE_COUNT = 16; // Must be a power of to for (x - 1) masking.
-    private static final int TRACE_COUNT_THRESHOLD = 30;
-    private static final int EXPECTED_MAX_TRACE_COUNT = 1024;
+    private static final int TRACE_COUNT_THRESHOLD = 20;
+    private static final int EXPECTED_MAX_TRACE_COUNT = 4 * 1024;
 
     ///////////////////////////////////////////////////////////////////
     // RV32I
@@ -143,8 +149,16 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
     ///////////////////////////////////////////////////////////////////
     // Dynamic binary translation
-    private final HotTrace[] hotTraces = new HotTrace[HOT_TRACE_COUNT];
+    private final WatchedTrace[] watchedTraces = new WatchedTrace[HOT_TRACE_COUNT];
     private final Int2ObjectMap<Trace> traces = new Int2ObjectOpenHashMap<>(EXPECTED_MAX_TRACE_COUNT);
+    private final IntSet tracesRequested = new IntOpenHashSet(EXPECTED_MAX_TRACE_COUNT);
+    private volatile TranslatorDataExchange translatorDataExchange = new TranslatorDataExchange();
+    private static final ExecutorService translators = Executors.newFixedThreadPool(
+            Math.min(4, Runtime.getRuntime().availableProcessors()), r -> {
+                final Thread thread = new Thread(r, "RISC-V Translator Thread");
+                thread.setDaemon(true);
+                return thread;
+            });
 
     ///////////////////////////////////////////////////////////////////
     // Real time counter -- at least in RISC-V Linux 5.1 the mtime CSR is needed in add_device_randomness
@@ -166,8 +180,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             storeTLB[i] = new TLBEntry();
         }
 
-        for (int i = 0; i < hotTraces.length; i++) {
-            hotTraces[i] = new HotTrace();
+        for (int i = 0; i < watchedTraces.length; i++) {
+            watchedTraces[i] = new WatchedTrace();
         }
 
         reset(true);
@@ -253,6 +267,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             return;
         }
 
+        processTranslatedTraces();
+
         final long cycleLimit = mcycle + cycles;
         while (!waitingForInterrupt && mcycle < cycleLimit) {
             final int pending = mip.get() & mie;
@@ -261,9 +277,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             }
 
             try {
-                if (!trace()) {
-                    interpret();
-                }
+                interpret();
             } catch (final LoadPageFaultException e) {
                 raiseException(R5.EXCEPTION_LOAD_PAGE_FAULT, e.getAddress());
             } catch (final StorePageFaultException e) {
@@ -294,35 +308,57 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
-    private boolean trace() throws R5Exception, MemoryAccessException {
-//        traces.computeIfAbsent(pc, this::translateTrace).execute(this);
-//        return true;
+    private void runTranslator() {
+        for (; ; ) {
+            final TranslatorDataExchange dataExchange = this.translatorDataExchange;
+            final TranslatorJob request = dataExchange.translatorRequests.poll();
+            if (request != null) {
+                // May return null in case the translator decided the generated trace was too short.
+                request.trace = Translator.translateTrace(request);
+                if (request.trace != null) {
+                    dataExchange.translationResponses.add(request);
+                }
+                continue;
+            }
 
-        if (traces.containsKey(pc)) {
-            invokeTrace(traces.get(pc));
-            return true;
-        } else {
+            break;
+        }
+    }
+
+    private void processTranslatedTraces() {
+        TranslatorJob response;
+        while ((response = translatorDataExchange.translationResponses.poll()) != null) {
+            traces.put(response.pc, response.trace);
+            tracesRequested.remove(response.pc);
+        }
+    }
+
+    private void requestTraceTranslation(final MemoryMappedDevice device, final int instOffset, final int instEnd, final int toPC, final int inst) {
+//        if (tracesRequested.add(pc)) {
+//            translatorDataExchange.translatorRequests.add(new TranslatorJob(this, pc, device, instOffset, instEnd, toPC, inst));
+//
+//            translators.submit(this::runTranslator);
+//        }
+
+        if (!tracesRequested.contains(pc)) {
             final int hotTraceIndex = (pc >> 1) & (HOT_TRACE_COUNT - 1);
-            final HotTrace hotTrace = hotTraces[hotTraceIndex];
-            if (hotTrace.pc != pc) {
-                hotTrace.pc = pc;
-                hotTrace.count = 1;
-            } else if (++hotTrace.count >= TRACE_COUNT_THRESHOLD) {
-                hotTrace.pc = -1;
+            final WatchedTrace watchedTrace = watchedTraces[hotTraceIndex];
+            if (watchedTrace.pc != pc) {
+                watchedTrace.pc = pc;
+                watchedTrace.count = 1;
+            } else if (++watchedTrace.count >= TRACE_COUNT_THRESHOLD) {
+                watchedTrace.pc = -1;
 
-                final Trace trace = Translator.translateTrace(this::fetchPage, pc);
-                traces.put(pc, trace);
-                invokeTrace(trace);
+                tracesRequested.add(pc);
+                translatorDataExchange.translatorRequests.add(new TranslatorJob(this, pc, device, instOffset, instEnd, toPC, inst));
 
-                return true;
+                translators.submit(this::runTranslator);
             }
         }
-
-        return false;
     }
 
     private void invokeTrace(final Trace trace) throws R5Exception, MemoryAccessException {
-        trace.execute(this);
+        trace.execute();
     }
 
     private void interpret() throws R5Exception, MemoryAccessException {
@@ -339,8 +375,11 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         // instruction would fully fit a page. The last 16bit in a page may be the start of
         // a 32bit instruction spanning two pages, a special case we handle outside the loop.
 
-        // Note: this code is duplicated in Translator.translateTrace(). Moving this to a
-        // separate state class slows things down by 5-10%, sadly.
+        if (traces.containsKey(pc)) {
+            invokeTrace(traces.get(pc));
+            return;
+        }
+
         final TLBEntry cache = fetchPage(pc);
         int instOffset = pc + cache.toOffset;
         final int instEnd = instOffset - (pc & R5.PAGE_ADDRESS_MASK) // Page start.
@@ -357,6 +396,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 inst |= highCache.device.load(pc + 2 + highCache.toOffset, Sizes.SIZE_16_LOG2) << 16;
             }
         }
+
+        requestTraceTranslation(cache.device, instOffset, instEnd, toPC, inst);
 
         try { // Catch any exceptions to patch PC field.
             for (; ; ) { // End of page check at the bottom since we enter with a valid inst.
@@ -1438,6 +1479,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         } else {
             flushTLB(x[rs1]);
         }
+
+        flushTraces();
     }
 
     private boolean csrrw(final int inst, final int rd, final int rs1, final int funct3, final int csr) throws R5Exception {
@@ -2104,6 +2147,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
                     satp = validatedValue;
                     flushTLB();
+                    flushTraces();
 
                     return true; // Invalidate fetch cache.
                 }
@@ -2235,6 +2279,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 ((mstatus & R5.STATUS_MPRV_MASK) != 0 && (change & R5.STATUS_MPP_MASK) != 0);
         if (mmuConfigChanged) {
             flushTLB();
+
+            // TODO Need multiple trace lists for each combination of MPRV&MPP, SUM, MXR and priv, otherwise we have to flush traces here.
         }
 
         fs = (byte) ((value & R5.STATUS_FS_MASK) >>> R5.STATUS_FS_SHIFT);
@@ -2251,6 +2297,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         flushTLB();
 
         priv = level;
+
+        // TODO Need multiple trace lists for each combination of MPRV&MPP, SUM, MXR and priv, otherwise we have to flush traces here.
     }
 
     private void raiseException(final int cause, final int value) {
@@ -2594,9 +2642,17 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
     private void flushTraces() {
         for (int i = 0; i < HOT_TRACE_COUNT; i++) {
-            hotTraces[i].pc = -1;
+            watchedTraces[i].pc = -1;
         }
+
         traces.clear();
+        tracesRequested.clear();
+
+        // We simply swap out for a new set of queues to avoid synchronization.
+        // This way any running workers will put their "in flight" result into
+        // an old queue from which we will not read anymore, and fetch their
+        // next job from the new queue.
+        translatorDataExchange = new TranslatorDataExchange();
     }
 
     private enum AccessType {
@@ -2618,9 +2674,14 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         public MemoryMappedDevice device;
     }
 
-    private static final class HotTrace {
+    private static final class WatchedTrace {
         public int pc = -1;
         public int count;
+    }
+
+    private static final class TranslatorDataExchange {
+        public final ConcurrentLinkedQueue<TranslatorJob> translatorRequests = new ConcurrentLinkedQueue<>();
+        public final ConcurrentLinkedQueue<TranslatorJob> translationResponses = new ConcurrentLinkedQueue<>();
     }
 
     public R5CPUStateSnapshot getState() {

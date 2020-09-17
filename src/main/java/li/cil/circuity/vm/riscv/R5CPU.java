@@ -1421,6 +1421,10 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
             throw new R5IllegalInstructionException(inst);
         }
 
+        if ((mstatus & R5.STATUS_TSR_MASK) != 0 && priv < R5.PRIVILEGE_M) {
+            throw new R5IllegalInstructionException(inst);
+        }
+
         final int spp = (mstatus & R5.STATUS_SPP_MASK) >>> R5.STATUS_SPP_SHIFT; // Previous privilege level.
         final int spie = (mstatus & R5.STATUS_SPIE_MASK) >>> R5.STATUS_SPIE_SHIFT; // Preview interrupt-enable state.
         mstatus = (mstatus & ~R5.STATUS_SIE_MASK) | ((R5.STATUS_SIE_MASK * spie) << R5.STATUS_SIE_SHIFT);

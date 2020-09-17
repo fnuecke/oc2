@@ -2117,7 +2117,9 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
                 break;
             }
             case 0x105: { // stvec, Supervisor trap handler base address.
-                stvec = value & ~0b10; // Don't allow reserved modes.
+                if ((value & 0b11) < 2) { // Don't allow reserved modes.
+                    stvec = value;
+                }
                 break;
             }
             case 0x106: { // scounteren, Supervisor counter enable.
@@ -2202,7 +2204,9 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
                 break;
             }
             case 0x305: { // mtvec Machine trap-handler base address.
-                mtvec = value & ~0b10; // Don't allow reserved modes.
+                if ((value & 0b11) < 2) { // Don't allow reserved modes.
+                    mtvec = value;
+                }
             }
             case 0x306: { // mcounteren Machine counter enable.
                 mcounteren = value & COUNTEREN_MASK;

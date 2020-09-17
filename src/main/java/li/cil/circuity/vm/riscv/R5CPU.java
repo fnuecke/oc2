@@ -1482,6 +1482,9 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
         if (priv == R5.PRIVILEGE_U) {
             throw new R5IllegalInstructionException(inst);
         }
+        if ((mstatus & R5.STATUS_TVM_MASK) != 0 && priv == R5.PRIVILEGE_S) {
+            throw new R5IllegalInstructionException(inst);
+        }
 
         if (rs1 == 0) {
             flushTLB();

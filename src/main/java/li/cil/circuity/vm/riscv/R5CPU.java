@@ -56,7 +56,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    public static final int PC_INIT = 0x1000; // Initial position of program counter.
+    private static final int PC_INIT = 0x1000; // Initial position of program counter.
 
     private static final int XLEN = 32; // Integer register width.
 
@@ -92,7 +92,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
 
     ///////////////////////////////////////////////////////////////////
     // RV32I
-    public int pc; // Program counter.
+    private int pc; // Program counter.
     private final int[] x = new int[32]; // Integer registers.
 
     ///////////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
 
     ///////////////////////////////////////////////////////////////////
     // User-level CSRs
-    public long mcycle;
+    private long mcycle;
 
     // Machine-level CSRs
     private int mstatus; // Machine Status Register; mstatush is always zero for us, SD is computed
@@ -133,7 +133,7 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
 
     ///////////////////////////////////////////////////////////////////
     // Misc. state
-    public int priv; // Current privilege level.
+    private int priv; // Current privilege level.
     private boolean waitingForInterrupt;
 
     ///////////////////////////////////////////////////////////////////

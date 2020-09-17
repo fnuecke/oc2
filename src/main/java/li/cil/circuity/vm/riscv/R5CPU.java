@@ -177,15 +177,19 @@ public final class R5CPU implements Steppable, RealTimeCounter, InterruptControl
             watchedTraces[i] = new WatchedTrace();
         }
 
-        reset(true);
+        reset();
     }
 
     public R5CPU(final MemoryMap physicalMemory) {
         this(physicalMemory, null);
     }
 
-    public void reset(final boolean hard) {
-        pc = PC_INIT;
+    public void reset() {
+        reset(true, PC_INIT);
+    }
+
+    public void reset(final boolean hard, final int pc) {
+        this.pc = pc;
         waitingForInterrupt = false;
 
         // Volume 2, 3.3 Reset

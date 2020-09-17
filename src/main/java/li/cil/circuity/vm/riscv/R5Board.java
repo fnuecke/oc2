@@ -139,7 +139,7 @@ public final class R5Board {
     }
 
     public void reset() {
-        cpu.reset(true);
+        cpu.reset();
 
         try {
             for (final MemoryMappedDevice device : devices) {

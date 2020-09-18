@@ -1257,7 +1257,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     private void divu(final int rd, final int rs1, final int rs2) {
         if (rd != 0) {
             if (x[rs2] == 0) {
-                x[rd] = Integer.MAX_VALUE;
+                x[rd] = -1;
             } else {
                 x[rd] = Integer.divideUnsigned(x[rs1], x[rs2]);
             }

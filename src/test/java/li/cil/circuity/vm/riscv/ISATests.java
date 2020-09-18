@@ -42,7 +42,7 @@ public final class ISATests {
                     case R5.EXCEPTION_MACHINE_ECALL:
                         final int testResult = getState().x[10]; // a0
                         if ((testResult & 1) != 0) {
-                            Assertions.fail("test " + (testResult >> 1) + " failed");
+                            Assertions.fail("test [" + (testResult >> 1) + "] failed after [" + getState().mcycle + "] cycles");
                         } else {
                             throw new TestSuccessful();
                         }

@@ -1949,6 +1949,20 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 return mstatush;
             }
 
+            // Debug/Trace Registers
+            case 0x7A0: { // tselect
+                return 0;
+            }
+            case 0x7A1: { // tdata1
+                return 0;
+            }
+            case 0x7A2: { // tdata2
+                return 0;
+            }
+            case 0x7A3: { // tdata3
+                return 0;
+            }
+
             // Machine Trap Handling
             case 0x340: { // mscratch Scratch register for machine trap handlers.
                 return mscratch;
@@ -2079,6 +2093,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         }
     }
 
+    @SuppressWarnings("DuplicateBranchesInSwitch")
     private boolean writeCSR(final int inst, final int csr, final int value) throws R5Exception {
         switch (csr) {
             // Floating-Point Control and Status Registers
@@ -2222,6 +2237,20 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 }
 
                 mstatush = value & (R5.STATUSH_MPV_MASK | R5.STATUSH_GVA_MASK);
+                break;
+            }
+
+            // Debug/Trace Registers
+            case 0x7A0: { // tselect
+                break;
+            }
+            case 0x7A1: { // tdata1
+                break;
+            }
+            case 0x7A2: { // tdata2
+                break;
+            }
+            case 0x7A3: { // tdata3
                 break;
             }
 

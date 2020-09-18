@@ -2513,7 +2513,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         if (alignment != 0) {
             throw new MisalignedLoadException(address);
         } else {
-            final int physicalAddress = getPhysicalAddress(address, AccessType.READ);
+            final int physicalAddress = getPhysicalAddress(address, AccessType.LOAD);
             final MemoryRange range = physicalMemory.getMemoryRange(physicalAddress);
             if (range == null) {
                 LOGGER.debug("Trying to load from invalid physical address [{}].", address);
@@ -2533,7 +2533,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         if (alignment != 0) {
             throw new MisalignedStoreException(address);
         } else {
-            final int physicalAddress = getPhysicalAddress(address, AccessType.WRITE);
+            final int physicalAddress = getPhysicalAddress(address, AccessType.STORE);
             final MemoryRange range = physicalMemory.getMemoryRange(physicalAddress);
             if (range == null) {
                 LOGGER.debug("Trying to store to invalid physical address [{}].", address);
@@ -2624,9 +2624,9 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
             // 8. Update accessed and dirty flags.
             if ((pte & R5.PTE_A_MASK) == 0 ||
-                (accessType == AccessType.WRITE && (pte & R5.PTE_D_MASK) == 0)) {
+                (accessType == AccessType.STORE && (pte & R5.PTE_D_MASK) == 0)) {
                 pte |= R5.PTE_A_MASK;
-                if (accessType == AccessType.WRITE) {
+                if (accessType == AccessType.STORE) {
                     pte |= R5.PTE_D_MASK;
                 }
 
@@ -2644,9 +2644,9 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
 
     private static MemoryAccessException getPageFaultException(final AccessType accessType, final int address) {
         switch (accessType) {
-            case READ:
+            case LOAD:
                 return new LoadPageFaultException(address);
-            case WRITE:
+            case STORE:
                 return new StorePageFaultException(address);
             case FETCH:
                 return new FetchPageFaultException(address);
@@ -2703,8 +2703,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     }
 
     private enum AccessType {
-        READ(R5.PTE_R_MASK),
-        WRITE(R5.PTE_W_MASK),
+        LOAD(R5.PTE_R_MASK),
+        STORE(R5.PTE_W_MASK),
         FETCH(R5.PTE_X_MASK),
         ;
 

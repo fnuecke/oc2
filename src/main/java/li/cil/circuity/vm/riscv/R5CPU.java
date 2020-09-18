@@ -308,16 +308,15 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         for (; ; ) {
             final TranslatorDataExchange dataExchange = this.translatorDataExchange;
             final TranslatorJob request = dataExchange.translatorRequests.poll();
-            if (request != null) {
-                // May return null in case the translator decided the generated trace was too short.
-                request.trace = Translator.translateTrace(request);
-                if (request.trace != null) {
-                    dataExchange.translationResponses.add(request);
-                }
-                continue;
+            if (request == null) {
+                break;
             }
 
-            break;
+            // May return null in case the translator decided the generated trace was too short.
+            request.trace = Translator.translateTrace(request);
+            if (request.trace != null) {
+                dataExchange.translationResponses.add(request);
+            }
         }
     }
 

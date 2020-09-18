@@ -1428,8 +1428,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                   (spie << spp);
         mstatus |= R5.STATUS_SPIE_MASK;
         mstatus &= ~R5.STATUS_SPP_MASK;
-
-        // set MPRV = 0
+        mstatus &= ~R5.STATUS_MPRV_MASK;
 
         setPrivilege(spp);
 
@@ -1446,9 +1445,8 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
         mstatus = (mstatus & ~R5.STATUS_MIE_MASK) | ((R5.STATUS_MIE_MASK * mpie) << R5.STATUS_MIE_SHIFT);
         mstatus |= R5.STATUS_MPIE_MASK;
         mstatus &= ~R5.STATUS_MPP_MASK;
-
         if (mpp != R5.PRIVILEGE_M) {
-            // set MPRV = 0
+            mstatus &= ~R5.STATUS_MPRV_MASK;
         }
 
         setPrivilege(mpp);

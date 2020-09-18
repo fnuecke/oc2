@@ -134,6 +134,19 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
         return interrupt;
     }
 
+    public boolean canReceive() {
+        return receiveFifo.size() < FIFO_QUEUE_CAPACITY;
+    }
+
+    public void putBreak() {
+        synchronized (lock) {
+            rbr = 0;
+            // QEMU says: when the LSR_DR is set a null byte is pushed into the fifo.
+            putByte((byte) 0);
+            lsr |= UART_LSR_BI | UART_LSR_DR;
+        }
+    }
+
     public void putByte(final byte value) {
         synchronized (lock) {
             if ((fcr & UART_FCR_FE) != 0) {

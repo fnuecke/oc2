@@ -11,6 +11,7 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
+apply plugin: 'application'
 
 repositories {
     maven { url "http://dvs1.progwml6.com/files/maven" } // JEI
@@ -130,18 +131,18 @@ dependencies {
 jar {
     manifest {
         attributes([
-            "Specification-Title": "circuity",
-            "Specification-Vendor": "Sangar",
-            "Specification-Version": "1",
-            "Implementation-Title": project.name,
-            "Implementation-Version": "${config.version}",
-            "Implementation-Vendor" :"Sangar",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Specification-Title"     : "circuity",
+                "Specification-Vendor"    : "Sangar",
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : "${config.version}",
+                "Implementation-Vendor"   : "Sangar",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }
 
-jar.finalizedBy('reobfJar') 
+jar.finalizedBy('reobfJar')
 
 task apiJar(type: Jar) {
     from sourceSets.main.allSource
@@ -173,6 +174,14 @@ publishing {
             url System.getenv("MAVEN_PATH")
         }
     }
+}
+
+application {
+    mainClassName = "li.cil.circuity.Main"
+}
+
+run {
+    standardInput = System.in
 }
 
 test {

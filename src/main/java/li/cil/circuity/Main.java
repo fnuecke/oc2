@@ -97,7 +97,7 @@ public final class Main {
         Thread.sleep(5 * 1000);
         LOGGER.info("Starting!");
 
-        final long cyclesPerRun = 100 * 100_000_000_000L;
+        final long cyclesPerRun = 300_000_000;
         final int cyclesPerStep = 1_000;
         final int hz = 50_000_000;
 

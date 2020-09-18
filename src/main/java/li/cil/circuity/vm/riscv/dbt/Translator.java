@@ -159,8 +159,10 @@ public final class Translator {
             int inst = request.firstInst;
 
             // TODO trim nops completely, i.e. anything where rd = 0 that just computes and writes to it
-            // TODO pre-resolve more switches in op methods
             // TODO test if incrementing instOffset/pc in generated method is better than generating a ton of constants
+            // TODO maybe inline amo32
+            // TODO maybe inline store/load
+            // TODO maybe inline... everything
 
             for (; ; ) { // End of page check at the bottom since we enter with a valid inst.
                 emittedInstructions++;
@@ -173,8 +175,65 @@ public final class Translator {
                     final int rs1 = BitUtils.getField(inst, 15, 19, 0);
 
                     switch (opcode) {
-                        case 0b0010011: { // OP-IMM (register-immediate operation)
-                            invokeOp("op_imm", inst, rd, rs1);
+                        case 0b0010011: {
+                            final int funct3 = BitUtils.getField(inst, 12, 14, 0);
+                            final int imm = inst >> 20;
+                            switch (funct3) {
+                                case 0b000: { // ADDI
+                                    invokeOp("addi", rd, rs1, imm);
+                                    break;
+                                }
+                                case 0b010: { // SLTI
+                                    invokeOp("slti", rd, rs1, imm);
+                                    break;
+                                }
+                                case 0b011: { // SLTIU
+                                    invokeOp("sltiu", rd, rs1, imm);
+                                    break;
+                                }
+                                case 0b100: { // XORI
+                                    invokeOp("xori", rd, rs1, imm);
+                                    break;
+                                }
+                                case 0b110: { // ORI
+                                    invokeOp("ori", rd, rs1, imm);
+                                    break;
+                                }
+                                case 0b111: { // ANDI
+                                    invokeOp("andi", rd, rs1, imm);
+                                    break;
+                                }
+                                case 0b001: { // SLLI
+                                    if ((inst & 0b1111111_00000_00000_000_00000_0000000) != 0) {
+                                        throw new R5IllegalInstructionException(inst);
+                                    }
+
+                                    invokeOp("slli", rd, rs1, imm);
+                                    break;
+                                }
+                                case 0b101: {
+                                    final int funct7 = BitUtils.getField(imm, 5, 11, 0);
+                                    switch (funct7) {
+                                        case 0b0000000: { // SRLI
+                                            invokeOp("srli", rd, rs1, imm);
+                                            break;
+                                        }
+                                        case 0b0100000: { // SRAI
+                                            invokeOp("srai", rd, rs1, imm);
+                                            break;
+                                        }
+
+                                        default: {
+                                            throw new R5IllegalInstructionException(inst);
+                                        }
+                                    }
+                                    break;
+                                }
+
+                                default: {
+                                    throw new R5IllegalInstructionException(inst);
+                                }
+                            }
 
                             instOffset += 4;
                             break;
@@ -194,8 +253,119 @@ public final class Translator {
                             break;
                         }
 
-                        case 0b0110011: { // OP (register-register operation aka R-type)
-                            invokeOp("op", inst, rd, rs1);
+                        case 0b0110011: {
+                            final int rs2 = BitUtils.getField(inst, 20, 24, 0);
+                            final int funct3 = BitUtils.getField(inst, 12, 14, 0);
+                            final int funct7 = BitUtils.getField(inst, 25, 31, 0);
+                            switch (funct7) {
+                                case 0b000001: {
+                                    switch (funct3) {
+                                        case 0b000: { // MUL
+                                            invokeOp("mul", rd, rs1, rs2);
+                                            break;
+                                        }
+                                        case 0b001: { // MULH
+                                            invokeOp("mulh", rd, rs1, rs2);
+                                            break;
+                                        }
+                                        case 0b010: { // MULHSU
+                                            invokeOp("mulhsu", rd, rs1, rs2);
+                                            break;
+                                        }
+                                        case 0b011: { // MULHU
+                                            invokeOp("mulhu", rd, rs1, rs2);
+                                            break;
+                                        }
+
+                                        case 0b100: { // DIV
+                                            invokeOp("div", rd, rs1, rs2);
+                                            break;
+                                        }
+                                        case 0b101: { // DIVU
+                                            invokeOp("divu", rd, rs1, rs2);
+                                            break;
+                                        }
+                                        case 0b110: { // REM
+                                            invokeOp("rem", rd, rs1, rs2);
+                                            break;
+                                        }
+                                        case 0b111: { // REMU
+                                            invokeOp("remu", rd, rs1, rs2);
+                                            break;
+                                        }
+
+                                        default: {
+                                            throw new R5IllegalInstructionException(inst);
+                                        }
+                                    }
+
+                                    break;
+                                }
+                                case 0b0000000:
+                                case 0b0100000: {
+                                    switch (funct3 | funct7) {
+                                        //noinspection PointlessBitwiseExpression
+                                        case 0b000 | 0b0000000: { // ADD
+                                            invokeOp("add", rd, rs1, rs2);
+                                            break;
+                                        }
+                                        //noinspection PointlessBitwiseExpression
+                                        case 0b000 | 0b0100000: { // SUB
+                                            invokeOp("sub", rd, rs1, rs2);
+
+                                            break;
+                                        }
+                                        case 0b001: { // SLL
+                                            invokeOp("sll", rd, rs1, rs2);
+
+                                            break;
+                                        }
+                                        case 0b010: { // SLT
+                                            invokeOp("slt", rd, rs1, rs2);
+
+                                            break;
+                                        }
+                                        case 0b011: { // SLTU
+                                            invokeOp("sltu", rd, rs1, rs2);
+
+                                            break;
+                                        }
+                                        case 0b100: { // XOR
+                                            invokeOp("xor", rd, rs1, rs2);
+
+                                            break;
+                                        }
+                                        //noinspection PointlessBitwiseExpression
+                                        case 0b101 | 0b0000000: { // SRL
+                                            invokeOp("srl", rd, rs1, rs2);
+
+                                            break;
+                                        }
+                                        case 0b101 | 0b0100000: { // SRA
+                                            invokeOp("sra", rd, rs1, rs2);
+                                            break;
+                                        }
+                                        case 0b110: { // OR
+                                            invokeOp("or", rd, rs1, rs2);
+                                            break;
+                                        }
+                                        case 0b111: { // AND
+                                            invokeOp("and", rd, rs1, rs2);
+                                            break;
+                                        }
+
+                                        default: {
+                                            throw new R5IllegalInstructionException(inst);
+                                        }
+                                    }
+
+                                    break;
+                                }
+
+                                default: {
+                                    throw new R5IllegalInstructionException(inst);
+                                }
+                            }
 
                             instOffset += 4;
                             break;

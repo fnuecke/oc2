@@ -2615,6 +2615,14 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 throw getPageFaultException(accessType, virtualAddress);
             }
 
+            // 7. Check misaligned superpage.
+            if (i > 0) {
+                final int ppnLSB = (pte >>> R5.PTE_DATA_BITS) & R5.SV32_XPN_MASK;
+                if (ppnLSB != 0) {
+                    throw getPageFaultException(accessType, virtualAddress);
+                }
+            }
+
             // 8. Update accessed and dirty flags.
             if ((pte & R5.PTE_A_MASK) == 0 ||
                 (accessType == AccessType.WRITE && (pte & R5.PTE_D_MASK) == 0)) {

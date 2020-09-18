@@ -1,5 +1,7 @@
 package li.cil.circuity.vm.riscv;
 
+import li.cil.circuity.vm.BitUtils;
+
 public final class R5Disassembler {
     private static final String ILLEGAL_INSTRUCTION = "<???>";
     private static final String HINT = "<hint>";
@@ -14,14 +16,14 @@ public final class R5Disassembler {
     }
 
     private static String disassembleUncompressed(final int inst) {
-        final int opcode = getField(inst, 0, 6);
-        final int rd = getField(inst, 7, 11);
-        final int rs1 = getField(inst, 15, 19);
-        final int rs2 = getField(inst, 20, 24);
+        final int opcode = BitUtils.getField(inst, 0, 6, 0);
+        final int rd = BitUtils.getField(inst, 7, 11, 0);
+        final int rs1 = BitUtils.getField(inst, 15, 19, 0);
+        final int rs2 = BitUtils.getField(inst, 20, 24, 0);
 
         switch (opcode) {
             case 0b0010011: {
-                final int funct3 = getField(inst, 12, 14);
+                final int funct3 = BitUtils.getField(inst, 12, 14, 0);
                 final int imm = inst >> 20; // inst[31:20], sign extended
                 switch (funct3) {
                     case 0b000: {
@@ -56,7 +58,7 @@ public final class R5Disassembler {
                                String.format("%s = %s %s %d", reg(rd), reg(rs1), "<<", imm);
                     }
                     case 0b101: {
-                        final int funct7 = getField(imm, 5, 11); // imm[11:5]
+                        final int funct7 = BitUtils.getField(imm, 5, 11, 0); // imm[11:5]
                         switch (funct7) {
                             case 0b0000000: {
                                 return op("srli", reg(rd), reg(rs1), imm) + OP_SEP +
@@ -86,10 +88,10 @@ public final class R5Disassembler {
             }
 
             case 0b0110011: {
-                final int funct7 = getField(inst, 25, 31);
+                final int funct7 = BitUtils.getField(inst, 25, 31, 0);
                 switch (funct7) {
                     case 0b000001: {
-                        final int funct3 = getField(inst, 12, 14);
+                        final int funct3 = BitUtils.getField(inst, 12, 14, 0);
                         switch (funct3) {
                             case 0b000: {
                                 return op("mul", reg(rd), reg(rs1), reg(rs2)) + OP_SEP +
@@ -130,7 +132,7 @@ public final class R5Disassembler {
                     }
                     case 0b0000000:
                     case 0b0100000: {
-                        final int funct3 = getField(inst, 12, 14);
+                        final int funct3 = BitUtils.getField(inst, 12, 14, 0);
                         switch (funct3 | funct7) {
                             case 0b000: {
                                 return op("add", reg(rd), reg(rs1), reg(rs2)) + OP_SEP +
@@ -182,10 +184,11 @@ public final class R5Disassembler {
             }
 
             case 0b1101111: {
-                final int imm = extendSign(getField(inst, 31, 31, 20) |
-                                           getField(inst, 21, 30, 1) |
-                                           getField(inst, 20, 20, 11) |
-                                           getField(inst, 12, 19, 12), 20);
+
+                final int imm = BitUtils.extendSign(BitUtils.getField(inst, 31, 31, 20) |
+                                                    BitUtils.getField(inst, 21, 30, 1) |
+                                                    BitUtils.getField(inst, 20, 20, 11) |
+                                                    BitUtils.getField(inst, 12, 19, 12), 20);
                 return op("jal", reg(rd), imm) + OP_SEP +
                        String.format("pc += %d", imm);
             }
@@ -200,11 +203,12 @@ public final class R5Disassembler {
             }
 
             case 0b1100011: {
-                final int imm = extendSign(getField(inst, 31, 31, 12) |
-                                           getField(inst, 25, 30, 5) |
-                                           getField(inst, 8, 11, 1) |
-                                           getField(inst, 7, 7, 11), 13);
-                final int funct3 = getField(inst, 12, 14);
+
+                final int imm = BitUtils.extendSign(BitUtils.getField(inst, 31, 31, 12) |
+                                                    BitUtils.getField(inst, 25, 30, 5) |
+                                                    BitUtils.getField(inst, 8, 11, 1) |
+                                                    BitUtils.getField(inst, 7, 7, 11), 13);
+                final int funct3 = BitUtils.getField(inst, 12, 14, 0);
                 switch (funct3) {
                     case 0b000: {
                         return op("beq", reg(rs1), reg(rs2), imm) + OP_SEP +
@@ -236,7 +240,7 @@ public final class R5Disassembler {
             }
 
             case 0b0000011: {
-                final int funct3 = getField(inst, 12, 14);
+                final int funct3 = BitUtils.getField(inst, 12, 14, 0);
                 final int imm = inst >> 20; // inst[31:20], sign extended
                 switch (funct3) {
                     case 0b000: {
@@ -265,9 +269,9 @@ public final class R5Disassembler {
             }
 
             case 0b0100011: {
-                final int funct3 = getField(inst, 12, 14);
-                final int imm = getField(inst, 25, 31, 5) |
-                                getField(inst, 7, 11);
+                final int funct3 = BitUtils.getField(inst, 12, 14, 0);
+                final int imm = BitUtils.getField(inst, 25, 31, 5) |
+                                BitUtils.getField(inst, 7, 11, 0);
                 switch (funct3) {
                     case 0b000: {
                         return op("sb", reg(rs2), addr(rs1, imm)) + OP_SEP +
@@ -287,7 +291,7 @@ public final class R5Disassembler {
             }
 
             case 0b0001111: {
-                final int funct3 = getField(inst, 12, 14);
+                final int funct3 = BitUtils.getField(inst, 12, 14, 0);
                 switch (funct3) {
                     case 0b000: {
                         return op("fence");
@@ -304,7 +308,7 @@ public final class R5Disassembler {
             }
 
             case 0b1110011: {
-                final int funct3 = getField(inst, 12, 14);
+                final int funct3 = BitUtils.getField(inst, 12, 14, 0);
                 if (funct3 == 0b100) {
                     return ILLEGAL_INSTRUCTION;
                 }
@@ -428,7 +432,7 @@ public final class R5Disassembler {
             }
 
             case 0b0101111: {
-                final int funct3 = getField(inst, 12, 14);
+                final int funct3 = BitUtils.getField(inst, 12, 14, 0);
                 switch (funct3) { // width
                     case 0b010: { // 32
                         final int funct5 = inst >>> 27; // inst[31:27], not sign-extended
@@ -506,14 +510,14 @@ public final class R5Disassembler {
         final int op = inst & 0b11;
         switch (op) {
             case 0b00: { // Quadrant 0
-                final int funct3 = getField(inst, 13, 15);
-                final int rd = getField(inst, 2, 4) + 8;
+                final int funct3 = BitUtils.getField(inst, 13, 15, 0);
+                final int rd = BitUtils.getField(inst, 2, 4, 0) + 8;
                 switch (funct3) {
                     case 0b000: {
-                        final int imm = getField(inst, 11, 12, 4) |
-                                        getField(inst, 7, 10, 6) |
-                                        getField(inst, 6, 6, 2) |
-                                        getField(inst, 5, 5, 3);
+                        final int imm = BitUtils.getField(inst, 11, 12, 4) |
+                                        BitUtils.getField(inst, 7, 10, 6) |
+                                        BitUtils.getField(inst, 6, 6, 2) |
+                                        BitUtils.getField(inst, 5, 5, 3);
                         if (imm == 0) {
                             return ILLEGAL_INSTRUCTION;
                         }
@@ -522,20 +526,20 @@ public final class R5Disassembler {
                     }
                     // 0b001: C.FLD
                     case 0b010: {
-                        final int offset = getField(inst, 10, 12, 3) |
-                                           getField(inst, 6, 6, 2) |
-                                           getField(inst, 5, 5, 6);
-                        final int rs1 = getField(inst, 7, 9) + 8; // V1p100
+                        final int offset = BitUtils.getField(inst, 10, 12, 3) |
+                                           BitUtils.getField(inst, 6, 6, 2) |
+                                           BitUtils.getField(inst, 5, 5, 6);
+                        final int rs1 = BitUtils.getField(inst, 7, 9, 0) + 8; // V1p100
                         return op("c.lw", reg(rd), addr(rs1, offset)) + OP_SEP +
                                String.format("%s = *(uint32*)(%s + %d)", reg(rd), reg(rs1), offset);
                     }
                     // 0b011: C.FLW
                     // 0b101: C.FSD
                     case 0b110: {
-                        final int offset = getField(inst, 10, 12, 3) |
-                                           getField(inst, 6, 6, 2) |
-                                           getField(inst, 5, 5, 6);
-                        final int rs1 = getField(inst, 7, 9) + 8; // V1p100
+                        final int offset = BitUtils.getField(inst, 10, 12, 3) |
+                                           BitUtils.getField(inst, 6, 6, 2) |
+                                           BitUtils.getField(inst, 5, 5, 6);
+                        final int rs1 = BitUtils.getField(inst, 7, 9, 0) + 8; // V1p100
                         return op("c.sw", reg(rd), addr(rs1, offset)) + OP_SEP +
                                String.format("*(uint32*)(%s + %d) = %s", reg(rs1), offset, reg(rd));
                     }
@@ -546,12 +550,13 @@ public final class R5Disassembler {
             }
 
             case 0b01: { // Quadrant 1
-                final int funct3 = getField(inst, 13, 15);
+                final int funct3 = BitUtils.getField(inst, 13, 15, 0);
                 switch (funct3) {
                     case 0b000: {
-                        final int imm = extendSign(getField(inst, 12, 12, 5) |
-                                                   getField(inst, 2, 6), 6);
-                        final int rd = getField(inst, 7, 11);
+
+                        final int imm = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 5) |
+                                                            BitUtils.getField(inst, 2, 6, 0), 6);
+                        final int rd = BitUtils.getField(inst, 7, 11, 0);
                         if (rd != 0) {
                             return op("c.addi", reg(rd), imm) + OP_SEP +
                                    String.format("%s += %d", reg(rd), imm);
@@ -562,22 +567,24 @@ public final class R5Disassembler {
                         }
                     }
                     case 0b001: {
-                        final int offset = extendSign(getField(inst, 12, 12, 11) |
-                                                      getField(inst, 11, 11, 4) |
-                                                      getField(inst, 9, 10, 8) |
-                                                      getField(inst, 8, 8, 10) |
-                                                      getField(inst, 7, 7, 6) |
-                                                      getField(inst, 6, 6, 7) |
-                                                      getField(inst, 3, 5, 1) |
-                                                      getField(inst, 2, 2, 5), 12);
+
+                        final int offset = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 11) |
+                                                               BitUtils.getField(inst, 11, 11, 4) |
+                                                               BitUtils.getField(inst, 9, 10, 8) |
+                                                               BitUtils.getField(inst, 8, 8, 10) |
+                                                               BitUtils.getField(inst, 7, 7, 6) |
+                                                               BitUtils.getField(inst, 6, 6, 7) |
+                                                               BitUtils.getField(inst, 3, 5, 1) |
+                                                               BitUtils.getField(inst, 2, 2, 5), 12);
                         return op("c.jal", offset) + OP_SEP +
                                String.format("%s = pc + 2, pc += %d", reg(1), offset);
                     }
                     case 0b010: {
-                        final int rd = getField(inst, 7, 11);
+                        final int rd = BitUtils.getField(inst, 7, 11, 0);
                         if (rd != 0) {
-                            final int imm = extendSign(getField(inst, 12, 12, 5) |
-                                                       getField(inst, 2, 6), 6);
+
+                            final int imm = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 5) |
+                                                                BitUtils.getField(inst, 2, 6, 0), 6);
                             return op("c.li", reg(rd), imm) + OP_SEP +
                                    String.format("%s = %d", reg(rd), imm);
                         } else {
@@ -585,21 +592,23 @@ public final class R5Disassembler {
                         }
                     }
                     case 0b011: {
-                        final int rd = getField(inst, 7, 11);
+                        final int rd = BitUtils.getField(inst, 7, 11, 0);
                         if (rd == 2) {
-                            final int imm = extendSign(getField(inst, 12, 12, 9) |
-                                                       getField(inst, 6, 6, 4) |
-                                                       getField(inst, 5, 5, 6) |
-                                                       getField(inst, 3, 4, 7) |
-                                                       getField(inst, 2, 2, 5), 10);
+
+                            final int imm = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 9) |
+                                                                BitUtils.getField(inst, 6, 6, 4) |
+                                                                BitUtils.getField(inst, 5, 5, 6) |
+                                                                BitUtils.getField(inst, 3, 4, 7) |
+                                                                BitUtils.getField(inst, 2, 2, 5), 10);
                             if (imm == 0) {
                                 return ILLEGAL_INSTRUCTION;
                             }
                             return op("c.addi16sp", reg(rd), imm) + OP_SEP +
                                    String.format("%s += %d", reg(rd), imm);
                         } else if (rd != 0) {
-                            final int imm = extendSign(getField(inst, 12, 12, 17) |
-                                                       getField(inst, 2, 6, 12), 18);
+
+                            final int imm = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 17) |
+                                                                BitUtils.getField(inst, 2, 6, 12), 18);
                             if (imm == 0) {
                                 return ILLEGAL_INSTRUCTION;
                             }
@@ -610,13 +619,13 @@ public final class R5Disassembler {
                         }
                     }
                     case 0b100: {
-                        final int funct2 = getField(inst, 10, 11);
-                        final int rd = getField(inst, 7, 9) + 8;
+                        final int funct2 = BitUtils.getField(inst, 10, 11, 0);
+                        final int rd = BitUtils.getField(inst, 7, 9, 0) + 8;
                         switch (funct2) {
                             case 0b00:
                             case 0b01: {
-                                final int imm = getField(inst, 12, 12, 5) |
-                                                getField(inst, 2, 6, 0);
+                                final int imm = BitUtils.getField(inst, 12, 12, 5) |
+                                                BitUtils.getField(inst, 2, 6, 0);
                                 if ((funct2 & 0b1) == 0) {
                                     return op("c.srli", reg(rd), imm) + OP_SEP +
                                            String.format("%s = %s >>> %d", reg(rd), reg(rd), imm);
@@ -626,15 +635,16 @@ public final class R5Disassembler {
                                 }
                             }
                             case 0b10: { // C.ANDI
-                                final int imm = extendSign(getField(inst, 12, 12, 5) |
-                                                           getField(inst, 2, 6, 0), 6);
+
+                                final int imm = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 5) |
+                                                                    BitUtils.getField(inst, 2, 6, 0), 6);
                                 return op("c.andi", reg(rd), imm) + OP_SEP +
                                        String.format("%s &= %d", reg(rd), imm);
                             }
                             case 0b11: {
-                                final int funct3b = getField(inst, 5, 6) |
-                                                    getField(inst, 12, 12, 2);
-                                final int rs2 = getField(inst, 2, 4) + 8;
+                                final int funct3b = BitUtils.getField(inst, 5, 6, 0) |
+                                                    BitUtils.getField(inst, 12, 12, 2);
+                                final int rs2 = BitUtils.getField(inst, 2, 4, 0) + 8;
                                 switch (funct3b) {
                                     case 0b000: {
                                         return op("c.sub", reg(rd), reg(rs2)) + OP_SEP +
@@ -662,25 +672,27 @@ public final class R5Disassembler {
                         break;
                     }
                     case 0b101: {
-                        final int offset = extendSign(getField(inst, 12, 12, 11) |
-                                                      getField(inst, 11, 11, 4) |
-                                                      getField(inst, 9, 10, 8) |
-                                                      getField(inst, 8, 8, 10) |
-                                                      getField(inst, 7, 7, 6) |
-                                                      getField(inst, 6, 6, 7) |
-                                                      getField(inst, 3, 5, 1) |
-                                                      getField(inst, 2, 2, 5), 12);
+
+                        final int offset = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 11) |
+                                                               BitUtils.getField(inst, 11, 11, 4) |
+                                                               BitUtils.getField(inst, 9, 10, 8) |
+                                                               BitUtils.getField(inst, 8, 8, 10) |
+                                                               BitUtils.getField(inst, 7, 7, 6) |
+                                                               BitUtils.getField(inst, 6, 6, 7) |
+                                                               BitUtils.getField(inst, 3, 5, 1) |
+                                                               BitUtils.getField(inst, 2, 2, 5), 12);
                         return op("c.j", offset) + OP_SEP +
                                String.format("pc += %d", offset);
                     }
                     case 0b110:
                     case 0b111: {
-                        final int offset = extendSign(getField(inst, 12, 12, 8) |
-                                                      getField(inst, 10, 11, 3) |
-                                                      getField(inst, 5, 6, 6) |
-                                                      getField(inst, 3, 4, 1) |
-                                                      getField(inst, 2, 2, 5), 9);
-                        final int rs1 = getField(inst, 7, 9) + 8;
+
+                        final int offset = BitUtils.extendSign(BitUtils.getField(inst, 12, 12, 8) |
+                                                               BitUtils.getField(inst, 10, 11, 3) |
+                                                               BitUtils.getField(inst, 5, 6, 6) |
+                                                               BitUtils.getField(inst, 3, 4, 1) |
+                                                               BitUtils.getField(inst, 2, 2, 5), 9);
+                        final int rs1 = BitUtils.getField(inst, 7, 9, 0) + 8;
                         if ((funct3 & 0b1) == 0) {
                             return op("c.beqz", reg(rs1), offset) + OP_SEP +
                                    String.format("if (%s == 0) pc += %d", reg(rs1), offset);
@@ -695,12 +707,12 @@ public final class R5Disassembler {
             }
 
             case 0b10: { // Quadrant 2
-                final int funct3 = getField(inst, 13, 15);
-                final int rd = getField(inst, 7, 11);
+                final int funct3 = BitUtils.getField(inst, 13, 15, 0);
+                final int rd = BitUtils.getField(inst, 7, 11, 0);
                 switch (funct3) {
                     case 0b000: {
-                        final int imm = getField(inst, 12, 12, 5) |
-                                        getField(inst, 2, 6, 0);
+                        final int imm = BitUtils.getField(inst, 12, 12, 5) |
+                                        BitUtils.getField(inst, 2, 6, 0);
                         if (rd != 0) {
                             return op("c.slli", reg(rd), imm) + OP_SEP +
                                    String.format("%s = %s << %d", reg(rd), reg(rd), imm);
@@ -710,9 +722,9 @@ public final class R5Disassembler {
                     }
                     // 0b001: C.FLDSP
                     case 0b010: {
-                        final int offset = getField(inst, 12, 12, 5) |
-                                           getField(inst, 4, 6, 2) |
-                                           getField(inst, 2, 3, 6);
+                        final int offset = BitUtils.getField(inst, 12, 12, 5) |
+                                           BitUtils.getField(inst, 4, 6, 2) |
+                                           BitUtils.getField(inst, 2, 3, 6);
                         if (rd == 0) {
                             return ILLEGAL_INSTRUCTION;
                         }
@@ -722,7 +734,7 @@ public final class R5Disassembler {
                     }
                     // 0b011: C.FLWSP
                     case 0b100: {
-                        final int rs2 = getField(inst, 2, 6);
+                        final int rs2 = BitUtils.getField(inst, 2, 6, 0);
                         if ((inst & (1 << 12)) == 0) {
                             if (rs2 == 0) {
                                 if (rd == 0) {
@@ -759,9 +771,9 @@ public final class R5Disassembler {
                     }
                     // 0b101: C.FSDSP
                     case 0b110: {
-                        final int offset = getField(inst, 9, 12, 2) |
-                                           getField(inst, 7, 8, 6);
-                        final int rs2 = getField(inst, 2, 6);
+                        final int offset = BitUtils.getField(inst, 9, 12, 2) |
+                                           BitUtils.getField(inst, 7, 8, 6);
+                        final int rs2 = BitUtils.getField(inst, 2, 6, 0);
                         return op("c.swsp", reg(rs2), offset) + OP_SEP +
                                String.format("*(uint32*)(%s + %d) = %s", reg(2), offset, reg(rs2));
                     }
@@ -1070,23 +1082,5 @@ public final class R5Disassembler {
         }
 
         return String.valueOf(csr);
-    }
-
-    private static int getField(final int value, final int srcBitFrom, final int srcBitUntil, final int destBit) {
-        // For bit-shifts Java always only uses the lowest five bits for the right-hand operand,
-        // so we can't be clever and shift by a negative amount; need to branch here.
-        // NB: This method is optimized for size to make sure it gets inlined at the cost of readability.
-        return (destBit >= srcBitFrom
-                ? value << (destBit - srcBitFrom)
-                : value >>> (srcBitFrom - destBit))
-               & ((1 << (srcBitUntil - srcBitFrom + 1)) - 1) << destBit;
-    }
-
-    private static int getField(final int value, final int srcBitFrom, final int srcBitUntil) {
-        return getField(value, srcBitFrom, srcBitUntil, 0);
-    }
-
-    private static int extendSign(final int value, final int width) {
-        return (value << (32 - width)) >> (32 - width);
     }
 }

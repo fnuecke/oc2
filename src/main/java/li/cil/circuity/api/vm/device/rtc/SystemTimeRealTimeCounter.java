@@ -6,7 +6,7 @@ public final class SystemTimeRealTimeCounter implements RealTimeCounter {
     private static final int NANOSECONDS_PER_SECOND = 1_000_000_000;
     private static final int FREQUENCY = 10_000_000;
 
-    public static RealTimeCounter create() {
+    public static RealTimeCounter get() {
         return INSTANCE;
     }
 

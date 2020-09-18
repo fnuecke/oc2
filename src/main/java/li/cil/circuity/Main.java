@@ -166,6 +166,8 @@ public final class Main {
                 if (nextIndex == index) {
                     LOGGER.warn("Unknown argument [{}].", args[index]);
                     index++;
+                } else {
+                    index = nextIndex;
                 }
             }
         }

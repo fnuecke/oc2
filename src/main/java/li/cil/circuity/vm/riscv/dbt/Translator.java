@@ -37,17 +37,17 @@ public final class Translator {
     private static final String CPU_FIELD_NAME = "cpu";
 
     // First argument to the method, the reference to the CPU we're working on.
-    private static final int CPU_LOCAL_INDEX = 1; // R5CPU ref, length = 1
+    private static final int CPU_LOCAL_INDEX = 0; // R5CPU ref, length = 1
 
     // On-demand updated local holding current actual PC.
     // Used to bake instOffset for pc fixup on runtime exceptions.
-    private static final int PC_LOCAL_INDEX = 2; // int, length = 1
+    private static final int PC_LOCAL_INDEX = 1; // int, length = 1
 
     // Local for holding current cycles. Saves the GETFIELD for each increment.
-    private static final int MCYCLE_LOCAL_INDEX = 3; // long, length = 2
+    private static final int MCYCLE_LOCAL_INDEX = 2; // long, length = 2
 
     // We remap locals of inlined methods to start here.
-    private static final int INLINED_LOCALS_START = 5;
+    private static final int INLINED_LOCALS_START = 4;
 
     // Cached opcode implementations by name for faster lookup in generation.
     private static final Map<String, OpcodeMethod> OPCODE_METHODS = new HashMap<>();

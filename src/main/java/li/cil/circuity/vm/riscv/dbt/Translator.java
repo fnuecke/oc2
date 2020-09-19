@@ -46,6 +46,9 @@ public final class Translator {
     // Local for holding current cycles. Saves the GETFIELD for each increment.
     private static final int MCYCLE_LOCAL_INDEX = 3; // long, length = 2
 
+    // We remap locals of inlined methods to start here.
+    private static final int INLINED_LOCALS_START = 5;
+
     // Cached opcode implementations by name for faster lookup in generation.
     private static final Map<String, OpcodeMethod> OPCODE_METHODS = new HashMap<>();
 
@@ -547,7 +550,63 @@ public final class Translator {
                         case 0b0101111: { // AMO
                             final int funct3 = BitUtils.getField(inst, 12, 14, 0);
                             if (funct3 == 0b010) { // 32 bit
-                                invokeOp("amo32", inst, rd, rs1);
+                                final int rs2 = BitUtils.getField(inst, 20, 24, 0);
+                                final int funct5 = inst >>> 27;
+                                switch (funct5) {
+                                    case 0b00010: { // LR.W
+                                        if (rs2 != 0) {
+                                            throw new R5IllegalInstructionException(inst);
+                                        }
+
+                                        invokeOp("lr_w", rd, rs1);
+                                        break;
+                                    }
+                                    case 0b00011: { // SC.W
+                                        invokeOp("sc_w", rd, rs1, rs2);
+                                        break;
+                                    }
+
+                                    case 0b00001: { // AMOSWAP.W
+                                        invokeOp("amoswap_w", rd, rs1, rs2);
+                                        break;
+                                    }
+                                    case 0b00000: { // AMOADD.W
+                                        invokeOp("amoadd_w", rd, rs1, rs2);
+                                        break;
+                                    }
+                                    case 0b00100: { // AMOXOR.W
+                                        invokeOp("amoxor_w", rd, rs1, rs2);
+                                        break;
+                                    }
+                                    case 0b01100: { // AMOAND.W
+                                        invokeOp("amoand_w", rd, rs1, rs2);
+                                        break;
+                                    }
+                                    case 0b01000: { // AMOOR.W
+                                        invokeOp("amoor_w", rd, rs1, rs2);
+                                        break;
+                                    }
+                                    case 0b10000: { // AMOMIN.W
+                                        invokeOp("amomin_w", rd, rs1, rs2);
+                                        break;
+                                    }
+                                    case 0b10100: { // AMOMAX.W
+                                        invokeOp("amomax_w", rd, rs1, rs2);
+                                        break;
+                                    }
+                                    case 0b11000: { // AMOMINU.W
+                                        invokeOp("amominu_w", rd, rs1, rs2);
+                                        break;
+                                    }
+                                    case 0b11100: { // AMOMAXU.W
+                                        invokeOp("amomaxu_w", rd, rs1, rs2);
+                                        break;
+                                    }
+
+                                    default: {
+                                        throw new R5IllegalInstructionException(inst);
+                                    }
+                                }
                             } else {
                                 throw new R5IllegalInstructionException(inst);
                             }

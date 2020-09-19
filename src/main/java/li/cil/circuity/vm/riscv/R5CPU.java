@@ -329,11 +329,13 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     }
 
     private void requestTraceTranslation(final MemoryMappedDevice device, final int instOffset, final int instEnd, final int toPC, final int inst) {
-//        if (tracesRequested.add(pc)) {
-//            translatorDataExchange.translatorRequests.add(new TranslatorJob(this, pc, device, instOffset, instEnd, toPC, inst));
-//
-//            translators.submit(this::runTranslator);
-//        }
+        /*
+        if (tracesRequested.add(pc)) {
+            translatorDataExchange.translatorRequests.add(new TranslatorJob(this, pc, device, instOffset, instEnd, toPC, inst));
+
+            translators.submit(this::runTranslator);
+        }
+        /*/
 
         if (!tracesRequested.contains(pc)) {
             final int hotTraceIndex = (pc >> 1) & (HOT_TRACE_COUNT - 1);
@@ -350,6 +352,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 translators.submit(this::runTranslator);
             }
         }
+        //*/
     }
 
     private void invokeTrace(final Trace trace) throws R5Exception, MemoryAccessException {
@@ -1541,8 +1544,6 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
     private void amo32(final int inst, final int rd, final int rs1) throws R5Exception, MemoryAccessException {
         final int rs2 = BitUtils.getField(inst, 20, 24, 0);
         final int funct5 = inst >>> 27; // inst[31:27], not sign-extended
-        final int address = x[rs1];
-        final int result;
         switch (funct5) {
             ///////////////////////////////////////////////////////////////////
             // 8.2 Load-Reserved/Store-Conditional Instructions
@@ -1550,84 +1551,51 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 if (rs2 != 0) {
                     throw new R5IllegalInstructionException(inst);
                 }
-                result = load32(address);
-                reservation_set = address;
+
+                lr_w(rd, rs1);
                 break;
             }
             case 0b00011: { // SC.W
-                if (address == reservation_set) {
-                    store32(address, x[rs2]);
-                    result = 0;
-                } else {
-                    result = 1;
-                }
-                reservation_set = -1; // Always invalidate as per spec.
+                sc_w(rd, rs1, rs2);
                 break;
             }
 
             ///////////////////////////////////////////////////////////////////
             // 8.4 Atomic Memory Operations
-            case 0b00001: // AMOSWAP.W
-            case 0b00000: // AMOADD.W
-            case 0b00100: // AMOXOR.W
-            case 0b01100: // AMOAND.W
-            case 0b01000: // AMOOR.W
-            case 0b10000: // AMOMIN.W
-            case 0b10100: // AMOMAX.W
-            case 0b11000: // AMOMINU.W
+            case 0b00001: { // AMOSWAP.W
+                amoswap_w(rd, rs1, rs2);
+                break;
+            }
+            case 0b00000: { // AMOADD.W
+                amoadd_w(rd, rs1, rs2);
+                break;
+            }
+            case 0b00100: { // AMOXOR.W
+                amoxor_w(rd, rs1, rs2);
+                break;
+            }
+            case 0b01100: { // AMOAND.W
+                amoand_w(rd, rs1, rs2);
+                break;
+            }
+            case 0b01000: { // AMOOR.W
+                amoor_w(rd, rs1, rs2);
+                break;
+            }
+            case 0b10000: { // AMOMIN.W
+                amomin_w(rd, rs1, rs2);
+                break;
+            }
+            case 0b10100: { // AMOMAX.W
+                amomax_w(rd, rs1, rs2);
+                break;
+            }
+            case 0b11000: { // AMOMINU.W
+                amominu_w(rd, rs1, rs2);
+                break;
+            }
             case 0b11100: { // AMOMAXU.W
-                // Grab operands, load left-hand from memory, right-hand from register.
-                final int a = load32(address);
-                final int b = x[rs2];
-
-                // Perform atomic operation.
-                final int c;
-                switch (funct5) {
-                    case 0b00001: { // AMOSWAP.W
-                        c = b;
-                        break;
-                    }
-                    case 0b00000: { // AMOADD.W
-                        c = a + b;
-                        break;
-                    }
-                    case 0b00100: { // AMOXOR.W
-                        c = a ^ b;
-                        break;
-                    }
-                    case 0b01100: { // AMOAND.W
-                        c = a & b;
-                        break;
-                    }
-                    case 0b01000: { // AMOOR.W
-                        c = a | b;
-                        break;
-                    }
-                    case 0b10000: { // AMOMIN.W
-                        c = Math.min(a, b);
-                        break;
-                    }
-                    case 0b10100: { // AMOMAX.W
-                        c = Math.max(a, b);
-                        break;
-                    }
-                    case 0b11000: { // AMOMINU.W
-                        c = (int) Math.min(Integer.toUnsignedLong(a), Integer.toUnsignedLong(b));
-                        break;
-                    }
-                    case 0b11100: { // AMOMAXU.W
-                        c = (int) Math.max(Integer.toUnsignedLong(a), Integer.toUnsignedLong(b));
-                        break;
-                    }
-
-                    default: {
-                        throw new R5IllegalInstructionException(inst);
-                    }
-                }
-
-                // Store value read from memory in register, write result back to memory.
-                result = a;
-                store32(address, c);
+                amomaxu_w(rd, rs1, rs2);
                 break;
             }
 
@@ -1635,9 +1603,142 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
                 throw new R5IllegalInstructionException(inst);
             }
         }
+    }
+
+    private void lr_w(final int rd, final int rs1) throws MemoryAccessException {
+        final int result;
+        final int address = x[rs1];
+        result = load32(address);
+        reservation_set = address;
 
         if (rd != 0) {
             x[rd] = result;
+        }
+    }
+
+    private void sc_w(final int rd, final int rs1, final int rs2) throws MemoryAccessException {
+        final int result;
+        final int address = x[rs1];
+        if (address == reservation_set) {
+            store32(address, x[rs2]);
+            result = 0;
+        } else {
+            result = 1;
+        }
+
+        reservation_set = -1; // Always invalidate as per spec.
+
+        if (rd != 0) {
+            x[rd] = result;
+        }
+    }
+
+    private void amoswap_w(final int rd, final int rs1, final int rs2) throws MemoryAccessException {
+        final int address = x[rs1];
+        final int a = load32(address);
+        final int b = x[rs2];
+
+        store32(address, b);
+
+        if (rd != 0) {
+            x[rd] = a;
+        }
+    }
+
+    private void amoadd_w(final int rd, final int rs1, final int rs2) throws MemoryAccessException {
+        final int address = x[rs1];
+        final int a = load32(address);
+        final int b = x[rs2];
+
+        store32(address, a + b);
+
+        if (rd != 0) {
+            x[rd] = a;
+        }
+    }
+
+    private void amoxor_w(final int rd, final int rs1, final int rs2) throws MemoryAccessException {
+        final int address = x[rs1];
+        final int a = load32(address);
+        final int b = x[rs2];
+
+        store32(address, a ^ b);
+
+        if (rd != 0) {
+            x[rd] = a;
+        }
+    }
+
+    private void amoand_w(final int rd, final int rs1, final int rs2) throws MemoryAccessException {
+        final int address = x[rs1];
+        final int a = load32(address);
+        final int b = x[rs2];
+
+        store32(address, a & b);
+
+        if (rd != 0) {
+            x[rd] = a;
+        }
+    }
+
+    private void amoor_w(final int rd, final int rs1, final int rs2) throws MemoryAccessException {
+        final int address = x[rs1];
+        final int a = load32(address);
+        final int b = x[rs2];
+
+        store32(address, a | b);
+
+        if (rd != 0) {
+            x[rd] = a;
+        }
+    }
+
+    private void amomin_w(final int rd, final int rs1, final int rs2) throws MemoryAccessException {
+        final int address = x[rs1];
+        final int a = load32(address);
+        final int b = x[rs2];
+
+        store32(address, Math.min(a, b));
+
+        if (rd != 0) {
+            x[rd] = a;
+        }
+    }
+
+    private void amomax_w(final int rd, final int rs1, final int rs2) throws MemoryAccessException {
+        final int address = x[rs1];
+        final int a = load32(address);
+        final int b = x[rs2];
+
+        final int c = Math.max(a, b);
+        store32(address, c);
+
+        if (rd != 0) {
+            x[rd] = a;
+        }
+    }
+
+    private void amominu_w(final int rd, final int rs1, final int rs2) throws MemoryAccessException {
+        final int address = x[rs1];
+        final int a = load32(address);
+        final int b = x[rs2];
+
+        store32(address, (int) Math.min(Integer.toUnsignedLong(a), Integer.toUnsignedLong(b)));
+
+        if (rd != 0) {
+            x[rd] = a;
+        }
+    }
+
+    private void amomaxu_w(final int rd, final int rs1, final int rs2) throws MemoryAccessException {
+        final int address = x[rs1];
+        final int a = load32(address);
+        final int b = x[rs2];
+
+        store32(address, (int) Math.max(Integer.toUnsignedLong(a), Integer.toUnsignedLong(b)));
+
+        if (rd != 0) {
+            x[rd] = a;
         }
     }
 

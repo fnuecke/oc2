@@ -14,34 +14,32 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 import javax.annotation.Nullable;
-import javax.annotation.RegEx;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public final class ISATests {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static final TestFilter[] TEST_FILTERS = {
-            new TestFilter("rv32mi-p-.*", ISATests::handleTestResultP),
-            new TestFilter("rv32si-p-.*", ISATests::handleTestResultP),
-            new TestFilter("rv32ua-p-.*", ISATests::handleTestResultP),
-            new TestFilter("rv32uc-p-.*", ISATests::handleTestResultP),
-//            new TestFilter("rv32ud-p-.*", ISATests::handleTestResultP),
-//            new TestFilter("rv32uf-p-.*", ISATests::handleTestResultP),
-            new TestFilter("rv32ui-p-.*", ISATests::handleTestResultP),
-            new TestFilter("rv32um-p-.*", ISATests::handleTestResultP),
+    private static final String[] TEST_FILTERS = {
+            "rv32mi-p-.*",
+            "rv32si-p-.*",
+            "rv32ua-p-.*",
+            "rv32uc-p-.*",
+//            "rv32ud-p-.*",
+//            "rv32uf-p-.*",
+            "rv32ui-p-.*",
+            "rv32um-p-.*",
 
-            new TestFilter("rv32ua-v-.*", ISATests::handleTestResultV),
-            new TestFilter("rv32uc-v-.*", ISATests::handleTestResultV),
-//            new TestFilter("rv32ud-v-.*", ISATests::handleTestResultV),
-//            new TestFilter("rv32uf-v-.*", ISATests::handleTestResultV),
-            new TestFilter("rv32ui-v-.*", ISATests::handleTestResultV),
-            new TestFilter("rv32um-v-.*", ISATests::handleTestResultV),
+            "rv32ua-v-.*",
+            "rv32uc-v-.*",
+//            "rv32ud-v-.*",
+//            "rv32uf-v-.*",
+            "rv32ui-v-.*",
+            "rv32um-v-.*",
     };
 
     private static final int PHYSICAL_MEMORY_START = 0x80000000;
@@ -54,13 +52,14 @@ public final class ISATests {
         return Arrays.stream(testFiles)
                 .filter(File::isFile)
                 .map(file -> {
-                    final TestFilter filter = getMatchingFilter(file);
+                    final String filter = getMatchingFilter(file);
                     if (filter == null) {
+                        LOGGER.info("No filter matches file [{}], skipping.", file.getName());
                         return null;
                     }
 
                     return DynamicTest.dynamicTest(file.getName(), () -> {
-                        LOGGER.info("Running test for file [{}]", file.getName());
+                        LOGGER.info("Running test for file [{}].", file.getName());
 
                         final ELF elf = ELFParser.parse(file);
 
@@ -124,51 +123,14 @@ public final class ISATests {
     }
 
     @Nullable
-    private static TestFilter getMatchingFilter(final File file) {
-        for (final TestFilter filter : TEST_FILTERS) {
-            if (filter.matches(file)) {
+    private static String getMatchingFilter(final File file) {
+        for (final String filter : TEST_FILTERS) {
+            if (file.getName().matches(filter)) {
                 return filter;
             }
         }
         return null;
     }
-
-    private static void handleTestResultP(final R5CPUStateSnapshot state) {
-        final int testResult = state.x[10]; // a0
-        if ((testResult & 1) != 0) {
-            final int failedTest = testResult >> 1;
-            Assertions.fail("test [" + failedTest + "] failed after [" + state.mcycle + "] cycles");
-        } else {
-            throw new TestSuccessful();
-        }
-    }
-
-    private static void handleTestResultV(final R5CPUStateSnapshot state) {
-        final int testResult = state.x[10]; // a0
-        if ((testResult & 1) != 0) {
-            final int failedTest = testResult >> 1;
-            if (failedTest != 0) {
-                Assertions.fail("test [" + failedTest + "] failed after [" + state.mcycle + "] cycles");
-            } else {
-                throw new TestSuccessful();
-            }
-        }
-    }
-
-    private static final class TestFilter {
-        @RegEx final String filter;
-        final Consumer<R5CPUStateSnapshot> ecallHandler;
-
-        TestFilter(@RegEx final String filter, final Consumer<R5CPUStateSnapshot> ecallHandler) {
-            this.filter = filter;
-            this.ecallHandler = ecallHandler;
-        }
-
-        boolean matches(final File file) {
-            return file.getName().matches(filter);
-        }
-    }
-
 
     private static class HostTargetInterface implements MemoryMappedDevice {
         protected long toHost, fromHost;

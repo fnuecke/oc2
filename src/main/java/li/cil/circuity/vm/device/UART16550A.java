@@ -392,7 +392,7 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
                     }
                     if (forceClear || (value & UART_FCR_XFR) != 0) {
                         synchronized (transmitFifo) {
-                            lsr |= UART_LSR_THRE;
+                            lsr |= UART_LSR_THRE | UART_LSR_TEMT;
                             transmitInterruptPending = true;
                             transmitFifo.clear();
                         }

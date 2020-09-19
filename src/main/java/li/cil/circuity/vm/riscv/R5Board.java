@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
 
-public final class R5Board {
+public final class R5Board implements Steppable {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final int PHYSICAL_MEMORY_FIRST = 0x80000000;

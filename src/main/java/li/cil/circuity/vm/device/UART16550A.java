@@ -11,7 +11,6 @@ import li.cil.circuity.api.vm.device.memory.Sizes;
 
 import java.util.Collections;
 
-// TODO Break implementation
 @SuppressWarnings("PointlessBitwiseExpression")
 public final class UART16550A implements Resettable, Steppable, MemoryMappedDevice, InterruptSource {
     private static final int UART_RBR_OFFSET = 0; // Receive buffer register (Read-only)
@@ -164,6 +163,7 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
                 lsr |= UART_LSR_DR;
             }
 
+            timeoutInterruptPending = true; // Not correct, but good enough.
             interruptUpdatePending = true;
         }
     }
@@ -224,8 +224,6 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
         if (interruptUpdatePending) {
             updateInterrupts();
         }
-
-        // TODO set timeout interrupt after 4 char transmit times
     }
 
     @Override
@@ -248,8 +246,10 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
                             result = receiveFifo.isEmpty() ? 0 : receiveFifo.dequeueByte();
                             if (receiveFifo.isEmpty()) {
                                 lsr &= ~(UART_LSR_DR | UART_LSR_BI);
+                                timeoutInterruptPending = false;
+                            } else {
+                                timeoutInterruptPending = true; // Not correct, but good enough.
                             }
-                            timeoutInterruptPending = false;
                         } else { // No FIFO
                             result = rbr;
                             lsr &= ~(UART_LSR_DR | UART_LSR_BI);

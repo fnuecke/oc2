@@ -16,7 +16,6 @@ import li.cil.circuity.vm.device.memory.UnsafeMemory;
 import li.cil.circuity.vm.devicetree.DeviceTreeRegistry;
 import li.cil.circuity.vm.devicetree.FlattenedDeviceTree;
 import li.cil.circuity.vm.riscv.device.R5CoreLocalInterrupter;
-import li.cil.circuity.vm.riscv.device.R5HostTargetInterface;
 import li.cil.circuity.vm.riscv.device.R5PlatformLevelInterruptController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,7 +33,6 @@ public final class R5Board {
     private static final int DEVICE_MEMORY_LAST = 0x400FFFFF;
     private static final int CLINT_ADDRESS = 0x02000000;
     private static final int PLIC_ADDRESS = 0x0C000000;
-    private static final int HTIF_ADDRESS = 0x40008000;
     private static final int UART_ADDRESS = 0x10000000;
 
     private static final int BIOS_ADDRESS = 0x1000;
@@ -56,7 +54,6 @@ public final class R5Board {
         uart = new UART16550A();
 
         final PhysicalMemory flash = new UnsafeMemory(LOW_MEMORY_SIZE);
-        final R5HostTargetInterface htif = new R5HostTargetInterface();
         final R5CoreLocalInterrupter clint = new R5CoreLocalInterrupter(rtc);
         final R5PlatformLevelInterruptController plic = new R5PlatformLevelInterruptController();
 
@@ -71,7 +68,6 @@ public final class R5Board {
         // Map devices to memory.
         addDevice(CLINT_ADDRESS, clint);
         addDevice(PLIC_ADDRESS, plic);
-        addDevice(HTIF_ADDRESS, htif);
         addDevice(UART_ADDRESS, uart);
         memoryMap.addDevice(BIOS_ADDRESS, flash);
     }

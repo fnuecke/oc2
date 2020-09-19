@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-final class SectionHeader {
+public final class SectionHeader {
     public final ELF elf;
 
     public String name;

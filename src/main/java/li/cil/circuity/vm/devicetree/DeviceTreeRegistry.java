@@ -10,7 +10,6 @@ import li.cil.circuity.api.vm.devicetree.DeviceTreeProvider;
 import li.cil.circuity.vm.device.UART16550A;
 import li.cil.circuity.vm.devicetree.provider.*;
 import li.cil.circuity.vm.riscv.device.R5CoreLocalInterrupter;
-import li.cil.circuity.vm.riscv.device.R5HostTargetInterface;
 import li.cil.circuity.vm.riscv.device.R5PlatformLevelInterruptController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,7 +28,6 @@ public final class DeviceTreeRegistry {
         addProvider(MemoryMappedDevice.class, MemoryMappedDeviceProvider.INSTANCE);
         addProvider(InterruptSource.class, InterruptSourceProvider.INSTANCE);
         addProvider(PhysicalMemory.class, PhysicalMemoryProvider.INSTANCE);
-        addProvider(R5HostTargetInterface.class, HostTargetInterfaceProvider.INSTANCE);
         addProvider(R5PlatformLevelInterruptController.class, PlatformLevelInterruptControllerProvider.INSTANCE);
         addProvider(R5CoreLocalInterrupter.class, CoreLocalInterrupterProvider.INSTANCE);
         addProvider(UART16550A.class, UART16550AProvider.INSTANCE);

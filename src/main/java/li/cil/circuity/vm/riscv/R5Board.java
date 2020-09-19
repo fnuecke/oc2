@@ -184,18 +184,17 @@ public final class R5Board {
         return uart.getByte();
     }
 
-    public boolean putValue(final byte b) {
-        if (!uart.canReceive()) {
-            return false;
-        }
+    public boolean canPutValue() {
+        return uart.canReceive();
+    }
 
+    public void putValue(final byte b) {
         uart.putByte(b);
         if ((char) b == '\n') {
             while (uart.canReceive()) {
                 uart.putByte((byte) 0); // HACK? Ensure we reach FIFO trigger level.
             }
         }
-        return true;
     }
 
     private DeviceTree buildDeviceTree() {

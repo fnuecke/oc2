@@ -65,10 +65,8 @@ public final class Main {
                         System.out.print((char) value);
                     }
 
-                    while (br.ready()) {
-                        if (!board.putValue((byte) br.read())) {
-                            break;
-                        }
+                    while (br.ready() && board.canPutValue()) {
+                        board.putValue((byte) br.read());
                     }
                 }
 

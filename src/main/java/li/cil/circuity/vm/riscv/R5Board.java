@@ -186,11 +186,6 @@ public final class R5Board implements Steppable {
 
     public void putValue(final byte b) {
         uart.putByte(b);
-        if ((char) b == '\n') {
-            while (uart.canReceive()) {
-                uart.putByte((byte) 0); // HACK? Ensure we reach FIFO trigger level.
-            }
-        }
     }
 
     private DeviceTree buildDeviceTree() {

@@ -1,7 +1,6 @@
 package li.cil.circuity.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import li.cil.circuity.Circuity;
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.client.gui.terminal.Terminal;
@@ -13,9 +12,11 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.text.StringTextComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.util.Objects;
 
 public final class RISCVTestScreen extends Screen {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -103,6 +104,14 @@ public final class RISCVTestScreen extends Screen {
             final byte[] sequence = TerminalInput.KEYCODE_SEQUENCES.get(keyCode);
             for (int i = 0; i < sequence.length; i++) {
                 runner.putByte(sequence[i]);
+            }
+            return true;
+        }
+
+        if (keyCode == GLFW.GLFW_KEY_V && (modifiers & GLFW.GLFW_MOD_CONTROL) != 0) {
+            final String value = Objects.requireNonNull(minecraft).keyboardListener.getClipboardString();
+            for (final char ch : value.toCharArray()) {
+                runner.putByte((byte) ch);
             }
             return true;
         }

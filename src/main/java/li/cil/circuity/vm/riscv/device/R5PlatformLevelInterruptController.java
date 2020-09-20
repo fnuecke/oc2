@@ -3,9 +3,7 @@ package li.cil.circuity.vm.riscv.device;
 import li.cil.circuity.api.vm.Interrupt;
 import li.cil.circuity.api.vm.device.InterruptController;
 import li.cil.circuity.api.vm.device.InterruptSource;
-import li.cil.circuity.api.vm.device.Interrupter;
 import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
-import li.cil.circuity.vm.components.InterruptSourceRegistry;
 import li.cil.circuity.vm.riscv.R5;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * See: https://github.com/riscv/riscv-plic-spec/blob/master/riscv-plic.adoc
  * See: https://github.com/riscv/opensbi/blob/master/lib/utils/irqchip/plic.c
  */
-public class R5PlatformLevelInterruptController implements MemoryMappedDevice, Interrupter, InterruptSource {
+public class R5PlatformLevelInterruptController implements MemoryMappedDevice, InterruptController, InterruptSource {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final int PLIC_PRIORITY_BASE = 0x000004;
@@ -34,8 +32,6 @@ public class R5PlatformLevelInterruptController implements MemoryMappedDevice, I
     private static final int PLIC_SOURCE_COUNT = 32; // Includes always off zero!
     private static final int PLIC_CONTEXT_COUNT = 2; // MEIP and SEIP for one hart.
     private static final int PLIC_MAX_PRIORITY = 7; // Number of priority level supported. Must have all bits set.
-
-    private final InterruptSourceRegistry interrupts = new InterruptSourceRegistry();
 
     private final Interrupt meip = new Interrupt(R5.MEIP_SHIFT);
     private final Interrupt seip = new Interrupt(R5.SEIP_SHIFT);
@@ -243,21 +239,6 @@ public class R5PlatformLevelInterruptController implements MemoryMappedDevice, I
     @Override
     public Iterable<Interrupt> getInterrupts() {
         return Arrays.asList(interruptByContext);
-    }
-
-    @Override
-    public int registerInterrupt() {
-        return interrupts.registerInterrupt();
-    }
-
-    @Override
-    public boolean registerInterrupt(final int id) {
-        return interrupts.registerInterrupt(id);
-    }
-
-    @Override
-    public void releaseInterrupt(final int id) {
-        interrupts.releaseInterrupt(id);
     }
 
     private boolean hasPending(final int context) {

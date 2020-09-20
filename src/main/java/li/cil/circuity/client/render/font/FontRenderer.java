@@ -9,9 +9,10 @@ public interface FontRenderer {
     /**
      * Render the specified string.
      *
-     * @param value the string to render.
+     * @param matrix transformation of the text to draw.
+     * @param value  the string to render.
      */
-    void drawString(final Matrix4f matrix,final CharSequence value);
+    void drawString(final Matrix4f matrix, final CharSequence value);
 
     /**
      * Render up to the specified amount of characters of the specified string.
@@ -19,6 +20,7 @@ public interface FontRenderer {
      * This is intended as a convenience method for clamped-width rendering,
      * avoiding additional string operations such as <tt>substring</tt>.
      *
+     * @param matrix   transformation of the text to draw.
      * @param value    the string to render.
      * @param maxChars the maximum number of characters to render.
      */

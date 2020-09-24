@@ -2,6 +2,7 @@ package li.cil.circuity;
 
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.device.memory.Sizes;
+import li.cil.circuity.vm.device.UART16550A;
 import li.cil.circuity.vm.device.memory.UnsafeMemory;
 import li.cil.circuity.vm.riscv.R5Board;
 import li.cil.circuity.vm.riscv.R5CPU;
@@ -32,11 +33,17 @@ public final class Main {
     }
 
     private static void runEmulator() throws Exception {
+        final R5Board board = new R5Board();
         final PhysicalMemory rom = new UnsafeMemory(128 * 1024);
         final PhysicalMemory memory = new UnsafeMemory(128 * 1014 * 1024);
-        final R5Board board = new R5Board();
+        final UART16550A uart = new UART16550A();
+
         board.addDevice(0x80000000, rom);
         board.addDevice(0x80000000 + 0x400000, memory);
+        board.addDevice(uart);
+
+        uart.getInterrupt().set(0xA, board.getInterruptController());
+
         board.reset();
 
         final String firmware = "buildroot/fw_jump.bin";
@@ -61,12 +68,12 @@ public final class Main {
                     remaining -= cyclesPerStep;
 
                     int value;
-                    while ((value = board.readValue()) != -1) {
+                    while ((value = uart.read()) != -1) {
                         System.out.print((char) value);
                     }
 
-                    while (br.ready() && board.canPutValue()) {
-                        board.putValue((byte) br.read());
+                    while (br.ready() && uart.canPutByte()) {
+                        uart.putByte((byte) br.read());
                     }
                 }
 
@@ -82,9 +89,14 @@ public final class Main {
     }
 
     private static void runBenchmark() throws Exception {
+        final R5Board board = new R5Board();
         final PhysicalMemory rom = new UnsafeMemory(128 * 1024);
         final PhysicalMemory memory = new UnsafeMemory(128 * 1014 * 1024);
-        final R5Board board = new R5Board();
+        final UART16550A uart = new UART16550A();
+
+        uart.getInterrupt().set(0xA, board.getInterruptController());
+
+        board.addDevice(0x10000000, uart);
         board.addDevice(0x80000000, rom);
         board.addDevice(0x80000000 + 0x400000, memory);
 
@@ -124,7 +136,7 @@ public final class Main {
                     remaining -= cyclesPerStep;
 
                     int value;
-                    while ((value = board.readValue()) != -1) {
+                    while ((value = uart.read()) != -1) {
                         sb.append((char) value);
                     }
                 }

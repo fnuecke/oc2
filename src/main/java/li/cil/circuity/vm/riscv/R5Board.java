@@ -1,6 +1,8 @@
 package li.cil.circuity.vm.riscv;
 
 import li.cil.circuity.api.vm.MemoryMap;
+import li.cil.circuity.api.vm.device.InterruptController;
+import li.cil.circuity.api.vm.device.Resettable;
 import li.cil.circuity.api.vm.device.Steppable;
 import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
 import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
@@ -11,7 +13,6 @@ import li.cil.circuity.api.vm.devicetree.DeviceNames;
 import li.cil.circuity.api.vm.devicetree.DeviceTree;
 import li.cil.circuity.api.vm.devicetree.DeviceTreePropertyNames;
 import li.cil.circuity.vm.SimpleMemoryMap;
-import li.cil.circuity.vm.device.UART16550A;
 import li.cil.circuity.vm.device.memory.UnsafeMemory;
 import li.cil.circuity.vm.devicetree.DeviceTreeRegistry;
 import li.cil.circuity.vm.devicetree.FlattenedDeviceTree;
@@ -24,16 +25,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
 
-public final class R5Board implements Steppable {
+public final class R5Board implements Steppable, Resettable {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final int PHYSICAL_MEMORY_FIRST = 0x80000000;
     private static final int PHYSICAL_MEMORY_LAST = 0xFFFFFFFF;
-    private static final int DEVICE_MEMORY_FIRST = 0x40010000;
-    private static final int DEVICE_MEMORY_LAST = 0x400FFFFF;
+    private static final int DEVICE_MEMORY_FIRST = 0x10000000;
+    private static final int DEVICE_MEMORY_LAST = 0x7FFFFFFF;
     private static final int CLINT_ADDRESS = 0x02000000;
     private static final int PLIC_ADDRESS = 0x0C000000;
-    private static final int UART_ADDRESS = 0x10000000;
 
     private static final int BIOS_ADDRESS = 0x1000;
     private static final int LOW_MEMORY_SIZE = 0x2000; // Just needs to fit "jump to firmware".
@@ -44,42 +44,40 @@ public final class R5Board implements Steppable {
     private final RealTimeCounter rtc;
     private final MemoryMap memoryMap;
     private final R5CPU cpu;
-    private final UART16550A uart;
+    private final R5PlatformLevelInterruptController plic;
     private final List<MemoryMappedDevice> devices = new ArrayList<>();
     private final List<Steppable> steppableDevices = new ArrayList<>();
 
     public R5Board() {
         memoryMap = new SimpleMemoryMap();
         rtc = cpu = new R5CPU(memoryMap);
-        uart = new UART16550A();
 
         final PhysicalMemory flash = new UnsafeMemory(LOW_MEMORY_SIZE);
         final R5CoreLocalInterrupter clint = new R5CoreLocalInterrupter(rtc);
-        final R5PlatformLevelInterruptController plic = new R5PlatformLevelInterruptController();
+        plic = new R5PlatformLevelInterruptController();
 
         steppableDevices.add(cpu);
 
         // Wire up interrupts.
         clint.putHart(0, cpu);
         plic.setHart(cpu);
-        uart.getInterrupt().id = 0xA;
-        uart.getInterrupt().controller = plic;
 
         // Map devices to memory.
         addDevice(CLINT_ADDRESS, clint);
         addDevice(PLIC_ADDRESS, plic);
-        addDevice(UART_ADDRESS, uart);
         memoryMap.addDevice(BIOS_ADDRESS, flash);
     }
 
-    public void step(final int cycles) {
-        for (final Steppable device : steppableDevices) {
-            device.step(cycles);
-        }
+    public MemoryMap getMemoryMap() {
+        return memoryMap;
     }
 
     public R5CPU getCpu() {
         return cpu;
+    }
+
+    public InterruptController getInterruptController() {
+        return plic;
     }
 
     public boolean addDevice(final int address, final MemoryMappedDevice device) {
@@ -134,6 +132,14 @@ public final class R5Board implements Steppable {
         }
     }
 
+    @Override
+    public void step(final int cycles) {
+        for (final Steppable device : steppableDevices) {
+            device.step(cycles);
+        }
+    }
+
+    @Override
     public void reset() {
         cpu.reset();
 
@@ -176,18 +182,6 @@ public final class R5Board implements Steppable {
         }
     }
 
-    public int readValue() {
-        return uart.getByte();
-    }
-
-    public boolean canPutValue() {
-        return uart.canReceive();
-    }
-
-    public void putValue(final byte b) {
-        uart.putByte(b);
-    }
-
     private DeviceTree buildDeviceTree() {
         final DeviceTree root = DeviceTreeRegistry.create(memoryMap);
         root
@@ -228,8 +222,10 @@ public final class R5Board implements Steppable {
         }
 
         root.putChild("chosen", chosen -> chosen
-                .addProp("bootargs", "console=ttyS0")
-                .addProp("stdout-path", String.format("uart@%x", UART_ADDRESS)));
+                .addProp("bootargs", "console=ttyS0"));
+
+//        root.putChild("chosen", chosen -> chosen
+//                .addProp("bootargs", "console=hvc0"));
 
         return root;
     }

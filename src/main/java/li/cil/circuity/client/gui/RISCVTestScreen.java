@@ -1,12 +1,16 @@
 package li.cil.circuity.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.client.gui.terminal.Terminal;
 import li.cil.circuity.client.gui.terminal.TerminalInput;
 import li.cil.circuity.common.vm.VirtualMachineRunner;
+import li.cil.circuity.vm.device.UART16550A;
 import li.cil.circuity.vm.device.memory.UnsafeMemory;
+import li.cil.circuity.vm.device.virtio.VirtIOConsoleDevice;
+import li.cil.circuity.vm.device.virtio.VirtIOKeyboardDevice;
 import li.cil.circuity.vm.riscv.R5Board;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.text.StringTextComponent;
@@ -21,8 +25,14 @@ import java.util.Objects;
 public final class RISCVTestScreen extends Screen {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private VirtualMachineRunner runner;
+    private static final boolean USE_VIRT_IO = false;
+
     private final Terminal terminal = new Terminal();
+    private VirtualMachineRunner runner;
+    private UART16550A uart;
+
+    private VirtIOConsoleDevice console;
+    private VirtIOKeyboardDevice keyboard;
 
     public RISCVTestScreen() {
         super(new StringTextComponent("RISC-V"));
@@ -41,6 +51,22 @@ public final class RISCVTestScreen extends Screen {
         final PhysicalMemory rom = new UnsafeMemory(128 * 1024);
         final PhysicalMemory memory = new UnsafeMemory(128 * 1014 * 1024);
 
+        if (USE_VIRT_IO) {
+            uart = new UART16550A();
+            uart.getInterrupt().set(0xA, board.getInterruptController());
+
+            board.addDevice(uart);
+        } else {
+            console = new VirtIOConsoleDevice(board.getMemoryMap());
+            console.getInterrupt().set(0x1, board.getInterruptController());
+
+            keyboard = new VirtIOKeyboardDevice(board.getMemoryMap());
+            keyboard.getInterrupt().set(0x2, board.getInterruptController());
+
+            board.addDevice(console);
+            board.addDevice(keyboard);
+        }
+
         board.addDevice(0x80000000, rom);
         board.addDevice(0x80000000 + 0x400000, memory);
         board.reset();
@@ -51,7 +77,49 @@ public final class RISCVTestScreen extends Screen {
         loadProgramFile(memory, kernel);
         loadProgramFile(rom, firmware);
 
-        runner = new VirtualMachineRunner(board);
+        runner = new VirtualMachineRunner(board) {
+            // Thread-local buffers for lock-free read/writes in inner loop.
+            private final ByteArrayFIFOQueue outputBuffer = new ByteArrayFIFOQueue(1024);
+            private final ByteArrayFIFOQueue inputBuffer = new ByteArrayFIFOQueue(32);
+
+            @Override
+            protected void handleBeforeRun() {
+                int value;
+                while ((value = terminal.readInput()) != -1) {
+                    inputBuffer.enqueue((byte) value);
+                }
+            }
+
+            @Override
+            protected void step() {
+                if (USE_VIRT_IO) {
+                    boolean wrote = false;
+                    while (!inputBuffer.isEmpty() && console.canPutByte()) {
+                        wrote = true;
+                        console.putByte(inputBuffer.dequeueByte());
+                    }
+                    if (wrote) {
+                        console.flush();
+                    }
+                } else {
+                    while (!inputBuffer.isEmpty() && uart.canPutByte()) {
+                        uart.putByte(inputBuffer.dequeueByte());
+                    }
+                }
+
+                int value;
+                while ((value = uart.read()) != -1) {
+                    outputBuffer.enqueue((byte) value);
+                }
+            }
+
+            @Override
+            protected void handleAfterRun() {
+                while (!outputBuffer.isEmpty()) {
+                    terminal.putOutput(outputBuffer.dequeueByte());
+                }
+            }
+        };
 
         if (minecraft != null) {
             minecraft.keyboardListener.enableRepeatEvents(true);
@@ -73,9 +141,6 @@ public final class RISCVTestScreen extends Screen {
 
         // Allow VM to run for the next second.
         runner.tick();
-
-        // Pump output from VM to VT100.
-        moveSerialToTerminal();
     }
 
     @Override
@@ -94,36 +159,52 @@ public final class RISCVTestScreen extends Screen {
 
     @Override
     public boolean charTyped(final char ch, final int modifier) {
-        runner.putByte((byte) ch);
+        terminal.putInput((byte) ch);
         return true;
     }
 
     @Override
     public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
-        if (TerminalInput.KEYCODE_SEQUENCES.containsKey(keyCode)) {
-            final byte[] sequence = TerminalInput.KEYCODE_SEQUENCES.get(keyCode);
-            for (int i = 0; i < sequence.length; i++) {
-                runner.putByte(sequence[i]);
-            }
-            return true;
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            return super.keyPressed(keyCode, scanCode, modifiers);
         }
 
-        if (keyCode == GLFW.GLFW_KEY_V && (modifiers & GLFW.GLFW_MOD_CONTROL) != 0) {
-            final String value = Objects.requireNonNull(minecraft).keyboardListener.getClipboardString();
-            for (final char ch : value.toCharArray()) {
-                runner.putByte((byte) ch);
+        if (USE_VIRT_IO) {
+            if (KeyCodeMapping.MAPPING.containsKey(keyCode)) {
+                keyboard.sendKeyEvent(KeyCodeMapping.MAPPING.get(keyCode), true);
+                return true;
             }
-            return true;
+        } else {
+            if (keyCode == GLFW.GLFW_KEY_V && (modifiers & GLFW.GLFW_MOD_CONTROL) != 0) {
+                final String value = Objects.requireNonNull(minecraft).keyboardListener.getClipboardString();
+                for (final char ch : value.toCharArray()) {
+                    terminal.putInput((byte) ch);
+                }
+                return true;
+            }
+
+            if (TerminalInput.KEYCODE_SEQUENCES.containsKey(keyCode)) {
+                final byte[] sequence = TerminalInput.KEYCODE_SEQUENCES.get(keyCode);
+                for (int i = 0; i < sequence.length; i++) {
+                    terminal.putInput(sequence[i]);
+                }
+                return true;
+            }
         }
 
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    private void moveSerialToTerminal() {
-        int value;
-        while ((value = runner.readByte()) != -1) {
-            terminal.putByte((byte) value);
+    @Override
+    public boolean keyReleased(final int keyCode, final int scanCode, final int modifiers) {
+        if (USE_VIRT_IO) {
+            if (KeyCodeMapping.MAPPING.containsKey(keyCode)) {
+                keyboard.sendKeyEvent(KeyCodeMapping.MAPPING.get(keyCode), false);
+                return true;
+            }
         }
+
+        return super.keyReleased(keyCode, scanCode, modifiers);
     }
 
     private static void loadProgramFile(final PhysicalMemory memory, final String path) {

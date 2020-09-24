@@ -2,7 +2,6 @@ package li.cil.circuity.vm.device.virtio;
 
 import li.cil.circuity.api.vm.MemoryMap;
 import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
-import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.vm.evdev.EvdevEvents;
 
 import java.nio.ByteBuffer;
@@ -41,26 +40,48 @@ public abstract class AbstractVirtIOInputDevice extends AbstractVirtIODevice {
 
     private static final ThreadLocal<ByteBuffer> eventBuffer = new ThreadLocal<>();
 
-    // This holds the union with info in the config struct. We generate this whenever the state
-    // changes and keep it for more efficient access (and fewer headaches).
-    private final ByteBuffer config = ByteBuffer.allocate(VIRTIO_INPUT_CFG_UNION_SIZE);
-    private boolean configDirty = true;
-
     private DescriptorChain event;
 
     protected AbstractVirtIOInputDevice(final MemoryMap memoryMap) {
         super(memoryMap, VirtIODeviceSpec.builder(VirtIODeviceType.VIRTIO_DEVICE_ID_INPUT_DEVICE)
-                // We only physically use 2 bytes of config space, but this is used for getLength(), too.
                 .configSpaceSize(256)
                 .queueCount(2)
                 .build());
     }
 
-    protected abstract void generateConfigUnion(final int select, final int subsel, final ByteBuffer config);
+    /**
+     * Called to generate the contents union of the union of the input devices config space,
+     * i.e. {@code virtio_input_config.u}. Returns the size of the generated struct, i.e.
+     * {@code virtio_input_config.size}.
+     *
+     * @param select the current config selection
+     * @param subsel the current config sub-selection.
+     * @param config the union section of the config space to populate.
+     * @return the size of the generated config union.
+     */
+    protected int generateConfigUnion(final int select, final int subsel, final ByteBuffer config) {
+        return 0;
+    }
 
+    /**
+     * Called when receiving status messages from the driver.
+     * <p>
+     * These are device specific and usually things like LED states.
+     *
+     * @param type  the {@code type} field of the status event.
+     * @param code  the {@code code} field of the status event.
+     * @param value the {@code value} field of the status event.
+     */
     protected void handleStatus(final int type, final int code, final int value) {
     }
 
+    /**
+     * Calling this enqueues an event with the specified values into the event queue.
+     *
+     * @param type  the {@code type} field of the status event.
+     * @param code  the {@code code} field of the status event.
+     * @param value the {@code value} field of the status event.
+     */
     protected final void putEvent(final int type, final int code, final int value) {
         if ((getStatus() & VIRTIO_STATUS_FAILED) != 0) {
             return;
@@ -96,25 +117,14 @@ public abstract class AbstractVirtIOInputDevice extends AbstractVirtIODevice {
         }
     }
 
+    /**
+     * Calling this enqueues an {@link EvdevEvents#EV_SYN} event into the event queue.
+     * <p>
+     * These events are used to separate different events and should be called to finish
+     * and event, e.g. after a key press or after writing all axis data.
+     */
     protected final void putSyn() {
         putEvent(EvdevEvents.EV_SYN, 0, 0);
-    }
-
-    @Override
-    protected final int loadConfig(final int offset, final int sizeLog2) {
-        if (sizeLog2 != Sizes.SIZE_8_LOG2) {
-            return 0;
-        }
-
-        if (offset == VIRTIO_INPUT_CFG_SIZE_OFFSET) {
-            validateConfig();
-            return config.limit();
-        } else if (offset >= VIRTIO_INPUT_CFG_UNION_OFFSET && offset < VIRTIO_INPUT_CFG_UNION_OFFSET + VIRTIO_INPUT_CFG_UNION_SIZE) {
-            validateConfig();
-            return config.get(offset - VIRTIO_INPUT_CFG_UNION_OFFSET);
-        }
-
-        return super.loadConfig(offset, sizeLog2);
     }
 
     @Override
@@ -124,7 +134,8 @@ public abstract class AbstractVirtIOInputDevice extends AbstractVirtIODevice {
         }
 
         super.storeConfig(offset, value, sizeLog2);
-        configDirty = true;
+
+        generateConfig();
     }
 
     @Override
@@ -155,25 +166,21 @@ public abstract class AbstractVirtIOInputDevice extends AbstractVirtIODevice {
         }
     }
 
-    private void validateConfig() {
-        if (!configDirty) {
-            return;
-        }
-
-        final ByteBuffer configSpace = getConfiguration();
-        final int select = configSpace.get(VIRTIO_INPUT_CFG_SELECT_OFFSET) & 0xFF;
-        final int subsel = configSpace.get(VIRTIO_INPUT_CFG_SUBSEL_OFFSET) & 0xFF;
+    private void generateConfig() {
+        final ByteBuffer config = getConfiguration();
+        final int select = config.get(VIRTIO_INPUT_CFG_SELECT_OFFSET) & 0xFF;
+        final int subsel = config.get(VIRTIO_INPUT_CFG_SUBSEL_OFFSET) & 0xFF;
 
         if (select == VIRTIO_INPUT_CFG_SELECT_UNSET) {
-            config.limit(0);
+            config.put(VIRTIO_INPUT_CFG_SIZE_OFFSET, (byte) 0);
         } else {
+            config.limit(VIRTIO_INPUT_CFG_UNION_OFFSET + VIRTIO_INPUT_CFG_UNION_SIZE);
+            config.position(VIRTIO_INPUT_CFG_UNION_OFFSET);
+            final ByteBuffer union = config.slice();
             config.clear();
-            generateConfigUnion(select, subsel, config);
+            final int size = generateConfigUnion(select, subsel, union);
+            config.put(VIRTIO_INPUT_CFG_SIZE_OFFSET, (byte) size);
         }
-
-        config.position(0);
-
-        configDirty = false;
     }
 
     private static ByteBuffer getTempBuffer() {

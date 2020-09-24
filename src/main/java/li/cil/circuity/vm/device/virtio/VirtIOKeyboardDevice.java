@@ -14,13 +14,13 @@ public final class VirtIOKeyboardDevice extends AbstractVirtIOInputDevice {
         super(memoryMap);
     }
 
-    public void putKey(final int keycode, final boolean isDown) {
+    public void sendKeyEvent(final int keycode, final boolean isDown) {
         putEvent(EvdevEvents.EV_KEY, keycode, isDown ? 1 : 0);
         putSyn();
     }
 
     @Override
-    protected void generateConfigUnion(final int select, final int subsel, final ByteBuffer config) {
+    protected int generateConfigUnion(final int select, final int subsel, final ByteBuffer config) {
         switch (select) {
             case VIRTIO_INPUT_CFG_SELECT_ID_NAME: {
                 final char[] chars = NAME.toCharArray();
@@ -49,6 +49,6 @@ public final class VirtIOKeyboardDevice extends AbstractVirtIOInputDevice {
             }
         }
 
-        config.limit(config.position());
+        return config.position();
     }
 }

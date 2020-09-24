@@ -3,6 +3,7 @@ package li.cil.circuity.client.gui.terminal;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.circuity.client.render.font.FontRenderer;
 import li.cil.circuity.client.render.font.MonospaceFontRenderer;
 import net.minecraft.client.Minecraft;
@@ -16,6 +17,7 @@ import net.minecraft.state.properties.NoteBlockInstrument;
 import org.lwjgl.opengl.GL11;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 
 // Implements a couple of control sequences from here: https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
 public final class Terminal {
@@ -28,6 +30,7 @@ public final class Terminal {
         SEQUENCE, // Know what sequence we have, now parsing it.
     }
 
+    private final ByteArrayFIFOQueue input = new ByteArrayFIFOQueue(32);
     private final char[] buffer = new char[WIDTH * HEIGHT];
     private State state = State.NORMAL;
     private final int[] args = new int[4];
@@ -36,7 +39,7 @@ public final class Terminal {
     private int savedX, savedY;
 
     private final String[] lines = new String[HEIGHT]; // Cached strings for rendering.
-    private int dirty = -1;
+    private final AtomicInteger dirty = new AtomicInteger(-1);
 
     public Terminal() {
         Arrays.fill(buffer, ' ');
@@ -67,34 +70,19 @@ public final class Terminal {
         }
     }
 
-    private void renderCursor(final MatrixStack stack) {
-        final FontRenderer fontRenderer = MonospaceFontRenderer.INSTANCE;
-
-        GlStateManager.depthMask(false);
-        RenderSystem.disableTexture();
-
-        stack.push();
-        stack.translate(x * fontRenderer.getCharWidth(), y * fontRenderer.getCharHeight(), 0);
-
-        final Matrix4f matrix = stack.getLast().getMatrix();
-        final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-
-        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
-        buffer.pos(matrix, 0, fontRenderer.getCharHeight(), 0).color(1f, 1f, 1f, 1f).endVertex();
-        buffer.pos(matrix, fontRenderer.getCharWidth(), fontRenderer.getCharHeight(), 0).color(1f, 1f, 1f, 1f).endVertex();
-        buffer.pos(matrix, fontRenderer.getCharWidth(), 0, 0).color(1f, 1f, 1f, 1f).endVertex();
-        buffer.pos(matrix, 0, 0, 0).color(1f, 1f, 1f, 1f).endVertex();
-
-        buffer.finishDrawing();
-        WorldVertexBufferUploader.draw(buffer);
-
-        stack.pop();
-
-        RenderSystem.enableTexture();
-        GlStateManager.depthMask(true);
+    public synchronized int readInput() {
+        if (input.isEmpty()) {
+            return -1;
+        } else {
+            return input.dequeueByte() & 0xFF;
+        }
     }
 
-    public void putByte(final byte value) {
+    public synchronized void putInput(final byte value) {
+        input.enqueue(value);
+    }
+
+    public void putOutput(final byte value) {
         final char ch = (char) value;
         switch (state) {
             case NORMAL: {
@@ -216,8 +204,7 @@ public final class Terminal {
                                     clearLine(iy);
                                 }
                             } else if (args[0] == 2) { // Everything
-                                Arrays.fill(buffer, ' ');
-                                dirty |= (1 << HEIGHT) - 1;
+                                clear();
                             }
                             break;
                         }
@@ -234,7 +221,9 @@ public final class Terminal {
                         // S, T: Scroll Up/Down. We don't have scrollback.
                         // m: Select Graphic Rendition. TODO
                         case 'n': { // Device Status Report
-                            // todo send back ESC[n;mR
+                            for (final char i : String.format("ESC[%d;%dR", WIDTH, HEIGHT).toCharArray()) {
+                                putInput((byte) i);
+                            }
                             break;
                         }
                         case 's': { // Save Current Cursor Position
@@ -252,6 +241,33 @@ public final class Terminal {
                 break;
             }
         }
+    }
+
+    private void renderCursor(final MatrixStack stack) {
+        final FontRenderer fontRenderer = MonospaceFontRenderer.INSTANCE;
+
+        GlStateManager.depthMask(false);
+        RenderSystem.disableTexture();
+
+        stack.push();
+        stack.translate(x * fontRenderer.getCharWidth(), y * fontRenderer.getCharHeight(), 0);
+
+        final Matrix4f matrix = stack.getLast().getMatrix();
+        final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+        buffer.pos(matrix, 0, fontRenderer.getCharHeight(), 0).color(1f, 1f, 1f, 1f).endVertex();
+        buffer.pos(matrix, fontRenderer.getCharWidth(), fontRenderer.getCharHeight(), 0).color(1f, 1f, 1f, 1f).endVertex();
+        buffer.pos(matrix, fontRenderer.getCharWidth(), 0, 0).color(1f, 1f, 1f, 1f).endVertex();
+        buffer.pos(matrix, 0, 0, 0).color(1f, 1f, 1f, 1f).endVertex();
+
+        buffer.finishDrawing();
+        WorldVertexBufferUploader.draw(buffer);
+
+        stack.pop();
+
+        RenderSystem.enableTexture();
+        GlStateManager.depthMask(true);
     }
 
     private void setCursorPos(final int x, final int y) {
@@ -275,7 +291,12 @@ public final class Terminal {
         }
 
         buffer[x + y * WIDTH] = ch;
-        dirty |= (1 << y);
+        dirty.accumulateAndGet(1 << y, (prev, next) -> prev | next);
+    }
+
+    private void clear() {
+        Arrays.fill(buffer, ' ');
+        dirty.set((1 << HEIGHT) - 1);
     }
 
     private void clearLine(final int y) {
@@ -284,7 +305,7 @@ public final class Terminal {
 
     private void clearLine(final int y, final int fromIndex, final int toIndex) {
         Arrays.fill(buffer, y * WIDTH + fromIndex, y * WIDTH + toIndex, ' ');
-        dirty |= 1 << y;
+        dirty.accumulateAndGet(1 << y, (prev, next) -> prev | next);
     }
 
     private void putNewLine() {
@@ -298,23 +319,23 @@ public final class Terminal {
     private void shiftUpOne() {
         System.arraycopy(buffer, WIDTH, buffer, 0, buffer.length - WIDTH);
         System.arraycopy(lines, 1, lines, 0, lines.length - 1);
-        dirty = dirty >>> 1;
-
         Arrays.fill(buffer, WIDTH * HEIGHT - WIDTH, WIDTH * HEIGHT, ' ');
-        dirty |= 1 << (HEIGHT - 1);
+
+        // Shift all dirty down one because we moved rows up one (up = lower indices).
+        // Mark bottom-most line (highest index) as dirty.
+        dirty.accumulateAndGet(1 << (HEIGHT - 1), (prev, next) -> (prev >>> 1) | next);
     }
 
     private void validateLineCache() {
-        if (dirty == 0) {
+        if (dirty.get() == 0) {
             return;
         }
 
+        final int mask = dirty.getAndSet(0);
         for (int i = 0; i < lines.length; i++) {
-            if ((dirty & (1 << i)) != 0) {
+            if ((mask & (1 << i)) != 0) {
                 lines[i] = new String(buffer, i * WIDTH, WIDTH);
             }
         }
-
-        dirty = 0;
     }
 }

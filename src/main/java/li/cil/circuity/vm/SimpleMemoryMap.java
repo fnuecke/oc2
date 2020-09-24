@@ -73,9 +73,9 @@ public final class SimpleMemoryMap implements MemoryMap {
     @Nullable
     @Override
     public MemoryRange getMemoryRange(final int address) {
-        // TODO some proper index structure to speed this up?
-        if (cache != null && cache.contains(address)) {
-            return cache;
+        final MemoryRange cachedValue = cache; // Copy to local to avoid threading issues.
+        if (cachedValue != null && cachedValue.contains(address)) {
+            return cachedValue;
         }
 
         for (final MemoryRange range : devices.values()) {

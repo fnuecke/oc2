@@ -13,6 +13,11 @@ public final class Interrupt {
         this.id = id;
     }
 
+    public void set(final int id, final InterruptController controller) {
+        this.id = id;
+        this.controller = controller;
+    }
+
     public void raiseInterrupt() {
         if (controller != null) {
             controller.raiseInterrupts(1 << id);

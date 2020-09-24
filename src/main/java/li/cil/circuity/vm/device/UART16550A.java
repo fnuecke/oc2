@@ -133,17 +133,34 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
         return interrupt;
     }
 
-    public boolean canReceive() {
-        return receiveFifo.size() < FIFO_QUEUE_CAPACITY;
+    public int read() {
+        synchronized (lock) {
+            if ((lsr & UART_LSR_TEMT) != 0) {
+                return -1;
+            }
+
+            final byte value;
+            if ((fcr & UART_FCR_FE) != 0) {
+                value = transmitFifo.dequeueByte();
+                if (transmitFifo.isEmpty()) {
+                    lsr |= UART_LSR_THRE | UART_LSR_TEMT;
+                }
+            } else {
+                value = thr;
+                lsr |= UART_LSR_THRE | UART_LSR_TEMT;
+            }
+
+            if ((lsr & UART_LSR_THRE) != 0 && !transmitInterruptPending) {
+                transmitInterruptPending = true;
+                interruptUpdatePending = true;
+            }
+
+            return value;
+        }
     }
 
-    public void putBreak() {
-        synchronized (lock) {
-            rbr = 0;
-            // QEMU says: when the LSR_DR is set a null byte is pushed into the fifo.
-            putByte((byte) 0);
-            lsr |= UART_LSR_BI | UART_LSR_DR;
-        }
+    public boolean canPutByte() {
+        return receiveFifo.size() < FIFO_QUEUE_CAPACITY;
     }
 
     public void putByte(final byte value) {
@@ -168,29 +185,12 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
         }
     }
 
-    public int getByte() {
+    public void putBreak() {
         synchronized (lock) {
-            if ((lsr & UART_LSR_TEMT) != 0) {
-                return -1;
-            }
-
-            final byte value;
-            if ((fcr & UART_FCR_FE) != 0) {
-                value = transmitFifo.dequeueByte();
-                if (transmitFifo.isEmpty()) {
-                    lsr |= UART_LSR_THRE | UART_LSR_TEMT;
-                }
-            } else {
-                value = thr;
-                lsr |= UART_LSR_THRE | UART_LSR_TEMT;
-            }
-
-            if ((lsr & UART_LSR_THRE) != 0 && !transmitInterruptPending) {
-                transmitInterruptPending = true;
-                interruptUpdatePending = true;
-            }
-
-            return value;
+            rbr = 0;
+            // QEMU says: when the LSR_DR is set a null byte is pushed into the fifo.
+            putByte((byte) 0);
+            lsr |= UART_LSR_BI | UART_LSR_DR;
         }
     }
 

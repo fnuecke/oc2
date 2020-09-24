@@ -58,6 +58,10 @@ public class ByteBufferMemory implements PhysicalMemory {
                 case Sizes.SIZE_32_LOG2:
                     data.putInt(offset, value);
                     break;
+                case Sizes.SIZE_64_LOG2:
+                    // TODO Widen API to support 64 bit values and addresses.
+                    data.putLong(offset, value);
+                    break;
                 default:
                     throw new IllegalArgumentException();
             }

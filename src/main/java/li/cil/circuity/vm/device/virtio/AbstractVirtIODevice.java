@@ -215,6 +215,13 @@ public abstract class AbstractVirtIODevice implements MemoryMappedDevice, Interr
                 }
                 break;
             }
+            case Sizes.SIZE_64_LOG2: {
+                if (offset >= 0 && offset < configuration.limit() - 3) {
+                    // TODO Widen API to support 64 bit values and addresses.
+                    return (int) configuration.getLong(offset);
+                }
+                break;
+            }
         }
         return 0;
     }
@@ -246,6 +253,13 @@ public abstract class AbstractVirtIODevice implements MemoryMappedDevice, Interr
             case Sizes.SIZE_32_LOG2: {
                 if (offset >= 0 && offset < configuration.limit() - 3) {
                     configuration.putInt(offset, value);
+                }
+                break;
+            }
+            case Sizes.SIZE_64_LOG2: {
+                if (offset >= 0 && offset < configuration.limit() - 3) {
+                    // TODO Widen API to support 64 bit values and addresses.
+                    configuration.putLong(offset, value);
                 }
                 break;
             }

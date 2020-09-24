@@ -8,6 +8,7 @@ import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.devicetree.DeviceTree;
 import li.cil.circuity.api.vm.devicetree.DeviceTreeProvider;
 import li.cil.circuity.vm.device.UART16550A;
+import li.cil.circuity.vm.device.virtio.AbstractVirtIODevice;
 import li.cil.circuity.vm.devicetree.provider.*;
 import li.cil.circuity.vm.riscv.device.R5CoreLocalInterrupter;
 import li.cil.circuity.vm.riscv.device.R5PlatformLevelInterruptController;
@@ -31,7 +32,7 @@ public final class DeviceTreeRegistry {
         addProvider(R5PlatformLevelInterruptController.class, PlatformLevelInterruptControllerProvider.INSTANCE);
         addProvider(R5CoreLocalInterrupter.class, CoreLocalInterrupterProvider.INSTANCE);
         addProvider(UART16550A.class, UART16550AProvider.INSTANCE);
-        // VirtIOProvider.INSTANCE
+        addProvider(AbstractVirtIODevice.class, VirtIOProvider.INSTANCE);
     }
 
     public static void addProvider(final Class<? extends Device> clazz, final DeviceTreeProvider provider) {

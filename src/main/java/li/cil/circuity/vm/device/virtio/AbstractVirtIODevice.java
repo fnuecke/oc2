@@ -87,7 +87,7 @@ public abstract class AbstractVirtIODevice implements MemoryMappedDevice, Interr
     private static final int VIRTIO_MMIO_CONFIG_GENERATION = 0x0FC; // R
     private static final int VIRTIO_MMIO_CONFIG = 0x100; // RW
 
-    private static final int VIRTQ_MAX_QUEUE_SIZE = 64; // Default size of a single queue.
+    private static final int VIRTQ_MAX_QUEUE_SIZE = 16; // Size of descriptor rings.
     private static final int VIRTQ_MAX_CHAIN_LENGTH = 128; // Max chain length because we don't trust drivers.
 
     private final MemoryMap memoryMap;
@@ -421,7 +421,8 @@ public abstract class AbstractVirtIODevice implements MemoryMappedDevice, Interr
      * @throws MemoryAccessException when an exception is thrown while accessing physical memory.
      * @see #getQueueIterator(int)
      */
-    protected abstract void handleQueueNotification(final int queueIndex) throws VirtIODeviceException, MemoryAccessException;
+    protected void handleQueueNotification(final int queueIndex) throws VirtIODeviceException, MemoryAccessException {
+    }
 
     /**
      * May be used to enable or disable queue notifications via {@link #handleQueueNotification(int)}.

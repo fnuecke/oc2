@@ -60,6 +60,10 @@ public final class UnsafeMemory implements PhysicalMemory {
             case Sizes.SIZE_32_LOG2:
                 assert (offset & 0b11) == 0;
                 return UNSAFE.getInt(address + offset);
+            case Sizes.SIZE_64_LOG2:
+                assert (offset & 0b111) == 0;
+                // TODO Widen API to support 64 bit values and addresses.
+                return (int) UNSAFE.getLong(address + offset);
             default:
                 throw new IllegalArgumentException();
         }
@@ -79,6 +83,10 @@ public final class UnsafeMemory implements PhysicalMemory {
             case Sizes.SIZE_32_LOG2:
                 assert (offset & 0b11) == 0;
                 UNSAFE.putInt(address + offset, value);
+                break;
+            case Sizes.SIZE_64_LOG2:
+                assert (offset & 0b111) == 0;
+                UNSAFE.putLong(address + offset, value);
                 break;
             default:
                 throw new IllegalArgumentException();

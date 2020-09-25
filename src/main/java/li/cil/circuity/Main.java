@@ -2,8 +2,10 @@ package li.cil.circuity;
 
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.device.memory.Sizes;
+import li.cil.circuity.vm.device.ByteBufferBlockDevice;
 import li.cil.circuity.vm.device.UART16550A;
 import li.cil.circuity.vm.device.memory.UnsafeMemory;
+import li.cil.circuity.vm.device.virtio.VirtIOBlockDevice;
 import li.cil.circuity.vm.riscv.R5Board;
 import li.cil.circuity.vm.riscv.R5CPU;
 import org.apache.logging.log4j.LogManager;
@@ -37,12 +39,15 @@ public final class Main {
         final PhysicalMemory rom = new UnsafeMemory(128 * 1024);
         final PhysicalMemory memory = new UnsafeMemory(128 * 1014 * 1024);
         final UART16550A uart = new UART16550A();
+        final VirtIOBlockDevice hdd = new VirtIOBlockDevice(board.getMemoryMap(), ByteBufferBlockDevice.create(32 * 1024 * 1024, false));
 
         board.addDevice(0x80000000, rom);
         board.addDevice(0x80000000 + 0x400000, memory);
         board.addDevice(uart);
+        board.addDevice(hdd);
 
         uart.getInterrupt().set(0xA, board.getInterruptController());
+        hdd.getInterrupt().set(0x1, board.getInterruptController());
 
         board.reset();
 

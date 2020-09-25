@@ -48,6 +48,8 @@ public final class R5Board implements Steppable, Resettable {
     private final List<MemoryMappedDevice> devices = new ArrayList<>();
     private final List<Steppable> steppableDevices = new ArrayList<>();
 
+    private String bootargs;
+
     public R5Board() {
         memoryMap = new SimpleMemoryMap();
         rtc = cpu = new R5CPU(memoryMap);
@@ -78,6 +80,13 @@ public final class R5Board implements Steppable, Resettable {
 
     public InterruptController getInterruptController() {
         return plic;
+    }
+
+    public void setBootargs(final String value) {
+        if (value != null && value.length() > 64) {
+            throw new IllegalArgumentException();
+        }
+        this.bootargs = value;
     }
 
     public boolean addDevice(final int address, final MemoryMappedDevice device) {
@@ -221,11 +230,10 @@ public final class R5Board implements Steppable, Resettable {
             DeviceTreeRegistry.visit(root, memoryMap, device);
         }
 
-        root.putChild("chosen", chosen -> chosen
-                .addProp("bootargs", "console=ttyS0"));
-
-//        root.putChild("chosen", chosen -> chosen
-//                .addProp("bootargs", "console=hvc0"));
+        if (bootargs != null) {
+            root.putChild("chosen", chosen -> chosen
+                    .addProp("bootargs", bootargs));
+        }
 
         return root;
     }

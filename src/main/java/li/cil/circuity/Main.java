@@ -12,10 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 
 public final class Main {
@@ -35,24 +32,27 @@ public final class Main {
     }
 
     private static void runEmulator() throws Exception {
+        final String firmware = "buildroot/output/images/fw_jump.bin";
+        final String kernel = "buildroot/output/images/Image";
+        final File rootfsFile = new File("buildroot/output/images/rootfs.ext2");
+
         final R5Board board = new R5Board();
         final PhysicalMemory rom = Memory.create(128 * 1024);
         final PhysicalMemory memory = Memory.create(32 * 1014 * 1024);
         final UART16550A uart = new UART16550A();
-        final VirtIOBlockDevice hdd = new VirtIOBlockDevice(board.getMemoryMap(), ByteBufferBlockDevice.create(32 * 1024 * 1024, false));
+        final VirtIOBlockDevice hdd = new VirtIOBlockDevice(board.getMemoryMap(), ByteBufferBlockDevice.createFromFile(rootfsFile, true));
+
+        uart.getInterrupt().set(0xA, board.getInterruptController());
+        hdd.getInterrupt().set(0x1, board.getInterruptController());
 
         board.addDevice(0x80000000, rom);
         board.addDevice(0x80000000 + 0x400000, memory);
         board.addDevice(uart);
         board.addDevice(hdd);
 
-        uart.getInterrupt().set(0xA, board.getInterruptController());
-        hdd.getInterrupt().set(0x1, board.getInterruptController());
+        board.setBootargs("console=ttyS0 root=/dev/vda ro");
 
         board.reset();
-
-        final String firmware = "buildroot/fw_jump.bin";
-        final String kernel = "buildroot/Image";
 
         loadProgramFile(memory, 0, kernel);
         loadProgramFile(rom, 0, firmware);
@@ -105,8 +105,10 @@ public final class Main {
         board.addDevice(0x80000000, rom);
         board.addDevice(0x80000000 + 0x400000, memory);
 
-        final String firmware = "buildroot/fw_jump.bin";
-        final String kernel = "buildroot/Image";
+        board.setBootargs("console=ttyS0");
+
+        final String firmware = "buildroot/output/images/fw_jump.bin";
+        final String kernel = "buildroot/output/images/Image_Benchmark";
 
         LOGGER.info("Waiting for profiler...");
         Thread.sleep(5 * 1000);

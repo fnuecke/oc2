@@ -2675,7 +2675,7 @@ public class R5CPU implements Steppable, RealTimeCounter, InterruptController {
             final int vpnShift = R5.PAGE_ADDRESS_SHIFT + R5.SV32_XPN_SIZE * i;
             final int vpn = (virtualAddress >>> vpnShift) & R5.SV32_XPN_MASK;
             pteAddress += vpn << R5.SV32_PTE_SIZE_LOG2; // equivalent to vpn * PTE size
-            int pte = physicalMemory.load(pteAddress, 2); // 3.
+            int pte = (int) physicalMemory.load(pteAddress, Sizes.SIZE_32_LOG2); // 3.
 
             if ((pte & R5.PTE_V_MASK) == 0 || ((pte & R5.PTE_R_MASK) == 0 && (pte & R5.PTE_W_MASK) != 0)) { // 4.
                 throw getPageFaultException(accessType, virtualAddress);

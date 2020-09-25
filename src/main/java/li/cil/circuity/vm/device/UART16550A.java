@@ -398,11 +398,11 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
                         }
                     }
 
-                    fcr = (byte) (value & 0b11001001);
+                    fcr = (byte) (value & (UART_FCR_FE | UART_FCR_DMS | UART_FCR_ITL_MASK));
 
-                    if ((value & UART_FCR_FE) != 0) {
+                    if ((fcr & UART_FCR_FE) != 0) {
                         iir |= UART_IIR_FIFO_ENABLED;
-                        switch (value & UART_FCR_ITL_MASK) {
+                        switch (fcr & UART_FCR_ITL_MASK) {
                             case UART_FCR_ITL1: {
                                 triggerLevel = 1;
                                 break;

@@ -136,6 +136,24 @@ public final class R5 {
     public static final int SV32_XPN_SIZE = 10; // page number size per level in bits
     public static final int SV32_XPN_MASK = (1 << SV32_XPN_SIZE) - 1;
 
+    // Floating point extension CSR.
+    public static final int FCSR_FFLAGS_NX_MASK = 0b1 << 0; // Inexact.
+    public static final int FCSR_FFLAGS_UF_MASK = 0b1 << 1; // Underflow.
+    public static final int FCSR_FFLAGS_OF_MASK = 0b1 << 2; // Overflow.
+    public static final int FCSR_FFLAGS_DZ_MASK = 0b1 << 3; // Division by zero.
+    public static final int FCSR_FFLAGS_NV_MASK = 0b1 << 4; // Invalid operation.
+    public static final int FCSR_FRM_SHIFT = 5;
+    public static final int FCSR_FFLAGS_MASK = 0b11111;
+    public static final int FCSR_FRM_MASK = 0b111 << FCSR_FRM_SHIFT;
+
+    // Floating point rounding modes.
+    public static final int FCSR_FRM_RNE = 0b000; // Round to nearest, ties to even.
+    public static final int FCSR_FRM_RTZ = 0b001; // Round towards zero.
+    public static final int FCSR_FRM_RDN = 0b010; // Round down (towards negative infinity).
+    public static final int FCSR_FRM_RUP = 0b011; // Round up (towards positive infinity).
+    public static final int FCSR_FRM_RMM = 0b100; // Round to nearest, ties to max magnitude.
+    public static final int FCSR_FRM_DYN = 0b111; // Use rm field of instruction to determine rounding mode.
+
     /**
      * Computes flags for the machine ISA CSR given a list of extension letters.
      *

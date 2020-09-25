@@ -5,11 +5,13 @@ import li.cil.circuity.api.vm.device.Steppable;
 import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
 import li.cil.circuity.vm.device.BlockDevice;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ReadOnlyBufferException;
 
-public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Steppable {
+public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Steppable, Closeable {
     private static final int VIRTIO_BLK_SECTOR_SIZE = 512;
 
     /**
@@ -83,6 +85,11 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
                 .features(block.isReadonly() ? VIRTIO_BLK_F_RO : 0)
                 .build());
         this.block = block;
+    }
+
+    @Override
+    public void close() throws IOException {
+        block.close();
     }
 
     @Override

@@ -4,10 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-public final class ByteBufferBlockDevice implements BlockDevice {
+public class ByteBufferBlockDevice implements BlockDevice {
     private final int capacity;
     private final ByteBuffer data;
     private final boolean readonly;
@@ -21,11 +20,7 @@ public final class ByteBufferBlockDevice implements BlockDevice {
     }
 
     public static ByteBufferBlockDevice createFromFile(final File file, final long length, final boolean readonly) throws IOException {
-        final String fileMode = readonly ? "r" : "rw";
-        final RandomAccessFile mappedFile = new RandomAccessFile(file, fileMode);
-        final FileChannel.MapMode mapMode = readonly ? FileChannel.MapMode.READ_ONLY : FileChannel.MapMode.READ_WRITE;
-        final MappedByteBuffer buffer = mappedFile.getChannel().map(mapMode, 0, length);
-        return new ByteBufferBlockDevice(buffer, readonly);
+        return new FileByteBufferBlockDevice(new RandomAccessFile(file, readonly ? "r" : "rw"), length, readonly);
     }
 
     public ByteBufferBlockDevice(final ByteBuffer data, final boolean readonly) {
@@ -58,6 +53,21 @@ public final class ByteBufferBlockDevice implements BlockDevice {
             return slice.asReadOnlyBuffer();
         } else {
             return slice;
+        }
+    }
+
+    private static final class FileByteBufferBlockDevice extends ByteBufferBlockDevice {
+        private final RandomAccessFile file;
+
+        public FileByteBufferBlockDevice(final RandomAccessFile file, final long length, final boolean readonly) throws IOException {
+            super(file.getChannel().map(readonly ? FileChannel.MapMode.READ_ONLY : FileChannel.MapMode.READ_WRITE, 0, length), readonly);
+            this.file = file;
+        }
+
+        @Override
+        public void close() throws IOException {
+            super.close();
+            file.close();
         }
     }
 }

@@ -1,8 +1,10 @@
 package li.cil.circuity.vm.device;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public interface BlockDevice {
+public interface BlockDevice extends Closeable {
     /**
      * Returns whether this device is read-only.
      * <p>
@@ -30,4 +32,8 @@ public interface BlockDevice {
      *                                  {@code length} does not fit into the block device.
      */
     ByteBuffer getView(long offset, int length);
+
+    @Override
+    default void close() throws IOException {
+    }
 }

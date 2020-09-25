@@ -60,9 +60,25 @@ public interface DescriptorChain {
      * Devices may opt to not completely fill up write-only descriptors before marking the descriptor
      * chain used by calling {@link DescriptorChain#use()}.
      *
-     * @return the maximum
+     * @return the number of remaining writable bytes in the descriptor chain.
      */
     int writableBytes();
+
+    /**
+     * Skips the specified number of bytes in this descriptor chain.
+     * <p>
+     * This first uses up any remaining readable bytes followed by any remaining writable bytes.
+     * <p>
+     * This can be useful for generating padding or ignoring parts of a descriptor chain.
+     *
+     * @param count the number of bytes to skip.
+     * @throws VirtIODeviceException     when the device enters an error state.
+     * @throws MemoryAccessException     when an exception is thrown while accessing physical memory.
+     * @throws IndexOutOfBoundsException if the sum of {@link #readableBytes()} and {@link #writableBytes()}
+     *                                   is smaller than the specified number of bytes to skip.
+     * @throws IllegalStateException     when called after {@link #use()} has been called.
+     */
+    void skip(final int count) throws VirtIODeviceException, MemoryAccessException;
 
     /**
      * Reads a single byte from the descriptor chain.

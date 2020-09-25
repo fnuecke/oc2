@@ -1125,6 +1125,34 @@ public abstract class AbstractVirtIODevice implements MemoryMappedDevice, Interr
             }
 
             @Override
+            public void skip(int count) throws VirtIODeviceException, MemoryAccessException {
+                if (isUsed) {
+                    throw new IllegalStateException();
+                }
+                if (count > readableBytes() + writableBytes()) {
+                    throw new IndexOutOfBoundsException();
+                }
+
+                while (count > 0) {
+                    assert position < length;
+                    final int remaining = length - position;
+                    final int skip = Math.min(count, remaining);
+                    count -= skip;
+                    if (readableBytes() > 0) {
+                        assert readableBytes() <= skip;
+                        readByteCount += skip;
+                    } else {
+                        assert writableBytes() <= skip;
+                        writtenByteCount += skip;
+                    }
+                    position += skip;
+                    if (position >= length) {
+                        nextDescriptor();
+                    }
+                }
+            }
+
+            @Override
             public byte get() throws VirtIODeviceException, MemoryAccessException {
                 if (isUsed) {
                     throw new IllegalStateException();

@@ -1,8 +1,10 @@
 package li.cil.circuity.vm.device.memory;
 
+import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
 import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.vm.UnsafeGetter;
+import li.cil.circuity.vm.device.memory.exception.LoadFaultException;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 import sun.misc.VM;
@@ -49,8 +51,10 @@ public final class UnsafeMemory implements PhysicalMemory {
     }
 
     @Override
-    public int load(final int offset, final int sizeLog2) {
-        assert offset >= 0 && offset < size;
+    public int load(final int offset, final int sizeLog2) throws MemoryAccessException {
+        if (offset < 0 || offset >= size) {
+            throw new LoadFaultException(offset);
+        }
         switch (sizeLog2) {
             case Sizes.SIZE_8_LOG2:
                 return UNSAFE.getByte(address + offset);
@@ -60,18 +64,16 @@ public final class UnsafeMemory implements PhysicalMemory {
             case Sizes.SIZE_32_LOG2:
                 assert (offset & 0b11) == 0;
                 return UNSAFE.getInt(address + offset);
-            case Sizes.SIZE_64_LOG2:
-                assert (offset & 0b111) == 0;
-                // TODO Widen API to support 64 bit values and addresses.
-                return (int) UNSAFE.getLong(address + offset);
             default:
                 throw new IllegalArgumentException();
         }
     }
 
     @Override
-    public void store(final int offset, final int value, final int sizeLog2) {
-        assert offset >= 0 && offset < size;
+    public void store(final int offset, final int value, final int sizeLog2) throws MemoryAccessException {
+        if (offset < 0 || offset >= size) {
+            throw new LoadFaultException(offset);
+        }
         switch (sizeLog2) {
             case Sizes.SIZE_8_LOG2:
                 UNSAFE.putByte(address + offset, (byte) value);
@@ -83,11 +85,6 @@ public final class UnsafeMemory implements PhysicalMemory {
             case Sizes.SIZE_32_LOG2:
                 assert (offset & 0b11) == 0;
                 UNSAFE.putInt(address + offset, value);
-                break;
-            case Sizes.SIZE_64_LOG2:
-                assert (offset & 0b111) == 0;
-                // TODO Widen API to support 64 bit values and addresses.
-                UNSAFE.putLong(address + offset, value);
                 break;
             default:
                 throw new IllegalArgumentException();

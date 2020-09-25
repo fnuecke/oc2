@@ -232,6 +232,11 @@ public final class UART16550A implements Resettable, Steppable, MemoryMappedDevi
     }
 
     @Override
+    public int getSupportedSizes() {
+        return 1 << Sizes.SIZE_8_LOG2;
+    }
+
+    @Override
     public int load(final int offset, final int sizeLog2) {
         assert sizeLog2 == Sizes.SIZE_8_LOG2;
         switch (offset) {

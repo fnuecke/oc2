@@ -4,6 +4,7 @@ import li.cil.circuity.api.vm.Interrupt;
 import li.cil.circuity.api.vm.device.InterruptController;
 import li.cil.circuity.api.vm.device.InterruptSource;
 import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
+import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.vm.riscv.R5;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -71,8 +72,12 @@ public class R5PlatformLevelInterruptController implements MemoryMappedDevice, I
     }
 
     @Override
+    public int getSupportedSizes() {
+        return (1 << Sizes.SIZE_32_LOG2);
+    }
+
     public int load(final int offset, final int sizeLog2) {
-        assert sizeLog2 == 2;
+        assert sizeLog2 == Sizes.SIZE_32_LOG2;
 
         if (offset >= PLIC_PRIORITY_BASE && offset < PLIC_PRIORITY_BASE + (PLIC_SOURCE_COUNT << 2)) {
             // base + 0x000004: Interrupt source 1 priority
@@ -136,7 +141,7 @@ public class R5PlatformLevelInterruptController implements MemoryMappedDevice, I
 
     @Override
     public void store(final int offset, final int value, final int sizeLog2) {
-        assert sizeLog2 == 2;
+        assert sizeLog2 == Sizes.SIZE_32_LOG2;
 
         if (offset >= PLIC_PRIORITY_BASE && offset < PLIC_PRIORITY_BASE + (PLIC_SOURCE_COUNT << 2)) {
             // base + 0x000004: Interrupt source 1 priority

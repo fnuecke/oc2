@@ -215,13 +215,6 @@ public abstract class AbstractVirtIODevice implements MemoryMappedDevice, Interr
                 }
                 break;
             }
-            case Sizes.SIZE_64_LOG2: {
-                if (offset >= 0 && offset < configuration.limit() - 3) {
-                    // TODO Widen API to support 64 bit values and addresses.
-                    return (int) configuration.getLong(offset);
-                }
-                break;
-            }
         }
         return 0;
     }
@@ -253,13 +246,6 @@ public abstract class AbstractVirtIODevice implements MemoryMappedDevice, Interr
             case Sizes.SIZE_32_LOG2: {
                 if (offset >= 0 && offset < configuration.limit() - 3) {
                     configuration.putInt(offset, value);
-                }
-                break;
-            }
-            case Sizes.SIZE_64_LOG2: {
-                if (offset >= 0 && offset < configuration.limit() - 3) {
-                    // TODO Widen API to support 64 bit values and addresses.
-                    configuration.putLong(offset, value);
                 }
                 break;
             }
@@ -572,14 +558,17 @@ public abstract class AbstractVirtIODevice implements MemoryMappedDevice, Interr
     }
 
     @Override
+    public int getSupportedSizes() {
+        return (1 << Sizes.SIZE_8_LOG2) |
+               (1 << Sizes.SIZE_32_LOG2);
+    }
+
     public final int load(final int offset, final int sizeLog2) {
         if (offset >= VIRTIO_MMIO_CONFIG) {
             return loadConfig(offset - VIRTIO_MMIO_CONFIG, sizeLog2);
         }
 
-        if (sizeLog2 != Sizes.SIZE_32_LOG2) {
-            return 0;
-        }
+        assert sizeLog2 == Sizes.SIZE_32_LOG2;
 
         switch (offset) {
             case VIRTIO_MMIO_MAGIC: {
@@ -908,8 +897,14 @@ public abstract class AbstractVirtIODevice implements MemoryMappedDevice, Interr
         // };
         // virtq_desc is the structure of which we expect an array at the physical address the `desc` field points at.
 
-        int getDescAddress(final int i) throws MemoryAccessException {
-            return memoryMap.load(descIndexToAddress(i) + VIRTQ_DESC_ADDR, Sizes.SIZE_64_LOG2);
+        int getDescAddress(final int i) throws VirtIODeviceException, MemoryAccessException {
+            final long value = ((long) memoryMap.load(descIndexToAddress(i) + VIRTQ_DESC_ADDR, Sizes.SIZE_32_LOG2) & 0xFFFFFFFFL) |
+                               ((long) memoryMap.load(descIndexToAddress(i) + VIRTQ_DESC_ADDR + 4, Sizes.SIZE_32_LOG2) << 32);
+            // We're always at maximum a 32 bit architecture, so we should not see addresses that exceed that.
+            if ((value & ~0xFFFFFFFFL) != 0) {
+                throw new VirtIODeviceException();
+            }
+            return (int) value;
         }
 
         int getDescLength(final int i) throws MemoryAccessException {
@@ -1259,7 +1254,7 @@ public abstract class AbstractVirtIODevice implements MemoryMappedDevice, Interr
                 }
             }
 
-            void setDescriptor(final int descIdx) throws MemoryAccessException {
+            void setDescriptor(final int descIdx) throws VirtIODeviceException, MemoryAccessException {
                 this.descIdx = descIdx;
                 address = getDescAddress(descIdx);
                 length = getDescLength(descIdx);

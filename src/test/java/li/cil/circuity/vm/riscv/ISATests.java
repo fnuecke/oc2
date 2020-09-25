@@ -141,6 +141,11 @@ public final class ISATests {
         }
 
         @Override
+        public int getSupportedSizes() {
+            return (1 << Sizes.SIZE_32_LOG2);
+        }
+
+        @Override
         public int load(final int offset, final int sizeLog2) {
             assert sizeLog2 == Sizes.SIZE_32_LOG2;
             switch (offset) {

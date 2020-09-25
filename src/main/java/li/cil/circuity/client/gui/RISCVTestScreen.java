@@ -23,6 +23,7 @@ import org.lwjgl.glfw.GLFW;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Objects;
 
 public final class RISCVTestScreen extends Screen {
@@ -34,6 +35,7 @@ public final class RISCVTestScreen extends Screen {
     private final Terminal terminal = new Terminal();
     private VirtualMachineRunner runner;
     private UART16550A uart;
+    private VirtIOBlockDevice hdd;
 
     private VirtIOConsoleDevice console;
     private VirtIOKeyboardDevice keyboard;
@@ -69,6 +71,14 @@ public final class RISCVTestScreen extends Screen {
     @Override
     public void removed() {
         super.removed();
+
+        if (hdd != null) {
+            try {
+                hdd.close();
+            } catch (final IOException e) {
+                LOGGER.error(e);
+            }
+        }
 
         if (minecraft != null) {
             minecraft.keyboardListener.enableRepeatEvents(false);
@@ -160,7 +170,7 @@ public final class RISCVTestScreen extends Screen {
         final R5Board board = new R5Board();
         final PhysicalMemory rom = Memory.create(128 * 1024);
         final PhysicalMemory memory = Memory.create(32 * 1014 * 1024);
-        final VirtIOBlockDevice hdd = new VirtIOBlockDevice(board.getMemoryMap(), ByteBufferBlockDevice.createFromFile(rootfsFile, true));
+        hdd = new VirtIOBlockDevice(board.getMemoryMap(), ByteBufferBlockDevice.createFromFile(rootfsFile, true));
         uart = new UART16550A();
         console = new VirtIOConsoleDevice(board.getMemoryMap());
         keyboard = new VirtIOKeyboardDevice(board.getMemoryMap());

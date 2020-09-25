@@ -11,6 +11,14 @@ import li.cil.circuity.api.vm.device.memory.Sizes;
 
 import java.util.Collections;
 
+/**
+ * Implements a 16550A UART.
+ * <p>
+ * This is not a cycle-correct implementation. It does not care about baudrates and
+ * timeout delays. But it's good enough to pump data into and out of a virtual machine.
+ * <p>
+ * See: https://web.archive.org/web/20200207194832/https://www.lammertbies.nl/comm/info/serial-uart
+ */
 @SuppressWarnings("PointlessBitwiseExpression")
 public final class UART16550A implements Resettable, Steppable, MemoryMappedDevice, InterruptSource {
     private static final int UART_RBR_OFFSET = 0; // Receive buffer register (Read-only)

@@ -1,5 +1,10 @@
 package li.cil.circuity.api.vm.device.memory;
 
+/**
+ * Constants for different value sizes.
+ * <p>
+ * These constants are named by their bit width.
+ */
 public final class Sizes {
     public static final int SIZE_8 = 8;
     public static final int SIZE_16 = 16;

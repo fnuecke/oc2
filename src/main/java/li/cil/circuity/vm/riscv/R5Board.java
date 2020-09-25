@@ -13,7 +13,7 @@ import li.cil.circuity.api.vm.devicetree.DeviceNames;
 import li.cil.circuity.api.vm.devicetree.DeviceTree;
 import li.cil.circuity.api.vm.devicetree.DeviceTreePropertyNames;
 import li.cil.circuity.vm.SimpleMemoryMap;
-import li.cil.circuity.vm.device.memory.UnsafeMemory;
+import li.cil.circuity.vm.device.memory.Memory;
 import li.cil.circuity.vm.devicetree.DeviceTreeRegistry;
 import li.cil.circuity.vm.devicetree.FlattenedDeviceTree;
 import li.cil.circuity.vm.riscv.device.R5CoreLocalInterrupter;
@@ -52,7 +52,7 @@ public final class R5Board implements Steppable, Resettable {
         memoryMap = new SimpleMemoryMap();
         rtc = cpu = new R5CPU(memoryMap);
 
-        final PhysicalMemory flash = new UnsafeMemory(LOW_MEMORY_SIZE);
+        final PhysicalMemory flash = Memory.create(LOW_MEMORY_SIZE);
         final R5CoreLocalInterrupter clint = new R5CoreLocalInterrupter(rtc);
         plic = new R5PlatformLevelInterruptController();
 

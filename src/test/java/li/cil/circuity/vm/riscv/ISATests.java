@@ -5,7 +5,7 @@ import li.cil.circuity.api.vm.device.memory.MemoryAccessException;
 import li.cil.circuity.api.vm.device.memory.MemoryMappedDevice;
 import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.vm.SimpleMemoryMap;
-import li.cil.circuity.vm.device.memory.ByteBufferMemory;
+import li.cil.circuity.vm.device.memory.Memory;
 import li.cil.circuity.vm.elf.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,13 +72,13 @@ public final class ISATests {
                         // RAM block below and potentially up to HTIF.
                         if (PHYSICAL_MEMORY_START < toHostAddress) {
                             final int end = Math.min(PHYSICAL_MEMORY_START + PHYSICAL_MEMORY_LENGTH, toHostAddress);
-                            memoryMap.addDevice(PHYSICAL_MEMORY_START, new ByteBufferMemory(end - PHYSICAL_MEMORY_START));
+                            memoryMap.addDevice(PHYSICAL_MEMORY_START, Memory.create(end - PHYSICAL_MEMORY_START));
                         }
 
                         // RAM block above and potentially starting from HTIF.
                         if (PHYSICAL_MEMORY_START + PHYSICAL_MEMORY_LENGTH > toHostAddress + htif.getLength()) {
                             final int start = Math.max(PHYSICAL_MEMORY_START, toHostAddress + htif.getLength());
-                            memoryMap.addDevice(start, new ByteBufferMemory(PHYSICAL_MEMORY_START + PHYSICAL_MEMORY_LENGTH - start));
+                            memoryMap.addDevice(start, Memory.create(PHYSICAL_MEMORY_START + PHYSICAL_MEMORY_LENGTH - start));
                         }
 
                         loadProgramSegments(elf, memoryMap);

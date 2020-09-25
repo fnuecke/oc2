@@ -8,7 +8,7 @@ import li.cil.circuity.client.gui.terminal.Terminal;
 import li.cil.circuity.client.gui.terminal.TerminalInput;
 import li.cil.circuity.common.vm.VirtualMachineRunner;
 import li.cil.circuity.vm.device.UART16550A;
-import li.cil.circuity.vm.device.memory.UnsafeMemory;
+import li.cil.circuity.vm.device.memory.Memory;
 import li.cil.circuity.vm.device.virtio.VirtIOConsoleDevice;
 import li.cil.circuity.vm.device.virtio.VirtIOKeyboardDevice;
 import li.cil.circuity.vm.riscv.R5Board;
@@ -48,8 +48,8 @@ public final class RISCVTestScreen extends Screen {
         super.init();
 
         final R5Board board = new R5Board();
-        final PhysicalMemory rom = new UnsafeMemory(128 * 1024);
-        final PhysicalMemory memory = new UnsafeMemory(128 * 1014 * 1024);
+        final PhysicalMemory rom = Memory.create(128 * 1024);
+        final PhysicalMemory memory = Memory.create(128 * 1014 * 1024);
 
         if (USE_VIRT_IO) {
             uart = new UART16550A();

@@ -4,7 +4,7 @@ import li.cil.circuity.api.vm.device.memory.PhysicalMemory;
 import li.cil.circuity.api.vm.device.memory.Sizes;
 import li.cil.circuity.vm.device.ByteBufferBlockDevice;
 import li.cil.circuity.vm.device.UART16550A;
-import li.cil.circuity.vm.device.memory.UnsafeMemory;
+import li.cil.circuity.vm.device.memory.Memory;
 import li.cil.circuity.vm.device.virtio.VirtIOBlockDevice;
 import li.cil.circuity.vm.riscv.R5Board;
 import li.cil.circuity.vm.riscv.R5CPU;
@@ -36,8 +36,8 @@ public final class Main {
 
     private static void runEmulator() throws Exception {
         final R5Board board = new R5Board();
-        final PhysicalMemory rom = new UnsafeMemory(128 * 1024);
-        final PhysicalMemory memory = new UnsafeMemory(128 * 1014 * 1024);
+        final PhysicalMemory rom = Memory.create(128 * 1024);
+        final PhysicalMemory memory = Memory.create(32 * 1014 * 1024);
         final UART16550A uart = new UART16550A();
         final VirtIOBlockDevice hdd = new VirtIOBlockDevice(board.getMemoryMap(), ByteBufferBlockDevice.create(32 * 1024 * 1024, false));
 
@@ -95,8 +95,8 @@ public final class Main {
 
     private static void runBenchmark() throws Exception {
         final R5Board board = new R5Board();
-        final PhysicalMemory rom = new UnsafeMemory(128 * 1024);
-        final PhysicalMemory memory = new UnsafeMemory(128 * 1014 * 1024);
+        final PhysicalMemory rom = Memory.create(128 * 1024);
+        final PhysicalMemory memory = Memory.create(128 * 1014 * 1024);
         final UART16550A uart = new UART16550A();
 
         uart.getInterrupt().set(0xA, board.getInterruptController());

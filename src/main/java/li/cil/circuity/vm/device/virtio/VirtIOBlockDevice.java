@@ -7,6 +7,7 @@ import li.cil.circuity.vm.device.BlockDevice;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.ReadOnlyBufferException;
 
 public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Steppable {
     private static final int VIRTIO_BLK_SECTOR_SIZE = 512;
@@ -238,7 +239,7 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
                 int status = VIRTIO_BLK_S_OK;
                 try {
                     chain.get(block.getView(offset, chain.readableBytes()));
-                } catch (final IllegalArgumentException e) {
+                } catch (final IllegalArgumentException | ReadOnlyBufferException e) {
                     chain.skip(chain.readableBytes());
                     status = VIRTIO_BLK_S_IOERR;
                 }

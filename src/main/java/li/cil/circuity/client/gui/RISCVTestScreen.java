@@ -28,7 +28,8 @@ import java.util.Objects;
 public final class RISCVTestScreen extends Screen {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static final boolean USE_VIRT_IO = false;
+    private static final boolean USE_VIRTIO_CONSOLE = true;
+    private static final boolean USE_VIRTIO_KEYBOARD = false;
 
     private final Terminal terminal = new Terminal();
     private VirtualMachineRunner runner;
@@ -100,6 +101,9 @@ public final class RISCVTestScreen extends Screen {
 
     @Override
     public boolean charTyped(final char ch, final int modifier) {
+        if (USE_VIRTIO_KEYBOARD) {
+            return false;
+        }
         terminal.putInput((byte) ch);
         return true;
     }
@@ -110,7 +114,7 @@ public final class RISCVTestScreen extends Screen {
             return super.keyPressed(keyCode, scanCode, modifiers);
         }
 
-        if (USE_VIRT_IO) {
+        if (USE_VIRTIO_KEYBOARD) {
             if (KeyCodeMapping.MAPPING.containsKey(keyCode)) {
                 keyboard.sendKeyEvent(KeyCodeMapping.MAPPING.get(keyCode), true);
                 return true;
@@ -138,7 +142,7 @@ public final class RISCVTestScreen extends Screen {
 
     @Override
     public boolean keyReleased(final int keyCode, final int scanCode, final int modifiers) {
-        if (USE_VIRT_IO) {
+        if (USE_VIRTIO_KEYBOARD) {
             if (KeyCodeMapping.MAPPING.containsKey(keyCode)) {
                 keyboard.sendKeyEvent(KeyCodeMapping.MAPPING.get(keyCode), false);
                 return true;
@@ -157,33 +161,27 @@ public final class RISCVTestScreen extends Screen {
         final PhysicalMemory rom = Memory.create(128 * 1024);
         final PhysicalMemory memory = Memory.create(32 * 1014 * 1024);
         final VirtIOBlockDevice hdd = new VirtIOBlockDevice(board.getMemoryMap(), ByteBufferBlockDevice.createFromFile(rootfsFile, true));
+        uart = new UART16550A();
+        console = new VirtIOConsoleDevice(board.getMemoryMap());
+        keyboard = new VirtIOKeyboardDevice(board.getMemoryMap());
 
         final StringBuilder bootargs = new StringBuilder();
         bootargs.append("root=/dev/vda ro");
 
-        if (USE_VIRT_IO) {
-            console = new VirtIOConsoleDevice(board.getMemoryMap());
-            keyboard = new VirtIOKeyboardDevice(board.getMemoryMap());
-
-            console.getInterrupt().set(0x1, board.getInterruptController());
-            keyboard.getInterrupt().set(0x2, board.getInterruptController());
-
+        if (USE_VIRTIO_CONSOLE) {
             board.addDevice(console);
-            board.addDevice(keyboard);
-
             bootargs.append(" console=hvc0");
         } else {
-            uart = new UART16550A();
-
-            uart.getInterrupt().set(0xA, board.getInterruptController());
-
             board.addDevice(uart);
-
             bootargs.append(" console=ttyS0");
         }
 
+        console.getInterrupt().set(0x1, board.getInterruptController());
+        keyboard.getInterrupt().set(0x2, board.getInterruptController());
         hdd.getInterrupt().set(0x3, board.getInterruptController());
+        uart.getInterrupt().set(0xA, board.getInterruptController());
 
+        board.addDevice(keyboard);
         board.addDevice(hdd);
         board.addDevice(0x80000000, rom);
         board.addDevice(0x80000000 + 0x400000, memory);
@@ -230,7 +228,7 @@ public final class RISCVTestScreen extends Screen {
 
         @Override
         protected void step() {
-            if (USE_VIRT_IO) {
+            if (USE_VIRTIO_CONSOLE) {
                 boolean wrote = false;
                 while (!inputBuffer.isEmpty() && console.canPutByte()) {
                     wrote = true;
@@ -239,15 +237,20 @@ public final class RISCVTestScreen extends Screen {
                 if (wrote) {
                     console.flush();
                 }
+
+                int value;
+                while ((value = console.read()) != -1) {
+                    outputBuffer.enqueue((byte) value);
+                }
             } else {
                 while (!inputBuffer.isEmpty() && uart.canPutByte()) {
                     uart.putByte(inputBuffer.dequeueByte());
                 }
-            }
 
-            int value;
-            while ((value = uart.read()) != -1) {
-                outputBuffer.enqueue((byte) value);
+                int value;
+                while ((value = uart.read()) != -1) {
+                    outputBuffer.enqueue((byte) value);
+                }
             }
         }
 

@@ -21,7 +21,7 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 file "build.properties" withReader {
-    def prop = new Properties()
+    final def prop = new Properties()
     prop.load(it)
     ext.config = new ConfigSlurper().parse prop
 }
@@ -32,7 +32,7 @@ archivesBaseName = config.mod.name
 
 def getGitRef() {
     try {
-        def stdout = new ByteArrayOutputStream()
+        final def stdout = new ByteArrayOutputStream()
         exec {
             commandLine 'git', 'rev-parse', '--short', 'HEAD'
             standardOutput = stdout
@@ -51,8 +51,6 @@ else
     version += "+" + getGitRef()
 
 version = "MC${config.minecraft.version}-${version}"
-
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
 minecraft {
     mappings channel: config.minecraft.mappings.channel, version: config.minecraft.mappings.version
@@ -113,7 +111,13 @@ processResources {
 }
 
 compileJava {
-    options.compilerArgs << '-XDignore.symbol.file'
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+
+    options.compilerArgs.addAll([
+            '-XDignore.symbol.file'
+    ])
+
     options.fork = true
     options.forkOptions.executable = 'javac'
 }

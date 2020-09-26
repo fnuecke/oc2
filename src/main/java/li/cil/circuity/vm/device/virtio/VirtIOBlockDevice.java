@@ -59,6 +59,23 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
 
     private static final int VIRTIO_BLK_CFG_CAPACITY_OFFSET = 0;
     private static final int VIRTIO_BLK_CFG_CAPACITYH_OFFSET = 4;
+    private static final int VIRTIO_BLK_CFG_SIZE_MAX_OFFSET = 8;
+    private static final int VIRTIO_BLK_CFG_SEG_MAX_OFFSET = 12;
+    private static final int VIRTIO_BLK_CFG_GEOMETRY_CYLINDERS_OFFSET = 16;
+    private static final int VIRTIO_BLK_CFG_GEOMETRY_HEADS_OFFSET = 18;
+    private static final int VIRTIO_BLK_CFG_GEOMETRY_SECTORS_OFFSET = 19;
+    private static final int VIRTIO_BLK_CFG_BLK_SIZE_OFFSET = 20;
+    private static final int VIRTIO_BLK_CFG_TOPOLOGY_PHYSICAL_BLOCK_EXP_OFFSET = 24;
+    private static final int VIRTIO_BLK_CFG_TOPOLOGY_ALIGNMENT_OFFSET_OFFSET = 25;
+    private static final int VIRTIO_BLK_CFG_TOPOLOGY_MIN_IO_SIZE_OFFSET = 26;
+    private static final int VIRTIO_BLK_CFG_TOPOLOGY_OPT_IO_SIZE_OFFSET = 28;
+    private static final int VIRTIO_BLK_CFG_WRITEBACK_OFFSET = 32;
+    private static final int VIRTIO_BLK_CFG_MAX_DISCARD_SECTORS_OFFSET = 36;
+    private static final int VIRTIO_BLK_CFG_MAX_DISCARD_SEG_OFFSET = 40;
+    private static final int VIRTIO_BLK_CFG_DISCARD_SECTOR_ALIGNMENT_OFFSET = 44;
+    private static final int VIRTIO_BLK_CFG_MAX_WRITE_ZEROES_SECTORS_OFFSET = 48;
+    private static final int VIRTIO_BLK_CFG_MAX_WRITE_ZEROES_SEG_OFFSET = 52;
+    private static final int VIRTIO_BLK_CFG_WRITE_ZEROES_MAY_UNMAP_OFFSET = 56;
 
     private static final int VIRTIO_BLK_T_IN = 0;
     private static final int VIRTIO_BLK_T_OUT = 1;
@@ -72,17 +89,22 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
 
     private static final int VIRTQ_REQUEST = 0;
 
-    private static final int BYTES_PER_CYCLE = 32;
+    private static final int MAX_SEGMENT_SIZE = 32 * 512;
+    private static final int MAX_SEGMENT_COUNT = 64;
+    private static final int BYTES_PER_THOUSAND_CYCLES = 32;
 
     private static final ThreadLocal<ByteBuffer> requestHeaderBuffer = new ThreadLocal<>();
 
     private final BlockDevice block;
+    private int remainingByteProcessingQuota;
 
     public VirtIOBlockDevice(final MemoryMap memoryMap, final BlockDevice block) {
         super(memoryMap, VirtIODeviceSpec.builder(VirtIODeviceType.VIRTIO_DEVICE_ID_BLOCK_DEVICE)
                 .configSpaceSize(56)
                 .queueCount(1)
-                .features(block.isReadonly() ? VIRTIO_BLK_F_RO : 0)
+                .features((block.isReadonly() ? VIRTIO_BLK_F_RO : 0) |
+                          VIRTIO_BLK_F_SIZE_MAX |
+                          VIRTIO_BLK_F_SEG_MAX)
                 .build());
         this.block = block;
     }
@@ -98,14 +120,17 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
             return;
         }
 
+        if (remainingByteProcessingQuota <= 0) {
+            remainingByteProcessingQuota += Math.max(1, cycles * BYTES_PER_THOUSAND_CYCLES / 1000);
+        }
+
         try {
-            int remainingBytes = cycles * BYTES_PER_CYCLE;
-            while (remainingBytes > 0) {
+            while (remainingByteProcessingQuota > 0) {
                 final int processedBytes = processRequest();
                 if (processedBytes < 0) {
                     break;
                 }
-                remainingBytes -= processedBytes;
+                remainingByteProcessingQuota -= processedBytes;
             }
         } catch (final VirtIODeviceException | MemoryAccessException e) {
             error();
@@ -150,6 +175,12 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
             }
             case VIRTIO_BLK_CFG_CAPACITYH_OFFSET: {
                 return (int) (capacityToSectorCount(block.getCapacity()) >>> 32);
+            }
+            case VIRTIO_BLK_CFG_SIZE_MAX_OFFSET: {
+                return MAX_SEGMENT_SIZE;
+            }
+            case VIRTIO_BLK_CFG_SEG_MAX_OFFSET: {
+                return MAX_SEGMENT_COUNT;
             }
         }
         return super.loadConfig(offset, sizeLog2);
@@ -219,6 +250,13 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
                     throw new VirtIODeviceException();
                 }
 
+                // Ensure driver respects virtio_blk_config.size_max and virtio_blk_config.seg_max.
+                if (chain.writableBytes() > MAX_SEGMENT_COUNT * MAX_SEGMENT_SIZE) {
+                    chain.skip(chain.writableBytes() - 1);
+                    chain.put((byte) VIRTIO_BLK_S_IOERR);
+                    break;
+                }
+
                 final long offset = sector * VIRTIO_BLK_SECTOR_SIZE;
                 int status = VIRTIO_BLK_S_OK;
                 try {
@@ -240,6 +278,13 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
                 // Size of virtio_blk_req.data must be a multiple of 512.
                 if (chain.readableBytes() % VIRTIO_BLK_SECTOR_SIZE != 0) {
                     throw new VirtIODeviceException();
+                }
+
+                // Ensure driver respects virtio_blk_config.size_max and virtio_blk_config.seg_max.
+                if (chain.readableBytes() > MAX_SEGMENT_COUNT * MAX_SEGMENT_SIZE) {
+                    chain.skip(chain.readableBytes());
+                    chain.put((byte) VIRTIO_BLK_S_IOERR);
+                    break;
                 }
 
                 final long offset = sector * VIRTIO_BLK_SECTOR_SIZE;

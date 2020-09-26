@@ -8,52 +8,80 @@ buildscript {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
     }
 }
+
+plugins {
+    id 'eclipse'
+    id 'maven-publish'
+    id 'application'
+}
+
 apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-apply plugin: 'application'
-
-repositories {
-    maven { url "http://dvs1.progwml6.com/files/maven" } // JEI
-}
-
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-file "build.properties" withReader {
-    final def prop = new Properties()
-    prop.load(it)
-    ext.config = new ConfigSlurper().parse prop
-}
-
-version = config.mod.version
-group = config.mod.group
-archivesBaseName = config.mod.name
 
 def getGitRef() {
     try {
-        final def stdout = new ByteArrayOutputStream()
+        def stdout = new ByteArrayOutputStream()
         exec {
             commandLine 'git', 'rev-parse', '--short', 'HEAD'
             standardOutput = stdout
         }
         return stdout.toString().trim()
-    } catch (Throwable e) {
+    } catch (Throwable ignored) {
         return "unknown"
     }
 }
 
-if (System.getenv("PROMOTED_NUMBER") != null)
-    version += "+${System.getenv("PROMOTED_NUMBER")}"
-else if (System.getenv("BUILD_NUMBER") != null)
-    version += "+${System.getenv("BUILD_NUMBER")}"
-else
-    version += "+" + getGitRef()
+String semver = "${version_major}.${version_minor}.${version_patch}"
 
-version = "MC${config.minecraft.version}-${version}"
+String build_number = System.getenv("PROMOTED_NUMBER");
+if (build_number == null)
+    build_number = System.getenv("BUILD_NUMBER")
+if (build_number == null)
+    build_number = getGitRef()
+
+version = "${semver}+${build_number}"
+group = mod_group
+archivesBaseName = "${mod_name}-MC${minecraft_version}"
+
+sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+compileJava {
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+repositories {
+    maven { url "http://dvs1.progwml6.com/files/maven" } // JEI
+    maven { url "http://maven.cil.li/maven" } // Sedna
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
+    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
+
+    compile 'li.cil.sedna:sedna:0.0.1'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include 'META-INF/mods.toml'
+
+        expand([
+                'mod_id'                : mod_id,
+                'mod_version'           : version,
+                'mod_name'              : mod_name,
+                'mod_url'               : mod_url,
+                'mod_issues_url'        : mod_issues_url,
+                'forge_version_min'     : forge_version_min,
+                'minecraft_version_min' : minecraft_version_min
+        ])
+    }
+}
 
 minecraft {
-    mappings channel: config.minecraft.mappings.channel, version: config.minecraft.mappings.version
+    mappings channel: mappings_channel, version: mappings_version
 
     runs {
         client {
@@ -99,47 +127,14 @@ minecraft {
     }
 }
 
-processResources {
-    from(sourceSets.main.resources.srcDirs) {
-        include 'META-INF/mods.toml'
-
-        expand([
-                'mod_version'      : config.version,
-                'minecraft_version': config.minecraft.version
-        ])
-    }
-}
-
-compileJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-
-    options.compilerArgs.addAll([
-            '-XDignore.symbol.file'
-    ])
-
-    options.fork = true
-    options.forkOptions.executable = 'javac'
-}
-
-dependencies {
-    minecraft "net.minecraftforge:forge:${config.minecraft.version}-${config.forge.version}"
-
-    compileOnly fg.deobf("mezz.jei:jei-${config.minecraft.version}:${config.jei.version}:api")
-    runtimeOnly fg.deobf("mezz.jei:jei-${config.minecraft.version}:${config.jei.version}")
-
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
-}
-
 jar {
     manifest {
         attributes([
-                "Specification-Title"     : "circuity",
+                "Specification-Title"     : "oc2",
                 "Specification-Vendor"    : "Sangar",
                 "Specification-Version"   : "1",
                 "Implementation-Title"    : project.name,
-                "Implementation-Version"  : "${config.version}",
+                "Implementation-Version"  : "${semver}",
                 "Implementation-Vendor"   : "Sangar",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
@@ -152,7 +147,7 @@ task apiJar(type: Jar) {
     from sourceSets.main.allSource
     from sourceSets.main.output
     classifier = 'api'
-    include 'li/cil/circuity/api/**'
+    include 'li/cil/oc2/api/**'
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -178,14 +173,6 @@ publishing {
             url System.getenv("MAVEN_PATH")
         }
     }
-}
-
-application {
-    mainClassName = "li.cil.circuity.Main"
-}
-
-run {
-    standardInput = System.in
 }
 
 test {

@@ -1,6 +1,6 @@
 package li.cil.oc2.common.vm;
 
-import li.cil.sedna.vm.riscv.R5Board;
+import li.cil.sedna.riscv.R5Board;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;

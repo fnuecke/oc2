@@ -1,7 +1,7 @@
 package li.cil.oc2.client.gui;
 
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
-import li.cil.sedna.vm.evdev.EvdevKeys;
+import li.cil.sedna.evdev.EvdevKeys;
 import org.lwjgl.glfw.GLFW;
 
 public final class KeyCodeMapping {

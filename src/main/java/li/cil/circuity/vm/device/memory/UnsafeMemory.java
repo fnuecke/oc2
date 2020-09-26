@@ -52,17 +52,15 @@ public final class UnsafeMemory implements PhysicalMemory {
 
     @Override
     public int load(final int offset, final int sizeLog2) throws MemoryAccessException {
-        if (offset < 0 || offset >= size) {
+        if (offset < 0 || offset >= size - (1 << sizeLog2)) {
             throw new LoadFaultException(offset);
         }
         switch (sizeLog2) {
             case Sizes.SIZE_8_LOG2:
                 return UNSAFE.getByte(address + offset);
             case Sizes.SIZE_16_LOG2:
-                assert (offset & 0b1) == 0;
                 return UNSAFE.getShort(address + offset);
             case Sizes.SIZE_32_LOG2:
-                assert (offset & 0b11) == 0;
                 return UNSAFE.getInt(address + offset);
             default:
                 throw new IllegalArgumentException();
@@ -71,7 +69,7 @@ public final class UnsafeMemory implements PhysicalMemory {
 
     @Override
     public void store(final int offset, final int value, final int sizeLog2) throws MemoryAccessException {
-        if (offset < 0 || offset >= size) {
+        if (offset < 0 || offset >= size - (1 << sizeLog2)) {
             throw new LoadFaultException(offset);
         }
         switch (sizeLog2) {
@@ -79,11 +77,9 @@ public final class UnsafeMemory implements PhysicalMemory {
                 UNSAFE.putByte(address + offset, (byte) value);
                 break;
             case Sizes.SIZE_16_LOG2:
-                assert (offset & 0b1) == 0;
                 UNSAFE.putShort(address + offset, (short) value);
                 break;
             case Sizes.SIZE_32_LOG2:
-                assert (offset & 0b11) == 0;
                 UNSAFE.putInt(address + offset, value);
                 break;
             default:

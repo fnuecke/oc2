@@ -96,6 +96,7 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
     private static final ThreadLocal<ByteBuffer> requestHeaderBuffer = new ThreadLocal<>();
 
     private final BlockDevice block;
+    private boolean hasPendingRequest;
     private int remainingByteProcessingQuota;
 
     public VirtIOBlockDevice(final MemoryMap memoryMap, final BlockDevice block) {
@@ -104,7 +105,8 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
                 .queueCount(1)
                 .features((block.isReadonly() ? VIRTIO_BLK_F_RO : 0) |
                           VIRTIO_BLK_F_SIZE_MAX |
-                          VIRTIO_BLK_F_SEG_MAX)
+                          VIRTIO_BLK_F_SEG_MAX |
+                          VIRTIO_BLK_F_FLUSH)
                 .build());
         this.block = block;
     }
@@ -115,7 +117,17 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
     }
 
     @Override
+    public void reset() {
+        super.reset();
+        hasPendingRequest = false;
+    }
+
+    @Override
     public void step(final int cycles) {
+        if (!hasPendingRequest) {
+            return;
+        }
+
         if ((getStatus() & VIRTIO_STATUS_FAILED) != 0) {
             return;
         }
@@ -192,17 +204,19 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
     }
 
     @Override
-    protected void handleFeaturesNegotiated() {
-        setQueueNotifications(VIRTQ_REQUEST, false);
+    protected void handleQueueNotification(final int queueIndex) {
+        hasPendingRequest = true;
     }
 
     private int processRequest() throws VirtIODeviceException, MemoryAccessException {
         final VirtqueueIterator queue = getQueueIterator(VIRTQ_REQUEST);
         if (queue == null) {
+            hasPendingRequest = false;
             return -1;
         }
 
         if (!queue.hasNext()) {
+            hasPendingRequest = false;
             return -1;
         }
         final DescriptorChain chain = queue.next();
@@ -298,7 +312,22 @@ public final class VirtIOBlockDevice extends AbstractVirtIODevice implements Ste
                 chain.put((byte) status);
                 break;
             }
-            case VIRTIO_BLK_T_FLUSH:
+            case VIRTIO_BLK_T_FLUSH: {
+                // Expect to have completely read the header.
+                if (chain.readableBytes() > 0) {
+                    throw new VirtIODeviceException();
+                }
+
+                // Only expect having to write status.
+                if (chain.writableBytes() != 1) {
+                    throw new VirtIODeviceException();
+                }
+
+                block.flush();
+
+                chain.put((byte) VIRTIO_BLK_S_OK);
+                break;
+            }
             case VIRTIO_BLK_T_DISCARD:
             case VIRTIO_BLK_T_WRITE_ZEROES:
             default: {

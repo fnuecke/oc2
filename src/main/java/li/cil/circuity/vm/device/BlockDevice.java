@@ -33,6 +33,9 @@ public interface BlockDevice extends Closeable {
      */
     ByteBuffer getView(long offset, int length);
 
+    default void flush() {
+    }
+
     @Override
     default void close() throws IOException {
     }

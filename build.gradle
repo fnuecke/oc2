@@ -49,16 +49,16 @@ compileJava {
 
 repositories {
     maven { url "http://dvs1.progwml6.com/files/maven" } // JEI
-    maven { url "http://maven.cil.li/maven" } // Sedna
+    maven { url "http://maven.cil.li/" } // Sedna
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
+    compile 'li.cil.sedna:sedna:0.0.1+'
+
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
-
-    compile 'li.cil.sedna:sedna:0.0.1'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'

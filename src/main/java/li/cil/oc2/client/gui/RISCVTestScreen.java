@@ -5,11 +5,12 @@ import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.oc2.client.gui.terminal.Terminal;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
-import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.api.Sizes;
+import li.cil.sedna.api.device.PhysicalMemory;
+import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
-import li.cil.sedna.device.serial.UART16550A;
 import li.cil.sedna.device.memory.Memory;
+import li.cil.sedna.device.serial.UART16550A;
 import li.cil.sedna.device.virtio.VirtIOBlockDevice;
 import li.cil.sedna.device.virtio.VirtIOConsoleDevice;
 import li.cil.sedna.device.virtio.VirtIOKeyboardDevice;
@@ -21,9 +22,8 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Objects;
 
 public final class RISCVTestScreen extends Screen {
@@ -163,14 +163,11 @@ public final class RISCVTestScreen extends Screen {
     }
 
     private void createVirtualMachine() throws Throwable {
-        final String firmware = "../buildroot/output/images/fw_jump.bin";
-        final String kernel = "../buildroot/output/images/Image";
-        final File rootfsFile = new File("../buildroot/output/images/rootfs.ext2");
-
         final R5Board board = new R5Board();
         final PhysicalMemory rom = Memory.create(128 * 1024);
         final PhysicalMemory memory = Memory.create(32 * 1014 * 1024);
-        hdd = new VirtIOBlockDevice(board.getMemoryMap(), ByteBufferBlockDevice.createFromFile(rootfsFile, true));
+        hdd = new VirtIOBlockDevice(board.getMemoryMap(),
+                ByteBufferBlockDevice.createFromStream(Buildroot.getRootFilesystem(), true));
         uart = new UART16550A();
         console = new VirtIOConsoleDevice(board.getMemoryMap());
         keyboard = new VirtIOKeyboardDevice(board.getMemoryMap());
@@ -200,21 +197,19 @@ public final class RISCVTestScreen extends Screen {
 
         board.reset();
 
-        loadProgramFile(memory, kernel);
-        loadProgramFile(rom, firmware);
+        loadProgramFile(memory, Buildroot.getLinuxImage());
+        loadProgramFile(rom, Buildroot.getFirmware());
 
         runner = new ConsoleRunner(board);
     }
 
-    private static void loadProgramFile(final PhysicalMemory memory, final String path) {
+    private static void loadProgramFile(final PhysicalMemory memory, final InputStream stream) {
         try {
-            try (final FileInputStream is = new FileInputStream(path)) {
-                final BufferedInputStream bis = new BufferedInputStream(is);
-                for (int value = bis.read(), address = 0; value != -1; value = bis.read()) {
-                    memory.store(address++, (byte) value, Sizes.SIZE_8_LOG2);
-                }
+            final BufferedInputStream bis = new BufferedInputStream(stream);
+            for (int address = 0, value = bis.read(); value != -1; value = bis.read(), address++) {
+                memory.store(address, (byte) value, Sizes.SIZE_8_LOG2);
             }
-        } catch (final Exception e) {
+        } catch (final Throwable e) {
             LOGGER.error(e);
         }
     }

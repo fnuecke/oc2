@@ -1,11 +1,11 @@
 package li.cil.oc2.common.item;
 
+import li.cil.oc2.OpenComputers;
 import li.cil.oc2.client.gui.RISCVTestScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.util.ActionResult;
@@ -15,7 +15,7 @@ import net.minecraft.world.World;
 
 public final class RISCVTesterItem extends Item {
     public RISCVTesterItem() {
-        super(new Properties().group(ItemGroup.MISC).maxStackSize(1));
+        super(new Properties().group(OpenComputers.ITEM_GROUP).maxStackSize(1));
     }
 
     @Override

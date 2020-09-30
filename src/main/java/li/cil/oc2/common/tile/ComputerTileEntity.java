@@ -3,6 +3,8 @@ package li.cil.oc2.common.tile;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.client.gui.terminal.Terminal;
+import li.cil.oc2.common.network.ComputerTerminalOutputMessage;
+import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
 import li.cil.sedna.api.Sizes;
 import li.cil.sedna.api.device.PhysicalMemory;
@@ -15,16 +17,21 @@ import li.cil.sedna.riscv.R5Board;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.fml.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Objects;
 
 public final class ComputerTileEntity extends TileEntity implements ITickableTileEntity {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private final Terminal terminal = new Terminal();
+    private Chunk chunk;
 
     private VirtualMachineRunner runner;
     private R5Board board;
@@ -37,6 +44,10 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
         super(OpenComputers.COMPUTER_TILE_ENTITY.get());
     }
 
+    public Terminal getTerminal() {
+        return terminal;
+    }
+
     public void start() {
         startVirtualMachine();
     }
@@ -45,10 +56,18 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
         stopVirtualMachine();
     }
 
+    public boolean isRunning() {
+        return runner != null;
+    }
+
     @Override
     public void tick() {
         if (world == null || world.isRemote()) {
             return;
+        }
+
+        if (chunk == null) {
+            chunk = Objects.requireNonNull(getWorld()).getChunkAt(getPos());
         }
 
         if (runner != null) {
@@ -64,7 +83,21 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
 
     @Override
     public void onChunkUnloaded() {
+        super.onChunkUnloaded();
         stopVirtualMachine();
+    }
+
+    @Override
+    public CompoundNBT getUpdateTag() {
+        final CompoundNBT result = super.getUpdateTag();
+        result.put("terminal", terminal.serialize(true));
+        return result;
+    }
+
+    @Override
+    public void handleUpdateTag(final CompoundNBT tag) {
+        super.handleUpdateTag(tag);
+        terminal.deserialize(tag.getCompound("terminal"));
     }
 
     @Override
@@ -78,7 +111,7 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
     public CompoundNBT write(final CompoundNBT compound) {
         final CompoundNBT result = super.write(compound);
         joinVirtualMachine();
-        // todo serialize VM
+        // TODO serialize VM
         return result;
     }
 
@@ -172,9 +205,17 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
 
         @Override
         protected void handleAfterRun() {
+            final ByteBuffer output = ByteBuffer.allocate(outputBuffer.size());
             while (!outputBuffer.isEmpty()) {
-                terminal.putOutput(outputBuffer.dequeueByte());
+                output.put(outputBuffer.dequeueByte());
             }
+
+            output.flip();
+            terminal.putOutput(output);
+
+            output.flip();
+            final ComputerTerminalOutputMessage message = new ComputerTerminalOutputMessage(ComputerTileEntity.this, output);
+            Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
         }
     }
 }

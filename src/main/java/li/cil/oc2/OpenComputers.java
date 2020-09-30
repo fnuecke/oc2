@@ -46,7 +46,10 @@ public final class OpenComputers {
     public static final RegistryObject<ContainerType<ComputerContainer>> COMPUTER_CONTAINER = CONTAINERS.register(Constants.COMPUTER_BLOCK_NAME, () -> IForgeContainerType.create((id, inventory, data) -> {
         final BlockPos pos = data.readBlockPos();
         final TileEntity tileEntity = inventory.player.getEntityWorld().getTileEntity(pos);
-        return new ComputerContainer(id, tileEntity);
+        if (!(tileEntity instanceof ComputerTileEntity)) {
+            return null;
+        }
+        return new ComputerContainer(id, (ComputerTileEntity) tileEntity);
     }));
 
     public OpenComputers() {

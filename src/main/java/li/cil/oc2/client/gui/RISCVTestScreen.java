@@ -130,7 +130,7 @@ public final class RISCVTestScreen extends Screen {
                 return true;
             }
         } else {
-            if (keyCode == GLFW.GLFW_KEY_V && (modifiers & GLFW.GLFW_MOD_CONTROL) != 0) {
+            if ((modifiers & GLFW.GLFW_MOD_CONTROL) != 0 && keyCode == GLFW.GLFW_KEY_V) {
                 final String value = Objects.requireNonNull(minecraft).keyboardListener.getClipboardString();
                 for (final char ch : value.toCharArray()) {
                     terminal.putInput((byte) ch);

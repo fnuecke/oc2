@@ -1,18 +1,18 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.OpenComputers;
+import li.cil.oc2.common.tile.ComputerTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.container.Container;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 
 public final class ComputerContainer extends Container {
-    private final TileEntity tileEntity;
+    private final ComputerTileEntity tileEntity;
 
-    public ComputerContainer(final int id, @Nullable final TileEntity tileEntity) {
+    public ComputerContainer(final int id, @Nullable final ComputerTileEntity tileEntity) {
         super(OpenComputers.COMPUTER_CONTAINER.get(), id);
         this.tileEntity = tileEntity;
     }

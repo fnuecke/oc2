@@ -13,16 +13,21 @@ import net.minecraft.client.renderer.Matrix4f;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldVertexBufferUploader;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.NoteBlockInstrument;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
 
+import javax.annotation.Nullable;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // Implements a couple of control sequences from here: https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
 public final class Terminal {
     private static final int TAB_WIDTH = 4;
-    private static final int WIDTH = 80, HEIGHT = 25;
+    private static final int WIDTH = 80, HEIGHT = 24;
 
     private enum State {
         NORMAL, // Currently reading characters normally.
@@ -31,7 +36,7 @@ public final class Terminal {
     }
 
     private final ByteArrayFIFOQueue input = new ByteArrayFIFOQueue(32);
-    private final char[] buffer = new char[WIDTH * HEIGHT];
+    private final byte[] buffer = new byte[WIDTH * HEIGHT];
     private State state = State.NORMAL;
     private final int[] args = new int[4];
     private int argCount = 0;
@@ -42,7 +47,7 @@ public final class Terminal {
     private final AtomicInteger dirty = new AtomicInteger(-1);
 
     public Terminal() {
-        Arrays.fill(buffer, ' ');
+        clear();
     }
 
     public int getWidth() {
@@ -53,6 +58,7 @@ public final class Terminal {
         return HEIGHT * MonospaceFontRenderer.INSTANCE.getCharHeight();
     }
 
+    @OnlyIn(Dist.CLIENT)
     public void render(final MatrixStack stack) {
         final FontRenderer fontRenderer = MonospaceFontRenderer.INSTANCE;
 
@@ -70,11 +76,84 @@ public final class Terminal {
         }
     }
 
+    public CompoundNBT serialize(final boolean forClient) {
+        final CompoundNBT nbt = new CompoundNBT();
+
+        if (!forClient) {
+            // todo serialize input
+        }
+
+        nbt.putByteArray("buffer", buffer);
+        nbt.putByte("state", (byte) state.ordinal());
+        nbt.putIntArray("args", args);
+        nbt.putInt("argCount", argCount);
+        nbt.putInt("x", x);
+        nbt.putInt("y", y);
+        nbt.putInt("savedX", savedX);
+        nbt.putInt("savedY", savedY);
+
+        return nbt;
+    }
+
+    public void deserialize(final CompoundNBT nbt) {
+        if (nbt.contains("input")) {
+            // todo deserialize input
+        }
+
+        final byte[] buffer = nbt.getByteArray("buffer");
+        if (buffer.length == this.buffer.length) {
+            System.arraycopy(buffer, 0, this.buffer, 0, buffer.length);
+        }
+
+        final byte state = nbt.getByte("state");
+        final State[] states = State.values();
+        if (state >= 0 && state < states.length) {
+            this.state = states[state];
+        }
+
+        final int[] args = nbt.getIntArray("args");
+        if (args.length == this.args.length) {
+            System.arraycopy(args, 0, this.args, 0, args.length);
+        }
+
+        argCount = nbt.getInt("argCount");
+        x = nbt.getInt("x");
+        y = nbt.getInt("y");
+        savedX = nbt.getInt("savedX");
+        savedY = nbt.getInt("savedY");
+    }
+
     public synchronized int readInput() {
         if (input.isEmpty()) {
             return -1;
         } else {
             return input.dequeueByte() & 0xFF;
+        }
+    }
+
+    @Nullable
+    public synchronized ByteBuffer getInput() {
+        if (input.isEmpty()) {
+            return null;
+        } else {
+            final ByteBuffer buffer = ByteBuffer.allocate(input.size());
+            while (!input.isEmpty()) {
+                buffer.put(input.dequeueByte());
+            }
+            buffer.flip();
+            return buffer;
+        }
+    }
+
+    public synchronized void putInput(final ByteBuffer values) {
+        while (values.hasRemaining()) {
+            input.enqueue(values.get());
+        }
+    }
+
+    public synchronized void putOutput(final ByteBuffer values) {
+        while (values.hasRemaining()) {
+            putOutput(values.get());
         }
     }
 
@@ -243,7 +322,12 @@ public final class Terminal {
         }
     }
 
+    @OnlyIn(Dist.CLIENT)
     private void renderCursor(final MatrixStack stack) {
+        if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
+            return;
+        }
+
         final FontRenderer fontRenderer = MonospaceFontRenderer.INSTANCE;
 
         GlStateManager.depthMask(false);
@@ -282,7 +366,7 @@ public final class Terminal {
         }
 
         setChar(x, y, ch);
-        setCursorPos(x + 1, y);
+        x++;
     }
 
     private void setChar(final int x, final int y, final char ch) {
@@ -290,12 +374,12 @@ public final class Terminal {
             return;
         }
 
-        buffer[x + y * WIDTH] = ch;
+        buffer[x + y * WIDTH] = (byte) ch;
         dirty.accumulateAndGet(1 << y, (prev, next) -> prev | next);
     }
 
     private void clear() {
-        Arrays.fill(buffer, ' ');
+        Arrays.fill(buffer, (byte) ' ');
         dirty.set((1 << HEIGHT) - 1);
     }
 
@@ -304,7 +388,7 @@ public final class Terminal {
     }
 
     private void clearLine(final int y, final int fromIndex, final int toIndex) {
-        Arrays.fill(buffer, y * WIDTH + fromIndex, y * WIDTH + toIndex, ' ');
+        Arrays.fill(buffer, y * WIDTH + fromIndex, y * WIDTH + toIndex, (byte) ' ');
         dirty.accumulateAndGet(1 << y, (prev, next) -> prev | next);
     }
 
@@ -319,7 +403,7 @@ public final class Terminal {
     private void shiftUpOne() {
         System.arraycopy(buffer, WIDTH, buffer, 0, buffer.length - WIDTH);
         System.arraycopy(lines, 1, lines, 0, lines.length - 1);
-        Arrays.fill(buffer, WIDTH * HEIGHT - WIDTH, WIDTH * HEIGHT, ' ');
+        Arrays.fill(buffer, WIDTH * HEIGHT - WIDTH, WIDTH * HEIGHT, (byte) ' ');
 
         // Shift all dirty down one because we moved rows up one (up = lower indices).
         // Mark bottom-most line (highest index) as dirty.

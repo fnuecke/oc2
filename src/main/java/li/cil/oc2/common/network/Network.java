@@ -18,16 +18,16 @@ public final class Network {
     );
 
     public static void setup() {
-        INSTANCE.messageBuilder(ComputerTerminalOutputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(ComputerTerminalOutputMessage::toBytes)
-                .decoder(ComputerTerminalOutputMessage::new)
-                .consumer(ComputerTerminalOutputMessage::handleOutput)
+        INSTANCE.messageBuilder(TerminalBlockOutputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(TerminalBlockOutputMessage::toBytes)
+                .decoder(TerminalBlockOutputMessage::new)
+                .consumer(TerminalBlockOutputMessage::handleOutput)
                 .add();
 
-        INSTANCE.messageBuilder(ComputerTerminalInputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ComputerTerminalInputMessage::toBytes)
-                .decoder(ComputerTerminalInputMessage::new)
-                .consumer(ComputerTerminalInputMessage::handleInput)
+        INSTANCE.messageBuilder(TerminalBlockInputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(TerminalBlockInputMessage::toBytes)
+                .decoder(TerminalBlockInputMessage::new)
+                .consumer(TerminalBlockInputMessage::handleInput)
                 .add();
     }
 

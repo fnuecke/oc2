@@ -3,7 +3,7 @@ package li.cil.oc2.common.tile;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.client.gui.terminal.Terminal;
-import li.cil.oc2.common.network.ComputerTerminalOutputMessage;
+import li.cil.oc2.common.network.TerminalBlockOutputMessage;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
 import li.cil.sedna.api.Sizes;
@@ -214,7 +214,7 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
             terminal.putOutput(output);
 
             output.flip();
-            final ComputerTerminalOutputMessage message = new ComputerTerminalOutputMessage(ComputerTileEntity.this, output);
+            final TerminalBlockOutputMessage message = new TerminalBlockOutputMessage(ComputerTileEntity.this, output);
             Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
         }
     }

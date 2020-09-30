@@ -10,16 +10,16 @@ import net.minecraftforge.fml.network.NetworkEvent;
 import java.nio.ByteBuffer;
 import java.util.function.Supplier;
 
-public final class ComputerTerminalOutputMessage extends AbstractComputerTerminalMessage {
-    public ComputerTerminalOutputMessage(final ComputerTileEntity tileEntity, final ByteBuffer data) {
+public final class TerminalBlockOutputMessage extends AbstractTerminalBlockMessage {
+    public TerminalBlockOutputMessage(final ComputerTileEntity tileEntity, final ByteBuffer data) {
         super(tileEntity, data);
     }
 
-    public ComputerTerminalOutputMessage(final PacketBuffer buffer) {
+    public TerminalBlockOutputMessage(final PacketBuffer buffer) {
         super(buffer);
     }
 
-    public static boolean handleOutput(final AbstractComputerTerminalMessage message, final Supplier<NetworkEvent.Context> context) {
+    public static boolean handleOutput(final AbstractTerminalBlockMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> {
             final ClientWorld world = Minecraft.getInstance().world;
             if (world == null) return;

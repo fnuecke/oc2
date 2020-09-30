@@ -6,16 +6,16 @@ import net.minecraft.util.math.BlockPos;
 
 import java.nio.ByteBuffer;
 
-public abstract class AbstractComputerTerminalMessage {
+public abstract class AbstractTerminalBlockMessage {
     protected BlockPos pos;
     protected byte[] data;
 
-    public AbstractComputerTerminalMessage(final ComputerTileEntity tileEntity, final ByteBuffer data) {
+    protected AbstractTerminalBlockMessage(final ComputerTileEntity tileEntity, final ByteBuffer data) {
         this.pos = tileEntity.getPos();
         this.data = data.array();
     }
 
-    public AbstractComputerTerminalMessage(final PacketBuffer buffer) {
+    protected AbstractTerminalBlockMessage(final PacketBuffer buffer) {
         fromBytes(buffer);
     }
 
@@ -24,7 +24,7 @@ public abstract class AbstractComputerTerminalMessage {
         data = buffer.readByteArray();
     }
 
-    public static void toBytes(final AbstractComputerTerminalMessage message, final PacketBuffer buffer) {
+    public static void toBytes(final AbstractTerminalBlockMessage message, final PacketBuffer buffer) {
         buffer.writeBlockPos(message.pos);
         buffer.writeByteArray(message.data);
     }

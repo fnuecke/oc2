@@ -5,7 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.gui.terminal.Terminal;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
-import li.cil.oc2.common.network.ComputerTerminalInputMessage;
+import li.cil.oc2.common.network.TerminalBlockInputMessage;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.tile.ComputerTileEntity;
 import net.minecraft.client.gui.screen.Screen;
@@ -69,7 +69,7 @@ public final class TerminalScreen extends Screen {
 
         final ByteBuffer input = terminal.getInput();
         if (input != null) {
-            Network.INSTANCE.sendToServer(new ComputerTerminalInputMessage(tileEntity, input));
+            Network.INSTANCE.sendToServer(new TerminalBlockInputMessage(tileEntity, input));
         }
     }
 

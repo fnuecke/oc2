@@ -1,10 +1,7 @@
 package li.cil.oc2.common.network;
 
 import li.cil.oc2.common.tile.ComputerTileEntity;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.nio.ByteBuffer;
@@ -20,13 +17,8 @@ public final class TerminalBlockOutputMessage extends AbstractTerminalBlockMessa
     }
 
     public static boolean handleOutput(final AbstractTerminalBlockMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> {
-            final ClientWorld world = Minecraft.getInstance().world;
-            if (world == null) return;
-            final TileEntity tileEntity = world.getTileEntity(message.pos);
-            if (!(tileEntity instanceof ComputerTileEntity)) return;
-            ((ComputerTileEntity) tileEntity).getTerminal().putOutput(ByteBuffer.wrap(message.data));
-        });
+        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
+                tileEntity -> tileEntity.getTerminal().putOutput(ByteBuffer.wrap(message.data))));
         return true;
     }
 }

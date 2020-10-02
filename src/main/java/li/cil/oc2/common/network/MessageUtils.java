@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 
 public final class MessageUtils {
     @SuppressWarnings("unchecked")
-    public static <T extends TileEntity> void withServerTileEntityAt(final Supplier<NetworkEvent.Context> context, final BlockPos pos, final Class<T> clazz, final Consumer<T> callback) {
+    public static <T extends TileEntity> void withServerTileEntityAt(final Supplier<NetworkEvent.Context> context, final BlockPos pos, final Class<T> type, final Consumer<T> callback) {
         final ServerPlayerEntity player = context.get().getSender();
         if (player == null) {
             return;
@@ -24,21 +24,21 @@ public final class MessageUtils {
         final ChunkPos chunkPos = new ChunkPos(pos);
         if (world.chunkExists(chunkPos.x, chunkPos.z)) {
             final TileEntity tileEntity = world.getTileEntity(pos);
-            if (clazz.isInstance(tileEntity)) {
+            if (type.isInstance(tileEntity)) {
                 callback.accept((T) tileEntity);
             }
         }
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends TileEntity> void withClientTileEntityAt(final BlockPos pos, final Class<T> clazz, final Consumer<T> callback) {
+    public static <T extends TileEntity> void withClientTileEntityAt(final BlockPos pos, final Class<T> type, final Consumer<T> callback) {
         final ClientWorld world = Minecraft.getInstance().world;
         if (world == null) {
             return;
         }
 
         final TileEntity tileEntity = world.getTileEntity(pos);
-        if (clazz.isInstance(tileEntity)) {
+        if (type.isInstance(tileEntity)) {
             callback.accept((T) tileEntity);
         }
     }

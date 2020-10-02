@@ -4,6 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
+import li.cil.ceres.api.Serialized;
 import li.cil.oc2.client.render.font.FontRenderer;
 import li.cil.oc2.client.render.font.MonospaceFontRenderer;
 import net.minecraft.client.Minecraft;
@@ -13,7 +14,6 @@ import net.minecraft.client.renderer.Matrix4f;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldVertexBufferUploader;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.NoteBlockInstrument;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -25,20 +25,21 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // Implements a couple of control sequences from here: https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
+@Serialized
 public final class Terminal {
     private static final int TAB_WIDTH = 4;
     private static final int WIDTH = 80, HEIGHT = 24;
 
-    private enum State {
+    public enum State { // Must be public for serialization.
         NORMAL, // Currently reading characters normally.
         ESCAPE, // Last character was ESC, figure out what kind next.
         SEQUENCE, // Know what sequence we have, now parsing it.
     }
 
     private final ByteArrayFIFOQueue input = new ByteArrayFIFOQueue(32);
-    private final byte[] buffer = new byte[WIDTH * HEIGHT];
+    private byte[] buffer = new byte[WIDTH * HEIGHT];
     private State state = State.NORMAL;
-    private final int[] args = new int[4];
+    private int[] args = new int[4];
     private int argCount = 0;
     private int x, y;
     private int savedX, savedY;
@@ -74,53 +75,6 @@ public final class Terminal {
         if (System.currentTimeMillis() % 1000 > 500) {
             renderCursor(stack);
         }
-    }
-
-    public CompoundNBT serialize(final boolean forClient) {
-        final CompoundNBT nbt = new CompoundNBT();
-
-        if (!forClient) {
-            // todo serialize input
-        }
-
-        nbt.putByteArray("buffer", buffer);
-        nbt.putByte("state", (byte) state.ordinal());
-        nbt.putIntArray("args", args);
-        nbt.putInt("argCount", argCount);
-        nbt.putInt("x", x);
-        nbt.putInt("y", y);
-        nbt.putInt("savedX", savedX);
-        nbt.putInt("savedY", savedY);
-
-        return nbt;
-    }
-
-    public void deserialize(final CompoundNBT nbt) {
-        if (nbt.contains("input")) {
-            // todo deserialize input
-        }
-
-        final byte[] buffer = nbt.getByteArray("buffer");
-        if (buffer.length == this.buffer.length) {
-            System.arraycopy(buffer, 0, this.buffer, 0, buffer.length);
-        }
-
-        final byte state = nbt.getByte("state");
-        final State[] states = State.values();
-        if (state >= 0 && state < states.length) {
-            this.state = states[state];
-        }
-
-        final int[] args = nbt.getIntArray("args");
-        if (args.length == this.args.length) {
-            System.arraycopy(args, 0, this.args, 0, args.length);
-        }
-
-        argCount = nbt.getInt("argCount");
-        x = nbt.getInt("x");
-        y = nbt.getInt("y");
-        savedX = nbt.getInt("savedX");
-        savedY = nbt.getInt("savedY");
     }
 
     public synchronized int readInput() {

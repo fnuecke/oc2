@@ -3,9 +3,10 @@ package li.cil.oc2.common.tile;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.client.gui.terminal.Terminal;
-import li.cil.oc2.common.network.TerminalBlockOutputMessage;
 import li.cil.oc2.common.network.Network;
+import li.cil.oc2.common.network.TerminalBlockOutputMessage;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
+import li.cil.oc2.serialization.NBTSerialization;
 import li.cil.sedna.api.Sizes;
 import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.buildroot.Buildroot;
@@ -90,20 +91,22 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
     @Override
     public CompoundNBT getUpdateTag() {
         final CompoundNBT result = super.getUpdateTag();
-        result.put("terminal", terminal.serialize(true));
+
+        result.put("terminal", NBTSerialization.serialize(terminal));
         return result;
     }
 
     @Override
     public void handleUpdateTag(final CompoundNBT tag) {
         super.handleUpdateTag(tag);
-        terminal.deserialize(tag.getCompound("terminal"));
+        NBTSerialization.deserialize(tag.getCompound("terminal"), terminal);
     }
 
     @Override
     public void read(final CompoundNBT compound) {
         super.read(compound);
         joinVirtualMachine();
+        NBTSerialization.deserialize(compound.getCompound("terminal"), terminal);
         // TODO deserialize VM
     }
 
@@ -111,6 +114,7 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
     public CompoundNBT write(final CompoundNBT compound) {
         final CompoundNBT result = super.write(compound);
         joinVirtualMachine();
+        compound.put("terminal", NBTSerialization.serialize(terminal));
         // TODO serialize VM
         return result;
     }

@@ -46,7 +46,13 @@ compileJava {
     sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 }
 
+configurations {
+    embed
+    compile.extendsFrom embed
+}
+
 repositories {
+    mavenCentral()
     maven { url "http://dvs1.progwml6.com/files/maven" } // JEI
     maven { url "http://maven.cil.li/" } // Sedna
 }
@@ -54,8 +60,11 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    compile 'li.cil.sedna:sedna:0.0.1+'
-    compile 'li.cil.sedna:sedna-buildroot:0.0.1+'
+    compileOnly 'org.jetbrains:annotations:16.0.2'
+
+    embed 'li.cil.ceres:ceres:0.0.1+'
+    embed 'li.cil.sedna:sedna:0.0.1+'
+    embed 'li.cil.sedna:sedna-buildroot:0.0.1+'
 
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
@@ -127,21 +136,57 @@ minecraft {
     }
 }
 
-jar {
-    manifest {
-        attributes([
-                "Specification-Title"     : "oc2",
-                "Specification-Vendor"    : "Sangar",
-                "Specification-Version"   : "1",
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : "${semver}",
-                "Implementation-Vendor"   : "Sangar",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
+task generateMetaFiles {
+    ext.embeddedFiles = []
+    doLast {
+        file("${buildDir}/dependencyMeta/").deleteDir()
+        configurations.embed.resolvedConfiguration.resolvedArtifacts.each {
+            // Don't embed anything Minecraft provides anyway.
+            if (configurations.minecraft.resolvedConfiguration.resolvedArtifacts.contains(it)) {
+                return
+            }
+
+            ext.embeddedFiles.add(it.file)
+
+            def metaFile = file("${buildDir}/dependencyMeta/${it.file.name}.meta")
+            metaFile.parentFile.mkdirs()
+            def artifactRef = it.moduleVersion.toString()
+            if (it.classifier != null) {
+                artifactRef += ":${it.classifier}"
+            }
+            metaFile.text = "Maven-Artifact: $artifactRef"
+        }
     }
 }
 
-jar.finalizedBy('reobfJar')
+task embedFilesInJar {
+    dependsOn generateMetaFiles
+    doLast {
+        jar {
+            into('/') {
+                from generateMetaFiles.embeddedFiles
+                from "${buildDir}/dependencyMeta/"
+            }
+            manifest {
+                attributes([
+                        "Specification-Title"     : "oc2",
+                        "Specification-Vendor"    : "Sangar",
+                        "Specification-Version"   : "1",
+                        "Implementation-Title"    : project.name,
+                        "Implementation-Version"  : "${semver}",
+                        "Implementation-Vendor"   : "Sangar",
+                        "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                        'ContainedDeps'           : generateMetaFiles.embeddedFiles.collect { it.name }.join(' ')
+                ])
+            }
+        }
+    }
+}
+
+jar {
+    dependsOn embedFilesInJar
+    finalizedBy 'reobfJar'
+}
 
 task apiJar(type: Jar) {
     from sourceSets.main.allSource

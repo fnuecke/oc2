@@ -12,7 +12,6 @@ buildscript {
 plugins {
     id 'eclipse'
     id 'maven-publish'
-    id 'application'
 }
 
 apply plugin: 'net.minecraftforge.gradle'
@@ -70,13 +69,13 @@ processResources {
         include 'META-INF/mods.toml'
 
         expand([
-                'mod_id'                : mod_id,
-                'mod_version'           : version,
-                'mod_name'              : mod_name,
-                'mod_url'               : mod_url,
-                'mod_issues_url'        : mod_issues_url,
-                'forge_version_min'     : forge_version_min,
-                'minecraft_version_min' : minecraft_version_min
+                'mod_id'               : mod_id,
+                'mod_version'          : version,
+                'mod_name'             : mod_name,
+                'mod_url'              : mod_url,
+                'mod_issues_url'       : mod_issues_url,
+                'forge_version_min'    : forge_version_min,
+                'minecraft_version_min': minecraft_version_min
         ])
     }
 }

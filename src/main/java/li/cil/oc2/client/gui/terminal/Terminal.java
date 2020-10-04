@@ -37,15 +37,15 @@ public final class Terminal {
     }
 
     private final ByteArrayFIFOQueue input = new ByteArrayFIFOQueue(32);
-    private byte[] buffer = new byte[WIDTH * HEIGHT];
+    private final byte[] buffer = new byte[WIDTH * HEIGHT];
     private State state = State.NORMAL;
-    private int[] args = new int[4];
+    private final int[] args = new int[4];
     private int argCount = 0;
     private int x, y;
     private int savedX, savedY;
 
-    private final String[] lines = new String[HEIGHT]; // Cached strings for rendering.
-    private final AtomicInteger dirty = new AtomicInteger(-1);
+    private final transient String[] lines = new String[HEIGHT]; // Cached strings for rendering.
+    private final transient AtomicInteger dirty = new AtomicInteger(-1);
 
     public Terminal() {
         clear();

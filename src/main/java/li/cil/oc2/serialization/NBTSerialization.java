@@ -14,22 +14,31 @@ import java.lang.reflect.Array;
 import java.util.UUID;
 
 public final class NBTSerialization {
-    private static final String IS_NULL_SUFFIX = ".is_null";
-
-    public static CompoundNBT serialize(final Object value) throws SerializationException {
-        final CompoundNBT nbt = new CompoundNBT();
-        Ceres.getSerializer(value.getClass()).serialize(new Serializer(nbt), value);
-        return nbt;
+    public static <T> void serialize(final CompoundNBT nbt, final T value) throws SerializationException {
+        @SuppressWarnings("unchecked") final Class<T> type = (Class<T>) value.getClass();
+        Ceres.getSerializer(type).serialize(new Serializer(nbt), type, value);
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> T deserialize(final CompoundNBT nbt, final T into) throws SerializationException {
-        return deserialize(nbt, (Class<T>) into.getClass(), into);
+    public static <T> CompoundNBT serialize(final T value) throws SerializationException {
+        final CompoundNBT nbt = new CompoundNBT();
+        serialize(nbt, value);
+        return nbt;
     }
 
     public static <T> T deserialize(final CompoundNBT nbt, final Class<T> type, @Nullable final T into) throws SerializationException {
         return Ceres.getSerializer(type).deserialize(new Deserializer(nbt), type, into);
     }
+
+    public static <T> T deserialize(final CompoundNBT nbt, final Class<T> type) throws SerializationException {
+        return deserialize(nbt, type, null);
+    }
+
+    public static <T> T deserialize(final CompoundNBT nbt, final T into) throws SerializationException {
+        @SuppressWarnings("unchecked") final Class<T> type = (Class<T>) into.getClass();
+        return deserialize(nbt, type, into);
+    }
+
+    private static final String IS_NULL_KEY = "<is_null>";
 
     private static final class Serializer implements SerializationVisitor {
         private final CompoundNBT nbt;
@@ -134,7 +143,7 @@ public final class NBTSerialization {
                 for (final Object datum : data) {
                     final CompoundNBT itemNBT = new CompoundNBT();
                     if (datum == null) {
-                        itemNBT.putBoolean(IS_NULL_SUFFIX, true);
+                        itemNBT.putBoolean(IS_NULL_KEY, true);
                     } else {
                         if (datum.getClass() != componentType) {
                             throw new SerializationException(String.format("Polymorphism detected in generic array [%s]. This is not supported.", name));
@@ -164,7 +173,11 @@ public final class NBTSerialization {
         @Contract(value = "_, null -> true")
         private boolean putIsNull(final String name, @Nullable final Object value) {
             final boolean isNull = value == null;
-            nbt.putBoolean(name + IS_NULL_SUFFIX, isNull);
+            if (isNull) {
+                final CompoundNBT nullNBT = new CompoundNBT();
+                nullNBT.putBoolean(IS_NULL_KEY, true);
+                nbt.put(name, nullNBT);
+            }
             return isNull;
         }
     }
@@ -231,41 +244,74 @@ public final class NBTSerialization {
 
             if (type == boolean[].class) {
                 final byte[] convertedData = nbt.getByteArray(name);
-                final boolean[] data = new boolean[convertedData.length];
+                boolean[] data = (boolean[]) into;
+                if (data == null || data.length != convertedData.length) {
+                    data = new boolean[convertedData.length];
+                }
                 for (int i = 0; i < convertedData.length; i++) {
                     data[i] = convertedData[i] != 0;
                 }
                 return data;
             } else if (type == byte[].class) {
-                return nbt.getByteArray(name);
+                final byte[] serializedData = nbt.getByteArray(name);
+                final byte[] data = (byte[]) into;
+                if (data == null || data.length != serializedData.length) {
+                    return serializedData;
+                }
+                System.arraycopy(serializedData, 0, data, 0, serializedData.length);
+                return data;
             } else if (type == char[].class) {
                 final int[] convertedData = nbt.getIntArray(name);
-                final char[] data = new char[convertedData.length];
+                char[] data = (char[]) into;
+                if (data == null || data.length != convertedData.length) {
+                    data = new char[convertedData.length];
+                }
                 for (int i = 0; i < convertedData.length; i++) {
                     data[i] = (char) convertedData[i];
                 }
                 return data;
             } else if (type == short[].class) {
                 final int[] convertedData = nbt.getIntArray(name);
-                final short[] data = new short[convertedData.length];
+                short[] data = (short[]) into;
+                if (data == null || data.length != convertedData.length) {
+                    data = new short[convertedData.length];
+                }
                 for (int i = 0; i < convertedData.length; i++) {
                     data[i] = (short) convertedData[i];
                 }
                 return data;
             } else if (type == int[].class) {
-                return nbt.getIntArray(name);
+                final int[] serializedData = nbt.getIntArray(name);
+                final int[] data = (int[]) into;
+                if (data == null || data.length != serializedData.length) {
+                    return serializedData;
+                }
+                System.arraycopy(serializedData, 0, data, 0, serializedData.length);
+                return data;
             } else if (type == long[].class) {
-                return nbt.getLongArray(name);
+                final long[] serializedData = nbt.getLongArray(name);
+                final long[] data = (long[]) into;
+                if (data == null || data.length != serializedData.length) {
+                    return serializedData;
+                }
+                System.arraycopy(serializedData, 0, data, 0, serializedData.length);
+                return data;
             } else if (type == float[].class) {
                 final int[] convertedData = nbt.getIntArray(name);
-                final float[] data = new float[convertedData.length];
+                float[] data = (float[]) into;
+                if (data == null || data.length != convertedData.length) {
+                    data = new float[convertedData.length];
+                }
                 for (int i = 0; i < convertedData.length; i++) {
                     data[i] = Float.intBitsToFloat(convertedData[i]);
                 }
                 return data;
             } else if (type == double[].class) {
                 final long[] convertedData = nbt.getLongArray(name);
-                final double[] data = new double[convertedData.length];
+                double[] data = (double[]) into;
+                if (data == null || data.length != convertedData.length) {
+                    data = new double[convertedData.length];
+                }
                 for (int i = 0; i < convertedData.length; i++) {
                     data[i] = Double.longBitsToDouble(convertedData[i]);
                 }
@@ -274,14 +320,18 @@ public final class NBTSerialization {
                 final Class<?> componentType = type.getComponentType();
                 final li.cil.ceres.api.Serializer<?> serializer = Ceres.getSerializer(componentType);
                 final ListNBT listNBT = nbt.getList(name, Constants.NBT.TAG_COMPOUND);
-                final Object[] data = (Object[]) Array.newInstance(componentType, listNBT.size());
-                for (int i = 0; i < listNBT.size(); i++) {
+                final int length = listNBT.size();
+                Object[] data = (Object[]) into;
+                if (data == null || data.length != length) {
+                    data = (Object[]) Array.newInstance(componentType, length);
+                }
+                for (int i = 0; i < length; i++) {
                     final CompoundNBT itemNBT = listNBT.getCompound(i);
-                    if (itemNBT.contains(IS_NULL_SUFFIX)) {
+                    if (itemNBT.contains(IS_NULL_KEY)) {
                         continue;
                     }
 
-                    data[i] = serializer.deserialize(new Deserializer(itemNBT), (Class) componentType, null);
+                    data[i] = serializer.deserialize(new Deserializer(itemNBT), (Class) componentType, data[i]);
                 }
                 return data;
             } else if (type.isEnum()) {
@@ -298,11 +348,11 @@ public final class NBTSerialization {
 
         @Override
         public boolean exists(final String name) {
-            return nbt.contains(name) || nbt.contains(name + IS_NULL_SUFFIX);
+            return nbt.contains(name);
         }
 
         private boolean isNull(final String name) {
-            return nbt.getBoolean(name + IS_NULL_SUFFIX);
+            return nbt.getCompound(name).getBoolean(IS_NULL_KEY);
         }
     }
 }

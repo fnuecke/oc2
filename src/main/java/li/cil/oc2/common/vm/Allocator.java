@@ -1,4 +1,4 @@
-package li.cil.oc2.common.sandbox;
+package li.cil.oc2.common.vm;
 
 import li.cil.oc2.Config;
 import org.apache.logging.log4j.LogManager;

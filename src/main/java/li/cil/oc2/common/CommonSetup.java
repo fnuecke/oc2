@@ -1,8 +1,8 @@
 package li.cil.oc2.common;
 
-import li.cil.oc2.common.blobs.BlobStorage;
 import li.cil.oc2.common.network.Network;
-import li.cil.oc2.common.sandbox.Allocator;
+import li.cil.oc2.common.vm.Allocator;
+import li.cil.oc2.serialization.BlobStorage;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;

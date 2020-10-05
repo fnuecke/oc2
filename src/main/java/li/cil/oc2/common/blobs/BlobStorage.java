@@ -149,8 +149,10 @@ public final class BlobStorage {
      *
      * @param handle the handle to free.
      */
-    public static void freeHandle(final UUID handle) {
-        DELETED_HANDLES.add(handle);
+    public static void freeHandle(@Nullable final UUID handle) {
+        if (handle != null) {
+            DELETED_HANDLES.add(handle);
+        }
     }
 
     /**

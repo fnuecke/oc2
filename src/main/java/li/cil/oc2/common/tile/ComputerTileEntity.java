@@ -217,6 +217,9 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
             virtualMachine.dispose();
             virtualMachine = null;
         }
+
+        BlobStorage.freeHandle(firmwareBlobHandle);
+        BlobStorage.freeHandle(ramBlobHandle);
     }
 
     private void joinVirtualMachine() {

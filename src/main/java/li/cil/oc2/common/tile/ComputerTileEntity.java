@@ -87,6 +87,7 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
 
         if (runner != null) {
             runner.tick();
+            chunk.markDirty();
         }
     }
 

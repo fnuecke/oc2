@@ -62,7 +62,7 @@ dependencies {
 
     compileOnly 'org.jetbrains:annotations:16.0.2'
 
-    embed 'li.cil.ceres:ceres:0.0.1+'
+    embed 'li.cil.ceres:ceres:0.0.2'
     embed 'li.cil.sedna:sedna:0.0.1+'
     embed 'li.cil.sedna:sedna-buildroot:0.0.1+'
 

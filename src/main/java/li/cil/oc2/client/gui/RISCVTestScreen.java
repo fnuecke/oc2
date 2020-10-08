@@ -138,8 +138,8 @@ public final class RISCVTestScreen extends Screen {
                 return true;
             }
 
-            if (TerminalInput.KEYCODE_SEQUENCES.containsKey(keyCode)) {
-                final byte[] sequence = TerminalInput.KEYCODE_SEQUENCES.get(keyCode);
+            final byte[] sequence = TerminalInput.getSequence(modifiers, keyCode);
+            if (sequence != null) {
                 for (int i = 0; i < sequence.length; i++) {
                     terminal.putInput(sequence[i]);
                 }

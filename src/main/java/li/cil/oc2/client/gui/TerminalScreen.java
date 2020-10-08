@@ -5,8 +5,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.gui.terminal.Terminal;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
-import li.cil.oc2.common.network.TerminalBlockInputMessage;
 import li.cil.oc2.common.network.Network;
+import li.cil.oc2.common.network.TerminalBlockInputMessage;
 import li.cil.oc2.common.tile.ComputerTileEntity;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.ResourceLocation;
@@ -98,8 +98,8 @@ public final class TerminalScreen extends Screen {
             return true;
         }
 
-        if (TerminalInput.KEYCODE_SEQUENCES.containsKey(keyCode)) {
-            final byte[] sequence = TerminalInput.KEYCODE_SEQUENCES.get(keyCode);
+        final byte[] sequence = TerminalInput.getSequence(modifiers, keyCode);
+        if (sequence != null) {
             for (int i = 0; i < sequence.length; i++) {
                 terminal.putInput(sequence[i]);
             }

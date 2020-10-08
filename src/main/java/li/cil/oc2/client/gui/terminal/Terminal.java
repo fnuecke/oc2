@@ -254,8 +254,21 @@ public final class Terminal {
                         // S, T: Scroll Up/Down. We don't have scrollback.
                         // m: Select Graphic Rendition. TODO
                         case 'n': { // Device Status Report
-                            for (final char i : String.format("ESC[%d;%dR", WIDTH, HEIGHT).toCharArray()) {
-                                putInput((byte) i);
+                            switch (args[0]) {
+                                case 5: { // Report console status
+                                    putOutput((byte) 27);
+                                    for (final char i : "[0n".toCharArray()) {
+                                        putInput((byte) i);
+                                    }
+                                    break;
+                                }
+                                case 6: { // Report cursor position
+                                    putOutput((byte) 27);
+                                    for (final char i : String.format("[%d;%dR", (y % HEIGHT) + 1, x + 1).toCharArray()) {
+                                        putInput((byte) i);
+                                    }
+                                    break;
+                                }
                             }
                             break;
                         }

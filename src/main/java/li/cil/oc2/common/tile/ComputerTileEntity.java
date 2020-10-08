@@ -208,6 +208,7 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
         }
 
         virtualMachine.board.reset();
+        virtualMachine.board.installDeviceTree(0x80000000 + 0x02200000);
         runner = new ConsoleRunner(virtualMachine);
     }
 

@@ -29,12 +29,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 // Implements a couple of control sequences from here: https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
 @Serialized
 public final class Terminal {
-    private static final ResourceLocation LOCATION_FONT_TEXTURE = new ResourceLocation(API.MOD_ID, "textures/font/monospace.png");
-    private static final int TEXTURE_RESOLUTION = 256;
-    private static final int CHAR_WIDTH = 9;
+    private static final int CHAR_WIDTH = 8;
     private static final int CHAR_HEIGHT = 16;
 
-    private static final int COLUMNS = TEXTURE_RESOLUTION / CHAR_WIDTH;
+    private static final ResourceLocation LOCATION_FONT_TEXTURE = new ResourceLocation(API.MOD_ID, "textures/font/terminus.png");
+    private static final int TEXTURE_RESOLUTION = 256;
+    private static final int TEXTURE_COLUMNS = 16;
+    private static final int TEXTURE_BOLD_SHIFT = TEXTURE_COLUMNS; // Bold chars are in right half of texture.
     private static final float U_SIZE = CHAR_WIDTH / (float) TEXTURE_RESOLUTION;
     private static final float V_SIZE = CHAR_HEIGHT / (float) TEXTURE_RESOLUTION;
     private static final float U_STEP = CHAR_WIDTH / (float) TEXTURE_RESOLUTION;
@@ -54,35 +55,35 @@ public final class Terminal {
 
     private static final int[] COLORS = {
             0x010101, // Black
-            0xDD3322, // Red
-            0x33EE44, // Green
+            0xEE3322, // Red
+            0x33DD44, // Green
             0xFFCC11, // Yellow
-            0x1199DD, // Blue
-            0x772277, // Magenta
-            0x44CCEE, // Cyan
-            0xCCCCCC, // White
+            0x1188EE, // Blue
+            0xDD33CC, // Magenta
+            0x22CCDD, // Cyan
+            0xEEEEEE, // White
     };
 
     private static final int[] DIM_COLORS = {
             0x010101, // Black
-            0xDD3322, // Red
-            0x33EE44, // Green
-            0xFFCC11, // Yellow
-            0x1199DD, // Blue
-            0x772277, // Magenta
-            0x44CCEE, // Cyan
-            0xCCCCCC, // White
+            0x772211, // Red
+            0x116622, // Green
+            0x886611, // Yellow
+            0x115588, // Blue
+            0x771177, // Magenta
+            0x116677, // Cyan
+            0x777777, // White
     };
 
     private static final int COLOR_MASK = 0b111;
     private static final int COLOR_FOREGROUND_SHIFT = 3;
 
     private static final int STYLE_BOLD_MASK = 1;
-    private static final int STYLE_DIM_MASK = 1;
-    private static final int STYLE_UNDERLINE_MASK = 1 << 1;
-    private static final int STYLE_BLINK_MASK = 1 << 2;
-    private static final int STYLE_INVERT_MASK = 1 << 3;
-    private static final int STYLE_HIDDEN_MASK = 1 << 4;
+    private static final int STYLE_DIM_MASK = 1 << 1;
+    private static final int STYLE_UNDERLINE_MASK = 1 << 2;
+    private static final int STYLE_BLINK_MASK = 1 << 3;
+    private static final int STYLE_INVERT_MASK = 1 << 4;
+    private static final int STYLE_HIDDEN_MASK = 1 << 5;
 
     // Default style: no modifiers, white foreground, black background.
     private static final byte DEFAULT_COLORS = COLOR_WHITE << COLOR_FOREGROUND_SHIFT;
@@ -104,12 +105,11 @@ public final class Terminal {
     private int x, y;
     private int savedX, savedY;
 
-    // Color info packed into one byte for compact storage:
+    // Color info packed into one byte for compact storage
     // 0-2: background color (index)
     // 3-5: foreground color (index)
     private byte color = DEFAULT_COLORS;
-    // Style info packed into one byte for compact storage:
-    // 6-10: bold, underline, blink, invert, hide
+    // Style info packed into one byte for compact storage
     private byte style = DEFAULT_STYLE;
 
     private final transient Object[] lines = new Object[HEIGHT]; // Cached vertex buffers for rendering, untyped for server.
@@ -358,11 +358,16 @@ public final class Terminal {
     private void selectStyle(final int sgr) {
         switch (sgr) {
             case 0: { // Reset / Normal
-                style = DEFAULT_COLORS;
+                color = DEFAULT_COLORS;
+                style = DEFAULT_STYLE;
                 break;
             }
             case 1: { // Bold or increased intensity
                 style |= STYLE_BOLD_MASK;
+                break;
+            }
+            case 2: { // Faint or decreased intensity
+                style |= STYLE_DIM_MASK;
                 break;
             }
             case 4: { // Underline
@@ -382,7 +387,7 @@ public final class Terminal {
                 break;
             }
             case 22: { // Normal color or intensity
-                style &= ~STYLE_BOLD_MASK;
+                style &= ~(STYLE_BOLD_MASK | STYLE_DIM_MASK);
                 break;
             }
             case 24: { // Underline off
@@ -477,8 +482,10 @@ public final class Terminal {
                 final byte colors = this.colors[index];
                 final byte style = this.styles[index];
 
-                final int x = character % COLUMNS;
-                final int y = character / COLUMNS;
+                if ((style & STYLE_HIDDEN_MASK) != 0) continue;
+
+                final int x = character % TEXTURE_COLUMNS + ((style & STYLE_BOLD_MASK) != 0 ? TEXTURE_BOLD_SHIFT : 0);
+                final int y = character / TEXTURE_COLUMNS;
                 final float u = x * U_STEP;
                 final float v = y * V_STEP;
 
@@ -492,22 +499,21 @@ public final class Terminal {
                 final float g = ((color >> 8) & 0xFF) / 255f;
                 final float b = ((color) & 0xFF) / 255f;
 
-                buffer.pos(matrix, tx, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u, v + V_SIZE).endVertex();
-                buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u + U_SIZE, v + V_SIZE).endVertex();
-                buffer.pos(matrix, tx + CHAR_WIDTH, 0, 0).color(r, g, b, 1).tex(u + U_SIZE, v).endVertex();
-                buffer.pos(matrix, tx, 0, 0).color(r, g, b, 1).tex(u, v).endVertex();
+                if (isPrintableCharacter((char) character)) {
+                    buffer.pos(matrix, tx, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u, v + V_SIZE).endVertex();
+                    buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u + U_SIZE, v + V_SIZE).endVertex();
+                    buffer.pos(matrix, tx + CHAR_WIDTH, 0, 0).color(r, g, b, 1).tex(u + U_SIZE, v).endVertex();
+                    buffer.pos(matrix, tx, 0, 0).color(r, g, b, 1).tex(u, v).endVertex();
+                }
 
                 if ((style & STYLE_UNDERLINE_MASK) != 0) {
-                    final int underlineCharacter = (byte) '_';
-                    final int ulx = underlineCharacter % COLUMNS;
-                    final int uly = underlineCharacter / COLUMNS;
-                    final float ulu = ulx * U_STEP;
-                    final float ulv = uly * V_STEP;
+                    final float ulu = (TEXTURE_RESOLUTION - 1) / (float) TEXTURE_RESOLUTION;
+                    final float ulv = 1 / (float) TEXTURE_RESOLUTION;
 
-                    buffer.pos(matrix, tx, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv + V_SIZE).endVertex();
-                    buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu + U_SIZE, ulv + V_SIZE).endVertex();
-                    buffer.pos(matrix, tx + CHAR_WIDTH, -2, 0).color(r, g, b, 1).tex(ulu + U_SIZE, ulv).endVertex();
-                    buffer.pos(matrix, tx, -2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                    buffer.pos(matrix, tx, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                    buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                    buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                    buffer.pos(matrix, tx, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
                 }
 
                 tx += CHAR_WIDTH;
@@ -519,6 +525,12 @@ public final class Terminal {
 
             stack.pop();
         }
+    }
+
+    private static boolean isPrintableCharacter(final char ch) {
+        return ch == 0 ||
+               (ch > ' ' && ch <= '~') ||
+               ch >= 177;
     }
 
     @OnlyIn(Dist.CLIENT)

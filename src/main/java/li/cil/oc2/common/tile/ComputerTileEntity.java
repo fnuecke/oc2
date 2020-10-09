@@ -71,6 +71,11 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
     }
 
     @Override
+    public void onLoad() {
+        terminal.setDisplayOnly(Objects.requireNonNull(getWorld()).isRemote());
+    }
+
+    @Override
     public void tick() {
         if (world == null || world.isRemote()) {
             return;

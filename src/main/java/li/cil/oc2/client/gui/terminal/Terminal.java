@@ -83,9 +83,14 @@ public final class Terminal {
     // Rendering data for client
     private final transient AtomicInteger dirty = new AtomicInteger(-1);
     private transient Object renderer;
+    private transient boolean displayOnly; // Set on client to not send responses to status requests.
 
     public Terminal() {
         clear();
+    }
+
+    public void setDisplayOnly(final boolean value) {
+        displayOnly = value;
     }
 
     public int getWidth() {
@@ -289,16 +294,20 @@ public final class Terminal {
                         case 'n': { // Device Status Report
                             switch (args[0]) {
                                 case 5: { // Report console status
-                                    putOutput((byte) 27);
-                                    for (final char i : "[0n".toCharArray()) {
-                                        putInput((byte) i);
+                                    if (!displayOnly) {
+                                        putInput((byte) 27);
+                                        for (final char i : "[0n".toCharArray()) {
+                                            putInput((byte) i);
+                                        }
                                     }
                                     break;
                                 }
                                 case 6: { // Report cursor position
-                                    putOutput((byte) 27);
-                                    for (final char i : String.format("[%d;%dR", (y % HEIGHT) + 1, x + 1).toCharArray()) {
-                                        putInput((byte) i);
+                                    if (!displayOnly) {
+                                        putInput((byte) 27);
+                                        for (final char i : String.format("[%d;%dR", (y % HEIGHT) + 1, x + 1).toCharArray()) {
+                                            putInput((byte) i);
+                                        }
                                     }
                                     break;
                                 }

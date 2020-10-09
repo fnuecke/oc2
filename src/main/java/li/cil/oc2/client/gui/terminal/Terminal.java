@@ -6,7 +6,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.API;
-import li.cil.oc2.client.render.font.MonospaceFontRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -29,18 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 // Implements a couple of control sequences from here: https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
 @Serialized
 public final class Terminal {
-    private static final int CHAR_WIDTH = 8;
-    private static final int CHAR_HEIGHT = 16;
-
-    private static final ResourceLocation LOCATION_FONT_TEXTURE = new ResourceLocation(API.MOD_ID, "textures/font/terminus.png");
-    private static final int TEXTURE_RESOLUTION = 256;
-    private static final int TEXTURE_COLUMNS = 16;
-    private static final int TEXTURE_BOLD_SHIFT = TEXTURE_COLUMNS; // Bold chars are in right half of texture.
-    private static final float U_SIZE = CHAR_WIDTH / (float) TEXTURE_RESOLUTION;
-    private static final float V_SIZE = CHAR_HEIGHT / (float) TEXTURE_RESOLUTION;
-    private static final float U_STEP = CHAR_WIDTH / (float) TEXTURE_RESOLUTION;
-    private static final float V_STEP = CHAR_HEIGHT / (float) TEXTURE_RESOLUTION;
-
     private static final int TAB_WIDTH = 4;
     private static final int WIDTH = 80, HEIGHT = 24;
 
@@ -53,27 +40,8 @@ public final class Terminal {
     private static final int COLOR_CYAN = 6;
     private static final int COLOR_WHITE = 7;
 
-    private static final int[] COLORS = {
-            0x010101, // Black
-            0xEE3322, // Red
-            0x33DD44, // Green
-            0xFFCC11, // Yellow
-            0x1188EE, // Blue
-            0xDD33CC, // Magenta
-            0x22CCDD, // Cyan
-            0xEEEEEE, // White
-    };
-
-    private static final int[] DIM_COLORS = {
-            0x010101, // Black
-            0x772211, // Red
-            0x116622, // Green
-            0x886611, // Yellow
-            0x115588, // Blue
-            0x771177, // Magenta
-            0x116677, // Cyan
-            0x777777, // White
-    };
+    private static final int CHAR_WIDTH = 8;
+    private static final int CHAR_HEIGHT = 16;
 
     private static final int COLOR_MASK = 0b111;
     private static final int COLOR_FOREGROUND_SHIFT = 3;
@@ -112,29 +80,28 @@ public final class Terminal {
     // Style info packed into one byte for compact storage
     private byte style = DEFAULT_STYLE;
 
-    private final transient Object[] lines = new Object[HEIGHT]; // Cached vertex buffers for rendering, untyped for server.
+    // Rendering data for client
     private final transient AtomicInteger dirty = new AtomicInteger(-1);
-    private transient Object lastMatrix; // Untyped for server.
+    private transient Object renderer;
 
     public Terminal() {
         clear();
     }
 
     public int getWidth() {
-        return WIDTH * MonospaceFontRenderer.INSTANCE.getCharWidth();
+        return WIDTH * CHAR_WIDTH;
     }
 
     public int getHeight() {
-        return HEIGHT * MonospaceFontRenderer.INSTANCE.getCharHeight();
+        return HEIGHT * CHAR_HEIGHT;
     }
 
     @OnlyIn(Dist.CLIENT)
     public void render(final MatrixStack stack) {
-        renderBuffer(stack);
-
-        if (System.currentTimeMillis() % 1000 > 500) {
-            renderCursor(stack);
+        if (renderer == null) {
+            renderer = new Renderer(this);
         }
+        ((Renderer) renderer).render(dirty, stack);
     }
 
     public synchronized int readInput() {
@@ -433,141 +400,6 @@ public final class Terminal {
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
-    private void renderBuffer(final MatrixStack stack) {
-        validateLineCache(stack);
-
-        GlStateManager.depthMask(false);
-        Minecraft.getInstance().getTextureManager().bindTexture(LOCATION_FONT_TEXTURE);
-
-        final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        for (final Object line : lines) {
-            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX);
-            buffer.setVertexState((BufferBuilder.State) line);
-            buffer.finishDrawing();
-            WorldVertexBufferUploader.draw(buffer);
-        }
-
-        GlStateManager.depthMask(true);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    private void validateLineCache(final MatrixStack stack) {
-        if (!Objects.equals(lastMatrix, stack.getLast().getMatrix())) {
-            lastMatrix = stack.getLast().getMatrix();
-            dirty.set(-1);
-        }
-
-        if (dirty.get() == 0) {
-            return;
-        }
-
-        final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-
-        final int mask = dirty.getAndSet(0);
-        for (int row = 0; row < lines.length; row++) {
-            if ((mask & (1 << row)) == 0) {
-                continue;
-            }
-
-            stack.push();
-            stack.translate(0, row * CHAR_HEIGHT, 0);
-            final Matrix4f matrix = stack.getLast().getMatrix();
-
-            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX);
-
-            float tx = 0f;
-            for (int col = 0, index = row * WIDTH; col < WIDTH; col++, index++) {
-                final int character = this.buffer[index] & 0xFF;
-                final byte colors = this.colors[index];
-                final byte style = this.styles[index];
-
-                if ((style & STYLE_HIDDEN_MASK) != 0) continue;
-
-                final int x = character % TEXTURE_COLUMNS + ((style & STYLE_BOLD_MASK) != 0 ? TEXTURE_BOLD_SHIFT : 0);
-                final int y = character / TEXTURE_COLUMNS;
-                final float u = x * U_STEP;
-                final float v = y * V_STEP;
-
-                final int[] palette = (style & STYLE_DIM_MASK) != 0 ? DIM_COLORS : COLORS;
-
-                final int foreground = palette[(colors >> COLOR_FOREGROUND_SHIFT) & COLOR_MASK];
-                final int background = palette[colors & COLOR_MASK];
-
-                final int color = (style & STYLE_INVERT_MASK) != 0 ? background : foreground;
-                final float r = ((color >> 16) & 0xFF) / 255f;
-                final float g = ((color >> 8) & 0xFF) / 255f;
-                final float b = ((color) & 0xFF) / 255f;
-
-                if (isPrintableCharacter((char) character)) {
-                    buffer.pos(matrix, tx, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u, v + V_SIZE).endVertex();
-                    buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u + U_SIZE, v + V_SIZE).endVertex();
-                    buffer.pos(matrix, tx + CHAR_WIDTH, 0, 0).color(r, g, b, 1).tex(u + U_SIZE, v).endVertex();
-                    buffer.pos(matrix, tx, 0, 0).color(r, g, b, 1).tex(u, v).endVertex();
-                }
-
-                if ((style & STYLE_UNDERLINE_MASK) != 0) {
-                    final float ulu = (TEXTURE_RESOLUTION - 1) / (float) TEXTURE_RESOLUTION;
-                    final float ulv = 1 / (float) TEXTURE_RESOLUTION;
-
-                    buffer.pos(matrix, tx, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-                    buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-                    buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-                    buffer.pos(matrix, tx, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-                }
-
-                tx += CHAR_WIDTH;
-            }
-
-            lines[row] = buffer.getVertexState();
-            buffer.finishDrawing();
-            buffer.discard();
-
-            stack.pop();
-        }
-    }
-
-    private static boolean isPrintableCharacter(final char ch) {
-        return ch == 0 ||
-               (ch > ' ' && ch <= '~') ||
-               ch >= 177;
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    private void renderCursor(final MatrixStack stack) {
-        if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
-            return;
-        }
-
-        GlStateManager.depthMask(false);
-        RenderSystem.disableTexture();
-
-        stack.push();
-        stack.translate(x * CHAR_WIDTH, y * CHAR_HEIGHT, 0);
-
-        final Matrix4f matrix = stack.getLast().getMatrix();
-        final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
-
-        final int foreground = COLORS[COLOR_WHITE];
-        final float r = ((foreground >> 16) & 0xFF) / 255f;
-        final float g = ((foreground >> 8) & 0xFF) / 255f;
-        final float b = ((foreground) & 0xFF) / 255f;
-
-        buffer.pos(matrix, 0, CHAR_HEIGHT, 0).color(r, g, b, 1).endVertex();
-        buffer.pos(matrix, CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).endVertex();
-        buffer.pos(matrix, CHAR_WIDTH, 0, 0).color(r, g, b, 1).endVertex();
-        buffer.pos(matrix, 0, 0, 0).color(r, g, b, 1).endVertex();
-
-        buffer.finishDrawing();
-        WorldVertexBufferUploader.draw(buffer);
-
-        stack.pop();
-
-        RenderSystem.enableTexture();
-        GlStateManager.depthMask(true);
-    }
-
     private void setCursorPos(final int x, final int y) {
         this.x = Math.max(0, Math.min(WIDTH - 1, x));
         this.y = Math.max(0, Math.min(HEIGHT - 1, y));
@@ -627,12 +459,196 @@ public final class Terminal {
         System.arraycopy(buffer, WIDTH, buffer, 0, buffer.length - WIDTH);
         System.arraycopy(colors, WIDTH, colors, 0, colors.length - WIDTH);
         System.arraycopy(styles, WIDTH, styles, 0, styles.length - WIDTH);
-        System.arraycopy(lines, 1, lines, 0, lines.length - 1);
         Arrays.fill(buffer, WIDTH * HEIGHT - WIDTH, WIDTH * HEIGHT, (byte) ' ');
         Arrays.fill(colors, WIDTH * HEIGHT - WIDTH, WIDTH * HEIGHT, DEFAULT_COLORS);
         Arrays.fill(styles, WIDTH * HEIGHT - WIDTH, WIDTH * HEIGHT, DEFAULT_STYLE);
 
         // Offset is baked into buffers so we must rebuild them all.
         dirty.set(-1);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static final class Renderer {
+        private static final ResourceLocation LOCATION_FONT_TEXTURE = new ResourceLocation(API.MOD_ID, "textures/font/terminus.png");
+        private static final int TEXTURE_RESOLUTION = 256;
+        private static final float ONE_OVER_TEXTURE_RESOLUTION = 1.0f / (float) TEXTURE_RESOLUTION;
+        private static final int TEXTURE_COLUMNS = 16;
+        private static final int TEXTURE_BOLD_SHIFT = TEXTURE_COLUMNS; // Bold chars are in right half of texture.
+
+        private static final int[] COLORS = {
+                0x010101, // Black
+                0xEE3322, // Red
+                0x33DD44, // Green
+                0xFFCC11, // Yellow
+                0x1188EE, // Blue
+                0xDD33CC, // Magenta
+                0x22CCDD, // Cyan
+                0xEEEEEE, // White
+        };
+
+        private static final int[] DIM_COLORS = {
+                0x010101, // Black
+                0x772211, // Red
+                0x116622, // Green
+                0x886611, // Yellow
+                0x115588, // Blue
+                0x771177, // Magenta
+                0x116677, // Cyan
+                0x777777, // White
+        };
+
+        private final Terminal terminal;
+
+        private final Object[] lines = new Object[HEIGHT]; // Cached vertex buffers for rendering, untyped for server.
+        private Object lastMatrix; // Untyped for server.
+
+        public Renderer(final Terminal terminal) {
+            this.terminal = terminal;
+        }
+
+        public void render(final AtomicInteger dirty, final MatrixStack stack) {
+            validateLineCache(dirty, stack);
+            renderBuffer();
+
+            if (System.currentTimeMillis() % 1000 > 500) {
+                renderCursor(stack);
+            }
+        }
+
+        private void renderBuffer() {
+            GlStateManager.depthMask(false);
+            Minecraft.getInstance().getTextureManager().bindTexture(LOCATION_FONT_TEXTURE);
+
+            final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+            for (final Object line : lines) {
+                buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX);
+                buffer.setVertexState((BufferBuilder.State) line);
+                buffer.finishDrawing();
+                WorldVertexBufferUploader.draw(buffer);
+            }
+
+            GlStateManager.depthMask(true);
+        }
+
+        private void validateLineCache(final AtomicInteger dirty, final MatrixStack stack) {
+            if (!Objects.equals(lastMatrix, stack.getLast().getMatrix())) {
+                lastMatrix = stack.getLast().getMatrix();
+                dirty.set(-1);
+            }
+
+            if (dirty.get() == 0) {
+                return;
+            }
+
+            final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+
+            final int mask = dirty.getAndSet(0);
+            for (int row = 0; row < lines.length; row++) {
+                if ((mask & (1 << row)) == 0) {
+                    continue;
+                }
+
+                stack.push();
+                stack.translate(0, row * CHAR_HEIGHT, 0);
+                final Matrix4f matrix = stack.getLast().getMatrix();
+
+                buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX);
+
+                float tx = 0f;
+                for (int col = 0, index = row * WIDTH; col < WIDTH; col++, index++) {
+                    final int character = terminal.buffer[index] & 0xFF;
+                    final byte colors = terminal.colors[index];
+                    final byte style = terminal.styles[index];
+
+                    if ((style & STYLE_HIDDEN_MASK) != 0) continue;
+
+                    final int x = character % TEXTURE_COLUMNS + ((style & STYLE_BOLD_MASK) != 0 ? TEXTURE_BOLD_SHIFT : 0);
+                    final int y = character / TEXTURE_COLUMNS;
+                    // The +0.5f is to sample the center of our texture pixels. This counteracts small
+                    // floating point inaccuracies in our texture coordinates introduced by varying
+                    // render resolution. And since we use point sampling it doesn't matter where
+                    // exactly inside a pixel we sample.
+                    final float u0 = (x * CHAR_WIDTH + 0.5f) * ONE_OVER_TEXTURE_RESOLUTION;
+                    final float u1 = ((x + 1) * CHAR_WIDTH + 0.5f) * ONE_OVER_TEXTURE_RESOLUTION;
+                    final float v0 = (y * CHAR_HEIGHT + 0.5f) * ONE_OVER_TEXTURE_RESOLUTION;
+                    final float v1 = ((y + 1) * CHAR_HEIGHT + 0.5f) * ONE_OVER_TEXTURE_RESOLUTION;
+
+                    final int[] palette = (style & STYLE_DIM_MASK) != 0 ? DIM_COLORS : COLORS;
+
+                    final int foreground = palette[(colors >> COLOR_FOREGROUND_SHIFT) & COLOR_MASK];
+                    final int background = palette[colors & COLOR_MASK];
+
+                    final int color = (style & STYLE_INVERT_MASK) != 0 ? background : foreground;
+                    final float r = ((color >> 16) & 0xFF) / 255f;
+                    final float g = ((color >> 8) & 0xFF) / 255f;
+                    final float b = ((color) & 0xFF) / 255f;
+
+                    if (isPrintableCharacter((char) character)) {
+                        buffer.pos(matrix, tx, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u0, v1).endVertex();
+                        buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u1, v1).endVertex();
+                        buffer.pos(matrix, tx + CHAR_WIDTH, 0, 0).color(r, g, b, 1).tex(u1, v0).endVertex();
+                        buffer.pos(matrix, tx, 0, 0).color(r, g, b, 1).tex(u0, v0).endVertex();
+                    }
+
+                    if ((style & STYLE_UNDERLINE_MASK) != 0) {
+                        final float ulu = (TEXTURE_RESOLUTION - 1) / (float) TEXTURE_RESOLUTION;
+                        final float ulv = 1 / (float) TEXTURE_RESOLUTION;
+
+                        buffer.pos(matrix, tx, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                        buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                        buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                        buffer.pos(matrix, tx, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                    }
+
+                    tx += CHAR_WIDTH;
+                }
+
+                lines[row] = buffer.getVertexState();
+                buffer.finishDrawing();
+                buffer.discard();
+
+                stack.pop();
+            }
+        }
+
+        private void renderCursor(final MatrixStack stack) {
+            if (terminal.x < 0 || terminal.x >= WIDTH || terminal.y < 0 || terminal.y >= HEIGHT) {
+                return;
+            }
+
+            GlStateManager.depthMask(false);
+            RenderSystem.disableTexture();
+
+            stack.push();
+            stack.translate(terminal.x * CHAR_WIDTH, terminal.y * CHAR_HEIGHT, 0);
+
+            final Matrix4f matrix = stack.getLast().getMatrix();
+            final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+
+            final int foreground = COLORS[COLOR_WHITE];
+            final float r = ((foreground >> 16) & 0xFF) / 255f;
+            final float g = ((foreground >> 8) & 0xFF) / 255f;
+            final float b = ((foreground) & 0xFF) / 255f;
+
+            buffer.pos(matrix, 0, CHAR_HEIGHT, 0).color(r, g, b, 1).endVertex();
+            buffer.pos(matrix, CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).endVertex();
+            buffer.pos(matrix, CHAR_WIDTH, 0, 0).color(r, g, b, 1).endVertex();
+            buffer.pos(matrix, 0, 0, 0).color(r, g, b, 1).endVertex();
+
+            buffer.finishDrawing();
+            WorldVertexBufferUploader.draw(buffer);
+
+            stack.pop();
+
+            RenderSystem.enableTexture();
+            GlStateManager.depthMask(true);
+        }
+
+        private static boolean isPrintableCharacter(final char ch) {
+            return ch == 0 ||
+                   (ch > ' ' && ch <= '~') ||
+                   ch >= 177;
+        }
     }
 }

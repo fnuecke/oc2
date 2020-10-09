@@ -20,11 +20,11 @@ public final class TerminalScreen extends Screen {
     private static final ResourceLocation BACKGROUND = new ResourceLocation(API.MOD_ID, "textures/gui/screen/terminal.png");
     private static final ResourceLocation BACKGROUND_TERMINAL_FOCUSED = new ResourceLocation(API.MOD_ID, "textures/gui/screen/terminal_focused.png");
     private static final int TEXTURE_SIZE = 512;
-    private static final int SCREEN_WIDTH = 8 + 80 * 9 / 2 + 8;
+    private static final int SCREEN_WIDTH = 8 + 80 * 8 / 2 + 8;
     private static final int SCREEN_HEIGHT = 8 + 24 * 16 / 2 + 8;
     private static final int TERMINAL_AREA_X = 8;
     private static final int TERMINAL_AREA_Y = 8;
-    private static final int TERMINAL_AREA_WIDTH = 80 * 9 / 2;
+    private static final int TERMINAL_AREA_WIDTH = 80 * 8 / 2;
     private static final int TERMINAL_AREA_HEIGHT = 24 * 16 / 2;
 
     private final ComputerTileEntity tileEntity;

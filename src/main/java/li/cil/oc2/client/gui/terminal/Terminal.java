@@ -5,7 +5,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
-import li.cil.oc2.client.render.font.FontRenderer;
+import li.cil.oc2.api.API;
 import li.cil.oc2.client.render.font.MonospaceFontRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
@@ -15,6 +15,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldVertexBufferUploader;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.state.properties.NoteBlockInstrument;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
@@ -22,13 +23,70 @@ import org.lwjgl.opengl.GL11;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // Implements a couple of control sequences from here: https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
 @Serialized
 public final class Terminal {
+    private static final ResourceLocation LOCATION_FONT_TEXTURE = new ResourceLocation(API.MOD_ID, "textures/font/monospace.png");
+    private static final int TEXTURE_RESOLUTION = 256;
+    private static final int CHAR_WIDTH = 9;
+    private static final int CHAR_HEIGHT = 16;
+
+    private static final int COLUMNS = TEXTURE_RESOLUTION / CHAR_WIDTH;
+    private static final float U_SIZE = CHAR_WIDTH / (float) TEXTURE_RESOLUTION;
+    private static final float V_SIZE = CHAR_HEIGHT / (float) TEXTURE_RESOLUTION;
+    private static final float U_STEP = CHAR_WIDTH / (float) TEXTURE_RESOLUTION;
+    private static final float V_STEP = CHAR_HEIGHT / (float) TEXTURE_RESOLUTION;
+
     private static final int TAB_WIDTH = 4;
     private static final int WIDTH = 80, HEIGHT = 24;
+
+    private static final int COLOR_BLACK = 0;
+    private static final int COLOR_RED = 1;
+    private static final int COLOR_GREEN = 2;
+    private static final int COLOR_YELLOW = 3;
+    private static final int COLOR_BLUE = 4;
+    private static final int COLOR_MAGENTA = 5;
+    private static final int COLOR_CYAN = 6;
+    private static final int COLOR_WHITE = 7;
+
+    private static final int[] COLORS = {
+            0x010101, // Black
+            0xDD3322, // Red
+            0x33EE44, // Green
+            0xFFCC11, // Yellow
+            0x1199DD, // Blue
+            0x772277, // Magenta
+            0x44CCEE, // Cyan
+            0xCCCCCC, // White
+    };
+
+    private static final int[] DIM_COLORS = {
+            0x010101, // Black
+            0xDD3322, // Red
+            0x33EE44, // Green
+            0xFFCC11, // Yellow
+            0x1199DD, // Blue
+            0x772277, // Magenta
+            0x44CCEE, // Cyan
+            0xCCCCCC, // White
+    };
+
+    private static final int COLOR_MASK = 0b111;
+    private static final int COLOR_FOREGROUND_SHIFT = 3;
+
+    private static final int STYLE_BOLD_MASK = 1;
+    private static final int STYLE_DIM_MASK = 1;
+    private static final int STYLE_UNDERLINE_MASK = 1 << 1;
+    private static final int STYLE_BLINK_MASK = 1 << 2;
+    private static final int STYLE_INVERT_MASK = 1 << 3;
+    private static final int STYLE_HIDDEN_MASK = 1 << 4;
+
+    // Default style: no modifiers, white foreground, black background.
+    private static final byte DEFAULT_COLORS = COLOR_WHITE << COLOR_FOREGROUND_SHIFT;
+    private static final byte DEFAULT_STYLE = 0;
 
     public enum State { // Must be public for serialization.
         NORMAL, // Currently reading characters normally.
@@ -38,14 +96,25 @@ public final class Terminal {
 
     private final ByteArrayFIFOQueue input = new ByteArrayFIFOQueue(32);
     private final byte[] buffer = new byte[WIDTH * HEIGHT];
+    private final byte[] colors = new byte[WIDTH * HEIGHT];
+    private final byte[] styles = new byte[WIDTH * HEIGHT];
     private State state = State.NORMAL;
     private final int[] args = new int[4];
     private int argCount = 0;
     private int x, y;
     private int savedX, savedY;
 
-    private final transient String[] lines = new String[HEIGHT]; // Cached strings for rendering.
+    // Color info packed into one byte for compact storage:
+    // 0-2: background color (index)
+    // 3-5: foreground color (index)
+    private byte color = DEFAULT_COLORS;
+    // Style info packed into one byte for compact storage:
+    // 6-10: bold, underline, blink, invert, hide
+    private byte style = DEFAULT_STYLE;
+
+    private final transient Object[] lines = new Object[HEIGHT]; // Cached vertex buffers for rendering, untyped for server.
     private final transient AtomicInteger dirty = new AtomicInteger(-1);
+    private transient Object lastMatrix; // Untyped for server.
 
     public Terminal() {
         clear();
@@ -61,16 +130,7 @@ public final class Terminal {
 
     @OnlyIn(Dist.CLIENT)
     public void render(final MatrixStack stack) {
-        final FontRenderer fontRenderer = MonospaceFontRenderer.INSTANCE;
-
-        validateLineCache();
-
-        for (int i = 0; i < lines.length; i++) {
-            stack.push();
-            stack.translate(0, i * fontRenderer.getCharHeight(), 0);
-            fontRenderer.drawString(stack.getLast().getMatrix(), lines[i]);
-            stack.pop();
-        }
+        renderBuffer(stack);
 
         if (System.currentTimeMillis() % 1000 > 500) {
             renderCursor(stack);
@@ -252,7 +312,13 @@ public final class Terminal {
                             break;
                         }
                         // S, T: Scroll Up/Down. We don't have scrollback.
-                        // m: Select Graphic Rendition. TODO
+                        case 'm': { // Select Graphic Rendition
+                            for (int i = 0; i < argCount; i++) {
+                                final int arg = args[i];
+                                selectStyle(arg);
+                            }
+                            break;
+                        }
                         case 'n': { // Device Status Report
                             switch (args[0]) {
                                 case 5: { // Report console status
@@ -289,28 +355,197 @@ public final class Terminal {
         }
     }
 
+    private void selectStyle(final int sgr) {
+        switch (sgr) {
+            case 0: { // Reset / Normal
+                style = DEFAULT_COLORS;
+                break;
+            }
+            case 1: { // Bold or increased intensity
+                style |= STYLE_BOLD_MASK;
+                break;
+            }
+            case 4: { // Underline
+                style |= STYLE_UNDERLINE_MASK;
+                break;
+            }
+            case 5: { // Slow Blink
+                style |= STYLE_BLINK_MASK;
+                break;
+            }
+            case 7: { // Reverse video
+                style |= STYLE_INVERT_MASK;
+                break;
+            }
+            case 8: { // Conceal aka Hide
+                style |= STYLE_HIDDEN_MASK;
+                break;
+            }
+            case 22: { // Normal color or intensity
+                style &= ~STYLE_BOLD_MASK;
+                break;
+            }
+            case 24: { // Underline off
+                style &= ~STYLE_UNDERLINE_MASK;
+                break;
+            }
+            case 25: { // Blink off
+                style &= ~STYLE_BLINK_MASK;
+                break;
+            }
+            case 27: { // Reverse/invert off
+                style &= ~STYLE_INVERT_MASK;
+                break;
+            }
+            case 28: { // Reveal conceal off
+                style &= ~STYLE_HIDDEN_MASK;
+                break;
+            }
+            case 30:
+            case 31:
+            case 32:
+            case 33:
+            case 34:
+            case 35:
+            case 36:
+            case 37: { // Set foreground color
+                final int color = sgr - 30;
+                this.color = (byte) ((this.color & ~(COLOR_MASK << COLOR_FOREGROUND_SHIFT)) | (color << COLOR_FOREGROUND_SHIFT));
+                break;
+            }
+            case 40:
+            case 41:
+            case 42:
+            case 43:
+            case 44:
+            case 45:
+            case 46:
+            case 47: { //–47 Set background color
+                final int color = sgr - 40;
+                this.color = (byte) ((this.color & ~COLOR_MASK) | color);
+                break;
+            }
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void renderBuffer(final MatrixStack stack) {
+        validateLineCache(stack);
+
+        GlStateManager.depthMask(false);
+        Minecraft.getInstance().getTextureManager().bindTexture(LOCATION_FONT_TEXTURE);
+
+        final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+        for (final Object line : lines) {
+            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX);
+            buffer.setVertexState((BufferBuilder.State) line);
+            buffer.finishDrawing();
+            WorldVertexBufferUploader.draw(buffer);
+        }
+
+        GlStateManager.depthMask(true);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void validateLineCache(final MatrixStack stack) {
+        if (!Objects.equals(lastMatrix, stack.getLast().getMatrix())) {
+            lastMatrix = stack.getLast().getMatrix();
+            dirty.set(-1);
+        }
+
+        if (dirty.get() == 0) {
+            return;
+        }
+
+        final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+
+        final int mask = dirty.getAndSet(0);
+        for (int row = 0; row < lines.length; row++) {
+            if ((mask & (1 << row)) == 0) {
+                continue;
+            }
+
+            stack.push();
+            stack.translate(0, row * CHAR_HEIGHT, 0);
+            final Matrix4f matrix = stack.getLast().getMatrix();
+
+            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX);
+
+            float tx = 0f;
+            for (int col = 0, index = row * WIDTH; col < WIDTH; col++, index++) {
+                final int character = this.buffer[index] & 0xFF;
+                final byte colors = this.colors[index];
+                final byte style = this.styles[index];
+
+                final int x = character % COLUMNS;
+                final int y = character / COLUMNS;
+                final float u = x * U_STEP;
+                final float v = y * V_STEP;
+
+                final int[] palette = (style & STYLE_DIM_MASK) != 0 ? DIM_COLORS : COLORS;
+
+                final int foreground = palette[(colors >> COLOR_FOREGROUND_SHIFT) & COLOR_MASK];
+                final int background = palette[colors & COLOR_MASK];
+
+                final int color = (style & STYLE_INVERT_MASK) != 0 ? background : foreground;
+                final float r = ((color >> 16) & 0xFF) / 255f;
+                final float g = ((color >> 8) & 0xFF) / 255f;
+                final float b = ((color) & 0xFF) / 255f;
+
+                buffer.pos(matrix, tx, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u, v + V_SIZE).endVertex();
+                buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u + U_SIZE, v + V_SIZE).endVertex();
+                buffer.pos(matrix, tx + CHAR_WIDTH, 0, 0).color(r, g, b, 1).tex(u + U_SIZE, v).endVertex();
+                buffer.pos(matrix, tx, 0, 0).color(r, g, b, 1).tex(u, v).endVertex();
+
+                if ((style & STYLE_UNDERLINE_MASK) != 0) {
+                    final int underlineCharacter = (byte) '_';
+                    final int ulx = underlineCharacter % COLUMNS;
+                    final int uly = underlineCharacter / COLUMNS;
+                    final float ulu = ulx * U_STEP;
+                    final float ulv = uly * V_STEP;
+
+                    buffer.pos(matrix, tx, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv + V_SIZE).endVertex();
+                    buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu + U_SIZE, ulv + V_SIZE).endVertex();
+                    buffer.pos(matrix, tx + CHAR_WIDTH, -2, 0).color(r, g, b, 1).tex(ulu + U_SIZE, ulv).endVertex();
+                    buffer.pos(matrix, tx, -2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                }
+
+                tx += CHAR_WIDTH;
+            }
+
+            lines[row] = buffer.getVertexState();
+            buffer.finishDrawing();
+            buffer.discard();
+
+            stack.pop();
+        }
+    }
+
     @OnlyIn(Dist.CLIENT)
     private void renderCursor(final MatrixStack stack) {
         if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
             return;
         }
 
-        final FontRenderer fontRenderer = MonospaceFontRenderer.INSTANCE;
-
         GlStateManager.depthMask(false);
         RenderSystem.disableTexture();
 
         stack.push();
-        stack.translate(x * fontRenderer.getCharWidth(), y * fontRenderer.getCharHeight(), 0);
+        stack.translate(x * CHAR_WIDTH, y * CHAR_HEIGHT, 0);
 
         final Matrix4f matrix = stack.getLast().getMatrix();
         final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
-        buffer.pos(matrix, 0, fontRenderer.getCharHeight(), 0).color(1f, 1f, 1f, 1f).endVertex();
-        buffer.pos(matrix, fontRenderer.getCharWidth(), fontRenderer.getCharHeight(), 0).color(1f, 1f, 1f, 1f).endVertex();
-        buffer.pos(matrix, fontRenderer.getCharWidth(), 0, 0).color(1f, 1f, 1f, 1f).endVertex();
-        buffer.pos(matrix, 0, 0, 0).color(1f, 1f, 1f, 1f).endVertex();
+
+        final int foreground = COLORS[COLOR_WHITE];
+        final float r = ((foreground >> 16) & 0xFF) / 255f;
+        final float g = ((foreground >> 8) & 0xFF) / 255f;
+        final float b = ((foreground) & 0xFF) / 255f;
+
+        buffer.pos(matrix, 0, CHAR_HEIGHT, 0).color(r, g, b, 1).endVertex();
+        buffer.pos(matrix, CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).endVertex();
+        buffer.pos(matrix, CHAR_WIDTH, 0, 0).color(r, g, b, 1).endVertex();
+        buffer.pos(matrix, 0, 0, 0).color(r, g, b, 1).endVertex();
 
         buffer.finishDrawing();
         WorldVertexBufferUploader.draw(buffer);
@@ -337,16 +572,23 @@ public final class Terminal {
     }
 
     private void setChar(final int x, final int y, final char ch) {
-        if (buffer[x + y * WIDTH] == ch) {
+        final int index = x + y * WIDTH;
+        if (buffer[index] == ch &&
+            colors[index] == color &&
+            styles[index] == style) {
             return;
         }
 
-        buffer[x + y * WIDTH] = (byte) ch;
+        buffer[index] = (byte) ch;
+        colors[index] = color;
+        styles[index] = style;
         dirty.accumulateAndGet(1 << y, (prev, next) -> prev | next);
     }
 
     private void clear() {
         Arrays.fill(buffer, (byte) ' ');
+        Arrays.fill(colors, DEFAULT_COLORS);
+        Arrays.fill(styles, DEFAULT_STYLE);
         dirty.set((1 << HEIGHT) - 1);
     }
 
@@ -356,6 +598,8 @@ public final class Terminal {
 
     private void clearLine(final int y, final int fromIndex, final int toIndex) {
         Arrays.fill(buffer, y * WIDTH + fromIndex, y * WIDTH + toIndex, (byte) ' ');
+        Arrays.fill(colors, y * WIDTH + fromIndex, y * WIDTH + toIndex, DEFAULT_COLORS);
+        Arrays.fill(styles, y * WIDTH + fromIndex, y * WIDTH + toIndex, DEFAULT_STYLE);
         dirty.accumulateAndGet(1 << y, (prev, next) -> prev | next);
     }
 
@@ -369,24 +613,14 @@ public final class Terminal {
 
     private void shiftUpOne() {
         System.arraycopy(buffer, WIDTH, buffer, 0, buffer.length - WIDTH);
+        System.arraycopy(colors, WIDTH, colors, 0, colors.length - WIDTH);
+        System.arraycopy(styles, WIDTH, styles, 0, styles.length - WIDTH);
         System.arraycopy(lines, 1, lines, 0, lines.length - 1);
         Arrays.fill(buffer, WIDTH * HEIGHT - WIDTH, WIDTH * HEIGHT, (byte) ' ');
+        Arrays.fill(colors, WIDTH * HEIGHT - WIDTH, WIDTH * HEIGHT, DEFAULT_COLORS);
+        Arrays.fill(styles, WIDTH * HEIGHT - WIDTH, WIDTH * HEIGHT, DEFAULT_STYLE);
 
-        // Shift all dirty down one because we moved rows up one (up = lower indices).
-        // Mark bottom-most line (highest index) as dirty.
-        dirty.accumulateAndGet(1 << (HEIGHT - 1), (prev, next) -> (prev >>> 1) | next);
-    }
-
-    private void validateLineCache() {
-        if (dirty.get() == 0) {
-            return;
-        }
-
-        final int mask = dirty.getAndSet(0);
-        for (int i = 0; i < lines.length; i++) {
-            if ((mask & (1 << i)) != 0) {
-                lines[i] = new String(buffer, i * WIDTH, WIDTH);
-            }
-        }
+        // Offset is baked into buffers so we must rebuild them all.
+        dirty.set(-1);
     }
 }

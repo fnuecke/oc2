@@ -573,14 +573,10 @@ public final class Terminal {
 
                     final int x = character % TEXTURE_COLUMNS + ((style & STYLE_BOLD_MASK) != 0 ? TEXTURE_BOLD_SHIFT : 0);
                     final int y = character / TEXTURE_COLUMNS;
-                    // The +0.5f is to sample the center of our texture pixels. This counteracts small
-                    // floating point inaccuracies in our texture coordinates introduced by varying
-                    // render resolution. And since we use point sampling it doesn't matter where
-                    // exactly inside a pixel we sample.
-                    final float u0 = (x * CHAR_WIDTH + 0.5f) * ONE_OVER_TEXTURE_RESOLUTION;
-                    final float u1 = ((x + 1) * CHAR_WIDTH + 0.5f) * ONE_OVER_TEXTURE_RESOLUTION;
-                    final float v0 = (y * CHAR_HEIGHT + 0.5f) * ONE_OVER_TEXTURE_RESOLUTION;
-                    final float v1 = ((y + 1) * CHAR_HEIGHT + 0.5f) * ONE_OVER_TEXTURE_RESOLUTION;
+                    final float u0 = x * (CHAR_WIDTH * ONE_OVER_TEXTURE_RESOLUTION);
+                    final float u1 = (x + 1) * (CHAR_WIDTH * ONE_OVER_TEXTURE_RESOLUTION);
+                    final float v0 = y * (CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION);
+                    final float v1 = (y + 1) * (CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION);
 
                     final int[] palette = (style & STYLE_DIM_MASK) != 0 ? DIM_COLORS : COLORS;
 

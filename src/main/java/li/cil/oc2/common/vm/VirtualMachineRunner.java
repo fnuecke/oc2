@@ -1,5 +1,6 @@
 package li.cil.oc2.common.vm;
 
+import li.cil.ceres.api.Serialized;
 import li.cil.sedna.riscv.R5Board;
 
 import java.util.concurrent.ExecutionException;
@@ -21,11 +22,15 @@ public class VirtualMachineRunner implements Runnable {
     private final AtomicInteger timeQuotaInMillis = new AtomicInteger();
     private Future<?> lastSchedule;
 
+    @Serialized private long cycleLimit;
+    @Serialized private long cycles;
+
     public VirtualMachineRunner(final R5Board board) {
         this.board = board;
     }
 
     public void tick() {
+        cycleLimit += getCyclesPerTick();
         if (timeQuotaInMillis.addAndGet(TIMESLICE_IN_MS) > 0 && lastSchedule == null || lastSchedule.isDone() || lastSchedule.isCancelled()) {
             lastSchedule = VM_RUNNERS.submit(this);
         }
@@ -54,26 +59,33 @@ public class VirtualMachineRunner implements Runnable {
 
     @Override
     public void run() {
-        final long start = System.currentTimeMillis();
+        do {
+            final long start = System.currentTimeMillis();
 
-        final int cycleBudget = board.getCpu().getFrequency() / 20;
-        final int cyclesPerStep = 1_000;
-        final int maxSteps = cycleBudget / cyclesPerStep;
+            final int cycleBudget = getCyclesPerTick();
+            final int cyclesPerStep = 1_000;
+            final int maxSteps = cycleBudget / cyclesPerStep;
 
-        handleBeforeRun();
+            handleBeforeRun();
 
-        for (int i = 0; i < maxSteps; i++) {
-            board.step(cyclesPerStep);
-            step();
+            for (int i = 0; i < maxSteps; i++) {
+                cycles += cyclesPerStep;
+                board.step(cyclesPerStep);
+                step();
 
-            if (System.currentTimeMillis() - start > timeQuotaInMillis.get()) {
-                break;
+                if (System.currentTimeMillis() - start > timeQuotaInMillis.get()) {
+                    break;
+                }
             }
-        }
 
-        handleAfterRun();
+            handleAfterRun();
 
-        final int elapsed = (int) (System.currentTimeMillis() - start);
-        timeQuotaInMillis.addAndGet(-elapsed);
+            final int elapsed = (int) (System.currentTimeMillis() - start);
+            timeQuotaInMillis.addAndGet(-elapsed);
+        } while (cycles < cycleLimit && timeQuotaInMillis.get() > 0);
+    }
+
+    private int getCyclesPerTick() {
+        return board.getCpu().getFrequency() / 20;
     }
 }

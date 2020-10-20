@@ -13,6 +13,7 @@ public final class TerminalInput {
         addSequence(GLFW.GLFW_KEY_TAB, '\t');
         addSequence(GLFW.GLFW_KEY_BACKSPACE, '\b');
 
+        addSequence(GLFW.GLFW_KEY_ESCAPE, "\33");
         addSequence(GLFW.GLFW_KEY_HOME, "\033[1~");
         addSequence(GLFW.GLFW_KEY_INSERT, "\033[2~");
         addSequence(GLFW.GLFW_KEY_DELETE, "\033[3~");

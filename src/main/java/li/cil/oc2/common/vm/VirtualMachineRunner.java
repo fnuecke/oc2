@@ -10,7 +10,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class VirtualMachineRunner implements Runnable {
-    private static final int TIMESLICE_IN_MS = 1000 / 20;
+    private static final int TICKS_PER_SECOND = 20;
+    private static final int TIMESLICE_IN_MS = 1000 / TICKS_PER_SECOND;
 
     private static final ExecutorService VM_RUNNERS = Executors.newCachedThreadPool(r -> {
         final Thread thread = new Thread(r);
@@ -86,6 +87,6 @@ public class VirtualMachineRunner implements Runnable {
     }
 
     private int getCyclesPerTick() {
-        return board.getCpu().getFrequency() / 20;
+        return board.getCpu().getFrequency() / TICKS_PER_SECOND;
     }
 }

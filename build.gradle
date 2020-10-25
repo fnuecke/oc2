@@ -100,7 +100,7 @@ minecraft {
             property 'forge.logging.console.level', 'warn'
 
             mods {
-                examplemod {
+                oc2 {
                     source sourceSets.main
                 }
             }
@@ -113,7 +113,7 @@ minecraft {
             property 'forge.logging.console.level', 'warn'
 
             mods {
-                examplemod {
+                oc2 {
                     source sourceSets.main
                 }
             }
@@ -125,15 +125,23 @@ minecraft {
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'warn'
 
-            args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/')
+            args '--mod', 'oc2', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources')
+            forceExit false
 
             mods {
-                examplemod {
+                oc2 {
                     source sourceSets.main
                 }
             }
         }
     }
+}
+
+task copyData(type: Copy) {
+    dependsOn 'runData'
+    from 'src/generated/resources'
+    into 'src/main/resources'
+    exclude '.cache'
 }
 
 task generateMetaFiles {

@@ -90,6 +90,11 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
             blobStorageJobHandle = null;
         }
 
+        if (virtualMachine != null && !virtualMachine.board.isRunning()) {
+            disposeVirtualMachine();
+            return;
+        }
+
         if (runner != null) {
             runner.tick();
             chunk.markDirty();
@@ -213,7 +218,8 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
         }
 
         virtualMachine.board.reset();
-        virtualMachine.board.installDeviceTree();
+        virtualMachine.board.initialize();
+        virtualMachine.board.setRunning(true);
         runner = new ConsoleRunner(virtualMachine);
     }
 

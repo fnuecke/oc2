@@ -47,7 +47,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
 
     @Override
     public void render(final ComputerTileEntity tileEntity, final float partialTicks, final MatrixStack stack, final IRenderTypeBuffer buffer, final int combinedLightIn, final int combinedOverlayIn) {
-        final Direction blockFacing = tileEntity.getBlockState().get(ComputerBlock.FACING);
+        final Direction blockFacing = tileEntity.getBlockState().get(ComputerBlock.HORIZONTAL_FACING);
         final Vec3d cameraPosition = renderDispatcher.renderInfo.getRenderViewEntity().getEyePosition(partialTicks);
 
         // If viewer is not in front of the block we can skip all of the rest, it cannot be visible.

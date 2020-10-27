@@ -1,5 +1,6 @@
 package li.cil.oc2;
 
+import li.cil.ceres.Ceres;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.ClientSetup;
 import li.cil.oc2.common.CommonSetup;
@@ -9,6 +10,7 @@ import li.cil.oc2.common.block.ScreenBlock;
 import li.cil.oc2.common.container.ComputerContainer;
 import li.cil.oc2.common.item.RISCVTesterItem;
 import li.cil.oc2.common.tile.ComputerTileEntity;
+import li.cil.sedna.devicetree.DeviceTreeRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.BlockItem;
@@ -66,5 +68,13 @@ public final class OpenComputers {
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(CommonSetup::run);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientSetup::run);
+
+        // Do class lookup in a separate thread to avoid blocking for too long.
+        // Specifically, this is to run detection of annotated types via the Reflections
+        // library in the serialization library and the device tree registry.
+        new Thread(() -> {
+            Ceres.initialize();
+            DeviceTreeRegistry.initialize();
+        }).start();
     }
 }

@@ -199,7 +199,7 @@ public final class RISCVTestScreen extends Screen {
 
         loadProgramFile(memory, Buildroot.getLinuxImage());
         loadProgramFile(rom, Buildroot.getFirmware());
-        board.installDeviceTree(0x80000000 + 0x02200000);
+        board.installDeviceTree();
 
         runner = new ConsoleRunner(board);
     }

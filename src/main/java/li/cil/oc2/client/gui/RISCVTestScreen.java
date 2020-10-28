@@ -193,7 +193,7 @@ public final class RISCVTestScreen extends Screen {
         board.addDevice(0x80000000, rom);
         board.addDevice(0x80000000 + 0x400000, memory);
 
-        board.setBootargs(bootargs.toString());
+        board.setBootArguments(bootargs.toString());
 
         board.reset();
 

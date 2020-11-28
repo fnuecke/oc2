@@ -1,5 +1,6 @@
 package li.cil.oc2.common;
 
+import li.cil.oc2.common.capabilities.DeviceBusElementCapability;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.vm.Allocator;
 import li.cil.oc2.serialization.BlobStorage;
@@ -10,6 +11,8 @@ import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 
 public final class CommonSetup {
     public static void run(final FMLCommonSetupEvent event) {
+        DeviceBusElementCapability.register();
+
         Network.setup();
 
         MinecraftForge.EVENT_BUS.addListener(CommonSetup::handleServerAboutToStart);

@@ -340,6 +340,7 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
             while (!inputBuffer.isEmpty() && virtualMachine.uart.canPutByte()) {
                 virtualMachine.uart.putByte(inputBuffer.dequeueByte());
             }
+            virtualMachine.uart.flush();
 
             int value;
             while ((value = virtualMachine.uart.read()) != -1) {

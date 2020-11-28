@@ -8,7 +8,6 @@ import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.block.RedstoneInterfaceBlock;
 import li.cil.oc2.common.block.ScreenBlock;
 import li.cil.oc2.common.container.ComputerContainer;
-import li.cil.oc2.common.item.RISCVTesterItem;
 import li.cil.oc2.common.tile.ComputerTileEntity;
 import li.cil.sedna.devicetree.DeviceTreeRegistry;
 import net.minecraft.block.Block;
@@ -42,7 +41,6 @@ public final class OpenComputers {
     public static final RegistryObject<Block> SCREEN_BLOCK = BLOCKS.register(Constants.SCREEN_BLOCK_NAME, ScreenBlock::new);
 
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, API.MOD_ID);
-    public static final RegistryObject<Item> RISCV_TESTER = ITEMS.register("riscv_tester", RISCVTesterItem::new);
     public static final RegistryObject<Item> COMPUTER_ITEM = ITEMS.register(Constants.COMPUTER_BLOCK_NAME, () -> new BlockItem(COMPUTER_BLOCK.get(), new Item.Properties().group(ITEM_GROUP)));
     public static final RegistryObject<Item> REDSTONE_INTERFACE_ITEM = ITEMS.register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, () -> new BlockItem(REDSTONE_INTERFACE_BLOCK.get(), new Item.Properties().group(ITEM_GROUP)));
     public static final RegistryObject<Item> SCREEN_ITEM = ITEMS.register(Constants.SCREEN_BLOCK_NAME, () -> new BlockItem(SCREEN_BLOCK.get(), new Item.Properties().group(ITEM_GROUP)));

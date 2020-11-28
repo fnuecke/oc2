@@ -336,7 +336,7 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
         }
 
         @Override
-        protected void step() {
+        protected void step(final int cyclesPerStep) {
             while (!inputBuffer.isEmpty() && virtualMachine.uart.canPutByte()) {
                 virtualMachine.uart.putByte(inputBuffer.dequeueByte());
             }

@@ -40,7 +40,7 @@ public class VirtualMachineRunner implements Runnable {
     protected void handleBeforeRun() {
     }
 
-    protected void step() {
+    protected void step(final int cyclesPerStep) {
     }
 
     protected void handleAfterRun() {
@@ -72,7 +72,7 @@ public class VirtualMachineRunner implements Runnable {
             for (int i = 0; i < maxSteps; i++) {
                 cycles += cyclesPerStep;
                 board.step(cyclesPerStep);
-                step();
+                step(cyclesPerStep);
 
                 if (System.currentTimeMillis() - start > timeQuotaInMillis.get()) {
                     break;

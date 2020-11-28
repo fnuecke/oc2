@@ -113,6 +113,15 @@ public final class TerminalScreen extends Screen {
         super.init();
         this.windowLeft = (this.width - this.windowWidth) / 2;
         this.windowTop = (this.height - this.windowHeight) / 2;
+
+        Objects.requireNonNull(minecraft).keyboardListener.enableRepeatEvents(true);
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+
+        Objects.requireNonNull(minecraft).keyboardListener.enableRepeatEvents(false);
     }
 
     private boolean isPointInRegion(int x, int y, int width, int height, double mouseX, double mouseY) {

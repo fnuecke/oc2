@@ -13,12 +13,22 @@ import java.lang.annotation.Target;
  * <p>
  * Intended to be used in classes instances of which are used in combination with
  * {@link ObjectDevice} and subclasses of {@link ObjectDevice}.
- * <p>
- * For
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Callback {
+    /**
+     * Allows automatically moving method invocation into the main thread.
+     * <p>
+     * Note that this will lead to dramatically slower method calls as viewed from
+     * the caller as each call will take at least one tick (50ms).
+     * <p>
+     * Use this when the targeted method interacts with data that is not thread
+     * safe, for example the world or any objects inside the world, such as
+     * tile entities and entities.
+     */
+    boolean synchronize() default false;
+
     /**
      * Option VM visible documentation of this method.
      */

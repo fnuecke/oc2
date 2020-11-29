@@ -59,6 +59,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
 
     @Serialized private final ByteBuffer transmitBuffer; // for data written to device by VM
     @Serialized private ByteBuffer receiveBuffer; // for data written by device to VM
+    @Serialized private MethodInvocation synchronizedInvocation; // pending main thread invocation
 
     public DeviceBusControllerImpl(final SerialDevice serialDevice) {
         this(serialDevice, DEFAULT_MAX_MESSAGE_SIZE);
@@ -189,6 +190,14 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
         return State.READY;
     }
 
+    public void tick() {
+        if (synchronizedInvocation != null) {
+            final MethodInvocation methodInvocation = synchronizedInvocation;
+            synchronizedInvocation = null;
+            processMethodInvocation(methodInvocation, true);
+        }
+    }
+
     public void step(final int cycles) {
         readFromDevice();
         writeToDevice();
@@ -200,7 +209,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
         // method of limiting the write queue size would work, but this is
         // the most simple and easy to maintain one I could think of.
         int value;
-        while (receiveBuffer == null && (value = serialDevice.read()) >= 0) {
+        while (receiveBuffer == null && synchronizedInvocation == null && (value = serialDevice.read()) >= 0) {
             if (value == 0) {
                 if (transmitBuffer.limit() > 0) {
                     transmitBuffer.flip();
@@ -253,7 +262,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
                 }
                 case MESSAGE_TYPE_INVOKE_METHOD: {
                     assert message.data != null : "MethodInvocation deserializer produced null data.";
-                    processMethodInvocation((MethodInvocation) message.data);
+                    processMethodInvocation((MethodInvocation) message.data, false);
                     break;
                 }
                 default: {
@@ -266,7 +275,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
         }
     }
 
-    private void processMethodInvocation(final MethodInvocation methodInvocation) {
+    private void processMethodInvocation(final MethodInvocation methodInvocation, final boolean isMainThread) {
         final Device device = devices.get(methodInvocation.deviceId);
         if (device == null) {
             writeError(ERROR_UNKNOWN_DEVICE);
@@ -299,6 +308,11 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
                     error = ERROR_INVALID_PARAMETER_SIGNATURE;
                     continue outer; // There may be an overload with matching parameter types.
                 }
+            }
+
+            if (method.isSynchronized() && !isMainThread) {
+                synchronizedInvocation = methodInvocation;
+                return;
             }
 
             try {
@@ -377,10 +391,11 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
         }
     }
 
-    private static final class MethodInvocation {
-        public final UUID deviceId;
-        public final String methodName;
-        public final JsonArray parameters;
+    @Serialized
+    public static final class MethodInvocation {
+        public UUID deviceId;
+        public String methodName;
+        public JsonArray parameters;
 
         public MethodInvocation(final UUID deviceId, final String methodName, final JsonArray parameters) {
             this.deviceId = deviceId;

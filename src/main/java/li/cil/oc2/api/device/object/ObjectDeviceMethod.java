@@ -23,13 +23,12 @@ public final class ObjectDeviceMethod extends AbstractDeviceMethod {
     private final String returnValueDescription;
 
     public ObjectDeviceMethod(final Object target, final Method method) throws IllegalAccessException {
-        super(method.getName(), method.getReturnType(), getParameters(method));
+        super(method.getName(),
+                Objects.requireNonNull(method.getAnnotation(Callback.class), "Method without Callback annotation.").synchronize(),
+                method.getReturnType(),
+                getParameters(method));
 
         final Callback annotation = method.getAnnotation(Callback.class);
-        if (annotation == null) {
-            throw new IllegalArgumentException("Method without Callback annotation.");
-        }
-
         this.handle = MethodHandles.lookup().unreflect(method).bindTo(target);
         this.description = Strings.isNotBlank(annotation.description()) ? annotation.description() : null;
         this.returnValueDescription = Strings.isNotBlank(annotation.returnValueDescription()) ? annotation.returnValueDescription() : null;

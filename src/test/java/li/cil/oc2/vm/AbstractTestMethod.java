@@ -3,6 +3,7 @@ package li.cil.oc2.vm;
 import li.cil.oc2.api.device.DeviceMethod;
 import li.cil.oc2.api.device.DeviceMethodParameter;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 abstract class AbstractTestMethod implements DeviceMethod {
@@ -23,6 +24,11 @@ abstract class AbstractTestMethod implements DeviceMethod {
     }
 
     @Override
+    public boolean isSynchronized() {
+        return false;
+    }
+
+    @Override
     public Class<?> getReturnType() {
         return returnType;
     }
@@ -33,10 +39,10 @@ abstract class AbstractTestMethod implements DeviceMethod {
     }
 
     private static final class TestParameter implements DeviceMethodParameter {
-        private final String name;
+        @Nullable private final String name;
         private final Class<?> type;
 
-        public TestParameter(final String name, final Class<?> type) {
+        public TestParameter(@Nullable final String name, final Class<?> type) {
             this.name = name;
             this.type = type;
         }

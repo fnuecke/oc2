@@ -25,6 +25,11 @@ public interface DeviceMethod {
     String getName();
 
     /**
+     * When {@code true}, invocations of this method will be synchronized to the main thread.
+     */
+    boolean isSynchronized();
+
+    /**
      * The type of the values returned by this method.
      */
     Class<?> getReturnType();

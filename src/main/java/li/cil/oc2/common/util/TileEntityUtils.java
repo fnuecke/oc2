@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public final class TileEntities {
+public final class TileEntityUtils {
     private static final Logger LOGGER = LogManager.getLogger();
 
     // We map to suppliers for tests, where assigned capability statics may change.

@@ -1,11 +1,11 @@
 package li.cil.oc2.common.network;
 
+import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -21,12 +21,9 @@ public final class MessageUtils {
         }
 
         final ServerWorld world = player.getServerWorld();
-        final ChunkPos chunkPos = new ChunkPos(pos);
-        if (world.chunkExists(chunkPos.x, chunkPos.z)) {
-            final TileEntity tileEntity = world.getTileEntity(pos);
-            if (type.isInstance(tileEntity)) {
-                callback.accept((T) tileEntity);
-            }
+        final TileEntity tileEntity = WorldUtils.getTileEntityIfChunkExists(world, pos);
+        if (type.isInstance(tileEntity)) {
+            callback.accept((T) tileEntity);
         }
     }
 

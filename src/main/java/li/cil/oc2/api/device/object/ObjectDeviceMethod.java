@@ -9,6 +9,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -48,6 +49,24 @@ public final class ObjectDeviceMethod extends AbstractDeviceMethod {
     @Override
     public Optional<String> getReturnValueDescription() {
         return Optional.ofNullable(returnValueDescription);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final ObjectDeviceMethod that = (ObjectDeviceMethod) o;
+        return handle.equals(that.handle);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(handle);
+    }
+
+    @Override
+    public String toString() {
+        return handle.toString();
     }
 
     private static DeviceMethodParameter[] getParameters(final Method method) {

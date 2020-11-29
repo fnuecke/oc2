@@ -3,15 +3,15 @@ package li.cil.oc2.vm;
 import com.google.gson.*;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.api.device.AbstractDevice;
-import li.cil.oc2.api.device.Device;
 import li.cil.oc2.api.device.DeviceMethod;
+import li.cil.oc2.api.device.IdentifiableDevice;
 import li.cil.oc2.api.device.object.Callback;
 import li.cil.oc2.api.device.object.ObjectDevice;
 import li.cil.oc2.api.device.object.Parameter;
+import li.cil.oc2.common.bus.DeviceBusControllerImpl;
+import li.cil.oc2.common.bus.DeviceBusElementImpl;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.vm.DeviceBusControllerImpl;
-import li.cil.oc2.common.vm.DeviceBusElementImpl;
+import li.cil.oc2.common.device.IdentifiableDeviceImpl;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
@@ -117,14 +118,15 @@ public class ObjectDeviceProtocolTests {
     public void annotatedObject() {
         final SimpleObject object = new SimpleObject();
         final ObjectDevice device = new ObjectDevice(object);
+        final IdentifiableDeviceImpl identifiableDevice = new IdentifiableDeviceImpl(device, UUID.randomUUID());
 
-        busElement.addDevice(device);
+        busElement.addDevice(identifiableDevice);
         controller.scan(world, CONTROLLER_POS);
 
-        Assertions.assertEquals(42 + 23, invokeMethod(device, "add", 42, 23).getAsInt());
+        Assertions.assertEquals(42 + 23, invokeMethod(identifiableDevice, "add", 42, 23).getAsInt());
     }
 
-    private JsonElement invokeMethod(final Device device, final String name, final Object... parameters) {
+    private JsonElement invokeMethod(final IdentifiableDevice device, final String name, final Object... parameters) {
         final JsonObject request = new JsonObject();
         request.addProperty("type", "invoke");
         final JsonObject methodInvocation = new JsonObject();
@@ -241,7 +243,9 @@ public class ObjectDeviceProtocolTests {
         }
     }
 
-    private static final class TestDevice extends AbstractDevice {
+    private static final class TestDevice implements IdentifiableDevice {
+        private static final UUID UUID = java.util.UUID.randomUUID();
+
         private final DeviceMethod method;
 
         public TestDevice(final DeviceMethod method) {
@@ -249,8 +253,18 @@ public class ObjectDeviceProtocolTests {
         }
 
         @Override
+        public List<String> getTypeNames() {
+            return Collections.singletonList(getClass().getSimpleName());
+        }
+
+        @Override
         public List<DeviceMethod> getMethods() {
             return Collections.singletonList(method);
+        }
+
+        @Override
+        public UUID getUniqueId() {
+            return UUID;
         }
     }
 }

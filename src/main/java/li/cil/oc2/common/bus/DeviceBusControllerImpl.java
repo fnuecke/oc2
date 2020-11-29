@@ -1,4 +1,4 @@
-package li.cil.oc2.common.vm;
+package li.cil.oc2.common.bus;
 
 import com.google.gson.*;
 import li.cil.ceres.api.Serialized;
@@ -7,7 +7,8 @@ import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.device.Device;
 import li.cil.oc2.api.device.DeviceMethod;
 import li.cil.oc2.api.device.DeviceMethodParameter;
-import li.cil.oc2.common.util.TileEntities;
+import li.cil.oc2.api.device.IdentifiableDevice;
+import li.cil.oc2.common.util.TileEntityUtils;
 import li.cil.sedna.api.device.Steppable;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import net.minecraft.tileentity.TileEntity;
@@ -50,7 +51,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     private static final String MESSAGE_TYPE_INVOKE_METHOD = "invoke";
 
     private final Set<DeviceBusElement> elements = new HashSet<>();
-    private final ConcurrentHashMap<UUID, Device> devices = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, IdentifiableDevice> devices = new ConcurrentHashMap<>();
 
     private final SerialDevice serialDevice;
     private final Gson gson;
@@ -92,7 +93,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     public void scanDevices() {
         devices.clear();
         for (final DeviceBusElement element : elements) {
-            for (final Device device : element.getLocalDevices()) {
+            for (final IdentifiableDevice device : element.getLocalDevices()) {
                 final UUID uuid = device.getUniqueId();
                 devices.putIfAbsent(uuid, device);
             }
@@ -100,7 +101,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     }
 
     @Override
-    public Collection<Device> getDevices() {
+    public Collection<IdentifiableDevice> getDevices() {
         return devices.values();
     }
 
@@ -148,7 +149,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
                 continue;
             }
 
-            final Optional<DeviceBusElement> capability = TileEntities.getInterfaceForSide(tileEntity, DeviceBusElement.class, edge.face);
+            final Optional<DeviceBusElement> capability = TileEntityUtils.getInterfaceForSide(tileEntity, DeviceBusElement.class, edge.face);
             if (capability.isPresent()) {
                 if (busPositions.add(edge.position) && busPositions.size() > MAX_BUS_ELEMENT_COUNT) {
                     elements.clear();
@@ -159,7 +160,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
                 elements.add(element);
 
                 for (final Direction face : faces) {
-                    final Optional<DeviceBusElement> otherCapability = TileEntities.getInterfaceForSide(tileEntity, DeviceBusElement.class, face);
+                    final Optional<DeviceBusElement> otherCapability = TileEntityUtils.getInterfaceForSide(tileEntity, DeviceBusElement.class, face);
                     otherCapability.ifPresent(otherElement -> {
                         final boolean isConnectedToIncomingEdge = otherElement == element;
                         if (!isConnectedToIncomingEdge) {
@@ -423,9 +424,9 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
         }
     }
 
-    private static final class DeviceSerializer implements JsonSerializer<Device> {
+    private static final class DeviceSerializer implements JsonSerializer<IdentifiableDevice> {
         @Override
-        public JsonElement serialize(final Device src, final Type typeOfSrc, final JsonSerializationContext context) {
+        public JsonElement serialize(final IdentifiableDevice src, final Type typeOfSrc, final JsonSerializationContext context) {
             if (src == null) {
                 return JsonNull.INSTANCE;
             }

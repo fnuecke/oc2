@@ -1,9 +1,9 @@
 package li.cil.oc2.bus;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.api.device.Device;
+import li.cil.oc2.api.device.IdentifiableDevice;
+import li.cil.oc2.common.bus.DeviceBusControllerImpl;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.vm.DeviceBusControllerImpl;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -62,7 +62,7 @@ public class DeviceBusTests {
         final DeviceBusElement busElement = mock(DeviceBusElement.class);
         when(tileEntity.getCapability(eq(busElementCapability), any())).thenReturn(LazyOptional.of(() -> busElement));
 
-        final Device device = mock(Device.class);
+        final IdentifiableDevice device = mock(IdentifiableDevice.class);
         when(busElement.getLocalDevices()).thenReturn(Collections.singletonList(device));
 
         when(device.getUniqueId()).thenReturn(UUID.randomUUID());

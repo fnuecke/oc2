@@ -1,8 +1,8 @@
-package li.cil.oc2.common.vm;
+package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.api.device.Device;
+import li.cil.oc2.api.device.IdentifiableDevice;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class DeviceBusElementImpl implements DeviceBusElement {
-    private final List<Device> devices = new ArrayList<>();
+    private final List<IdentifiableDevice> devices = new ArrayList<>();
     @Nullable private DeviceBusController controller;
 
     @Override
@@ -24,12 +24,12 @@ public class DeviceBusElementImpl implements DeviceBusElement {
     }
 
     @Override
-    public Collection<Device> getLocalDevices() {
+    public Collection<IdentifiableDevice> getLocalDevices() {
         return devices;
     }
 
     @Override
-    public void addDevice(final Device device) {
+    public void addDevice(final IdentifiableDevice device) {
         devices.add(device);
         if (controller != null) {
             controller.scanDevices();
@@ -37,7 +37,7 @@ public class DeviceBusElementImpl implements DeviceBusElement {
     }
 
     @Override
-    public void removeDevice(final Device device) {
+    public void removeDevice(final IdentifiableDevice device) {
         devices.remove(device);
         if (controller != null) {
             controller.scanDevices();
@@ -45,7 +45,7 @@ public class DeviceBusElementImpl implements DeviceBusElement {
     }
 
     @Override
-    public Collection<Device> getDevices() {
+    public Collection<IdentifiableDevice> getDevices() {
         if (controller != null) {
             return controller.getDevices();
         } else {

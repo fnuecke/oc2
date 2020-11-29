@@ -7,7 +7,7 @@ import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.device.Device;
 import li.cil.oc2.api.device.DeviceMethod;
 import li.cil.oc2.api.device.DeviceMethodParameter;
-import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.util.TileEntities;
 import li.cil.sedna.api.device.Steppable;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import net.minecraft.tileentity.TileEntity;
@@ -15,7 +15,6 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -149,18 +148,18 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
                 continue;
             }
 
-            final LazyOptional<DeviceBusElement> capability = tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, edge.face);
+            final Optional<DeviceBusElement> capability = TileEntities.getInterfaceForSide(tileEntity, DeviceBusElement.class, edge.face);
             if (capability.isPresent()) {
                 if (busPositions.add(edge.position) && busPositions.size() > MAX_BUS_ELEMENT_COUNT) {
                     elements.clear();
                     return State.TOO_COMPLEX;
                 }
 
-                final DeviceBusElement element = capability.orElseThrow(AssertionError::new);
+                final DeviceBusElement element = capability.get();
                 elements.add(element);
 
                 for (final Direction face : faces) {
-                    final LazyOptional<DeviceBusElement> otherCapability = tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, face);
+                    final Optional<DeviceBusElement> otherCapability = TileEntities.getInterfaceForSide(tileEntity, DeviceBusElement.class, face);
                     otherCapability.ifPresent(otherElement -> {
                         final boolean isConnectedToIncomingEdge = otherElement == element;
                         if (!isConnectedToIncomingEdge) {
@@ -463,20 +462,16 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
             methodJson.add("parameters", parametersJson);
 
             final DeviceMethodParameter[] parameters = method.getParameters();
-            if (parameters != null) {
-                for (final DeviceMethodParameter parameter : parameters) {
-                    final JsonObject parameterJson = new JsonObject();
+            for (final DeviceMethodParameter parameter : parameters) {
+                final JsonObject parameterJson = new JsonObject();
 
-                    parameter.getName().ifPresent(s -> parameterJson.addProperty("name", s));
-                    parameter.getDescription().ifPresent(s -> parameterJson.addProperty("description", s));
+                parameter.getName().ifPresent(s -> parameterJson.addProperty("name", s));
+                parameter.getDescription().ifPresent(s -> parameterJson.addProperty("description", s));
 
-                    final Class<?> type = parameter.getType();
-                    if (type != null) {
-                        parameterJson.addProperty("type", type.getSimpleName());
-                    }
+                final Class<?> type = parameter.getType();
+                parameterJson.addProperty("type", type.getSimpleName());
 
-                    parametersJson.add(parameterJson);
-                }
+                parametersJson.add(parameterJson);
             }
 
             return methodJson;

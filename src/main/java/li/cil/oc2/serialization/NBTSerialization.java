@@ -4,9 +4,9 @@ import li.cil.ceres.Ceres;
 import li.cil.ceres.api.DeserializationVisitor;
 import li.cil.ceres.api.SerializationException;
 import li.cil.ceres.api.SerializationVisitor;
+import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
-import net.minecraftforge.common.util.Constants;
 import org.jetbrains.annotations.Contract;
 
 import javax.annotation.Nullable;
@@ -319,7 +319,7 @@ public final class NBTSerialization {
             } else if (type.isArray()) {
                 final Class<?> componentType = type.getComponentType();
                 final li.cil.ceres.api.Serializer<?> serializer = Ceres.getSerializer(componentType);
-                final ListNBT listNBT = nbt.getList(name, Constants.NBT.TAG_COMPOUND);
+                final ListNBT listNBT = nbt.getList(name, NBTTagIds.TAG_COMPOUND);
                 final int length = listNBT.size();
                 Object[] data = (Object[]) into;
                 if (data == null || data.length != length) {

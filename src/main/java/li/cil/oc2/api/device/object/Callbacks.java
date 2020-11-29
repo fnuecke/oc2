@@ -47,7 +47,7 @@ public final class Callbacks {
                 .filter(m -> m.isAnnotationPresent(Callback.class))
                 .collect(Collectors.toList()));
 
-        final List<DeviceMethod> methods = new ArrayList<>();
+        final ArrayList<DeviceMethod> methods = new ArrayList<>();
         for (final Method method : reflectedMethods) {
             try {
                 methods.add(new ObjectDeviceMethod(methodContainer, method));

@@ -1,7 +1,7 @@
 package li.cil.oc2.common.capabilities;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.common.vm.DeviceBusElementImpl;
+import li.cil.oc2.common.bus.DeviceBusElementImpl;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 
 public final class DeviceBusElementCapability {

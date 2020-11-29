@@ -20,8 +20,7 @@ public interface DeviceMethod {
      * <p>
      * When invoked through a {@link DeviceBusController} this is what the method
      * will be referenced by, so the name should be unlikely to be duplicated in
-     * another device to avoid ambiguity when devices are combined, e.g. in a
-     * {@link CompoundDevice}.
+     * another device to avoid ambiguity when devices are combined.
      */
     String getName();
 

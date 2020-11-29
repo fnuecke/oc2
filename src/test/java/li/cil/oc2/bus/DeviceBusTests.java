@@ -11,10 +11,10 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -24,19 +24,16 @@ import static org.mockito.Mockito.*;
 
 public class DeviceBusTests {
     @Mock
-    private static Capability<DeviceBusElement> busElementCapability;
-
+    private Capability<DeviceBusElement> busElementCapability;
     private World world;
     private SerialDevice serialDevice;
     private DeviceBusControllerImpl controller;
 
-    @BeforeAll
-    public static void setup() {
-        Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY = busElementCapability;
-    }
-
     @BeforeEach
     public void setupEach() {
+        MockitoAnnotations.initMocks(this);
+        Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY = busElementCapability;
+
         world = mock(World.class);
         serialDevice = mock(SerialDevice.class);
         controller = new DeviceBusControllerImpl(serialDevice);
@@ -66,7 +63,7 @@ public class DeviceBusTests {
         when(tileEntity.getCapability(eq(busElementCapability), any())).thenReturn(LazyOptional.of(() -> busElement));
 
         final Device device = mock(Device.class);
-        when(busElement.getDevices()).thenReturn(Collections.singletonList(device));
+        when(busElement.getLocalDevices()).thenReturn(Collections.singletonList(device));
 
         when(device.getUniqueId()).thenReturn(UUID.randomUUID());
 

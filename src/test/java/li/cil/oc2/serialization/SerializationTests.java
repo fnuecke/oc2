@@ -121,7 +121,7 @@ public final class SerializationTests {
 
         Assertions.assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, value));
 
-        Assertions.assertArrayEquals(new int[]{4, 5, 6}, value.finalIntArray);
+        Assertions.assertArrayEquals(new int[]{8, 7, 6}, value.finalIntArray);
     }
 
     @Test

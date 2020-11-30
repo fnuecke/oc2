@@ -178,13 +178,13 @@ public class ObjectDeviceProtocolTests {
     }
 
     public static final class SimpleObject {
-        @Callback
+        @Callback(synchronize = false)
         public int add(@Parameter("a") final int a,
                        @Parameter("b") final int b) {
             return a + b;
         }
 
-        @Callback
+        @Callback(synchronize = false)
         public int div(@Parameter("a") final long a,
                        @Parameter("b") final long b) {
             return (int) (a / b);

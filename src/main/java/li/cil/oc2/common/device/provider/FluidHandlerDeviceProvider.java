@@ -25,17 +25,17 @@ public class FluidHandlerDeviceProvider extends AbstractCapabilityBlockDevicePro
             this.fluidHandler = fluidHandler;
         }
 
-        @Callback(synchronize = true)
+        @Callback
         public int getTanks() {
             return fluidHandler.getTanks();
         }
 
-        @Callback(synchronize = true)
+        @Callback
         public FluidStack getFluidInTank(final int tank) {
             return fluidHandler.getFluidInTank(tank);
         }
 
-        @Callback(synchronize = true)
+        @Callback
         public int getTankCapacity(final int tank) {
             return fluidHandler.getTankCapacity(tank);
         }

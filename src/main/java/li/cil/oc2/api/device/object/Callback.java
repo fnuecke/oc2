@@ -31,7 +31,7 @@ public @interface Callback {
      * safe, for example the world or any objects inside the world, such as
      * tile entities and entities.
      */
-    boolean synchronize() default false;
+    boolean synchronize() default true;
 
     /**
      * Option VM visible documentation of this method.

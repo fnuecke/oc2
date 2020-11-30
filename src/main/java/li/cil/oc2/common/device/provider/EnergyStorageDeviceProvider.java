@@ -24,22 +24,22 @@ public class EnergyStorageDeviceProvider extends AbstractCapabilityBlockDevicePr
             this.energyStorage = energyStorage;
         }
 
-        @Callback(synchronize = true)
+        @Callback
         public int getEnergyStored() {
             return energyStorage.getEnergyStored();
         }
 
-        @Callback(synchronize = true)
+        @Callback
         public int getMaxEnergyStored() {
             return energyStorage.getMaxEnergyStored();
         }
 
-        @Callback(synchronize = true)
+        @Callback
         public boolean canExtract() {
             return energyStorage.canExtract();
         }
 
-        @Callback(synchronize = true)
+        @Callback
         public boolean canReceive() {
             return energyStorage.canReceive();
         }

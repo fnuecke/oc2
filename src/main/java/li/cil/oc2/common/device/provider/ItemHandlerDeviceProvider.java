@@ -25,17 +25,17 @@ public class ItemHandlerDeviceProvider extends AbstractCapabilityBlockDeviceProv
             this.itemHandler = itemHandler;
         }
 
-        @Callback(synchronize = true)
+        @Callback
         public int getSlots() {
             return itemHandler.getSlots();
         }
 
-        @Callback(synchronize = true)
+        @Callback
         public ItemStack getStackInSlot(final int slot) {
             return itemHandler.getStackInSlot(slot);
         }
 
-        @Callback(synchronize = true)
+        @Callback
         public int getSlotLimit(final int slot) {
             return itemHandler.getSlotLimit(slot);
         }

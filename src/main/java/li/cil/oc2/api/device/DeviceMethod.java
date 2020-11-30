@@ -11,6 +11,10 @@ import java.util.Optional;
  * <p>
  * The easiest and hence recommended way of implementing this interface is to use
  * the {@link ObjectDevice} class.
+ * <p>
+ * Method parameters are serialized and deserialized using Gson. When using custom
+ * parameter types it may be necessary to register a custom type adapter for them
+ * via {@link li.cil.oc2.api.API#IMC_ADD_DEVICE_METHOD_PARAMETER_TYPE_ADAPTER}.
  *
  * @see ObjectDevice
  */

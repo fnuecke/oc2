@@ -13,6 +13,10 @@ import java.lang.annotation.Target;
  * <p>
  * Intended to be used in classes instances of which are used in combination with
  * {@link ObjectDevice} and subclasses of {@link ObjectDevice}.
+ * <p>
+ * Method parameters are serialized and deserialized using Gson. When using custom
+ * parameter types it may be necessary to register a custom type adapter for them
+ * via {@link li.cil.oc2.api.API#IMC_ADD_DEVICE_METHOD_PARAMETER_TYPE_ADAPTER}.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

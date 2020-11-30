@@ -118,7 +118,7 @@ public class ObjectDeviceProtocolTests {
     public void annotatedObject() {
         final SimpleObject object = new SimpleObject();
         final ObjectDevice device = new ObjectDevice(object);
-        final IdentifiableDeviceImpl identifiableDevice = new IdentifiableDeviceImpl(device, UUID.randomUUID());
+        final IdentifiableDeviceImpl identifiableDevice = new IdentifiableDeviceImpl(LazyOptional.of(() -> device), UUID.randomUUID());
 
         busElement.addDevice(identifiableDevice);
         controller.scan(world, CONTROLLER_POS);

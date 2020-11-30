@@ -6,22 +6,22 @@ import li.cil.oc2.api.device.IdentifiableDevice;
 import li.cil.oc2.common.util.LazyOptionalUtils;
 import net.minecraftforge.common.util.LazyOptional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import javax.annotation.Nullable;
+import java.util.*;
 
 public final class IdentifiableDeviceImpl implements IdentifiableDevice {
     private final LazyOptional<? extends Device> device;
     private final UUID uuid;
-
-    public IdentifiableDeviceImpl(final Device device, final UUID uuid) {
-        this(LazyOptional.of(() -> device), uuid);
-    }
+    @Nullable private final String mainTypeName;
 
     public IdentifiableDeviceImpl(final LazyOptional<? extends Device> device, final UUID uuid) {
+        this(device, uuid, null);
+    }
+
+    public IdentifiableDeviceImpl(final LazyOptional<? extends Device> device, final UUID uuid, @Nullable final String mainTypeName) {
         this.device = device;
         this.uuid = uuid;
+        this.mainTypeName = mainTypeName;
     }
 
     @Override
@@ -31,7 +31,13 @@ public final class IdentifiableDeviceImpl implements IdentifiableDevice {
 
     @Override
     public List<String> getTypeNames() {
-        return device.map(Device::getTypeNames).orElse(Collections.emptyList());
+        if (mainTypeName != null) {
+            final List<String> typeNames = new ArrayList<>(device.map(Device::getTypeNames).orElse(Collections.emptyList()));
+            typeNames.add(0, mainTypeName);
+            return typeNames;
+        } else {
+            return device.map(Device::getTypeNames).orElse(Collections.emptyList());
+        }
     }
 
     @Override

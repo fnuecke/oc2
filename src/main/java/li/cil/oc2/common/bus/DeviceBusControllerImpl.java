@@ -1,6 +1,7 @@
 package li.cil.oc2.common.bus;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
@@ -8,7 +9,12 @@ import li.cil.oc2.api.device.Device;
 import li.cil.oc2.api.device.DeviceMethod;
 import li.cil.oc2.api.device.DeviceMethodParameter;
 import li.cil.oc2.api.device.IdentifiableDevice;
+import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
 import li.cil.oc2.common.util.TileEntityUtils;
+import li.cil.oc2.serialization.serializers.DeviceJsonSerializer;
+import li.cil.oc2.serialization.serializers.DeviceMethodJsonSerializer;
+import li.cil.oc2.serialization.serializers.MessageJsonDeserializer;
+import li.cil.oc2.serialization.serializers.MethodInvocationJsonDeserializer;
 import li.cil.sedna.api.device.Steppable;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import net.minecraft.tileentity.TileEntity;
@@ -20,7 +26,6 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,22 +38,14 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     }
 
     private static final int MAX_BUS_ELEMENT_COUNT = 128;
-    private static final int DEFAULT_MAX_MESSAGE_SIZE = 32 * 1024;
+    private static final int DEFAULT_MAX_MESSAGE_SIZE = 4 * 1024;
     private static final byte[] MESSAGE_DELIMITER = "\0".getBytes();
 
-    // Device -> VM
-    private static final String MESSAGE_TYPE_STATUS = "status";
-    private static final String MESSAGE_TYPE_RESULT = "result";
-    private static final String MESSAGE_TYPE_ERROR = "error";
-
-    private static final String ERROR_MESSAGE_TOO_LARGE = "message too large";
-    private static final String ERROR_UNKNOWN_MESSAGE_TYPE = "unknown message type";
-    private static final String ERROR_UNKNOWN_DEVICE = "unknown device";
-    private static final String ERROR_UNKNOWN_METHOD = "unknown method";
-    private static final String ERROR_INVALID_PARAMETER_SIGNATURE = "invalid parameter signature";
-
-    // VM -> Device
-    private static final String MESSAGE_TYPE_INVOKE_METHOD = "invoke";
+    public static final String ERROR_MESSAGE_TOO_LARGE = "message too large";
+    public static final String ERROR_UNKNOWN_MESSAGE_TYPE = "unknown message type";
+    public static final String ERROR_UNKNOWN_DEVICE = "unknown device";
+    public static final String ERROR_UNKNOWN_METHOD = "unknown method";
+    public static final String ERROR_INVALID_PARAMETER_SIGNATURE = "invalid parameter signature";
 
     private final Set<DeviceBusElement> elements = new HashSet<>();
     private final ConcurrentHashMap<UUID, IdentifiableDevice> devices = new ConcurrentHashMap<>();
@@ -68,12 +65,11 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     public DeviceBusControllerImpl(final SerialDevice serialDevice, final int maxMessageSize) {
         this.serialDevice = serialDevice;
         this.transmitBuffer = ByteBuffer.allocate(maxMessageSize);
-        this.gson = new GsonBuilder()
-                .serializeNulls()
-                .registerTypeAdapter(MethodInvocation.class, new MethodInvocationDeserializer())
-                .registerTypeAdapter(Message.class, new MessageDeserializer())
-                .registerTypeAdapter(Device.class, new DeviceSerializer())
-                .registerTypeAdapter(DeviceMethod.class, new DeviceMethodSerializer())
+        this.gson = DeviceMethodParameterTypeAdapters.beginBuildGson()
+                .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
+                .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
+                .registerTypeAdapter(Device.class, new DeviceJsonSerializer())
+                .registerTypeAdapter(DeviceMethod.class, new DeviceMethodJsonSerializer())
                 .create();
     }
 
@@ -171,7 +167,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
                         final ScanEdge edgeIn = new ScanEdge(edge.position, face);
                         seenEdges.add(edgeIn);
 
-                        final ScanEdge edgeOut = new ScanEdge(edge.position, face.getOpposite());
+                        final ScanEdge edgeOut = new ScanEdge(edge.position.offset(face), face.getOpposite());
                         if (seenEdges.add(edgeOut)) {
                             queue.add(edgeOut);
                         }
@@ -256,11 +252,11 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
         try {
             final Message message = gson.fromJson(stream, Message.class);
             switch (message.type) {
-                case MESSAGE_TYPE_STATUS: {
+                case Message.MESSAGE_TYPE_STATUS: {
                     writeStatus();
                     break;
                 }
-                case MESSAGE_TYPE_INVOKE_METHOD: {
+                case Message.MESSAGE_TYPE_INVOKE_METHOD: {
                     assert message.data != null : "MethodInvocation deserializer produced null data.";
                     processMethodInvocation((MethodInvocation) message.data, false);
                     break;
@@ -317,7 +313,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
 
             try {
                 final Object result = method.invoke(parameters);
-                writeMessage(MESSAGE_TYPE_RESULT, result);
+                writeMessage(Message.MESSAGE_TYPE_RESULT, result);
             } catch (final Throwable e) {
                 writeError(e.getMessage());
             }
@@ -329,11 +325,11 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     }
 
     private void writeStatus() {
-        writeMessage(MESSAGE_TYPE_STATUS, devices.values().toArray(new Device[0]));
+        writeMessage(Message.MESSAGE_TYPE_STATUS, devices.values().toArray(new Device[0]));
     }
 
     private void writeError(final String message) {
-        writeMessage(MESSAGE_TYPE_ERROR, message);
+        writeMessage(Message.MESSAGE_TYPE_ERROR, message);
     }
 
     private void writeMessage(final String type, @Nullable final Object data) {
@@ -381,7 +377,15 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
         }
     }
 
-    private static final class Message {
+    public static final class Message {
+        // Device -> VM
+        public static final String MESSAGE_TYPE_STATUS = "status";
+        public static final String MESSAGE_TYPE_RESULT = "result";
+        public static final String MESSAGE_TYPE_ERROR = "error";
+
+        // VM -> Device
+        public static final String MESSAGE_TYPE_INVOKE_METHOD = "invoke";
+
         public final String type;
         @Nullable public final Object data;
 
@@ -404,93 +408,4 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
         }
     }
 
-    private static final class MessageDeserializer implements JsonDeserializer<Message> {
-        @Override
-        public Message deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) throws JsonParseException {
-            final JsonObject jsonObject = json.getAsJsonObject();
-            final String messageType = jsonObject.get("type").getAsString();
-            final Object messageData;
-            switch (messageType) {
-                case MESSAGE_TYPE_STATUS: {
-                    messageData = null;
-                    break;
-                }
-                case MESSAGE_TYPE_INVOKE_METHOD: {
-                    messageData = context.deserialize(jsonObject.getAsJsonObject("data"), MethodInvocation.class);
-                    break;
-                }
-                default: {
-                    throw new JsonParseException(ERROR_UNKNOWN_MESSAGE_TYPE);
-                }
-            }
-
-            return new Message(messageType, messageData);
-        }
-    }
-
-    private static final class MethodInvocationDeserializer implements JsonDeserializer<MethodInvocation> {
-        @Override
-        public MethodInvocation deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) throws JsonParseException {
-            final JsonObject jsonObject = json.getAsJsonObject();
-            final UUID deviceId = context.deserialize(jsonObject.get("deviceId"), UUID.class);
-            final String methodName = jsonObject.get("name").getAsString();
-            final JsonArray parameters = jsonObject.getAsJsonArray("parameters");
-            return new MethodInvocation(deviceId, methodName, parameters != null ? parameters : new JsonArray());
-        }
-    }
-
-    private static final class DeviceSerializer implements JsonSerializer<IdentifiableDevice> {
-        @Override
-        public JsonElement serialize(final IdentifiableDevice src, final Type typeOfSrc, final JsonSerializationContext context) {
-            if (src == null) {
-                return JsonNull.INSTANCE;
-            }
-
-            final JsonObject deviceJson = new JsonObject();
-            deviceJson.add("deviceId", context.serialize(src.getUniqueId()));
-            deviceJson.add("typeNames", context.serialize(src.getTypeNames()));
-
-            final JsonArray methodsJson = new JsonArray();
-            deviceJson.add("methods", methodsJson);
-            for (final DeviceMethod method : src.getMethods()) {
-                methodsJson.add(context.serialize(method, DeviceMethod.class));
-            }
-
-            return deviceJson;
-        }
-    }
-
-    private static final class DeviceMethodSerializer implements JsonSerializer<DeviceMethod> {
-        @Override
-        public JsonElement serialize(final DeviceMethod method, final Type typeOfMethod, final JsonSerializationContext context) {
-            if (method == null) {
-                return JsonNull.INSTANCE;
-            }
-
-            final JsonObject methodJson = new JsonObject();
-            methodJson.addProperty("name", method.getName());
-            methodJson.addProperty("returnType", method.getReturnType().getSimpleName());
-
-            method.getDescription().ifPresent(s -> methodJson.addProperty("description", s));
-            method.getReturnValueDescription().ifPresent(s -> methodJson.addProperty("returnValueDescription", s));
-
-            final JsonArray parametersJson = new JsonArray();
-            methodJson.add("parameters", parametersJson);
-
-            final DeviceMethodParameter[] parameters = method.getParameters();
-            for (final DeviceMethodParameter parameter : parameters) {
-                final JsonObject parameterJson = new JsonObject();
-
-                parameter.getName().ifPresent(s -> parameterJson.addProperty("name", s));
-                parameter.getDescription().ifPresent(s -> parameterJson.addProperty("description", s));
-
-                final Class<?> type = parameter.getType();
-                parameterJson.addProperty("type", type.getSimpleName());
-
-                parametersJson.add(parameterJson);
-            }
-
-            return methodJson;
-        }
-    }
 }

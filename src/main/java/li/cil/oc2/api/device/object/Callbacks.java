@@ -43,9 +43,7 @@ public final class Callbacks {
      * @return the list of methods extracted from the specified object.
      */
     public static List<DeviceMethod> collectMethods(final Object methodContainer) {
-        final List<Method> reflectedMethods = METHOD_BY_TYPE.computeIfAbsent(methodContainer.getClass(), c -> Arrays.stream(c.getMethods())
-                .filter(m -> m.isAnnotationPresent(Callback.class))
-                .collect(Collectors.toList()));
+        final List<Method> reflectedMethods = getMethods(methodContainer.getClass());
 
         final ArrayList<DeviceMethod> methods = new ArrayList<>();
         for (final Method method : reflectedMethods) {
@@ -57,5 +55,29 @@ public final class Callbacks {
         }
 
         return methods;
+    }
+
+    /**
+     * Returns whether any {@link Callback} annotated methods are present on the specified
+     * object without creating bound {@link DeviceMethod} instances.
+     * <p>
+     * The specified {@code object} can be an instance or a {@link Class}.
+     *
+     * @param object the object to check for methods on.
+     * @return {@code true} if any methods were found on the object; {@code false} otherwise.
+     */
+    public static boolean hasMethods(final Object object) {
+        if (object instanceof Class<?>) {
+            return !getMethods((Class<?>) object).isEmpty();
+
+        } else {
+            return !getMethods(object.getClass()).isEmpty();
+        }
+    }
+
+    private static List<Method> getMethods(final Class<?> type) {
+        return METHOD_BY_TYPE.computeIfAbsent(type, c -> Arrays.stream(c.getMethods())
+                .filter(m -> m.isAnnotationPresent(Callback.class))
+                .collect(Collectors.toList()));
     }
 }

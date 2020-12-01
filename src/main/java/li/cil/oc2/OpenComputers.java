@@ -11,6 +11,7 @@ import li.cil.oc2.common.block.ScreenBlock;
 import li.cil.oc2.common.container.ComputerContainer;
 import li.cil.oc2.common.tile.BusCableTileEntity;
 import li.cil.oc2.common.tile.ComputerTileEntity;
+import li.cil.oc2.common.tile.RedstoneInterfaceTileEntity;
 import li.cil.sedna.devicetree.DeviceTreeRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.inventory.container.ContainerType;
@@ -52,6 +53,7 @@ public final class OpenComputers {
     public static final DeferredRegister<TileEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, API.MOD_ID);
     public static final RegistryObject<TileEntityType<ComputerTileEntity>> COMPUTER_TILE_ENTITY = TILES.register(Constants.COMPUTER_BLOCK_NAME, () -> TileEntityType.Builder.create(ComputerTileEntity::new, COMPUTER_BLOCK.get()).build(null));
     public static final RegistryObject<TileEntityType<BusCableTileEntity>> BUS_CABLE_TILE_ENTITY = TILES.register(Constants.BUS_CABLE_BLOCK_NAME, () -> TileEntityType.Builder.create(BusCableTileEntity::new, BUS_CABLE_BLOCK.get()).build(null));
+    public static final RegistryObject<TileEntityType<RedstoneInterfaceTileEntity>> REDSTONE_INTERFACE_TILE_ENTITY = TILES.register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, () -> TileEntityType.Builder.create(RedstoneInterfaceTileEntity::new, REDSTONE_INTERFACE_BLOCK.get()).build(null));
 
     public static final DeferredRegister<ContainerType<?>> CONTAINERS = DeferredRegister.create(ForgeRegistries.CONTAINERS, API.MOD_ID);
     public static final RegistryObject<ContainerType<ComputerContainer>> COMPUTER_CONTAINER = CONTAINERS.register(Constants.COMPUTER_BLOCK_NAME, () -> IForgeContainerType.create((id, inventory, data) -> {

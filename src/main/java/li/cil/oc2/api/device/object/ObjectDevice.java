@@ -32,6 +32,10 @@ public class ObjectDevice implements Device {
         this.typeNames = new ArrayList<>(typeNames);
         this.methods = Callbacks.collectMethods(object);
         this.className = object.getClass().getSimpleName();
+
+        if (object instanceof NamedDevice) {
+            this.typeNames.addAll(((NamedDevice) object).getDeviceTypeNames());
+        }
     }
 
     public ObjectDevice(final Object object, @Nullable final String typeName) {

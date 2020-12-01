@@ -17,8 +17,7 @@ public final class DeviceMethodParameterTypeAdapters {
     }
 
     public static GsonBuilder beginBuildGson() {
-        final GsonBuilder builder = new GsonBuilder()
-                .serializeNulls();
+        final GsonBuilder builder = new GsonBuilder();
 
         for (final DeviceMethodParameterTypeAdapter value : TYPE_ADAPTERS) {
             builder.registerTypeAdapter(value.type, value.typeAdapter);

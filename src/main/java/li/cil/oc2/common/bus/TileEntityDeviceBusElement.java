@@ -9,12 +9,10 @@ import li.cil.oc2.common.device.Providers;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.TileEntityUtils;
 import li.cil.oc2.common.util.WorldUtils;
-import net.minecraft.block.Block;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -66,13 +64,8 @@ public final class TileEntityDeviceBusElement implements INBTSerializable<Compou
         final IdentifiableDeviceImpl identifiableDevice;
 
         if (device.isPresent()) {
-            final Block block = world.getBlockState(pos).getBlock();
-            final ResourceLocation registryName = block.getRegistryName();
-            if (registryName != null) {
-                identifiableDevice = new IdentifiableDeviceImpl(device, deviceIds[index], registryName.toString());
-            } else {
-                identifiableDevice = new IdentifiableDeviceImpl(device, deviceIds[index]);
-            }
+            final String typeName = WorldUtils.getBlockName(world, pos);
+            identifiableDevice = new IdentifiableDeviceImpl(device, deviceIds[index], typeName);
             device.addListener((ignored) -> handleNeighborChanged(pos));
         } else {
             identifiableDevice = null;

@@ -9,8 +9,8 @@ import li.cil.oc2.api.device.Device;
 import li.cil.oc2.api.device.DeviceMethod;
 import li.cil.oc2.api.device.DeviceMethodParameter;
 import li.cil.oc2.api.device.IdentifiableDevice;
+import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
-import li.cil.oc2.common.util.TileEntityUtils;
 import li.cil.oc2.serialization.serializers.DeviceJsonSerializer;
 import li.cil.oc2.serialization.serializers.DeviceMethodJsonSerializer;
 import li.cil.oc2.serialization.serializers.MessageJsonDeserializer;
@@ -22,6 +22,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -146,18 +147,19 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
                 continue;
             }
 
-            final Optional<DeviceBusElement> capability = TileEntityUtils.getInterfaceForSide(tileEntity, DeviceBusElement.class, edge.face);
+            final LazyOptional<DeviceBusElement> capability = tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, edge.face);
             if (capability.isPresent()) {
                 if (busPositions.add(edge.position) && busPositions.size() > MAX_BUS_ELEMENT_COUNT) {
                     elements.clear();
-                    return State.TOO_COMPLEX;
+                    return State.TOO_COMPLEX; // This return is the reason this is not in the ifPresent below.
                 }
+            }
 
-                final DeviceBusElement element = capability.get();
+            capability.ifPresent(element -> {
                 elements.add(element);
 
                 for (final Direction face : faces) {
-                    final Optional<DeviceBusElement> otherCapability = TileEntityUtils.getInterfaceForSide(tileEntity, DeviceBusElement.class, face);
+                    final LazyOptional<DeviceBusElement> otherCapability = tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, face);
                     otherCapability.ifPresent(otherElement -> {
                         final boolean isConnectedToIncomingEdge = otherElement == element;
                         if (!isConnectedToIncomingEdge) {
@@ -173,7 +175,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
                         }
                     });
                 }
-            }
+            });
         }
 
         for (final DeviceBusElement element : elements) {
@@ -407,5 +409,4 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
             this.parameters = parameters;
         }
     }
-
 }

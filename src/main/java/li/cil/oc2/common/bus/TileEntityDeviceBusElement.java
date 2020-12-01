@@ -3,11 +3,11 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.ServerScheduler;
+import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.device.CompoundDevice;
 import li.cil.oc2.common.device.IdentifiableDeviceImpl;
 import li.cil.oc2.common.device.Providers;
 import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.util.TileEntityUtils;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
@@ -19,7 +19,6 @@ import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 public final class TileEntityDeviceBusElement implements INBTSerializable<CompoundNBT> {
@@ -155,7 +154,8 @@ public final class TileEntityDeviceBusElement implements INBTSerializable<Compou
                 continue;
             }
 
-            final Optional<DeviceBusElement> capability = TileEntityUtils.getInterfaceForSide(tileEntity, DeviceBusElement.class, direction.getOpposite());
+            final LazyOptional<DeviceBusElement> capability = tileEntity
+                    .getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, direction.getOpposite());
             capability.ifPresent(DeviceBus::scheduleScan);
         }
     }

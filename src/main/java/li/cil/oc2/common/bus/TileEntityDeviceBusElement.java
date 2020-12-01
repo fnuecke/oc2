@@ -4,8 +4,8 @@ import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.ServerScheduler;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.device.DeviceInterfaceCollection;
 import li.cil.oc2.common.device.DeviceImpl;
+import li.cil.oc2.common.device.DeviceInterfaceCollection;
 import li.cil.oc2.common.device.provider.Providers;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.WorldUtils;
@@ -29,7 +29,7 @@ public final class TileEntityDeviceBusElement implements INBTSerializable<Compou
 
     private final TileEntity tileEntity;
 
-    private final DeviceBusElementImpl busElement = new DeviceBusElementImpl();
+    private final DeviceBusElement busElement = Objects.requireNonNull(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY.getDefaultInstance());
     private final UUID[] deviceIds = new UUID[NEIGHBOR_COUNT];
     private final DeviceImpl[] devices = new DeviceImpl[NEIGHBOR_COUNT];
 
@@ -41,7 +41,7 @@ public final class TileEntityDeviceBusElement implements INBTSerializable<Compou
         }
     }
 
-    public DeviceBusElementImpl getBusElement() {
+    public DeviceBusElement getBusElement() {
         return busElement;
     }
 
@@ -92,9 +92,12 @@ public final class TileEntityDeviceBusElement implements INBTSerializable<Compou
         }
 
         ServerScheduler.schedule(world, () -> {
-            if (tileEntity.isRemoved()) return;
-            scanNeighborsForBusElements(tileEntity.getWorld());
+            if (tileEntity.isRemoved()) {
+                return;
+            }
+
             scanNeighborsForDevices();
+            scheduleBusScanInAdjacentBusElements();
         });
     }
 
@@ -145,7 +148,12 @@ public final class TileEntityDeviceBusElement implements INBTSerializable<Compou
         }
     }
 
-    private void scanNeighborsForBusElements(final World world) {
+    private void scheduleBusScanInAdjacentBusElements() {
+        final World world = tileEntity.getWorld();
+        if (world == null || world.isRemote()) {
+            return;
+        }
+
         final BlockPos pos = tileEntity.getPos();
         for (final Direction direction : Direction.values()) {
             final BlockPos neighborPos = pos.offset(direction);

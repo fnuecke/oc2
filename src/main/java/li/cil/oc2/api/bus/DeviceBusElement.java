@@ -2,9 +2,7 @@ package li.cil.oc2.api.bus;
 
 import li.cil.oc2.api.device.Device;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * Represents a single connection point on a device bus.
@@ -20,20 +18,29 @@ import java.util.Optional;
  */
 public interface DeviceBusElement extends DeviceBus {
     /**
-     * The controller this bus element is currently registered with, if any.
-     *
-     * @return the current controller.
-     */
-    Optional<DeviceBusController> getController();
-
-    /**
-     * Sets the controller this bus element is now registered with, if any.
+     * Registers a controller with this bus element.
      * <p>
      * This will be called by {@link DeviceBusController}s when scanning.
+     * <p>
+     * Bus elements can be have multiple controllers at the same time.
+     * <p>
+     * When {@link #scheduleScan()} is called, {@link DeviceBusController#scheduleBusScan()}
+     * <em>must</em> be called for each registered controller.
+     * <p>
+     * When either {@link #addDevice(Device)} or {@link #removeDevice(Device)} are called,
+     * {@link DeviceBusController#scanDevices()} <em>should</em> be called for each registered
+     * controller.
      *
-     * @param controller the new controller.
+     * @param controller the controller to add.
      */
-    void setController(@Nullable final DeviceBusController controller);
+    void addController(final DeviceBusController controller);
+
+    /**
+     * Unregisters a controller from this bus element.
+     *
+     * @param controller the controller to remove.
+     */
+    void removeController(final DeviceBusController controller);
 
     /**
      * Returns the list of devices connected specifically by this element.

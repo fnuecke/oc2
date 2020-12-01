@@ -1,5 +1,6 @@
 package li.cil.oc2.common;
 
+import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.DeviceBusElementCapability;
 import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
 import li.cil.oc2.common.device.provider.Providers;
@@ -16,7 +17,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 public final class CommonSetup {
     public static void run(final FMLCommonSetupEvent event) {
-        DeviceBusElementCapability.register();
+        Capabilities.initialize();
+
         Providers.initialize();
         Network.setup();
 

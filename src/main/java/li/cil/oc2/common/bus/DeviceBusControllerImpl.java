@@ -5,10 +5,10 @@ import com.google.gson.JsonArray;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.api.device.Device;
 import li.cil.oc2.api.device.DeviceInterface;
 import li.cil.oc2.api.device.DeviceMethod;
 import li.cil.oc2.api.device.DeviceMethodParameter;
-import li.cil.oc2.api.device.Device;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
 import li.cil.oc2.serialization.serializers.DeviceJsonSerializer;
@@ -35,6 +35,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     public enum State {
         SCAN_PENDING,
         TOO_COMPLEX,
+        MULTIPLE_CONTROLLERS,
         READY,
     }
 
@@ -77,8 +78,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     @Override
     public void scheduleBusScan() {
         for (final DeviceBusElement element : elements) {
-            assert element.getController().isPresent() && element.getController().get() == this;
-            element.setController(null);
+            element.removeController(this);
         }
 
         elements.clear();
@@ -132,6 +132,10 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
             seenEdges.add(edgeIn);
         }
 
+        // When we belong to a bus with multiple controllers we finish the scan and register
+        // with all bus elements so that an element can easily trigger a scan on all connected
+        // controllers -- without having to scan through the bus itself.
+        boolean hasMultipleControllers = false;
         while (!queue.isEmpty()) {
             final ScanEdge edge = queue.pop();
             assert seenEdges.contains(edge);
@@ -152,6 +156,11 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
                 }
 
                 continue;
+            }
+
+            if (tileEntity.getCapability(Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY, edge.face)
+                    .map(controller -> Objects.equals(controller, this)).orElse(false)) {
+                hasMultipleControllers = true;
             }
 
             final LazyOptional<DeviceBusElement> capability = tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, edge.face);
@@ -186,8 +195,11 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
         }
 
         for (final DeviceBusElement element : elements) {
-            assert !element.getController().isPresent();
-            element.setController(this);
+            element.addController(this);
+        }
+
+        if (hasMultipleControllers) {
+            return State.MULTIPLE_CONTROLLERS;
         }
 
         scanDevices();

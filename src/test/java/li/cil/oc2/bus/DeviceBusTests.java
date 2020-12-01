@@ -72,7 +72,7 @@ public class DeviceBusTests {
         Assertions.assertEquals(DeviceBusControllerImpl.State.READY,
                 controller.scan(world, CONTROLLER_POS));
 
-        verify(busElement).setController(controller);
+        verify(busElement).addController(controller);
         Assertions.assertTrue(controller.getDevices().contains(device));
     }
 
@@ -103,7 +103,7 @@ public class DeviceBusTests {
         Assertions.assertEquals(DeviceBusControllerImpl.State.READY,
                 controller.scan(world, CONTROLLER_POS));
 
-        verify(busElement1).setController(controller);
-        verify(busElement2).setController(controller);
+        verify(busElement1).addController(controller);
+        verify(busElement2).addController(controller);
     }
 }

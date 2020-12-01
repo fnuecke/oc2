@@ -9,8 +9,8 @@ import li.cil.oc2.api.device.object.Callback;
 import li.cil.oc2.api.device.object.ObjectDeviceInterface;
 import li.cil.oc2.api.device.object.Parameter;
 import li.cil.oc2.common.bus.DeviceBusControllerImpl;
-import li.cil.oc2.common.bus.DeviceBusElementImpl;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.capabilities.DeviceBusElementCapability;
 import li.cil.oc2.common.device.DeviceImpl;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import net.minecraft.tileentity.TileEntity;
@@ -50,7 +50,7 @@ public class ObjectDeviceProtocolTests {
 
         serialDevice = new TestSerialDevice();
         controller = new DeviceBusControllerImpl(serialDevice);
-        busElement = new DeviceBusElementImpl();
+        busElement = new DeviceBusElementCapability.Implementation();
 
         world = mock(World.class);
         when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);

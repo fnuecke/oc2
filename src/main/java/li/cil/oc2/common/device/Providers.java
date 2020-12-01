@@ -3,9 +3,7 @@ package li.cil.oc2.common.device;
 import li.cil.oc2.api.device.Device;
 import li.cil.oc2.api.device.provider.DeviceProvider;
 import li.cil.oc2.api.device.provider.DeviceQuery;
-import li.cil.oc2.common.device.provider.EnergyStorageDeviceProvider;
-import li.cil.oc2.common.device.provider.FluidHandlerDeviceProvider;
-import li.cil.oc2.common.device.provider.ItemHandlerDeviceProvider;
+import li.cil.oc2.common.device.provider.*;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
@@ -21,6 +19,8 @@ public final class Providers {
         addProvider(new EnergyStorageDeviceProvider());
         addProvider(new FluidHandlerDeviceProvider());
         addProvider(new ItemHandlerDeviceProvider());
+        addProvider(new TileEntityDeviceProvider());
+        addProvider(new BlockDeviceProvider());
     }
 
     public static void addProvider(final DeviceProvider provider) {

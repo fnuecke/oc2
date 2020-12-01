@@ -3,17 +3,19 @@ package li.cil.oc2.common.device.provider;
 import li.cil.oc2.api.device.Device;
 import li.cil.oc2.api.device.object.Callback;
 import li.cil.oc2.api.device.object.ObjectDevice;
+import li.cil.oc2.api.device.provider.BlockDeviceQuery;
 import li.cil.oc2.common.capabilities.Capabilities;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 
-public class EnergyStorageDeviceProvider extends AbstractCapabilityBlockDeviceProvider<IEnergyStorage> {
+public class EnergyStorageDeviceProvider extends AbstractCapabilityAnyTileEntityDeviceProvider<IEnergyStorage> {
     public EnergyStorageDeviceProvider() {
         super(() -> Capabilities.ENERGY_STORAGE_CAPABILITY);
     }
 
     @Override
-    protected Device getDevice(final IEnergyStorage value) {
-        return new EnergyStorageDevice(value);
+    protected LazyOptional<Device> getDevice(final BlockDeviceQuery query, final IEnergyStorage value) {
+        return LazyOptional.of(() -> new EnergyStorageDevice(value));
     }
 
     public static final class EnergyStorageDevice extends ObjectDevice {

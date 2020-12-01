@@ -3,18 +3,20 @@ package li.cil.oc2.common.device.provider;
 import li.cil.oc2.api.device.Device;
 import li.cil.oc2.api.device.object.Callback;
 import li.cil.oc2.api.device.object.ObjectDevice;
+import li.cil.oc2.api.device.provider.BlockDeviceQuery;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 
-public class ItemHandlerDeviceProvider extends AbstractCapabilityBlockDeviceProvider<IItemHandler> {
+public class ItemHandlerDeviceProvider extends AbstractCapabilityAnyTileEntityDeviceProvider<IItemHandler> {
     public ItemHandlerDeviceProvider() {
         super(() -> Capabilities.ITEM_HANDLER_CAPABILITY);
     }
 
     @Override
-    protected Device getDevice(final IItemHandler value) {
-        return new ItemHandlerDevice(value);
+    protected LazyOptional<Device> getDevice(final BlockDeviceQuery query, final IItemHandler value) {
+        return LazyOptional.of(() -> new ItemHandlerDevice(value));
     }
 
     public static final class ItemHandlerDevice extends ObjectDevice {

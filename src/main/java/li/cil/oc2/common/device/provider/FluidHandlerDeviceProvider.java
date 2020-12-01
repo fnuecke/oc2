@@ -3,18 +3,20 @@ package li.cil.oc2.common.device.provider;
 import li.cil.oc2.api.device.Device;
 import li.cil.oc2.api.device.object.Callback;
 import li.cil.oc2.api.device.object.ObjectDevice;
+import li.cil.oc2.api.device.provider.BlockDeviceQuery;
 import li.cil.oc2.common.capabilities.Capabilities;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-public class FluidHandlerDeviceProvider extends AbstractCapabilityBlockDeviceProvider<IFluidHandler> {
+public class FluidHandlerDeviceProvider extends AbstractCapabilityAnyTileEntityDeviceProvider<IFluidHandler> {
     public FluidHandlerDeviceProvider() {
         super(() -> Capabilities.FLUID_HANDLER_CAPABILITY);
     }
 
     @Override
-    protected Device getDevice(final IFluidHandler value) {
-        return new FluidHandlerDevice(value);
+    protected LazyOptional<Device> getDevice(final BlockDeviceQuery query, final IFluidHandler value) {
+        return LazyOptional.of(() -> new FluidHandlerDevice(value));
     }
 
     public static final class FluidHandlerDevice extends ObjectDevice {

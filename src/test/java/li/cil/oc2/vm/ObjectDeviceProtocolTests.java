@@ -56,7 +56,7 @@ public class ObjectDeviceProtocolTests {
         when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);
 
         final TileEntity tileEntity = mock(TileEntity.class);
-        when(world.getTileEntity(any())).thenReturn(tileEntity);
+        when(world.getTileEntity(eq(CONTROLLER_POS))).thenReturn(tileEntity);
 
         when(tileEntity.getCapability(eq(busElementCapability), any())).thenReturn(LazyOptional.of(() -> busElement));
     }

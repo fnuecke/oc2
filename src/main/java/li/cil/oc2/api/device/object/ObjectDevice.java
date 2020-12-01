@@ -3,6 +3,7 @@ package li.cil.oc2.api.device.object;
 import li.cil.oc2.api.device.Device;
 import li.cil.oc2.api.device.DeviceMethod;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,8 +34,8 @@ public class ObjectDevice implements Device {
         this.className = object.getClass().getSimpleName();
     }
 
-    public ObjectDevice(final Object object, final String typeName) {
-        this(object, Collections.singletonList(typeName));
+    public ObjectDevice(final Object object, @Nullable final String typeName) {
+        this(object, typeName != null ? Collections.singletonList(typeName) : Collections.emptyList());
     }
 
     public ObjectDevice(final Object object) {

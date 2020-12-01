@@ -12,16 +12,16 @@ import java.util.*;
 public final class IdentifiableDeviceImpl implements IdentifiableDevice {
     private final LazyOptional<? extends Device> device;
     private final UUID uuid;
-    @Nullable private final String mainTypeName;
+    @Nullable private final String typeName;
 
     public IdentifiableDeviceImpl(final LazyOptional<? extends Device> device, final UUID uuid) {
         this(device, uuid, null);
     }
 
-    public IdentifiableDeviceImpl(final LazyOptional<? extends Device> device, final UUID uuid, @Nullable final String mainTypeName) {
+    public IdentifiableDeviceImpl(final LazyOptional<? extends Device> device, final UUID uuid, @Nullable final String typeName) {
         this.device = device;
         this.uuid = uuid;
-        this.mainTypeName = mainTypeName;
+        this.typeName = typeName;
     }
 
     @Override
@@ -31,9 +31,9 @@ public final class IdentifiableDeviceImpl implements IdentifiableDevice {
 
     @Override
     public List<String> getTypeNames() {
-        if (mainTypeName != null) {
+        if (typeName != null) {
             final List<String> typeNames = new ArrayList<>(device.map(Device::getTypeNames).orElse(Collections.emptyList()));
-            typeNames.add(0, mainTypeName);
+            typeNames.add(typeName);
             return typeNames;
         } else {
             return device.map(Device::getTypeNames).orElse(Collections.emptyList());

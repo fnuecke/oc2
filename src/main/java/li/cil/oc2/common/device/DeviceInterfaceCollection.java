@@ -1,6 +1,6 @@
 package li.cil.oc2.common.device;
 
-import li.cil.oc2.api.device.Device;
+import li.cil.oc2.api.device.DeviceInterface;
 import li.cil.oc2.api.device.DeviceMethod;
 
 import java.util.ArrayList;
@@ -9,25 +9,25 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public final class CompoundDevice implements Device {
-    private final ArrayList<Device> devices;
+public final class DeviceInterfaceCollection implements DeviceInterface {
+    private final ArrayList<DeviceInterface> deviceInterfaces;
 
-    public CompoundDevice(final ArrayList<Device> devices) {
-        this.devices = devices;
+    public DeviceInterfaceCollection(final ArrayList<DeviceInterface> deviceInterfaces) {
+        this.deviceInterfaces = deviceInterfaces;
     }
 
     @Override
     public List<String> getTypeNames() {
-        return devices.stream()
-                .map(Device::getTypeNames)
+        return deviceInterfaces.stream()
+                .map(DeviceInterface::getTypeNames)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<DeviceMethod> getMethods() {
-        return devices.stream()
-                .map(Device::getMethods)
+        return deviceInterfaces.stream()
+                .map(DeviceInterface::getMethods)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
@@ -36,12 +36,12 @@ public final class CompoundDevice implements Device {
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        final CompoundDevice that = (CompoundDevice) o;
-        return devices.equals(that.devices);
+        final DeviceInterfaceCollection that = (DeviceInterfaceCollection) o;
+        return deviceInterfaces.equals(that.deviceInterfaces);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(devices);
+        return Objects.hash(deviceInterfaces);
     }
 }

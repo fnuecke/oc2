@@ -1,6 +1,6 @@
 package li.cil.oc2.api.device.object;
 
-import li.cil.oc2.api.device.Device;
+import li.cil.oc2.api.device.DeviceInterface;
 import li.cil.oc2.api.device.DeviceMethod;
 
 import javax.annotation.Nullable;
@@ -9,11 +9,11 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A reflection based implementation of {@link Device} using the {@link Callback}
- * annotation to discover {@link DeviceMethod} in a target object via
+ * A reflection based implementation of {@link DeviceInterface} using the {@link Callback}
+ * annotation to discover {@link DeviceMethod}s in a target object via
  * {@link Callbacks#collectMethods(Object)}.
  */
-public final class ObjectDevice implements Device {
+public final class ObjectDeviceInterface implements DeviceInterface {
     private final Object object;
     private final ArrayList<String> typeNames;
     private final List<DeviceMethod> methods;
@@ -26,7 +26,7 @@ public final class ObjectDevice implements Device {
      * @param object    the object containing methods provided by this device.
      * @param typeNames the type names of the device.
      */
-    public ObjectDevice(final Object object, final List<String> typeNames) {
+    public ObjectDeviceInterface(final Object object, final List<String> typeNames) {
         this.object = object;
         this.typeNames = new ArrayList<>(typeNames);
         this.methods = Callbacks.collectMethods(object);
@@ -40,12 +40,12 @@ public final class ObjectDevice implements Device {
     /**
      * Creates a new object device with methods in the specified object and the specified
      * type name. For convenience, the type name may be {@code null}, in which case using
-     * this constructor is equivalent to using {@link #ObjectDevice(Object)}.
+     * this constructor is equivalent to using {@link #ObjectDeviceInterface(Object)}.
      *
      * @param object   the object containing methods provided by this device.
      * @param typeName the type name of the device.
      */
-    public ObjectDevice(final Object object, @Nullable final String typeName) {
+    public ObjectDeviceInterface(final Object object, @Nullable final String typeName) {
         this(object, typeName != null ? Collections.singletonList(typeName) : Collections.emptyList());
     }
 
@@ -54,7 +54,7 @@ public final class ObjectDevice implements Device {
      *
      * @param object the object containing the methods provided by this device.
      */
-    public ObjectDevice(final Object object) {
+    public ObjectDeviceInterface(final Object object) {
         this(object, Collections.emptyList());
     }
 
@@ -72,7 +72,7 @@ public final class ObjectDevice implements Device {
     public boolean equals(@Nullable final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        final ObjectDevice that = (ObjectDevice) o;
+        final ObjectDeviceInterface that = (ObjectDeviceInterface) o;
         return object.equals(that.object);
     }
 

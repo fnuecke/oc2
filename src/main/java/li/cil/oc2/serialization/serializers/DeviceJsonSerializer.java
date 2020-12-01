@@ -2,13 +2,13 @@ package li.cil.oc2.serialization.serializers;
 
 import com.google.gson.*;
 import li.cil.oc2.api.device.DeviceMethod;
-import li.cil.oc2.api.device.IdentifiableDevice;
+import li.cil.oc2.api.device.Device;
 
 import java.lang.reflect.Type;
 
-public final class DeviceJsonSerializer implements JsonSerializer<IdentifiableDevice> {
+public final class DeviceJsonSerializer implements JsonSerializer<Device> {
     @Override
-    public JsonElement serialize(final IdentifiableDevice src, final Type typeOfSrc, final JsonSerializationContext context) {
+    public JsonElement serialize(final Device src, final Type typeOfSrc, final JsonSerializationContext context) {
         if (src == null) {
             return JsonNull.INSTANCE;
         }

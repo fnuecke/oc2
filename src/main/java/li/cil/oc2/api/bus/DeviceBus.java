@@ -1,12 +1,12 @@
 package li.cil.oc2.api.bus;
 
+import li.cil.oc2.api.device.DeviceInterface;
 import li.cil.oc2.api.device.Device;
-import li.cil.oc2.api.device.IdentifiableDevice;
 
 import java.util.Collection;
 
 /**
- * A device bus provides the interface by which {@link Device} can be made available
+ * A device bus provides the interface by which {@link DeviceInterface} can be made available
  * to a {@link DeviceBusController}, which is usually used by VMs to access devices.
  */
 public interface DeviceBus {
@@ -22,24 +22,24 @@ public interface DeviceBus {
      *
      * @param device the device to add to the bus.
      */
-    void addDevice(IdentifiableDevice device);
+    void addDevice(Device device);
 
     /**
      * Removes a device from this device bus.
      * <p>
-     * If the device has not been added with {@link #addDevice(IdentifiableDevice)} before calling
+     * If the device has not been added with {@link #addDevice(Device)} before calling
      * this method, this method is a no-op.
      *
      * @param device the device to remove from the bus.
      */
-    void removeDevice(IdentifiableDevice device);
+    void removeDevice(Device device);
 
     /**
      * The list of all devices currently registered with this device bus.
      *
      * @return the list of all devices that are currently on this bus.
      */
-    Collection<IdentifiableDevice> getDevices();
+    Collection<Device> getDevices();
 
     /**
      * Schedules a rescan of the device bus.

@@ -11,8 +11,7 @@ import java.lang.annotation.Target;
  * Utility annotation to allow generating lists of {@link DeviceMethod}s using
  * {@link Callbacks#collectMethods(Object)}.
  * <p>
- * Intended to be used in classes instances of which are used in combination with
- * {@link ObjectDevice} and subclasses of {@link ObjectDevice}.
+ * Intended to be used in classes instances of which are used as a target of {@link ObjectDeviceInterface}.
  * <p>
  * Method parameters are serialized and deserialized using Gson. When using custom
  * parameter types it may be necessary to register a custom type adapter for them

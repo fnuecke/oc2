@@ -4,9 +4,9 @@ import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.ServerScheduler;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.device.CompoundDevice;
-import li.cil.oc2.common.device.IdentifiableDeviceImpl;
-import li.cil.oc2.common.device.Providers;
+import li.cil.oc2.common.device.DeviceInterfaceCollection;
+import li.cil.oc2.common.device.DeviceImpl;
+import li.cil.oc2.common.device.provider.Providers;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.nbt.CompoundNBT;
@@ -31,7 +31,7 @@ public final class TileEntityDeviceBusElement implements INBTSerializable<Compou
 
     private final DeviceBusElementImpl busElement = new DeviceBusElementImpl();
     private final UUID[] deviceIds = new UUID[NEIGHBOR_COUNT];
-    private final IdentifiableDeviceImpl[] devices = new IdentifiableDeviceImpl[NEIGHBOR_COUNT];
+    private final DeviceImpl[] devices = new DeviceImpl[NEIGHBOR_COUNT];
 
     public TileEntityDeviceBusElement(final TileEntity tileEntity) {
         this.tileEntity = tileEntity;
@@ -59,12 +59,12 @@ public final class TileEntityDeviceBusElement implements INBTSerializable<Compou
 
         final int index = direction.getIndex();
 
-        final LazyOptional<CompoundDevice> device = Providers.getDevice(world, pos, direction);
-        final IdentifiableDeviceImpl identifiableDevice;
+        final LazyOptional<DeviceInterfaceCollection> device = Providers.getDevice(world, pos, direction);
+        final DeviceImpl identifiableDevice;
 
         if (device.isPresent()) {
             final String typeName = WorldUtils.getBlockName(world, pos);
-            identifiableDevice = new IdentifiableDeviceImpl(device, deviceIds[index], typeName);
+            identifiableDevice = new DeviceImpl(device, deviceIds[index], typeName);
             device.addListener((ignored) -> handleNeighborChanged(pos));
         } else {
             identifiableDevice = null;

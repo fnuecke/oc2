@@ -2,7 +2,7 @@ package li.cil.oc2.common;
 
 import li.cil.oc2.common.capabilities.DeviceBusElementCapability;
 import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
-import li.cil.oc2.common.device.Providers;
+import li.cil.oc2.common.device.provider.Providers;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.vm.Allocator;
 import li.cil.oc2.serialization.BlobStorage;

@@ -5,10 +5,10 @@ import com.google.gson.JsonArray;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.api.device.Device;
+import li.cil.oc2.api.device.DeviceInterface;
 import li.cil.oc2.api.device.DeviceMethod;
 import li.cil.oc2.api.device.DeviceMethodParameter;
-import li.cil.oc2.api.device.IdentifiableDevice;
+import li.cil.oc2.api.device.Device;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
 import li.cil.oc2.serialization.serializers.DeviceJsonSerializer;
@@ -49,7 +49,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     public static final String ERROR_INVALID_PARAMETER_SIGNATURE = "invalid parameter signature";
 
     private final Set<DeviceBusElement> elements = new HashSet<>();
-    private final ConcurrentHashMap<UUID, IdentifiableDevice> devices = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, Device> devices = new ConcurrentHashMap<>();
 
     private final SerialDevice serialDevice;
     private final Gson gson;
@@ -69,7 +69,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
         this.gson = DeviceMethodParameterTypeAdapters.beginBuildGson()
                 .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
                 .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
-                .registerTypeAdapter(Device.class, new DeviceJsonSerializer())
+                .registerTypeAdapter(DeviceInterface.class, new DeviceJsonSerializer())
                 .registerTypeAdapter(DeviceMethod.class, new DeviceMethodJsonSerializer())
                 .create();
     }
@@ -91,22 +91,22 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     public void scanDevices() {
         devices.clear();
 
-        final HashMap<Device, ArrayList<IdentifiableDevice>> groupedDevices = new HashMap<>();
+        final HashMap<DeviceInterface, ArrayList<Device>> groupedDevices = new HashMap<>();
 
         for (final DeviceBusElement element : elements) {
-            for (final IdentifiableDevice device : element.getLocalDevices()) {
+            for (final Device device : element.getLocalDevices()) {
                 groupedDevices.computeIfAbsent(device.getIdentifiedDevice(), d -> new ArrayList<>()).add(device);
             }
         }
 
-        for (final ArrayList<IdentifiableDevice> group : groupedDevices.values()) {
-            final IdentifiableDevice device = selectDeviceDeterministically(group);
+        for (final ArrayList<Device> group : groupedDevices.values()) {
+            final Device device = selectDeviceDeterministically(group);
             devices.putIfAbsent(device.getUniqueIdentifier(), device);
         }
     }
 
     @Override
-    public Collection<IdentifiableDevice> getDevices() {
+    public Collection<Device> getDevices() {
         return devices.values();
     }
 
@@ -208,10 +208,10 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
         writeToDevice();
     }
 
-    private static IdentifiableDevice selectDeviceDeterministically(final ArrayList<IdentifiableDevice> devices) {
-        IdentifiableDevice deviceWithLowestUuid = devices.get(0);
+    private static Device selectDeviceDeterministically(final ArrayList<Device> devices) {
+        Device deviceWithLowestUuid = devices.get(0);
         for (int i = 1; i < devices.size(); i++) {
-            final IdentifiableDevice device = devices.get(i);
+            final Device device = devices.get(i);
             if (device.getUniqueIdentifier().compareTo(deviceWithLowestUuid.getUniqueIdentifier()) < 0) {
                 deviceWithLowestUuid = device;
             }
@@ -293,7 +293,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     }
 
     private void processMethodInvocation(final MethodInvocation methodInvocation, final boolean isMainThread) {
-        final Device device = devices.get(methodInvocation.deviceId);
+        final DeviceInterface device = devices.get(methodInvocation.deviceId);
         if (device == null) {
             writeError(ERROR_UNKNOWN_DEVICE);
             return;
@@ -346,7 +346,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     }
 
     private void writeStatus() {
-        writeMessage(Message.MESSAGE_TYPE_STATUS, devices.values().toArray(new Device[0]));
+        writeMessage(Message.MESSAGE_TYPE_STATUS, devices.values().toArray(new DeviceInterface[0]));
     }
 
     private void writeError(final String message) {

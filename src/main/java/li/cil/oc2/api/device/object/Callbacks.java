@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * Provides automated extraction of {@link DeviceMethod}s from instances of
  * class with methods annotated with the {@link Callback} annotation.
  * <p>
- * Prefer using {@link ObjectDevice} instead of using this class directly.
+ * Prefer using {@link ObjectDeviceInterface} instead of using this class directly.
  */
 public final class Callbacks {
     private static final Logger LOGGER = LogManager.getLogger();

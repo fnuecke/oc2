@@ -1,22 +1,22 @@
 package li.cil.oc2.common.device.provider;
 
-import li.cil.oc2.api.device.Device;
+import li.cil.oc2.api.device.DeviceInterface;
 import li.cil.oc2.api.device.provider.BlockDeviceQuery;
-import li.cil.oc2.api.device.provider.DeviceProvider;
+import li.cil.oc2.api.device.provider.DeviceInterfaceProvider;
 import li.cil.oc2.api.device.provider.DeviceQuery;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.LazyOptional;
 
-public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> implements DeviceProvider {
+public abstract class AbstractTileEntityDeviceInterfaceProvider<T extends TileEntity> implements DeviceInterfaceProvider {
     private final Class<T> tileEntityType;
 
-    protected AbstractTileEntityDeviceProvider(final Class<T> tileEntityType) {
+    protected AbstractTileEntityDeviceInterfaceProvider(final Class<T> tileEntityType) {
         this.tileEntityType = tileEntityType;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public LazyOptional<Device> getDevice(final DeviceQuery query) {
+    public LazyOptional<DeviceInterface> getDeviceInterface(final DeviceQuery query) {
         if (!(query instanceof BlockDeviceQuery)) {
             return LazyOptional.empty();
         }
@@ -27,8 +27,8 @@ public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> imp
             return LazyOptional.empty();
         }
 
-        return getDevice(blockQuery, (T) tileEntity);
+        return getDeviceInterface(blockQuery, (T) tileEntity);
     }
 
-    protected abstract LazyOptional<Device> getDevice(final BlockDeviceQuery query, final T tileEntity);
+    protected abstract LazyOptional<DeviceInterface> getDeviceInterface(final BlockDeviceQuery query, final T tileEntity);
 }

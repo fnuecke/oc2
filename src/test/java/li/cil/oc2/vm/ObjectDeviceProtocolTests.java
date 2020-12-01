@@ -4,14 +4,14 @@ import com.google.gson.*;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.device.DeviceMethod;
-import li.cil.oc2.api.device.IdentifiableDevice;
+import li.cil.oc2.api.device.Device;
 import li.cil.oc2.api.device.object.Callback;
-import li.cil.oc2.api.device.object.ObjectDevice;
+import li.cil.oc2.api.device.object.ObjectDeviceInterface;
 import li.cil.oc2.api.device.object.Parameter;
 import li.cil.oc2.common.bus.DeviceBusControllerImpl;
 import li.cil.oc2.common.bus.DeviceBusElementImpl;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.device.IdentifiableDeviceImpl;
+import li.cil.oc2.common.device.DeviceImpl;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -65,7 +65,7 @@ public class ObjectDeviceProtocolTests {
     public void resetAndReadDescriptor() {
         final VoidIntMethod method = new VoidIntMethod();
 
-        busElement.addDevice(new TestDevice(method));
+        busElement.addDevice(new TestDeviceInterface(method));
         controller.scan(world, CONTROLLER_POS);
 
         final JsonObject request = new JsonObject();
@@ -90,7 +90,7 @@ public class ObjectDeviceProtocolTests {
     @Test
     public void simpleMethod() {
         final VoidIntMethod method = new VoidIntMethod();
-        final TestDevice device = new TestDevice(method);
+        final TestDeviceInterface device = new TestDeviceInterface(method);
 
         busElement.addDevice(device);
         controller.scan(world, CONTROLLER_POS);
@@ -103,7 +103,7 @@ public class ObjectDeviceProtocolTests {
     @Test
     public void returningMethod() {
         final IntLongMethod method = new IntLongMethod();
-        final TestDevice device = new TestDevice(method);
+        final TestDeviceInterface device = new TestDeviceInterface(method);
 
         busElement.addDevice(device);
         controller.scan(world, CONTROLLER_POS);
@@ -117,8 +117,8 @@ public class ObjectDeviceProtocolTests {
     @Test
     public void annotatedObject() {
         final SimpleObject object = new SimpleObject();
-        final ObjectDevice device = new ObjectDevice(object);
-        final IdentifiableDeviceImpl identifiableDevice = new IdentifiableDeviceImpl(LazyOptional.of(() -> device), UUID.randomUUID());
+        final ObjectDeviceInterface device = new ObjectDeviceInterface(object);
+        final DeviceImpl identifiableDevice = new DeviceImpl(LazyOptional.of(() -> device), UUID.randomUUID());
 
         busElement.addDevice(identifiableDevice);
         controller.scan(world, CONTROLLER_POS);
@@ -126,7 +126,7 @@ public class ObjectDeviceProtocolTests {
         Assertions.assertEquals(42 + 23, invokeMethod(identifiableDevice, "add", 42, 23).getAsInt());
     }
 
-    private JsonElement invokeMethod(final IdentifiableDevice device, final String name, final Object... parameters) {
+    private JsonElement invokeMethod(final Device device, final String name, final Object... parameters) {
         final JsonObject request = new JsonObject();
         request.addProperty("type", "invoke");
         final JsonObject methodInvocation = new JsonObject();
@@ -243,12 +243,12 @@ public class ObjectDeviceProtocolTests {
         }
     }
 
-    private static final class TestDevice implements IdentifiableDevice {
+    private static final class TestDeviceInterface implements Device {
         private static final UUID UUID = java.util.UUID.randomUUID();
 
         private final DeviceMethod method;
 
-        public TestDevice(final DeviceMethod method) {
+        public TestDeviceInterface(final DeviceMethod method) {
             this.method = method;
         }
 

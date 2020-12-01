@@ -1,7 +1,7 @@
 package li.cil.oc2.bus;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.api.device.IdentifiableDevice;
+import li.cil.oc2.api.device.Device;
 import li.cil.oc2.common.bus.DeviceBusControllerImpl;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.sedna.api.device.serial.SerialDevice;
@@ -64,7 +64,7 @@ public class DeviceBusTests {
         final DeviceBusElement busElement = mock(DeviceBusElement.class);
         when(tileEntity.getCapability(eq(busElementCapability), any())).thenReturn(LazyOptional.of(() -> busElement));
 
-        final IdentifiableDevice device = mock(IdentifiableDevice.class);
+        final Device device = mock(Device.class);
         when(busElement.getLocalDevices()).thenReturn(Collections.singletonList(device));
 
         when(device.getUniqueIdentifier()).thenReturn(UUID.randomUUID());

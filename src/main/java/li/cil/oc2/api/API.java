@@ -3,6 +3,7 @@ package li.cil.oc2.api;
 import com.google.gson.GsonBuilder;
 import li.cil.oc2.api.device.DeviceMethod;
 import li.cil.oc2.api.device.object.Callback;
+import li.cil.oc2.api.device.provider.DeviceInterfaceProvider;
 import li.cil.oc2.api.imc.DeviceMethodParameterTypeAdapter;
 
 import java.lang.reflect.Type;
@@ -11,7 +12,7 @@ public final class API {
     public static final String MOD_ID = "oc2";
 
     /**
-     * IMC message for registering a {@link li.cil.oc2.api.device.provider.DeviceProvider}.
+     * IMC message for registering a {@link DeviceInterfaceProvider}.
      * <p>
      * Example:
      * <pre>

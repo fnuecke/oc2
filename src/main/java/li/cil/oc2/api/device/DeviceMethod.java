@@ -1,22 +1,22 @@
 package li.cil.oc2.api.device;
 
 import li.cil.oc2.api.bus.DeviceBusController;
-import li.cil.oc2.api.device.object.ObjectDevice;
+import li.cil.oc2.api.device.object.ObjectDeviceInterface;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
- * Represents a single method that can be exposed by a {@link Device}.
+ * Represents a single method that can be exposed by a {@link DeviceInterface}.
  * <p>
  * The easiest and hence recommended way of implementing this interface is to use
- * the {@link ObjectDevice} class.
+ * the {@link ObjectDeviceInterface} class.
  * <p>
  * Method parameters are serialized and deserialized using Gson. When using custom
  * parameter types it may be necessary to register a custom type adapter for them
  * via {@link li.cil.oc2.api.API#IMC_ADD_DEVICE_METHOD_PARAMETER_TYPE_ADAPTER}.
  *
- * @see ObjectDevice
+ * @see ObjectDeviceInterface
  */
 public interface DeviceMethod {
     /**

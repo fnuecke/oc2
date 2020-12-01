@@ -1,6 +1,6 @@
 package li.cil.oc2.api.bus;
 
-import li.cil.oc2.api.device.IdentifiableDevice;
+import li.cil.oc2.api.device.Device;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -48,5 +48,5 @@ public interface DeviceBusElement extends DeviceBus {
      *
      * @return the devices that have been added to this element.
      */
-    Collection<IdentifiableDevice> getLocalDevices();
+    Collection<Device> getLocalDevices();
 }

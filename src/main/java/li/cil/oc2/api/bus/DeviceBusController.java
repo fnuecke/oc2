@@ -1,7 +1,7 @@
 package li.cil.oc2.api.bus;
 
+import li.cil.oc2.api.device.DeviceInterface;
 import li.cil.oc2.api.device.Device;
-import li.cil.oc2.api.device.IdentifiableDevice;
 
 import java.util.Collection;
 
@@ -11,8 +11,8 @@ import java.util.Collection;
  * {@link DeviceBusElement#setController(DeviceBusController)}.
  * <p>
  * This interface is usually provided by VM containers and used to collect connected
- * {@link Device}s by aggregating the devices that were added to the device bus elements
- * via {@link DeviceBus#addDevice(IdentifiableDevice)}.
+ * {@link DeviceInterface}s by aggregating the devices that were added to the device bus elements
+ * via {@link DeviceBus#addDevice(Device)}.
  * <p>
  * The only way for {@link DeviceBusElement}s to be added to a bus is for a
  * {@link DeviceBusController} to detect them during a scan.
@@ -50,10 +50,10 @@ public interface DeviceBusController {
     /**
      * The list of all devices currently known to this controller.
      * <p>
-     * This is the aggregation of all {@link Device} added to all {@link DeviceBusElement}s known
+     * This is the aggregation of all {@link DeviceInterface} added to all {@link DeviceBusElement}s known
      * to the controller as found during the last scan scheduled via {@link #scheduleBusScan()}.
      *
      * @return the list of all devices on the bus managed by this controller.
      */
-    Collection<IdentifiableDevice> getDevices();
+    Collection<Device> getDevices();
 }

@@ -1,10 +1,10 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.api.device.provider.DeviceProvider;
+import li.cil.oc2.api.device.provider.DeviceInterfaceProvider;
 import li.cil.oc2.api.imc.DeviceMethodParameterTypeAdapter;
 import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
-import li.cil.oc2.common.device.Providers;
+import li.cil.oc2.common.device.provider.Providers;
 import net.minecraft.util.Util;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
@@ -39,7 +39,7 @@ public final class IMC {
     }
 
     private static void addDeviceProvider(final InterModComms.IMCMessage message) {
-        getMessageParameter(message, DeviceProvider.class).ifPresent(Providers::addProvider);
+        getMessageParameter(message, DeviceInterfaceProvider.class).ifPresent(Providers::addProvider);
     }
 
     private static void addDeviceMethodParameterTypeAdapter(final InterModComms.IMCMessage message) {

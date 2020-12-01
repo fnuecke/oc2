@@ -1,6 +1,7 @@
 package li.cil.oc2.api.device.provider;
 
 import li.cil.oc2.api.device.Device;
+import li.cil.oc2.api.device.object.ObjectDevice;
 import net.minecraftforge.common.util.LazyOptional;
 
 /**
@@ -14,18 +15,27 @@ import net.minecraftforge.common.util.LazyOptional;
  * to ensure persistence where required. Typically by returning devices that are
  * themselves persisted objects such as {@link net.minecraft.tileentity.TileEntity}s
  * or storing data in a related persisted object.
+ * <ul>
+ * <li>Implementations <em>may</em> handle multiple query types and return various device
+ * types depending on the query.</li>
+ * <li>Implementations <em>should</em> return the same device for the same query.</li>
+ * <li>
+ * Implementations <em>should</em> return either the same instance for identical
+ * queries or return instances that are equal to other when compared using
+ * {@link Object#equals(Object)} and have equal {@link Object#hashCode()}s.
  * <p>
- * Implementations <em>may</em> handle multiple query types and return various device
- * types depending on the query.
- * <p>
- * Implementations <em>should</em> return the same device for the same query.
- * <p>
- * Implementations <em>must</em> return the same device type for the same query.
+ * This is required to avoid device duplication when a device is connected to a bus more
+ * than once (e.g. for blocks when connected cables are adjacent to multiple faces of the
+ * block).
+ * </li>
+ * <li>Implementations <em>must</em> return the same device type for the same query.</li>
+ * </ul>
  * <p>
  * Providers can be registered with the IMC message {@link li.cil.oc2.api.API#IMC_ADD_DEVICE_PROVIDER}.
  *
  * @see DeviceQuery
  * @see BlockDeviceQuery
+ * @see ObjectDevice
  */
 @FunctionalInterface
 public interface DeviceProvider {

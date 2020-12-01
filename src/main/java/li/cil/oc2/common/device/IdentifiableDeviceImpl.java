@@ -25,8 +25,13 @@ public final class IdentifiableDeviceImpl implements IdentifiableDevice {
     }
 
     @Override
-    public UUID getUniqueId() {
+    public UUID getUniqueIdentifier() {
         return uuid;
+    }
+
+    @Override
+    public Device getIdentifiedDevice() {
+        return device.<Device>cast().orElse(this);
     }
 
     @Override
@@ -51,11 +56,12 @@ public final class IdentifiableDeviceImpl implements IdentifiableDevice {
         if (o == null || getClass() != o.getClass()) return false;
         final IdentifiableDeviceImpl that = (IdentifiableDeviceImpl) o;
         return uuid.equals(that.uuid) &&
-               LazyOptionalUtils.equals(device, that.device);
+               LazyOptionalUtils.equals(device, that.device) &&
+               Objects.equals(typeName, that.typeName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(uuid, LazyOptionalUtils.hashCode(device));
+        return Objects.hash(uuid, LazyOptionalUtils.hashCode(device), typeName);
     }
 }

@@ -90,11 +90,18 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     @Override
     public void scanDevices() {
         devices.clear();
+
+        final HashMap<Device, ArrayList<IdentifiableDevice>> groupedDevices = new HashMap<>();
+
         for (final DeviceBusElement element : elements) {
             for (final IdentifiableDevice device : element.getLocalDevices()) {
-                final UUID uuid = device.getUniqueId();
-                devices.putIfAbsent(uuid, device);
+                groupedDevices.computeIfAbsent(device.getIdentifiedDevice(), d -> new ArrayList<>()).add(device);
             }
+        }
+
+        for (final ArrayList<IdentifiableDevice> group : groupedDevices.values()) {
+            final IdentifiableDevice device = selectDeviceDeterministically(group);
+            devices.putIfAbsent(device.getUniqueIdentifier(), device);
         }
     }
 
@@ -161,7 +168,7 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
                 for (final Direction face : faces) {
                     final LazyOptional<DeviceBusElement> otherCapability = tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, face);
                     otherCapability.ifPresent(otherElement -> {
-                        final boolean isConnectedToIncomingEdge = otherElement == element;
+                        final boolean isConnectedToIncomingEdge = Objects.equals(otherElement, element);
                         if (!isConnectedToIncomingEdge) {
                             return;
                         }
@@ -199,6 +206,18 @@ public class DeviceBusControllerImpl implements DeviceBusController, Steppable {
     public void step(final int cycles) {
         readFromDevice();
         writeToDevice();
+    }
+
+    private static IdentifiableDevice selectDeviceDeterministically(final ArrayList<IdentifiableDevice> devices) {
+        IdentifiableDevice deviceWithLowestUuid = devices.get(0);
+        for (int i = 1; i < devices.size(); i++) {
+            final IdentifiableDevice device = devices.get(i);
+            if (device.getUniqueIdentifier().compareTo(deviceWithLowestUuid.getUniqueIdentifier()) < 0) {
+                deviceWithLowestUuid = device;
+            }
+        }
+
+        return deviceWithLowestUuid;
     }
 
     private void readFromDevice() {

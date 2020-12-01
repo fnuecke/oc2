@@ -10,36 +10,35 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 public class FluidHandlerDeviceProvider extends AbstractCapabilityAnyTileEntityDeviceProvider<IFluidHandler> {
+    private static final String FLUID_HANDLER_TYPE_NAME = "fluidHandler";
+
     public FluidHandlerDeviceProvider() {
         super(() -> Capabilities.FLUID_HANDLER_CAPABILITY);
     }
 
     @Override
     protected LazyOptional<Device> getDevice(final BlockDeviceQuery query, final IFluidHandler value) {
-        return LazyOptional.of(() -> new FluidHandlerDevice(value));
+        return LazyOptional.of(() -> new ObjectDevice(new FluidHandlerDevice(value), FLUID_HANDLER_TYPE_NAME));
     }
 
-    public static final class FluidHandlerDevice extends ObjectDevice {
-        private final IFluidHandler fluidHandler;
-
+    public static final class FluidHandlerDevice extends AbstractObjectProxy<IFluidHandler> {
         public FluidHandlerDevice(final IFluidHandler fluidHandler) {
-            super("fluidHandler");
-            this.fluidHandler = fluidHandler;
+            super(fluidHandler);
         }
 
         @Callback
         public int getTanks() {
-            return fluidHandler.getTanks();
+            return value.getTanks();
         }
 
         @Callback
         public FluidStack getFluidInTank(final int tank) {
-            return fluidHandler.getFluidInTank(tank);
+            return value.getFluidInTank(tank);
         }
 
         @Callback
         public int getTankCapacity(final int tank) {
-            return fluidHandler.getTankCapacity(tank);
+            return value.getTankCapacity(tank);
         }
     }
 }

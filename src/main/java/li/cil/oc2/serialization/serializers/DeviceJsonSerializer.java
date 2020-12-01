@@ -14,7 +14,7 @@ public final class DeviceJsonSerializer implements JsonSerializer<IdentifiableDe
         }
 
         final JsonObject deviceJson = new JsonObject();
-        deviceJson.add("deviceId", context.serialize(src.getUniqueId()));
+        deviceJson.add("deviceId", context.serialize(src.getUniqueIdentifier()));
         deviceJson.add("typeNames", context.serialize(src.getTypeNames()));
 
         final JsonArray methodsJson = new JsonArray();

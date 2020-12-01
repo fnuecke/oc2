@@ -7,28 +7,27 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * A reflection based implementation of {@link Device} using the {@link Callback}
  * annotation to discover {@link DeviceMethod} in a target object via
  * {@link Callbacks#collectMethods(Object)}.
- * <p>
- * This class was designed targeting two possible use-cases:
- * <ul>
- *     <li>Wrapping some separate object containing the annotated method.</li>
- *     <li>Subclassing this type and implementing annotated methods in the subclass.</li>
- * </ul>
- * The two sets of constructors are designed for these use cases, with the constructors
- * targeting the workflow using an external object being {@code public}, the ones targeting
- * subclassing being {@code protected}.
  */
-public class ObjectDevice implements Device {
+public final class ObjectDevice implements Device {
+    private final Object object;
     private final ArrayList<String> typeNames;
     private final List<DeviceMethod> methods;
     private final String className;
 
+    /**
+     * Creates a new object device with methods in the specified object and the
+     * specified list of type names.
+     *
+     * @param object    the object containing methods provided by this device.
+     * @param typeNames the type names of the device.
+     */
     public ObjectDevice(final Object object, final List<String> typeNames) {
+        this.object = object;
         this.typeNames = new ArrayList<>(typeNames);
         this.methods = Callbacks.collectMethods(object);
         this.className = object.getClass().getSimpleName();
@@ -38,26 +37,25 @@ public class ObjectDevice implements Device {
         }
     }
 
+    /**
+     * Creates a new object device with methods in the specified object and the specified
+     * type name. For convenience, the type name may be {@code null}, in which case using
+     * this constructor is equivalent to using {@link #ObjectDevice(Object)}.
+     *
+     * @param object   the object containing methods provided by this device.
+     * @param typeName the type name of the device.
+     */
     public ObjectDevice(final Object object, @Nullable final String typeName) {
         this(object, typeName != null ? Collections.singletonList(typeName) : Collections.emptyList());
     }
 
+    /**
+     * Creates a new object device with methods in the specified object and no explicit type name.
+     *
+     * @param object the object containing the methods provided by this device.
+     */
     public ObjectDevice(final Object object) {
         this(object, Collections.emptyList());
-    }
-
-    protected ObjectDevice(final List<String> typeNames) {
-        this.typeNames = new ArrayList<>(typeNames);
-        this.methods = Callbacks.collectMethods(this);
-        this.className = getClass().getSimpleName();
-    }
-
-    protected ObjectDevice(final String typeName) {
-        this(Collections.singletonList(typeName));
-    }
-
-    protected ObjectDevice() {
-        this(Collections.emptyList());
     }
 
     @Override
@@ -71,17 +69,16 @@ public class ObjectDevice implements Device {
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(@Nullable final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         final ObjectDevice that = (ObjectDevice) o;
-        return typeNames.equals(that.typeNames) &&
-               methods.equals(that.methods);
+        return object.equals(that.object);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(typeNames, methods);
+        return object.hashCode();
     }
 
     @Override

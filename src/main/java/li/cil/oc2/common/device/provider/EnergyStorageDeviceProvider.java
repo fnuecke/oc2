@@ -9,41 +9,40 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 
 public class EnergyStorageDeviceProvider extends AbstractCapabilityAnyTileEntityDeviceProvider<IEnergyStorage> {
+    private static final String ENERGY_STORAGE_TYPE_NAME = "energyStorage";
+
     public EnergyStorageDeviceProvider() {
         super(() -> Capabilities.ENERGY_STORAGE_CAPABILITY);
     }
 
     @Override
     protected LazyOptional<Device> getDevice(final BlockDeviceQuery query, final IEnergyStorage value) {
-        return LazyOptional.of(() -> new EnergyStorageDevice(value));
+        return LazyOptional.of(() -> new ObjectDevice(new EnergyStorageDevice(value), ENERGY_STORAGE_TYPE_NAME));
     }
 
-    public static final class EnergyStorageDevice extends ObjectDevice {
-        private final IEnergyStorage energyStorage;
-
+    public static final class EnergyStorageDevice extends AbstractObjectProxy<IEnergyStorage> {
         public EnergyStorageDevice(final IEnergyStorage energyStorage) {
-            super("energyStorage");
-            this.energyStorage = energyStorage;
+            super(energyStorage);
         }
 
         @Callback
         public int getEnergyStored() {
-            return energyStorage.getEnergyStored();
+            return value.getEnergyStored();
         }
 
         @Callback
         public int getMaxEnergyStored() {
-            return energyStorage.getMaxEnergyStored();
+            return value.getMaxEnergyStored();
         }
 
         @Callback
         public boolean canExtract() {
-            return energyStorage.canExtract();
+            return value.canExtract();
         }
 
         @Callback
         public boolean canReceive() {
-            return energyStorage.canReceive();
+            return value.canReceive();
         }
     }
 }

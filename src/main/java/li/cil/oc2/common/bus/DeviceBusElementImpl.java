@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public class DeviceBusElementImpl implements DeviceBusElement {
+public final class DeviceBusElementImpl implements DeviceBusElement {
     private final List<IdentifiableDevice> devices = new ArrayList<>();
     @Nullable private DeviceBusController controller;
 

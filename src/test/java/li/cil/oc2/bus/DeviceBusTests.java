@@ -67,7 +67,7 @@ public class DeviceBusTests {
         final IdentifiableDevice device = mock(IdentifiableDevice.class);
         when(busElement.getLocalDevices()).thenReturn(Collections.singletonList(device));
 
-        when(device.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(device.getUniqueIdentifier()).thenReturn(UUID.randomUUID());
 
         Assertions.assertEquals(DeviceBusControllerImpl.State.READY,
                 controller.scan(world, CONTROLLER_POS));

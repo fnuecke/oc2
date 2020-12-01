@@ -2,6 +2,7 @@ package li.cil.oc2.api.device;
 
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.device.object.ObjectDevice;
+import li.cil.oc2.api.device.provider.DeviceProvider;
 
 import java.util.List;
 
@@ -10,8 +11,13 @@ import java.util.List;
  * <p>
  * The easiest and hence recommended way of implementing this interface is to use
  * the {@link ObjectDevice} class.
+ * <p>
+ * Note that it is strongly encouraged for implementations to provide an overloaded
+ * {@link #equals(Object)} and {@link #hashCode()} so that identical devices can be
+ * detected.
  *
  * @see ObjectDevice
+ * @see DeviceProvider
  */
 public interface Device {
     /**

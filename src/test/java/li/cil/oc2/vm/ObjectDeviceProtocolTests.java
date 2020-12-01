@@ -130,7 +130,7 @@ public class ObjectDeviceProtocolTests {
         final JsonObject request = new JsonObject();
         request.addProperty("type", "invoke");
         final JsonObject methodInvocation = new JsonObject();
-        methodInvocation.addProperty("deviceId", device.getUniqueId().toString());
+        methodInvocation.addProperty("deviceId", device.getUniqueIdentifier().toString());
         methodInvocation.addProperty("name", name);
         final JsonArray parametersJson = new JsonArray();
         methodInvocation.add("parameters", parametersJson);
@@ -263,7 +263,7 @@ public class ObjectDeviceProtocolTests {
         }
 
         @Override
-        public UUID getUniqueId() {
+        public UUID getUniqueIdentifier() {
             return UUID;
         }
     }

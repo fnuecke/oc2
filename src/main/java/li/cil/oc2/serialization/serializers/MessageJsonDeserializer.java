@@ -1,30 +1,30 @@
 package li.cil.oc2.serialization.serializers;
 
 import com.google.gson.*;
-import li.cil.oc2.common.bus.DeviceBusControllerImpl;
+import li.cil.oc2.common.bus.RPCAdapter;
 
 import java.lang.reflect.Type;
 
-public final class MessageJsonDeserializer implements JsonDeserializer<DeviceBusControllerImpl.Message> {
+public final class MessageJsonDeserializer implements JsonDeserializer<RPCAdapter.Message> {
     @Override
-    public DeviceBusControllerImpl.Message deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) throws JsonParseException {
+    public RPCAdapter.Message deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) throws JsonParseException {
         final JsonObject jsonObject = json.getAsJsonObject();
         final String messageType = jsonObject.get("type").getAsString();
         final Object messageData;
         switch (messageType) {
-            case DeviceBusControllerImpl.Message.MESSAGE_TYPE_STATUS: {
+            case RPCAdapter.Message.MESSAGE_TYPE_STATUS: {
                 messageData = null;
                 break;
             }
-            case DeviceBusControllerImpl.Message.MESSAGE_TYPE_INVOKE_METHOD: {
-                messageData = context.deserialize(jsonObject.getAsJsonObject("data"), DeviceBusControllerImpl.MethodInvocation.class);
+            case RPCAdapter.Message.MESSAGE_TYPE_INVOKE_METHOD: {
+                messageData = context.deserialize(jsonObject.getAsJsonObject("data"), RPCAdapter.MethodInvocation.class);
                 break;
             }
             default: {
-                throw new JsonParseException(DeviceBusControllerImpl.ERROR_UNKNOWN_MESSAGE_TYPE);
+                throw new JsonParseException(RPCAdapter.ERROR_UNKNOWN_MESSAGE_TYPE);
             }
         }
 
-        return new DeviceBusControllerImpl.Message(messageType, messageData);
+        return new RPCAdapter.Message(messageType, messageData);
     }
 }

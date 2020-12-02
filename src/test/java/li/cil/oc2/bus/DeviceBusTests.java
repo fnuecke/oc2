@@ -2,9 +2,8 @@ package li.cil.oc2.bus;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.device.Device;
-import li.cil.oc2.common.bus.DeviceBusControllerImpl;
+import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.sedna.api.device.serial.SerialDevice;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -28,8 +27,9 @@ public class DeviceBusTests {
     @Mock
     private Capability<DeviceBusElement> busElementCapability;
     private World world;
-    private SerialDevice serialDevice;
-    private DeviceBusControllerImpl controller;
+    private TileEntity busControllerTileEntity;
+    private TileEntityDeviceBusController busController;
+    private DeviceBusElement busControllerBusElement;
 
     @BeforeEach
     public void setupEach() {
@@ -37,73 +37,70 @@ public class DeviceBusTests {
         Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY = busElementCapability;
 
         world = mock(World.class);
-        serialDevice = mock(SerialDevice.class);
-        controller = new DeviceBusControllerImpl(serialDevice);
+
+        busControllerTileEntity = mock(TileEntity.class);
+        when(busControllerTileEntity.getWorld()).thenReturn(world);
+        when(busControllerTileEntity.getPos()).thenReturn(CONTROLLER_POS);
+        when(busControllerTileEntity.getCapability(any(), any())).thenReturn(LazyOptional.empty());
+
+        when(world.getTileEntity(CONTROLLER_POS)).thenReturn(busControllerTileEntity);
+
+        busControllerBusElement = mock(DeviceBusElement.class);
+        when(busControllerTileEntity.getCapability(eq(busElementCapability), any()))
+                .thenReturn(LazyOptional.of(() -> busControllerBusElement));
+        when(busControllerBusElement.getLocalDevices()).thenReturn(Collections.emptyList());
+
+        busController = new TileEntityDeviceBusController(busControllerTileEntity);
     }
 
     @Test
     public void scanPendingWhenTileEntityNotLoaded() {
-        Assertions.assertEquals(DeviceBusControllerImpl.State.SCAN_PENDING,
-                controller.scan(world, CONTROLLER_POS));
+        Assertions.assertEquals(TileEntityDeviceBusController.State.SCAN_PENDING, busController.scan());
     }
 
     @Test
     public void scanCompletesWhenNoNeighbors() {
         when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);
-        Assertions.assertEquals(DeviceBusControllerImpl.State.READY,
-                controller.scan(world, CONTROLLER_POS));
+        Assertions.assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
     }
 
     @Test
     public void scanSuccessfulWithLocalElement() {
         when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);
 
-        final TileEntity tileEntity = mock(TileEntity.class);
-        when(world.getTileEntity(eq(CONTROLLER_POS))).thenReturn(tileEntity);
-
-        final DeviceBusElement busElement = mock(DeviceBusElement.class);
-        when(tileEntity.getCapability(eq(busElementCapability), any())).thenReturn(LazyOptional.of(() -> busElement));
-
         final Device device = mock(Device.class);
-        when(busElement.getLocalDevices()).thenReturn(Collections.singletonList(device));
+        when(busControllerBusElement.getLocalDevices()).thenReturn(Collections.singletonList(device));
 
         when(device.getUniqueIdentifier()).thenReturn(UUID.randomUUID());
 
-        Assertions.assertEquals(DeviceBusControllerImpl.State.READY,
-                controller.scan(world, CONTROLLER_POS));
+        Assertions.assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
 
-        verify(busElement).addController(controller);
-        Assertions.assertTrue(controller.getDevices().contains(device));
+        verify(busControllerBusElement).addController(busController);
+        Assertions.assertTrue(busController.getDevices().contains(device));
     }
 
     @Test
     public void scanSuccessfulWithMultipleElements() {
         when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);
 
-        final TileEntity tileEntityController = mock(TileEntity.class);
-        when(world.getTileEntity(eq(CONTROLLER_POS))).thenReturn(tileEntityController);
+        final DeviceBusElement busElement1 = mockBusElement(CONTROLLER_POS.west());
+        final DeviceBusElement busElement2 = mockBusElement(CONTROLLER_POS.west().west());
 
-        final DeviceBusElement busElementController = mock(DeviceBusElement.class);
-        when(tileEntityController.getCapability(eq(busElementCapability), any())).thenReturn(LazyOptional.of(() -> busElementController));
+        Assertions.assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
 
-        final TileEntity tileEntityBusElement1 = mock(TileEntity.class);
-        when(world.getTileEntity(eq(CONTROLLER_POS.west()))).thenReturn(tileEntityBusElement1);
+        verify(busElement1).addController(busController);
+        verify(busElement2).addController(busController);
+    }
 
-        final DeviceBusElement busElement1 = mock(DeviceBusElement.class);
-        when(tileEntityBusElement1.getCapability(eq(busElementCapability), any())).thenReturn(LazyOptional.of(() -> busElement1));
-        when(busElement1.getLocalDevices()).thenReturn(Collections.emptyList());
+    private DeviceBusElement mockBusElement(final BlockPos pos) {
+        final TileEntity tileEntity = mock(TileEntity.class);
+        when(world.getTileEntity(pos)).thenReturn(tileEntity);
+        when(tileEntity.getCapability(any(), any())).thenReturn(LazyOptional.empty());
 
-        final TileEntity tileEntityBusElement2 = mock(TileEntity.class);
-        when(world.getTileEntity(eq(CONTROLLER_POS.west().west()))).thenReturn(tileEntityBusElement2);
+        final DeviceBusElement busElement = mock(DeviceBusElement.class);
+        when(tileEntity.getCapability(eq(busElementCapability), any())).thenReturn(LazyOptional.of(() -> busElement));
+        when(busElement.getLocalDevices()).thenReturn(Collections.emptyList());
 
-        final DeviceBusElement busElement2 = mock(DeviceBusElement.class);
-        when(tileEntityBusElement2.getCapability(eq(busElementCapability), any())).thenReturn(LazyOptional.of(() -> busElement2));
-        when(busElement2.getLocalDevices()).thenReturn(Collections.emptyList());
-
-        Assertions.assertEquals(DeviceBusControllerImpl.State.READY,
-                controller.scan(world, CONTROLLER_POS));
-
-        verify(busElement1).addController(controller);
-        verify(busElement2).addController(controller);
+        return busElement;
     }
 }

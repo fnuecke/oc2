@@ -6,6 +6,8 @@ import net.minecraftforge.common.capabilities.CapabilityManager;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
 
 public final class DeviceBusControllerCapability {
     public static void register() {
@@ -24,6 +26,11 @@ public final class DeviceBusControllerCapability {
         @Override
         public Collection<Device> getDevices() {
             return Collections.emptyList();
+        }
+
+        @Override
+        public Optional<Device> getDevice(final UUID uuid) {
+            return Optional.empty();
         }
     }
 }

@@ -2,98 +2,72 @@ package li.cil.oc2.vm;
 
 import com.google.gson.*;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
-import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.api.device.DeviceMethod;
+import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.device.Device;
+import li.cil.oc2.api.device.DeviceMethod;
 import li.cil.oc2.api.device.object.Callback;
 import li.cil.oc2.api.device.object.ObjectDeviceInterface;
 import li.cil.oc2.api.device.object.Parameter;
-import li.cil.oc2.common.bus.DeviceBusControllerImpl;
-import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.capabilities.DeviceBusElementCapability;
+import li.cil.oc2.common.bus.RPCAdapter;
 import li.cil.oc2.common.device.DeviceImpl;
 import li.cil.sedna.api.device.serial.SerialDevice;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ObjectDeviceProtocolTests {
-    private static final BlockPos CONTROLLER_POS = new BlockPos(0, 0, 0);
-
-    @Mock private Capability<DeviceBusElement> busElementCapability;
-    private World world;
+public class RPCAdapterTests {
     private TestSerialDevice serialDevice;
-    private DeviceBusControllerImpl controller;
-    private DeviceBusElement busElement;
+    private DeviceBusController busController;
+    private RPCAdapter rpcAdapter;
 
     @BeforeEach
     public void setupEach() {
-        MockitoAnnotations.initMocks(this);
-        Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY = busElementCapability;
-
         serialDevice = new TestSerialDevice();
-        controller = new DeviceBusControllerImpl(serialDevice);
-        busElement = new DeviceBusElementCapability.Implementation();
-
-        world = mock(World.class);
-        when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);
-
-        final TileEntity tileEntity = mock(TileEntity.class);
-        when(world.getTileEntity(eq(CONTROLLER_POS))).thenReturn(tileEntity);
-
-        when(tileEntity.getCapability(eq(busElementCapability), any())).thenReturn(LazyOptional.of(() -> busElement));
+        busController = mock(DeviceBusController.class);
+        rpcAdapter = new RPCAdapter(busController, serialDevice);
     }
 
     @Test
     public void resetAndReadDescriptor() {
         final VoidIntMethod method = new VoidIntMethod();
-
-        busElement.addDevice(new TestDeviceInterface(method));
-        controller.scan(world, CONTROLLER_POS);
+        final TestDeviceInterface device = new TestDeviceInterface(method);
+        setDevice(device);
 
         final JsonObject request = new JsonObject();
         request.addProperty("type", "status");
         serialDevice.putAsVM(request.toString());
-        controller.step(0); // process message
+        rpcAdapter.step(0); // process message
 
         final String message = serialDevice.readMessageAsVM();
         Assertions.assertNotNull(message);
 
         final JsonObject json = new JsonParser().parse(message).getAsJsonObject();
 
-        final JsonArray devices = json.getAsJsonArray("data");
-        Assertions.assertEquals(1, devices.size());
+        final JsonArray devicesJson = json.getAsJsonArray("data");
+        Assertions.assertEquals(1, devicesJson.size());
 
-        final JsonObject device = devices.get(0).getAsJsonObject();
+        final JsonObject deviceJson = devicesJson.get(0).getAsJsonObject();
 
-        final JsonArray methods = device.getAsJsonArray("methods");
-        Assertions.assertEquals(1, methods.size());
+        final JsonArray methodsJson = deviceJson.getAsJsonArray("methods");
+        Assertions.assertEquals(1, methodsJson.size());
     }
 
     @Test
     public void simpleMethod() {
         final VoidIntMethod method = new VoidIntMethod();
         final TestDeviceInterface device = new TestDeviceInterface(method);
-
-        busElement.addDevice(device);
-        controller.scan(world, CONTROLLER_POS);
+        setDevice(device);
 
         invokeMethod(device, method.getName(), 0xdeadbeef);
 
@@ -104,9 +78,7 @@ public class ObjectDeviceProtocolTests {
     public void returningMethod() {
         final IntLongMethod method = new IntLongMethod();
         final TestDeviceInterface device = new TestDeviceInterface(method);
-
-        busElement.addDevice(device);
-        controller.scan(world, CONTROLLER_POS);
+        setDevice(device);
 
         final JsonElement result = invokeMethod(device, method.getName(), 0xdeadbeefcafebabeL);
         Assertions.assertNotNull(result);
@@ -119,11 +91,14 @@ public class ObjectDeviceProtocolTests {
         final SimpleObject object = new SimpleObject();
         final ObjectDeviceInterface device = new ObjectDeviceInterface(object);
         final DeviceImpl identifiableDevice = new DeviceImpl(LazyOptional.of(() -> device), UUID.randomUUID());
-
-        busElement.addDevice(identifiableDevice);
-        controller.scan(world, CONTROLLER_POS);
+        setDevice(identifiableDevice);
 
         Assertions.assertEquals(42 + 23, invokeMethod(identifiableDevice, "add", 42, 23).getAsInt());
+    }
+
+    private void setDevice(final Device device) {
+        when(busController.getDevices()).thenReturn(Collections.singletonList(device));
+        when(busController.getDevice(device.getUniqueIdentifier())).thenReturn(Optional.of(device));
     }
 
     private JsonElement invokeMethod(final Device device, final String name, final Object... parameters) {
@@ -140,7 +115,7 @@ public class ObjectDeviceProtocolTests {
         request.add("data", methodInvocation);
         serialDevice.putAsVM(request.toString());
 
-        controller.step(0);
+        rpcAdapter.step(0);
 
         final String result = serialDevice.readMessageAsVM();
         Assertions.assertNotNull(result);

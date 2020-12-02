@@ -1,9 +1,11 @@
 package li.cil.oc2.api.bus;
 
-import li.cil.oc2.api.device.DeviceInterface;
 import li.cil.oc2.api.device.Device;
+import li.cil.oc2.api.device.DeviceInterface;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * For each device bus there can be exactly one controller. The controller performs the
@@ -56,4 +58,12 @@ public interface DeviceBusController {
      * @return the list of all devices on the bus managed by this controller.
      */
     Collection<Device> getDevices();
+
+    /**
+     * Get the device with the specified unique identifier, if possible.
+     *
+     * @param uuid the id of the device to get.
+     * @return the device with the specified id, if possible.
+     */
+    Optional<Device> getDevice(final UUID uuid);
 }

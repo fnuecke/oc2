@@ -61,9 +61,12 @@ public final class DeviceBusElementCapability {
 
         @Override
         public void scheduleScan() {
-            for (final DeviceBusController controller : controllers) {
+            // Controllers are expected to remove themselves when a scan is scheduled.
+            final ArrayList<DeviceBusController> oldControllers = new ArrayList<>(controllers);
+            for (final DeviceBusController controller : oldControllers) {
                 controller.scheduleBusScan();
             }
+            assert controllers.isEmpty();
         }
     }
 }

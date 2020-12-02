@@ -86,11 +86,7 @@ public final class TileEntityDeviceBusElement implements INBTSerializable<Compou
     }
 
     public void initialize() {
-        final World world = tileEntity.getWorld();
-        if (world == null || world.isRemote()) {
-            return;
-        }
-
+        final World world = Objects.requireNonNull(tileEntity.getWorld());
         ServerScheduler.schedule(world, () -> {
             if (tileEntity.isRemoved()) {
                 return;
@@ -149,11 +145,7 @@ public final class TileEntityDeviceBusElement implements INBTSerializable<Compou
     }
 
     private void scheduleBusScanInAdjacentBusElements() {
-        final World world = tileEntity.getWorld();
-        if (world == null || world.isRemote()) {
-            return;
-        }
-
+        final World world = Objects.requireNonNull(tileEntity.getWorld());
         final BlockPos pos = tileEntity.getPos();
         for (final Direction direction : Direction.values()) {
             final BlockPos neighborPos = pos.offset(direction);

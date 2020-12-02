@@ -3,6 +3,7 @@ package li.cil.oc2.common.tile;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
+import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
@@ -22,9 +23,40 @@ public abstract class AbstractTileEntity extends TileEntity {
     }
 
     protected void initialize() {
+        final World world = getWorld();
+        if (world == null) {
+            return;
+        }
+
+        if (world.isRemote()) {
+            initializeClient();
+        } else {
+            initializeServer();
+        }
+    }
+
+    protected void initializeClient() {
+    }
+
+    protected void initializeServer() {
     }
 
     protected void dispose() {
+        final World world = getWorld();
+        if (world == null) {
+            return;
+        }
+        if (world.isRemote()) {
+            disposeClient();
+        } else {
+            disposeServer();
+        }
+    }
+
+    protected void disposeClient() {
+    }
+
+    protected void disposeServer() {
     }
 
     @NotNull

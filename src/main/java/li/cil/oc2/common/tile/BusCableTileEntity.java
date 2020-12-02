@@ -23,14 +23,14 @@ public class BusCableTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public void initialize() {
-        super.initialize();
+    protected void initializeServer() {
+        super.initializeServer();
         busElement.initialize();
     }
 
     @Override
-    protected void dispose() {
-        super.dispose();
+    protected void disposeServer() {
+        super.disposeServer();
         busElement.dispose();
     }
 

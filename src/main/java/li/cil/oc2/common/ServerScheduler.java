@@ -51,6 +51,8 @@ public final class ServerScheduler {
         @SubscribeEvent
         public static void handleServerTick(final TickEvent.ServerTickEvent event) {
             if (event.phase == TickEvent.Phase.START) {
+                serverScheduler.tick();
+
                 for (final Scheduler scheduler : worldSchedulers.values()) {
                     scheduler.tick();
                 }
@@ -62,6 +64,8 @@ public final class ServerScheduler {
             if (event.phase != TickEvent.Phase.START) {
                 return;
             }
+
+            serverScheduler.processQueue();
 
             final Scheduler scheduler = worldSchedulers.get(event.world);
             if (scheduler != null) {

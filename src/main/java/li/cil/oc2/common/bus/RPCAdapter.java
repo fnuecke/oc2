@@ -59,6 +59,12 @@ public final class RPCAdapter implements Steppable {
                 .create();
     }
 
+    public void reset() {
+        transmitBuffer.clear();
+        receiveBuffer = null;
+        synchronizedInvocation = null;
+    }
+
     public void tick() {
         if (synchronizedInvocation != null) {
             final MethodInvocation methodInvocation = synchronizedInvocation;

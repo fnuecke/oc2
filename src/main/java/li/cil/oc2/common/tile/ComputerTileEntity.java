@@ -4,26 +4,32 @@ import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.client.gui.terminal.Terminal;
+import li.cil.oc2.common.ServerScheduler;
+import li.cil.oc2.common.bus.TileEntityDeviceBusController;
+import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
+import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.TerminalBlockOutputMessage;
-import li.cil.oc2.common.vm.Allocator;
+import li.cil.oc2.common.tile.computer.VirtualMachine;
+import li.cil.oc2.common.util.NBTTagIds;
+import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
 import li.cil.oc2.serialization.BlobStorage;
 import li.cil.oc2.serialization.NBTSerialization;
 import li.cil.sedna.api.Sizes;
-import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import li.cil.sedna.device.memory.Memory;
-import li.cil.sedna.device.serial.UART16550A;
 import li.cil.sedna.device.virtio.VirtIOBlockDevice;
+import li.cil.sedna.device.virtio.VirtIOFileSystemDevice;
+import li.cil.sedna.fs.HostFileSystem;
 import li.cil.sedna.memory.PhysicalMemoryInputStream;
 import li.cil.sedna.memory.PhysicalMemoryOutputStream;
-import li.cil.sedna.riscv.R5Board;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fml.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
@@ -37,21 +43,56 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.UUID;
 
-public final class ComputerTileEntity extends TileEntity implements ITickableTileEntity {
+public final class ComputerTileEntity extends AbstractTileEntity implements ITickableTileEntity {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    @Serialized private final Terminal terminal = new Terminal();
-    private VirtualMachine virtualMachine;
-    private VirtualMachineRunner runner;
+    private static final String DEVICES_NBT_TAG_NAME = "devices";
+    private static final String BUS_ELEMENT_NBT_TAG_NAME = "busElement";
+    private static final String BUS_STATE_NBT_TAG_NAME = "busState";
+    private static final String TERMINAL_NBT_TAG_NAME = "terminal";
+    private static final String VIRTUAL_MACHINE_NBT_TAG_NAME = "virtualMachine";
+    private static final String RUNNER_NBT_TAG_NAME = "runner";
+    private static final String RUN_STATE_NBT_TAG_NAME = "runState";
 
-    @Serialized private UUID firmwareBlobHandle;
-    @Serialized private UUID ramBlobHandle;
-    private BlobStorage.JobHandle blobStorageJobHandle;
+    private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
+
+    private enum RunState {
+        STOPPED,
+        LOADING_DEVICES,
+        RUNNING,
+    }
 
     private Chunk chunk;
+    private final TileEntityDeviceBusController busController;
+    private TileEntityDeviceBusController.State busState;
+    private RunState runState;
+    private int loadDevicesDelay;
+    @Nullable private BlobStorage.JobHandle ramJobHandle;
+
+    // Serialized data
+
+    private final TileEntityDeviceBusElement busElement;
+    private final Terminal terminal;
+    private final VirtualMachine virtualMachine;
+    private ConsoleRunner runner;
+
+    private PhysicalMemory ram;
+    private UUID ramBlobHandle;
+    private VirtIOBlockDevice hdd;
 
     public ComputerTileEntity() {
         super(OpenComputers.COMPUTER_TILE_ENTITY.get());
+
+        busElement = new TileEntityDeviceBusElement(this);
+        busController = new TileEntityDeviceBusController(this, this::joinVirtualMachine);
+        busState = TileEntityDeviceBusController.State.SCAN_PENDING;
+        runState = RunState.STOPPED;
+
+        terminal = new Terminal();
+        virtualMachine = new VirtualMachine(busController);
+
+        setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement.getBusElement());
+        setCapabilityIfAbsent(Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY, busController);
     }
 
     public Terminal getTerminal() {
@@ -59,11 +100,25 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
     }
 
     public void start() {
-        startVirtualMachine();
+        if (runState == RunState.RUNNING) {
+            return;
+        }
+
+        runState = RunState.LOADING_DEVICES;
+        loadDevicesDelay = 0;
     }
 
     public void stop() {
-        disposeVirtualMachine();
+        if (runState == RunState.STOPPED) {
+            return;
+        }
+
+        if (runState == RunState.LOADING_DEVICES) {
+            runState = RunState.STOPPED;
+            return;
+        }
+
+        stopRunnerAndUnloadDevices();
     }
 
     public boolean isRunning() {
@@ -71,60 +126,123 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
     }
 
     @Override
-    public void onLoad() {
-        terminal.setDisplayOnly(Objects.requireNonNull(getWorld()).isRemote());
-    }
-
-    @Override
     public void tick() {
+        final World world = getWorld();
         if (world == null || world.isRemote()) {
             return;
         }
 
-        if (chunk == null) {
-            chunk = Objects.requireNonNull(getWorld()).getChunkAt(getPos());
-        }
-
-        if (blobStorageJobHandle != null) {
-            blobStorageJobHandle.await();
-            blobStorageJobHandle = null;
-        }
-
-        if (virtualMachine != null && !virtualMachine.board.isRunning()) {
-            disposeVirtualMachine();
+        busState = busController.scan();
+        if (busState != TileEntityDeviceBusController.State.READY) {
             return;
         }
 
-        if (runner != null) {
-            runner.tick();
-            chunk.markDirty();
+        switch (runState) {
+            case STOPPED:
+                break;
+            case LOADING_DEVICES:
+                if (loadDevicesDelay > 0) {
+                    loadDevicesDelay--;
+                    break;
+                }
+
+                if (!loadDevices()) {
+                    loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
+                    break;
+                }
+
+                // May have a valid runner after load. In which case we just had to wait for
+                // bus setup and devices to load. So we can keep using it.
+                if (runner == null) {
+                    virtualMachine.board.reset();
+                    virtualMachine.board.initialize();
+                    virtualMachine.board.setRunning(true);
+
+                    runner = new ConsoleRunner(virtualMachine);
+                }
+
+                runState = RunState.RUNNING;
+
+                // Only start running next tick. This gives loaded devices one tick to do async
+                // initialization. This is used by RAM to restore data from disk, for example.
+                break;
+            case RUNNING:
+                if (!virtualMachine.board.isRunning()) {
+                    stopRunnerAndUnloadDevices();
+                    break;
+                }
+
+                runner.tick();
+                chunk.markDirty();
+                break;
         }
     }
 
     @Override
-    public void remove() {
-        super.remove();
-        disposeVirtualMachine();
+    protected void initializeClient() {
+        super.initializeClient();
+        terminal.setDisplayOnly(true);
     }
 
     @Override
-    public void onChunkUnloaded() {
-        super.onChunkUnloaded();
-        disposeVirtualMachine();
+    protected void initializeServer() {
+        super.initializeServer();
+
+        ServerScheduler.schedule(() -> chunk = Objects.requireNonNull(getWorld()).getChunkAt(getPos()));
+    }
+
+    @Override
+    protected void disposeServer() {
+        super.disposeServer();
+
+        busElement.dispose();
+        stopRunnerAndUnloadDevices();
     }
 
     @Override
     public CompoundNBT getUpdateTag() {
         final CompoundNBT result = super.getUpdateTag();
 
-        result.put("terminal", NBTSerialization.serialize(terminal));
+        result.put(TERMINAL_NBT_TAG_NAME, NBTSerialization.serialize(terminal));
+        result.putInt(BUS_STATE_NBT_TAG_NAME, busState.ordinal());
+
         return result;
     }
 
     @Override
     public void handleUpdateTag(final CompoundNBT tag) {
         super.handleUpdateTag(tag);
-        NBTSerialization.deserialize(tag.getCompound("terminal"), terminal);
+
+        NBTSerialization.deserialize(tag.getCompound(TERMINAL_NBT_TAG_NAME), terminal);
+        busState = TileEntityDeviceBusController.State.values()[tag.getInt(BUS_STATE_NBT_TAG_NAME)];
+    }
+
+    @Override
+    public CompoundNBT write(CompoundNBT compound) {
+        compound = super.write(compound);
+
+        joinVirtualMachine();
+        if (ramJobHandle != null) {
+            ramJobHandle.await();
+            ramJobHandle = null;
+        }
+
+        compound.put(TERMINAL_NBT_TAG_NAME, NBTSerialization.serialize(terminal));
+
+        compound.put(BUS_ELEMENT_NBT_TAG_NAME, NBTSerialization.serialize(busElement));
+        compound.put(VIRTUAL_MACHINE_NBT_TAG_NAME, NBTSerialization.serialize(virtualMachine));
+
+        if (runner != null) {
+            compound.put(RUNNER_NBT_TAG_NAME, NBTSerialization.serialize(runner));
+        } else {
+            NBTUtils.putEnum(compound, RUN_STATE_NBT_TAG_NAME, runState);
+        }
+
+        final ListNBT devicesNbt = new ListNBT();
+        writeDevices(devicesNbt);
+        compound.put(DEVICES_NBT_TAG_NAME, devicesNbt);
+
+        return compound;
     }
 
     @Override
@@ -132,107 +250,144 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
         super.read(compound);
 
         joinVirtualMachine();
-
-        if (blobStorageJobHandle != null) {
-            blobStorageJobHandle.await();
-            blobStorageJobHandle = null;
+        if (ramJobHandle != null) {
+            ramJobHandle.await();
+            ramJobHandle = null;
         }
 
-        NBTSerialization.deserialize(compound, this);
+        NBTSerialization.deserialize(compound.getCompound(TERMINAL_NBT_TAG_NAME), terminal);
 
-        if (compound.contains("virtualMachine")) {
-            virtualMachine = VirtualMachine.allocate();
-
-            if (virtualMachine != null) {
-                NBTSerialization.deserialize(compound.getCompound("virtualMachine"), virtualMachine);
-
-                firmwareBlobHandle = BlobStorage.validateHandle(firmwareBlobHandle);
-                ramBlobHandle = BlobStorage.validateHandle(ramBlobHandle);
-
-                blobStorageJobHandle = BlobStorage.JobHandle.combine(blobStorageJobHandle,
-                        BlobStorage.submitLoad(firmwareBlobHandle, new PhysicalMemoryOutputStream(virtualMachine.firmware)));
-                blobStorageJobHandle = BlobStorage.JobHandle.combine(blobStorageJobHandle,
-                        BlobStorage.submitLoad(ramBlobHandle, new PhysicalMemoryOutputStream(virtualMachine.ram)));
-
-                if (compound.contains("runner")) {
-                    runner = new ConsoleRunner(virtualMachine);
-                    NBTSerialization.deserialize(compound.getCompound("runner"), runner);
-                }
-            } else {
-                // TODO Let user know VM could not be created because of memory constraints.
-            }
-        }
-    }
-
-    @Override
-    public CompoundNBT write(final CompoundNBT compound) {
-        final CompoundNBT result = super.write(compound);
-
-        joinVirtualMachine();
-
-        if (blobStorageJobHandle != null) {
-            blobStorageJobHandle.await();
-            blobStorageJobHandle = null;
+        if (compound.contains(BUS_ELEMENT_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            NBTSerialization.deserialize(compound.getCompound(BUS_ELEMENT_NBT_TAG_NAME), busElement);
         }
 
-        if (virtualMachine != null) {
-            compound.put("virtualMachine", NBTSerialization.serialize(virtualMachine));
+        if (compound.contains(VIRTUAL_MACHINE_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            NBTSerialization.deserialize(compound.getCompound(VIRTUAL_MACHINE_NBT_TAG_NAME), virtualMachine);
+        }
 
-            firmwareBlobHandle = BlobStorage.validateHandle(firmwareBlobHandle);
-            ramBlobHandle = BlobStorage.validateHandle(ramBlobHandle);
-
-            blobStorageJobHandle = BlobStorage.JobHandle.combine(blobStorageJobHandle,
-                    BlobStorage.submitSave(firmwareBlobHandle, new PhysicalMemoryInputStream(virtualMachine.firmware)));
-            blobStorageJobHandle = BlobStorage.JobHandle.combine(blobStorageJobHandle,
-                    BlobStorage.submitSave(ramBlobHandle, new PhysicalMemoryInputStream(virtualMachine.ram)));
-
-            if (runner != null) {
-                compound.put("runner", NBTSerialization.serialize(runner));
-            }
+        if (compound.contains(RUNNER_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            runner = new ConsoleRunner(virtualMachine);
+            NBTSerialization.deserialize(compound.getCompound(RUNNER_NBT_TAG_NAME), runner);
+            runState = RunState.LOADING_DEVICES;
         } else {
-            compound.remove("virtualMachine");
+            runState = NBTUtils.getEnum(compound, RUN_STATE_NBT_TAG_NAME, RunState.class);
+            if (runState == RunState.RUNNING) {
+                runState = RunState.LOADING_DEVICES;
+            }
         }
 
-        // Do this last so that blob handles have been updated.
-        NBTSerialization.serialize(compound, this);
+        // TODO Read item NBTs, generate item based devices.
 
-        return result;
+        if (compound.contains(DEVICES_NBT_TAG_NAME, NBTTagIds.TAG_LIST)) {
+            readDevices(compound.getList(DEVICES_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
+        }
     }
 
-    private void startVirtualMachine() {
-        if (Objects.requireNonNull(getWorld()).isRemote()) {
-            return;
+    private void writeDevices(final ListNBT list) {
+        // TODO Apply to devices generated from items.
+
+        if (ram != null) {
+            final CompoundNBT ramNbt = new CompoundNBT();
+            ramBlobHandle = BlobStorage.validateHandle(ramBlobHandle);
+            ramNbt.putUniqueId("ram", ramBlobHandle);
+            list.add(ramNbt);
+
+            ramJobHandle = BlobStorage.JobHandle.combine(ramJobHandle,
+                    BlobStorage.submitSave(ramBlobHandle, new PhysicalMemoryInputStream(ram)));
+        } else {
+            list.add(new CompoundNBT());
         }
 
-        if (runner != null) {
-            return;
+        if (hdd != null) {
+            final CompoundNBT hddNbt = new CompoundNBT();
+            hddNbt.put("hdd", NBTSerialization.serialize(hdd));
+            list.add(hddNbt);
+        } else {
+            list.add(new CompoundNBT());
         }
-
-        if (virtualMachine == null) {
-            virtualMachine = VirtualMachine.allocate();
-        }
-
-        if (virtualMachine == null) {
-            // TODO Let user know VM could not be created because of memory constraints.
-            return;
-        }
-
-        virtualMachine.board.reset();
-        virtualMachine.board.initialize();
-        virtualMachine.board.setRunning(true);
-        runner = new ConsoleRunner(virtualMachine);
     }
 
-    private void disposeVirtualMachine() {
+    private void readDevices(final ListNBT list) {
+        // TODO Apply to devices generated from items.
+
+        final CompoundNBT ramNbt = list.getCompound(0);
+        if (ramNbt.hasUniqueId("ram")) {
+            ramBlobHandle = ramNbt.getUniqueId("ram");
+        }
+
+        final CompoundNBT hddNbt = list.getCompound(1);
+        if (hddNbt.contains("hdd", NBTTagIds.TAG_COMPOUND)) {
+            if (hdd == null) {
+                hdd = new VirtIOBlockDevice(virtualMachine.board.getMemoryMap());
+                hdd.getInterrupt().set(0x3, virtualMachine.board.getInterruptController());
+                virtualMachine.board.addDevice(hdd);
+            }
+
+            NBTSerialization.deserialize(hddNbt.getCompound("hdd"), hdd);
+        }
+    }
+
+    private boolean loadDevices() {
+        // TODO Load devices generated from items.
+
+        try {
+            if (ram == null) {
+                final int RAM_SIZE = 24 * 1024 * 1024;
+                ram = Memory.create(RAM_SIZE);
+                virtualMachine.board.addDevice(0x80000000L, ram);
+            }
+
+            if (ramBlobHandle != null) {
+                ramJobHandle = BlobStorage.JobHandle.combine(ramJobHandle,
+                        BlobStorage.submitLoad(ramBlobHandle, new PhysicalMemoryOutputStream(ram)));
+            }
+
+            if (hdd == null) {
+                hdd = new VirtIOBlockDevice(virtualMachine.board.getMemoryMap());
+                hdd.getInterrupt().set(0x3, virtualMachine.board.getInterruptController());
+                virtualMachine.board.addDevice(hdd);
+            }
+
+            final ByteBufferBlockDevice blockDevice = ByteBufferBlockDevice.createFromStream(Buildroot.getRootFilesystem(), true);
+            hdd.setBlockDevice(blockDevice);
+
+            final VirtIOFileSystemDevice vfs = new VirtIOFileSystemDevice(virtualMachine.board.getMemoryMap(), "scripts", new HostFileSystem());
+            vfs.getInterrupt().set(0x4, virtualMachine.board.getInterruptController());
+            virtualMachine.board.addDevice(vfs);
+        } catch (final IOException e) {
+            LOGGER.error(e);
+        }
+
+        return true;
+    }
+
+    private void unloadDevices() {
+        // TODO Unload devices generated from items.
+
+        if (ram != null) {
+            virtualMachine.board.removeDevice(ram);
+            ram = null;
+            BlobStorage.freeHandle(ramBlobHandle);
+        }
+
+        if (hdd != null) {
+            try {
+                hdd.close();
+            } catch (final IOException e) {
+                LOGGER.error(e);
+            }
+
+            hdd = null;
+        }
+    }
+
+    private void stopRunnerAndUnloadDevices() {
         joinVirtualMachine();
         runner = null;
-        if (virtualMachine != null) {
-            virtualMachine.dispose();
-            virtualMachine = null;
-        }
+        runState = RunState.STOPPED;
 
-        BlobStorage.freeHandle(firmwareBlobHandle);
-        BlobStorage.freeHandle(ramBlobHandle);
+        unloadDevices();
+        virtualMachine.reset();
     }
 
     private void joinVirtualMachine() {
@@ -240,90 +395,56 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
             try {
                 runner.join();
             } catch (final Throwable e) {
-                LOGGER.warn(e);
+                LOGGER.error(e);
                 runner = null;
             }
         }
     }
 
     private static void loadProgramFile(final PhysicalMemory memory, final InputStream stream) throws Throwable {
+        loadProgramFile(memory, stream, 0);
+    }
+
+    private static void loadProgramFile(final PhysicalMemory memory, final InputStream stream, final int offset) throws Throwable {
         final BufferedInputStream bis = new BufferedInputStream(stream);
         for (int address = 0, value = bis.read(); value != -1; value = bis.read(), address++) {
-            memory.store(address, (byte) value, Sizes.SIZE_8_LOG2);
+            memory.store(offset + address, (byte) value, Sizes.SIZE_8_LOG2);
         }
     }
 
-    private static final class VirtualMachine {
-        @Serialized R5Board board;
-        @Serialized UART16550A uart;
-        @Serialized VirtIOBlockDevice hdd;
-        PhysicalMemory firmware;
-        PhysicalMemory ram;
-
-        UUID ramHandle;
-
-        VirtualMachine(final UUID ramHandle, final BlockDevice blockDevice) {
-            this.ramHandle = ramHandle;
-
-            board = new R5Board();
-
-            firmware = Memory.create(128 * 1024);
-            ram = Memory.create(32 * 1024 * 1024);
-
-            board.addDevice(0x80000000, firmware);
-            board.addDevice(0x80000000 + 0x400000, ram);
-
-            uart = new UART16550A();
-            hdd = new VirtIOBlockDevice(board.getMemoryMap(), blockDevice);
-
-            hdd.getInterrupt().set(0x1, board.getInterruptController());
-            uart.getInterrupt().set(0x2, board.getInterruptController());
-
-            board.addDevice(uart);
-            board.addDevice(hdd);
-
-            board.setBootargs("console=ttyS0 root=/dev/vda ro");
-        }
-
-        void dispose() {
-            ram = null;
-            Allocator.freeMemory(ramHandle);
-        }
-
-        @Nullable
-        static VirtualMachine allocate() {
-            final UUID ramHandle = Allocator.createHandle();
-            if (Allocator.claimMemory(ramHandle, 32 * 1024 * 1024)) {
-                try {
-                    return new VirtualMachine(ramHandle, ByteBufferBlockDevice.createFromStream(Buildroot.getRootFilesystem(), true));
-                } catch (final IOException e) {
-                    LOGGER.error(e);
-                    Allocator.freeMemory(ramHandle);
-                }
-            }
-
-            return null;
-        }
-    }
-
-    @Serialized
     private final class ConsoleRunner extends VirtualMachineRunner {
         // Thread-local buffers for lock-free read/writes in inner loop.
         private final ByteArrayFIFOQueue outputBuffer = new ByteArrayFIFOQueue(1024);
         private final ByteArrayFIFOQueue inputBuffer = new ByteArrayFIFOQueue(32);
-        private boolean didLoadBinaries;
+
+        @Serialized private boolean didInitialization;
 
         public ConsoleRunner(final VirtualMachine virtualMachine) {
             super(virtualMachine.board);
         }
 
         @Override
+        public void tick() {
+            // TODO Tick devices that need it synchronously.
+            if (ramJobHandle != null) {
+                ramJobHandle.await();
+                ramJobHandle = null;
+            }
+
+            virtualMachine.rpcAdapter.tick();
+
+            super.tick();
+        }
+
+        @Override
         protected void handleBeforeRun() {
-            if (!didLoadBinaries) {
-                didLoadBinaries = true;
+            if (!didInitialization) {
+                didInitialization = true;
                 try {
-                    loadProgramFile(virtualMachine.firmware, Buildroot.getFirmware());
-                    loadProgramFile(virtualMachine.ram, Buildroot.getLinuxImage());
+                    // TODO Initialize devices that need it asynchronously.
+
+                    loadProgramFile(ram, Buildroot.getFirmware());
+                    loadProgramFile(ram, Buildroot.getLinuxImage(), 0x200000);
                 } catch (final Throwable e) {
                     LOGGER.error(e);
                 }
@@ -346,6 +467,8 @@ public final class ComputerTileEntity extends TileEntity implements ITickableTil
             while ((value = virtualMachine.uart.read()) != -1) {
                 outputBuffer.enqueue((byte) value);
             }
+
+            virtualMachine.rpcAdapter.step(cyclesPerStep);
         }
 
         @Override

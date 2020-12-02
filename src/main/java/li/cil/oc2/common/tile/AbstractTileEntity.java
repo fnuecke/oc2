@@ -18,8 +18,8 @@ public abstract class AbstractTileEntity extends TileEntity {
         super(tileEntityType);
     }
 
-    protected <T> void addCapability(final Capability<T> capability, final T value) {
-        capabilities.put(capability, LazyOptional.of(() -> value));
+    protected <T> void setCapabilityIfAbsent(final Capability<T> capability, final T value) {
+        capabilities.putIfAbsent(capability, LazyOptional.of(() -> value));
     }
 
     protected void initialize() {

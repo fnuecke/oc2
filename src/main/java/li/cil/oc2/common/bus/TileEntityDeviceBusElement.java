@@ -1,5 +1,6 @@
 package li.cil.oc2.common.bus;
 
+import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.ServerScheduler;
@@ -7,7 +8,6 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.device.DeviceImpl;
 import li.cil.oc2.common.device.DeviceInterfaceCollection;
 import li.cil.oc2.common.device.provider.Providers;
-import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
@@ -15,13 +15,12 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public final class TileEntityDeviceBusElement implements INBTSerializable<CompoundNBT> {
+public final class TileEntityDeviceBusElement {
     private static final String DEVICE_IDS_NBT_TAG_NAME = "deviceIds";
     private static final String DEVICE_ID_NBT_TAG_NAME = "deviceId";
 
@@ -30,8 +29,8 @@ public final class TileEntityDeviceBusElement implements INBTSerializable<Compou
     private final TileEntity tileEntity;
 
     private final DeviceBusElement busElement = Objects.requireNonNull(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY.getDefaultInstance());
-    private final UUID[] deviceIds = new UUID[NEIGHBOR_COUNT];
     private final DeviceImpl[] devices = new DeviceImpl[NEIGHBOR_COUNT];
+    @Serialized private UUID[] deviceIds = new UUID[NEIGHBOR_COUNT];
 
     public TileEntityDeviceBusElement(final TileEntity tileEntity) {
         this.tileEntity = tileEntity;
@@ -99,31 +98,6 @@ public final class TileEntityDeviceBusElement implements INBTSerializable<Compou
 
     public void dispose() {
         busElement.scheduleScan();
-    }
-
-    @Override
-    public CompoundNBT serializeNBT() {
-        final ListNBT deviceIdsNbt = new ListNBT();
-        for (int i = 0; i < NEIGHBOR_COUNT; i++) {
-            final CompoundNBT deviceIdNbt = new CompoundNBT();
-            deviceIdNbt.putUniqueId(DEVICE_ID_NBT_TAG_NAME, deviceIds[i]);
-            deviceIdsNbt.add(deviceIdNbt);
-        }
-
-        final CompoundNBT compound = new CompoundNBT();
-        compound.put(DEVICE_IDS_NBT_TAG_NAME, deviceIdsNbt);
-        return compound;
-    }
-
-    @Override
-    public void deserializeNBT(final CompoundNBT compound) {
-        final ListNBT deviceIdsNbt = compound.getList(DEVICE_IDS_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND);
-        for (int i = 0; i < Math.min(deviceIdsNbt.size(), NEIGHBOR_COUNT); i++) {
-            final CompoundNBT deviceIdNbt = deviceIdsNbt.getCompound(i);
-            if (deviceIdNbt.hasUniqueId(DEVICE_ID_NBT_TAG_NAME)) {
-                deviceIds[i] = deviceIdNbt.getUniqueId(DEVICE_ID_NBT_TAG_NAME);
-            }
-        }
     }
 
     public CompoundNBT write(final CompoundNBT compound) {

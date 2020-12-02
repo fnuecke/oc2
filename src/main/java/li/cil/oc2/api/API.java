@@ -1,9 +1,9 @@
 package li.cil.oc2.api;
 
 import com.google.gson.GsonBuilder;
-import li.cil.oc2.api.device.DeviceMethod;
-import li.cil.oc2.api.device.object.Callback;
-import li.cil.oc2.api.device.provider.DeviceInterfaceProvider;
+import li.cil.oc2.api.bus.device.DeviceMethod;
+import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.provider.DeviceInterfaceProvider;
 import li.cil.oc2.api.imc.DeviceMethodParameterTypeAdapter;
 
 import java.lang.reflect.Type;

@@ -1,7 +1,7 @@
-package li.cil.oc2.api.device.object;
+package li.cil.oc2.api.bus.device.object;
 
-import li.cil.oc2.api.device.DeviceInterface;
-import li.cil.oc2.api.device.DeviceMethod;
+import li.cil.oc2.api.bus.device.DeviceInterface;
+import li.cil.oc2.api.bus.device.DeviceMethod;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

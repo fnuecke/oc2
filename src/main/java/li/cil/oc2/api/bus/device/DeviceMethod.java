@@ -1,7 +1,7 @@
-package li.cil.oc2.api.device;
+package li.cil.oc2.api.bus.device;
 
 import li.cil.oc2.api.bus.DeviceBusController;
-import li.cil.oc2.api.device.object.ObjectDeviceInterface;
+import li.cil.oc2.api.bus.device.object.ObjectDeviceInterface;
 
 import javax.annotation.Nullable;
 import java.util.Optional;

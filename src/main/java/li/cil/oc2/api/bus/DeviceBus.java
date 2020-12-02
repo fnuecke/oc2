@@ -1,7 +1,7 @@
 package li.cil.oc2.api.bus;
 
-import li.cil.oc2.api.device.DeviceInterface;
-import li.cil.oc2.api.device.Device;
+import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.DeviceInterface;
 
 import java.util.Collection;
 

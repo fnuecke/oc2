@@ -1,9 +1,9 @@
 package li.cil.oc2.common.device.provider;
 
-import li.cil.oc2.api.device.DeviceInterface;
-import li.cil.oc2.api.device.object.Callback;
-import li.cil.oc2.api.device.object.ObjectDeviceInterface;
-import li.cil.oc2.api.device.provider.BlockDeviceQuery;
+import li.cil.oc2.api.bus.device.DeviceInterface;
+import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.ObjectDeviceInterface;
+import li.cil.oc2.api.provider.BlockDeviceQuery;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;

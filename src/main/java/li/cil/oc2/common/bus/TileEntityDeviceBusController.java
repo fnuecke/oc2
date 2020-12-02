@@ -2,8 +2,8 @@ package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.api.device.Device;
-import li.cil.oc2.api.device.DeviceInterface;
+import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.DeviceInterface;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -12,6 +12,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,6 +27,7 @@ public final class TileEntityDeviceBusController implements DeviceBusController 
     private static final int MAX_BUS_ELEMENT_COUNT = 128;
 
     private final TileEntity tileEntity;
+    @Nullable private final Runnable onBeforeClearDevices;
 
     private final Set<DeviceBusElement> elements = new HashSet<>();
     private final ConcurrentHashMap<UUID, Device> devices = new ConcurrentHashMap<>();
@@ -33,11 +35,20 @@ public final class TileEntityDeviceBusController implements DeviceBusController 
     private int scanDelay;
 
     public TileEntityDeviceBusController(final TileEntity tileEntity) {
+        this(tileEntity, null);
+    }
+
+    public TileEntityDeviceBusController(final TileEntity tileEntity, @Nullable final Runnable onBeforeBusScan) {
         this.tileEntity = tileEntity;
+        this.onBeforeClearDevices = onBeforeBusScan;
     }
 
     @Override
     public void scheduleBusScan() {
+        if (!devices.isEmpty() && onBeforeClearDevices != null) {
+            onBeforeClearDevices.run();
+        }
+
         for (final DeviceBusElement element : elements) {
             element.removeController(this);
         }

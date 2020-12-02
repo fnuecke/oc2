@@ -1,8 +1,8 @@
 package li.cil.oc2.common.tile;
 
 import li.cil.oc2.OpenComputers;
-import li.cil.oc2.api.device.object.Callback;
-import li.cil.oc2.api.device.object.NamedDevice;
+import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.NamedDevice;
 import net.minecraft.block.HorizontalBlock;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;

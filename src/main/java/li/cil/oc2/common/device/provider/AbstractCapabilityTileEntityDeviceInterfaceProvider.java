@@ -1,7 +1,7 @@
 package li.cil.oc2.common.device.provider;
 
-import li.cil.oc2.api.device.DeviceInterface;
-import li.cil.oc2.api.device.provider.BlockDeviceQuery;
+import li.cil.oc2.api.bus.device.DeviceInterface;
+import li.cil.oc2.api.provider.BlockDeviceQuery;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;

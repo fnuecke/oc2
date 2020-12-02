@@ -1,7 +1,7 @@
 package li.cil.oc2.vm;
 
-import li.cil.oc2.api.device.DeviceMethod;
-import li.cil.oc2.api.device.DeviceMethodParameter;
+import li.cil.oc2.api.bus.device.DeviceMethod;
+import li.cil.oc2.api.bus.device.DeviceMethodParameter;
 
 import javax.annotation.Nullable;
 import java.util.Optional;

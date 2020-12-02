@@ -1,7 +1,7 @@
-package li.cil.oc2.api.device.provider;
+package li.cil.oc2.api.provider;
 
-import li.cil.oc2.api.device.DeviceInterface;
-import li.cil.oc2.api.device.object.ObjectDeviceInterface;
+import li.cil.oc2.api.bus.device.DeviceInterface;
+import li.cil.oc2.api.bus.device.object.ObjectDeviceInterface;
 import net.minecraftforge.common.util.LazyOptional;
 
 /**

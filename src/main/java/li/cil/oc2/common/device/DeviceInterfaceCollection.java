@@ -1,7 +1,7 @@
 package li.cil.oc2.common.device;
 
-import li.cil.oc2.api.device.DeviceInterface;
-import li.cil.oc2.api.device.DeviceMethod;
+import li.cil.oc2.api.bus.device.DeviceInterface;
+import li.cil.oc2.api.bus.device.DeviceMethod;
 
 import java.util.ArrayList;
 import java.util.Collection;

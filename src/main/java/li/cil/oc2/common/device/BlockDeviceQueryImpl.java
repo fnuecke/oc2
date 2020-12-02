@@ -1,6 +1,6 @@
 package li.cil.oc2.common.device;
 
-import li.cil.oc2.api.device.provider.BlockDeviceQuery;
+import li.cil.oc2.api.provider.BlockDeviceQuery;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;

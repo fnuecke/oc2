@@ -1,6 +1,6 @@
-package li.cil.oc2.api.device.object;
+package li.cil.oc2.api.bus.device.object;
 
-import li.cil.oc2.api.device.DeviceMethod;
+import li.cil.oc2.api.bus.device.DeviceMethod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

@@ -1,4 +1,4 @@
-package li.cil.oc2.api.device;
+package li.cil.oc2.api.bus.device;
 
 import li.cil.oc2.api.bus.DeviceBusController;
 

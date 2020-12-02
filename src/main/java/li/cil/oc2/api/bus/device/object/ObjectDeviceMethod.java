@@ -1,7 +1,7 @@
-package li.cil.oc2.api.device.object;
+package li.cil.oc2.api.bus.device.object;
 
-import li.cil.oc2.api.device.AbstractDeviceMethod;
-import li.cil.oc2.api.device.DeviceMethodParameter;
+import li.cil.oc2.api.bus.device.AbstractDeviceMethod;
+import li.cil.oc2.api.bus.device.DeviceMethodParameter;
 import org.apache.logging.log4j.util.Strings;
 
 import javax.annotation.Nullable;
@@ -82,7 +82,7 @@ public final class ObjectDeviceMethod extends AbstractDeviceMethod {
         public ReflectionParameter(final java.lang.reflect.Parameter parameter) {
             this.type = parameter.getType();
 
-            final li.cil.oc2.api.device.object.Parameter annotation = parameter.getAnnotation(li.cil.oc2.api.device.object.Parameter.class);
+            final li.cil.oc2.api.bus.device.object.Parameter annotation = parameter.getAnnotation(li.cil.oc2.api.bus.device.object.Parameter.class);
             final boolean hasName = annotation != null && Strings.isNotBlank(annotation.value());
             final boolean hasDescription = annotation != null && Strings.isNotBlank(annotation.description());
 

@@ -1,7 +1,7 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.api.device.provider.DeviceInterfaceProvider;
+import li.cil.oc2.api.provider.DeviceInterfaceProvider;
 import li.cil.oc2.api.imc.DeviceMethodParameterTypeAdapter;
 import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
 import li.cil.oc2.common.device.provider.Providers;

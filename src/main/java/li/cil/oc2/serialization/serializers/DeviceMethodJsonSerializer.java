@@ -1,8 +1,8 @@
 package li.cil.oc2.serialization.serializers;
 
 import com.google.gson.*;
-import li.cil.oc2.api.device.DeviceMethod;
-import li.cil.oc2.api.device.DeviceMethodParameter;
+import li.cil.oc2.api.bus.device.DeviceMethod;
+import li.cil.oc2.api.bus.device.DeviceMethodParameter;
 
 import java.lang.reflect.Type;
 

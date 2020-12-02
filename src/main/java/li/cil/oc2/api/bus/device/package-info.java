@@ -1,6 +1,6 @@
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package li.cil.oc2.api.device.object;
+package li.cil.oc2.api.bus.device;
 
 import mcp.MethodsReturnNonnullByDefault;
 

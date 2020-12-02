@@ -1,11 +1,10 @@
 package li.cil.oc2.common.device.provider;
 
-import li.cil.oc2.api.device.DeviceInterface;
-import li.cil.oc2.api.device.provider.DeviceInterfaceProvider;
-import li.cil.oc2.api.device.provider.DeviceQuery;
+import li.cil.oc2.api.bus.device.DeviceInterface;
+import li.cil.oc2.api.provider.DeviceInterfaceProvider;
+import li.cil.oc2.api.provider.DeviceQuery;
 import li.cil.oc2.common.device.BlockDeviceQueryImpl;
 import li.cil.oc2.common.device.DeviceInterfaceCollection;
-import li.cil.oc2.common.device.provider.*;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;

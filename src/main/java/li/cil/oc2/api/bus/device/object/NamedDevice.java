@@ -1,4 +1,4 @@
-package li.cil.oc2.api.device.object;
+package li.cil.oc2.api.bus.device.object;
 
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;

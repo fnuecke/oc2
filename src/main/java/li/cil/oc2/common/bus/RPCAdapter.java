@@ -65,9 +65,6 @@ public final class RPCAdapter implements Steppable {
     }
 
     public void reset() {
-        devices.clear();
-        devicesById.clear();
-        isPaused = false;
         transmitBuffer.clear();
         receiveBuffer = null;
         synchronizedInvocation = null;

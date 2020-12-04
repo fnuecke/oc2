@@ -1,24 +1,24 @@
-package li.cil.oc2.api.bus.device;
+package li.cil.oc2.api.bus.device.rpc;
 
 import li.cil.oc2.api.bus.DeviceBusController;
-import li.cil.oc2.api.bus.device.object.ObjectDeviceInterface;
+import li.cil.oc2.api.bus.device.object.ObjectDevice;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
- * Represents a single method that can be exposed by a {@link DeviceInterface}.
+ * Represents a single method that can be exposed by a {@link RPCDevice}.
  * <p>
  * The easiest and hence recommended way of implementing this interface is to use
- * the {@link ObjectDeviceInterface} class.
+ * the {@link ObjectDevice} class.
  * <p>
  * Method parameters are serialized and deserialized using Gson. When using custom
  * parameter types it may be necessary to register a custom type adapter for them
  * via {@link li.cil.oc2.api.API#IMC_ADD_DEVICE_METHOD_PARAMETER_TYPE_ADAPTER}.
  *
- * @see ObjectDeviceInterface
+ * @see ObjectDevice
  */
-public interface DeviceMethod {
+public interface RPCMethod {
     /**
      * The name of the method.
      * <p>
@@ -41,7 +41,7 @@ public interface DeviceMethod {
     /**
      * The list of parameters this method accepts.
      */
-    DeviceMethodParameter[] getParameters();
+    RPCParameter[] getParameters();
 
     /**
      * Called to run this method.

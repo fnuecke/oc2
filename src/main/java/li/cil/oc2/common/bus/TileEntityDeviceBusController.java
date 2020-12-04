@@ -1,9 +1,8 @@
 package li.cil.oc2.common.bus;
 
+import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.DeviceInterface;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -12,11 +11,9 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 
-import javax.annotation.Nullable;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
-public final class TileEntityDeviceBusController implements DeviceBusController {
+public abstract class TileEntityDeviceBusController implements DeviceBusController {
     public enum State {
         SCAN_PENDING,
         TOO_COMPLEX,
@@ -27,27 +24,26 @@ public final class TileEntityDeviceBusController implements DeviceBusController 
     private static final int MAX_BUS_ELEMENT_COUNT = 128;
 
     private final TileEntity tileEntity;
-    @Nullable private final Runnable onBeforeClearDevices;
 
     private final Set<DeviceBusElement> elements = new HashSet<>();
-    private final ConcurrentHashMap<UUID, Device> devices = new ConcurrentHashMap<>();
+    private final HashSet<Device> devices = new HashSet<>();
+    private final HashMap<Device, Set<UUID>> deviceIds = new HashMap<>();
 
     private int scanDelay;
 
-    public TileEntityDeviceBusController(final TileEntity tileEntity) {
-        this(tileEntity, null);
+    protected TileEntityDeviceBusController(final TileEntity tileEntity) {
+        this.tileEntity = tileEntity;
     }
 
-    public TileEntityDeviceBusController(final TileEntity tileEntity, @Nullable final Runnable onBeforeBusScan) {
-        this.tileEntity = tileEntity;
-        this.onBeforeClearDevices = onBeforeBusScan;
+    protected void onDevicesInvalid() {
+    }
+
+    protected void onDevicesValid() {
     }
 
     @Override
     public void scheduleBusScan() {
-        if (!devices.isEmpty() && onBeforeClearDevices != null) {
-            onBeforeClearDevices.run();
-        }
+        onDevicesInvalid();
 
         for (final DeviceBusElement element : elements) {
             element.removeController(this);
@@ -55,36 +51,37 @@ public final class TileEntityDeviceBusController implements DeviceBusController 
 
         elements.clear();
         devices.clear();
+        deviceIds.clear();
 
         scanDelay = 0; // scan as soon as possible
     }
 
     @Override
     public void scanDevices() {
-        devices.clear();
+        onDevicesInvalid();
 
-        final HashMap<DeviceInterface, ArrayList<Device>> groupedDevices = new HashMap<>();
+        devices.clear();
+        deviceIds.clear();
 
         for (final DeviceBusElement element : elements) {
             for (final Device device : element.getLocalDevices()) {
-                groupedDevices.computeIfAbsent(device.getIdentifiedDevice(), d -> new ArrayList<>()).add(device);
+                devices.add(device);
+                element.getDeviceIdentifier(device).ifPresent(identifier -> deviceIds
+                        .computeIfAbsent(device, unused -> new HashSet<>()).add(identifier));
             }
         }
 
-        for (final ArrayList<Device> group : groupedDevices.values()) {
-            final Device device = selectDeviceDeterministically(group);
-            devices.putIfAbsent(device.getUniqueIdentifier(), device);
-        }
+        onDevicesValid();
     }
 
     @Override
-    public Collection<Device> getDevices() {
-        return devices.values();
+    public Set<Device> getDevices() {
+        return devices;
     }
 
     @Override
-    public Optional<Device> getDevice(final UUID uuid) {
-        return Optional.ofNullable(devices.get(uuid));
+    public Set<UUID> getDeviceIdentifiers(final Device device) {
+        return deviceIds.getOrDefault(device, Collections.emptySet());
     }
 
     public State scan() {
@@ -187,18 +184,6 @@ public final class TileEntityDeviceBusController implements DeviceBusController 
         scanDevices();
 
         return State.READY;
-    }
-
-    private static Device selectDeviceDeterministically(final ArrayList<Device> devices) {
-        Device deviceWithLowestUuid = devices.get(0);
-        for (int i = 1; i < devices.size(); i++) {
-            final Device device = devices.get(i);
-            if (device.getUniqueIdentifier().compareTo(deviceWithLowestUuid.getUniqueIdentifier()) < 0) {
-                deviceWithLowestUuid = device;
-            }
-        }
-
-        return deviceWithLowestUuid;
     }
 
     private static final class ScanEdge {

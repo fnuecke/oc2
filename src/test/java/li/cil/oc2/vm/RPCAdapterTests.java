@@ -3,15 +3,13 @@ package li.cil.oc2.vm;
 import com.google.gson.*;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.oc2.api.bus.DeviceBusController;
-import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.DeviceMethod;
 import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.ObjectDeviceInterface;
+import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.api.bus.device.rpc.RPCDevice;
+import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.common.bus.RPCAdapter;
-import li.cil.oc2.common.device.DeviceImpl;
 import li.cil.sedna.api.device.serial.SerialDevice;
-import net.minecraftforge.common.util.LazyOptional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,13 +18,14 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class RPCAdapterTests {
+    private static final UUID DEVICE_UUID = java.util.UUID.randomUUID();
+
     private TestSerialDevice serialDevice;
     private DeviceBusController busController;
     private RPCAdapter rpcAdapter;
@@ -41,8 +40,8 @@ public class RPCAdapterTests {
     @Test
     public void resetAndReadDescriptor() {
         final VoidIntMethod method = new VoidIntMethod();
-        final TestDeviceInterface device = new TestDeviceInterface(method);
-        setDevice(device);
+        final TestRPCDeviceInterface device = new TestRPCDeviceInterface(method);
+        setDevice(device, DEVICE_UUID);
 
         final JsonObject request = new JsonObject();
         request.addProperty("type", "status");
@@ -66,10 +65,10 @@ public class RPCAdapterTests {
     @Test
     public void simpleMethod() {
         final VoidIntMethod method = new VoidIntMethod();
-        final TestDeviceInterface device = new TestDeviceInterface(method);
-        setDevice(device);
+        final TestRPCDeviceInterface device = new TestRPCDeviceInterface(method);
+        setDevice(device, DEVICE_UUID);
 
-        invokeMethod(device, method.getName(), 0xdeadbeef);
+        invokeMethod(DEVICE_UUID, method.getName(), 0xdeadbeef);
 
         Assertions.assertEquals(0xdeadbeef, method.passedValue);
     }
@@ -77,10 +76,10 @@ public class RPCAdapterTests {
     @Test
     public void returningMethod() {
         final IntLongMethod method = new IntLongMethod();
-        final TestDeviceInterface device = new TestDeviceInterface(method);
-        setDevice(device);
+        final TestRPCDeviceInterface device = new TestRPCDeviceInterface(method);
+        setDevice(device, DEVICE_UUID);
 
-        final JsonElement result = invokeMethod(device, method.getName(), 0xdeadbeefcafebabeL);
+        final JsonElement result = invokeMethod(DEVICE_UUID, method.getName(), 0xdeadbeefcafebabeL);
         Assertions.assertNotNull(result);
         Assertions.assertTrue(result.isJsonPrimitive());
         Assertions.assertEquals(0xcafebabe, result.getAsInt());
@@ -89,23 +88,26 @@ public class RPCAdapterTests {
     @Test
     public void annotatedObject() {
         final SimpleObject object = new SimpleObject();
-        final ObjectDeviceInterface device = new ObjectDeviceInterface(object);
-        final DeviceImpl identifiableDevice = new DeviceImpl(LazyOptional.of(() -> device), UUID.randomUUID());
-        setDevice(identifiableDevice);
+        final ObjectDevice device = new ObjectDevice(object);
+        setDevice(device, DEVICE_UUID);
 
-        Assertions.assertEquals(42 + 23, invokeMethod(identifiableDevice, "add", 42, 23).getAsInt());
+        Assertions.assertEquals(42 + 23, invokeMethod(DEVICE_UUID, "add", 42, 23).getAsInt());
     }
 
-    private void setDevice(final Device device) {
-        when(busController.getDevices()).thenReturn(Collections.singletonList(device));
-        when(busController.getDevice(device.getUniqueIdentifier())).thenReturn(Optional.of(device));
+    private void setDevice(final RPCDevice device, final UUID deviceId) {
+        when(busController.getDevices()).thenReturn(Collections.singleton(device));
+        when(busController.getDeviceIdentifiers(device)).thenReturn(Collections.singleton(deviceId));
+
+        // trigger device cache rebuild
+        rpcAdapter.pause();
+        rpcAdapter.resume();
     }
 
-    private JsonElement invokeMethod(final Device device, final String name, final Object... parameters) {
+    private JsonElement invokeMethod(final UUID deviceId, final String name, final Object... parameters) {
         final JsonObject request = new JsonObject();
         request.addProperty("type", "invoke");
         final JsonObject methodInvocation = new JsonObject();
-        methodInvocation.addProperty("deviceId", device.getUniqueIdentifier().toString());
+        methodInvocation.addProperty("deviceId", deviceId.toString());
         methodInvocation.addProperty("name", name);
         final JsonArray parametersJson = new JsonArray();
         methodInvocation.add("parameters", parametersJson);
@@ -196,7 +198,7 @@ public class RPCAdapterTests {
             }
 
             if (bytes.size() > 0) {
-                return new String(bytes.toByteArray());
+                return bytes.toString();
             } else {
                 return null;
             }
@@ -218,12 +220,10 @@ public class RPCAdapterTests {
         }
     }
 
-    private static final class TestDeviceInterface implements Device {
-        private static final UUID UUID = java.util.UUID.randomUUID();
+    private static final class TestRPCDeviceInterface implements RPCDevice {
+        private final RPCMethod method;
 
-        private final DeviceMethod method;
-
-        public TestDeviceInterface(final DeviceMethod method) {
+        public TestRPCDeviceInterface(final RPCMethod method) {
             this.method = method;
         }
 
@@ -233,13 +233,8 @@ public class RPCAdapterTests {
         }
 
         @Override
-        public List<DeviceMethod> getMethods() {
+        public List<RPCMethod> getMethods() {
             return Collections.singletonList(method);
-        }
-
-        @Override
-        public UUID getUniqueIdentifier() {
-            return UUID;
         }
     }
 }

@@ -3,16 +3,17 @@ package li.cil.oc2.common.bus;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import li.cil.ceres.api.Serialized;
+import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBusController;
-import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.DeviceInterface;
-import li.cil.oc2.api.bus.device.DeviceMethod;
-import li.cil.oc2.api.bus.device.DeviceMethodParameter;
+import li.cil.oc2.api.bus.device.rpc.RPCDevice;
+import li.cil.oc2.api.bus.device.rpc.RPCMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCParameter;
 import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
-import li.cil.oc2.serialization.serializers.DeviceJsonSerializer;
-import li.cil.oc2.serialization.serializers.DeviceMethodJsonSerializer;
+import li.cil.oc2.common.device.RPCDeviceList;
 import li.cil.oc2.serialization.serializers.MessageJsonDeserializer;
 import li.cil.oc2.serialization.serializers.MethodInvocationJsonDeserializer;
+import li.cil.oc2.serialization.serializers.RPCDeviceWithIdentifierJsonSerializer;
+import li.cil.oc2.serialization.serializers.RPCMethodJsonSerializer;
 import li.cil.sedna.api.device.Steppable;
 import li.cil.sedna.api.device.serial.SerialDevice;
 
@@ -20,9 +21,9 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public final class RPCAdapter implements Steppable {
     private static final int DEFAULT_MAX_MESSAGE_SIZE = 4 * 1024;
@@ -35,9 +36,13 @@ public final class RPCAdapter implements Steppable {
     public static final String ERROR_INVALID_PARAMETER_SIGNATURE = "invalid parameter signature";
 
     private final DeviceBusController controller;
-
     private final SerialDevice serialDevice;
     private final Gson gson;
+
+    private final ArrayList<RPCDeviceWithIdentifier> devices = new ArrayList<>();
+    private final HashMap<UUID, RPCDeviceList> devicesById = new HashMap<>();
+    private final Lock pauseLock = new ReentrantLock();
+    private boolean isPaused;
 
     @Serialized private final ByteBuffer transmitBuffer; // for data written to device by VM
     @Serialized private ByteBuffer receiveBuffer; // for data written by device to VM
@@ -54,18 +59,88 @@ public final class RPCAdapter implements Steppable {
         this.gson = DeviceMethodParameterTypeAdapters.beginBuildGson()
                 .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
                 .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
-                .registerTypeAdapter(DeviceInterface.class, new DeviceJsonSerializer())
-                .registerTypeAdapter(DeviceMethod.class, new DeviceMethodJsonSerializer())
+                .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
+                .registerTypeAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
                 .create();
     }
 
     public void reset() {
+        devices.clear();
+        devicesById.clear();
+        isPaused = false;
         transmitBuffer.clear();
         receiveBuffer = null;
         synchronizedInvocation = null;
     }
 
+    public void pause() {
+        if (isPaused) {
+            return;
+        }
+
+        pauseLock.lock();
+        isPaused = true;
+        pauseLock.unlock();
+
+        devices.clear();
+        devicesById.clear();
+    }
+
+    public void resume() {
+        if (!isPaused) {
+            return;
+        }
+
+        // How device grouping works:
+        // Each device can have multiple UUIDs due to being attached to multiple bus elements.
+        // There is no guarantee that for each device D1 present on bus elements E1 and E2,
+        // where device D2 is present on E1 it will also be present on E2. This is completely
+        // up to the device providers.
+        // Therefore we must group all devices by their identifiers to then remove duplicate
+        // groups. This is fragile because it will depend on the order the devices appear in
+        // the list. However, since we add devices to bus elements in the order of their
+        // providers, then add devices to the controller in the order of their elements, this
+        // will work. And even if it does not, it only leads to duplicate devices popping up
+        // in the VM, which, while annoying, is not breaking anything.
+        // In a final step, when we know which devices are duplicates and what identifiers
+        // they have, we pick a single identifier in a deterministic way, given the list of
+        // identifiers is the same.
+
+        final HashMap<UUID, ArrayList<RPCDevice>> devicesByIdentifier = new HashMap<>();
+        for (final Device device : controller.getDevices()) {
+            if (device instanceof RPCDevice) {
+                final RPCDevice rpcDevice = (RPCDevice) device;
+                final Set<UUID> identifiers = controller.getDeviceIdentifiers(device);
+                for (final UUID identifier : identifiers) {
+                    devicesByIdentifier
+                            .computeIfAbsent(identifier, unused -> new ArrayList<>())
+                            .add(rpcDevice);
+                }
+            }
+        }
+
+        final HashMap<RPCDeviceList, ArrayList<UUID>> identifiersByDevice = new HashMap<>();
+        devicesByIdentifier.forEach((identifier, devices) -> {
+            final RPCDeviceList device = new RPCDeviceList(devices);
+            identifiersByDevice
+                    .computeIfAbsent(device, unused -> new ArrayList<>())
+                    .add(identifier);
+        });
+
+        identifiersByDevice.forEach((device, identifiers) -> {
+            final UUID identifier = selectIdentifierDeterministically(identifiers);
+            devices.add(new RPCDeviceWithIdentifier(identifier, device));
+            devicesById.put(identifier, device);
+        });
+
+        isPaused = false;
+    }
+
     public void tick() {
+        if (isPaused) {
+            return;
+        }
+
         if (synchronizedInvocation != null) {
             final MethodInvocation methodInvocation = synchronizedInvocation;
             synchronizedInvocation = null;
@@ -74,8 +149,27 @@ public final class RPCAdapter implements Steppable {
     }
 
     public void step(final int cycles) {
-        readFromDevice();
-        writeToDevice();
+        if (isPaused || !pauseLock.tryLock()) {
+            return;
+        }
+
+        try {
+            readFromDevice();
+            writeToDevice();
+        } finally {
+            pauseLock.unlock();
+        }
+    }
+
+    private UUID selectIdentifierDeterministically(final ArrayList<UUID> identifiers) {
+        UUID lowestIdentifier = identifiers.get(0);
+        for (int i = 1; i < identifiers.size(); i++) {
+            final UUID identifier = identifiers.get(i);
+            if (identifier.compareTo(lowestIdentifier) < 0) {
+                lowestIdentifier = identifier;
+            }
+        }
+        return lowestIdentifier;
     }
 
     private void readFromDevice() {
@@ -151,8 +245,8 @@ public final class RPCAdapter implements Steppable {
     }
 
     private void processMethodInvocation(final MethodInvocation methodInvocation, final boolean isMainThread) {
-        final Optional<Device> device = controller.getDevice(methodInvocation.deviceId);
-        if (!device.isPresent()) {
+        final RPCDevice device = devicesById.get(methodInvocation.deviceId);
+        if (device == null) {
             writeError(ERROR_UNKNOWN_DEVICE);
             return;
         }
@@ -163,12 +257,12 @@ public final class RPCAdapter implements Steppable {
         // flexibility for free (devices may dynamically change their methods).
         String error = ERROR_UNKNOWN_METHOD;
         outer:
-        for (final DeviceMethod method : device.get().getMethods()) {
+        for (final RPCMethod method : device.getMethods()) {
             if (!Objects.equals(method.getName(), methodInvocation.methodName)) {
                 continue;
             }
 
-            final DeviceMethodParameter[] parametersSpec = method.getParameters();
+            final RPCParameter[] parametersSpec = method.getParameters();
             if (methodInvocation.parameters.size() != parametersSpec.length) {
                 error = ERROR_INVALID_PARAMETER_SIGNATURE;
                 continue; // There may be an overload with matching parameter count.
@@ -176,7 +270,7 @@ public final class RPCAdapter implements Steppable {
 
             final Object[] parameters = new Object[parametersSpec.length];
             for (int i = 0; i < parametersSpec.length; i++) {
-                final DeviceMethodParameter parameterInfo = parametersSpec[i];
+                final RPCParameter parameterInfo = parametersSpec[i];
                 try {
                     parameters[i] = gson.fromJson(methodInvocation.parameters.get(i), parameterInfo.getType());
                 } catch (final Throwable e) {
@@ -204,7 +298,7 @@ public final class RPCAdapter implements Steppable {
     }
 
     private void writeStatus() {
-        writeMessage(Message.MESSAGE_TYPE_STATUS, controller.getDevices().toArray(new DeviceInterface[0]));
+        writeMessage(Message.MESSAGE_TYPE_STATUS, devices);
     }
 
     private void writeError(final String message) {
@@ -230,6 +324,16 @@ public final class RPCAdapter implements Steppable {
         receiveBuffer.put(MESSAGE_DELIMITER);
 
         receiveBuffer.flip();
+    }
+
+    public static final class RPCDeviceWithIdentifier {
+        public final UUID identifier;
+        public final RPCDevice device;
+
+        private RPCDeviceWithIdentifier(final UUID identifier, final RPCDevice device) {
+            this.identifier = identifier;
+            this.device = device;
+        }
     }
 
     public static final class Message {

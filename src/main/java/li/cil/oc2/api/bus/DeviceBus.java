@@ -1,12 +1,11 @@
 package li.cil.oc2.api.bus;
 
-import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.DeviceInterface;
+import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 
 import java.util.Collection;
 
 /**
- * A device bus provides the interface by which {@link DeviceInterface} can be made available
+ * A device bus provides the interface by which {@link RPCDevice} can be made available
  * to a {@link DeviceBusController}, which is usually used by VMs to access devices.
  */
 public interface DeviceBus {
@@ -58,10 +57,4 @@ public interface DeviceBus {
      * have to interact with this interface.
      */
     void scheduleScan();
-
-//    long addDevice(MemoryMappedDevice device);
-//
-//    void addDevice(final long address, MemoryMappedDevice device);
-//
-//    void removeDevice(MemoryMappedDevice device);
 }

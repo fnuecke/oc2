@@ -1,29 +1,28 @@
-package li.cil.oc2.api.bus.device;
+package li.cil.oc2.api.bus.device.rpc;
 
-import li.cil.oc2.api.bus.device.object.ObjectDeviceInterface;
-import li.cil.oc2.api.provider.DeviceInterfaceProvider;
+import li.cil.oc2.api.bus.Device;
+import li.cil.oc2.api.bus.device.object.ObjectDevice;
+import li.cil.oc2.api.provider.DeviceProvider;
 
 import java.util.List;
 
 /**
- * Implementations act as an interface for a device.
+ * Provides an interface for an RPC device, describing the methods that can be
+ * called on it and the type names it can be detected by/is compatible with.
  * <p>
- * A {@link DeviceInterface} represents a single view onto some device. One device
- * may have multiple {@code DeviceInterfaces} providing different methods for the
+ * A {@link RPCDevice} may represent a single view onto some device or be a
+ * collection of multiple aggregated {@link RPCDevice}s. One underlying device
+ * may have multiple {@link RPCDevice}s providing different methods for the
  * device. This allows specifying general purpose interfaces which provide logic
  * for some aspect of an underlying device which may be shared with other devices.
  * <p>
  * The easiest and hence recommended way of implementing this interface is to use
- * the {@link ObjectDeviceInterface} class.
- * <p>
- * Note that it is strongly encouraged for implementations to provide an overloaded
- * {@link #equals(Object)} and {@link #hashCode()} so that identical devices can be
- * detected.
+ * the {@link ObjectDevice} class.
  *
- * @see ObjectDeviceInterface
- * @see DeviceInterfaceProvider
+ * @see ObjectDevice
+ * @see DeviceProvider
  */
-public interface DeviceInterface {
+public interface RPCDevice extends Device {
     /**
      * A list of type names identifying this interface.
      * <p>
@@ -39,5 +38,5 @@ public interface DeviceInterface {
     /**
      * The list of methods provided by this interface.
      */
-    List<DeviceMethod> getMethods();
+    List<RPCMethod> getMethods();
 }

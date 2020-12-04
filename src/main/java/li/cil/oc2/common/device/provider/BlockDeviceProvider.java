@@ -1,19 +1,19 @@
 package li.cil.oc2.common.device.provider;
 
-import li.cil.oc2.api.bus.device.DeviceInterface;
+import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.device.object.Callbacks;
-import li.cil.oc2.api.bus.device.object.ObjectDeviceInterface;
+import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.provider.BlockDeviceQuery;
-import li.cil.oc2.api.provider.DeviceInterfaceProvider;
+import li.cil.oc2.api.provider.DeviceProvider;
 import li.cil.oc2.api.provider.DeviceQuery;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraftforge.common.util.LazyOptional;
 
-public class BlockDeviceInterfaceProvider implements DeviceInterfaceProvider {
+public class BlockDeviceProvider implements DeviceProvider {
     @Override
-    public LazyOptional<DeviceInterface> getDeviceInterface(final DeviceQuery query) {
+    public LazyOptional<Device> getDevice(final DeviceQuery query) {
         if (!(query instanceof BlockDeviceQuery)) {
             return LazyOptional.empty();
         }
@@ -30,6 +30,6 @@ public class BlockDeviceInterfaceProvider implements DeviceInterfaceProvider {
         }
 
         final String typeName = WorldUtils.getBlockName(blockQuery.getWorld(), blockQuery.getQueryPosition());
-        return LazyOptional.of(() -> new ObjectDeviceInterface(block, typeName));
+        return LazyOptional.of(() -> new ObjectDevice(block, typeName));
     }
 }

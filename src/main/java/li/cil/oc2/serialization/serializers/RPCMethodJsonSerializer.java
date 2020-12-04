@@ -1,14 +1,14 @@
 package li.cil.oc2.serialization.serializers;
 
 import com.google.gson.*;
-import li.cil.oc2.api.bus.device.DeviceMethod;
-import li.cil.oc2.api.bus.device.DeviceMethodParameter;
+import li.cil.oc2.api.bus.device.rpc.RPCMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCParameter;
 
 import java.lang.reflect.Type;
 
-public final class DeviceMethodJsonSerializer implements JsonSerializer<DeviceMethod> {
+public final class RPCMethodJsonSerializer implements JsonSerializer<RPCMethod> {
     @Override
-    public JsonElement serialize(final DeviceMethod method, final Type typeOfMethod, final JsonSerializationContext context) {
+    public JsonElement serialize(final RPCMethod method, final Type typeOfMethod, final JsonSerializationContext context) {
         if (method == null) {
             return JsonNull.INSTANCE;
         }
@@ -23,8 +23,8 @@ public final class DeviceMethodJsonSerializer implements JsonSerializer<DeviceMe
         final JsonArray parametersJson = new JsonArray();
         methodJson.add("parameters", parametersJson);
 
-        final DeviceMethodParameter[] parameters = method.getParameters();
-        for (final DeviceMethodParameter parameter : parameters) {
+        final RPCParameter[] parameters = method.getParameters();
+        for (final RPCParameter parameter : parameters) {
             final JsonObject parameterJson = new JsonObject();
 
             parameter.getName().ifPresent(s -> parameterJson.addProperty("name", s));

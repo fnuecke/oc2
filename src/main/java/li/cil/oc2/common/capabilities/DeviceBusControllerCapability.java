@@ -1,12 +1,11 @@
 package li.cil.oc2.common.capabilities;
 
+import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBusController;
-import li.cil.oc2.api.bus.device.Device;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public final class DeviceBusControllerCapability {
@@ -24,13 +23,13 @@ public final class DeviceBusControllerCapability {
         }
 
         @Override
-        public Collection<Device> getDevices() {
-            return Collections.emptyList();
+        public Set<Device> getDevices() {
+            return Collections.emptySet();
         }
 
         @Override
-        public Optional<Device> getDevice(final UUID uuid) {
-            return Optional.empty();
+        public Set<UUID> getDeviceIdentifiers(final Device device) {
+            return Collections.emptySet();
         }
     }
 }

@@ -84,14 +84,14 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         super(OpenComputers.COMPUTER_TILE_ENTITY.get());
 
         busElement = new TileEntityDeviceBusElement(this);
-        busController = new TileEntityDeviceBusController(this, this::joinVirtualMachine);
+        busController = new BusController();
         busState = TileEntityDeviceBusController.State.SCAN_PENDING;
         runState = RunState.STOPPED;
 
         terminal = new Terminal();
         virtualMachine = new VirtualMachine(busController);
 
-        setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement.getBusElement());
+        setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY, busController);
     }
 
@@ -409,6 +409,22 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         final BufferedInputStream bis = new BufferedInputStream(stream);
         for (int address = 0, value = bis.read(); value != -1; value = bis.read(), address++) {
             memory.store(offset + address, (byte) value, Sizes.SIZE_8_LOG2);
+        }
+    }
+
+    private class BusController extends TileEntityDeviceBusController {
+        private BusController() {
+            super(ComputerTileEntity.this);
+        }
+
+        @Override
+        protected void onDevicesInvalid() {
+            virtualMachine.rpcAdapter.pause();
+        }
+
+        @Override
+        protected void onDevicesValid() {
+            virtualMachine.rpcAdapter.resume();
         }
     }
 

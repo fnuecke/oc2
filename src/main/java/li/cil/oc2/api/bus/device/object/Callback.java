@@ -1,6 +1,6 @@
 package li.cil.oc2.api.bus.device.object;
 
-import li.cil.oc2.api.bus.device.DeviceMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,10 +8,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Utility annotation to allow generating lists of {@link DeviceMethod}s using
+ * Utility annotation to allow generating lists of {@link RPCMethod}s using
  * {@link Callbacks#collectMethods(Object)}.
  * <p>
- * Intended to be used in classes instances of which are used as a target of {@link ObjectDeviceInterface}.
+ * Intended to be used in classes instances of which are used as a target of {@link ObjectDevice}.
  * <p>
  * Method parameters are serialized and deserialized using Gson. When using custom
  * parameter types it may be necessary to register a custom type adapter for them

@@ -1,7 +1,7 @@
 package li.cil.oc2.api.bus.device.object;
 
-import li.cil.oc2.api.bus.device.DeviceInterface;
-import li.cil.oc2.api.bus.device.DeviceMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCDevice;
+import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -9,14 +9,14 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A reflection based implementation of {@link DeviceInterface} using the {@link Callback}
- * annotation to discover {@link DeviceMethod}s in a target object via
+ * A reflection based implementation of {@link RPCDevice} using the {@link Callback}
+ * annotation to discover {@link RPCMethod}s in a target object via
  * {@link Callbacks#collectMethods(Object)}.
  */
-public final class ObjectDeviceInterface implements DeviceInterface {
+public final class ObjectDevice implements RPCDevice {
     private final Object object;
     private final ArrayList<String> typeNames;
-    private final List<DeviceMethod> methods;
+    private final List<RPCMethod> methods;
     private final String className;
 
     /**
@@ -26,7 +26,7 @@ public final class ObjectDeviceInterface implements DeviceInterface {
      * @param object    the object containing methods provided by this device.
      * @param typeNames the type names of the device.
      */
-    public ObjectDeviceInterface(final Object object, final List<String> typeNames) {
+    public ObjectDevice(final Object object, final List<String> typeNames) {
         this.object = object;
         this.typeNames = new ArrayList<>(typeNames);
         this.methods = Callbacks.collectMethods(object);
@@ -40,12 +40,12 @@ public final class ObjectDeviceInterface implements DeviceInterface {
     /**
      * Creates a new object device with methods in the specified object and the specified
      * type name. For convenience, the type name may be {@code null}, in which case using
-     * this constructor is equivalent to using {@link #ObjectDeviceInterface(Object)}.
+     * this constructor is equivalent to using {@link #ObjectDevice(Object)}.
      *
      * @param object   the object containing methods provided by this device.
      * @param typeName the type name of the device.
      */
-    public ObjectDeviceInterface(final Object object, @Nullable final String typeName) {
+    public ObjectDevice(final Object object, @Nullable final String typeName) {
         this(object, typeName != null ? Collections.singletonList(typeName) : Collections.emptyList());
     }
 
@@ -54,7 +54,7 @@ public final class ObjectDeviceInterface implements DeviceInterface {
      *
      * @param object the object containing the methods provided by this device.
      */
-    public ObjectDeviceInterface(final Object object) {
+    public ObjectDevice(final Object object) {
         this(object, Collections.emptyList());
     }
 
@@ -64,7 +64,7 @@ public final class ObjectDeviceInterface implements DeviceInterface {
     }
 
     @Override
-    public List<DeviceMethod> getMethods() {
+    public List<RPCMethod> getMethods() {
         return methods;
     }
 
@@ -72,7 +72,7 @@ public final class ObjectDeviceInterface implements DeviceInterface {
     public boolean equals(@Nullable final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        final ObjectDeviceInterface that = (ObjectDeviceInterface) o;
+        final ObjectDevice that = (ObjectDevice) o;
         return object.equals(that.object);
     }
 

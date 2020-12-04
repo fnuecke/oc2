@@ -1,7 +1,7 @@
 package li.cil.oc2.bus;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.tileentity.TileEntity;
@@ -16,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Collections;
-import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -50,7 +49,7 @@ public class DeviceBusTests {
                 .thenReturn(LazyOptional.of(() -> busControllerBusElement));
         when(busControllerBusElement.getLocalDevices()).thenReturn(Collections.emptyList());
 
-        busController = new TileEntityDeviceBusController(busControllerTileEntity);
+        busController = new TestBusController();
     }
 
     @Test
@@ -68,10 +67,8 @@ public class DeviceBusTests {
     public void scanSuccessfulWithLocalElement() {
         when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);
 
-        final Device device = mock(Device.class);
+        final RPCDevice device = mock(RPCDevice.class);
         when(busControllerBusElement.getLocalDevices()).thenReturn(Collections.singletonList(device));
-
-        when(device.getUniqueIdentifier()).thenReturn(UUID.randomUUID());
 
         Assertions.assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
 
@@ -102,5 +99,11 @@ public class DeviceBusTests {
         when(busElement.getLocalDevices()).thenReturn(Collections.emptyList());
 
         return busElement;
+    }
+
+    private final class TestBusController extends TileEntityDeviceBusController {
+        public TestBusController() {
+            super(busControllerTileEntity);
+        }
     }
 }

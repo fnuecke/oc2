@@ -1,7 +1,7 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.api.provider.DeviceInterfaceProvider;
+import li.cil.oc2.api.provider.DeviceProvider;
 import li.cil.oc2.api.imc.DeviceMethodParameterTypeAdapter;
 import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
 import li.cil.oc2.common.device.provider.Providers;
@@ -39,7 +39,7 @@ public final class IMC {
     }
 
     private static void addDeviceProvider(final InterModComms.IMCMessage message) {
-        getMessageParameter(message, DeviceInterfaceProvider.class).ifPresent(Providers::addProvider);
+        getMessageParameter(message, DeviceProvider.class).ifPresent(Providers::addProvider);
     }
 
     private static void addDeviceMethodParameterTypeAdapter(final InterModComms.IMCMessage message) {

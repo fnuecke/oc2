@@ -1,8 +1,10 @@
 package li.cil.oc2.api.bus;
 
-import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Represents a single connection point on a device bus.
@@ -33,14 +35,14 @@ public interface DeviceBusElement extends DeviceBus {
      *
      * @param controller the controller to add.
      */
-    void addController(final DeviceBusController controller);
+    void addController(DeviceBusController controller);
 
     /**
      * Unregisters a controller from this bus element.
      *
      * @param controller the controller to remove.
      */
-    void removeController(final DeviceBusController controller);
+    void removeController(DeviceBusController controller);
 
     /**
      * Returns the list of devices connected specifically by this element.
@@ -56,4 +58,23 @@ public interface DeviceBusElement extends DeviceBus {
      * @return the devices that have been added to this element.
      */
     Collection<Device> getLocalDevices();
+
+    /**
+     * Returns an identifier unique to the specified device.
+     * <p>
+     * This id must persist over save/load to prevent code in a running VM losing
+     * track of the device. Note that some device types (e.g. {@link RPCDevice}s)
+     * require for an ID to be provided for them to work at all.
+     * <p>
+     * It is possible for multiple devices to have the same identifier. Typically
+     * this means they represent a view on the same underlying object. How this is
+     * handled depends on the device type and may or may not be supported.
+     * <p>
+     * Only devices retrieved by calling {@link #getLocalDevices()} should be passed
+     * to this method.
+     *
+     * @param device the device to obtain the ID for.
+     * @return the stable id for the specified device.
+     */
+    Optional<UUID> getDeviceIdentifier(Device device);
 }

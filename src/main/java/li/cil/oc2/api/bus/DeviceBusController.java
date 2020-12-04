@@ -1,10 +1,6 @@
 package li.cil.oc2.api.bus;
 
-import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.DeviceInterface;
-
-import java.util.Collection;
-import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -13,7 +9,7 @@ import java.util.UUID;
  * {@link DeviceBusElement#addController(DeviceBusController)}.
  * <p>
  * This interface is usually provided by VM containers and used to collect connected
- * {@link DeviceInterface}s by aggregating the devices that were added to the device bus elements
+ * {@link Device}s by aggregating the devices that were added to the device bus elements
  * via {@link DeviceBus#addDevice(Device)}.
  * <p>
  * The only way for {@link DeviceBusElement}s to be added to a bus is for a
@@ -52,18 +48,23 @@ public interface DeviceBusController {
     /**
      * The list of all devices currently known to this controller.
      * <p>
-     * This is the aggregation of all {@link DeviceInterface} added to all {@link DeviceBusElement}s known
+     * This is the aggregation of all {@link Device}s added to all {@link DeviceBusElement}s known
      * to the controller as found during the last scan scheduled via {@link #scheduleBusScan()}.
      *
      * @return the list of all devices on the bus managed by this controller.
      */
-    Collection<Device> getDevices();
+    Set<Device> getDevices();
 
     /**
-     * Get the device with the specified unique identifier, if possible.
+     * Obtain the unique identifiers for the specified device, if any, as
+     * provided by the {@link DeviceBusElement}s that provided this device.
+     * <p>
+     * If the device was added to multiple {@link DeviceBusElement}s this
+     * may return multiple {@link UUID}s.
      *
-     * @param uuid the id of the device to get.
-     * @return the device with the specified id, if possible.
+     * @param device the device to get the identifiers for.
+     * @return the identifiers for the device, if any.
+     * @see DeviceBusElement#getDeviceIdentifier(Device)
      */
-    Optional<Device> getDevice(final UUID uuid);
+    Set<UUID> getDeviceIdentifiers(Device device);
 }

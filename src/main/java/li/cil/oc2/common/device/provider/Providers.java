@@ -1,10 +1,9 @@
 package li.cil.oc2.common.device.provider;
 
-import li.cil.oc2.api.bus.device.DeviceInterface;
-import li.cil.oc2.api.provider.DeviceInterfaceProvider;
+import li.cil.oc2.api.bus.Device;
+import li.cil.oc2.api.provider.DeviceProvider;
 import li.cil.oc2.api.provider.DeviceQuery;
 import li.cil.oc2.common.device.BlockDeviceQueryImpl;
-import li.cil.oc2.common.device.DeviceInterfaceCollection;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
@@ -12,56 +11,46 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public final class Providers {
-    private static final ArrayList<DeviceInterfaceProvider> DEVICE_PROVIDERS = new ArrayList<>();
+    private static final ArrayList<DeviceProvider> DEVICE_PROVIDERS = new ArrayList<>();
 
     public static void initialize() {
-        addProvider(new EnergyStorageDeviceInterfaceProvider());
-        addProvider(new FluidHandlerDeviceInterfaceProvider());
-        addProvider(new ItemHandlerDeviceInterfaceProvider());
-        addProvider(new TileEntityDeviceInterfaceProvider());
-        addProvider(new BlockDeviceInterfaceProvider());
+        addProvider(new EnergyStorageDeviceProvider());
+        addProvider(new FluidHandlerDeviceProvider());
+        addProvider(new ItemHandlerDeviceProvider());
+        addProvider(new TileEntityDeviceProvider());
+        addProvider(new BlockDeviceProvider());
     }
 
-    public static void addProvider(final DeviceInterfaceProvider provider) {
+    public static void addProvider(final DeviceProvider provider) {
         if (!DEVICE_PROVIDERS.contains(provider)) {
             DEVICE_PROVIDERS.add(provider);
         }
     }
 
-    public static LazyOptional<DeviceInterfaceCollection> getDevice(final TileEntity tileEntity, final Direction side) {
+    public static List<LazyOptional<Device>> getDevices(final TileEntity tileEntity, final Direction side) {
         final World world = tileEntity.getWorld();
         final BlockPos pos = tileEntity.getPos();
 
         if (world == null) throw new IllegalArgumentException();
 
-        return getDevice(world, pos, side);
+        return getDevices(world, pos, side);
     }
 
-    public static LazyOptional<DeviceInterfaceCollection> getDevice(final World world, final BlockPos pos, final Direction side) {
-        return getDevice(new BlockDeviceQueryImpl(world, pos, side));
+    public static List<LazyOptional<Device>> getDevices(final World world, final BlockPos pos, final Direction side) {
+        return getDevices(new BlockDeviceQueryImpl(world, pos, side));
     }
 
-    public static LazyOptional<DeviceInterfaceCollection> getDevice(final DeviceQuery query) {
-        final ArrayList<DeviceInterface> deviceInterfaces = new ArrayList<>();
-        final ArrayList<LazyOptional<DeviceInterface>> optionals = new ArrayList<>();
-        for (final DeviceInterfaceProvider provider : DEVICE_PROVIDERS) {
-            final LazyOptional<DeviceInterface> optional = provider.getDeviceInterface(query);
-            optional.ifPresent((device) -> {
-                deviceInterfaces.add(device);
-                optionals.add(optional);
-            });
-        }
-
-        if (deviceInterfaces.isEmpty()) {
-            return LazyOptional.empty();
-        } else {
-            final LazyOptional<DeviceInterfaceCollection> compoundOptional = LazyOptional.of(() -> new DeviceInterfaceCollection(deviceInterfaces));
-            for (final LazyOptional<DeviceInterface> optional : optionals) {
-                optional.addListener((ignored) -> compoundOptional.invalidate());
+    public static List<LazyOptional<Device>> getDevices(final DeviceQuery query) {
+        final ArrayList<LazyOptional<Device>> devices = new ArrayList<>();
+        for (final DeviceProvider provider : DEVICE_PROVIDERS) {
+            final LazyOptional<Device> device = provider.getDevice(query);
+            if (device.isPresent()) {
+                devices.add(device);
             }
-            return compoundOptional;
         }
+        return devices;
     }
 }

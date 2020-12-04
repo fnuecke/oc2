@@ -495,11 +495,13 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             }
 
             output.flip();
-            terminal.putOutput(output);
+            if (output.hasRemaining()) {
+                terminal.putOutput(output);
 
-            output.flip();
-            final TerminalBlockOutputMessage message = new TerminalBlockOutputMessage(ComputerTileEntity.this, output);
-            Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
+                output.flip();
+                final TerminalBlockOutputMessage message = new TerminalBlockOutputMessage(ComputerTileEntity.this, output);
+                Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
+            }
         }
     }
 }

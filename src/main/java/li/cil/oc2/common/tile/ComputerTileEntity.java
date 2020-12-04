@@ -371,6 +371,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         if (hdd != null) {
+            virtualMachine.board.removeDevice(hdd);
             try {
                 hdd.close();
             } catch (final IOException e) {

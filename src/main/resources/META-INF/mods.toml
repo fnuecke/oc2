@@ -1,6 +1,7 @@
 modLoader = "javafml"
 loaderVersion = "[31,)"
 issueTrackerURL = "${mod_issues_url}"
+license = "MIT"
 
 [[mods]]
 modId = "${mod_id}"

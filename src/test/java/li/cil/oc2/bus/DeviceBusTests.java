@@ -6,16 +6,15 @@ import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.Bootstrap;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.util.Collections;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -33,6 +32,13 @@ public class DeviceBusTests {
     private TileEntity busControllerTileEntity;
     private TileEntityDeviceBusController busController;
     private DeviceBusElement busControllerBusElement;
+
+    @BeforeAll
+    public static void setup() {
+        // Gotta go through regular MC bootstrapping first because otherwise class
+        // load order may lead to errors because static fields reference each other.
+        Bootstrap.register();
+    }
 
     @BeforeEach
     public void setupEach() {

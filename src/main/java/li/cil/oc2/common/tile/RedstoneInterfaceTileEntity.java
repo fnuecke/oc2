@@ -3,6 +3,7 @@ package li.cil.oc2.common.tile;
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalBlock;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
@@ -13,7 +14,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 import java.util.Collection;
-import java.util.Collections;
 
 import static java.util.Collections.singletonList;
 
@@ -35,8 +35,8 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
     }
 
     @Override
-    public void read(final CompoundNBT compound) {
-        super.read(compound);
+    public void read(final BlockState state, final CompoundNBT compound) {
+        super.read(state, compound);
         final byte[] output = compound.getByteArray(OUTPUT_NBT_TAG_NAME);
         if (output.length == HORIZONTAL_DIRECTION_COUNT) {
             System.arraycopy(output, 0, this.output, 0, HORIZONTAL_DIRECTION_COUNT);

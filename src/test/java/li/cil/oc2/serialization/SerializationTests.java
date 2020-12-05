@@ -2,7 +2,6 @@ package li.cil.oc2.serialization;
 
 import li.cil.ceres.api.Serialized;
 import net.minecraft.nbt.CompoundNBT;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

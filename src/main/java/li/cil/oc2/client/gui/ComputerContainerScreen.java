@@ -1,5 +1,6 @@
 package li.cil.oc2.client.gui;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.container.ComputerContainer;
@@ -20,15 +21,15 @@ public final class ComputerContainerScreen extends ContainerScreen<ComputerConta
     }
 
     @Override
-    public void render(final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground();
-        super.render(mouseX, mouseY, partialTicks);
+    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
+        renderBackground(matrixStack);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(final float partialTicks, final int mouseX, final int mouseY) {
+    protected void drawGuiContainerBackgroundLayer(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
         RenderSystem.color4f(1f, 1f, 1f, 1f);
         Objects.requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND);
-        blit(guiLeft, guiTop, 0, 0, xSize, ySize);
+        blit(matrixStack, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
 }

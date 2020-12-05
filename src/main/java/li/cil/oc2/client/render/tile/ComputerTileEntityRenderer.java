@@ -9,16 +9,16 @@ import li.cil.oc2.client.render.OpenComputersRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.tile.ComputerTileEntity;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.Matrix4f;
-import net.minecraft.client.renderer.Quaternion;
-import net.minecraft.client.renderer.Vector3f;
-import net.minecraft.client.renderer.model.Material;
+import net.minecraft.client.renderer.model.RenderMaterial;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.util.math.vector.Quaternion;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -30,9 +30,9 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
     private static final ResourceLocation OVERLAY_STATUS_LOCATION = new ResourceLocation(API.MOD_ID, "blocks/computer/computer_overlay_status");
     private static final ResourceLocation OVERLAY_TERMINAL_LOCATION = new ResourceLocation(API.MOD_ID, "blocks/computer/computer_overlay_terminal");
 
-    private static final Material TEXTURE_POWER = new Material(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_POWER_LOCATION);
-    private static final Material TEXTURE_STATUS = new Material(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_STATUS_LOCATION);
-    private static final Material TEXTURE_TERMINAL = new Material(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_TERMINAL_LOCATION);
+    private static final RenderMaterial TEXTURE_POWER = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_POWER_LOCATION);
+    private static final RenderMaterial TEXTURE_STATUS = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_STATUS_LOCATION);
+    private static final RenderMaterial TEXTURE_TERMINAL = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_TERMINAL_LOCATION);
 
     @SubscribeEvent
     public static void handleTextureStitchEvent(final TextureStitchEvent.Pre event) {
@@ -48,12 +48,12 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
     @Override
     public void render(final ComputerTileEntity tileEntity, final float partialTicks, final MatrixStack stack, final IRenderTypeBuffer buffer, final int combinedLightIn, final int combinedOverlayIn) {
         final Direction blockFacing = tileEntity.getBlockState().get(ComputerBlock.HORIZONTAL_FACING);
-        final Vec3d cameraPosition = renderDispatcher.renderInfo.getRenderViewEntity().getEyePosition(partialTicks);
+        final Vector3d cameraPosition = renderDispatcher.renderInfo.getRenderViewEntity().getEyePosition(partialTicks);
 
         // If viewer is not in front of the block we can skip all of the rest, it cannot be visible.
         // We check against the center of the block instead of the actual relevant face for simplicity.
-        final Vec3d relativeCameraPosition = cameraPosition.subtract(new Vec3d(tileEntity.getPos()).add(0.5, 0.5, 0.5));
-        final double projectedCameraPosition = relativeCameraPosition.dotProduct(new Vec3d(blockFacing.getDirectionVec()));
+        final Vector3d relativeCameraPosition = cameraPosition.subtract(Vector3d.copyCentered(tileEntity.getPos()));
+        final double projectedCameraPosition = relativeCameraPosition.dotProduct(Vector3d.copy(blockFacing.getDirectionVec()));
         if (projectedCameraPosition <= 0) {
             return;
         }
@@ -75,7 +75,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         stack.scale(pixelScale, pixelScale, pixelScale);
 
         // Render terminal content if close enough.
-        if (tileEntity.getDistanceSq(cameraPosition.x, cameraPosition.y, cameraPosition.z) < 6f * 6f) {
+        if (Vector3d.copyCentered(tileEntity.getPos()).isWithinDistanceOf(cameraPosition, 6f * 6f)) {
             stack.push();
             stack.translate(2, 2, -0.9f);
 

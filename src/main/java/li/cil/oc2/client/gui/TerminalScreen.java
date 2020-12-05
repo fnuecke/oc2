@@ -42,20 +42,20 @@ public final class TerminalScreen extends Screen {
     }
 
     @Override
-    public void render(final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground();
+    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
+        renderBackground(matrixStack);
 
         isMouseOverTerminal = isPointInRegion(TERMINAL_AREA_X, TERMINAL_AREA_Y, TERMINAL_AREA_WIDTH, TERMINAL_AREA_HEIGHT, mouseX, mouseY);
         RenderSystem.color4f(1f, 1f, 1f, 1f);
         Objects.requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND);
-        blit(windowLeft, windowTop, 0, 0, windowWidth, windowHeight, TEXTURE_SIZE, TEXTURE_SIZE);
+        blit(matrixStack, windowLeft, windowTop, 0, 0, windowWidth, windowHeight, TEXTURE_SIZE, TEXTURE_SIZE);
 
         if (isMouseOverTerminal) {
             Objects.requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND_TERMINAL_FOCUSED);
-            blit(windowLeft, windowTop, 0, 0, windowWidth, windowHeight, TEXTURE_SIZE, TEXTURE_SIZE);
+            blit(matrixStack, windowLeft, windowTop, 0, 0, windowWidth, windowHeight, TEXTURE_SIZE, TEXTURE_SIZE);
         }
 
-        super.render(mouseX, mouseY, partialTicks);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
 
         final MatrixStack stack = new MatrixStack();
         stack.translate(windowLeft + TERMINAL_AREA_X, windowTop + TERMINAL_AREA_Y, this.itemRenderer.zLevel);
@@ -118,13 +118,13 @@ public final class TerminalScreen extends Screen {
     }
 
     @Override
-    public void removed() {
-        super.removed();
+    public void onClose() {
+        super.onClose();
 
         Objects.requireNonNull(minecraft).keyboardListener.enableRepeatEvents(false);
     }
 
-    private boolean isPointInRegion(int x, int y, int width, int height, double mouseX, double mouseY) {
+    private boolean isPointInRegion(final int x, final int y, final int width, final int height, double mouseX, double mouseY) {
         mouseX = mouseX - this.windowLeft;
         mouseY = mouseY - this.windowTop;
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;

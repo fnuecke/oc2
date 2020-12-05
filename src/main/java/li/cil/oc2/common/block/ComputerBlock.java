@@ -93,7 +93,7 @@ public final class ComputerBlock extends HorizontalBlock {
         NetworkHooks.openGui(player, new INamedContainerProvider() {
             @Override
             public ITextComponent getDisplayName() {
-                return getNameTextComponent();
+                return getTranslatedName();
             }
 
             @Override
@@ -104,6 +104,6 @@ public final class ComputerBlock extends HorizontalBlock {
     }
 
     private void openTerminalScreen(final ComputerTileEntity computer) {
-        Minecraft.getInstance().displayGuiScreen(new TerminalScreen(computer, getNameTextComponent()));
+        Minecraft.getInstance().displayGuiScreen(new TerminalScreen(computer, getTranslatedName()));
     }
 }

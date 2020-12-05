@@ -10,13 +10,11 @@ import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.common.bus.RPCAdapter;
 import li.cil.sedna.api.device.serial.SerialDevice;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 

@@ -2,6 +2,7 @@ package li.cil.oc2.serialization;
 
 import com.google.common.collect.HashMultimap;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.storage.FolderName;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -25,6 +26,9 @@ import java.util.concurrent.Future;
  */
 public final class BlobStorage {
     private static final Logger LOGGER = LogManager.getLogger();
+
+    private static final FolderName BLOBS_FOLDER_NAME = new FolderName("oc2-blobs");
+
     private static final HashMultimap<UUID, Future<Void>> WRITE_HANDLES = HashMultimap.create();
     private static final HashMultimap<UUID, Future<Void>> READ_HANDLES = HashMultimap.create();
     private static final HashSet<UUID> DELETED_HANDLES = new HashSet<>();
@@ -104,7 +108,7 @@ public final class BlobStorage {
      */
     public static void setServer(final MinecraftServer server) {
         synchronize();
-        dataDirectory = server.getActiveAnvilConverter().getFile(server.getFolderName(), "oc2-blobs").toPath();
+        dataDirectory = server.func_240776_a_(BLOBS_FOLDER_NAME);
         try {
             Files.createDirectories(dataDirectory);
         } catch (final IOException e) {

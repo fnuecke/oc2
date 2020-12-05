@@ -26,6 +26,7 @@ import li.cil.sedna.device.virtio.VirtIOFileSystemDevice;
 import li.cil.sedna.fs.HostFileSystem;
 import li.cil.sedna.memory.PhysicalMemoryInputStream;
 import li.cil.sedna.memory.PhysicalMemoryOutputStream;
+import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
@@ -210,8 +211,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     @Override
-    public void handleUpdateTag(final CompoundNBT tag) {
-        super.handleUpdateTag(tag);
+    public void handleUpdateTag(final BlockState state,final CompoundNBT tag) {
+        super.handleUpdateTag(state, tag);
 
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_NBT_TAG_NAME), terminal);
         busState = TileEntityDeviceBusController.State.values()[tag.getInt(BUS_STATE_NBT_TAG_NAME)];
@@ -246,8 +247,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     @Override
-    public void read(final CompoundNBT compound) {
-        super.read(compound);
+    public void read(final BlockState state, final CompoundNBT compound) {
+        super.read(state, compound);
 
         joinVirtualMachine();
         if (ramJobHandle != null) {

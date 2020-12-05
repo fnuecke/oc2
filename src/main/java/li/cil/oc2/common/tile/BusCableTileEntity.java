@@ -4,6 +4,7 @@ import li.cil.oc2.OpenComputers;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.serialization.NBTSerialization;
+import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
 
@@ -43,8 +44,8 @@ public class BusCableTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public void read(final CompoundNBT compound) {
-        super.read(compound);
+    public void read(final BlockState state, final CompoundNBT compound) {
+        super.read(state, compound);
         NBTSerialization.deserialize(compound.getCompound(BUS_ELEMENT_NBT_TAG_NAME), busElement);
     }
 }

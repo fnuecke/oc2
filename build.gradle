@@ -42,9 +42,9 @@ group = mod_group
 archivesBaseName = "${mod_name}-MC${minecraft_version}"
 
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
-compileJava {
-    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
-}
+compileJava.sourceCompatibility = compileJava.targetCompatibility = JavaVersion.VERSION_1_8
+
+javadoc.options.addStringOption('Xdoclint:none', '-quiet')
 
 configurations {
     embed
@@ -98,7 +98,7 @@ minecraft {
             workingDirectory project.file('run')
 
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'warn'
+            property 'forge.logging.console.level', 'info'
 
             mods {
                 oc2 {
@@ -111,7 +111,7 @@ minecraft {
             workingDirectory project.file('run')
 
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'warn'
+            property 'forge.logging.console.level', 'info'
 
             mods {
                 oc2 {
@@ -124,7 +124,7 @@ minecraft {
             workingDirectory project.file('run')
 
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'warn'
+            property 'forge.logging.console.level', 'info'
 
             args '--mod', 'oc2', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources')
             forceExit false

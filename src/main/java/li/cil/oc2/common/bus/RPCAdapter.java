@@ -8,7 +8,7 @@ import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCParameter;
-import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
+import li.cil.oc2.common.device.RPCMethodParameterTypeAdapters;
 import li.cil.oc2.common.device.RPCDeviceList;
 import li.cil.oc2.serialization.serializers.MessageJsonDeserializer;
 import li.cil.oc2.serialization.serializers.MethodInvocationJsonDeserializer;
@@ -56,7 +56,7 @@ public final class RPCAdapter implements Steppable {
         this.controller = controller;
         this.serialDevice = serialDevice;
         this.transmitBuffer = ByteBuffer.allocate(maxMessageSize);
-        this.gson = DeviceMethodParameterTypeAdapters.beginBuildGson()
+        this.gson = RPCMethodParameterTypeAdapters.beginBuildGson()
                 .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
                 .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
                 .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())

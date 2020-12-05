@@ -51,7 +51,7 @@ public final class Callbacks {
         final ArrayList<RPCMethod> methods = new ArrayList<>();
         for (final Method method : reflectedMethods) {
             try {
-                methods.add(new ObjectDeviceMethod(methodContainer, method));
+                methods.add(new ObjectRPCMethod(methodContainer, method));
             } catch (final IllegalAccessException e) {
                 LOGGER.error("Failed accessing method [{}].", method);
             }
@@ -84,12 +84,12 @@ public final class Callbacks {
                 .collect(Collectors.toList()));
     }
 
-    private static final class ObjectDeviceMethod extends AbstractRPCMethod {
+    private static final class ObjectRPCMethod extends AbstractRPCMethod {
         private final MethodHandle handle;
         private final String description;
         private final String returnValueDescription;
 
-        public ObjectDeviceMethod(final Object target, final Method method) throws IllegalAccessException {
+        public ObjectRPCMethod(final Object target, final Method method) throws IllegalAccessException {
             super(method.getName(),
                     Objects.requireNonNull(method.getAnnotation(Callback.class), "Method without Callback annotation.").synchronize(),
                     method.getReturnType(),
@@ -121,7 +121,7 @@ public final class Callbacks {
         public boolean equals(final Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            final ObjectDeviceMethod that = (ObjectDeviceMethod) o;
+            final ObjectRPCMethod that = (ObjectRPCMethod) o;
             return handle.equals(that.handle);
         }
 

@@ -1,8 +1,7 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.capabilities.DeviceBusElementCapability;
-import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
+import li.cil.oc2.common.device.RPCMethodParameterTypeAdapters;
 import li.cil.oc2.common.device.provider.Providers;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.vm.Allocator;
@@ -27,7 +26,7 @@ public final class CommonSetup {
         MinecraftForge.EVENT_BUS.addListener(CommonSetup::handleServerStoppedEvent);
         ServerScheduler.register();
 
-        addBuiltinDeviceMethodParameterTypeAdapters();
+        addBuiltinRPCMethodParameterTypeAdapters();
     }
 
     public static void handleServerAboutToStart(final FMLServerAboutToStartEvent event) {
@@ -39,7 +38,7 @@ public final class CommonSetup {
         Allocator.resetAndCheckLeaks();
     }
 
-    private static void addBuiltinDeviceMethodParameterTypeAdapters() {
-        DeviceMethodParameterTypeAdapters.addTypeAdapter(ItemStack.class, new ItemStackJsonSerializer());
+    private static void addBuiltinRPCMethodParameterTypeAdapters() {
+        RPCMethodParameterTypeAdapters.addTypeAdapter(ItemStack.class, new ItemStackJsonSerializer());
     }
 }

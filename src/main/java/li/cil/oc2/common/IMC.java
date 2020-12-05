@@ -1,9 +1,9 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.api.API;
+import li.cil.oc2.api.imc.RPCMethodParameterTypeAdapter;
 import li.cil.oc2.api.provider.DeviceProvider;
-import li.cil.oc2.api.imc.DeviceMethodParameterTypeAdapter;
-import li.cil.oc2.common.device.DeviceMethodParameterTypeAdapters;
+import li.cil.oc2.common.device.RPCMethodParameterTypeAdapters;
 import li.cil.oc2.common.device.provider.Providers;
 import net.minecraft.util.Util;
 import net.minecraftforge.fml.InterModComms;
@@ -22,7 +22,7 @@ public final class IMC {
         HashMap<String, Consumer<InterModComms.IMCMessage>> map = new HashMap<>();
 
         map.put(API.IMC_ADD_DEVICE_PROVIDER, IMC::addDeviceProvider);
-        map.put(API.IMC_ADD_DEVICE_METHOD_PARAMETER_TYPE_ADAPTER, IMC::addDeviceMethodParameterTypeAdapter);
+        map.put(API.IMC_ADD_RPC_METHOD_PARAMETER_TYPE_ADAPTER, IMC::addRPCMethodParameterTypeAdapter);
 
         return map;
     });
@@ -42,10 +42,10 @@ public final class IMC {
         getMessageParameter(message, DeviceProvider.class).ifPresent(Providers::addProvider);
     }
 
-    private static void addDeviceMethodParameterTypeAdapter(final InterModComms.IMCMessage message) {
-        getMessageParameter(message, DeviceMethodParameterTypeAdapter.class).ifPresent(value -> {
+    private static void addRPCMethodParameterTypeAdapter(final InterModComms.IMCMessage message) {
+        getMessageParameter(message, RPCMethodParameterTypeAdapter.class).ifPresent(value -> {
             try {
-                DeviceMethodParameterTypeAdapters.addTypeAdapter(value);
+                RPCMethodParameterTypeAdapters.addTypeAdapter(value);
             } catch (final IllegalArgumentException e) {
                 LOGGER.error("Received invalid type adapter registration [{}] for type [{}] from mod [{}].", value.typeAdapter, value.type, message.getSenderModId());
             }

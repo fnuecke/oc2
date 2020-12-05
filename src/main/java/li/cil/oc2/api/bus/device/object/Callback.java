@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * <p>
  * Method parameters are serialized and deserialized using Gson. When using custom
  * parameter types it may be necessary to register a custom type adapter for them
- * via {@link li.cil.oc2.api.API#IMC_ADD_DEVICE_METHOD_PARAMETER_TYPE_ADAPTER}.
+ * via {@link li.cil.oc2.api.API#IMC_ADD_RPC_METHOD_PARAMETER_TYPE_ADAPTER}.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

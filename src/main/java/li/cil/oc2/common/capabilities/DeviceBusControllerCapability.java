@@ -4,9 +4,10 @@ import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBusController;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
+
+import static java.util.Collections.emptySet;
 
 public final class DeviceBusControllerCapability {
     public static void register() {
@@ -24,12 +25,12 @@ public final class DeviceBusControllerCapability {
 
         @Override
         public Set<Device> getDevices() {
-            return Collections.emptySet();
+            return emptySet();
         }
 
         @Override
         public Set<UUID> getDeviceIdentifiers(final Device device) {
-            return Collections.emptySet();
+            return emptySet();
         }
     }
 }

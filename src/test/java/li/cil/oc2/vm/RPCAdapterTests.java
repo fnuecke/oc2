@@ -20,6 +20,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,17 +52,17 @@ public class RPCAdapterTests {
         rpcAdapter.step(0); // process message
 
         final String message = serialDevice.readMessageAsVM();
-        Assertions.assertNotNull(message);
+        assertNotNull(message);
 
         final JsonObject json = new JsonParser().parse(message).getAsJsonObject();
 
         final JsonArray devicesJson = json.getAsJsonArray("data");
-        Assertions.assertEquals(1, devicesJson.size());
+        assertEquals(1, devicesJson.size());
 
         final JsonObject deviceJson = devicesJson.get(0).getAsJsonObject();
 
         final JsonArray methodsJson = deviceJson.getAsJsonArray("methods");
-        Assertions.assertEquals(1, methodsJson.size());
+        assertEquals(1, methodsJson.size());
     }
 
     @Test
@@ -70,7 +73,7 @@ public class RPCAdapterTests {
 
         invokeMethod(DEVICE_UUID, method.getName(), 0xdeadbeef);
 
-        Assertions.assertEquals(0xdeadbeef, method.passedValue);
+        assertEquals(0xdeadbeef, method.passedValue);
     }
 
     @Test
@@ -80,9 +83,9 @@ public class RPCAdapterTests {
         setDevice(device, DEVICE_UUID);
 
         final JsonElement result = invokeMethod(DEVICE_UUID, method.getName(), 0xdeadbeefcafebabeL);
-        Assertions.assertNotNull(result);
-        Assertions.assertTrue(result.isJsonPrimitive());
-        Assertions.assertEquals(0xcafebabe, result.getAsInt());
+        assertNotNull(result);
+        assertTrue(result.isJsonPrimitive());
+        assertEquals(0xcafebabe, result.getAsInt());
     }
 
     @Test
@@ -91,12 +94,12 @@ public class RPCAdapterTests {
         final ObjectDevice device = new ObjectDevice(object);
         setDevice(device, DEVICE_UUID);
 
-        Assertions.assertEquals(42 + 23, invokeMethod(DEVICE_UUID, "add", 42, 23).getAsInt());
+        assertEquals(42 + 23, invokeMethod(DEVICE_UUID, "add", 42, 23).getAsInt());
     }
 
     private void setDevice(final RPCDevice device, final UUID deviceId) {
-        when(busController.getDevices()).thenReturn(Collections.singleton(device));
-        when(busController.getDeviceIdentifiers(device)).thenReturn(Collections.singleton(deviceId));
+        when(busController.getDevices()).thenReturn(singleton(device));
+        when(busController.getDeviceIdentifiers(device)).thenReturn(singleton(deviceId));
 
         // trigger device cache rebuild
         rpcAdapter.pause();
@@ -120,9 +123,9 @@ public class RPCAdapterTests {
         rpcAdapter.step(0);
 
         final String result = serialDevice.readMessageAsVM();
-        Assertions.assertNotNull(result);
+        assertNotNull(result);
         final JsonObject resultJson = new JsonParser().parse(result).getAsJsonObject();
-        Assertions.assertEquals("result", resultJson.get("type").getAsString());
+        assertEquals("result", resultJson.get("type").getAsString());
         return resultJson.get("data");
     }
 
@@ -229,12 +232,12 @@ public class RPCAdapterTests {
 
         @Override
         public List<String> getTypeNames() {
-            return Collections.singletonList(getClass().getSimpleName());
+            return singletonList(getClass().getSimpleName());
         }
 
         @Override
         public List<RPCMethod> getMethods() {
-            return Collections.singletonList(method);
+            return singletonList(method);
         }
     }
 }

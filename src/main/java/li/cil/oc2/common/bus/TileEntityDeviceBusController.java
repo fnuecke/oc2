@@ -13,6 +13,8 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.*;
 
+import static java.util.Collections.emptySet;
+
 public abstract class TileEntityDeviceBusController implements DeviceBusController {
     public enum State {
         SCAN_PENDING,
@@ -81,7 +83,7 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
 
     @Override
     public Set<UUID> getDeviceIdentifiers(final Device device) {
-        return deviceIds.getOrDefault(device, Collections.emptySet());
+        return deviceIds.getOrDefault(device, emptySet());
     }
 
     public State scan() {

@@ -15,6 +15,8 @@ import net.minecraft.world.World;
 import java.util.Collection;
 import java.util.Collections;
 
+import static java.util.Collections.singletonList;
+
 public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevice {
     private static final int HORIZONTAL_DIRECTION_COUNT = 4;
     private static final String OUTPUT_NBT_TAG_NAME = "output";
@@ -43,7 +45,7 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
 
     @Override
     public Collection<String> getDeviceTypeNames() {
-        return Collections.singletonList("redstone");
+        return singletonList("redstone");
     }
 
     @Callback

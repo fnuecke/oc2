@@ -5,8 +5,10 @@ import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 /**
  * A reflection based implementation of {@link RPCDevice} using the {@link Callback}
@@ -46,7 +48,7 @@ public final class ObjectDevice implements RPCDevice {
      * @param typeName the type name of the device.
      */
     public ObjectDevice(final Object object, @Nullable final String typeName) {
-        this(object, typeName != null ? Collections.singletonList(typeName) : Collections.emptyList());
+        this(object, typeName != null ? singletonList(typeName) : emptyList());
     }
 
     /**
@@ -55,7 +57,7 @@ public final class ObjectDevice implements RPCDevice {
      * @param object the object containing the methods provided by this device.
      */
     public ObjectDevice(final Object object) {
-        this(object, Collections.emptyList());
+        this(object, emptyList());
     }
 
     @Override

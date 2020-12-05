@@ -17,6 +17,10 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Collections;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -47,20 +51,20 @@ public class DeviceBusTests {
         busControllerBusElement = mock(DeviceBusElement.class);
         when(busControllerTileEntity.getCapability(eq(busElementCapability), any()))
                 .thenReturn(LazyOptional.of(() -> busControllerBusElement));
-        when(busControllerBusElement.getLocalDevices()).thenReturn(Collections.emptyList());
+        when(busControllerBusElement.getLocalDevices()).thenReturn(emptyList());
 
         busController = new TestBusController();
     }
 
     @Test
     public void scanPendingWhenTileEntityNotLoaded() {
-        Assertions.assertEquals(TileEntityDeviceBusController.State.SCAN_PENDING, busController.scan());
+        assertEquals(TileEntityDeviceBusController.State.SCAN_PENDING, busController.scan());
     }
 
     @Test
     public void scanCompletesWhenNoNeighbors() {
         when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);
-        Assertions.assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
+        assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
     }
 
     @Test
@@ -68,12 +72,12 @@ public class DeviceBusTests {
         when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);
 
         final RPCDevice device = mock(RPCDevice.class);
-        when(busControllerBusElement.getLocalDevices()).thenReturn(Collections.singletonList(device));
+        when(busControllerBusElement.getLocalDevices()).thenReturn(singletonList(device));
 
-        Assertions.assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
+        assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
 
         verify(busControllerBusElement).addController(busController);
-        Assertions.assertTrue(busController.getDevices().contains(device));
+        assertTrue(busController.getDevices().contains(device));
     }
 
     @Test
@@ -83,7 +87,7 @@ public class DeviceBusTests {
         final DeviceBusElement busElement1 = mockBusElement(CONTROLLER_POS.west());
         final DeviceBusElement busElement2 = mockBusElement(CONTROLLER_POS.west().west());
 
-        Assertions.assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
+        assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
 
         verify(busElement1).addController(busController);
         verify(busElement2).addController(busController);
@@ -96,7 +100,7 @@ public class DeviceBusTests {
 
         final DeviceBusElement busElement = mock(DeviceBusElement.class);
         when(tileEntity.getCapability(eq(busElementCapability), any())).thenReturn(LazyOptional.of(() -> busElement));
-        when(busElement.getLocalDevices()).thenReturn(Collections.emptyList());
+        when(busElement.getLocalDevices()).thenReturn(emptyList());
 
         return busElement;
     }

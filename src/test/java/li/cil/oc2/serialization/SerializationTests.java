@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public final class SerializationTests {
     @Test
     public void testSerializeFlat() {
@@ -25,19 +27,19 @@ public final class SerializationTests {
         value.stringValue = "test string";
         value.uuidValue = uuid;
 
-        final CompoundNBT nbt = Assertions.assertDoesNotThrow(() -> NBTSerialization.serialize(value));
+        final CompoundNBT nbt = assertDoesNotThrow(() -> NBTSerialization.serialize(value));
 
-        Assertions.assertEquals(123, nbt.getByte("byteValue"));
-        Assertions.assertEquals(234, nbt.getShort("shortValue"));
-        Assertions.assertEquals(456, nbt.getInt("intValue"));
-        Assertions.assertEquals(567, nbt.getLong("longValue"));
-        Assertions.assertEquals(678.9f, nbt.getFloat("floatValue"));
-        Assertions.assertEquals(789.0, nbt.getDouble("doubleValue"));
-        Assertions.assertArrayEquals(new byte[]{1, 2, 3}, nbt.getByteArray("byteArrayValue"));
-        Assertions.assertArrayEquals(new int[]{4, 5, 6}, nbt.getIntArray("intArrayValue"));
-        Assertions.assertArrayEquals(new long[]{7, 8, 9}, nbt.getLongArray("longArrayValue"));
-        Assertions.assertEquals("test string", nbt.getString("stringValue"));
-        Assertions.assertEquals(uuid, nbt.getCompound("uuidValue").getUniqueId("uuidValue"));
+        assertEquals(123, nbt.getByte("byteValue"));
+        assertEquals(234, nbt.getShort("shortValue"));
+        assertEquals(456, nbt.getInt("intValue"));
+        assertEquals(567, nbt.getLong("longValue"));
+        assertEquals(678.9f, nbt.getFloat("floatValue"));
+        assertEquals(789.0, nbt.getDouble("doubleValue"));
+        assertArrayEquals(new byte[]{1, 2, 3}, nbt.getByteArray("byteArrayValue"));
+        assertArrayEquals(new int[]{4, 5, 6}, nbt.getIntArray("intArrayValue"));
+        assertArrayEquals(new long[]{7, 8, 9}, nbt.getLongArray("longArrayValue"));
+        assertEquals("test string", nbt.getString("stringValue"));
+        assertEquals(uuid, nbt.getCompound("uuidValue").getUniqueId("uuidValue"));
     }
 
     @Test
@@ -58,19 +60,19 @@ public final class SerializationTests {
         uuidNBT.putUniqueId("uuidValue", uuid);
         nbt.put("uuidValue", uuidNBT);
 
-        final Flat value = Assertions.assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, Flat.class, new Flat()));
+        final Flat value = assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, Flat.class, new Flat()));
 
-        Assertions.assertEquals(98, value.byteValue);
-        Assertions.assertEquals(876, value.shortValue);
-        Assertions.assertEquals(765, value.intValue);
-        Assertions.assertEquals(654, value.longValue);
-        Assertions.assertEquals(543.2f, value.floatValue);
-        Assertions.assertEquals(432, .1, value.doubleValue);
-        Assertions.assertArrayEquals(new byte[]{9, 8, 7}, value.byteArrayValue);
-        Assertions.assertArrayEquals(new int[]{8, 7, 6}, value.intArrayValue);
-        Assertions.assertArrayEquals(new long[]{7, 6, 5}, value.longArrayValue);
-        Assertions.assertEquals("another test", value.stringValue);
-        Assertions.assertEquals(uuid, value.uuidValue);
+        assertEquals(98, value.byteValue);
+        assertEquals(876, value.shortValue);
+        assertEquals(765, value.intValue);
+        assertEquals(654, value.longValue);
+        assertEquals(543.2f, value.floatValue);
+        assertEquals(432, .1, value.doubleValue);
+        assertArrayEquals(new byte[]{9, 8, 7}, value.byteArrayValue);
+        assertArrayEquals(new int[]{8, 7, 6}, value.intArrayValue);
+        assertArrayEquals(new long[]{7, 6, 5}, value.longArrayValue);
+        assertEquals("another test", value.stringValue);
+        assertEquals(uuid, value.uuidValue);
     }
 
     @Test
@@ -92,36 +94,36 @@ public final class SerializationTests {
         uuidNBT.putUniqueId("uuidValue", uuid);
         nbt.put("uuidValue", uuidNBT);
 
-        final Flat value = Assertions.assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, Flat.class, null));
+        final Flat value = assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, Flat.class, null));
 
-        Assertions.assertEquals(98, value.byteValue);
-        Assertions.assertEquals(876, value.shortValue);
-        Assertions.assertEquals(765, value.intValue);
-        Assertions.assertEquals(654, value.longValue);
-        Assertions.assertEquals(543.2f, value.floatValue);
-        Assertions.assertEquals(432, .1, value.doubleValue);
-        Assertions.assertArrayEquals(new byte[]{9, 8, 7}, value.byteArrayValue);
-        Assertions.assertArrayEquals(new int[]{8, 7, 6}, value.intArrayValue);
-        Assertions.assertArrayEquals(new long[]{7, 6, 5}, value.longArrayValue);
-        Assertions.assertEquals("another test", value.stringValue);
-        Assertions.assertEquals(uuid, value.uuidValue);
+        assertEquals(98, value.byteValue);
+        assertEquals(876, value.shortValue);
+        assertEquals(765, value.intValue);
+        assertEquals(654, value.longValue);
+        assertEquals(543.2f, value.floatValue);
+        assertEquals(432, .1, value.doubleValue);
+        assertArrayEquals(new byte[]{9, 8, 7}, value.byteArrayValue);
+        assertArrayEquals(new int[]{8, 7, 6}, value.intArrayValue);
+        assertArrayEquals(new long[]{7, 6, 5}, value.longArrayValue);
+        assertEquals("another test", value.stringValue);
+        assertEquals(uuid, value.uuidValue);
     }
 
     @Test
     public void testModifiers() {
         final WithModifiers value = new WithModifiers();
-        final CompoundNBT nbt = Assertions.assertDoesNotThrow(() -> NBTSerialization.serialize(value));
+        final CompoundNBT nbt = assertDoesNotThrow(() -> NBTSerialization.serialize(value));
 
-        Assertions.assertTrue(nbt.contains("nonTransientInt"));
-        Assertions.assertEquals(123, nbt.getInt("nonTransientInt"));
-        Assertions.assertFalse(nbt.contains("transientInt"));
-        Assertions.assertFalse(nbt.contains("finalInt"));
+        assertTrue(nbt.contains("nonTransientInt"));
+        assertEquals(123, nbt.getInt("nonTransientInt"));
+        assertFalse(nbt.contains("transientInt"));
+        assertFalse(nbt.contains("finalInt"));
 
         nbt.putIntArray("finalIntArray", new int[]{8, 7, 6});
 
-        Assertions.assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, value));
+        assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, value));
 
-        Assertions.assertArrayEquals(new int[]{8, 7, 6}, value.finalIntArray);
+        assertArrayEquals(new int[]{8, 7, 6}, value.finalIntArray);
     }
 
     @Test
@@ -131,11 +133,11 @@ public final class SerializationTests {
         root.child = new Nested();
         root.child.value = 234;
 
-        final CompoundNBT nbt = Assertions.assertDoesNotThrow(() -> NBTSerialization.serialize(root));
+        final CompoundNBT nbt = assertDoesNotThrow(() -> NBTSerialization.serialize(root));
 
-        Assertions.assertEquals(123, nbt.getInt("value"));
-        Assertions.assertTrue(nbt.contains("child"));
-        Assertions.assertEquals(234, nbt.getCompound("child").getInt("value"));
+        assertEquals(123, nbt.getInt("value"));
+        assertTrue(nbt.contains("child"));
+        assertEquals(234, nbt.getCompound("child").getInt("value"));
     }
 
     @Test
@@ -146,11 +148,11 @@ public final class SerializationTests {
         nbt.put("child", child);
         child.putInt("value", 234);
 
-        final Nested value = Assertions.assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, Nested.class, new Nested()));
+        final Nested value = assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, Nested.class, new Nested()));
 
-        Assertions.assertEquals(123, value.value);
-        Assertions.assertEquals(234, value.child.value);
-        Assertions.assertNull(value.child.child);
+        assertEquals(123, value.value);
+        assertEquals(234, value.child.value);
+        assertNull(value.child.child);
     }
 
     @Test
@@ -161,11 +163,11 @@ public final class SerializationTests {
         nbt.put("child", child);
         child.putInt("value", 234);
 
-        final Nested value = Assertions.assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, Nested.class, null));
+        final Nested value = assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, Nested.class, null));
 
-        Assertions.assertEquals(123, value.value);
-        Assertions.assertEquals(234, value.child.value);
-        Assertions.assertNull(value.child.child);
+        assertEquals(123, value.value);
+        assertEquals(234, value.child.value);
+        assertNull(value.child.child);
     }
 
     @Serialized

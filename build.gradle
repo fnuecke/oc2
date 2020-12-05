@@ -44,7 +44,7 @@ archivesBaseName = "${mod_name}-MC${minecraft_version}"
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 compileJava.sourceCompatibility = compileJava.targetCompatibility = JavaVersion.VERSION_1_8
 
-javadoc.options.addStringOption('Xdoclint:none', '-quiet')
+//javadoc.options.addStringOption('Xdoclint:none', '-quiet')
 
 configurations {
     embed

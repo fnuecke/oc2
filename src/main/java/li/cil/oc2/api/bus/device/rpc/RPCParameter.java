@@ -24,6 +24,8 @@ public interface RPCParameter {
      * An optional name of the parameter.
      * <p>
      * May be used inside VMs to generate documentation.
+     *
+     * @return the name of the parameter.
      */
     default Optional<String> getName() {
         return Optional.empty();
@@ -33,6 +35,8 @@ public interface RPCParameter {
      * An optional description of the parameter.
      * <p>
      * May be used inside VMs to generate documentation.
+     *
+     * @return the description of the parameter.
      */
     default Optional<String> getDescription() {
         return Optional.empty();

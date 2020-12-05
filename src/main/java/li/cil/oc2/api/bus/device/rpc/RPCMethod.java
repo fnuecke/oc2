@@ -25,21 +25,29 @@ public interface RPCMethod {
      * When invoked through a {@link DeviceBusController} this is what the method
      * will be referenced by, so the name should be unlikely to be duplicated in
      * another device to avoid ambiguity when devices are combined.
+     *
+     * @return the name of the method.
      */
     String getName();
 
     /**
      * When {@code true}, invocations of this method will be synchronized to the main thread.
+     *
+     * @return {@code true} when to be executed on main thread; {@code false} otherwise.
      */
     boolean isSynchronized();
 
     /**
      * The type of the values returned by this method.
+     *
+     * @return the returned type.
      */
     Class<?> getReturnType();
 
     /**
      * The list of parameters this method accepts.
+     *
+     * @return the list of parameters.
      */
     RPCParameter[] getParameters();
 
@@ -68,6 +76,8 @@ public interface RPCMethod {
      * An optional description of the method.
      * <p>
      * May be used inside VMs to generate documentation.
+     *
+     * @return the method description.
      */
     default Optional<String> getDescription() {
         return Optional.empty();
@@ -77,6 +87,8 @@ public interface RPCMethod {
      * An optional description of the return value of this method.
      * <p>
      * May be used inside VMs to generate documentation.
+     *
+     * @return the return value description.
      */
     default Optional<String> getReturnValueDescription() {
         return Optional.empty();

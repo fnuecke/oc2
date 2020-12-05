@@ -38,7 +38,7 @@ public final class Callbacks {
      *   public void f(String a) { }
      * }
      *
-     * List<DeviceMethod> methods = Callbacks.collectMethods(new Example());
+     * List&lt;RPCMethod&gt; methods = Callbacks.collectMethods(new Example());
      * methods.get(0).invoke("argument");
      * </pre>
      *

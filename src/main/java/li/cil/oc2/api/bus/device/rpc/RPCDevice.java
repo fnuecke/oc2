@@ -32,11 +32,15 @@ public interface RPCDevice extends Device {
      * <p>
      * In a more general sense, these can be considered tags the device can be
      * referenced by inside a VM.
+     *
+     * @return the list of type names.
      */
     List<String> getTypeNames();
 
     /**
      * The list of methods provided by this interface.
+     *
+     * @return the list of methods.
      */
     List<RPCMethod> getMethods();
 }

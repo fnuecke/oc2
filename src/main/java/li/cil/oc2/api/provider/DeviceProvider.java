@@ -21,7 +21,7 @@ import net.minecraftforge.common.util.LazyOptional;
  * Implementations <em>should</em> return the same device for the same query.
  * <p>
  * Failing that, implementations <em>should</em> return instances that are equal to each
- * other when compared using {@link #equals(Object)} and have equal {@link #hashCode()}s.
+ * other when compared using {@link Object#equals(Object)} and have equal {@link Object#hashCode()}s.
  * <p>
  * This is required to avoid device duplication when a device is connected to a bus more
  * than once (e.g. for blocks when connected cables are adjacent to multiple faces of the

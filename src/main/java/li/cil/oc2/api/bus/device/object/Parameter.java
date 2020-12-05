@@ -20,11 +20,15 @@ import java.lang.annotation.Target;
 public @interface Parameter {
     /**
      * The name of the parameter as seen by the VM.
+     *
+     * @return the name of the parameter.
      */
     String value();
 
     /**
      * Optional VM visible documentation of this parameter.
+     *
+     * @return the description of the parameter.
      */
     String description() default "";
 }

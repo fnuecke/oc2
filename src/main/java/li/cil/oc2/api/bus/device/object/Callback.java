@@ -29,16 +29,22 @@ public @interface Callback {
      * Use this when the targeted method interacts with data that is not thread
      * safe, for example the world or any objects inside the world, such as
      * tile entities and entities.
+     *
+     * @return {@code true} when to be executed on main thread; {@code false} otherwise.
      */
     boolean synchronize() default true;
 
     /**
      * Option VM visible documentation of this method.
+     *
+     * @return the description of the method.
      */
     String description() default "";
 
     /**
      * Optional VM visible documentation of the values returned by this method.
+     *
+     * @return the description of the return value.
      */
     String returnValueDescription() default "";
 }

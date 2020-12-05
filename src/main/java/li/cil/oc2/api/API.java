@@ -16,7 +16,7 @@ public final class API {
      * <p>
      * Example:
      * <pre>
-     * InterModComms.sendTo(API.MOD_ID, API.IMC_ADD_DEVICE_PROVIDER, () -> new DeviceProvider() { ... });
+     * InterModComms.sendTo(API.MOD_ID, API.IMC_ADD_DEVICE_PROVIDER, () -&gt; new DeviceProvider() { ... });
      * </pre>
      */
     public static final String IMC_ADD_DEVICE_PROVIDER = "addDeviceProvider";

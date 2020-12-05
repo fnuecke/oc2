@@ -7,7 +7,7 @@ package li.cil.oc2.api.bus;
  * managing the bus.
  * <p>
  * Note that it is strongly encouraged for implementations to provide an overloaded
- * {@link #equals(Object)} and {@link #hashCode()} so that identical devices can be
+ * {@link Object#equals(Object)} and {@link Object#hashCode()} so that identical devices can be
  * detected.
  */
 public interface Device {

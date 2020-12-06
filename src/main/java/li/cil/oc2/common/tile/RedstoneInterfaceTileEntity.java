@@ -109,7 +109,7 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
     }
 
     @Override
-    public void getDeviceDocumentation(final DocumentationVisitor visitor) {
+    public void getDeviceDocumentation(final DeviceVisitor visitor) {
         visitor.visitCallback(GET_REDSTONE_INPUT)
                 .description("Get the current redstone level received on the specified side. " +
                              "Note that if the current output level on the specified side is not " +

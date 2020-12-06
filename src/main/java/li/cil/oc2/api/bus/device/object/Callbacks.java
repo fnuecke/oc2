@@ -165,7 +165,7 @@ public final class Callbacks {
 
                     if (target instanceof DocumentedDevice) {
                         final DocumentedDevice documentedDevice = (DocumentedDevice) target;
-                        final DocumentationVisitorImpl visitor = new DocumentationVisitorImpl();
+                        final DeviceVisitorImpl visitor = new DeviceVisitorImpl();
                         documentedDevice.getDeviceDocumentation(visitor);
 
                         final CallbackVisitorImpl callbackVisitor = visitor.callbacks.get(methodName);
@@ -246,7 +246,7 @@ public final class Callbacks {
         }
     }
 
-    private static final class DocumentationVisitorImpl implements DocumentedDevice.DocumentationVisitor {
+    private static final class DeviceVisitorImpl implements DocumentedDevice.DeviceVisitor {
         public final HashMap<String, CallbackVisitorImpl> callbacks = new HashMap<>();
 
         @Override

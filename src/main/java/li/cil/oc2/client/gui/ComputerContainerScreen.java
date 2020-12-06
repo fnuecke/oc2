@@ -9,7 +9,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
 public final class ComputerContainerScreen extends ContainerScreen<ComputerContainer> {
     private static final ResourceLocation BACKGROUND = new ResourceLocation(API.MOD_ID, "textures/gui/container/computer.png");
@@ -29,7 +29,7 @@ public final class ComputerContainerScreen extends ContainerScreen<ComputerConta
     @Override
     protected void drawGuiContainerBackgroundLayer(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
         RenderSystem.color4f(1f, 1f, 1f, 1f);
-        Objects.requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND);
+        requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND);
         blit(matrixStack, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
 }

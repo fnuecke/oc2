@@ -16,6 +16,8 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.*;
 
+import static java.util.Objects.requireNonNull;
+
 public final class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
     private static final int NEIGHBOR_COUNT = 6;
 
@@ -76,7 +78,7 @@ public final class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
     }
 
     public void initialize() {
-        final World world = Objects.requireNonNull(tileEntity.getWorld());
+        final World world = requireNonNull(tileEntity.getWorld());
         ServerScheduler.schedule(world, () -> {
             if (tileEntity.isRemoved()) {
                 return;
@@ -98,7 +100,7 @@ public final class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
     }
 
     private void scheduleBusScanInAdjacentBusElements() {
-        final World world = Objects.requireNonNull(tileEntity.getWorld());
+        final World world = requireNonNull(tileEntity.getWorld());
         final BlockPos pos = tileEntity.getPos();
         for (final Direction direction : Direction.values()) {
             final BlockPos neighborPos = pos.offset(direction);

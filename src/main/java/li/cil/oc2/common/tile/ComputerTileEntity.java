@@ -44,6 +44,8 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.UUID;
 
+import static java.util.Objects.requireNonNull;
+
 public final class ComputerTileEntity extends AbstractTileEntity implements ITickableTileEntity {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -189,7 +191,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     protected void initializeServer() {
         super.initializeServer();
 
-        ServerScheduler.schedule(() -> chunk = Objects.requireNonNull(getWorld()).getChunkAt(getPos()));
+        ServerScheduler.schedule(() -> chunk = requireNonNull(getWorld()).getChunkAt(getPos()));
     }
 
     @Override

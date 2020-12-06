@@ -14,7 +14,8 @@ import net.minecraft.util.text.ITextComponent;
 import org.lwjgl.glfw.GLFW;
 
 import java.nio.ByteBuffer;
-import java.util.Objects;
+
+import static java.util.Objects.requireNonNull;
 
 public final class TerminalScreen extends Screen {
     private static final ResourceLocation BACKGROUND = new ResourceLocation(API.MOD_ID, "textures/gui/screen/terminal.png");
@@ -47,11 +48,11 @@ public final class TerminalScreen extends Screen {
 
         isMouseOverTerminal = isPointInRegion(TERMINAL_AREA_X, TERMINAL_AREA_Y, TERMINAL_AREA_WIDTH, TERMINAL_AREA_HEIGHT, mouseX, mouseY);
         RenderSystem.color4f(1f, 1f, 1f, 1f);
-        Objects.requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND);
+        requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND);
         blit(matrixStack, windowLeft, windowTop, 0, 0, windowWidth, windowHeight, TEXTURE_SIZE, TEXTURE_SIZE);
 
         if (isMouseOverTerminal) {
-            Objects.requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND_TERMINAL_FOCUSED);
+            requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND_TERMINAL_FOCUSED);
             blit(matrixStack, windowLeft, windowTop, 0, 0, windowWidth, windowHeight, TEXTURE_SIZE, TEXTURE_SIZE);
         }
 
@@ -91,7 +92,7 @@ public final class TerminalScreen extends Screen {
         }
 
         if ((modifiers & GLFW.GLFW_MOD_CONTROL) != 0 && keyCode == GLFW.GLFW_KEY_V) {
-            final String value = Objects.requireNonNull(minecraft).keyboardListener.getClipboardString();
+            final String value = requireNonNull(minecraft).keyboardListener.getClipboardString();
             for (final char ch : value.toCharArray()) {
                 terminal.putInput((byte) ch);
             }
@@ -114,14 +115,14 @@ public final class TerminalScreen extends Screen {
         this.windowLeft = (this.width - this.windowWidth) / 2;
         this.windowTop = (this.height - this.windowHeight) / 2;
 
-        Objects.requireNonNull(minecraft).keyboardListener.enableRepeatEvents(true);
+        requireNonNull(minecraft).keyboardListener.enableRepeatEvents(true);
     }
 
     @Override
     public void onClose() {
         super.onClose();
 
-        Objects.requireNonNull(minecraft).keyboardListener.enableRepeatEvents(false);
+        requireNonNull(minecraft).keyboardListener.enableRepeatEvents(false);
     }
 
     private boolean isPointInRegion(final int x, final int y, final int width, final int height, double mouseX, double mouseY) {

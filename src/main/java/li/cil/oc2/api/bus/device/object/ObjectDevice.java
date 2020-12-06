@@ -35,7 +35,8 @@ public final class ObjectDevice implements RPCDevice {
         this.className = object.getClass().getSimpleName();
 
         if (object instanceof NamedDevice) {
-            this.typeNames.addAll(((NamedDevice) object).getDeviceTypeNames());
+            final NamedDevice namedDevice = (NamedDevice) object;
+            this.typeNames.addAll(namedDevice.getDeviceTypeNames());
         }
     }
 

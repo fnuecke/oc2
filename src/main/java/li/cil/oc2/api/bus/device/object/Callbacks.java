@@ -14,6 +14,8 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Provides automated extraction of {@link RPCMethod}s from instances of
  * class with methods annotated with the {@link Callback} annotation.
@@ -23,6 +25,8 @@ import java.util.stream.Collectors;
 public final class Callbacks {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final HashMap<Class<?>, List<Method>> METHOD_BY_TYPE = new HashMap<>();
+    private static final HashMap<Method, RPCParameter[]> PARAMETERS_BY_METHOD = new HashMap<>();
+    private static final HashMap<Method, CallbackDocumentation> DOCUMENTATION_BY_METHOD = new HashMap<>();
 
     /**
      * Collects all methods annotated with {@link Callback} in the specified object
@@ -90,15 +94,15 @@ public final class Callbacks {
         private final String returnValueDescription;
 
         public ObjectRPCMethod(final Object target, final Method method) throws IllegalAccessException {
-            super(method.getName(),
-                    Objects.requireNonNull(method.getAnnotation(Callback.class), "Method without Callback annotation.").synchronize(),
-                    method.getReturnType(),
-                    getParameters(method));
+            this(new ConstructorData(target, method));
+        }
 
-            final Callback annotation = method.getAnnotation(Callback.class);
-            this.handle = MethodHandles.lookup().unreflect(method).bindTo(target);
-            this.description = Strings.isNotBlank(annotation.description()) ? annotation.description() : null;
-            this.returnValueDescription = Strings.isNotBlank(annotation.returnValueDescription()) ? annotation.returnValueDescription() : null;
+        private ObjectRPCMethod(final ConstructorData data) throws IllegalAccessException {
+            super(data.methodName, data.annotation.synchronize(), data.method.getReturnType(), data.parameters);
+
+            this.handle = MethodHandles.lookup().unreflect(data.method).bindTo(data.target);
+            this.description = data.description;
+            this.returnValueDescription = data.returnValueDescription;
         }
 
         @Nullable
@@ -135,10 +139,59 @@ public final class Callbacks {
             return handle.toString();
         }
 
-        private static RPCParameter[] getParameters(final Method method) {
-            return Arrays.stream(method.getParameters())
-                    .map(ReflectionParameter::new)
-                    .toArray(RPCParameter[]::new);
+        // Utility class to precompute stuff for constructor before calling super constructor.
+        private static final class ConstructorData {
+            public final Object target;
+            public final Method method;
+            public final Callback annotation;
+            public final String methodName;
+            public final String description;
+            public final String returnValueDescription;
+            public final RPCParameter[] parameters;
+
+            public ConstructorData(final Object target, final Method method) {
+                this.target = target;
+                this.method = method;
+                this.annotation = requireNonNull(method.getAnnotation(Callback.class), "Method without Callback annotation.");
+                this.methodName = Strings.isNotBlank(annotation.name()) ? annotation.name() : method.getName();
+
+                final CallbackDocumentation documentation = DOCUMENTATION_BY_METHOD.computeIfAbsent(method, m -> {
+                    final boolean hasDescription = Strings.isNotBlank(annotation.description());
+                    final boolean hasReturnValueDescription = Strings.isNotBlank(annotation.returnValueDescription());
+
+                    String description = hasDescription ? annotation.description() : null;
+                    String returnValueDescription = hasReturnValueDescription ? annotation.returnValueDescription() : null;
+                    final HashMap<String, String> parameterDescriptions = new HashMap<>();
+
+                    if (target instanceof DocumentedDevice) {
+                        final DocumentedDevice documentedDevice = (DocumentedDevice) target;
+                        final DocumentationVisitorImpl visitor = new DocumentationVisitorImpl();
+                        documentedDevice.getDeviceDocumentation(visitor);
+
+                        final CallbackVisitorImpl callbackVisitor = visitor.callbacks.get(methodName);
+                        if (callbackVisitor != null) {
+                            if (Strings.isNotBlank(callbackVisitor.description)) {
+                                description = callbackVisitor.description;
+                            }
+                            if (Strings.isNotBlank(callbackVisitor.returnValueDescription)) {
+                                returnValueDescription = callbackVisitor.description;
+                            }
+
+                            parameterDescriptions.putAll(callbackVisitor.parameterDescriptions);
+                        }
+                    }
+
+                    return new CallbackDocumentation(description, returnValueDescription, parameterDescriptions);
+                });
+
+                this.description = documentation.description;
+                this.returnValueDescription = documentation.returnValueDescription;
+
+                this.parameters = PARAMETERS_BY_METHOD.computeIfAbsent(method,
+                        m -> Arrays.stream(m.getParameters())
+                                .map(parameter -> new ReflectionParameter(parameter, documentation.parameterDescriptions))
+                                .toArray(RPCParameter[]::new));
+            }
         }
 
         private static final class ReflectionParameter implements RPCParameter {
@@ -146,7 +199,7 @@ public final class Callbacks {
             @Nullable private final String name;
             @Nullable private final String description;
 
-            public ReflectionParameter(final java.lang.reflect.Parameter parameter) {
+            public ReflectionParameter(final java.lang.reflect.Parameter parameter, final HashMap<String, String> parameterDescriptions) {
                 this.type = parameter.getType();
 
                 final Parameter annotation = parameter.getAnnotation(Parameter.class);
@@ -154,7 +207,14 @@ public final class Callbacks {
                 final boolean hasDescription = annotation != null && Strings.isNotBlank(annotation.description());
 
                 this.name = hasName ? annotation.value() : null;
-                this.description = hasDescription ? annotation.description() : null;
+
+                if (parameterDescriptions.containsKey(this.name)) {
+                    this.description = parameterDescriptions.get(this.name);
+                } else if (hasDescription) {
+                    this.description = annotation.description();
+                } else {
+                    this.description = null;
+                }
             }
 
             @Override
@@ -171,6 +231,51 @@ public final class Callbacks {
             public Optional<String> getDescription() {
                 return Optional.ofNullable(description);
             }
+        }
+    }
+
+    private static final class CallbackDocumentation {
+        @Nullable public final String description;
+        @Nullable public final String returnValueDescription;
+        public final HashMap<String, String> parameterDescriptions;
+
+        private CallbackDocumentation(@Nullable final String description, @Nullable final String returnValueDescription, final HashMap<String, String> parameterDescriptions) {
+            this.description = description;
+            this.returnValueDescription = returnValueDescription;
+            this.parameterDescriptions = parameterDescriptions;
+        }
+    }
+
+    private static final class DocumentationVisitorImpl implements DocumentedDevice.DocumentationVisitor {
+        public final HashMap<String, CallbackVisitorImpl> callbacks = new HashMap<>();
+
+        @Override
+        public DocumentedDevice.CallbackVisitor visitCallback(final String callbackName) {
+            return callbacks.computeIfAbsent(callbackName, unused -> new CallbackVisitorImpl());
+        }
+    }
+
+    private static final class CallbackVisitorImpl implements DocumentedDevice.CallbackVisitor {
+        public String description;
+        public String returnValueDescription;
+        public final HashMap<String, String> parameterDescriptions = new HashMap<>();
+
+        @Override
+        public DocumentedDevice.CallbackVisitor description(final String value) {
+            this.description = value;
+            return this;
+        }
+
+        @Override
+        public DocumentedDevice.CallbackVisitor returnValueDescription(final String value) {
+            this.returnValueDescription = value;
+            return this;
+        }
+
+        @Override
+        public DocumentedDevice.CallbackVisitor parameterDescription(final String parameterName, final String value) {
+            parameterDescriptions.put(parameterName, value);
+            return this;
         }
     }
 }

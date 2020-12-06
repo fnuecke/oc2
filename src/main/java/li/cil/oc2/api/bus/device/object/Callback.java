@@ -35,6 +35,14 @@ public @interface Callback {
     boolean synchronize() default true;
 
     /**
+     * Explicitly defines the name of this method. If left blank the name of the
+     * annotated method will be used.
+     *
+     * @return the name of the method.
+     */
+    String name() default "";
+
+    /**
      * Option VM visible documentation of this method.
      *
      * @return the description of the method.

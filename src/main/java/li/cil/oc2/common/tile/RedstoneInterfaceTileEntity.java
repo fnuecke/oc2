@@ -2,7 +2,9 @@ package li.cil.oc2.common.tile;
 
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
+import li.cil.oc2.api.bus.device.object.Parameter;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalBlock;
 import net.minecraft.nbt.CompoundNBT;
@@ -17,9 +19,15 @@ import java.util.Collection;
 
 import static java.util.Collections.singletonList;
 
-public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevice {
+public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevice, DocumentedDevice {
     private static final int HORIZONTAL_DIRECTION_COUNT = 4;
     private static final String OUTPUT_NBT_TAG_NAME = "output";
+
+    private static final String GET_REDSTONE_INPUT = "getRedstoneInput";
+    private static final String GET_REDSTONE_OUTPUT = "getRedstoneOutput";
+    private static final String SET_REDSTONE_OUTPUT = "setRedstoneOutput";
+    private static final String SIDE = "side";
+    private static final String VALUE = "value";
 
     private final byte[] output = new byte[HORIZONTAL_DIRECTION_COUNT];
 
@@ -48,8 +56,8 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
         return singletonList("redstone");
     }
 
-    @Callback
-    public int getRedstoneInput(final int side) {
+    @Callback(name = GET_REDSTONE_INPUT)
+    public int getRedstoneInput(@Parameter(SIDE) final int side) {
         if (side < 0 || side > 3) {
             throw new IllegalArgumentException("invalid side");
         }
@@ -75,8 +83,8 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
         return world.getRedstonePower(neighborPos, direction);
     }
 
-    @Callback
-    public int getRedstoneOutput(final int side) {
+    @Callback(name = GET_REDSTONE_OUTPUT)
+    public int getRedstoneOutput(@Parameter(SIDE) final int side) {
         if (side < 0 || side > 3) {
             throw new IllegalArgumentException("invalid side");
         }
@@ -84,8 +92,8 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
         return output[side];
     }
 
-    @Callback
-    public void setRedstoneOutput(final int side, final int value) {
+    @Callback(name = SET_REDSTONE_OUTPUT)
+    public void setRedstoneOutput(@Parameter(SIDE) final int side, @Parameter(VALUE) final int value) {
         if (side < 0 || side > 3) {
             throw new IllegalArgumentException("invalid side");
         }
@@ -98,6 +106,32 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
         output[side] = (byte) clamped;
 
         notifyNeighbors();
+    }
+
+    @Override
+    public void getDeviceDocumentation(final DocumentationVisitor visitor) {
+        visitor.visitCallback(GET_REDSTONE_INPUT)
+                .description("Get the current redstone level received on the specified side. " +
+                             "Note that if the current output level on the specified side is not " +
+                             "zero, this will affect the measured level.\n" +
+                             "Side indices start at zero. Please note the inscriptions on the device " +
+                             "for which side corresponds to which index.")
+                .returnValueDescription("the current received level on the specified side.")
+                .parameterDescription(SIDE, "the side to read the input level from.");
+
+        visitor.visitCallback(GET_REDSTONE_OUTPUT)
+                .description("Get the current redstone level transmitted on the specified side. " +
+                             "This will return the value last set via setRedstoneOutput().\n" +
+                             "Side indices start at zero. Please note the inscriptions on the device " +
+                             "for which side corresponds to which index.")
+                .returnValueDescription("the current transmitted level on the specified side.")
+                .parameterDescription(SIDE, "the side to read the output level from.");
+        visitor.visitCallback(SET_REDSTONE_OUTPUT)
+                .description("Set the new redstone level transmitted on the specified side.\n" +
+                             "Side indices start at zero. Please note the inscriptions on the device " +
+                             "for which side corresponds to which index.")
+                .parameterDescription(SIDE, "the side to write the output level to.")
+                .parameterDescription(VALUE, "the output level to set, will be clamped to [0, 15].");
     }
 
     public int getOutputForDirection(final Direction direction) {

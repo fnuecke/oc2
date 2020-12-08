@@ -1,4 +1,4 @@
-package li.cil.oc2.api.vm;
+package li.cil.oc2.api.bus.device.sedna;
 
 import java.util.OptionalInt;
 

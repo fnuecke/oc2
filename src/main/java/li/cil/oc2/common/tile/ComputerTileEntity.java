@@ -19,9 +19,7 @@ import li.cil.oc2.serialization.NBTSerialization;
 import li.cil.sedna.api.Sizes;
 import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.buildroot.Buildroot;
-import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import li.cil.sedna.device.memory.Memory;
-import li.cil.sedna.device.virtio.VirtIOBlockDevice;
 import li.cil.sedna.device.virtio.VirtIOFileSystemDevice;
 import li.cil.sedna.fs.HostFileSystem;
 import li.cil.sedna.memory.PhysicalMemoryInputStream;
@@ -41,7 +39,6 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.Objects;
 import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
@@ -54,6 +51,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final String BUS_STATE_NBT_TAG_NAME = "busState";
     private static final String TERMINAL_NBT_TAG_NAME = "terminal";
     private static final String VIRTUAL_MACHINE_NBT_TAG_NAME = "virtualMachine";
+    private static final String VFS_NBT_TAG_NAME = "vfs";
     private static final String RUNNER_NBT_TAG_NAME = "runner";
     private static final String RUN_STATE_NBT_TAG_NAME = "runState";
 
@@ -77,11 +75,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private final TileEntityDeviceBusElement busElement;
     private final Terminal terminal;
     private final VirtualMachine virtualMachine;
+    private final VirtIOFileSystemDevice vfs;
     private ConsoleRunner runner;
 
     private PhysicalMemory ram;
     private UUID ramBlobHandle;
-    private VirtIOBlockDevice hdd;
 
     public ComputerTileEntity() {
         super(OpenComputers.COMPUTER_TILE_ENTITY.get());
@@ -93,6 +91,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         terminal = new Terminal();
         virtualMachine = new VirtualMachine(busController);
+
+        vfs = new VirtIOFileSystemDevice(virtualMachine.board.getMemoryMap(), "scripts", new HostFileSystem());
+        vfs.getInterrupt().set(virtualMachine.vmAdapter.claimInterrupt(), virtualMachine.board.getInterruptController());
+        virtualMachine.board.addDevice(vfs);
 
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY, busController);
@@ -213,7 +215,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     @Override
-    public void handleUpdateTag(final BlockState state,final CompoundNBT tag) {
+    public void handleUpdateTag(final BlockState state, final CompoundNBT tag) {
         super.handleUpdateTag(state, tag);
 
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_NBT_TAG_NAME), terminal);
@@ -234,6 +236,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         compound.put(BUS_ELEMENT_NBT_TAG_NAME, NBTSerialization.serialize(busElement));
         compound.put(VIRTUAL_MACHINE_NBT_TAG_NAME, NBTSerialization.serialize(virtualMachine));
+        compound.put(VFS_NBT_TAG_NAME, NBTSerialization.serialize(vfs));
 
         if (runner != null) {
             compound.put(RUNNER_NBT_TAG_NAME, NBTSerialization.serialize(runner));
@@ -268,6 +271,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             NBTSerialization.deserialize(compound.getCompound(VIRTUAL_MACHINE_NBT_TAG_NAME), virtualMachine);
         }
 
+        if (compound.contains(VFS_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            NBTSerialization.deserialize(compound.getCompound(VFS_NBT_TAG_NAME), vfs);
+        }
+
         if (compound.contains(RUNNER_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             runner = new ConsoleRunner(virtualMachine);
             NBTSerialization.deserialize(compound.getCompound(RUNNER_NBT_TAG_NAME), runner);
@@ -300,14 +307,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         } else {
             list.add(new CompoundNBT());
         }
-
-        if (hdd != null) {
-            final CompoundNBT hddNbt = new CompoundNBT();
-            hddNbt.put("hdd", NBTSerialization.serialize(hdd));
-            list.add(hddNbt);
-        } else {
-            list.add(new CompoundNBT());
-        }
     }
 
     private void readDevices(final ListNBT list) {
@@ -317,51 +316,23 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         if (ramNbt.hasUniqueId("ram")) {
             ramBlobHandle = ramNbt.getUniqueId("ram");
         }
-
-        final CompoundNBT hddNbt = list.getCompound(1);
-        if (hddNbt.contains("hdd", NBTTagIds.TAG_COMPOUND)) {
-            if (hdd == null) {
-                hdd = new VirtIOBlockDevice(virtualMachine.board.getMemoryMap());
-                hdd.getInterrupt().set(0x3, virtualMachine.board.getInterruptController());
-                virtualMachine.board.addDevice(hdd);
-            }
-
-            NBTSerialization.deserialize(hddNbt.getCompound("hdd"), hdd);
-        }
     }
 
     private boolean loadDevices() {
         // TODO Load devices generated from items.
 
-        try {
-            if (ram == null) {
-                final int RAM_SIZE = 24 * 1024 * 1024;
-                ram = Memory.create(RAM_SIZE);
-                virtualMachine.board.addDevice(0x80000000L, ram);
-            }
-
-            if (ramBlobHandle != null) {
-                ramJobHandle = BlobStorage.JobHandle.combine(ramJobHandle,
-                        BlobStorage.submitLoad(ramBlobHandle, new PhysicalMemoryOutputStream(ram)));
-            }
-
-            if (hdd == null) {
-                hdd = new VirtIOBlockDevice(virtualMachine.board.getMemoryMap());
-                hdd.getInterrupt().set(0x3, virtualMachine.board.getInterruptController());
-                virtualMachine.board.addDevice(hdd);
-            }
-
-            final ByteBufferBlockDevice blockDevice = ByteBufferBlockDevice.createFromStream(Buildroot.getRootFilesystem(), true);
-            hdd.setBlockDevice(blockDevice);
-
-            final VirtIOFileSystemDevice vfs = new VirtIOFileSystemDevice(virtualMachine.board.getMemoryMap(), "scripts", new HostFileSystem());
-            vfs.getInterrupt().set(0x4, virtualMachine.board.getInterruptController());
-            virtualMachine.board.addDevice(vfs);
-        } catch (final IOException e) {
-            LOGGER.error(e);
+        if (ram == null) {
+            final int RAM_SIZE = 24 * 1024 * 1024;
+            ram = Memory.create(RAM_SIZE);
+            virtualMachine.board.addDevice(0x80000000L, ram);
         }
 
-        return true;
+        if (ramBlobHandle != null) {
+            ramJobHandle = BlobStorage.JobHandle.combine(ramJobHandle,
+                    BlobStorage.submitLoad(ramBlobHandle, new PhysicalMemoryOutputStream(ram)));
+        }
+
+        return virtualMachine.vmAdapter.load();
     }
 
     private void unloadDevices() {
@@ -373,16 +344,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             BlobStorage.freeHandle(ramBlobHandle);
         }
 
-        if (hdd != null) {
-            virtualMachine.board.removeDevice(hdd);
-            try {
-                hdd.close();
-            } catch (final IOException e) {
-                LOGGER.error(e);
-            }
-
-            hdd = null;
-        }
+        virtualMachine.vmAdapter.unload();
     }
 
     private void stopRunnerAndUnloadDevices() {

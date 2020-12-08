@@ -24,7 +24,7 @@ public final class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
     private final TileEntity tileEntity;
 
     private final ArrayList<HashSet<Device>> sidedDevices = new ArrayList<>(6);
-    @Serialized private UUID[] sidedDeviceIds = new UUID[NEIGHBOR_COUNT];
+    @Serialized private final UUID[] sidedDeviceIds = new UUID[NEIGHBOR_COUNT];
 
     public TileEntityDeviceBusElement(final TileEntity tileEntity) {
         this.tileEntity = tileEntity;

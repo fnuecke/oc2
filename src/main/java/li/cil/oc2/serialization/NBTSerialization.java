@@ -7,6 +7,7 @@ import li.cil.ceres.api.SerializationVisitor;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.StringNBT;
 import org.jetbrains.annotations.Contract;
 
 import javax.annotation.Nullable;
@@ -94,65 +95,89 @@ public final class NBTSerialization {
                 return;
             }
 
-            if (type == boolean[].class) {
-                final boolean[] data = (boolean[]) value;
-                final byte[] convertedData = new byte[data.length];
-                for (int i = 0; i < data.length; i++) {
-                    convertedData[i] = data[i] ? (byte) 1 : (byte) 0;
-                }
-                nbt.putByteArray(name, convertedData);
-            } else if (type == byte[].class) {
-                nbt.putByteArray(name, (byte[]) value);
-            } else if (type == char[].class) {
-                final char[] data = (char[]) value;
-                final int[] convertedData = new int[data.length];
-                for (int i = 0; i < data.length; i++) {
-                    convertedData[i] = data[i];
-                }
-                nbt.putIntArray(name, convertedData);
-            } else if (type == short[].class) {
-                final short[] data = (short[]) value;
-                final int[] convertedData = new int[data.length];
-                for (int i = 0; i < data.length; i++) {
-                    convertedData[i] = data[i];
-                }
-                nbt.putIntArray(name, convertedData);
-            } else if (type == int[].class) {
-                nbt.putIntArray(name, (int[]) value);
-            } else if (type == long[].class) {
-                nbt.putLongArray(name, (long[]) value);
-            } else if (type == float[].class) {
-                final float[] data = (float[]) value;
-                final int[] convertedData = new int[data.length];
-                for (int i = 0; i < data.length; i++) {
-                    convertedData[i] = Float.floatToRawIntBits(data[i]);
-                }
-                nbt.putIntArray(name, convertedData);
-            } else if (type == double[].class) {
-                final double[] data = (double[]) value;
-                final long[] convertedData = new long[data.length];
-                for (int i = 0; i < data.length; i++) {
-                    convertedData[i] = Double.doubleToRawLongBits(data[i]);
-                }
-                nbt.putLongArray(name, convertedData);
-            } else if (type.isArray()) {
+            if (type.isArray()) {
                 final Class<?> componentType = type.getComponentType();
-                final li.cil.ceres.api.Serializer<?> serializer = Ceres.getSerializer(componentType);
-                final Object[] data = (Object[]) value;
-                final ListNBT listNBT = new ListNBT();
-                for (final Object datum : data) {
-                    final CompoundNBT itemNBT = new CompoundNBT();
-                    if (datum == null) {
-                        itemNBT.putBoolean(IS_NULL_KEY, true);
-                    } else {
-                        if (datum.getClass() != componentType) {
-                            throw new SerializationException(String.format("Polymorphism detected in generic array [%s]. This is not supported.", name));
-                        }
-                        serializer.serialize(new Serializer(itemNBT), (Class) componentType, datum);
+
+                if (componentType == boolean.class) {
+                    final boolean[] data = (boolean[]) value;
+                    final byte[] convertedData = new byte[data.length];
+                    for (int i = 0; i < data.length; i++) {
+                        convertedData[i] = data[i] ? (byte) 1 : (byte) 0;
                     }
-                    listNBT.add(itemNBT);
+                    nbt.putByteArray(name, convertedData);
+                } else if (componentType == byte.class) {
+                    nbt.putByteArray(name, (byte[]) value);
+                } else if (componentType == char.class) {
+                    final char[] data = (char[]) value;
+                    final int[] convertedData = new int[data.length];
+                    for (int i = 0; i < data.length; i++) {
+                        convertedData[i] = data[i];
+                    }
+                    nbt.putIntArray(name, convertedData);
+                } else if (componentType == short.class) {
+                    final short[] data = (short[]) value;
+                    final int[] convertedData = new int[data.length];
+                    for (int i = 0; i < data.length; i++) {
+                        convertedData[i] = data[i];
+                    }
+                    nbt.putIntArray(name, convertedData);
+                } else if (componentType == int.class) {
+                    nbt.putIntArray(name, (int[]) value);
+                } else if (componentType == long.class) {
+                    nbt.putLongArray(name, (long[]) value);
+                } else if (componentType == float.class) {
+                    final float[] data = (float[]) value;
+                    final int[] convertedData = new int[data.length];
+                    for (int i = 0; i < data.length; i++) {
+                        convertedData[i] = Float.floatToRawIntBits(data[i]);
+                    }
+                    nbt.putIntArray(name, convertedData);
+                } else if (componentType == double.class) {
+                    final double[] data = (double[]) value;
+                    final long[] convertedData = new long[data.length];
+                    for (int i = 0; i < data.length; i++) {
+                        convertedData[i] = Double.doubleToRawLongBits(data[i]);
+                    }
+                    nbt.putLongArray(name, convertedData);
+                } else if (componentType.isEnum()) {
+                    final Enum[] data = (Enum[]) value;
+                    final int[] convertedData = new int[data.length];
+                    for (int i = 0; i < data.length; i++) {
+                        convertedData[i] = data[i].ordinal();
+                    }
+                    nbt.putIntArray(name, convertedData);
+                } else if (componentType == UUID.class) {
+                    final UUID[] data = (UUID[]) value;
+                    final ListNBT list = new ListNBT();
+                    for (final UUID datum : data) {
+                        list.add(StringNBT.valueOf(datum.toString()));
+                    }
+                    nbt.put(name, list);
+                } else if (componentType == String.class) {
+                    final String[] data = (String[]) value;
+                    final ListNBT list = new ListNBT();
+                    for (final String datum : data) {
+                        list.add(StringNBT.valueOf(datum));
+                    }
+                    nbt.put(name, list);
+                } else {
+                    final li.cil.ceres.api.Serializer<?> serializer = Ceres.getSerializer(componentType);
+                    final Object[] data = (Object[]) value;
+                    final ListNBT listNBT = new ListNBT();
+                    for (final Object datum : data) {
+                        final CompoundNBT itemNBT = new CompoundNBT();
+                        if (datum == null) {
+                            itemNBT.putBoolean(IS_NULL_KEY, true);
+                        } else {
+                            if (datum.getClass() != componentType) {
+                                throw new SerializationException(String.format("Polymorphism detected in generic array [%s]. This is not supported.", name));
+                            }
+                            serializer.serialize(new Serializer(itemNBT), (Class) componentType, datum);
+                        }
+                        listNBT.add(itemNBT);
+                    }
+                    nbt.put(name, listNBT);
                 }
-                nbt.put(name, listNBT);
             } else if (type.isEnum()) {
                 nbt.putString(name, ((Enum) value).name());
             } else if (type == String.class) {
@@ -242,98 +267,131 @@ public final class NBTSerialization {
                 return into;
             }
 
-            if (type == boolean[].class) {
-                final byte[] convertedData = nbt.getByteArray(name);
-                boolean[] data = (boolean[]) into;
-                if (data == null || data.length != convertedData.length) {
-                    data = new boolean[convertedData.length];
-                }
-                for (int i = 0; i < convertedData.length; i++) {
-                    data[i] = convertedData[i] != 0;
-                }
-                return data;
-            } else if (type == byte[].class) {
-                final byte[] serializedData = nbt.getByteArray(name);
-                final byte[] data = (byte[]) into;
-                if (data == null || data.length != serializedData.length) {
-                    return serializedData;
-                }
-                System.arraycopy(serializedData, 0, data, 0, serializedData.length);
-                return data;
-            } else if (type == char[].class) {
-                final int[] convertedData = nbt.getIntArray(name);
-                char[] data = (char[]) into;
-                if (data == null || data.length != convertedData.length) {
-                    data = new char[convertedData.length];
-                }
-                for (int i = 0; i < convertedData.length; i++) {
-                    data[i] = (char) convertedData[i];
-                }
-                return data;
-            } else if (type == short[].class) {
-                final int[] convertedData = nbt.getIntArray(name);
-                short[] data = (short[]) into;
-                if (data == null || data.length != convertedData.length) {
-                    data = new short[convertedData.length];
-                }
-                for (int i = 0; i < convertedData.length; i++) {
-                    data[i] = (short) convertedData[i];
-                }
-                return data;
-            } else if (type == int[].class) {
-                final int[] serializedData = nbt.getIntArray(name);
-                final int[] data = (int[]) into;
-                if (data == null || data.length != serializedData.length) {
-                    return serializedData;
-                }
-                System.arraycopy(serializedData, 0, data, 0, serializedData.length);
-                return data;
-            } else if (type == long[].class) {
-                final long[] serializedData = nbt.getLongArray(name);
-                final long[] data = (long[]) into;
-                if (data == null || data.length != serializedData.length) {
-                    return serializedData;
-                }
-                System.arraycopy(serializedData, 0, data, 0, serializedData.length);
-                return data;
-            } else if (type == float[].class) {
-                final int[] convertedData = nbt.getIntArray(name);
-                float[] data = (float[]) into;
-                if (data == null || data.length != convertedData.length) {
-                    data = new float[convertedData.length];
-                }
-                for (int i = 0; i < convertedData.length; i++) {
-                    data[i] = Float.intBitsToFloat(convertedData[i]);
-                }
-                return data;
-            } else if (type == double[].class) {
-                final long[] convertedData = nbt.getLongArray(name);
-                double[] data = (double[]) into;
-                if (data == null || data.length != convertedData.length) {
-                    data = new double[convertedData.length];
-                }
-                for (int i = 0; i < convertedData.length; i++) {
-                    data[i] = Double.longBitsToDouble(convertedData[i]);
-                }
-                return data;
-            } else if (type.isArray()) {
+            if (type.isArray()) {
                 final Class<?> componentType = type.getComponentType();
-                final li.cil.ceres.api.Serializer<?> serializer = Ceres.getSerializer(componentType);
-                final ListNBT listNBT = nbt.getList(name, NBTTagIds.TAG_COMPOUND);
-                final int length = listNBT.size();
-                Object[] data = (Object[]) into;
-                if (data == null || data.length != length) {
-                    data = (Object[]) Array.newInstance(componentType, length);
-                }
-                for (int i = 0; i < length; i++) {
-                    final CompoundNBT itemNBT = listNBT.getCompound(i);
-                    if (itemNBT.contains(IS_NULL_KEY)) {
-                        continue;
-                    }
 
-                    data[i] = serializer.deserialize(new Deserializer(itemNBT), (Class) componentType, data[i]);
+                if (componentType == boolean.class) {
+                    final byte[] convertedData = nbt.getByteArray(name);
+                    boolean[] data = (boolean[]) into;
+                    if (data == null || data.length != convertedData.length) {
+                        data = new boolean[convertedData.length];
+                    }
+                    for (int i = 0; i < convertedData.length; i++) {
+                        data[i] = convertedData[i] != 0;
+                    }
+                    return data;
+                } else if (componentType == byte.class) {
+                    final byte[] serializedData = nbt.getByteArray(name);
+                    final byte[] data = (byte[]) into;
+                    if (data == null || data.length != serializedData.length) {
+                        return serializedData;
+                    }
+                    System.arraycopy(serializedData, 0, data, 0, serializedData.length);
+                    return data;
+                } else if (componentType == char.class) {
+                    final int[] convertedData = nbt.getIntArray(name);
+                    char[] data = (char[]) into;
+                    if (data == null || data.length != convertedData.length) {
+                        data = new char[convertedData.length];
+                    }
+                    for (int i = 0; i < convertedData.length; i++) {
+                        data[i] = (char) convertedData[i];
+                    }
+                    return data;
+                } else if (componentType == short.class) {
+                    final int[] convertedData = nbt.getIntArray(name);
+                    short[] data = (short[]) into;
+                    if (data == null || data.length != convertedData.length) {
+                        data = new short[convertedData.length];
+                    }
+                    for (int i = 0; i < convertedData.length; i++) {
+                        data[i] = (short) convertedData[i];
+                    }
+                    return data;
+                } else if (componentType == int.class) {
+                    final int[] serializedData = nbt.getIntArray(name);
+                    final int[] data = (int[]) into;
+                    if (data == null || data.length != serializedData.length) {
+                        return serializedData;
+                    }
+                    System.arraycopy(serializedData, 0, data, 0, serializedData.length);
+                    return data;
+                } else if (componentType == long.class) {
+                    final long[] serializedData = nbt.getLongArray(name);
+                    final long[] data = (long[]) into;
+                    if (data == null || data.length != serializedData.length) {
+                        return serializedData;
+                    }
+                    System.arraycopy(serializedData, 0, data, 0, serializedData.length);
+                    return data;
+                } else if (componentType == float.class) {
+                    final int[] convertedData = nbt.getIntArray(name);
+                    float[] data = (float[]) into;
+                    if (data == null || data.length != convertedData.length) {
+                        data = new float[convertedData.length];
+                    }
+                    for (int i = 0; i < convertedData.length; i++) {
+                        data[i] = Float.intBitsToFloat(convertedData[i]);
+                    }
+                    return data;
+                } else if (componentType == double.class) {
+                    final long[] convertedData = nbt.getLongArray(name);
+                    double[] data = (double[]) into;
+                    if (data == null || data.length != convertedData.length) {
+                        data = new double[convertedData.length];
+                    }
+                    for (int i = 0; i < convertedData.length; i++) {
+                        data[i] = Double.longBitsToDouble(convertedData[i]);
+                    }
+                    return data;
+                } else if (componentType.isEnum()) {
+                    final int[] serializedData = nbt.getIntArray(name);
+                    Enum[] data = (Enum[]) into;
+                    if (data == null || data.length != serializedData.length) {
+                        data = (Enum[]) Array.newInstance(componentType, serializedData.length);
+                    }
+                    for (int i = 0; i < serializedData.length; i++) {
+                        data[i] = (Enum) componentType.getEnumConstants()[serializedData[i]];
+                    }
+                    return data;
+                } else if (componentType == String.class) {
+                    final ListNBT serializedData = nbt.getList(name, NBTTagIds.TAG_STRING);
+                    String[] data = (String[]) into;
+                    if (data == null || data.length != serializedData.size()) {
+                        data = new String[serializedData.size()];
+                    }
+                    for (int i = 0; i < serializedData.size(); i++) {
+                        data[i] = serializedData.getString(i);
+                    }
+                    return data;
+                } else if (componentType == UUID.class) {
+                    final ListNBT serializedData = nbt.getList(name, NBTTagIds.TAG_STRING);
+                    UUID[] data = (UUID[]) into;
+                    if (data == null || data.length != serializedData.size()) {
+                        data = new UUID[serializedData.size()];
+                    }
+                    for (int i = 0; i < serializedData.size(); i++) {
+                        data[i] = UUID.fromString(serializedData.getString(i));
+                    }
+                    return data;
+                } else {
+                    final li.cil.ceres.api.Serializer<?> serializer = Ceres.getSerializer(componentType);
+                    final ListNBT listNBT = nbt.getList(name, NBTTagIds.TAG_COMPOUND);
+                    final int length = listNBT.size();
+                    Object[] data = (Object[]) into;
+                    if (data == null || data.length != length) {
+                        data = (Object[]) Array.newInstance(componentType, length);
+                    }
+                    for (int i = 0; i < length; i++) {
+                        final CompoundNBT itemNBT = listNBT.getCompound(i);
+                        if (itemNBT.contains(IS_NULL_KEY)) {
+                            continue;
+                        }
+
+                        data[i] = serializer.deserialize(new Deserializer(itemNBT), (Class) componentType, data[i]);
+                    }
+                    return data;
                 }
-                return data;
             } else if (type.isEnum()) {
                 return Enum.valueOf((Class) type, nbt.getString(name));
             } else if (type == String.class) {

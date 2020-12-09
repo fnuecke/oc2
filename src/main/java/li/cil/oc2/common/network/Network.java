@@ -1,6 +1,10 @@
 package li.cil.oc2.common.network;
 
 import li.cil.oc2.api.API;
+import li.cil.oc2.common.network.message.ComputerBusStateMessage;
+import li.cil.oc2.common.network.message.ComputerRunStateMessage;
+import li.cil.oc2.common.network.message.TerminalBlockInputMessage;
+import li.cil.oc2.common.network.message.TerminalBlockOutputMessage;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkRegistry;
@@ -21,13 +25,13 @@ public final class Network {
         INSTANCE.messageBuilder(TerminalBlockOutputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(TerminalBlockOutputMessage::toBytes)
                 .decoder(TerminalBlockOutputMessage::new)
-                .consumer(TerminalBlockOutputMessage::handleOutput)
+                .consumer(TerminalBlockOutputMessage::handleMessage)
                 .add();
 
         INSTANCE.messageBuilder(TerminalBlockInputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
                 .encoder(TerminalBlockInputMessage::toBytes)
                 .decoder(TerminalBlockInputMessage::new)
-                .consumer(TerminalBlockInputMessage::handleInput)
+                .consumer(TerminalBlockInputMessage::handleMessage)
                 .add();
     }
 

@@ -1,4 +1,4 @@
-package li.cil.oc2.common.network;
+package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.tile.ComputerTileEntity;
 import net.minecraft.network.PacketBuffer;

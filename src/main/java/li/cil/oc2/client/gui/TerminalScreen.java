@@ -6,7 +6,7 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.client.gui.terminal.Terminal;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.common.network.Network;
-import li.cil.oc2.common.network.TerminalBlockInputMessage;
+import li.cil.oc2.common.network.message.TerminalBlockInputMessage;
 import li.cil.oc2.common.tile.ComputerTileEntity;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.ResourceLocation;

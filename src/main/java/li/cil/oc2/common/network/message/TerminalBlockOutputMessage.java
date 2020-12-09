@@ -1,5 +1,6 @@
-package li.cil.oc2.common.network;
+package li.cil.oc2.common.network.message;
 
+import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.tile.ComputerTileEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -16,7 +17,7 @@ public final class TerminalBlockOutputMessage extends AbstractTerminalBlockMessa
         super(buffer);
     }
 
-    public static boolean handleOutput(final AbstractTerminalBlockMessage message, final Supplier<NetworkEvent.Context> context) {
+    public static boolean handleMessage(final AbstractTerminalBlockMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
                 tileEntity -> tileEntity.getTerminal().putOutput(ByteBuffer.wrap(message.data))));
         return true;

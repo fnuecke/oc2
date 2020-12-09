@@ -60,6 +60,16 @@ public final class ComputerBlock extends HorizontalBlock {
 
     @SuppressWarnings("deprecation")
     @Override
+    public void neighborChanged(final BlockState state, final World world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
+        final TileEntity tileEntity = world.getTileEntity(pos);
+        if (tileEntity instanceof ComputerTileEntity) {
+            final ComputerTileEntity busCable = (ComputerTileEntity) tileEntity;
+            busCable.handleNeighborChanged(changedBlockPos);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
     public ActionResultType onBlockActivated(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
         final TileEntity tileEntity = world.getTileEntity(pos);
         if (!(tileEntity instanceof ComputerTileEntity)) {

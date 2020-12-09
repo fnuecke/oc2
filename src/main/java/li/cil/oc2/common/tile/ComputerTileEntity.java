@@ -30,9 +30,11 @@ import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -58,7 +60,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
 
-    private enum RunState {
+    public enum RunState {
         STOPPED,
         LOADING_DEVICES,
         RUNNING,
@@ -110,7 +112,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             return;
         }
 
-        runState = RunState.LOADING_DEVICES;
+        setRunState(RunState.LOADING_DEVICES);
         loadDevicesDelay = 0;
     }
 
@@ -120,15 +122,39 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         if (runState == RunState.LOADING_DEVICES) {
-            runState = RunState.STOPPED;
+            setRunState(RunState.STOPPED);
             return;
         }
 
         stopRunnerAndUnloadDevices();
     }
 
-    public boolean isRunning() {
-        return runner != null;
+    public TileEntityDeviceBusController.State getBusState() {
+        return busState;
+    }
+
+    public RunState getRunState() {
+        return runState;
+    }
+
+    public void handleNeighborChanged(final BlockPos pos) {
+        busElement.handleNeighborChanged(pos);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void setRunStateClient(final RunState value) {
+        final World world = getWorld();
+        if (world != null && world.isRemote()) {
+            runState = value;
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void setBusStateClient(final TileEntityDeviceBusController.State value) {
+        final World world = getWorld();
+        if (world != null && world.isRemote()) {
+            busState = value;
+        }
     }
 
     @Override
@@ -168,7 +194,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                     runner = new ConsoleRunner(virtualMachine);
                 }
 
-                runState = RunState.RUNNING;
+                setRunState(RunState.RUNNING);
 
                 // Only start running next tick. This gives loaded devices one tick to do async
                 // initialization. This is used by RAM to restore data from disk, for example.
@@ -188,6 +214,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     @Override
     protected void initializeClient() {
         super.initializeClient();
+
         terminal.setDisplayOnly(true);
     }
 
@@ -195,6 +222,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     protected void initializeServer() {
         super.initializeServer();
 
+        busElement.initialize();
         ServerScheduler.schedule(() -> chunk = requireNonNull(getWorld()).getChunkAt(getPos()));
     }
 
@@ -212,6 +240,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         result.put(TERMINAL_NBT_TAG_NAME, NBTSerialization.serialize(terminal));
         result.putInt(BUS_STATE_NBT_TAG_NAME, busState.ordinal());
+        result.putInt(RUN_STATE_NBT_TAG_NAME, runState.ordinal());
 
         return result;
     }
@@ -222,6 +251,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_NBT_TAG_NAME), terminal);
         busState = TileEntityDeviceBusController.State.values()[tag.getInt(BUS_STATE_NBT_TAG_NAME)];
+        runState = RunState.values()[tag.getInt(RUN_STATE_NBT_TAG_NAME)];
     }
 
     @Override
@@ -283,7 +313,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             runState = RunState.LOADING_DEVICES;
         } else {
             runState = NBTUtils.getEnum(compound, RUN_STATE_NBT_TAG_NAME, RunState.class);
-            if (runState == RunState.RUNNING) {
+            if (runState == null) {
+                runState = RunState.STOPPED;
+            } else if (runState == RunState.RUNNING) {
                 runState = RunState.LOADING_DEVICES;
             }
         }
@@ -349,10 +381,30 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         virtualMachine.vmAdapter.unload();
     }
 
+    private void setBusState(final TileEntityDeviceBusController.State value) {
+        if (value == busState) {
+            return;
+        }
+
+        busState = value;
+
+        Network.sendToClientsTrackingChunk(new ComputerBusStateMessage(this), chunk);
+    }
+
+    private void setRunState(final RunState value) {
+        if (value == runState) {
+            return;
+        }
+
+        runState = value;
+
+        Network.sendToClientsTrackingChunk(new ComputerRunStateMessage(this), chunk);
+    }
+
     private void stopRunnerAndUnloadDevices() {
         joinVirtualMachine();
         runner = null;
-        runState = RunState.STOPPED;
+        setRunState(RunState.STOPPED);
 
         unloadDevices();
         virtualMachine.reset();
@@ -467,8 +519,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                 terminal.putOutput(output);
 
                 output.flip();
-                final TerminalBlockOutputMessage message = new TerminalBlockOutputMessage(ComputerTileEntity.this, output);
-                Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
+                Network.sendToClientsTrackingChunk(
+                        new TerminalBlockOutputMessage(ComputerTileEntity.this, output), chunk);
             }
         }
     }

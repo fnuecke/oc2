@@ -6,8 +6,10 @@ import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.TerminalBlockInputMessage;
 import li.cil.oc2.common.network.message.TerminalBlockOutputMessage;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 
 public final class Network {
@@ -33,6 +35,22 @@ public final class Network {
                 .decoder(TerminalBlockInputMessage::new)
                 .consumer(TerminalBlockInputMessage::handleMessage)
                 .add();
+
+        INSTANCE.messageBuilder(ComputerRunStateMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ComputerRunStateMessage::toBytes)
+                .decoder(ComputerRunStateMessage::new)
+                .consumer(ComputerRunStateMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(ComputerBusStateMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ComputerBusStateMessage::toBytes)
+                .decoder(ComputerBusStateMessage::new)
+                .consumer(ComputerBusStateMessage::handleMessage)
+                .add();
+    }
+
+    public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {
+        Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
     }
 
     private static int getNextPacketId() {

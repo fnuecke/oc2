@@ -115,11 +115,37 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         stack.translate(0, 0, -0.1f);
         final Matrix4f matrix = stack.getLast().getMatrix();
 
-        // TODO Sync power state and status change and check if LEDs should be on.
-//        drawQuad(matrix, TEXTURE_STATUS.getBuffer(buffer, OpenComputersRenderState::getEmissiveBlock));
-        drawQuad(matrix, TEXTURE_POWER.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
+        switch (tileEntity.getBusState()) {
+            case SCAN_PENDING:
+            case INCOMPLETE:
+                break;
+            case TOO_COMPLEX:
+                drawPulsingStatus(matrix, buffer, 500);
+                break;
+            case MULTIPLE_CONTROLLERS:
+                drawPulsingStatus(matrix, buffer, 250);
+                break;
+            case READY:
+                switch (tileEntity.getRunState()) {
+                    case STOPPED:
+                        break;
+                    case LOADING_DEVICES:
+                        drawPulsingStatus(matrix, buffer, 1000);
+                        break;
+                    case RUNNING:
+                        drawQuad(matrix, TEXTURE_POWER.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
+                        break;
+                }
+                break;
+        }
 
         stack.pop();
+    }
+
+    private void drawPulsingStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer, final int frequency) {
+        if ((((System.currentTimeMillis() + hashCode()) / frequency) % 2) == 1) {
+            drawQuad(matrix, TEXTURE_STATUS.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
+        }
     }
 
     private static void drawQuad(final Matrix4f matrix, final IVertexBuilder buffer) {

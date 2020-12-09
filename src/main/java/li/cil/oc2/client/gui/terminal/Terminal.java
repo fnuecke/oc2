@@ -519,7 +519,7 @@ public final class Terminal {
             validateLineCache(dirty, stack);
             renderBuffer();
 
-            if (System.currentTimeMillis() % 1000 > 500) {
+            if ((System.currentTimeMillis() + terminal.hashCode()) % 1000 > 500) {
                 renderCursor(stack);
             }
         }

@@ -64,13 +64,15 @@ public class DeviceBusTests {
 
     @Test
     public void scanPendingWhenTileEntityNotLoaded() {
-        assertEquals(TileEntityDeviceBusController.State.SCAN_PENDING, busController.scan());
+        busController.scan();
+        assertEquals(TileEntityDeviceBusController.State.INCOMPLETE, busController.getState());
     }
 
     @Test
     public void scanCompletesWhenNoNeighbors() {
         when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);
-        assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
+        busController.scan();
+        assertEquals(TileEntityDeviceBusController.State.READY, busController.getState());
     }
 
     @Test
@@ -80,7 +82,8 @@ public class DeviceBusTests {
         final RPCDevice device = mock(RPCDevice.class);
         when(busControllerBusElement.getLocalDevices()).thenReturn(singletonList(device));
 
-        assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
+        busController.scan();
+        assertEquals(TileEntityDeviceBusController.State.READY, busController.getState());
 
         verify(busControllerBusElement).addController(busController);
         assertTrue(busController.getDevices().contains(device));
@@ -93,7 +96,8 @@ public class DeviceBusTests {
         final DeviceBusElement busElement1 = mockBusElement(CONTROLLER_POS.west());
         final DeviceBusElement busElement2 = mockBusElement(CONTROLLER_POS.west().west());
 
-        assertEquals(TileEntityDeviceBusController.State.READY, busController.scan());
+        busController.scan();
+        assertEquals(TileEntityDeviceBusController.State.READY, busController.getState());
 
         verify(busElement1).addController(busController);
         verify(busElement2).addController(busController);

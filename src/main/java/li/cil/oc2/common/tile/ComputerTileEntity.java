@@ -138,7 +138,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             return;
         }
 
-        busState = busController.scan();
+        busController.scan();
+        setBusState(busController.getState());
         if (busState != TileEntityDeviceBusController.State.READY) {
             return;
         }

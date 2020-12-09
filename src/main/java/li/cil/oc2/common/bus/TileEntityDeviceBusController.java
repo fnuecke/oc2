@@ -18,12 +18,16 @@ import static java.util.Collections.emptySet;
 public abstract class TileEntityDeviceBusController implements DeviceBusController {
     public enum State {
         SCAN_PENDING,
+        INCOMPLETE,
         TOO_COMPLEX,
         MULTIPLE_CONTROLLERS,
         READY,
     }
 
     private static final int MAX_BUS_ELEMENT_COUNT = 128;
+    private static final int TICKS_PER_SECOND = 20;
+    private static final int INCOMPLETE_RETRY_INTERVAL = 10;
+    private static final int TOO_COMPLEX_RETRY_INTERVAL = 5;
 
     private final TileEntity tileEntity;
 
@@ -31,6 +35,7 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
     private final HashSet<Device> devices = new HashSet<>();
     private final HashMap<Device, Set<UUID>> deviceIds = new HashMap<>();
 
+    private State state = State.SCAN_PENDING;
     private int scanDelay;
 
     protected TileEntityDeviceBusController(final TileEntity tileEntity) {
@@ -41,6 +46,10 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
     }
 
     protected void onDevicesValid() {
+    }
+
+    public State getState() {
+        return state;
     }
 
     @Override
@@ -56,6 +65,7 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
         deviceIds.clear();
 
         scanDelay = 0; // scan as soon as possible
+        state = State.SCAN_PENDING;
     }
 
     @Override
@@ -86,20 +96,21 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
         return deviceIds.getOrDefault(device, emptySet());
     }
 
-    public State scan() {
+    public void scan() {
         if (scanDelay < 0) {
-            return State.READY;
+            return;
         }
 
         if (scanDelay-- > 0) {
-            return State.SCAN_PENDING;
+            return;
         }
 
         assert scanDelay == -1;
 
         final World world = tileEntity.getWorld();
         if (world == null || world.isRemote()) {
-            return State.SCAN_PENDING;
+            scanDelay = 0;
+            return;
         }
 
         final Stack<ScanEdge> queue = new Stack<>();
@@ -125,9 +136,10 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
             if (!world.chunkExists(chunkPos.x, chunkPos.z)) {
                 // If we have an unloaded chunk neighbor we cannot know whether our neighbor in that
                 // chunk would cause a scan once it is loaded, so we'll just retry every so often.
-                scanDelay = 20;
+                scanDelay = INCOMPLETE_RETRY_INTERVAL * TICKS_PER_SECOND;
+                state = State.INCOMPLETE;
                 elements.clear();
-                return State.SCAN_PENDING;
+                return;
             }
 
             final TileEntity tileEntity = world.getTileEntity(edge.position);
@@ -148,7 +160,9 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
             if (capability.isPresent()) {
                 if (busPositions.add(edge.position) && busPositions.size() > MAX_BUS_ELEMENT_COUNT) {
                     elements.clear();
-                    return State.TOO_COMPLEX; // This return is the reason this is not in the ifPresent below.
+                    scanDelay = TOO_COMPLEX_RETRY_INTERVAL * TICKS_PER_SECOND;
+                    state = State.TOO_COMPLEX;
+                    return; // This return is the reason this is not in the ifPresent below.
                 }
             }
 
@@ -180,12 +194,13 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
         }
 
         if (hasMultipleControllers) {
-            return State.MULTIPLE_CONTROLLERS;
+            state = State.MULTIPLE_CONTROLLERS;
+            return;
         }
 
         scanDevices();
 
-        return State.READY;
+        state = State.READY;
     }
 
     private static final class ScanEdge {

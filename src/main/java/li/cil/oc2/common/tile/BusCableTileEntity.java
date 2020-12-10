@@ -1,11 +1,14 @@
 package li.cil.oc2.common.tile;
 
 import li.cil.oc2.OpenComputers;
+import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.serialization.NBTSerialization;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.state.EnumProperty;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 
 public class BusCableTileEntity extends AbstractTileEntity {
@@ -16,7 +19,7 @@ public class BusCableTileEntity extends AbstractTileEntity {
     public BusCableTileEntity() {
         super(OpenComputers.BUS_CABLE_TILE_ENTITY.get());
 
-        busElement = new TileEntityDeviceBusElement(this);
+        busElement = new BusElement();
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
     }
 
@@ -47,5 +50,18 @@ public class BusCableTileEntity extends AbstractTileEntity {
     public void read(final BlockState state, final CompoundNBT compound) {
         super.read(state, compound);
         NBTSerialization.deserialize(compound.getCompound(BUS_ELEMENT_NBT_TAG_NAME), busElement);
+    }
+
+    private final class BusElement extends TileEntityDeviceBusElement {
+        public BusElement() {
+            super(BusCableTileEntity.this);
+        }
+
+        @Override
+        protected boolean canConnectToSide(final Direction direction) {
+            final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(direction);
+            final BusCableBlock.ConnectionType connectionType = getBlockState().get(property);
+            return connectionType == BusCableBlock.ConnectionType.PLUG;
+        }
     }
 }

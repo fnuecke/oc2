@@ -18,7 +18,7 @@ import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 
-public final class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
+public class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
     private static final int NEIGHBOR_COUNT = 6;
 
     private final TileEntity tileEntity;
@@ -33,6 +33,10 @@ public final class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
             sidedDevices.add(new HashSet<>());
             sidedDeviceIds[i] = UUID.randomUUID();
         }
+    }
+
+    protected boolean canConnectToSide(final Direction direction) {
+        return true;
     }
 
     @Override
@@ -60,9 +64,11 @@ public final class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
         final int index = direction.getIndex();
 
         final HashSet<Device> newDevices = new HashSet<>();
-        for (final LazyOptional<Device> device : Providers.getDevices(world, pos, direction)) {
-            device.ifPresent(newDevices::add);
-            device.addListener(unused -> handleNeighborChanged(pos));
+        if (canConnectToSide(direction)) {
+            for (final LazyOptional<Device> device : Providers.getDevices(world, pos, direction)) {
+                device.ifPresent(newDevices::add);
+                device.addListener(unused -> handleNeighborChanged(pos));
+            }
         }
 
         final HashSet<Device> devicesOnSide = sidedDevices.get(index);

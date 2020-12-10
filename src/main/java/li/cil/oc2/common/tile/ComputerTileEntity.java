@@ -5,6 +5,7 @@ import li.cil.ceres.api.Serialized;
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.client.gui.terminal.Terminal;
 import li.cil.oc2.common.ServerScheduler;
+import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -30,13 +31,17 @@ import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
@@ -87,7 +92,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     public ComputerTileEntity() {
         super(OpenComputers.COMPUTER_TILE_ENTITY.get());
 
-        busElement = new TileEntityDeviceBusElement(this);
+        busElement = new BusElement();
         busController = new BusController();
         busState = TileEntityDeviceBusController.State.SCAN_PENDING;
         runState = RunState.STOPPED;
@@ -155,6 +160,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         if (world != null && world.isRemote()) {
             busState = value;
         }
+    }
+
+    @Override
+    public @NotNull <T> LazyOptional<T> getCapability(final @NotNull Capability<T> capability, @Nullable final Direction side) {
+        if (side == getBlockState().get(ComputerBlock.HORIZONTAL_FACING)) {
+            return LazyOptional.empty();
+        }
+
+        return super.getCapability(capability, side);
     }
 
     @Override
@@ -445,6 +459,17 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         @Override
         protected void onDevicesValid() {
             virtualMachine.rpcAdapter.resume();
+        }
+    }
+
+    private class BusElement extends TileEntityDeviceBusElement {
+        public BusElement() {
+            super(ComputerTileEntity.this);
+        }
+
+        @Override
+        protected boolean canConnectToSide(final Direction direction) {
+            return getBlockState().get(ComputerBlock.HORIZONTAL_FACING) != direction;
         }
     }
 

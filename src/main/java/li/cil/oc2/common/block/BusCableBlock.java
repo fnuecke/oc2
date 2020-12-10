@@ -9,17 +9,19 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
+import net.minecraft.item.ItemStack;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.Util;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
@@ -101,6 +103,21 @@ public class BusCableBlock extends Block {
         }
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
+    public ActionResultType onBlockActivated(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
+        final ItemStack heldItem = player.getHeldItem(hand);
+        if (Block.getBlockFromItem(heldItem.getItem()) == this) {
+            return ActionResultType.PASS;
+        }
+
+        final Vector3d localHitPos = hit.getHitVec().subtract(Vector3d.copyCentered(pos));
+        if (!tryTogglePlug(state, world, pos, Direction.getFacingFromVector(localHitPos.x, localHitPos.y, localHitPos.z))) {
+            tryTogglePlug(state, world, pos, hit.getFace());
+        }
+        return ActionResultType.SUCCESS;
+    }
+
     @Nullable
     @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
@@ -116,8 +133,6 @@ public class BusCableBlock extends Block {
             }
         }
 
-        // todo grab tile entity, check for plugs
-
         return state;
     }
 
@@ -126,11 +141,9 @@ public class BusCableBlock extends Block {
     public BlockState updatePostPlacement(BlockState state, final Direction facing, final BlockState facingState, final IWorld world, final BlockPos currentPos, final BlockPos facingPos) {
         if (canConnectTo(world, facing, facingState, facingPos)) {
             state = state.with(FACING_TO_CONNECTION_MAP.get(facing), ConnectionType.LINK);
-        } else {
+        } else if (state.get(FACING_TO_CONNECTION_MAP.get(facing)) != ConnectionType.PLUG) {
             state = state.with(FACING_TO_CONNECTION_MAP.get(facing), ConnectionType.NONE);
         }
-
-        // todo check if there's a plug on this side
 
         return state;
     }
@@ -199,5 +212,24 @@ public class BusCableBlock extends Block {
         }
 
         return tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, facing.getOpposite()).isPresent();
+    }
+
+    private boolean tryTogglePlug(final BlockState state, final World world, final BlockPos pos, final Direction face) {
+        final EnumProperty<ConnectionType> property = FACING_TO_CONNECTION_MAP.get(face);
+        if (state.get(property) == ConnectionType.NONE) {
+            world.setBlockState(pos, state.with(property, ConnectionType.PLUG));
+        } else if (state.get(property) == ConnectionType.PLUG) {
+            world.setBlockState(pos, state.with(property, ConnectionType.NONE));
+        } else {
+            return false;
+        }
+
+        final TileEntity tileEntity = world.getTileEntity(pos);
+        if (tileEntity instanceof BusCableTileEntity) {
+            final BusCableTileEntity busCable = (BusCableTileEntity) tileEntity;
+            busCable.handleNeighborChanged(pos.offset(face));
+        }
+
+        return true;
     }
 }

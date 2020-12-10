@@ -5,13 +5,13 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
+import net.minecraft.world.IWorld;
 
 import javax.annotation.Nullable;
 
 public final class WorldUtils {
     @Nullable
-    public static TileEntity getTileEntityIfChunkExists(final World world, final BlockPos pos) {
+    public static TileEntity getTileEntityIfChunkExists(final IWorld world, final BlockPos pos) {
         final ChunkPos chunkPos = new ChunkPos(pos);
         if (!world.chunkExists(chunkPos.x, chunkPos.z)) {
             return null;
@@ -21,7 +21,7 @@ public final class WorldUtils {
     }
 
     @Nullable
-    public static String getBlockName(final World world, final BlockPos pos) {
+    public static String getBlockName(final IWorld world, final BlockPos pos) {
         final ChunkPos chunkPos = new ChunkPos(pos);
         if (!world.chunkExists(chunkPos.x, chunkPos.z)) {
             return null;

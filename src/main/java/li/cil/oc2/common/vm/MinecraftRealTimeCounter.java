@@ -1,4 +1,4 @@
-package li.cil.oc2.common.vm.device;
+package li.cil.oc2.common.vm;
 
 import li.cil.sedna.api.device.rtc.RealTimeCounter;
 import net.minecraft.world.World;

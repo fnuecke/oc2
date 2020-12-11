@@ -7,7 +7,7 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.client.gui.terminal.Terminal;
 import li.cil.oc2.client.render.OpenComputersRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
-import li.cil.oc2.common.tile.ComputerTileEntity;
+import li.cil.oc2.common.block.entity.ComputerTileEntity;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.model.RenderMaterial;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;

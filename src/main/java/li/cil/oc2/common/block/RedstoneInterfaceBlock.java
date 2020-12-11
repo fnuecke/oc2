@@ -1,7 +1,7 @@
 package li.cil.oc2.common.block;
 
 import li.cil.oc2.OpenComputers;
-import li.cil.oc2.common.tile.RedstoneInterfaceTileEntity;
+import li.cil.oc2.common.block.entity.RedstoneInterfaceTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalBlock;

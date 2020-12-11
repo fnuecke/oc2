@@ -1,4 +1,4 @@
-package li.cil.oc2.common.tile;
+package li.cil.oc2.common.block.entity;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
@@ -13,9 +13,9 @@ import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.TerminalBlockOutputMessage;
-import li.cil.oc2.common.tile.computer.VirtualMachine;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
 import li.cil.oc2.serialization.BlobStorage;
 import li.cil.oc2.serialization.NBTSerialization;

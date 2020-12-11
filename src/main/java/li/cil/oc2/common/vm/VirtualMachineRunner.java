@@ -1,7 +1,6 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
-import li.cil.oc2.common.tile.computer.VirtualMachine;
 import li.cil.sedna.riscv.R5Board;
 
 import java.util.concurrent.ExecutionException;

@@ -1,4 +1,4 @@
-package li.cil.oc2.common.tile;
+package li.cil.oc2.common.block.entity;
 
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.common.block.BusCableBlock;

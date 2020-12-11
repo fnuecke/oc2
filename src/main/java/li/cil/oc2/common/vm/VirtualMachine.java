@@ -1,10 +1,8 @@
-package li.cil.oc2.common.tile.computer;
+package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.common.bus.RPCAdapter;
-import li.cil.oc2.common.vm.VirtualMachineDeviceBusAdapter;
-import li.cil.oc2.common.vm.device.MinecraftRealTimeCounter;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import li.cil.sedna.device.rtc.GoldfishRTC;

@@ -1,4 +1,4 @@
-package li.cil.oc2.common.tile;
+package li.cil.oc2.common.block.entity;
 
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;

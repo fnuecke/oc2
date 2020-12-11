@@ -2,8 +2,8 @@ package li.cil.oc2.common.block;
 
 import com.google.common.collect.Maps;
 import li.cil.oc2.OpenComputers;
+import li.cil.oc2.common.block.entity.BusCableTileEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.tile.BusCableTileEntity;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -29,7 +29,7 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public class BusCableBlock extends Block {
+public final class BusCableBlock extends Block {
     public enum ConnectionType implements IStringSerializable {
         NONE,
         LINK,

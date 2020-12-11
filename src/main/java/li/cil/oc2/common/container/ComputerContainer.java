@@ -1,7 +1,7 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.OpenComputers;
-import li.cil.oc2.common.tile.ComputerTileEntity;
+import li.cil.oc2.common.block.entity.ComputerTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.util.IWorldPosCallable;

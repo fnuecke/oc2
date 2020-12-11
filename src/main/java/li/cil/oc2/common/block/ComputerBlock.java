@@ -2,8 +2,8 @@ package li.cil.oc2.common.block;
 
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.client.gui.TerminalScreen;
+import li.cil.oc2.common.block.entity.ComputerTileEntity;
 import li.cil.oc2.common.container.ComputerContainer;
-import li.cil.oc2.common.tile.ComputerTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalBlock;

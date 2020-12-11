@@ -51,17 +51,19 @@ public final class TerminalScreen extends Screen {
         requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND);
         blit(matrixStack, windowLeft, windowTop, 0, 0, windowWidth, windowHeight, TEXTURE_SIZE, TEXTURE_SIZE);
 
-        if (isMouseOverTerminal) {
+        if (isMouseOverTerminal && tileEntity.isRunning()) {
             requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND_TERMINAL_FOCUSED);
             blit(matrixStack, windowLeft, windowTop, 0, 0, windowWidth, windowHeight, TEXTURE_SIZE, TEXTURE_SIZE);
         }
 
         super.render(matrixStack, mouseX, mouseY, partialTicks);
 
-        final MatrixStack stack = new MatrixStack();
-        stack.translate(windowLeft + TERMINAL_AREA_X, windowTop + TERMINAL_AREA_Y, this.itemRenderer.zLevel);
-        stack.scale(TERMINAL_AREA_WIDTH / (float) terminal.getWidth(), TERMINAL_AREA_HEIGHT / (float) terminal.getHeight(), 1f);
-        terminal.render(stack);
+        if (tileEntity.isRunning()) {
+            final MatrixStack stack = new MatrixStack();
+            stack.translate(windowLeft + TERMINAL_AREA_X, windowTop + TERMINAL_AREA_Y, this.itemRenderer.zLevel);
+            stack.scale(TERMINAL_AREA_WIDTH / (float) terminal.getWidth(), TERMINAL_AREA_HEIGHT / (float) terminal.getHeight(), 1f);
+            terminal.render(stack);
+        }
     }
 
     @Override
@@ -87,7 +89,7 @@ public final class TerminalScreen extends Screen {
 
     @Override
     public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
-        if (!isMouseOverTerminal && keyCode == GLFW.GLFW_KEY_ESCAPE) {
+        if ((!isMouseOverTerminal || !tileEntity.isRunning()) && keyCode == GLFW.GLFW_KEY_ESCAPE) {
             return super.keyPressed(keyCode, scanCode, modifiers);
         }
 

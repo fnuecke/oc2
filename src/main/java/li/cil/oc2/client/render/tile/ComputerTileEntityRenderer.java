@@ -74,6 +74,41 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         final float pixelScale = 1 / 16f;
         stack.scale(pixelScale, pixelScale, pixelScale);
 
+        if (tileEntity.isRunning()) {
+            renderTerminal(tileEntity, stack, buffer, cameraPosition);
+        }
+
+        stack.translate(0, 0, -0.1f);
+        final Matrix4f matrix = stack.getLast().getMatrix();
+
+        switch (tileEntity.getBusState()) {
+            case SCAN_PENDING:
+            case INCOMPLETE:
+                break;
+            case TOO_COMPLEX:
+                drawPulsingStatus(matrix, buffer, 500);
+                break;
+            case MULTIPLE_CONTROLLERS:
+                drawPulsingStatus(matrix, buffer, 250);
+                break;
+            case READY:
+                switch (tileEntity.getRunState()) {
+                    case STOPPED:
+                        break;
+                    case LOADING_DEVICES:
+                        drawPulsingStatus(matrix, buffer, 1000);
+                        break;
+                    case RUNNING:
+                        drawPower(matrix, buffer);
+                        break;
+                }
+                break;
+        }
+
+        stack.pop();
+    }
+
+    private void renderTerminal(final ComputerTileEntity tileEntity, final MatrixStack stack, final IRenderTypeBuffer buffer, final Vector3d cameraPosition) {
         // Render terminal content if close enough.
         if (Vector3d.copyCentered(tileEntity.getPos()).isWithinDistanceOf(cameraPosition, 6f * 6f)) {
             stack.push();
@@ -111,41 +146,16 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
 
             stack.pop();
         }
-
-        stack.translate(0, 0, -0.1f);
-        final Matrix4f matrix = stack.getLast().getMatrix();
-
-        switch (tileEntity.getBusState()) {
-            case SCAN_PENDING:
-            case INCOMPLETE:
-                break;
-            case TOO_COMPLEX:
-                drawPulsingStatus(matrix, buffer, 500);
-                break;
-            case MULTIPLE_CONTROLLERS:
-                drawPulsingStatus(matrix, buffer, 250);
-                break;
-            case READY:
-                switch (tileEntity.getRunState()) {
-                    case STOPPED:
-                        break;
-                    case LOADING_DEVICES:
-                        drawPulsingStatus(matrix, buffer, 1000);
-                        break;
-                    case RUNNING:
-                        drawQuad(matrix, TEXTURE_POWER.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
-                        break;
-                }
-                break;
-        }
-
-        stack.pop();
     }
 
     private void drawPulsingStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer, final int frequency) {
         if ((((System.currentTimeMillis() + hashCode()) / frequency) % 2) == 1) {
             drawQuad(matrix, TEXTURE_STATUS.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
         }
+    }
+
+    private void drawPower(final Matrix4f matrix, final IRenderTypeBuffer buffer) {
+        drawQuad(matrix, TEXTURE_POWER.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
     }
 
     private static void drawQuad(final Matrix4f matrix, final IVertexBuilder buffer) {

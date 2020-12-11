@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 
 public class ComputerBusStateMessage {
     private BlockPos pos;
-    private TileEntityDeviceBusController.State busState;
+    private TileEntityDeviceBusController.BusState busState;
 
     public ComputerBusStateMessage(final ComputerTileEntity tileEntity) {
         this.pos = tileEntity.getPos();
@@ -30,7 +30,7 @@ public class ComputerBusStateMessage {
 
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
-        busState = buffer.readEnumValue(TileEntityDeviceBusController.State.class);
+        busState = buffer.readEnumValue(TileEntityDeviceBusController.BusState.class);
     }
 
     public static void toBytes(final ComputerBusStateMessage message, final PacketBuffer buffer) {

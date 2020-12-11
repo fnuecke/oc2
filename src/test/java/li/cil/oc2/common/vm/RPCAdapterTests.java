@@ -1,4 +1,4 @@
-package li.cil.oc2.vm;
+package li.cil.oc2.common.vm;
 
 import com.google.gson.*;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;

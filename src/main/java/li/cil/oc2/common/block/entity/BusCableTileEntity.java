@@ -4,7 +4,7 @@ import li.cil.oc2.OpenComputers;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.serialization.NBTSerialization;
+import li.cil.oc2.common.serialization.NBTSerialization;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.EnumProperty;

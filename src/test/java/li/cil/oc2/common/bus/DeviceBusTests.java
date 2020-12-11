@@ -1,8 +1,7 @@
-package li.cil.oc2.bus;
+package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;

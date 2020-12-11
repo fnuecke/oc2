@@ -10,10 +10,10 @@ import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCParameter;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
-import li.cil.oc2.serialization.serializers.MessageJsonDeserializer;
-import li.cil.oc2.serialization.serializers.MethodInvocationJsonDeserializer;
-import li.cil.oc2.serialization.serializers.RPCDeviceWithIdentifierJsonSerializer;
-import li.cil.oc2.serialization.serializers.RPCMethodJsonSerializer;
+import li.cil.oc2.common.serialization.serializers.MessageJsonDeserializer;
+import li.cil.oc2.common.serialization.serializers.MethodInvocationJsonDeserializer;
+import li.cil.oc2.common.serialization.serializers.RPCDeviceWithIdentifierJsonSerializer;
+import li.cil.oc2.common.serialization.serializers.RPCMethodJsonSerializer;
 import li.cil.sedna.api.device.Steppable;
 import li.cil.sedna.api.device.serial.SerialDevice;
 

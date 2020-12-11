@@ -1,4 +1,4 @@
-package li.cil.oc2.serialization;
+package li.cil.oc2.common.serialization;
 
 import li.cil.ceres.api.Serialized;
 import net.minecraft.nbt.CompoundNBT;

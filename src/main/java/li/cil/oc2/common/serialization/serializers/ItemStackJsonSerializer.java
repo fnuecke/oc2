@@ -1,10 +1,10 @@
-package li.cil.oc2.serialization.serializers;
+package li.cil.oc2.common.serialization.serializers;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import li.cil.oc2.serialization.NBTToJsonConverter;
+import li.cil.oc2.common.serialization.NBTToJsonConverter;
 import net.minecraft.item.ItemStack;
 
 import java.lang.reflect.Type;

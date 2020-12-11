@@ -1,4 +1,4 @@
-package li.cil.oc2.serialization;
+package li.cil.oc2.common.serialization;
 
 import com.google.common.collect.HashMultimap;
 import net.minecraft.server.MinecraftServer;

@@ -1,6 +1,6 @@
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package li.cil.oc2.serialization;
+package li.cil.oc2.common.serialization;
 
 import mcp.MethodsReturnNonnullByDefault;
 

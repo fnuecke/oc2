@@ -1,4 +1,4 @@
-package li.cil.oc2.serialization.serializers;
+package li.cil.oc2.common.serialization.serializers;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;

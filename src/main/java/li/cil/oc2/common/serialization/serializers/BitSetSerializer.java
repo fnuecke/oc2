@@ -1,4 +1,4 @@
-package li.cil.oc2.serialization.serializers;
+package li.cil.oc2.common.serialization.serializers;
 
 import li.cil.ceres.api.*;
 

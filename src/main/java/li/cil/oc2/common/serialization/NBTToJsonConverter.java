@@ -1,4 +1,4 @@
-package li.cil.oc2.serialization;
+package li.cil.oc2.common.serialization;
 
 import com.google.gson.*;
 import li.cil.oc2.common.util.NBTTagIds;

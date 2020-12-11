@@ -242,6 +242,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         super.initializeServer();
 
         busElement.initialize();
+        virtualMachine.rtc.setWorld(requireNonNull(getWorld()));
         ServerScheduler.schedule(() -> chunk = requireNonNull(getWorld()).getChunkAt(getPos()));
     }
 

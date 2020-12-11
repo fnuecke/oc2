@@ -1,6 +1,7 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
+import li.cil.oc2.common.tile.computer.VirtualMachine;
 import li.cil.sedna.riscv.R5Board;
 
 import java.util.concurrent.ExecutionException;
@@ -87,6 +88,6 @@ public class VirtualMachineRunner implements Runnable {
     }
 
     private int getCyclesPerTick() {
-        return board.getCpu().getFrequency() / TICKS_PER_SECOND;
+        return VirtualMachine.ACTUAL_CPU_FREQUENCY / TICKS_PER_SECOND;
     }
 }

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "oc2:block/redstone_interface"
+    },
+    "facing=south": {
+      "model": "oc2:block/redstone_interface",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "oc2:block/redstone_interface",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "oc2:block/redstone_interface",
+      "y": 90
+    }
+  }
+}

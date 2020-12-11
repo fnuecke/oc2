@@ -1,4 +1,4 @@
-package li.cil.oc2.common.device.provider;
+package li.cil.oc2.common.bus.device.provider.util;
 
 import javax.annotation.Nullable;
 import java.util.Objects;

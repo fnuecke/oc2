@@ -1,8 +1,8 @@
 package li.cil.oc2.common.capabilities;
 
+import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.api.bus.Device;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 
 import java.util.*;

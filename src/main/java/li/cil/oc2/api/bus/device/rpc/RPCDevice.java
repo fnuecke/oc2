@@ -2,7 +2,7 @@ package li.cil.oc2.api.bus.device.rpc;
 
 import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
-import li.cil.oc2.api.provider.DeviceProvider;
+import li.cil.oc2.api.bus.device.provider.DeviceProvider;
 
 import java.util.List;
 

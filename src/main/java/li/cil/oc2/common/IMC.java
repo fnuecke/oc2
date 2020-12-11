@@ -1,10 +1,10 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.api.API;
+import li.cil.oc2.api.bus.device.provider.DeviceProvider;
 import li.cil.oc2.api.imc.RPCMethodParameterTypeAdapter;
-import li.cil.oc2.api.provider.DeviceProvider;
-import li.cil.oc2.common.device.RPCMethodParameterTypeAdapters;
-import li.cil.oc2.common.device.provider.Providers;
+import li.cil.oc2.common.bus.device.provider.Providers;
+import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
 import net.minecraft.util.Util;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;

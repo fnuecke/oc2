@@ -1,11 +1,11 @@
-package li.cil.oc2.common.device.provider;
+package li.cil.oc2.common.bus.device.provider.util;
 
 import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.device.object.Callbacks;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
-import li.cil.oc2.api.provider.BlockDeviceQuery;
-import li.cil.oc2.api.provider.DeviceProvider;
-import li.cil.oc2.api.provider.DeviceQuery;
+import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
+import li.cil.oc2.api.bus.device.provider.DeviceProvider;
+import li.cil.oc2.api.bus.device.provider.DeviceQuery;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -20,7 +20,7 @@ public class BlockDeviceProvider implements DeviceProvider {
 
         final BlockDeviceQuery blockQuery = (BlockDeviceQuery) query;
         final BlockState blockState = blockQuery.getWorld().getBlockState(blockQuery.getQueryPosition());
-        if (blockState.isAir(blockQuery.getWorld(), blockQuery.getQueryPosition())) {
+        if (blockState.getBlock().isAir(blockState, blockQuery.getWorld(), blockQuery.getQueryPosition())) {
             return LazyOptional.empty();
         }
 

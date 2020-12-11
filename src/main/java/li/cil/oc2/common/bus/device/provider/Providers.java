@@ -1,15 +1,18 @@
-package li.cil.oc2.common.device.provider;
+package li.cil.oc2.common.bus.device.provider;
 
 import li.cil.oc2.api.bus.Device;
-import li.cil.oc2.api.provider.DeviceProvider;
-import li.cil.oc2.api.provider.DeviceQuery;
-import li.cil.oc2.common.device.BlockDeviceQueryImpl;
+import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
+import li.cil.oc2.api.bus.device.provider.DeviceProvider;
+import li.cil.oc2.api.bus.device.provider.DeviceQuery;
+import li.cil.oc2.common.bus.device.provider.util.BlockDeviceProvider;
+import li.cil.oc2.common.bus.device.provider.util.TileEntityDeviceProvider;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +43,7 @@ public final class Providers {
     }
 
     public static List<LazyOptional<Device>> getDevices(final World world, final BlockPos pos, final Direction side) {
-        return getDevices(new BlockDeviceQueryImpl(world, pos, side));
+        return getDevices(new BlockQuery(world, pos, side));
     }
 
     public static List<LazyOptional<Device>> getDevices(final DeviceQuery query) {
@@ -52,5 +55,33 @@ public final class Providers {
             }
         }
         return devices;
+    }
+
+    private static class BlockQuery implements BlockDeviceQuery {
+        private final World world;
+        private final BlockPos pos;
+        @Nullable private final Direction side;
+
+        public BlockQuery(final World world, final BlockPos pos, @Nullable final Direction side) {
+            this.world = world;
+            this.pos = pos;
+            this.side = side;
+        }
+
+        @Override
+        public World getWorld() {
+            return world;
+        }
+
+        @Override
+        public BlockPos getQueryPosition() {
+            return pos;
+        }
+
+        @Nullable
+        @Override
+        public Direction getQuerySide() {
+            return side;
+        }
     }
 }

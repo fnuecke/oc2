@@ -1,4 +1,4 @@
-package li.cil.oc2.common.device;
+package li.cil.oc2.common.bus.device.rpc;
 
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;

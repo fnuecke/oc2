@@ -2,9 +2,9 @@ package li.cil.oc2.api;
 
 import com.google.gson.GsonBuilder;
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.provider.DeviceProvider;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.imc.RPCMethodParameterTypeAdapter;
-import li.cil.oc2.api.provider.DeviceProvider;
 
 import java.lang.reflect.Type;
 

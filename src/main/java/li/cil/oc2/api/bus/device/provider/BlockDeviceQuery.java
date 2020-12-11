@@ -1,4 +1,4 @@
-package li.cil.oc2.api.provider;
+package li.cil.oc2.api.bus.device.provider;
 
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;

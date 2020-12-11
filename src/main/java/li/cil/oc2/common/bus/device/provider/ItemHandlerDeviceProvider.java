@@ -1,9 +1,11 @@
-package li.cil.oc2.common.device.provider;
+package li.cil.oc2.common.bus.device.provider;
 
 import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
-import li.cil.oc2.api.provider.BlockDeviceQuery;
+import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
+import li.cil.oc2.common.bus.device.provider.util.AbstractCapabilityAnyTileEntityDeviceProvider;
+import li.cil.oc2.common.bus.device.provider.util.AbstractObjectProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.util.LazyOptional;

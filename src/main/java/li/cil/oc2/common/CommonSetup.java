@@ -1,8 +1,8 @@
 package li.cil.oc2.common;
 
+import li.cil.oc2.common.bus.device.provider.Providers;
+import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.device.RPCMethodParameterTypeAdapters;
-import li.cil.oc2.common.device.provider.Providers;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.vm.Allocator;
 import li.cil.oc2.serialization.BlobStorage;

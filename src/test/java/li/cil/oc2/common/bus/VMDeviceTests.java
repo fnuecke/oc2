@@ -7,14 +7,14 @@ import li.cil.oc2.common.vm.VirtualMachineDeviceBusAdapter;
 import li.cil.sedna.api.device.InterruptController;
 import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.memory.SimpleMemoryMap;
+import li.cil.sedna.riscv.device.R5PlatformLevelInterruptController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.OptionalInt;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -26,7 +26,7 @@ public final class VMDeviceTests {
     @BeforeEach
     public void setupEach() {
         memoryMap = new SimpleMemoryMap();
-        interruptController = mock(InterruptController.class);
+        interruptController = new R5PlatformLevelInterruptController();
         adapter = new VirtualMachineDeviceBusAdapter(memoryMap, interruptController);
     }
 
@@ -121,5 +121,85 @@ public final class VMDeviceTests {
 
         adapter.addDevices(Collections.singleton(device));
         assertTrue(adapter.load());
+    }
+
+    @Test
+    public void deviceCanRaiseClaimedInterrupts() {
+        final DeviceData deviceData = new DeviceData();
+        final VMDevice device = mock(VMDevice.class);
+        when(device.load(any())).thenAnswer(invocation -> {
+            final VMContext context = invocation.getArgument(0);
+            final OptionalInt interrupt = context.getInterruptAllocator().claimInterrupt();
+            assertTrue(interrupt.isPresent());
+
+            deviceData.context = context;
+            deviceData.interrupt = interrupt.getAsInt();
+
+            return VMDeviceLoadResult.success();
+        });
+
+        adapter.addDevices(Collections.singleton(device));
+        assertTrue(adapter.load());
+
+        verify(device).load(any());
+
+        final int claimedInterruptMask = 1 << deviceData.interrupt;
+        deviceData.context.getInterruptController().raiseInterrupts(claimedInterruptMask);
+
+        assertTrue((interruptController.getRaisedInterrupts() & claimedInterruptMask) != 0);
+    }
+
+    @Test
+    public void devicesCannotRaiseUnclaimedInterrupts() {
+        final DeviceData deviceData = new DeviceData();
+        final VMDevice device = mock(VMDevice.class);
+        when(device.load(any())).thenAnswer(invocation -> {
+            deviceData.context = invocation.getArgument(0);
+            return VMDeviceLoadResult.success();
+        });
+
+        adapter.addDevices(Collections.singleton(device));
+        assertTrue(adapter.load());
+
+        verify(device).load(any());
+
+        final int someInterruptMask = 0x1;
+        assertThrows(IllegalArgumentException.class, () ->
+                deviceData.context.getInterruptController().raiseInterrupts(someInterruptMask));
+    }
+
+    @Test
+    public void unloadLowersClaimedInterrupts() {
+        final DeviceData deviceData = new DeviceData();
+        final VMDevice device = mock(VMDevice.class);
+        when(device.load(any())).thenAnswer(invocation -> {
+            final VMContext context = invocation.getArgument(0);
+            final OptionalInt interrupt = context.getInterruptAllocator().claimInterrupt();
+            assertTrue(interrupt.isPresent());
+
+            deviceData.context = context;
+            deviceData.interrupt = interrupt.getAsInt();
+
+            return VMDeviceLoadResult.success();
+        });
+
+        adapter.addDevices(Collections.singleton(device));
+        assertTrue(adapter.load());
+
+        verify(device).load(any());
+
+        final int claimedInterruptMask = 1 << deviceData.interrupt;
+        deviceData.context.getInterruptController().raiseInterrupts(claimedInterruptMask);
+
+        assertTrue((interruptController.getRaisedInterrupts() & claimedInterruptMask) != 0);
+
+        adapter.unload();
+
+        assertFalse((interruptController.getRaisedInterrupts() & claimedInterruptMask) != 0);
+    }
+
+    private static final class DeviceData {
+        public VMContext context;
+        public int interrupt;
     }
 }

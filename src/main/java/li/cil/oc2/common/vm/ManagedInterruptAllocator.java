@@ -44,17 +44,16 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
             throw new IllegalStateException();
         }
 
-        if (interrupt < 1 || interrupt > R5PlatformLevelInterruptController.INTERRUPT_COUNT) {
+        if (interrupt < 0 || interrupt >= R5PlatformLevelInterruptController.INTERRUPT_COUNT) {
             throw new IllegalArgumentException();
         }
 
-        final int interruptBit = interrupt - 1;
-        if (interrupts.get(interruptBit)) {
+        if (interrupts.get(interrupt)) {
             return claimInterrupt();
         } else {
-            interrupts.set(interruptBit);
-            reservedInterrupts.set(interruptBit);
-            managedInterrupts.set(interruptBit);
+            interrupts.set(interrupt);
+            reservedInterrupts.set(interrupt);
+            managedInterrupts.set(interrupt);
             return OptionalInt.of(interrupt);
         }
     }
@@ -69,16 +68,15 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
         claimedInterrupts.or(interrupts);
         claimedInterrupts.or(reservedInterrupts);
 
-        final int interruptBit = claimedInterrupts.nextClearBit(0);
-        if (interruptBit >= interruptCount) {
+        final int interrupt = claimedInterrupts.nextClearBit(0);
+        if (interrupt >= interruptCount) {
             return OptionalInt.empty();
         }
 
-        interrupts.set(interruptBit);
-        reservedInterrupts.set(interruptBit);
-        managedInterrupts.set(interruptBit);
+        interrupts.set(interrupt);
+        reservedInterrupts.set(interrupt);
+        managedInterrupts.set(interrupt);
 
-        final int interrupt = interruptBit + 1;
         return OptionalInt.of(interrupt);
     }
 }

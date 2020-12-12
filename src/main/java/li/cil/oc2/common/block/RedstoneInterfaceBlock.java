@@ -23,12 +23,6 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
     }
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
-        builder.add(HORIZONTAL_FACING);
-    }
-
-    @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
         return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
     }
@@ -73,5 +67,13 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
         } else {
             return super.getStrongPower(state, world, pos, side);
         }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
+        super.fillStateContainer(builder);
+        builder.add(HORIZONTAL_FACING);
     }
 }

@@ -14,6 +14,8 @@ import static java.util.Objects.requireNonNull;
 public final class ComputerContainerScreen extends ContainerScreen<ComputerContainer> {
     private static final ResourceLocation BACKGROUND = new ResourceLocation(API.MOD_ID, "textures/gui/container/computer.png");
 
+    ///////////////////////////////////////////////////////////////////
+
     public ComputerContainerScreen(final ComputerContainer container, final PlayerInventory inventory, final ITextComponent title) {
         super(container, inventory, title);
         xSize = 196;
@@ -25,6 +27,8 @@ public final class ComputerContainerScreen extends ContainerScreen<ComputerConta
         renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     protected void drawGuiContainerBackgroundLayer(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {

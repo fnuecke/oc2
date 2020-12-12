@@ -1,12 +1,11 @@
 package li.cil.oc2.api.bus;
 
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-
 import java.util.Collection;
 
 /**
- * A device bus provides the interface by which {@link RPCDevice} can be made available
- * to a {@link DeviceBusController}, which is usually used by VMs to access devices.
+ * A device bus provides the interface by which {@link Device}s can be made available
+ * to a {@link DeviceBusController}, which in turn is usually used by VMs to access
+ * these devices.
  */
 public interface DeviceBus {
     /**
@@ -14,10 +13,9 @@ public interface DeviceBus {
      * <p>
      * Adding a device to the bus does <em>not</em> transfer ownership. In particular,
      * the bus will not handle persisting devices that have been added to it. Also,
-     * the bus does not persist the list of devices (that would imply it persisting
-     * the devices, as well). Instead, all devices that have been added to the bus
-     * must be added again after a load, at the latest during the first update/tick
-     * after the load.
+     * the bus does not persist the list of devices. Instead, all devices that have
+     * been added to the bus must be added again after a load. It is the responsibility
+     * of {@link DeviceBusElement}s to detect and add devices to the bus.
      *
      * @param device the device to add to the bus.
      */

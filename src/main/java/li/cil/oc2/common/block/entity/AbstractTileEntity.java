@@ -14,49 +14,10 @@ import java.util.HashMap;
 public abstract class AbstractTileEntity extends TileEntity {
     protected final HashMap<Capability<?>, LazyOptional<?>> capabilities = new HashMap<>();
 
+    ///////////////////////////////////////////////////////////////////
+
     protected AbstractTileEntity(final TileEntityType<?> tileEntityType) {
         super(tileEntityType);
-    }
-
-    protected <T> void setCapabilityIfAbsent(final Capability<T> capability, final T value) {
-        capabilities.putIfAbsent(capability, LazyOptional.of(() -> value));
-    }
-
-    protected void initialize() {
-        final World world = getWorld();
-        if (world == null) {
-            return;
-        }
-
-        if (world.isRemote()) {
-            initializeClient();
-        } else {
-            initializeServer();
-        }
-    }
-
-    protected void initializeClient() {
-    }
-
-    protected void initializeServer() {
-    }
-
-    protected void dispose() {
-        final World world = getWorld();
-        if (world == null) {
-            return;
-        }
-        if (world.isRemote()) {
-            disposeClient();
-        } else {
-            disposeServer();
-        }
-    }
-
-    protected void disposeClient() {
-    }
-
-    protected void disposeServer() {
     }
 
     @NotNull
@@ -88,11 +49,54 @@ public abstract class AbstractTileEntity extends TileEntity {
         dispose();
     }
 
+    ///////////////////////////////////////////////////////////////////
+
+    protected <T> void setCapabilityIfAbsent(final Capability<T> capability, final T value) {
+        capabilities.putIfAbsent(capability, LazyOptional.of(() -> value));
+    }
+
     @Override
     protected void invalidateCaps() {
         super.invalidateCaps();
         for (final LazyOptional<?> capability : capabilities.values()) {
             capability.invalidate();
         }
+    }
+
+    protected void initialize() {
+        final World world = getWorld();
+        if (world == null) {
+            return;
+        }
+
+        if (world.isRemote()) {
+            initializeClient();
+        } else {
+            initializeServer();
+        }
+    }
+
+    protected void dispose() {
+        final World world = getWorld();
+        if (world == null) {
+            return;
+        }
+        if (world.isRemote()) {
+            disposeClient();
+        } else {
+            disposeServer();
+        }
+    }
+
+    protected void initializeClient() {
+    }
+
+    protected void initializeServer() {
+    }
+
+    protected void disposeClient() {
+    }
+
+    protected void disposeServer() {
     }
 }

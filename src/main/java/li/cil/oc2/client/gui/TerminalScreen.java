@@ -3,11 +3,11 @@ package li.cil.oc2.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.api.API;
-import li.cil.oc2.client.gui.terminal.Terminal;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.common.block.entity.ComputerTileEntity;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.TerminalBlockInputMessage;
+import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
@@ -28,11 +28,15 @@ public final class TerminalScreen extends Screen {
     private static final int TERMINAL_AREA_WIDTH = 80 * 8 / 2;
     private static final int TERMINAL_AREA_HEIGHT = 24 * 16 / 2;
 
+    ///////////////////////////////////////////////////////////////////
+
     private final ComputerTileEntity tileEntity;
     private final Terminal terminal;
     private final int windowWidth, windowHeight;
     private int windowLeft, windowTop;
     private boolean isMouseOverTerminal;
+
+    ///////////////////////////////////////////////////////////////////
 
     public TerminalScreen(final ComputerTileEntity tileEntity, final ITextComponent title) {
         super(title);
@@ -112,19 +116,21 @@ public final class TerminalScreen extends Screen {
         return false;
     }
 
+    @Override
+    public void onClose() {
+        super.onClose();
+
+        requireNonNull(minecraft).keyboardListener.enableRepeatEvents(false);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
     protected void init() {
         super.init();
         this.windowLeft = (this.width - this.windowWidth) / 2;
         this.windowTop = (this.height - this.windowHeight) / 2;
 
         requireNonNull(minecraft).keyboardListener.enableRepeatEvents(true);
-    }
-
-    @Override
-    public void onClose() {
-        super.onClose();
-
-        requireNonNull(minecraft).keyboardListener.enableRepeatEvents(false);
     }
 
     private boolean isPointInRegion(final int x, final int y, final int width, final int height, double mouseX, double mouseY) {

@@ -10,6 +10,8 @@ public abstract class AbstractTerminalBlockMessage {
     protected BlockPos pos;
     protected byte[] data;
 
+    ///////////////////////////////////////////////////////////////////
+
     protected AbstractTerminalBlockMessage(final ComputerTileEntity tileEntity, final ByteBuffer data) {
         this.pos = tileEntity.getPos();
         this.data = data.array();

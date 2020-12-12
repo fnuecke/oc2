@@ -16,13 +16,15 @@ public final class ScreenBlock extends HorizontalBlock {
     }
 
     @Override
+    public BlockState getStateForPlacement(final BlockItemUseContext context) {
+        return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
     protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
         super.fillStateContainer(builder);
         builder.add(HORIZONTAL_FACING);
-    }
-
-    @Override
-    public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
     }
 }

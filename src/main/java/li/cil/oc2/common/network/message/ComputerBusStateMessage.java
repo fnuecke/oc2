@@ -13,6 +13,8 @@ public class ComputerBusStateMessage {
     private BlockPos pos;
     private TileEntityDeviceBusController.BusState busState;
 
+    ///////////////////////////////////////////////////////////////////
+
     public ComputerBusStateMessage(final ComputerTileEntity tileEntity) {
         this.pos = tileEntity.getPos();
         this.busState = tileEntity.getBusState();

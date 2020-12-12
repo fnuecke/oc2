@@ -19,6 +19,8 @@ import java.util.List;
 public final class Providers {
     private static final ArrayList<DeviceProvider> DEVICE_PROVIDERS = new ArrayList<>();
 
+    ///////////////////////////////////////////////////////////////////
+
     public static void initialize() {
         addProvider(new EnergyStorageDeviceProvider());
         addProvider(new FluidHandlerDeviceProvider());
@@ -56,6 +58,8 @@ public final class Providers {
         }
         return devices;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private static class BlockQuery implements BlockDeviceQuery {
         private final World world;

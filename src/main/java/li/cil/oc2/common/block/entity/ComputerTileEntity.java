@@ -2,9 +2,8 @@ package li.cil.oc2.common.block.entity;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
+import li.cil.oc2.Constants;
 import li.cil.oc2.OpenComputers;
-import li.cil.oc2.client.gui.terminal.Terminal;
-import li.cil.oc2.common.ServerScheduler;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
@@ -17,6 +16,8 @@ import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.ServerScheduler;
+import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
 import li.cil.sedna.api.Sizes;
@@ -54,6 +55,8 @@ import static java.util.Objects.requireNonNull;
 public final class ComputerTileEntity extends AbstractTileEntity implements ITickableTileEntity {
     private static final Logger LOGGER = LogManager.getLogger();
 
+    ///////////////////////////////////////////////////////////////////
+
     private static final String DEVICES_NBT_TAG_NAME = "devices";
     private static final String BUS_ELEMENT_NBT_TAG_NAME = "busElement";
     private static final String BUS_STATE_NBT_TAG_NAME = "busState";
@@ -65,11 +68,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
 
+    ///////////////////////////////////////////////////////////////////
+
     public enum RunState {
         STOPPED,
         LOADING_DEVICES,
         RUNNING,
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private Chunk chunk;
     private final TileEntityDeviceBusController busController;
@@ -78,7 +85,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private int loadDevicesDelay;
     @Nullable private BlobStorage.JobHandle ramJobHandle;
 
-    // Serialized data
+    ///////////////////////////////////////////////////////////////////
 
     private final TileEntityDeviceBusElement busElement;
     private final Terminal terminal;
@@ -88,6 +95,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     private PhysicalMemory ram;
     private UUID ramBlobHandle;
+
+    ///////////////////////////////////////////////////////////////////
 
     public ComputerTileEntity() {
         super(OpenComputers.COMPUTER_TILE_ENTITY.get());
@@ -231,30 +240,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     @Override
-    protected void initializeClient() {
-        super.initializeClient();
-
-        terminal.setDisplayOnly(true);
-    }
-
-    @Override
-    protected void initializeServer() {
-        super.initializeServer();
-
-        busElement.initialize();
-        virtualMachine.rtc.setWorld(requireNonNull(getWorld()));
-        ServerScheduler.schedule(() -> chunk = requireNonNull(getWorld()).getChunkAt(getPos()));
-    }
-
-    @Override
-    protected void disposeServer() {
-        super.disposeServer();
-
-        busElement.dispose();
-        stopRunnerAndUnloadDevices();
-    }
-
-    @Override
     public CompoundNBT getUpdateTag() {
         final CompoundNBT result = super.getUpdateTag();
 
@@ -347,6 +332,34 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
     }
 
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void initializeClient() {
+        super.initializeClient();
+
+        terminal.setDisplayOnly(true);
+    }
+
+    @Override
+    protected void initializeServer() {
+        super.initializeServer();
+
+        busElement.initialize();
+        virtualMachine.rtc.setWorld(requireNonNull(getWorld()));
+        ServerScheduler.schedule(() -> chunk = requireNonNull(getWorld()).getChunkAt(getPos()));
+    }
+
+    @Override
+    protected void disposeServer() {
+        super.disposeServer();
+
+        busElement.dispose();
+        stopRunnerAndUnloadDevices();
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
     private void writeDevices(final ListNBT list) {
         // TODO Apply to devices generated from items.
 
@@ -376,7 +389,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         // TODO Load devices generated from items.
 
         if (ram == null) {
-            final int RAM_SIZE = 24 * 1024 * 1024;
+            final int RAM_SIZE = 24 * Constants.MEGABYTE;
             ram = Memory.create(RAM_SIZE);
             virtualMachine.board.addDevice(0x80000000L, ram);
         }
@@ -451,6 +464,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             memory.store(offset + address, (byte) value, Sizes.SIZE_8_LOG2);
         }
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private class BusController extends TileEntityDeviceBusController {
         private BusController() {

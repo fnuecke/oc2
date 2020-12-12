@@ -39,6 +39,8 @@ public final class NBTSerialization {
         return deserialize(nbt, type, into);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     private static final String IS_NULL_KEY = "<is_null>";
 
     private static final class Serializer implements SerializationVisitor {

@@ -11,6 +11,8 @@ import java.util.function.Supplier;
 public abstract class AbstractCapabilityTileEntityDeviceProvider<TCapability, TTileEntity extends TileEntity> extends AbstractTileEntityDeviceProvider<TTileEntity> {
     private final Supplier<Capability<TCapability>> capabilitySupplier;
 
+    ///////////////////////////////////////////////////////////////////
+
     protected AbstractCapabilityTileEntityDeviceProvider(final Class<TTileEntity> tileEntityType, final Supplier<Capability<TCapability>> capabilitySupplier) {
         super(tileEntityType);
         this.capabilitySupplier = capabilitySupplier;

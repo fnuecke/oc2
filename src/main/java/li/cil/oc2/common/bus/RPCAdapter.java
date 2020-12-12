@@ -3,6 +3,7 @@ package li.cil.oc2.common.bus;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import li.cil.ceres.api.Serialized;
+import li.cil.oc2.Constants;
 import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
@@ -26,7 +27,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public final class RPCAdapter implements Steppable {
-    private static final int DEFAULT_MAX_MESSAGE_SIZE = 4 * 1024;
+    private static final int DEFAULT_MAX_MESSAGE_SIZE = 4 * Constants.KILOBYTE;
     private static final byte[] MESSAGE_DELIMITER = "\0".getBytes();
 
     public static final String ERROR_MESSAGE_TOO_LARGE = "message too large";
@@ -34,6 +35,8 @@ public final class RPCAdapter implements Steppable {
     public static final String ERROR_UNKNOWN_DEVICE = "unknown device";
     public static final String ERROR_UNKNOWN_METHOD = "unknown method";
     public static final String ERROR_INVALID_PARAMETER_SIGNATURE = "invalid parameter signature";
+
+    ///////////////////////////////////////////////////////////////////
 
     private final DeviceBusController controller;
     private final SerialDevice serialDevice;
@@ -44,9 +47,13 @@ public final class RPCAdapter implements Steppable {
     private final Lock pauseLock = new ReentrantLock();
     private boolean isPaused;
 
+    ///////////////////////////////////////////////////////////////////
+
     @Serialized private final ByteBuffer transmitBuffer; // for data written to device by VM
     @Serialized private ByteBuffer receiveBuffer; // for data written by device to VM
     @Serialized private MethodInvocation synchronizedInvocation; // pending main thread invocation
+
+    ///////////////////////////////////////////////////////////////////
 
     public RPCAdapter(final DeviceBusController controller, final SerialDevice serialDevice) {
         this(controller, serialDevice, DEFAULT_MAX_MESSAGE_SIZE);
@@ -157,6 +164,8 @@ public final class RPCAdapter implements Steppable {
             pauseLock.unlock();
         }
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private UUID selectIdentifierDeterministically(final ArrayList<UUID> identifiers) {
         UUID lowestIdentifier = identifiers.get(0);
@@ -322,6 +331,8 @@ public final class RPCAdapter implements Steppable {
 
         receiveBuffer.flip();
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     public static final class RPCDeviceWithIdentifier {
         public final UUID identifier;

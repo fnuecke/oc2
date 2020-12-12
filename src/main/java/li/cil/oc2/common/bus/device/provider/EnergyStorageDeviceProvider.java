@@ -13,16 +13,22 @@ import net.minecraftforge.energy.IEnergyStorage;
 public class EnergyStorageDeviceProvider extends AbstractCapabilityAnyTileEntityDeviceProvider<IEnergyStorage> {
     private static final String ENERGY_STORAGE_TYPE_NAME = "energyStorage";
 
+    ///////////////////////////////////////////////////////////////////
+
     public EnergyStorageDeviceProvider() {
         super(() -> Capabilities.ENERGY_STORAGE_CAPABILITY);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     protected LazyOptional<Device> getDeviceInterface(final BlockDeviceQuery query, final IEnergyStorage value) {
         return LazyOptional.of(() -> new ObjectDevice(new EnergyStorageDevice(value), ENERGY_STORAGE_TYPE_NAME));
     }
 
-    public static final class EnergyStorageDevice extends AbstractObjectProxy<IEnergyStorage> {
+    ///////////////////////////////////////////////////////////////////
+
+    private static final class EnergyStorageDevice extends AbstractObjectProxy<IEnergyStorage> {
         public EnergyStorageDevice(final IEnergyStorage energyStorage) {
             super(energyStorage);
         }

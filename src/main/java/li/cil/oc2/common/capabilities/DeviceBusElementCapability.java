@@ -13,7 +13,9 @@ public final class DeviceBusElementCapability {
         CapabilityManager.INSTANCE.register(DeviceBusElement.class, new NullStorage<>(), Implementation::new);
     }
 
-    public static final class Implementation implements DeviceBusElement {
+    ///////////////////////////////////////////////////////////////////
+
+    private static final class Implementation implements DeviceBusElement {
         private final List<Device> devices = new ArrayList<>();
         private final HashSet<DeviceBusController> controllers = new HashSet<>();
 

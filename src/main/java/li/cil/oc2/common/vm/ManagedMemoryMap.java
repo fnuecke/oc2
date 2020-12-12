@@ -15,6 +15,8 @@ final class ManagedMemoryMap implements MemoryMap {
     private final ArrayList<MemoryMappedDevice> managedDevices = new ArrayList<>();
     private boolean isFrozen;
 
+    ///////////////////////////////////////////////////////////////////
+
     ManagedMemoryMap(final MemoryMap memoryMap) {
         this.memoryMap = memoryMap;
     }

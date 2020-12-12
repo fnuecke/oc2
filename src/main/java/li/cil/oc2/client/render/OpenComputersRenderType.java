@@ -23,6 +23,8 @@ public abstract class OpenComputersRenderType extends RenderType {
                 state);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     private OpenComputersRenderType(final String name, final VertexFormat format, final int drawMode, final int bufferSize, final boolean useDelegate, final boolean needsSorting, final Runnable setupTask, final Runnable clearTask) {
         super(name, format, drawMode, bufferSize, useDelegate, needsSorting, setupTask, clearTask);
     }

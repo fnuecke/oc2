@@ -3,14 +3,32 @@ package li.cil.oc2.common.container;
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.common.block.entity.ComputerTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 
 public final class ComputerContainer extends Container {
+    @Nullable
+    public static ComputerContainer create(final int id, final PlayerInventory inventory, final PacketBuffer data) {
+        final BlockPos pos = data.readBlockPos();
+        final TileEntity tileEntity = inventory.player.getEntityWorld().getTileEntity(pos);
+        if (!(tileEntity instanceof ComputerTileEntity)) {
+            return null;
+        }
+        return new ComputerContainer(id, (ComputerTileEntity) tileEntity);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
     private final ComputerTileEntity tileEntity;
+
+    ///////////////////////////////////////////////////////////////////
 
     public ComputerContainer(final int id, @Nullable final ComputerTileEntity tileEntity) {
         super(OpenComputers.COMPUTER_CONTAINER.get(), id);

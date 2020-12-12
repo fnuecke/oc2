@@ -14,7 +14,6 @@ import net.minecraftforge.fml.network.simple.SimpleChannel;
 
 public final class Network {
     private static final String PROTOCOL_VERSION = "1";
-    private static int nextPacketId = 1;
 
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(API.MOD_ID, "main"),
@@ -22,6 +21,10 @@ public final class Network {
             PROTOCOL_VERSION::equals,
             PROTOCOL_VERSION::equals
     );
+
+    private static int nextPacketId = 1;
+
+    ///////////////////////////////////////////////////////////////////
 
     public static void setup() {
         INSTANCE.messageBuilder(TerminalBlockOutputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
@@ -52,6 +55,8 @@ public final class Network {
     public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {
         Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private static int getNextPacketId() {
         return nextPacketId++;

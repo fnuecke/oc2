@@ -4,9 +4,9 @@ import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.common.ServerScheduler;
 import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -21,10 +21,16 @@ import static java.util.Objects.requireNonNull;
 public class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
     private static final int NEIGHBOR_COUNT = 6;
 
-    private final TileEntity tileEntity;
+    ///////////////////////////////////////////////////////////////////
 
+    private final TileEntity tileEntity;
     private final ArrayList<HashSet<Device>> sidedDevices = new ArrayList<>(6);
+
+    ///////////////////////////////////////////////////////////////////
+
     @Serialized private final UUID[] sidedDeviceIds = new UUID[NEIGHBOR_COUNT];
+
+    ///////////////////////////////////////////////////////////////////
 
     public TileEntityDeviceBusElement(final TileEntity tileEntity) {
         this.tileEntity = tileEntity;
@@ -33,10 +39,6 @@ public class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
             sidedDevices.add(new HashSet<>());
             sidedDeviceIds[i] = UUID.randomUUID();
         }
-    }
-
-    protected boolean canConnectToSide(final Direction direction) {
-        return true;
     }
 
     @Override
@@ -98,6 +100,14 @@ public class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
     public void dispose() {
         scheduleScan();
     }
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected boolean canConnectToSide(final Direction direction) {
+        return true;
+    }
+
+    ///////////////////////////////////////////////////////////////////
 
     private void scanNeighborsForDevices() {
         for (final Direction direction : Direction.values()) {

@@ -16,8 +16,12 @@ import java.util.UUID;
 public final class Allocator {
     private static final Logger LOGGER = LogManager.getLogger();
 
+    ///////////////////////////////////////////////////////////////////
+
     private static final HashMap<UUID, Allocation> ALLOCATIONS = new HashMap<>();
     private static long allocated;
+
+    ///////////////////////////////////////////////////////////////////
 
     /**
      * Creates a new handle that can be used to claim memory.
@@ -76,6 +80,8 @@ public final class Allocator {
         ALLOCATIONS.clear();
         allocated = 0;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private static boolean checkArgs(final UUID handle, final int size) {
         if (ALLOCATIONS.containsKey(handle)) {

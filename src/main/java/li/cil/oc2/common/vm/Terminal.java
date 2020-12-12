@@ -1,4 +1,4 @@
-package li.cil.oc2.client.gui.terminal;
+package li.cil.oc2.common.vm;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;

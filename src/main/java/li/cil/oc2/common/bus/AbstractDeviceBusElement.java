@@ -11,6 +11,8 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     protected final List<Device> devices = new ArrayList<>();
     protected final HashSet<DeviceBusController> controllers = new HashSet<>();
 
+    ///////////////////////////////////////////////////////////////////
+
     public void addController(final DeviceBusController controller) {
         controllers.add(controller);
     }
@@ -60,6 +62,8 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
         }
         assert controllers.isEmpty();
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     protected void scanDevices() {
         for (final DeviceBusController controller : controllers) {

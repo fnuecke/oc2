@@ -1,6 +1,6 @@
 package li.cil.oc2.common.vm;
 
-import li.cil.oc2.api.bus.device.sedna.InterruptAllocator;
+import li.cil.oc2.api.bus.device.vm.InterruptAllocator;
 import li.cil.sedna.riscv.device.R5PlatformLevelInterruptController;
 
 import java.util.BitSet;
@@ -13,6 +13,8 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
     private final int interruptCount;
     private boolean isFrozen;
     private int managedMask;
+
+    ///////////////////////////////////////////////////////////////////
 
     public ManagedInterruptAllocator(final BitSet interrupts, final BitSet reservedInterrupts, final int interruptCount) {
         this.interrupts = interrupts;

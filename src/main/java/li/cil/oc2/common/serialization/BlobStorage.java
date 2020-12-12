@@ -1,6 +1,7 @@
 package li.cil.oc2.common.serialization;
 
 import com.google.common.collect.HashMultimap;
+import li.cil.oc2.Constants;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.storage.FolderName;
 import org.apache.logging.log4j.LogManager;
@@ -27,6 +28,8 @@ import java.util.concurrent.Future;
 public final class BlobStorage {
     private static final Logger LOGGER = LogManager.getLogger();
 
+    ///////////////////////////////////////////////////////////////////
+
     private static final FolderName BLOBS_FOLDER_NAME = new FolderName("oc2-blobs");
 
     private static final HashMultimap<UUID, Future<Void>> WRITE_HANDLES = HashMultimap.create();
@@ -39,6 +42,8 @@ public final class BlobStorage {
     });
 
     private static Path dataDirectory; // Directory blobs get saved to.
+
+    ///////////////////////////////////////////////////////////////////
 
     /**
      * Represents a handle to a serialization or deserialization job submitted using
@@ -223,6 +228,8 @@ public final class BlobStorage {
         return submitJob(READ_HANDLES, handle, () -> load(handle, dataAccess));
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     private static void save(final UUID handle, final InputStream input) {
         try {
             final Path path = dataDirectory.resolve(handle.toString());
@@ -270,7 +277,7 @@ public final class BlobStorage {
     }
 
     private static void copyData(final InputStream in, final OutputStream out) throws IOException {
-        final byte[] buffer = new byte[8 * 1024];
+        final byte[] buffer = new byte[8 * Constants.KILOBYTE];
         int count;
         while ((count = in.read(buffer)) > 0) {
             out.write(buffer, 0, count);

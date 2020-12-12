@@ -19,12 +19,18 @@ public class VirtualMachineRunner implements Runnable {
         return thread;
     });
 
+    ///////////////////////////////////////////////////////////////////
+
     private final R5Board board;
     private final AtomicInteger timeQuotaInMillis = new AtomicInteger();
     private Future<?> lastSchedule;
 
+    ///////////////////////////////////////////////////////////////////
+
     @Serialized private long cycleLimit;
     @Serialized private long cycles;
+
+    ///////////////////////////////////////////////////////////////////
 
     public VirtualMachineRunner(final R5Board board) {
         this.board = board;
@@ -35,15 +41,6 @@ public class VirtualMachineRunner implements Runnable {
         if (timeQuotaInMillis.addAndGet(TIMESLICE_IN_MS) > 0 && lastSchedule == null || lastSchedule.isDone() || lastSchedule.isCancelled()) {
             lastSchedule = VM_RUNNERS.submit(this);
         }
-    }
-
-    protected void handleBeforeRun() {
-    }
-
-    protected void step(final int cyclesPerStep) {
-    }
-
-    protected void handleAfterRun() {
     }
 
     public void join() throws Throwable {
@@ -85,6 +82,19 @@ public class VirtualMachineRunner implements Runnable {
             timeQuotaInMillis.addAndGet(-elapsed);
         } while (cycles < cycleLimit && timeQuotaInMillis.get() > 0);
     }
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected void handleBeforeRun() {
+    }
+
+    protected void step(final int cyclesPerStep) {
+    }
+
+    protected void handleAfterRun() {
+    }
+
+    ///////////////////////////////////////////////////////////////////
 
     private int getCyclesPerTick() {
         return VirtualMachine.ACTUAL_CPU_FREQUENCY / TICKS_PER_SECOND;

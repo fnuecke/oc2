@@ -14,6 +14,8 @@ public final class DeviceBusControllerCapability {
         CapabilityManager.INSTANCE.register(DeviceBusController.class, new NullStorage<>(), Implementation::new);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     private static class Implementation implements DeviceBusController {
         @Override
         public void scheduleBusScan() {

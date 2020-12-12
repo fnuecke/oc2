@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 public final class RPCDeviceList implements RPCDevice {
     private final ArrayList<RPCDevice> deviceInterfaces;
 
+    ///////////////////////////////////////////////////////////////////
+
     public RPCDeviceList(final ArrayList<RPCDevice> deviceInterfaces) {
         this.deviceInterfaces = deviceInterfaces;
     }

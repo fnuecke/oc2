@@ -14,16 +14,22 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 public class FluidHandlerDeviceProvider extends AbstractCapabilityAnyTileEntityDeviceProvider<IFluidHandler> {
     private static final String FLUID_HANDLER_TYPE_NAME = "fluidHandler";
 
+    ///////////////////////////////////////////////////////////////////
+
     public FluidHandlerDeviceProvider() {
         super(() -> Capabilities.FLUID_HANDLER_CAPABILITY);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     protected LazyOptional<Device> getDeviceInterface(final BlockDeviceQuery query, final IFluidHandler value) {
         return LazyOptional.of(() -> new ObjectDevice(new FluidHandlerDevice(value), FLUID_HANDLER_TYPE_NAME));
     }
 
-    public static final class FluidHandlerDevice extends AbstractObjectProxy<IFluidHandler> {
+    ///////////////////////////////////////////////////////////////////
+
+    private static final class FluidHandlerDevice extends AbstractObjectProxy<IFluidHandler> {
         public FluidHandlerDevice(final IFluidHandler fluidHandler) {
             super(fluidHandler);
         }

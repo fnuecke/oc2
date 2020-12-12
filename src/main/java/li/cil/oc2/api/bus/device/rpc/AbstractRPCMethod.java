@@ -9,6 +9,8 @@ public abstract class AbstractRPCMethod implements RPCMethod {
     protected final Class<?> returnType;
     protected final RPCParameter[] parameters;
 
+    ///////////////////////////////////////////////////////////////////
+
     protected AbstractRPCMethod(final String name, final boolean synchronize, final Class<?> returnType, final RPCParameter... parameters) {
         this.name = name;
         this.synchronize = synchronize;

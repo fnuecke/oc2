@@ -8,6 +8,8 @@ public final class ManagedInterruptController implements InterruptController {
     private int managedInterrupts = 0;
     private boolean isValid = true;
 
+    ///////////////////////////////////////////////////////////////////
+
     public ManagedInterruptController(final InterruptController interruptController, final ManagedInterruptAllocator allocator) {
         this.interruptController = interruptController;
         this.allocator = allocator;

@@ -8,6 +8,8 @@ import java.util.ArrayList;
 public final class RPCMethodParameterTypeAdapters {
     private static final ArrayList<RPCMethodParameterTypeAdapter> TYPE_ADAPTERS = new ArrayList<>();
 
+    ///////////////////////////////////////////////////////////////////
+
     public static void addTypeAdapter(final Class<?> type, final Object typeAdapter) {
         addTypeAdapter(new RPCMethodParameterTypeAdapter(type, typeAdapter));
     }
@@ -20,7 +22,7 @@ public final class RPCMethodParameterTypeAdapters {
         final GsonBuilder builder = new GsonBuilder();
 
         for (final RPCMethodParameterTypeAdapter value : TYPE_ADAPTERS) {
-            builder.registerTypeAdapter(value.type, value.typeAdapter);
+            builder.registerTypeAdapter(value.getType(), value.getTypeAdapter());
         }
 
         return builder;

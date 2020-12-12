@@ -1,4 +1,4 @@
-package li.cil.oc2.common;
+package li.cil.oc2.common.integration;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.provider.DeviceProvider;
@@ -47,7 +47,7 @@ public final class IMC {
             try {
                 RPCMethodParameterTypeAdapters.addTypeAdapter(value);
             } catch (final IllegalArgumentException e) {
-                LOGGER.error("Received invalid type adapter registration [{}] for type [{}] from mod [{}].", value.typeAdapter, value.type, message.getSenderModId());
+                LOGGER.error("Received invalid type adapter registration [{}] for type [{}] from mod [{}].", value.getTypeAdapter(), value.getType(), message.getSenderModId());
             }
         });
     }

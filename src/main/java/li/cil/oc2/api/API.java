@@ -11,6 +11,8 @@ import java.lang.reflect.Type;
 public final class API {
     public static final String MOD_ID = "oc2";
 
+    ///////////////////////////////////////////////////////////////////
+
     /**
      * IMC message for registering a {@link DeviceProvider}.
      * <p>
@@ -35,6 +37,8 @@ public final class API {
      * @see Callback
      */
     public static final String IMC_ADD_RPC_METHOD_PARAMETER_TYPE_ADAPTER = "addRPCMethodParameterTypeAdapter";
+
+    ///////////////////////////////////////////////////////////////////
 
     private API() {
     }

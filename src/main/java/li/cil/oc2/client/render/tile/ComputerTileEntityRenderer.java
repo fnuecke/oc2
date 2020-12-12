@@ -4,10 +4,10 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import li.cil.oc2.api.API;
-import li.cil.oc2.client.gui.terminal.Terminal;
 import li.cil.oc2.client.render.OpenComputersRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.block.entity.ComputerTileEntity;
+import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.model.RenderMaterial;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
@@ -34,12 +34,16 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
     private static final RenderMaterial TEXTURE_STATUS = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_STATUS_LOCATION);
     private static final RenderMaterial TEXTURE_TERMINAL = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_TERMINAL_LOCATION);
 
+    ///////////////////////////////////////////////////////////////////
+
     @SubscribeEvent
     public static void handleTextureStitchEvent(final TextureStitchEvent.Pre event) {
         event.addSprite(OVERLAY_POWER_LOCATION);
         event.addSprite(OVERLAY_STATUS_LOCATION);
         event.addSprite(OVERLAY_TERMINAL_LOCATION);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     public ComputerTileEntityRenderer(final TileEntityRendererDispatcher dispatcher) {
         super(dispatcher);
@@ -107,6 +111,8 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
 
         stack.pop();
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private void renderTerminal(final ComputerTileEntity tileEntity, final MatrixStack stack, final IRenderTypeBuffer buffer, final Vector3d cameraPosition) {
         // Render terminal content if close enough.

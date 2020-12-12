@@ -37,12 +37,6 @@ public final class ComputerBlock extends HorizontalBlock {
     }
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
-        builder.add(HORIZONTAL_FACING);
-    }
-
-    @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
         return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
     }
@@ -98,6 +92,16 @@ public final class ComputerBlock extends HorizontalBlock {
         }
         return ActionResultType.SUCCESS;
     }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
+        super.fillStateContainer(builder);
+        builder.add(HORIZONTAL_FACING);
+    }
+
+    ///////////////////////////////////////////////////////////////////
 
     private void openContainerScreen(final TileEntity tileEntity, final ServerPlayerEntity player) {
         NetworkHooks.openGui(player, new INamedContainerProvider() {

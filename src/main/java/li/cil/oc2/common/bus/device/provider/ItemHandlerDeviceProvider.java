@@ -14,16 +14,22 @@ import net.minecraftforge.items.IItemHandler;
 public class ItemHandlerDeviceProvider extends AbstractCapabilityAnyTileEntityDeviceProvider<IItemHandler> {
     private static final String ITEM_HANDLER_TYPE_NAME = "itemHandler";
 
+    ///////////////////////////////////////////////////////////////////
+
     public ItemHandlerDeviceProvider() {
         super(() -> Capabilities.ITEM_HANDLER_CAPABILITY);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     protected LazyOptional<Device> getDeviceInterface(final BlockDeviceQuery query, final IItemHandler value) {
         return LazyOptional.of(() -> new ObjectDevice(new ItemHandlerDevice(value), ITEM_HANDLER_TYPE_NAME));
     }
 
-    public static final class ItemHandlerDevice extends AbstractObjectProxy<IItemHandler> {
+    ///////////////////////////////////////////////////////////////////
+
+    private static final class ItemHandlerDevice extends AbstractObjectProxy<IItemHandler> {
         public ItemHandlerDevice(final IItemHandler itemHandler) {
             super(itemHandler);
         }

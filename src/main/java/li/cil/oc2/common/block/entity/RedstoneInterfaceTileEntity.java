@@ -29,7 +29,11 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
     private static final String SIDE = "side";
     private static final String VALUE = "value";
 
+    ///////////////////////////////////////////////////////////////////
+
     private final byte[] output = new byte[HORIZONTAL_DIRECTION_COUNT];
+
+    ///////////////////////////////////////////////////////////////////
 
     public RedstoneInterfaceTileEntity() {
         super(OpenComputers.REDSTONE_INTERFACE_TILE_ENTITY.get());
@@ -144,6 +148,8 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
         final int rotatedIndex = (direction.getHorizontalIndex() + toLocal) % HORIZONTAL_DIRECTION_COUNT;
         return output[rotatedIndex];
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private void notifyNeighbors() {
         final World world = getWorld();

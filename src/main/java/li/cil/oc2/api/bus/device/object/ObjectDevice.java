@@ -21,6 +21,8 @@ public final class ObjectDevice implements RPCDevice {
     private final List<RPCMethod> methods;
     private final String className;
 
+    ///////////////////////////////////////////////////////////////////
+
     /**
      * Creates a new object device with methods in the specified object and the
      * specified list of type names.

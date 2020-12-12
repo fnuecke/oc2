@@ -12,6 +12,8 @@ public class ComputerRunStateMessage {
     private BlockPos pos;
     private ComputerTileEntity.RunState runState;
 
+    ///////////////////////////////////////////////////////////////////
+
     public ComputerRunStateMessage(final ComputerTileEntity tileEntity) {
         this.pos = tileEntity.getPos();
         this.runState = tileEntity.getRunState();

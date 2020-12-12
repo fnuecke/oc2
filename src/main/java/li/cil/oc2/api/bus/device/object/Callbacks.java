@@ -24,9 +24,14 @@ import static java.util.Objects.requireNonNull;
  */
 public final class Callbacks {
     private static final Logger LOGGER = LogManager.getLogger();
+
+    ///////////////////////////////////////////////////////////////////
+
     private static final HashMap<Class<?>, List<Method>> METHOD_BY_TYPE = new HashMap<>();
     private static final HashMap<Method, RPCParameter[]> PARAMETERS_BY_METHOD = new HashMap<>();
     private static final HashMap<Method, CallbackDocumentation> DOCUMENTATION_BY_METHOD = new HashMap<>();
+
+    ///////////////////////////////////////////////////////////////////
 
     /**
      * Collects all methods annotated with {@link Callback} in the specified object
@@ -81,6 +86,8 @@ public final class Callbacks {
             return !getMethods(object.getClass()).isEmpty();
         }
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private static List<Method> getMethods(final Class<?> type) {
         return METHOD_BY_TYPE.computeIfAbsent(type, c -> Arrays.stream(c.getMethods())

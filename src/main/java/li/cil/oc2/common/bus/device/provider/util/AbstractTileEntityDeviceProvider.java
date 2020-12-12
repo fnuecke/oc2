@@ -11,6 +11,8 @@ import net.minecraftforge.common.util.LazyOptional;
 public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> implements DeviceProvider {
     private final Class<T> tileEntityType;
 
+    ///////////////////////////////////////////////////////////////////
+
     protected AbstractTileEntityDeviceProvider(final Class<T> tileEntityType) {
         this.tileEntityType = tileEntityType;
     }
@@ -30,6 +32,8 @@ public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> imp
 
         return getDeviceInterface(blockQuery, (T) tileEntity);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     protected abstract LazyOptional<Device> getDeviceInterface(final BlockDeviceQuery query, final T tileEntity);
 }

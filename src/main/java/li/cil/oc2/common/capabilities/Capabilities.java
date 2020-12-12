@@ -24,6 +24,8 @@ public final class Capabilities {
     @CapabilityInject(IItemHandler.class) @SuppressWarnings("FieldMayBeFinal")
     public static Capability<IItemHandler> ITEM_HANDLER_CAPABILITY = null;
 
+    ///////////////////////////////////////////////////////////////////
+
     public static void initialize() {
         DeviceBusElementCapability.register();
         DeviceBusControllerCapability.register();

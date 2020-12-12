@@ -1,4 +1,4 @@
-package li.cil.oc2.common;
+package li.cil.oc2.common.util;
 
 import net.minecraft.world.IWorld;
 import net.minecraftforge.common.MinecraftForge;
@@ -12,12 +12,14 @@ import java.util.PriorityQueue;
 import java.util.WeakHashMap;
 
 public final class ServerScheduler {
+    private static final Scheduler serverScheduler = new Scheduler();
+    private static final WeakHashMap<IWorld, Scheduler> worldSchedulers = new WeakHashMap<>();
+
+    ///////////////////////////////////////////////////////////////////
+
     public static void register() {
         MinecraftForge.EVENT_BUS.register(EventHandler.class);
     }
-
-    private static final Scheduler serverScheduler = new Scheduler();
-    private static final WeakHashMap<IWorld, Scheduler> worldSchedulers = new WeakHashMap<>();
 
     public static void schedule(final Runnable runnable) {
         schedule(runnable, 0);
@@ -35,6 +37,8 @@ public final class ServerScheduler {
         final Scheduler scheduler = worldSchedulers.computeIfAbsent(world, w -> new Scheduler());
         scheduler.schedule(runnable, afterTicks);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private static final class EventHandler {
         @SubscribeEvent

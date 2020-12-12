@@ -50,6 +50,8 @@ public final class BusCableBlock extends Block {
         }
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     private static final Direction[] FACING_VALUES = Direction.values();
 
     public static final EnumProperty<ConnectionType> CONNECTION_NORTH = EnumProperty.create("connection_north", ConnectionType.class);
@@ -68,7 +70,11 @@ public final class BusCableBlock extends Block {
         directions.put(Direction.DOWN, CONNECTION_DOWN);
     });
 
+    ///////////////////////////////////////////////////////////////////
+
     private final VoxelShape[] shapes;
+
+    ///////////////////////////////////////////////////////////////////
 
     public BusCableBlock() {
         super(Properties.create(Material.IRON).sound(SoundType.METAL));
@@ -148,16 +154,20 @@ public final class BusCableBlock extends Block {
         return state;
     }
 
-    @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        FACING_TO_CONNECTION_MAP.values().forEach(builder::add);
-    }
-
     @SuppressWarnings("deprecation")
     @Override
     public VoxelShape getShape(final BlockState state, final IBlockReader world, final BlockPos pos, final ISelectionContext context) {
         return shapes[getShapeIndex(state)];
     }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
+        FACING_TO_CONNECTION_MAP.values().forEach(builder::add);
+    }
+
+    ///////////////////////////////////////////////////////////////////
 
     private VoxelShape[] makeShapes() {
         final VoxelShape coreShape = Block.makeCuboidShape(5, 5, 5, 11, 11, 11);

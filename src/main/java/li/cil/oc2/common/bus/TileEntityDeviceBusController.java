@@ -24,10 +24,14 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
         READY,
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     private static final int MAX_BUS_ELEMENT_COUNT = 128;
     private static final int TICKS_PER_SECOND = 20;
     private static final int INCOMPLETE_RETRY_INTERVAL = 10;
     private static final int TOO_COMPLEX_RETRY_INTERVAL = 5;
+
+    ///////////////////////////////////////////////////////////////////
 
     private final TileEntity tileEntity;
 
@@ -38,14 +42,10 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
     private BusState state = BusState.SCAN_PENDING;
     private int scanDelay;
 
+    ///////////////////////////////////////////////////////////////////
+
     protected TileEntityDeviceBusController(final TileEntity tileEntity) {
         this.tileEntity = tileEntity;
-    }
-
-    protected void onDevicesInvalid() {
-    }
-
-    protected void onDevicesValid() {
     }
 
     public BusState getState() {
@@ -202,6 +202,16 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
 
         state = BusState.READY;
     }
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected void onDevicesInvalid() {
+    }
+
+    protected void onDevicesValid() {
+    }
+
+    ///////////////////////////////////////////////////////////////////
 
     private static final class ScanEdge {
         public final BlockPos position;

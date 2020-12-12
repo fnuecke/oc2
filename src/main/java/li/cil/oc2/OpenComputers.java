@@ -19,9 +19,7 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.extensions.IForgeContainerType;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
@@ -56,14 +54,7 @@ public final class OpenComputers {
     public static final RegistryObject<TileEntityType<RedstoneInterfaceTileEntity>> REDSTONE_INTERFACE_TILE_ENTITY = TILES.register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, () -> TileEntityType.Builder.create(RedstoneInterfaceTileEntity::new, REDSTONE_INTERFACE_BLOCK.get()).build(null));
 
     public static final DeferredRegister<ContainerType<?>> CONTAINERS = DeferredRegister.create(ForgeRegistries.CONTAINERS, API.MOD_ID);
-    public static final RegistryObject<ContainerType<ComputerContainer>> COMPUTER_CONTAINER = CONTAINERS.register(Constants.COMPUTER_BLOCK_NAME, () -> IForgeContainerType.create((id, inventory, data) -> {
-        final BlockPos pos = data.readBlockPos();
-        final TileEntity tileEntity = inventory.player.getEntityWorld().getTileEntity(pos);
-        if (!(tileEntity instanceof ComputerTileEntity)) {
-            return null;
-        }
-        return new ComputerContainer(id, (ComputerTileEntity) tileEntity);
-    }));
+    public static final RegistryObject<ContainerType<ComputerContainer>> COMPUTER_CONTAINER = CONTAINERS.register(Constants.COMPUTER_BLOCK_NAME, () -> IForgeContainerType.create(ComputerContainer::create));
 
     public OpenComputers() {
         ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());

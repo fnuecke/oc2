@@ -6,6 +6,8 @@ import java.util.Objects;
 public abstract class AbstractObjectProxy<T> {
     protected final T value;
 
+    ///////////////////////////////////////////////////////////////////
+
     public AbstractObjectProxy(final T value) {
         this.value = value;
     }

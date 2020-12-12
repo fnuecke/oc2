@@ -18,12 +18,18 @@ import java.io.IOException;
 public final class VirtualMachine {
     private static final Logger LOGGER = LogManager.getLogger();
 
+    ///////////////////////////////////////////////////////////////////
+
     // We report a clock rate to the VM such that for the VM it looks as though
     // passes as much faster as MC time passes faster than real time.
     public static final int REPORTED_CPU_FREQUENCY = 700_000;
     public static final int ACTUAL_CPU_FREQUENCY = REPORTED_CPU_FREQUENCY * 72;
 
+    ///////////////////////////////////////////////////////////////////
+
     public final MinecraftRealTimeCounter rtc = new MinecraftRealTimeCounter();
+
+    ///////////////////////////////////////////////////////////////////
 
     @Serialized public R5Board board;
     @Serialized public VirtualMachineDeviceBusAdapter vmAdapter;
@@ -31,6 +37,8 @@ public final class VirtualMachine {
     @Serialized public VirtIOBlockDevice hdd;
     @Serialized public VirtIOConsoleDevice deviceBusSerialDevice;
     @Serialized public RPCAdapter rpcAdapter;
+
+    ///////////////////////////////////////////////////////////////////
 
     public VirtualMachine(final DeviceBusController busController) {
         board = new R5Board();

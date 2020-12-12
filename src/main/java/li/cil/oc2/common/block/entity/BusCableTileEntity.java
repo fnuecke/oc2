@@ -14,7 +14,11 @@ import net.minecraft.util.math.BlockPos;
 public class BusCableTileEntity extends AbstractTileEntity {
     private static final String BUS_ELEMENT_NBT_TAG_NAME = "busElement";
 
+    ///////////////////////////////////////////////////////////////////
+
     private final TileEntityDeviceBusElement busElement;
+
+    ///////////////////////////////////////////////////////////////////
 
     public BusCableTileEntity() {
         super(OpenComputers.BUS_CABLE_TILE_ENTITY.get());
@@ -25,18 +29,6 @@ public class BusCableTileEntity extends AbstractTileEntity {
 
     public void handleNeighborChanged(final BlockPos pos) {
         busElement.handleNeighborChanged(pos);
-    }
-
-    @Override
-    protected void initializeServer() {
-        super.initializeServer();
-        busElement.initialize();
-    }
-
-    @Override
-    protected void disposeServer() {
-        super.disposeServer();
-        busElement.dispose();
     }
 
     @Override
@@ -51,6 +43,22 @@ public class BusCableTileEntity extends AbstractTileEntity {
         super.read(state, compound);
         NBTSerialization.deserialize(compound.getCompound(BUS_ELEMENT_NBT_TAG_NAME), busElement);
     }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void initializeServer() {
+        super.initializeServer();
+        busElement.initialize();
+    }
+
+    @Override
+    protected void disposeServer() {
+        super.disposeServer();
+        busElement.dispose();
+    }
+
+    ///////////////////////////////////////////////////////////////////
 
     private final class BusElement extends TileEntityDeviceBusElement {
         public BusElement() {

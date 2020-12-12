@@ -1,4 +1,4 @@
-package li.cil.oc2.api.bus.device.sedna;
+package li.cil.oc2.api.bus.device.vm;
 
 import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBus;
@@ -13,7 +13,7 @@ import li.cil.sedna.api.device.MemoryMappedDevice;
  * implemented through this interface will require explicit driver support
  * in the guest system.
  */
-public interface SednaDevice extends Device {
+public interface VMDevice extends Device {
     /**
      * Called to initialize this device.
      * <p>
@@ -28,7 +28,7 @@ public interface SednaDevice extends Device {
      * @param context the virtual machine context.
      * @return {@code true} if the device was loaded successfully; {@code false} otherwise.
      */
-    SednaDeviceLoadResult load(VirtualMachineContext context);
+    VMDeviceLoadResult load(VMContext context);
 
     /**
      * Called when the device is unloaded.

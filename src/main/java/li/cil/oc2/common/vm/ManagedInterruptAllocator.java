@@ -7,7 +7,7 @@ import java.util.BitSet;
 import java.util.OptionalInt;
 
 public final class ManagedInterruptAllocator implements InterruptAllocator {
-    private final BitSet interrupts;
+    private final BitSet claimedInterrupts;
     private final BitSet reservedInterrupts;
     private final BitSet managedInterrupts;
     private final int interruptCount;
@@ -16,8 +16,8 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ManagedInterruptAllocator(final BitSet interrupts, final BitSet reservedInterrupts, final int interruptCount) {
-        this.interrupts = interrupts;
+    public ManagedInterruptAllocator(final BitSet claimedInterrupts, final BitSet reservedInterrupts, final int interruptCount) {
+        this.claimedInterrupts = claimedInterrupts;
         this.reservedInterrupts = reservedInterrupts;
         this.managedInterrupts = new BitSet(interruptCount);
         this.interruptCount = interruptCount;
@@ -30,7 +30,7 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
     }
 
     public void invalidate() {
-        interrupts.andNot(managedInterrupts);
+        claimedInterrupts.andNot(managedInterrupts);
         managedMask = 0;
     }
 
@@ -48,10 +48,10 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
             throw new IllegalArgumentException();
         }
 
-        if (interrupts.get(interrupt)) {
+        if (claimedInterrupts.get(interrupt)) {
             return claimInterrupt();
         } else {
-            interrupts.set(interrupt);
+            claimedInterrupts.set(interrupt);
             reservedInterrupts.set(interrupt);
             managedInterrupts.set(interrupt);
             return OptionalInt.of(interrupt);
@@ -64,16 +64,16 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
             throw new IllegalStateException();
         }
 
-        final BitSet claimedInterrupts = new BitSet();
-        claimedInterrupts.or(interrupts);
-        claimedInterrupts.or(reservedInterrupts);
+        final BitSet allClaimedInterrupts = new BitSet();
+        allClaimedInterrupts.or(claimedInterrupts);
+        allClaimedInterrupts.or(reservedInterrupts);
 
-        final int interrupt = claimedInterrupts.nextClearBit(0);
+        final int interrupt = allClaimedInterrupts.nextClearBit(0);
         if (interrupt >= interruptCount) {
             return OptionalInt.empty();
         }
 
-        interrupts.set(interrupt);
+        claimedInterrupts.set(interrupt);
         reservedInterrupts.set(interrupt);
         managedInterrupts.set(interrupt);
 

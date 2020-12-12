@@ -6,29 +6,16 @@ import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.api.memory.MemoryRange;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.OptionalLong;
 
 final class ManagedMemoryMap implements MemoryMap {
     private final MemoryMap memoryMap;
-    private final ArrayList<MemoryMappedDevice> managedDevices = new ArrayList<>();
-    private boolean isFrozen;
 
     ///////////////////////////////////////////////////////////////////
 
     ManagedMemoryMap(final MemoryMap memoryMap) {
         this.memoryMap = memoryMap;
-    }
-
-    public void freeze() {
-        isFrozen = true;
-    }
-
-    public void invalidate() {
-        for (final MemoryMappedDevice device : managedDevices) {
-            memoryMap.removeDevice(device);
-        }
     }
 
     @Override
@@ -38,16 +25,7 @@ final class ManagedMemoryMap implements MemoryMap {
 
     @Override
     public boolean addDevice(final long address, final MemoryMappedDevice device) {
-        if (isFrozen) {
-            throw new IllegalStateException();
-        }
-
-        if (memoryMap.addDevice(address, device)) {
-            managedDevices.add(device);
-            return true;
-        } else {
-            return false;
-        }
+        throw new UnsupportedOperationException();
     }
 
     @Override

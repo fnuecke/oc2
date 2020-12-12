@@ -5,7 +5,7 @@ import li.cil.sedna.api.device.InterruptController;
 public final class ManagedInterruptController implements InterruptController {
     private final InterruptController interruptController;
     private final ManagedInterruptAllocator allocator;
-    private int managedInterrupts = 0;
+    private int raisedInterrupts = 0;
     private boolean isValid = true;
 
     ///////////////////////////////////////////////////////////////////
@@ -17,19 +17,19 @@ public final class ManagedInterruptController implements InterruptController {
 
     public void invalidate() {
         isValid = false;
-        interruptController.lowerInterrupts(managedInterrupts);
-        managedInterrupts = 0;
+        interruptController.lowerInterrupts(raisedInterrupts);
+        raisedInterrupts = 0;
     }
 
     @Override
     public void raiseInterrupts(final int mask) {
         if (!isValid) {
-            throw new IllegalArgumentException();
+            throw new IllegalStateException();
         }
 
         if (allocator.isMaskValid(mask)) {
             interruptController.raiseInterrupts(mask);
-            managedInterrupts |= mask;
+            raisedInterrupts |= mask;
         } else {
             throw new IllegalArgumentException("Trying to raise interrupt not allocated by this context.");
         }
@@ -38,12 +38,12 @@ public final class ManagedInterruptController implements InterruptController {
     @Override
     public void lowerInterrupts(final int mask) {
         if (!isValid) {
-            throw new IllegalArgumentException();
+            throw new IllegalStateException();
         }
 
         if (allocator.isMaskValid(mask)) {
             interruptController.lowerInterrupts(mask);
-            managedInterrupts &= ~managedInterrupts;
+            raisedInterrupts &= ~mask;
         } else {
             throw new IllegalArgumentException("Trying to lower interrupt not allocated by this context.");
         }
@@ -51,6 +51,6 @@ public final class ManagedInterruptController implements InterruptController {
 
     @Override
     public int getRaisedInterrupts() {
-        return interruptController.getRaisedInterrupts();
+        return raisedInterrupts;
     }
 }

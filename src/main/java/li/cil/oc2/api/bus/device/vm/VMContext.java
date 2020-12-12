@@ -14,32 +14,16 @@ public interface VMContext {
     /**
      * The memory of the virtual machine.
      * <p>
-     * {@link MemoryMappedDevice}s can only be added inside {@link VMDevice#load(VMContext)}.
-     * Trying to add devices after that method has returned will result in an exception.
-     * <p>
-     * Removing {@link MemoryMappedDevice}s is not supported. Added devices will
-     * automatically removed when the {@link VMDevice} that added it is unloaded,
-     * e.g. because it has been removed from the {@link DeviceBus}.
+     * Adding or removing {@link MemoryMappedDevice}s directly is not supported.
+     * Use the {@link MemoryRangeAllocator} provided by {@link #getMemoryRangeAllocator()}
+     * to add devices.
      *
      * @return the memory map of the virtual machine.
      */
     MemoryMap getMemoryMap();
 
     /**
-     * An object that allows claiming interrupts for use with the {@link InterruptController}.
-     * <p>
-     * Interrupts can only be claimed inside {@link VMDevice#load(VMContext)}.
-     * Trying to claim interrupts after that method has returned will result in an exception.
-     * <p>
-     * Claimed interrupts will automatically be released when the {@link VMDevice} that
-     * claimed them is unloaded, e.g. because it is removed from the {@link DeviceBus}.
-     *
-     * @return the interrupt allocator.
-     */
-    InterruptAllocator getInterruptAllocator();
-
-    /**
-     * The interrupt controller of the virtual machine devices should attach to.
+     * The interrupt controller of the virtual machine.
      * <p>
      * Raising or lowering interrupts that have not been claimed using the {@link InterruptAllocator}
      * made available through this instance will result in an exception.
@@ -50,4 +34,30 @@ public interface VMContext {
      * @return the interrupt controller of the virtual machine.
      */
     InterruptController getInterruptController();
+
+    /**
+     * Allows adding {@link MemoryMappedDevice}s to the VM's {@link MemoryMap}.
+     * <p>
+     * {@link MemoryMappedDevice}s can only be added inside {@link VMDevice#load(VMContext)}.
+     * Trying to add devices after that method has returned will result in an exception.
+     * <p>
+     * Added devices will be automatically removed when the {@link VMDevice} that added it
+     * is unloaded, e.g. because it has been removed from the {@link DeviceBus}.
+     *
+     * @return the memory range allocator.
+     */
+    MemoryRangeAllocator getMemoryRangeAllocator();
+
+    /**
+     * Allows claiming interrupts for use with the VM's {@link InterruptController}.
+     * <p>
+     * Interrupts can only be claimed inside {@link VMDevice#load(VMContext)}.
+     * Trying to claim interrupts after that method has returned will result in an exception.
+     * <p>
+     * Claimed interrupts will automatically be released when the {@link VMDevice} that
+     * claimed them is unloaded, e.g. because it is removed from the {@link DeviceBus}.
+     *
+     * @return the interrupt allocator.
+     */
+    InterruptAllocator getInterruptAllocator();
 }

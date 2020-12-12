@@ -4,8 +4,7 @@ import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
-import li.cil.sedna.api.device.InterruptController;
-import li.cil.sedna.api.memory.MemoryMap;
+import li.cil.sedna.api.Board;
 import li.cil.sedna.riscv.device.R5PlatformLevelInterruptController;
 
 import java.util.ArrayList;
@@ -14,10 +13,9 @@ import java.util.HashMap;
 import java.util.Set;
 
 public final class VirtualMachineDeviceBusAdapter {
-    private final MemoryMap memoryMap;
-    private final InterruptController interruptController;
+    private final Board board;
 
-    private final BitSet allocatedInterrupts = new BitSet();
+    private final BitSet claimedInterrupts = new BitSet();
     private final HashMap<VMDevice, ManagedVMContext> deviceContexts = new HashMap<>();
     private final ArrayList<VMDevice> incompleteLoads = new ArrayList<>();
 
@@ -31,21 +29,20 @@ public final class VirtualMachineDeviceBusAdapter {
 
     ///////////////////////////////////////////////////////////////////
 
-    public VirtualMachineDeviceBusAdapter(final MemoryMap memoryMap, final InterruptController interruptController) {
-        this.memoryMap = memoryMap;
-        this.interruptController = interruptController;
+    public VirtualMachineDeviceBusAdapter(final Board board) {
+        this.board = board;
     }
 
     public int claimInterrupt() {
-        return claimInterrupt(allocatedInterrupts.nextClearBit(0) + 1);
+        return claimInterrupt(claimedInterrupts.nextClearBit(0));
     }
 
     public int claimInterrupt(final int interrupt) {
-        if (interrupt < 1 || interrupt > R5PlatformLevelInterruptController.INTERRUPT_COUNT) {
+        if (interrupt < 0 || interrupt >= R5PlatformLevelInterruptController.INTERRUPT_COUNT) {
             throw new IllegalArgumentException();
         }
 
-        allocatedInterrupts.set(interrupt - 1);
+        claimedInterrupts.set(interrupt);
         return interrupt;
     }
 
@@ -54,7 +51,7 @@ public final class VirtualMachineDeviceBusAdapter {
             final VMDevice device = incompleteLoads.remove(i);
 
             final ManagedVMContext context = new ManagedVMContext(
-                    memoryMap, interruptController, allocatedInterrupts, reservedInterrupts);
+                    board, claimedInterrupts, reservedInterrupts);
             deviceContexts.put(device, context);
 
             final VMDeviceLoadResult result = device.load(context);
@@ -71,7 +68,7 @@ public final class VirtualMachineDeviceBusAdapter {
         }
 
         reservedInterrupts.clear();
-        reservedInterrupts.or(allocatedInterrupts);
+        reservedInterrupts.or(claimedInterrupts);
 
         return true;
     }

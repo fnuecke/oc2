@@ -4,7 +4,9 @@ import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.vm.VirtualMachineDeviceBusAdapter;
+import li.cil.sedna.api.Board;
 import li.cil.sedna.api.device.InterruptController;
+import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.memory.SimpleMemoryMap;
 import li.cil.sedna.riscv.device.R5PlatformLevelInterruptController;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,7 +30,27 @@ public final class VMDeviceTests {
     public void setupEach() {
         memoryMap = new SimpleMemoryMap();
         interruptController = new R5PlatformLevelInterruptController();
-        adapter = new VirtualMachineDeviceBusAdapter(memoryMap, interruptController);
+
+        final Board board = mock(Board.class);
+        when(board.getMemoryMap()).thenReturn(memoryMap);
+        when(board.getInterruptController()).thenReturn(interruptController);
+        when(board.getInterruptCount()).thenReturn(16);
+        when(board.addDevice(any())).then(invocation -> {
+            final MemoryMappedDevice device = invocation.getArgument(0);
+            final OptionalLong address = memoryMap.findFreeRange(0, 0xFFFFFFFF, device.getLength());
+            if (address.isPresent()) {
+                memoryMap.addDevice(address.getAsLong(), device);
+                return true;
+            } else {
+                return false;
+            }
+        });
+        doAnswer(invocation -> {
+            memoryMap.removeDevice(invocation.getArgument(0));
+            return null;
+        }).when(board).removeDevice(any());
+
+        adapter = new VirtualMachineDeviceBusAdapter(board);
     }
 
     @Test
@@ -141,8 +164,6 @@ public final class VMDeviceTests {
         adapter.addDevices(Collections.singleton(device));
         assertTrue(adapter.load());
 
-        verify(device).load(any());
-
         final int claimedInterruptMask = 1 << deviceData.interrupt;
         deviceData.context.getInterruptController().raiseInterrupts(claimedInterruptMask);
 
@@ -160,8 +181,6 @@ public final class VMDeviceTests {
 
         adapter.addDevices(Collections.singleton(device));
         assertTrue(adapter.load());
-
-        verify(device).load(any());
 
         final int someInterruptMask = 0x1;
         assertThrows(IllegalArgumentException.class, () ->
@@ -186,8 +205,6 @@ public final class VMDeviceTests {
         adapter.addDevices(Collections.singleton(device));
         assertTrue(adapter.load());
 
-        verify(device).load(any());
-
         final int claimedInterruptMask = 1 << deviceData.interrupt;
         deviceData.context.getInterruptController().raiseInterrupts(claimedInterruptMask);
 
@@ -198,8 +215,73 @@ public final class VMDeviceTests {
         assertFalse((interruptController.getRaisedInterrupts() & claimedInterruptMask) != 0);
     }
 
+    @Test
+    public void devicesCannotAddToMemoryMapDirectly() {
+        final VMDevice device = mock(VMDevice.class);
+        when(device.load(any())).thenAnswer(invocation -> {
+            final VMContext context = invocation.getArgument(0);
+
+            assertThrows(UnsupportedOperationException.class, () ->
+                    context.getMemoryMap().addDevice(0, mock(MemoryMappedDevice.class)));
+
+            return VMDeviceLoadResult.success();
+        });
+
+        adapter.addDevices(Collections.singleton(device));
+        adapter.load();
+    }
+
+    @Test
+    public void devicesCanAddMemoryMappedDevices() {
+        final DeviceData deviceData = new DeviceData();
+        final VMDevice device = mock(VMDevice.class);
+        when(device.load(any())).thenAnswer(invocation -> {
+            final VMContext context = invocation.getArgument(0);
+
+            deviceData.context = context;
+            deviceData.device = mock(MemoryMappedDevice.class);
+            when(deviceData.device.getLength()).thenReturn(0x1000);
+
+            assertTrue(context.getMemoryRangeAllocator().claimMemoryRange(deviceData.device).isPresent());
+
+            return VMDeviceLoadResult.success();
+        });
+
+        adapter.addDevices(Collections.singleton(device));
+        assertTrue(adapter.load());
+
+        assertTrue(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
+    }
+
+    @Test
+    public void addedDevicesGetRemovedOnUnload() {
+        final DeviceData deviceData = new DeviceData();
+        final VMDevice device = mock(VMDevice.class);
+        when(device.load(any())).thenAnswer(invocation -> {
+            final VMContext context = invocation.getArgument(0);
+
+            deviceData.context = context;
+            deviceData.device = mock(MemoryMappedDevice.class);
+            when(deviceData.device.getLength()).thenReturn(0x1000);
+
+            assertTrue(context.getMemoryRangeAllocator().claimMemoryRange(deviceData.device).isPresent());
+
+            return VMDeviceLoadResult.success();
+        });
+
+        adapter.addDevices(Collections.singleton(device));
+        assertTrue(adapter.load());
+
+        assertTrue(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
+
+        adapter.unload();
+
+        assertFalse(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
+    }
+
     private static final class DeviceData {
         public VMContext context;
         public int interrupt;
+        public MemoryMappedDevice device;
     }
 }

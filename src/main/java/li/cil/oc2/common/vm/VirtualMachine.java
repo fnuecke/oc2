@@ -45,7 +45,7 @@ public final class VirtualMachine {
 
         board.getCpu().setFrequency(REPORTED_CPU_FREQUENCY);
 
-        vmAdapter = new VirtualMachineDeviceBusAdapter(board.getMemoryMap(), board.getInterruptController());
+        vmAdapter = new VirtualMachineDeviceBusAdapter(board);
 
         uart = new UART16550A();
         uart.getInterrupt().set(vmAdapter.claimInterrupt(), board.getInterruptController());

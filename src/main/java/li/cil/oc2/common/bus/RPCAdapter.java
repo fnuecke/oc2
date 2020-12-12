@@ -90,8 +90,10 @@ public final class RPCAdapter implements Steppable {
         devicesById.clear();
     }
 
-    public void resume() {
-        if (!isPaused) {
+    public void resume(final boolean didDevicesChange) {
+        isPaused = false;
+
+        if (!didDevicesChange) {
             return;
         }
 
@@ -136,8 +138,6 @@ public final class RPCAdapter implements Steppable {
             devices.add(new RPCDeviceWithIdentifier(identifier, device));
             devicesById.put(identifier, device);
         });
-
-        isPaused = false;
     }
 
     public void tick() {

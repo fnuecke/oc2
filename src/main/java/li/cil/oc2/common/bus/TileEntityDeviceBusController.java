@@ -61,9 +61,6 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
         }
 
         elements.clear();
-        devices.clear();
-        deviceIds.clear();
-
         scanDelay = 0; // scan as soon as possible
         state = BusState.SCAN_PENDING;
     }
@@ -72,18 +69,42 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
     public void scanDevices() {
         onDevicesInvalid();
 
-        devices.clear();
-        deviceIds.clear();
-
+        final HashSet<Device> newDevices = new HashSet<>();
+        final HashMap<Device, Set<UUID>> newDeviceIds = new HashMap<>();
         for (final DeviceBusElement element : elements) {
             for (final Device device : element.getLocalDevices()) {
-                devices.add(device);
-                element.getDeviceIdentifier(device).ifPresent(identifier -> deviceIds
+                newDevices.add(device);
+                element.getDeviceIdentifier(device).ifPresent(identifier -> newDeviceIds
                         .computeIfAbsent(device, unused -> new HashSet<>()).add(identifier));
             }
         }
 
-        onDevicesValid();
+        final HashSet<Device> removedDevices = new HashSet<>(devices);
+        removedDevices.removeAll(newDevices);
+        onDevicesRemoved(removedDevices);
+
+        final HashSet<Device> addedDevices = new HashSet<>(newDevices);
+        addedDevices.removeAll(devices);
+        onDevicesAdded(addedDevices);
+
+        final boolean didDevicesChange = !removedDevices.isEmpty() || !addedDevices.isEmpty();
+        final boolean didDeviceIdsChange;
+        if (didDevicesChange) {
+            devices.clear();
+            devices.addAll(newDevices);
+
+            didDeviceIdsChange = true;
+        } else {
+            didDeviceIdsChange = deviceIds.entrySet().stream().anyMatch(entry ->
+                    !Objects.equals(entry.getValue(), newDeviceIds.get(entry.getKey())));
+        }
+
+        if (didDeviceIdsChange) {
+            deviceIds.clear();
+            deviceIds.putAll(newDeviceIds);
+        }
+
+        onDevicesValid(didDevicesChange || didDeviceIdsChange);
     }
 
     @Override
@@ -208,7 +229,13 @@ public abstract class TileEntityDeviceBusController implements DeviceBusControll
     protected void onDevicesInvalid() {
     }
 
-    protected void onDevicesValid() {
+    protected void onDevicesValid(final boolean didDevicesChange) {
+    }
+
+    protected void onDevicesAdded(final Set<Device> devices) {
+    }
+
+    protected void onDevicesRemoved(final Set<Device> devices) {
     }
 
     ///////////////////////////////////////////////////////////////////

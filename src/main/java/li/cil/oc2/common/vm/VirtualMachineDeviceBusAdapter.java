@@ -8,7 +8,10 @@ import li.cil.sedna.api.device.InterruptController;
 import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.riscv.device.R5PlatformLevelInterruptController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Set;
 
 public final class VirtualMachineDeviceBusAdapter {
     private final MemoryMap memoryMap;
@@ -63,7 +66,14 @@ public final class VirtualMachineDeviceBusAdapter {
             }
         }
 
-        return incompleteLoads.isEmpty();
+        if (!incompleteLoads.isEmpty()) {
+            return false;
+        }
+
+        reservedInterrupts.clear();
+        reservedInterrupts.or(allocatedInterrupts);
+
+        return true;
     }
 
     public void unload() {
@@ -76,31 +86,35 @@ public final class VirtualMachineDeviceBusAdapter {
         incompleteLoads.addAll(deviceContexts.keySet());
     }
 
-    public void setDevices(final Collection<Device> devices) {
-        final HashSet<VMDevice> oldDevices = new HashSet<>(deviceContexts.keySet());
-        final HashSet<VMDevice> newDevices = new HashSet<>();
+    public void addDevices(final Set<Device> devices) {
         for (final Device device : devices) {
             if (device instanceof VMDevice) {
-                newDevices.add((VMDevice) device);
+                final VMDevice vmDevice = (VMDevice) device;
+
+                final ManagedVMContext context = deviceContexts.put(vmDevice, null);
+                if (context != null) {
+                    context.invalidate();
+                }
+
+                incompleteLoads.add(vmDevice);
             }
         }
+    }
 
-        final HashSet<VMDevice> removedDevices = new HashSet<>(oldDevices);
-        removedDevices.removeAll(newDevices);
-        for (final VMDevice device : removedDevices) {
-            deviceContexts.remove(device).invalidate();
-            incompleteLoads.remove(device);
-            device.unload();
+    public void removeDevices(final Set<Device> devices) {
+        for (final Device device : devices) {
+            if (device instanceof VMDevice) {
+                final VMDevice vmDevice = (VMDevice) device;
+
+                final ManagedVMContext context = deviceContexts.remove(vmDevice);
+                if (context != null) {
+                    context.invalidate();
+                }
+
+                incompleteLoads.remove(vmDevice);
+
+                vmDevice.unload();
+            }
         }
-
-        final HashSet<VMDevice> addedDevices = new HashSet<>(newDevices);
-        addedDevices.removeAll(oldDevices);
-        for (final VMDevice device : addedDevices) {
-            deviceContexts.put(device, null);
-            incompleteLoads.add(device);
-        }
-
-        reservedInterrupts.clear();
-        reservedInterrupts.or(allocatedInterrupts);
     }
 }

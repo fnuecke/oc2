@@ -100,8 +100,7 @@ public class RPCAdapterTests {
         when(busController.getDeviceIdentifiers(device)).thenReturn(singleton(deviceId));
 
         // trigger device cache rebuild
-        rpcAdapter.pause();
-        rpcAdapter.resume();
+        rpcAdapter.resume(true);
     }
 
     private JsonElement invokeMethod(final UUID deviceId, final String name, final Object... parameters) {

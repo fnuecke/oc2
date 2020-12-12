@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.Constants;
 import li.cil.oc2.OpenComputers;
+import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
@@ -48,6 +49,7 @@ import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
@@ -474,12 +476,23 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         @Override
         protected void onDevicesInvalid() {
+            runState = RunState.LOADING_DEVICES;
             virtualMachine.rpcAdapter.pause();
         }
 
         @Override
-        protected void onDevicesValid() {
-            virtualMachine.rpcAdapter.resume();
+        protected void onDevicesValid(final boolean didDevicesChange) {
+            virtualMachine.rpcAdapter.resume(didDevicesChange);
+        }
+
+        @Override
+        protected void onDevicesAdded(final Set<Device> devices) {
+            virtualMachine.vmAdapter.addDevices(devices);
+        }
+
+        @Override
+        protected void onDevicesRemoved(final Set<Device> devices) {
+            virtualMachine.vmAdapter.removeDevices(devices);
         }
     }
 

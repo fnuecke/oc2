@@ -19,13 +19,14 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
     public ManagedInterruptAllocator(final BitSet interrupts, final BitSet reservedInterrupts, final int interruptCount) {
         this.interrupts = interrupts;
         this.reservedInterrupts = reservedInterrupts;
-        this.managedInterrupts = new BitSet();
+        this.managedInterrupts = new BitSet(interruptCount);
         this.interruptCount = interruptCount;
     }
 
     public void freeze() {
+        final long[] words = managedInterrupts.toLongArray();
+        managedMask = words.length > 0 ? (int) words[0] : 0;
         isFrozen = true;
-        managedMask = (int) managedInterrupts.toLongArray()[0];
     }
 
     public void invalidate() {
@@ -64,7 +65,11 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
             throw new IllegalStateException();
         }
 
-        final int interruptBit = reservedInterrupts.nextClearBit(0);
+        final BitSet claimedInterrupts = new BitSet();
+        claimedInterrupts.or(interrupts);
+        claimedInterrupts.or(reservedInterrupts);
+
+        final int interruptBit = claimedInterrupts.nextClearBit(0);
         if (interruptBit >= interruptCount) {
             return OptionalInt.empty();
         }

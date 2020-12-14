@@ -44,7 +44,7 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
             throw new IllegalStateException();
         }
 
-        if (interrupt < 0 || interrupt >= R5PlatformLevelInterruptController.INTERRUPT_COUNT) {
+        if (interrupt < 1 || interrupt >= R5PlatformLevelInterruptController.INTERRUPT_COUNT) {
             throw new IllegalArgumentException();
         }
 

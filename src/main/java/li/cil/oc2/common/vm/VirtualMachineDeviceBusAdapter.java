@@ -31,6 +31,7 @@ public final class VirtualMachineDeviceBusAdapter {
 
     public VirtualMachineDeviceBusAdapter(final Board board) {
         this.board = board;
+        this.claimedInterrupts.set(0);
     }
 
     public int claimInterrupt() {
@@ -38,7 +39,7 @@ public final class VirtualMachineDeviceBusAdapter {
     }
 
     public int claimInterrupt(final int interrupt) {
-        if (interrupt < 0 || interrupt >= R5PlatformLevelInterruptController.INTERRUPT_COUNT) {
+        if (interrupt < 1 || interrupt >= R5PlatformLevelInterruptController.INTERRUPT_COUNT) {
             throw new IllegalArgumentException();
         }
 

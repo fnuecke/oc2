@@ -88,19 +88,20 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         switch (tileEntity.getBusState()) {
             case SCAN_PENDING:
             case INCOMPLETE:
+                drawStatus(matrix, buffer);
                 break;
             case TOO_COMPLEX:
-                drawPulsingStatus(matrix, buffer, 500);
+                drawStatus(matrix, buffer, 1000);
                 break;
             case MULTIPLE_CONTROLLERS:
-                drawPulsingStatus(matrix, buffer, 250);
+                drawStatus(matrix, buffer, 250);
                 break;
             case READY:
                 switch (tileEntity.getRunState()) {
                     case STOPPED:
                         break;
                     case LOADING_DEVICES:
-                        drawPulsingStatus(matrix, buffer, 1000);
+                        drawStatus(matrix, buffer);
                         break;
                     case RUNNING:
                         drawPower(matrix, buffer);
@@ -154,8 +155,12 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         }
     }
 
-    private void drawPulsingStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer, final int frequency) {
-        if ((((System.currentTimeMillis() + hashCode()) / frequency) % 2) == 1) {
+    private void drawStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer) {
+        drawStatus(matrix, buffer, 0);
+    }
+
+    private void drawStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer, final int frequency) {
+        if (frequency <= 0 || (((System.currentTimeMillis() + hashCode()) / frequency) % 2) == 1) {
             drawQuad(matrix, TEXTURE_STATUS.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
         }
     }

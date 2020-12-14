@@ -1,13 +1,10 @@
 package li.cil.oc2.common.capabilities;
 
-import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBusController;
+import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 
-import java.util.Set;
-import java.util.UUID;
-
-import static java.util.Collections.emptySet;
+import java.util.Objects;
 
 public final class DeviceBusControllerCapability {
     public static void register() {
@@ -16,23 +13,9 @@ public final class DeviceBusControllerCapability {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static class Implementation implements DeviceBusController {
-        @Override
-        public void scheduleBusScan() {
-        }
-
-        @Override
-        public void scanDevices() {
-        }
-
-        @Override
-        public Set<Device> getDevices() {
-            return emptySet();
-        }
-
-        @Override
-        public Set<UUID> getDeviceIdentifiers(final Device device) {
-            return emptySet();
+    private static class Implementation extends AbstractDeviceBusController {
+        protected Implementation() {
+            super(Objects.requireNonNull(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY.getDefaultInstance()));
         }
     }
 }

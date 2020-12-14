@@ -147,8 +147,12 @@ public final class RPCAdapter implements Steppable {
 
         if (synchronizedInvocation != null) {
             final MethodInvocation methodInvocation = synchronizedInvocation;
-            synchronizedInvocation = null;
             processMethodInvocation(methodInvocation, true);
+
+            // This is also used to prevent thread from processing messages, so only
+            // reset this when we're done. Otherwise we may get a race-condition when
+            // writing back data.
+            synchronizedInvocation = null;
         }
     }
 

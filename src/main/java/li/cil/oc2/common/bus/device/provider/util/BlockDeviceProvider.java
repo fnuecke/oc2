@@ -1,6 +1,6 @@
 package li.cil.oc2.common.bus.device.provider.util;
 
-import li.cil.oc2.api.bus.Device;
+import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callbacks;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;

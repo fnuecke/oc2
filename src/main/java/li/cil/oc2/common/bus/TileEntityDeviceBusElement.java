@@ -1,9 +1,8 @@
 package li.cil.oc2.common.bus;
 
-import li.cil.ceres.api.Serialized;
-import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.ServerScheduler;

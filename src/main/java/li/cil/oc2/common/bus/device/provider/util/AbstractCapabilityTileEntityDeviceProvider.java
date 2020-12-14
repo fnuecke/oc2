@@ -1,6 +1,6 @@
 package li.cil.oc2.common.bus.device.provider.util;
 
-import li.cil.oc2.api.bus.Device;
+import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.capabilities.Capability;

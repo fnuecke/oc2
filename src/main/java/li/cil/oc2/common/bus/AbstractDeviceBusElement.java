@@ -1,8 +1,9 @@
 package li.cil.oc2.common.bus;
 
-import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.api.bus.device.Device;
+import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.*;
 import java.util.stream.Collectors;

@@ -1,7 +1,7 @@
 package li.cil.oc2.api.bus.device.vm;
 
-import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBus;
+import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.sedna.api.device.MemoryMappedDevice;
 

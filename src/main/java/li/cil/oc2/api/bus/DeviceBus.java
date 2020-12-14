@@ -1,5 +1,7 @@
 package li.cil.oc2.api.bus;
 
+import li.cil.oc2.api.bus.device.Device;
+
 import java.util.Collection;
 
 /**

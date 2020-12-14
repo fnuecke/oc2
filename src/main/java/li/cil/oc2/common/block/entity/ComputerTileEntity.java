@@ -10,6 +10,7 @@ import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
@@ -42,7 +43,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.ItemStackHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -51,8 +51,7 @@ import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -69,6 +68,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final String VFS_NBT_TAG_NAME = "vfs";
     private static final String RUNNER_NBT_TAG_NAME = "runner";
     private static final String RUN_STATE_NBT_TAG_NAME = "runState";
+    private static final String ITEMS_NBT_TAG_NAME = "items";
 
     private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
 
@@ -100,7 +100,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private PhysicalMemory ram;
     private UUID ramBlobHandle;
 
-    private final ItemStackHandler itemHandler = new ItemStackHandler();
+    private final DeviceItemStackHandler itemHandler = new DeviceItemStackHandler(4);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -287,6 +287,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             NBTUtils.putEnum(compound, RUN_STATE_NBT_TAG_NAME, runState);
         }
 
+        compound.put(ITEMS_NBT_TAG_NAME, itemHandler.serializeNBT());
+
         final ListNBT devicesNbt = new ListNBT();
         writeDevices(devicesNbt);
         compound.put(DEVICES_NBT_TAG_NAME, devicesNbt);
@@ -331,7 +333,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             }
         }
 
-        // TODO Read item NBTs, generate item based devices.
+        if (compound.contains(ITEMS_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            itemHandler.deserializeNBT(compound.getCompound(ITEMS_NBT_TAG_NAME));
+        }
 
         if (compound.contains(DEVICES_NBT_TAG_NAME, NBTTagIds.TAG_LIST)) {
             readDevices(compound.getList(DEVICES_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
@@ -507,6 +511,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private final class BusElement extends TileEntityDeviceBusElement {
         public BusElement() {
             super(ComputerTileEntity.this);
+        }
+
+        @Override
+        public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
+            return super.getNeighbors().map(neighbors -> {
+                final ArrayList<LazyOptional<DeviceBusElement>> list = new ArrayList<>(neighbors);
+                list.add(LazyOptional.of(itemHandler::getBusElement));
+                return list;
+            });
         }
 
         @Override

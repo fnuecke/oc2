@@ -9,11 +9,6 @@ import net.minecraftforge.common.util.LazyOptional;
  * Allows querying for devices given some context.
  * <p>
  * See the specializations of {@link DeviceQuery} for possible queries.
- * <p>
- * Returning a devices does <em>not</em> transfer ownership of the device in terms
- * of responsibility for persistence. Callers of this method will <em>not</em> attempt
- * to persist objects returned by this method. It is the responsibility of the provider
- * to ensure persistence where required.
  * <ul>
  * <li>Implementations <em>may</em> handle multiple query types and return various device
  * types depending on the query.</li>

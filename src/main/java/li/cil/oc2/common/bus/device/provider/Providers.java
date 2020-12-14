@@ -4,8 +4,10 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.DeviceProvider;
 import li.cil.oc2.api.bus.device.provider.DeviceQuery;
+import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.bus.device.provider.util.BlockDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.util.TileEntityDeviceProvider;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
@@ -48,6 +50,10 @@ public final class Providers {
         return getDevices(new BlockQuery(world, pos, side));
     }
 
+    public static List<LazyOptional<Device>> getDevices(final ItemStack stack) {
+        return getDevices(new ItemQuery(stack));
+    }
+
     public static List<LazyOptional<Device>> getDevices(final DeviceQuery query) {
         final ArrayList<LazyOptional<Device>> devices = new ArrayList<>();
         for (final DeviceProvider provider : DEVICE_PROVIDERS) {
@@ -86,6 +92,14 @@ public final class Providers {
         @Override
         public Direction getQuerySide() {
             return side;
+        }
+    }
+
+    private static final class ItemQuery implements ItemDeviceQuery {
+        private final ItemStack stack;
+
+        public ItemQuery(final ItemStack stack) {
+            this.stack = stack;
         }
     }
 }

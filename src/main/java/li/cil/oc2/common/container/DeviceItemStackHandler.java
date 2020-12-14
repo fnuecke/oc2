@@ -1,21 +1,22 @@
 package li.cil.oc2.common.container;
 
-import li.cil.oc2.api.bus.Device;
-import li.cil.oc2.common.bus.device.provider.Providers;
+import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.common.bus.ItemHandlerDeviceBusElement;
+import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
 public class DeviceItemStackHandler extends ItemStackHandler {
-    private final HashSet<Device> devices = new HashSet<>();
-    private final UUID[] deviceIds;
+    private static final String BUS_ELEMENT_NBT_TAG_NAME = "busElement";
+
+    ///////////////////////////////////////////////////////////////////
+
+    private final ItemHandlerDeviceBusElement busElement;
+
+    ///////////////////////////////////////////////////////////////////
 
     public DeviceItemStackHandler(final int size) {
         this(NonNullList.withSize(size, ItemStack.EMPTY));
@@ -23,9 +24,26 @@ public class DeviceItemStackHandler extends ItemStackHandler {
 
     public DeviceItemStackHandler(final NonNullList<ItemStack> stacks) {
         super(stacks);
-        deviceIds = new UUID[stacks.size()];
-        for (int i = 0; i < deviceIds.length; i++) {
-            deviceIds[i] = UUID.randomUUID();
+        this.busElement = new ItemHandlerDeviceBusElement(this);
+    }
+
+    public DeviceBusElement getBusElement() {
+        return busElement;
+    }
+
+    @Override
+    public CompoundNBT serializeNBT() {
+        final CompoundNBT nbt = super.serializeNBT();
+        nbt.put(BUS_ELEMENT_NBT_TAG_NAME, busElement.serializeNBT());
+        return nbt;
+    }
+
+    @Override
+    public void deserializeNBT(final CompoundNBT nbt) {
+        super.deserializeNBT(nbt);
+        busElement.deserializeNBT(nbt.getList(BUS_ELEMENT_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
+        for (int i = 0; i < getSlots(); i++) {
+            busElement.handleSlotChanged(i);
         }
     }
 
@@ -39,26 +57,11 @@ public class DeviceItemStackHandler extends ItemStackHandler {
         return 1;
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
-    protected void onLoad() {
-        super.onLoad();
-
-        final HashSet<Device> newDevices = new HashSet<>();
-        for (int i = 0; i < getSlots(); i++) {
-            final ItemStack stack = getStackInSlot(i);
-            if (stack.isEmpty()) {
-                continue;
-            }
-
-//            final List<LazyOptional<Device>> devices = Providers.getDevices(stack);
-        }
-    }
-
-    protected void onDevicesAdded(final Set<Device> devices) {
-
-    }
-
-    protected void onDevicesRemoved(final Set<Device> devices) {
-
+    protected void onContentsChanged(final int slot) {
+        super.onContentsChanged(slot);
+        busElement.handleSlotChanged(slot);
     }
 }

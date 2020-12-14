@@ -14,32 +14,26 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
-public class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
+public class TileEntityDeviceBusElement extends AbstractGroupingDeviceBusElement {
     private static final int NEIGHBOR_COUNT = 6;
     final Direction[] NEIGHBOR_DIRECTIONS = Direction.values();
 
     ///////////////////////////////////////////////////////////////////
 
     private final TileEntity tileEntity;
-    private final ArrayList<HashSet<Device>> sidedDevices = new ArrayList<>(6);
-
-    ///////////////////////////////////////////////////////////////////
-
-    @Serialized private final UUID[] sidedDeviceIds = new UUID[NEIGHBOR_COUNT];
 
     ///////////////////////////////////////////////////////////////////
 
     public TileEntityDeviceBusElement(final TileEntity tileEntity) {
+        super(NEIGHBOR_COUNT);
         this.tileEntity = tileEntity;
-
-        for (int i = 0; i < NEIGHBOR_COUNT; i++) {
-            sidedDevices.add(new HashSet<>());
-            sidedDeviceIds[i] = UUID.randomUUID();
-        }
     }
 
     @Override
@@ -72,16 +66,6 @@ public class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
         return Optional.of(neighbors);
     }
 
-    @Override
-    public Optional<UUID> getDeviceIdentifier(final Device device) {
-        for (int i = 0; i < NEIGHBOR_COUNT; i++) {
-            if (sidedDevices.get(i).contains(device)) {
-                return Optional.of(sidedDeviceIds[i]);
-            }
-        }
-        return super.getDeviceIdentifier(device);
-    }
-
     public void handleNeighborChanged(final BlockPos pos) {
         final World world = tileEntity.getWorld();
         if (world == null || world.isRemote()) {
@@ -104,16 +88,7 @@ public class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
             }
         }
 
-        final HashSet<Device> devicesOnSide = sidedDevices.get(index);
-        if (Objects.equals(newDevices, devicesOnSide)) {
-            return;
-        }
-
-        devices.removeAll(devicesOnSide);
-        devicesOnSide.clear();
-        devicesOnSide.addAll(newDevices);
-        devices.addAll(devicesOnSide);
-        scanDevices();
+        setDevicesForGroup(index, newDevices);
     }
 
     public void initialize() {

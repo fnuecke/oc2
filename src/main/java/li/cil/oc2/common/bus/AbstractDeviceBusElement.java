@@ -29,6 +29,11 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     }
 
     @Override
+    public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
+        return Optional.of(Collections.emptyList());
+    }
+
+    @Override
     public Collection<Device> getLocalDevices() {
         return devices;
     }

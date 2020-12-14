@@ -11,6 +11,7 @@ import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 
@@ -20,6 +21,7 @@ import static java.util.Objects.requireNonNull;
 
 public class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
     private static final int NEIGHBOR_COUNT = 6;
+    final Direction[] NEIGHBOR_DIRECTIONS = Direction.values();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -39,6 +41,36 @@ public class TileEntityDeviceBusElement extends AbstractDeviceBusElement {
             sidedDevices.add(new HashSet<>());
             sidedDeviceIds[i] = UUID.randomUUID();
         }
+    }
+
+    @Override
+    public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
+        final World world = tileEntity.getWorld();
+        if (world == null || world.isRemote()) {
+            return Optional.empty();
+        }
+
+        final ArrayList<LazyOptional<DeviceBusElement>> neighbors = new ArrayList<>();
+        for (final Direction neighborDirection : NEIGHBOR_DIRECTIONS) {
+            final BlockPos neighborPos = tileEntity.getPos().offset(neighborDirection);
+
+            final ChunkPos chunkPos = new ChunkPos(neighborPos);
+            if (!world.chunkExists(chunkPos.x, chunkPos.z)) {
+                return Optional.empty();
+            }
+
+            final TileEntity tileEntity = world.getTileEntity(neighborPos);
+            if (tileEntity == null) {
+                continue;
+            }
+
+            final LazyOptional<DeviceBusElement> capability = tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, neighborDirection.getOpposite());
+            if (capability.isPresent()) {
+                neighbors.add(capability);
+            }
+        }
+
+        return Optional.of(neighbors);
     }
 
     @Override

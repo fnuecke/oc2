@@ -29,7 +29,7 @@ public class ItemHandlerDeviceProvider extends AbstractCapabilityAnyTileEntityDe
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final class ItemHandlerDevice extends AbstractObjectProxy<IItemHandler> {
+    public static final class ItemHandlerDevice extends AbstractObjectProxy<IItemHandler> {
         public ItemHandlerDevice(final IItemHandler itemHandler) {
             super(itemHandler);
         }

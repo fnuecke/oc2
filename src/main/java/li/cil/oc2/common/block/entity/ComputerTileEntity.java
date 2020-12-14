@@ -6,7 +6,7 @@ import li.cil.oc2.Constants;
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.common.block.ComputerBlock;
-import li.cil.oc2.common.bus.TileEntityDeviceBusController;
+import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.network.Network;
@@ -41,6 +41,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.items.ItemStackHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -81,8 +82,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     ///////////////////////////////////////////////////////////////////
 
     private Chunk chunk;
-    private final TileEntityDeviceBusController busController;
-    private TileEntityDeviceBusController.BusState busState;
+    private final AbstractDeviceBusController busController;
+    private AbstractDeviceBusController.BusState busState;
     private RunState runState;
     private int loadDevicesDelay;
     @Nullable private BlobStorage.JobHandle ramJobHandle;
@@ -98,6 +99,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private PhysicalMemory ram;
     private UUID ramBlobHandle;
 
+    private final ItemStackHandler itemHandler = new ItemStackHandler();
+
     ///////////////////////////////////////////////////////////////////
 
     public ComputerTileEntity() {
@@ -105,7 +108,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         busElement = new BusElement();
         busController = new BusController();
-        busState = TileEntityDeviceBusController.BusState.SCAN_PENDING;
+        busState = AbstractDeviceBusController.BusState.SCAN_PENDING;
         runState = RunState.STOPPED;
 
         terminal = new Terminal();
@@ -146,11 +149,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     public boolean isRunning() {
-        return getBusState() == TileEntityDeviceBusController.BusState.READY &&
+        return getBusState() == AbstractDeviceBusController.BusState.READY &&
                getRunState() == RunState.RUNNING;
     }
 
-    public TileEntityDeviceBusController.BusState getBusState() {
+    public AbstractDeviceBusController.BusState getBusState() {
         return busState;
     }
 
@@ -171,7 +174,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void setBusStateClient(final TileEntityDeviceBusController.BusState value) {
+    public void setBusStateClient(final AbstractDeviceBusController.BusState value) {
         final World world = getWorld();
         if (world != null && world.isRemote()) {
             busState = value;
@@ -196,7 +199,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         busController.scan();
         setBusState(busController.getState());
-        if (busState != TileEntityDeviceBusController.BusState.READY) {
+        if (busState != AbstractDeviceBusController.BusState.READY) {
             return;
         }
 
@@ -257,7 +260,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         super.handleUpdateTag(state, tag);
 
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_NBT_TAG_NAME), terminal);
-        busState = TileEntityDeviceBusController.BusState.values()[tag.getInt(BUS_STATE_NBT_TAG_NAME)];
+        busState = AbstractDeviceBusController.BusState.values()[tag.getInt(BUS_STATE_NBT_TAG_NAME)];
         runState = RunState.values()[tag.getInt(RUN_STATE_NBT_TAG_NAME)];
     }
 
@@ -416,7 +419,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         virtualMachine.vmAdapter.unload();
     }
 
-    private void setBusState(final TileEntityDeviceBusController.BusState value) {
+    private void setBusState(final AbstractDeviceBusController.BusState value) {
         if (value == busState) {
             return;
         }
@@ -469,14 +472,17 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     ///////////////////////////////////////////////////////////////////
 
-    private class BusController extends TileEntityDeviceBusController {
+    private final class BusController extends AbstractDeviceBusController {
         private BusController() {
-            super(ComputerTileEntity.this);
+            super(busElement);
         }
 
         @Override
         protected void onDevicesInvalid() {
-            runState = RunState.LOADING_DEVICES;
+            if (runState == RunState.RUNNING) {
+                runState = RunState.LOADING_DEVICES;
+            }
+
             virtualMachine.rpcAdapter.pause();
         }
 
@@ -496,7 +502,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
     }
 
-    private class BusElement extends TileEntityDeviceBusElement {
+    private final class BusElement extends TileEntityDeviceBusElement {
         public BusElement() {
             super(ComputerTileEntity.this);
         }

@@ -3,10 +3,7 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Bootstrap;
-import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,21 +12,19 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Collections;
+import java.util.Optional;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 public class DeviceBusTests {
-    private static final BlockPos CONTROLLER_POS = new BlockPos(0, 0, 0);
-
     @Mock
     private Capability<DeviceBusElement> busElementCapability;
-    private World world;
-    private TileEntity busControllerTileEntity;
-    private TileEntityDeviceBusController busController;
+    private AbstractDeviceBusController busController;
     private DeviceBusElement busControllerBusElement;
 
     @BeforeAll
@@ -44,19 +39,9 @@ public class DeviceBusTests {
         MockitoAnnotations.initMocks(this);
         Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY = busElementCapability;
 
-        world = mock(World.class);
-
-        busControllerTileEntity = mock(TileEntity.class);
-        when(busControllerTileEntity.getWorld()).thenReturn(world);
-        when(busControllerTileEntity.getPos()).thenReturn(CONTROLLER_POS);
-        when(busControllerTileEntity.getCapability(any(), any())).thenReturn(LazyOptional.empty());
-
-        when(world.getTileEntity(CONTROLLER_POS)).thenReturn(busControllerTileEntity);
-
         busControllerBusElement = mock(DeviceBusElement.class);
-        when(busControllerTileEntity.getCapability(eq(busElementCapability), any()))
-                .thenReturn(LazyOptional.of(() -> busControllerBusElement));
         when(busControllerBusElement.getLocalDevices()).thenReturn(emptyList());
+        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.empty());
 
         busController = new TestBusController();
     }
@@ -64,59 +49,54 @@ public class DeviceBusTests {
     @Test
     public void scanPendingWhenTileEntityNotLoaded() {
         busController.scan();
-        assertEquals(TileEntityDeviceBusController.BusState.INCOMPLETE, busController.getState());
+        assertEquals(AbstractDeviceBusController.BusState.INCOMPLETE, busController.getState());
     }
 
     @Test
     public void scanCompletesWhenNoNeighbors() {
-        when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);
+        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.emptyList()));
+
         busController.scan();
-        assertEquals(TileEntityDeviceBusController.BusState.READY, busController.getState());
+        assertEquals(AbstractDeviceBusController.BusState.READY, busController.getState());
     }
 
     @Test
     public void scanSuccessfulWithLocalElement() {
-        when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);
+        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.emptyList()));
 
         final RPCDevice device = mock(RPCDevice.class);
         when(busControllerBusElement.getLocalDevices()).thenReturn(singletonList(device));
 
         busController.scan();
-        assertEquals(TileEntityDeviceBusController.BusState.READY, busController.getState());
+        assertEquals(AbstractDeviceBusController.BusState.READY, busController.getState());
 
-        verify(busControllerBusElement).addController(busController);
+        verify(busControllerBusElement).setController(busController);
         assertTrue(busController.getDevices().contains(device));
     }
 
     @Test
     public void scanSuccessfulWithMultipleElements() {
-        when(world.chunkExists(anyInt(), anyInt())).thenReturn(true);
+        // topology: controller <-> element 1 <-> element 2
 
-        final DeviceBusElement busElement1 = mockBusElement(CONTROLLER_POS.west());
-        final DeviceBusElement busElement2 = mockBusElement(CONTROLLER_POS.west().west());
+        final DeviceBusElement busElement1 = mock(DeviceBusElement.class);
+        final DeviceBusElement busElement2 = mock(DeviceBusElement.class);
+
+        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busElement1))));
+        when(busElement1.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busControllerBusElement))));
+
+        when(busElement1.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busElement2))));
+        when(busElement2.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busElement1))));
 
         busController.scan();
-        assertEquals(TileEntityDeviceBusController.BusState.READY, busController.getState());
+        assertEquals(AbstractDeviceBusController.BusState.READY, busController.getState());
 
-        verify(busElement1).addController(busController);
-        verify(busElement2).addController(busController);
+        verify(busElement1).setController(busController);
+        verify(busElement2).setController(busController);
     }
 
-    private DeviceBusElement mockBusElement(final BlockPos pos) {
-        final TileEntity tileEntity = mock(TileEntity.class);
-        when(world.getTileEntity(pos)).thenReturn(tileEntity);
-        when(tileEntity.getCapability(any(), any())).thenReturn(LazyOptional.empty());
-
-        final DeviceBusElement busElement = mock(DeviceBusElement.class);
-        when(tileEntity.getCapability(eq(busElementCapability), any())).thenReturn(LazyOptional.of(() -> busElement));
-        when(busElement.getLocalDevices()).thenReturn(emptyList());
-
-        return busElement;
-    }
-
-    private final class TestBusController extends TileEntityDeviceBusController {
+    private final class TestBusController extends AbstractDeviceBusController {
         public TestBusController() {
-            super(busControllerTileEntity);
+            super(busControllerBusElement);
         }
     }
 }

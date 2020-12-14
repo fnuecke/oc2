@@ -28,7 +28,7 @@ public class EnergyStorageDeviceProvider extends AbstractCapabilityAnyTileEntity
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final class EnergyStorageDevice extends AbstractObjectProxy<IEnergyStorage> {
+    public static final class EnergyStorageDevice extends AbstractObjectProxy<IEnergyStorage> {
         public EnergyStorageDevice(final IEnergyStorage energyStorage) {
             super(energyStorage);
         }

@@ -1,12 +1,12 @@
 package li.cil.oc2.common.capabilities;
 
-import li.cil.oc2.api.bus.Device;
-import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.util.LazyOptional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.Optional;
 
 public final class DeviceBusElementCapability {
     public static void register() {
@@ -15,62 +15,10 @@ public final class DeviceBusElementCapability {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final class Implementation implements DeviceBusElement {
-        private final List<Device> devices = new ArrayList<>();
-        private final HashSet<DeviceBusController> controllers = new HashSet<>();
-
-        public void addController(final DeviceBusController controller) {
-            controllers.add(controller);
-        }
-
+    private static final class Implementation extends AbstractDeviceBusElement {
         @Override
-        public void removeController(final DeviceBusController controller) {
-            controllers.remove(controller);
-        }
-
-        @Override
-        public Collection<Device> getLocalDevices() {
-            return devices;
-        }
-
-        @Override
-        public Optional<UUID> getDeviceIdentifier(final Device device) {
+        public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
             return Optional.empty();
-        }
-
-        @Override
-        public void addDevice(final Device device) {
-            devices.add(device);
-            for (final DeviceBusController controller : controllers) {
-                controller.scanDevices();
-            }
-        }
-
-        @Override
-        public void removeDevice(final Device device) {
-            devices.remove(device);
-            for (final DeviceBusController controller : controllers) {
-                controller.scanDevices();
-            }
-        }
-
-        @Override
-        public Collection<Device> getDevices() {
-            if (!controllers.isEmpty()) {
-                return controllers.stream().flatMap(controller -> getDevices().stream()).collect(Collectors.toList());
-            } else {
-                return getLocalDevices();
-            }
-        }
-
-        @Override
-        public void scheduleScan() {
-            // Controllers are expected to remove themselves when a scan is scheduled.
-            final ArrayList<DeviceBusController> oldControllers = new ArrayList<>(controllers);
-            for (final DeviceBusController controller : oldControllers) {
-                controller.scheduleBusScan();
-            }
-            assert controllers.isEmpty();
         }
     }
 }

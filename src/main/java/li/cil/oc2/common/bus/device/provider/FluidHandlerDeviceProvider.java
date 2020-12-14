@@ -29,7 +29,7 @@ public class FluidHandlerDeviceProvider extends AbstractCapabilityAnyTileEntityD
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final class FluidHandlerDevice extends AbstractObjectProxy<IFluidHandler> {
+    public static final class FluidHandlerDevice extends AbstractObjectProxy<IFluidHandler> {
         public FluidHandlerDevice(final IFluidHandler fluidHandler) {
             super(fluidHandler);
         }

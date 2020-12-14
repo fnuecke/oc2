@@ -1,7 +1,9 @@
 package li.cil.oc2.api.bus;
 
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
+import net.minecraftforge.common.util.LazyOptional;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,29 +22,40 @@ import java.util.UUID;
  */
 public interface DeviceBusElement extends DeviceBus {
     /**
-     * Registers a controller with this bus element.
+     * Sets the {@link DeviceBusController} of the bus this element is on. This effectively
+     * adds this bus element to the bus controlled by the specified {@link DeviceBusController}.
      * <p>
      * This will be called by {@link DeviceBusController}s when scanning.
      * <p>
-     * Bus elements can be have multiple controllers at the same time.
-     * <p>
      * When {@link #scheduleScan()} is called, {@link DeviceBusController#scheduleBusScan()}
-     * <em>must</em> be called for each registered controller.
+     * <em>must</em> be called for the current controller.
      * <p>
      * When either {@link #addDevice(Device)} or {@link #removeDevice(Device)} are called,
-     * {@link DeviceBusController#scanDevices()} <em>should</em> be called for each registered
+     * {@link DeviceBusController#scanDevices()} <em>must</em> be called for the registered
      * controller.
      *
-     * @param controller the controller to add.
+     * @param controller the controller to set. {@code null} when being removed from a bus.
      */
-    void addController(DeviceBusController controller);
+    void setController(@Nullable DeviceBusController controller);
 
     /**
-     * Unregisters a controller from this bus element.
+     * Get the bus controller of the bus this element is on, if any.
      *
-     * @param controller the controller to remove.
+     * @return the bus controller.
      */
-    void removeController(DeviceBusController controller);
+    Optional<DeviceBusController> getController();
+
+    /**
+     * Returns a stream of adjacent bus elements.
+     * <p>
+     * May return {@link Optional#empty()} when the neighbors cannot be
+     * determined at this time. This is typically the case when an adjacent
+     * block is currently not loaded. Not to be confused with an empty stream,
+     * which simply means the element has no neighbors.
+     *
+     * @return the adjacent bus elements, if possible.
+     */
+    Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors();
 
     /**
      * Returns the list of devices connected specifically by this element.
@@ -77,4 +90,9 @@ public interface DeviceBusElement extends DeviceBus {
      * @return the stable id for the specified device.
      */
     Optional<UUID> getDeviceIdentifier(Device device);
+
+    @Override
+    default void scheduleScan() {
+        getController().ifPresent(DeviceBusController::scheduleBusScan);
+    }
 }

@@ -4,22 +4,22 @@ import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 
+import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     protected final List<Device> devices = new ArrayList<>();
-    protected final HashSet<DeviceBusController> controllers = new HashSet<>();
+    protected DeviceBusController controller;
 
     ///////////////////////////////////////////////////////////////////
 
-    public void addController(final DeviceBusController controller) {
-        controllers.add(controller);
+    public void setController(@Nullable final DeviceBusController controller) {
+        this.controller = controller;
     }
 
     @Override
-    public void removeController(final DeviceBusController controller) {
-        controllers.remove(controller);
+    public Optional<DeviceBusController> getController() {
+        return Optional.ofNullable(controller);
     }
 
     @Override
@@ -46,27 +46,17 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
 
     @Override
     public Collection<Device> getDevices() {
-        if (!controllers.isEmpty()) {
-            return controllers.stream().flatMap(controller -> getDevices().stream()).collect(Collectors.toList());
+        if (controller != null) {
+            return controller.getDevices();
         } else {
             return getLocalDevices();
         }
     }
 
-    @Override
-    public void scheduleScan() {
-        // Controllers are expected to remove themselves when a scan is scheduled.
-        final ArrayList<DeviceBusController> oldControllers = new ArrayList<>(controllers);
-        for (final DeviceBusController controller : oldControllers) {
-            controller.scheduleBusScan();
-        }
-        assert controllers.isEmpty();
-    }
-
     ///////////////////////////////////////////////////////////////////
 
     protected void scanDevices() {
-        for (final DeviceBusController controller : controllers) {
+        if (controller != null) {
             controller.scanDevices();
         }
     }

@@ -359,8 +359,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     protected void disposeServer() {
         super.disposeServer();
 
-        busElement.dispose();
         stopRunnerAndUnloadDevices();
+        busController.dispose();
+        busElement.dispose();
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -6,7 +6,7 @@ import java.util.UUID;
 /**
  * For each device bus there can be exactly one controller. The controller performs the
  * actual scan for adjacent {@link DeviceBusElement}s and registers itself with them via
- * {@link DeviceBusElement#setController(DeviceBusController)}.
+ * {@link DeviceBusElement#addController(DeviceBusController)}.
  * <p>
  * This interface is usually provided by VM containers and used to collect connected
  * {@link Device}s by aggregating the devices that were added to the device bus elements

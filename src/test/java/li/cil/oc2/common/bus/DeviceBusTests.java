@@ -70,7 +70,7 @@ public class DeviceBusTests {
         busController.scan();
         assertEquals(AbstractDeviceBusController.BusState.READY, busController.getState());
 
-        verify(busControllerBusElement).setController(busController);
+        verify(busControllerBusElement).addController(busController);
         assertTrue(busController.getDevices().contains(device));
     }
 
@@ -90,8 +90,8 @@ public class DeviceBusTests {
         busController.scan();
         assertEquals(AbstractDeviceBusController.BusState.READY, busController.getState());
 
-        verify(busElement1).setController(busController);
-        verify(busElement2).setController(busController);
+        verify(busElement1).addController(busController);
+        verify(busElement2).addController(busController);
     }
 
     private final class TestBusController extends AbstractDeviceBusController {

@@ -42,25 +42,25 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
         this.root = root;
     }
 
+    public void dispose() {
+        for (final DeviceBusElement element : elements) {
+            element.removeController(this);
+            for (final DeviceBusController controller : element.getControllers()) {
+                controller.scheduleBusScan();
+            }
+        }
+
+        elements.clear();
+    }
+
     public BusState getState() {
         return state;
     }
 
     @Override
     public void scheduleBusScan() {
-        if (scanDelay >= 0) {
-            return; // Scan already pending.
-        }
-
         onDevicesInvalid();
 
-        for (final DeviceBusElement element : elements) {
-            element.getController()
-                    .filter(c -> c == this)
-                    .ifPresent(c -> element.setController (null));
-        }
-
-        elements.clear();
         scanDelay = 0; // scan as soon as possible
         state = BusState.SCAN_PENDING;
     }
@@ -127,7 +127,10 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
         }
 
         assert scanDelay == -1;
-        assert elements.isEmpty();
+
+        // We stay registered with elements until we scan so that other controllers on the same bus
+        // can detect us in the meantime (for multiple controller detection).
+        clearElements();
 
         final HashSet<DeviceBusElement> closed = new HashSet<>();
         final Stack<DeviceBusElement> open = new Stack<>();
@@ -164,17 +167,14 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
             }
         }
 
-        // Collect all controllers connected to this bus. While every bus element
-        // should have the same controller, let's play it safe and explicitly
-        // collect all controllers from all elements for this check.
         final HashSet<DeviceBusController> controllers = new HashSet<>();
         for (final DeviceBusElement element : closed) {
-            element.getController().ifPresent(controllers::add);
+            controllers.addAll(element.getControllers());
+            element.addController(this);
         }
 
-        // This controller should not possibly be in the list of any bus element, but
-        // again, let's rather be paranoid.
-        controllers.remove(this);
+        controllers.remove(this); // Just in case...
+        elements.addAll(closed);
 
         // If there's any controllers on the bus that are not us, enter error state and
         // trigger a scan for those controllers, too, so they may enter error state.
@@ -194,12 +194,6 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
             optional.addListener(unused -> scheduleBusScan());
         }
 
-        for (final DeviceBusElement element : closed) {
-            element.setController(this);
-        }
-
-        elements.addAll(closed);
-
         scanDevices();
 
         state = BusState.READY;
@@ -217,5 +211,15 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
     }
 
     protected void onDevicesRemoved(final Set<Device> devices) {
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private void clearElements() {
+        for (final DeviceBusElement element : elements) {
+            element.removeController(this);
+        }
+
+        elements.clear();
     }
 }

@@ -4,22 +4,27 @@ import li.cil.oc2.api.bus.Device;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 
-import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     protected final List<Device> devices = new ArrayList<>();
-    protected DeviceBusController controller;
+    protected final HashSet<DeviceBusController> controllers = new HashSet<>();
 
     ///////////////////////////////////////////////////////////////////
 
-    public void setController(@Nullable final DeviceBusController controller) {
-        this.controller = controller;
+    public void addController(final DeviceBusController controller) {
+        controllers.add(controller);
     }
 
     @Override
-    public Optional<DeviceBusController> getController() {
-        return Optional.ofNullable(controller);
+    public void removeController(final DeviceBusController controller) {
+        controllers.remove(controller);
+    }
+
+    @Override
+    public Collection<DeviceBusController> getControllers() {
+        return controllers;
     }
 
     @Override
@@ -46,17 +51,24 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
 
     @Override
     public Collection<Device> getDevices() {
-        if (controller != null) {
-            return controller.getDevices();
+        if (!controllers.isEmpty()) {
+            return controllers.stream().flatMap(controller -> getDevices().stream()).collect(Collectors.toList());
         } else {
             return getLocalDevices();
+        }
+    }
+
+    @Override
+    public void scheduleScan() {
+        for (final DeviceBusController controller : controllers) {
+            controller.scheduleBusScan();
         }
     }
 
     ///////////////////////////////////////////////////////////////////
 
     protected void scanDevices() {
-        if (controller != null) {
+        for (final DeviceBusController controller : controllers) {
             controller.scanDevices();
         }
     }

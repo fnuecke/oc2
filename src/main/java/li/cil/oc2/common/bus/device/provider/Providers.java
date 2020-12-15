@@ -29,6 +29,7 @@ public final class Providers {
         addProvider(new ItemHandlerDeviceProvider());
         addProvider(new TileEntityDeviceProvider());
         addProvider(new BlockDeviceProvider());
+        addProvider(new MemoryItemDeviceProvider());
     }
 
     public static void addProvider(final DeviceProvider provider) {
@@ -100,6 +101,11 @@ public final class Providers {
 
         public ItemQuery(final ItemStack stack) {
             this.stack = stack;
+        }
+
+        @Override
+        public ItemStack getItemStack() {
+            return stack;
         }
     }
 }

@@ -23,7 +23,7 @@ public class ItemHandlerDeviceProvider extends AbstractCapabilityAnyTileEntityDe
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected LazyOptional<Device> getDeviceInterface(final BlockDeviceQuery query, final IItemHandler value) {
+    protected LazyOptional<Device> getDevice(final BlockDeviceQuery query, final IItemHandler value) {
         return LazyOptional.of(() -> new ObjectDevice(new ItemHandlerDevice(value), ITEM_HANDLER_TYPE_NAME));
     }
 

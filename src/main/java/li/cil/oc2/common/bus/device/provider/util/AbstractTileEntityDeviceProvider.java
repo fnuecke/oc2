@@ -30,10 +30,10 @@ public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> imp
             return LazyOptional.empty();
         }
 
-        return getDeviceInterface(blockQuery, (T) tileEntity);
+        return getDevice(blockQuery, (T) tileEntity);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    protected abstract LazyOptional<Device> getDeviceInterface(final BlockDeviceQuery query, final T tileEntity);
+    protected abstract LazyOptional<Device> getDevice(final BlockDeviceQuery query, final T tileEntity);
 }

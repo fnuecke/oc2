@@ -23,7 +23,7 @@ public class FluidHandlerDeviceProvider extends AbstractCapabilityAnyTileEntityD
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected LazyOptional<Device> getDeviceInterface(final BlockDeviceQuery query, final IFluidHandler value) {
+    protected LazyOptional<Device> getDevice(final BlockDeviceQuery query, final IFluidHandler value) {
         return LazyOptional.of(() -> new ObjectDevice(new FluidHandlerDevice(value), FLUID_HANDLER_TYPE_NAME));
     }
 

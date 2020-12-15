@@ -22,7 +22,7 @@ public class EnergyStorageDeviceProvider extends AbstractCapabilityAnyTileEntity
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected LazyOptional<Device> getDeviceInterface(final BlockDeviceQuery query, final IEnergyStorage value) {
+    protected LazyOptional<Device> getDevice(final BlockDeviceQuery query, final IEnergyStorage value) {
         return LazyOptional.of(() -> new ObjectDevice(new EnergyStorageDevice(value), ENERGY_STORAGE_TYPE_NAME));
     }
 

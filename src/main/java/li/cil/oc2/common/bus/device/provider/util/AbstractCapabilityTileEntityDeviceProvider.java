@@ -19,7 +19,7 @@ public abstract class AbstractCapabilityTileEntityDeviceProvider<TCapability, TT
     }
 
     @Override
-    protected final LazyOptional<Device> getDeviceInterface(final BlockDeviceQuery blockQuery, final TileEntity tileEntity) {
+    protected final LazyOptional<Device> getDevice(final BlockDeviceQuery blockQuery, final TileEntity tileEntity) {
         final Capability<TCapability> capability = capabilitySupplier.get();
         if (capability == null) throw new IllegalStateException();
         final LazyOptional<TCapability> optional = tileEntity.getCapability(capability, blockQuery.getQuerySide());
@@ -28,10 +28,10 @@ public abstract class AbstractCapabilityTileEntityDeviceProvider<TCapability, TT
         }
 
         final TCapability value = optional.orElseThrow(AssertionError::new);
-        final LazyOptional<Device> device = getDeviceInterface(blockQuery, value);
+        final LazyOptional<Device> device = getDevice(blockQuery, value);
         optional.addListener(ignored -> device.invalidate());
         return device;
     }
 
-    protected abstract LazyOptional<Device> getDeviceInterface(final BlockDeviceQuery query, final TCapability value);
+    protected abstract LazyOptional<Device> getDevice(final BlockDeviceQuery query, final TCapability value);
 }

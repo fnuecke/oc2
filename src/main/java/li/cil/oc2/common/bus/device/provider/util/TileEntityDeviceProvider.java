@@ -14,7 +14,7 @@ public final class TileEntityDeviceProvider extends AbstractTileEntityDeviceProv
     }
 
     @Override
-    public LazyOptional<Device> getDeviceInterface(final BlockDeviceQuery query, final TileEntity tileEntity) {
+    public LazyOptional<Device> getDevice(final BlockDeviceQuery query, final TileEntity tileEntity) {
         if (Callbacks.hasMethods(tileEntity)) {
             return LazyOptional.of(() -> {
                 final String typeName = WorldUtils.getBlockName(query.getWorld(), query.getQueryPosition());

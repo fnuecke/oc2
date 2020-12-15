@@ -47,6 +47,7 @@ public final class Allocator {
         }
         if (size != 0) {
             ALLOCATIONS.put(handle, new Allocation(size));
+            allocated += size;
         }
         return true;
     }

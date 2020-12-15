@@ -450,7 +450,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         runner = null;
         setRunState(RunState.STOPPED);
 
-        unloadDevices();
         virtualMachine.reset();
     }
 

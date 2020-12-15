@@ -80,5 +80,6 @@ public final class VirtualMachine {
     public void reset() {
         board.reset();
         rpcAdapter.reset();
+        vmAdapter.unload();
     }
 }

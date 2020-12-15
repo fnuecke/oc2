@@ -4,13 +4,12 @@ import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.VMLifecycleEventListener;
+import li.cil.oc2.api.bus.device.vm.VMLifecycleEventType;
 import li.cil.sedna.api.Board;
 import li.cil.sedna.riscv.device.R5PlatformLevelInterruptController;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 
 public final class VirtualMachineDeviceBusAdapter {
     private final Board board;
@@ -18,6 +17,8 @@ public final class VirtualMachineDeviceBusAdapter {
     private final BitSet claimedInterrupts = new BitSet();
     private final HashMap<VMDevice, ManagedVMContext> deviceContexts = new HashMap<>();
     private final ArrayList<VMDevice> incompleteLoads = new ArrayList<>();
+
+    private final HashSet<VMLifecycleEventListener> lifecycleEventListeners = new HashSet<>();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -86,6 +87,12 @@ public final class VirtualMachineDeviceBusAdapter {
         incompleteLoads.addAll(deviceContexts.keySet());
     }
 
+    public void fireLifecycleEvent(final VMLifecycleEventType event) {
+        for (final VMLifecycleEventListener tickListener : lifecycleEventListeners) {
+            tickListener.handleLifecycleEvent(event);
+        }
+    }
+
     public void addDevices(final Set<Device> devices) {
         for (final Device device : devices) {
             if (device instanceof VMDevice) {
@@ -97,6 +104,10 @@ public final class VirtualMachineDeviceBusAdapter {
                 }
 
                 incompleteLoads.add(vmDevice);
+
+                if (vmDevice instanceof VMLifecycleEventListener) {
+                    lifecycleEventListeners.add((VMLifecycleEventListener) vmDevice);
+                }
             }
         }
     }
@@ -112,6 +123,10 @@ public final class VirtualMachineDeviceBusAdapter {
                 }
 
                 incompleteLoads.remove(vmDevice);
+
+                if (vmDevice instanceof VMLifecycleEventListener) {
+                    lifecycleEventListeners.remove(vmDevice);
+                }
 
                 vmDevice.unload();
             }

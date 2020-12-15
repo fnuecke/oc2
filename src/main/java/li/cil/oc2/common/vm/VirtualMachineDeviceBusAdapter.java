@@ -3,9 +3,9 @@ package li.cil.oc2.common.vm;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
-import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
-import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleListener;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleListener;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.sedna.api.Board;
 import li.cil.sedna.riscv.device.R5PlatformLevelInterruptController;
 

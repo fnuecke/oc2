@@ -1,8 +1,6 @@
 package li.cil.oc2.common.bus;
 
-import li.cil.oc2.api.bus.device.vm.VMContext;
-import li.cil.oc2.api.bus.device.vm.VMDevice;
-import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.*;
 import li.cil.oc2.common.vm.VirtualMachineDeviceBusAdapter;
 import li.cil.sedna.api.Board;
 import li.cil.sedna.api.device.InterruptController;
@@ -73,31 +71,31 @@ public final class VMDeviceTests {
 
     @Test
     public void removedDevicesHaveUnloadCalled() {
-        final VMDevice device = mock(VMDevice.class);
+        final VMDeviceLifecycleListener device = mock(VMDeviceLifecycleListener.class);
         when(device.load(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
         assertTrue(adapter.load());
 
         adapter.removeDevices(Collections.singleton(device));
-        verify(device).unload();
+        verify(device).handleLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
     }
 
     @Test
     public void devicesHaveUnloadCalledOnGlobalUnload() {
-        final VMDevice device = mock(VMDevice.class);
+        final VMDeviceLifecycleListener device = mock(VMDeviceLifecycleListener.class);
         when(device.load(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
         assertTrue(adapter.load());
 
         adapter.unload();
-        verify(device).unload();
+        verify(device).handleLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
     }
 
     @Test
     public void devicesHaveLoadCalledAfterGlobalUnload() {
-        final VMDevice device = mock(VMDevice.class);
+        final VMDeviceLifecycleListener device = mock(VMDeviceLifecycleListener.class);
         when(device.load(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
@@ -105,7 +103,7 @@ public final class VMDeviceTests {
         verify(device).load(any());
 
         adapter.unload();
-        verify(device).unload();
+        verify(device).handleLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
 
         assertTrue(adapter.load());
         verify(device, times(2)).load(any());

@@ -1,6 +1,5 @@
 package li.cil.oc2.api.bus.device.vm;
 
-import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.sedna.api.device.MemoryMappedDevice;
@@ -12,6 +11,12 @@ import li.cil.sedna.api.device.MemoryMappedDevice;
  * This is a more low-level approach than the {@link RPCDevice}. Devices
  * implemented through this interface will require explicit driver support
  * in the guest system.
+ * <p>
+ * To listen to lifecycle events of the VM and the device, implement the
+ * {@link VMDeviceLifecycleListener} interface. This is particularly useful
+ * for releasing unmanaged resources acquired in {@link #load(VMContext)}.
+ *
+ * @see VMDeviceLifecycleListener
  */
 public interface VMDevice extends Device {
     /**
@@ -29,15 +34,4 @@ public interface VMDevice extends Device {
      * @return {@code true} if the device was loaded successfully; {@code false} otherwise.
      */
     VMDeviceLoadResult load(VMContext context);
-
-    /**
-     * Called when the device is unloaded.
-     * <p>
-     * This is guaranteed to be called when the device is disposed, be it because
-     * it was removed from the {@link DeviceBus} or because of the virtual machine
-     * being destroyed.
-     * <p>
-     * Release unmanaged resources here.
-     */
-    void unload();
 }

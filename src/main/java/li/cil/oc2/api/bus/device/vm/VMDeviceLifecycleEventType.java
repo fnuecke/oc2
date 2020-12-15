@@ -1,8 +1,8 @@
 package li.cil.oc2.api.bus.device.vm;
 
-public enum VMLifecycleEventType {
+public enum VMDeviceLifecycleEventType {
     /**
-     * Reported when the VM resumes running.
+     * Fired when the VM resumes running.
      * <p>
      * Fired after all devices reported success from {@link VMDevice#load(VMContext)}.
      * <p>
@@ -12,7 +12,7 @@ public enum VMLifecycleEventType {
     RESUME_RUNNING,
 
     /**
-     * Reported exactly once, when the VM first starts running.
+     * Fired exactly once, when the VM first starts running.
      * <p>
      * Fired after all devices reported success from {@link VMDevice#load(VMContext)}.
      * <p>
@@ -23,4 +23,12 @@ public enum VMLifecycleEventType {
      * <em>This is invoked from the worker thread running the VM.</em>
      */
     INITIALIZE,
+
+    /**
+     * Fired when the device is disposed, either because the VM is disposed or the source
+     * of the device is disconnected / removed from the current VM.
+     * <p>
+     * Intended for releasing resources acquired in {@link VMDevice#load(VMContext)}.
+     */
+    UNLOAD,
 }

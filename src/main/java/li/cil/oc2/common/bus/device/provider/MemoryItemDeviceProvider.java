@@ -32,7 +32,7 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
         return LazyOptional.of(() -> new MemoryDevice(query.getItemStack()));
     }
 
-    private static final class MemoryDevice extends AbstractObjectProxy<ItemStack> implements VMDevice, VMLifecycleEventListener {
+    private static final class MemoryDevice extends AbstractObjectProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener {
         private static final UUID SERIALIZATION_KEY = UUID.fromString("c82f8c1c-d7ff-43b0-ab44-989e1fe818bb");
 
         private static final String RAM_BLOB_HANDLE_NBT_TAG_NAME = "ram";
@@ -86,29 +86,14 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
         }
 
         @Override
-        public void unload() {
-            // Finish saves on unload to ensure future loads will read correct data.
-            if (ramJobHandle != null) {
-                ramJobHandle.await();
-                ramJobHandle = null;
-            }
-
-            BlobStorage.freeHandle(ramBlobHandle);
-            ramBlobHandle = null;
-
-            Allocator.freeMemory(ramAllocHandle);
-            ram = null;
-
-            address = null;
-        }
-
-        @Override
-        public void handleLifecycleEvent(final VMLifecycleEventType event) {
-            if (event == VMLifecycleEventType.RESUME_RUNNING) {
-                if (ramJobHandle != null) {
-                    ramJobHandle.await();
-                    ramJobHandle = null;
-                }
+        public void handleLifecycleEvent(final VMDeviceLifecycleEventType event) {
+            switch (event) {
+                case RESUME_RUNNING:
+                    awaitLoad();
+                    break;
+                case UNLOAD:
+                    unload();
+                    break;
             }
         }
 
@@ -147,6 +132,30 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
             if (nbt.contains(RAM_ADDRESS_NBT_TAG_NAME, NBTTagIds.TAG_LONG)) {
                 address = nbt.getLong(RAM_ADDRESS_NBT_TAG_NAME);
             }
+        }
+
+        private void awaitLoad() {
+            if (ramJobHandle != null) {
+                ramJobHandle.await();
+                ramJobHandle = null;
+            }
+
+        }
+
+        private void unload() {
+            // Finish saves on unload to ensure future loads will read correct data.
+            if (ramJobHandle != null) {
+                ramJobHandle.await();
+                ramJobHandle = null;
+            }
+
+            BlobStorage.freeHandle(ramBlobHandle);
+            ramBlobHandle = null;
+
+            Allocator.freeMemory(ramAllocHandle);
+            ram = null;
+
+            address = null;
         }
     }
 }

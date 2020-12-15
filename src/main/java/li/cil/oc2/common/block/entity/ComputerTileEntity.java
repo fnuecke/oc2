@@ -5,7 +5,7 @@ import li.cil.ceres.api.Serialized;
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.vm.VMLifecycleEventType;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
@@ -487,7 +487,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         public void tick() {
             if (!firedResumeEvent) {
                 firedResumeEvent = true;
-                virtualMachine.vmAdapter.fireLifecycleEvent(VMLifecycleEventType.RESUME_RUNNING);
+                virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.RESUME_RUNNING);
             }
 
             virtualMachine.rpcAdapter.tick();
@@ -499,7 +499,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         protected void handleBeforeRun() {
             if (!firedInitializationEvent) {
                 firedInitializationEvent = true;
-                virtualMachine.vmAdapter.fireLifecycleEvent(VMLifecycleEventType.INITIALIZE);
+                virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.INITIALIZE);
 
                 try {
                     // TODO Initialize devices that need it asynchronously.

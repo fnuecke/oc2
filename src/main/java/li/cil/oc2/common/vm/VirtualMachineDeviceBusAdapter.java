@@ -4,8 +4,8 @@ import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
-import li.cil.oc2.api.bus.device.vm.VMLifecycleEventListener;
-import li.cil.oc2.api.bus.device.vm.VMLifecycleEventType;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleListener;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
 import li.cil.sedna.api.Board;
 import li.cil.sedna.riscv.device.R5PlatformLevelInterruptController;
 
@@ -18,7 +18,7 @@ public final class VirtualMachineDeviceBusAdapter {
     private final HashMap<VMDevice, ManagedVMContext> deviceContexts = new HashMap<>();
     private final ArrayList<VMDevice> incompleteLoads = new ArrayList<>();
 
-    private final HashSet<VMLifecycleEventListener> lifecycleEventListeners = new HashSet<>();
+    private final HashSet<VMDeviceLifecycleListener> lifecycleEventListeners = new HashSet<>();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -76,19 +76,20 @@ public final class VirtualMachineDeviceBusAdapter {
     }
 
     public void unload() {
+        fireLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
+
         deviceContexts.forEach((device, context) -> {
             if (context != null) {
                 context.invalidate();
             }
-            device.unload();
         });
 
         incompleteLoads.clear();
         incompleteLoads.addAll(deviceContexts.keySet());
     }
 
-    public void fireLifecycleEvent(final VMLifecycleEventType event) {
-        for (final VMLifecycleEventListener tickListener : lifecycleEventListeners) {
+    public void fireLifecycleEvent(final VMDeviceLifecycleEventType event) {
+        for (final VMDeviceLifecycleListener tickListener : lifecycleEventListeners) {
             tickListener.handleLifecycleEvent(event);
         }
     }
@@ -105,8 +106,8 @@ public final class VirtualMachineDeviceBusAdapter {
 
                 incompleteLoads.add(vmDevice);
 
-                if (vmDevice instanceof VMLifecycleEventListener) {
-                    lifecycleEventListeners.add((VMLifecycleEventListener) vmDevice);
+                if (vmDevice instanceof VMDeviceLifecycleListener) {
+                    lifecycleEventListeners.add((VMDeviceLifecycleListener) vmDevice);
                 }
             }
         }
@@ -124,11 +125,11 @@ public final class VirtualMachineDeviceBusAdapter {
 
                 incompleteLoads.remove(vmDevice);
 
-                if (vmDevice instanceof VMLifecycleEventListener) {
-                    lifecycleEventListeners.remove(vmDevice);
+                if (vmDevice instanceof VMDeviceLifecycleListener) {
+                    final VMDeviceLifecycleListener eventListener = (VMDeviceLifecycleListener) vmDevice;
+                    lifecycleEventListeners.remove(eventListener);
+                    eventListener.handleLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
                 }
-
-                vmDevice.unload();
             }
         }
     }

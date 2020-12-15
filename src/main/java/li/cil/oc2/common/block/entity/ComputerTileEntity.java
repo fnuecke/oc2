@@ -2,10 +2,10 @@ package li.cil.oc2.common.block.entity;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
-import li.cil.oc2.Constants;
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.vm.VMLifecycleEventType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
@@ -15,25 +15,21 @@ import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.TerminalBlockOutputMessage;
-import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.util.HorizontalBlockUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
-import li.cil.sedna.api.Sizes;
-import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.buildroot.Buildroot;
-import li.cil.sedna.device.memory.Memory;
 import li.cil.sedna.device.virtio.VirtIOFileSystemDevice;
 import li.cil.sedna.fs.HostFileSystem;
-import li.cil.sedna.memory.PhysicalMemoryInputStream;
-import li.cil.sedna.memory.PhysicalMemoryOutputStream;
+import li.cil.sedna.memory.MemoryMaps;
 import net.minecraft.block.BlockState;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
@@ -42,16 +38,19 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 
@@ -60,7 +59,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final String DEVICES_NBT_TAG_NAME = "devices";
     private static final String BUS_ELEMENT_NBT_TAG_NAME = "busElement";
     private static final String BUS_STATE_NBT_TAG_NAME = "busState";
     private static final String TERMINAL_NBT_TAG_NAME = "terminal";
@@ -87,7 +85,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private AbstractDeviceBusController.BusState busState;
     private RunState runState;
     private int loadDevicesDelay;
-    @Nullable private BlobStorage.JobHandle ramJobHandle;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -96,9 +93,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private final VirtualMachine virtualMachine;
     private final VirtIOFileSystemDevice vfs;
     private ConsoleRunner runner;
-
-    private PhysicalMemory ram;
-    private UUID ramBlobHandle;
 
     private final DeviceItemStackHandler itemHandler = new DeviceItemStackHandler(4);
 
@@ -121,6 +115,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY, busController);
+
+        itemHandler.setStackInSlot(0, new ItemStack(OpenComputers.RAM_8M_ITEM.get()));
+        itemHandler.setStackInSlot(1, new ItemStack(OpenComputers.RAM_8M_ITEM.get()));
+        itemHandler.setStackInSlot(2, new ItemStack(OpenComputers.RAM_8M_ITEM.get()));
     }
 
     public Terminal getTerminal() {
@@ -146,7 +144,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             return;
         }
 
-        stopRunnerAndUnloadDevices();
+        stopRunnerAndResetVM();
     }
 
     public boolean isRunning() {
@@ -184,8 +182,24 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(final @NotNull Capability<T> capability, @Nullable final Direction side) {
-        if (side == getBlockState().get(ComputerBlock.HORIZONTAL_FACING)) {
-            return LazyOptional.empty();
+        if (capability == Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY ||
+            capability == Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY) {
+            if (side == getBlockState().get(ComputerBlock.HORIZONTAL_FACING)) {
+                return LazyOptional.empty();
+            } else { // Do not allow item devices to override our bus element and controller.
+                return super.getCapability(capability, side);
+            }
+        }
+
+        final Direction localSide = HorizontalBlockUtils.toLocal(getBlockState(), side);
+
+        for (final Device device : busController.getDevices()) {
+            if (device instanceof ICapabilityProvider) {
+                final LazyOptional<T> value = ((ICapabilityProvider) device).getCapability(capability, localSide);
+                if (value.isPresent()) {
+                    return value;
+                }
+            }
         }
 
         return super.getCapability(capability, side);
@@ -213,7 +227,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                     break;
                 }
 
-                if (!loadDevices()) {
+                if (!virtualMachine.vmAdapter.load()) {
                     loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
                     break;
                 }
@@ -235,7 +249,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                 break;
             case RUNNING:
                 if (!virtualMachine.board.isRunning()) {
-                    stopRunnerAndUnloadDevices();
+                    stopRunnerAndResetVM();
                     break;
                 }
 
@@ -270,10 +284,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         compound = super.write(compound);
 
         joinVirtualMachine();
-        if (ramJobHandle != null) {
-            ramJobHandle.await();
-            ramJobHandle = null;
-        }
 
         compound.put(TERMINAL_NBT_TAG_NAME, NBTSerialization.serialize(terminal));
 
@@ -289,10 +299,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         compound.put(ITEMS_NBT_TAG_NAME, itemHandler.serializeNBT());
 
-        final ListNBT devicesNbt = new ListNBT();
-        writeDevices(devicesNbt);
-        compound.put(DEVICES_NBT_TAG_NAME, devicesNbt);
-
         return compound;
     }
 
@@ -301,10 +307,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         super.read(state, compound);
 
         joinVirtualMachine();
-        if (ramJobHandle != null) {
-            ramJobHandle.await();
-            ramJobHandle = null;
-        }
 
         NBTSerialization.deserialize(compound.getCompound(TERMINAL_NBT_TAG_NAME), terminal);
 
@@ -334,11 +336,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         if (compound.contains(ITEMS_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            itemHandler.setStackInSlot(0, ItemStack.EMPTY);
+            itemHandler.setStackInSlot(1, ItemStack.EMPTY);
+            itemHandler.setStackInSlot(2, ItemStack.EMPTY);
             itemHandler.deserializeNBT(compound.getCompound(ITEMS_NBT_TAG_NAME));
-        }
-
-        if (compound.contains(DEVICES_NBT_TAG_NAME, NBTTagIds.TAG_LIST)) {
-            readDevices(compound.getList(DEVICES_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
         }
     }
 
@@ -364,66 +365,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     protected void disposeServer() {
         super.disposeServer();
 
-        stopRunnerAndUnloadDevices();
+        stopRunnerAndResetVM();
         busController.dispose();
         busElement.dispose();
     }
 
     ///////////////////////////////////////////////////////////////////
-
-    private void writeDevices(final ListNBT list) {
-        // TODO Apply to devices generated from items.
-
-        if (ram != null) {
-            final CompoundNBT ramNbt = new CompoundNBT();
-            ramBlobHandle = BlobStorage.validateHandle(ramBlobHandle);
-            ramNbt.putUniqueId("ram", ramBlobHandle);
-            list.add(ramNbt);
-
-            ramJobHandle = BlobStorage.JobHandle.combine(ramJobHandle,
-                    BlobStorage.submitSave(ramBlobHandle, new PhysicalMemoryInputStream(ram)));
-        } else {
-            list.add(new CompoundNBT());
-        }
-    }
-
-    private void readDevices(final ListNBT list) {
-        // TODO Apply to devices generated from items.
-
-        final CompoundNBT ramNbt = list.getCompound(0);
-        if (ramNbt.hasUniqueId("ram")) {
-            ramBlobHandle = ramNbt.getUniqueId("ram");
-        }
-    }
-
-    private boolean loadDevices() {
-        // TODO Load devices generated from items.
-
-        if (ram == null) {
-            final int RAM_SIZE = 24 * Constants.MEGABYTE;
-            ram = Memory.create(RAM_SIZE);
-            virtualMachine.board.addDevice(0x80000000L, ram);
-        }
-
-        if (ramBlobHandle != null) {
-            ramJobHandle = BlobStorage.JobHandle.combine(ramJobHandle,
-                    BlobStorage.submitLoad(ramBlobHandle, new PhysicalMemoryOutputStream(ram)));
-        }
-
-        return virtualMachine.vmAdapter.load();
-    }
-
-    private void unloadDevices() {
-        // TODO Unload devices generated from items.
-
-        if (ram != null) {
-            virtualMachine.board.removeDevice(ram);
-            ram = null;
-            BlobStorage.freeHandle(ramBlobHandle);
-        }
-
-        virtualMachine.vmAdapter.unload();
-    }
 
     private void setBusState(final AbstractDeviceBusController.BusState value) {
         if (value == busState) {
@@ -445,7 +392,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         Network.sendToClientsTrackingChunk(new ComputerRunStateMessage(this), chunk);
     }
 
-    private void stopRunnerAndUnloadDevices() {
+    private void stopRunnerAndResetVM() {
         joinVirtualMachine();
         runner = null;
         setRunState(RunState.STOPPED);
@@ -464,15 +411,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
     }
 
-    private static void loadProgramFile(final PhysicalMemory memory, final InputStream stream) throws Throwable {
-        loadProgramFile(memory, stream, 0);
+    private void loadProgramFile(final InputStream stream) throws Throwable {
+        loadProgramFile(stream, 0);
     }
 
-    private static void loadProgramFile(final PhysicalMemory memory, final InputStream stream, final int offset) throws Throwable {
-        final BufferedInputStream bis = new BufferedInputStream(stream);
-        for (int address = 0, value = bis.read(); value != -1; value = bis.read(), address++) {
-            memory.store(offset + address, (byte) value, Sizes.SIZE_8_LOG2);
-        }
+    private void loadProgramFile(final InputStream stream, final int offset) throws Throwable {
+        MemoryMaps.store(virtualMachine.board.getMemoryMap(), 0x80000000L + offset, stream);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -532,7 +476,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         private final ByteArrayFIFOQueue outputBuffer = new ByteArrayFIFOQueue(1024);
         private final ByteArrayFIFOQueue inputBuffer = new ByteArrayFIFOQueue(32);
 
-        @Serialized private boolean didInitialization;
+        private boolean firedResumeEvent;
+        @Serialized private boolean firedInitializationEvent;
 
         public ConsoleRunner(final VirtualMachine virtualMachine) {
             super(virtualMachine.board);
@@ -540,10 +485,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         @Override
         public void tick() {
-            // TODO Tick devices that need it synchronously.
-            if (ramJobHandle != null) {
-                ramJobHandle.await();
-                ramJobHandle = null;
+            if (!firedResumeEvent) {
+                firedResumeEvent = true;
+                virtualMachine.vmAdapter.fireLifecycleEvent(VMLifecycleEventType.RESUME_RUNNING);
             }
 
             virtualMachine.rpcAdapter.tick();
@@ -553,13 +497,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         @Override
         protected void handleBeforeRun() {
-            if (!didInitialization) {
-                didInitialization = true;
+            if (!firedInitializationEvent) {
+                firedInitializationEvent = true;
+                virtualMachine.vmAdapter.fireLifecycleEvent(VMLifecycleEventType.INITIALIZE);
+
                 try {
                     // TODO Initialize devices that need it asynchronously.
 
-                    loadProgramFile(ram, Buildroot.getFirmware());
-                    loadProgramFile(ram, Buildroot.getLinuxImage(), 0x200000);
+                    loadProgramFile(Buildroot.getFirmware());
+                    loadProgramFile(Buildroot.getLinuxImage(), 0x200000);
                 } catch (final Throwable e) {
                     LOGGER.error(e);
                 }

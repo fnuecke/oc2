@@ -5,8 +5,8 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalBlock;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -18,9 +18,9 @@ import net.minecraft.world.World;
 import java.util.Collection;
 
 import static java.util.Collections.singletonList;
+import static li.cil.oc2.common.util.HorizontalBlockUtils.HORIZONTAL_DIRECTION_COUNT;
 
 public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevice, DocumentedDevice {
-    private static final int HORIZONTAL_DIRECTION_COUNT = 4;
     private static final String OUTPUT_NBT_TAG_NAME = "output";
 
     private static final String GET_REDSTONE_INPUT = "getRedstoneInput";
@@ -71,12 +71,9 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
             return 0;
         }
 
-        final Direction facing = getBlockState().get(HorizontalBlock.HORIZONTAL_FACING);
-        final int toGlobal = facing.getHorizontalIndex();
-        final int rotatedIndex = (side + toGlobal) % HORIZONTAL_DIRECTION_COUNT;
-
         final BlockPos pos = getPos();
-        final Direction direction = Direction.byHorizontalIndex(rotatedIndex);
+        final Direction direction = HorizontalBlockUtils.toGlobal(getBlockState(), Direction.byHorizontalIndex(side));
+        assert direction != null;
 
         final BlockPos neighborPos = pos.offset(direction);
         final ChunkPos chunkPos = new ChunkPos(neighborPos.getX(), neighborPos.getZ());
@@ -143,10 +140,10 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
             return 0;
         }
 
-        final Direction facing = getBlockState().get(HorizontalBlock.HORIZONTAL_FACING);
-        final int toLocal = HORIZONTAL_DIRECTION_COUNT - facing.getHorizontalIndex();
-        final int rotatedIndex = (direction.getHorizontalIndex() + toLocal) % HORIZONTAL_DIRECTION_COUNT;
-        return output[rotatedIndex];
+        final Direction localDirection = HorizontalBlockUtils.toLocal(getBlockState(), direction);
+        assert localDirection != null;
+
+        return output[localDirection.getHorizontalIndex()];
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -94,6 +94,9 @@ public abstract class AbstractGroupingDeviceBusElement extends AbstractDeviceBus
         addedDevices.removeAll(oldDevices);
         devices.addAll(addedDevices);
 
+        oldDevices.removeAll(removedDevices);
+        oldDevices.addAll(newDevices);
+
         final CompoundNBT devicesNbt = deviceData[index];
         for (final Device device : removedDevices) {
             device.getSerializationKey().ifPresent(key ->

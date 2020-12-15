@@ -21,6 +21,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * This class facilitates storing binary chunks of data in an efficient, parallelized fashion.
@@ -234,7 +236,9 @@ public final class BlobStorage {
         try {
             final Path path = dataDirectory.resolve(handle.toString());
             try (final OutputStream output = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-                copyData(input, output);
+                final GZIPOutputStream zipped = new GZIPOutputStream(output);
+                copyData(input, zipped);
+                zipped.finish();
             }
         } catch (final Throwable e) {
             LOGGER.error(e);
@@ -253,8 +257,9 @@ public final class BlobStorage {
             if (!Files.exists(path)) {
                 return;
             }
-            try (final InputStream input = Files.newInputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-                copyData(input, output);
+            try (final InputStream input = Files.newInputStream(path, StandardOpenOption.READ)) {
+                final GZIPInputStream zipped = new GZIPInputStream(input);
+                copyData(zipped, output);
             }
         } catch (final Throwable e) {
             LOGGER.error(e);

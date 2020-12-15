@@ -39,18 +39,14 @@ public abstract class AbstractGroupingDeviceBusElement extends AbstractDeviceBus
 
     @Override
     public ListNBT serializeNBT() {
+        serializeDevices();
+
         final ListNBT nbt = new ListNBT();
         for (int i = 0; i < groupCount; i++) {
             final CompoundNBT sideNbt = new CompoundNBT();
 
             sideNbt.putUniqueId(DEVICE_ID_NBT_TAG_NAME, deviceIds[i]);
-
-            final CompoundNBT devicesNbt = deviceData[i];
-            for (final Device device : devicesByGroup.get(i)) {
-                device.getSerializationKey().ifPresent(key ->
-                        devicesNbt.put(key.toString(), device.serializeNBT()));
-            }
-            sideNbt.put(DEVICE_DATA_NBT_TAG_NAME, devicesNbt);
+            sideNbt.put(DEVICE_DATA_NBT_TAG_NAME, deviceData[i]);
 
             nbt.add(sideNbt);
         }
@@ -66,7 +62,6 @@ public abstract class AbstractGroupingDeviceBusElement extends AbstractDeviceBus
             if (sideNbt.hasUniqueId(DEVICE_ID_NBT_TAG_NAME)) {
                 deviceIds[i] = sideNbt.getUniqueId(DEVICE_ID_NBT_TAG_NAME);
             }
-
             if (sideNbt.contains(DEVICE_DATA_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
                 deviceData[i] = sideNbt.getCompound(DEVICE_DATA_NBT_TAG_NAME);
             }
@@ -113,5 +108,18 @@ public abstract class AbstractGroupingDeviceBusElement extends AbstractDeviceBus
         }
 
         scanDevices();
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private void serializeDevices() {
+        for (int i = 0; i < groupCount; i++) {
+            final CompoundNBT devicesNbt = new CompoundNBT();
+            for (final Device device : devicesByGroup.get(i)) {
+                device.getSerializationKey().ifPresent(key ->
+                        devicesNbt.put(key.toString(), device.serializeNBT()));
+            }
+            deviceData[i] = devicesNbt;
+        }
     }
 }

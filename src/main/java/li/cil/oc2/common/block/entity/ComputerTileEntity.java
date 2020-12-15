@@ -5,6 +5,7 @@ import li.cil.ceres.api.Serialized;
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
@@ -69,6 +70,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final String ITEMS_NBT_TAG_NAME = "items";
 
     private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
+    private static final int VFS_INTERRUPT = 0x5;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -94,7 +96,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private final VirtIOFileSystemDevice vfs;
     private ConsoleRunner runner;
 
-    private final DeviceItemStackHandler itemHandler = new DeviceItemStackHandler(4);
+    private final DeviceItemStackHandler itemHandler = new DeviceItemStackHandler(8);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -109,9 +111,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         terminal = new Terminal();
         virtualMachine = new VirtualMachine(busController);
 
-        vfs = new VirtIOFileSystemDevice(virtualMachine.board.getMemoryMap(), "scripts", new HostFileSystem());
-        vfs.getInterrupt().set(virtualMachine.vmAdapter.claimInterrupt(), virtualMachine.board.getInterruptController());
-        virtualMachine.board.addDevice(vfs);
+        final VMContext context = virtualMachine.vmAdapter.getGlobalContext();
+        vfs = new VirtIOFileSystemDevice(context.getMemoryMap(), "scripts", new HostFileSystem());
+        context.getInterruptAllocator().claimInterrupt(VFS_INTERRUPT).ifPresent(interrupt ->
+                vfs.getInterrupt().set(interrupt, context.getInterruptController()));
+        context.getMemoryRangeAllocator().claimMemoryRange(vfs);
 
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY, busController);
@@ -336,9 +340,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         if (compound.contains(ITEMS_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            itemHandler.setStackInSlot(0, ItemStack.EMPTY);
-            itemHandler.setStackInSlot(1, ItemStack.EMPTY);
-            itemHandler.setStackInSlot(2, ItemStack.EMPTY);
+            for (int i = 0; i < itemHandler.getSlots(); i++) {
+                itemHandler.setStackInSlot(i, ItemStack.EMPTY);
+            }
             itemHandler.deserializeNBT(compound.getCompound(ITEMS_NBT_TAG_NAME));
         }
     }

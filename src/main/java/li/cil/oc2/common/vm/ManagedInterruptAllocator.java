@@ -24,13 +24,12 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
     }
 
     public void freeze() {
-        final long[] words = managedInterrupts.toLongArray();
-        managedMask = words.length > 0 ? (int) words[0] : 0;
         isFrozen = true;
     }
 
     public void invalidate() {
         claimedInterrupts.andNot(managedInterrupts);
+        managedInterrupts.clear();
         managedMask = 0;
     }
 
@@ -54,6 +53,7 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
             claimedInterrupts.set(interrupt);
             reservedInterrupts.set(interrupt);
             managedInterrupts.set(interrupt);
+            managedMask |= (1 << interrupt);
             return OptionalInt.of(interrupt);
         }
     }
@@ -76,6 +76,7 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
         claimedInterrupts.set(interrupt);
         reservedInterrupts.set(interrupt);
         managedInterrupts.set(interrupt);
+        managedMask |= (1 << interrupt);
 
         return OptionalInt.of(interrupt);
     }

@@ -2,18 +2,15 @@ package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.vm.VMDevice;
-import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
-import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleListener;
-import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.*;
 import li.cil.sedna.api.Board;
-import li.cil.sedna.riscv.device.R5PlatformLevelInterruptController;
 
 import java.util.*;
 
 public final class VirtualMachineDeviceBusAdapter {
     private final Board board;
 
+    private final ManagedVMContext globalContext;
     private final BitSet claimedInterrupts = new BitSet();
     private final HashMap<VMDevice, ManagedVMContext> deviceContexts = new HashMap<>();
     private final ArrayList<VMDevice> incompleteLoads = new ArrayList<>();
@@ -32,20 +29,12 @@ public final class VirtualMachineDeviceBusAdapter {
 
     public VirtualMachineDeviceBusAdapter(final Board board) {
         this.board = board;
+        this.globalContext = new ManagedVMContext(board, claimedInterrupts, reservedInterrupts);
         this.claimedInterrupts.set(0);
     }
 
-    public int claimInterrupt() {
-        return claimInterrupt(claimedInterrupts.nextClearBit(0));
-    }
-
-    public int claimInterrupt(final int interrupt) {
-        if (interrupt < 1 || interrupt >= R5PlatformLevelInterruptController.INTERRUPT_COUNT) {
-            throw new IllegalArgumentException();
-        }
-
-        claimedInterrupts.set(interrupt);
-        return interrupt;
+    public VMContext getGlobalContext() {
+        return globalContext;
     }
 
     public boolean load() {

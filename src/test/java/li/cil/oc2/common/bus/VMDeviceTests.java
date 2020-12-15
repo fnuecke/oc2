@@ -138,7 +138,7 @@ public final class VMDeviceTests {
             return VMDeviceLoadResult.success();
         });
 
-        adapter.claimInterrupt(claimedInterrupt);
+        adapter.getGlobalContext().getInterruptAllocator().claimInterrupt(claimedInterrupt);
 
         adapter.addDevices(Collections.singleton(device));
         assertTrue(adapter.load());

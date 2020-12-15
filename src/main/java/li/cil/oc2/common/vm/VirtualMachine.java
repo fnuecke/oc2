@@ -2,7 +2,11 @@ package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBusController;
+import li.cil.oc2.api.bus.device.vm.InterruptAllocator;
+import li.cil.oc2.api.bus.device.vm.MemoryRangeAllocator;
+import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.oc2.common.bus.RPCAdapter;
+import li.cil.sedna.api.device.InterruptController;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import li.cil.sedna.device.rtc.GoldfishRTC;
@@ -25,6 +29,24 @@ public final class VirtualMachine {
     public static final int REPORTED_CPU_FREQUENCY = 700_000;
     public static final int ACTUAL_CPU_FREQUENCY = REPORTED_CPU_FREQUENCY * 72;
 
+    private static final int UART_INTERRUPT = 0x1;
+    private static final int HDD_INTERRUPT = 0x2;
+    private static final int RTC_INTERRUPT = 0x3;
+    private static final int RPC_INTERRUPT = 0x4;
+
+    private static final ByteBufferBlockDevice ROOT_FS;
+
+    static {
+        ByteBufferBlockDevice rootfs;
+        try {
+            rootfs = ByteBufferBlockDevice.createFromStream(Buildroot.getRootFilesystem(), true);
+        } catch (final IOException e) {
+            LOGGER.error(e);
+            rootfs = ByteBufferBlockDevice.create(0, true);
+        }
+        ROOT_FS = rootfs;
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     public final MinecraftRealTimeCounter rtc = new MinecraftRealTimeCounter();
@@ -46,30 +68,31 @@ public final class VirtualMachine {
         board.getCpu().setFrequency(REPORTED_CPU_FREQUENCY);
 
         vmAdapter = new VirtualMachineDeviceBusAdapter(board);
+        final VMContext context = vmAdapter.getGlobalContext();
+
+        final MemoryRangeAllocator memoryRangeAllocator = context.getMemoryRangeAllocator();
+        final InterruptAllocator interruptAllocator = context.getInterruptAllocator();
+        final InterruptController interruptController = context.getInterruptController();
 
         uart = new UART16550A();
-        uart.getInterrupt().set(vmAdapter.claimInterrupt(), board.getInterruptController());
-        board.addDevice(uart);
+        interruptAllocator.claimInterrupt(UART_INTERRUPT).ifPresent(interrupt ->
+                uart.getInterrupt().set(interrupt, interruptController));
+        memoryRangeAllocator.claimMemoryRange(uart);
 
-        hdd = new VirtIOBlockDevice(board.getMemoryMap());
-        hdd.getInterrupt().set(vmAdapter.claimInterrupt(), board.getInterruptController());
-        board.addDevice(hdd);
-
-        final ByteBufferBlockDevice blockDevice;
-        try {
-            blockDevice = ByteBufferBlockDevice.createFromStream(Buildroot.getRootFilesystem(), true);
-            hdd.setBlockDevice(blockDevice);
-        } catch (final IOException e) {
-            LOGGER.error(e);
-        }
+        hdd = new VirtIOBlockDevice(board.getMemoryMap(), ROOT_FS);
+        interruptAllocator.claimInterrupt(HDD_INTERRUPT).ifPresent(interrupt ->
+                hdd.getInterrupt().set(interrupt, interruptController));
+        memoryRangeAllocator.claimMemoryRange(hdd);
 
         final GoldfishRTC rtc = new GoldfishRTC(this.rtc);
-        rtc.getInterrupt().set(vmAdapter.claimInterrupt(), board.getInterruptController());
-        board.addDevice(rtc);
+        interruptAllocator.claimInterrupt(RTC_INTERRUPT).ifPresent(interrupt ->
+                rtc.getInterrupt().set(interrupt, interruptController));
+        memoryRangeAllocator.claimMemoryRange(rtc);
 
         deviceBusSerialDevice = new VirtIOConsoleDevice(board.getMemoryMap());
-        deviceBusSerialDevice.getInterrupt().set(vmAdapter.claimInterrupt(), board.getInterruptController());
-        board.addDevice(deviceBusSerialDevice);
+        interruptAllocator.claimInterrupt(RPC_INTERRUPT).ifPresent(interrupt ->
+                deviceBusSerialDevice.getInterrupt().set(interrupt, interruptController));
+        memoryRangeAllocator.claimMemoryRange(deviceBusSerialDevice);
 
         rpcAdapter = new RPCAdapter(busController, deviceBusSerialDevice);
 

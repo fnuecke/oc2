@@ -48,6 +48,8 @@ public final class OpenComputers {
     public static final RegistryObject<Item> REDSTONE_INTERFACE_ITEM = ITEMS.register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, () -> new BlockItem(REDSTONE_INTERFACE_BLOCK.get(), new Item.Properties().group(ITEM_GROUP)));
     public static final RegistryObject<Item> SCREEN_ITEM = ITEMS.register(Constants.SCREEN_BLOCK_NAME, () -> new BlockItem(SCREEN_BLOCK.get(), new Item.Properties().group(ITEM_GROUP)));
 
+    public static final RegistryObject<Item> RAM_8M_ITEM = ITEMS.register(Constants.RAM_NAME, () -> new Item(new Item.Properties().group(ITEM_GROUP)));
+
     public static final DeferredRegister<TileEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, API.MOD_ID);
     public static final RegistryObject<TileEntityType<ComputerTileEntity>> COMPUTER_TILE_ENTITY = TILES.register(Constants.COMPUTER_BLOCK_NAME, () -> TileEntityType.Builder.create(ComputerTileEntity::new, COMPUTER_BLOCK.get()).build(null));
     public static final RegistryObject<TileEntityType<BusCableTileEntity>> BUS_CABLE_TILE_ENTITY = TILES.register(Constants.BUS_CABLE_BLOCK_NAME, () -> TileEntityType.Builder.create(BusCableTileEntity::new, BUS_CABLE_BLOCK.get()).build(null));

@@ -8,4 +8,6 @@ public final class Constants {
     public static final String BUS_CABLE_BLOCK_NAME = "bus_cable";
     public static final String REDSTONE_INTERFACE_BLOCK_NAME = "redstone_interface";
     public static final String SCREEN_BLOCK_NAME = "screen";
+
+    public static final String RAM_NAME = "ram";
 }

@@ -76,7 +76,9 @@ public final class VirtualMachineDeviceBusAdapter {
 
     public void unload() {
         deviceContexts.forEach((device, context) -> {
-            context.invalidate();
+            if (context != null) {
+                context.invalidate();
+            }
             device.unload();
         });
 

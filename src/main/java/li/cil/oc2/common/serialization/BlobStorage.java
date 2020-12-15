@@ -45,6 +45,10 @@ public final class BlobStorage {
 
     private static Path dataDirectory; // Directory blobs get saved to.
 
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(BlobStorage::synchronize));
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     /**

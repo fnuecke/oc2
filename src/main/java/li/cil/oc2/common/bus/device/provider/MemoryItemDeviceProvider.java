@@ -27,26 +27,35 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
         super(OpenComputers.RAM_8M_ITEM.get());
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
     protected LazyOptional<Device> getItemDevice(final ItemDeviceQuery query) {
         return LazyOptional.of(() -> new MemoryDevice(query.getItemStack()));
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     private static final class MemoryDevice extends AbstractObjectProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener {
         private static final UUID SERIALIZATION_KEY = UUID.fromString("c82f8c1c-d7ff-43b0-ab44-989e1fe818bb");
 
-        private static final String RAM_BLOB_HANDLE_NBT_TAG_NAME = "ram";
-        private static final String RAM_ADDRESS_NBT_TAG_NAME = "address";
+        private static final String BLOB_HANDLE_NBT_TAG_NAME = "blob";
+        private static final String ADDRESS_NBT_TAG_NAME = "address";
 
         final int RAM_SIZE = 8 * Constants.MEGABYTE;
 
-        private final UUID ramAllocHandle = Allocator.createHandle();
-        private BlobStorage.JobHandle ramJobHandle;
+        ///////////////////////////////////////////////////////////////
 
-        private PhysicalMemory ram;
-        private UUID ramBlobHandle;
+        private final UUID allocHandle = Allocator.createHandle();
+        private BlobStorage.JobHandle jobHandle;
+        private PhysicalMemory device;
 
+        ///////////////////////////////////////////////////////////////
+
+        private UUID blobHandle;
         private Long address;
+
+        ///////////////////////////////////////////////////////////////
 
         public MemoryDevice(final ItemStack value) {
             super(value);
@@ -54,33 +63,15 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
 
         @Override
         public VMDeviceLoadResult load(final VMContext context) {
-            if (!Allocator.claimMemory(ramAllocHandle, RAM_SIZE)) {
+            if (!allocateDevice()) {
                 return VMDeviceLoadResult.fail();
             }
 
-            ram = Memory.create(RAM_SIZE);
-
-            final OptionalLong claimedAddress;
-            if (this.address != null) {
-                claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(this.address, ram);
-            } else {
-                claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(ram);
-            }
-
-            if (!claimedAddress.isPresent()) {
-                Allocator.freeMemory(ramAllocHandle);
+            if (!claimAddress(context)) {
                 return VMDeviceLoadResult.fail();
             }
 
-            this.address = claimedAddress.getAsLong();
-
-            if (ramBlobHandle != null) {
-                if (ramJobHandle != null) {
-                    ramJobHandle.await();
-                }
-
-                ramJobHandle = BlobStorage.submitLoad(ramBlobHandle, new PhysicalMemoryOutputStream(ram));
-            }
+            loadPersistedState();
 
             return VMDeviceLoadResult.success();
         }
@@ -89,7 +80,7 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
         public void handleLifecycleEvent(final VMDeviceLifecycleEventType event) {
             switch (event) {
                 case RESUME_RUNNING:
-                    awaitLoad();
+                    awaitStorageOperation();
                     break;
                 case UNLOAD:
                     unload();
@@ -106,19 +97,14 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
         public CompoundNBT serializeNBT() {
             final CompoundNBT nbt = new CompoundNBT();
 
-            if (ram != null) {
-                if (ramJobHandle != null) {
-                    ramJobHandle.await();
-                }
+            if (device != null) {
+                blobHandle = BlobStorage.validateHandle(blobHandle);
+                nbt.putUniqueId(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
 
-                ramBlobHandle = BlobStorage.validateHandle(ramBlobHandle);
-                nbt.putUniqueId(RAM_BLOB_HANDLE_NBT_TAG_NAME, ramBlobHandle);
-
-                ramJobHandle = BlobStorage.submitSave(ramBlobHandle, new PhysicalMemoryInputStream(ram));
+                jobHandle = BlobStorage.submitSave(blobHandle, new PhysicalMemoryInputStream(device));
             }
-
             if (address != null) {
-                nbt.putLong(RAM_ADDRESS_NBT_TAG_NAME, address);
+                nbt.putLong(ADDRESS_NBT_TAG_NAME, address);
             }
 
             return nbt;
@@ -126,34 +112,67 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
 
         @Override
         public void deserializeNBT(final CompoundNBT nbt) {
-            if (nbt.hasUniqueId(RAM_BLOB_HANDLE_NBT_TAG_NAME)) {
-                ramBlobHandle = nbt.getUniqueId(RAM_BLOB_HANDLE_NBT_TAG_NAME);
+            if (nbt.hasUniqueId(BLOB_HANDLE_NBT_TAG_NAME)) {
+                blobHandle = nbt.getUniqueId(BLOB_HANDLE_NBT_TAG_NAME);
             }
-            if (nbt.contains(RAM_ADDRESS_NBT_TAG_NAME, NBTTagIds.TAG_LONG)) {
-                address = nbt.getLong(RAM_ADDRESS_NBT_TAG_NAME);
+            if (nbt.contains(ADDRESS_NBT_TAG_NAME, NBTTagIds.TAG_LONG)) {
+                address = nbt.getLong(ADDRESS_NBT_TAG_NAME);
             }
         }
 
-        private void awaitLoad() {
-            if (ramJobHandle != null) {
-                ramJobHandle.await();
-                ramJobHandle = null;
+        ///////////////////////////////////////////////////////////////
+
+        private boolean allocateDevice() {
+            if (!Allocator.claimMemory(allocHandle, RAM_SIZE)) {
+                return false;
             }
 
+            device = Memory.create(RAM_SIZE);
+
+            return true;
+        }
+
+        private boolean claimAddress(final VMContext context) {
+            final OptionalLong claimedAddress;
+            if (this.address != null) {
+                claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(this.address, device);
+            } else {
+                claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(device);
+            }
+
+            if (!claimedAddress.isPresent()) {
+                Allocator.freeMemory(allocHandle);
+                return false;
+            }
+
+            this.address = claimedAddress.getAsLong();
+
+            return true;
+        }
+
+        private void loadPersistedState() {
+            if (blobHandle != null) {
+                jobHandle = BlobStorage.submitLoad(blobHandle, new PhysicalMemoryOutputStream(device));
+            }
+        }
+
+        private void awaitStorageOperation() {
+            if (jobHandle != null) {
+                jobHandle.await();
+                jobHandle = null;
+            }
         }
 
         private void unload() {
             // Finish saves on unload to ensure future loads will read correct data.
-            if (ramJobHandle != null) {
-                ramJobHandle.await();
-                ramJobHandle = null;
-            }
+            awaitStorageOperation();
 
-            BlobStorage.freeHandle(ramBlobHandle);
-            ramBlobHandle = null;
+            Allocator.freeMemory(allocHandle);
+            device = null;
 
-            Allocator.freeMemory(ramAllocHandle);
-            ram = null;
+            // RAM is volatile, so free up our persisted blob when device is unloaded.
+            BlobStorage.freeHandle(blobHandle);
+            blobHandle = null;
 
             address = null;
         }

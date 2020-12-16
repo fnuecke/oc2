@@ -22,6 +22,11 @@ public final class ManagedInterruptController implements InterruptController {
     }
 
     @Override
+    public Object getIdentity() {
+        return interruptController.getIdentity();
+    }
+
+    @Override
     public void raiseInterrupts(final int mask) {
         if (!isValid) {
             throw new IllegalStateException();

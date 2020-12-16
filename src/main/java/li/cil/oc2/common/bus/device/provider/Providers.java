@@ -30,6 +30,7 @@ public final class Providers {
         addProvider(new TileEntityDeviceProvider());
         addProvider(new BlockDeviceProvider());
         addProvider(new MemoryItemDeviceProvider());
+        addProvider(new HardDriveItemDeviceProvider());
     }
 
     public static void addProvider(final DeviceProvider provider) {

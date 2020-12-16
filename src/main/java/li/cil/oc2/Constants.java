@@ -10,4 +10,5 @@ public final class Constants {
     public static final String SCREEN_BLOCK_NAME = "screen";
 
     public static final String RAM_NAME = "ram";
+    public static final String HDD_NAME = "hdd";
 }

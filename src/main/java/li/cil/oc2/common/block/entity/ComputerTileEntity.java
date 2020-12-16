@@ -123,6 +123,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         itemHandler.setStackInSlot(0, new ItemStack(OpenComputers.RAM_8M_ITEM.get()));
         itemHandler.setStackInSlot(1, new ItemStack(OpenComputers.RAM_8M_ITEM.get()));
         itemHandler.setStackInSlot(2, new ItemStack(OpenComputers.RAM_8M_ITEM.get()));
+
+        itemHandler.setStackInSlot(4, new ItemStack(OpenComputers.HDD_8M_ITEM.get()));
     }
 
     public Terminal getTerminal() {

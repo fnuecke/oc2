@@ -18,8 +18,6 @@ import java.util.OptionalLong;
 import java.util.UUID;
 
 public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends AbstractObjectProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener {
-    private static final UUID SERIALIZATION_KEY = UUID.fromString("8842cf60-a6e6-44d2-b442-380007625078");
-
     private static final String DEVICE_NBT_TAG_NAME = "device";
     private static final String ADDRESS_NBT_TAG_NAME = "address";
     private static final String INTERRUPT_NBT_TAG_NAME = "interrupt";
@@ -76,11 +74,6 @@ public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends
                 unload();
                 break;
         }
-    }
-
-    @Override
-    public Optional<UUID> getSerializationKey() {
-        return Optional.of(SERIALIZATION_KEY);
     }
 
     @Override

@@ -12,13 +12,10 @@ import li.cil.sedna.memory.PhysicalMemoryOutputStream;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 
-import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.UUID;
 
 public final class MemoryDevice extends AbstractObjectProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener {
-    private static final UUID SERIALIZATION_KEY = UUID.fromString("c82f8c1c-d7ff-43b0-ab44-989e1fe818bb");
-
     private static final String BLOB_HANDLE_NBT_TAG_NAME = "blob";
     private static final String ADDRESS_NBT_TAG_NAME = "address";
 
@@ -65,11 +62,6 @@ public final class MemoryDevice extends AbstractObjectProxy<ItemStack> implement
                 unload();
                 break;
         }
-    }
-
-    @Override
-    public Optional<UUID> getSerializationKey() {
-        return Optional.of(SERIALIZATION_KEY);
     }
 
     @Override

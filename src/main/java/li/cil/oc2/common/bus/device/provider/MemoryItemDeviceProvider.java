@@ -18,7 +18,4 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
     protected LazyOptional<Device> getItemDevice(final ItemDeviceQuery query) {
         return LazyOptional.of(() -> new MemoryDevice(query.getItemStack()));
     }
-
-    ///////////////////////////////////////////////////////////////////
-
 }

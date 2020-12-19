@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class Devices {
-    public static List<LazyOptional<Device>> getDevices(final TileEntity tileEntity, final Direction side) {
+    public static List<LazyOptional<DeviceInfo>> getDevices(final TileEntity tileEntity, final Direction side) {
         final World world = tileEntity.getWorld();
         final BlockPos pos = tileEntity.getPos();
 
@@ -28,21 +28,23 @@ public final class Devices {
         return getDevices(world, pos, side);
     }
 
-    public static List<LazyOptional<Device>> getDevices(final World world, final BlockPos pos, final Direction side) {
+    public static List<LazyOptional<DeviceInfo>> getDevices(final World world, final BlockPos pos, final Direction side) {
         return getDevices(new BlockQuery(world, pos, side));
     }
 
-    public static List<LazyOptional<Device>> getDevices(final ItemStack stack) {
+    public static List<LazyOptional<DeviceInfo>> getDevices(final ItemStack stack) {
         return getDevices(new ItemQuery(stack));
     }
 
-    public static List<LazyOptional<Device>> getDevices(final DeviceQuery query) {
+    public static List<LazyOptional<DeviceInfo>> getDevices(final DeviceQuery query) {
         final IForgeRegistry<DeviceProvider> providers = Providers.PROVIDERS_REGISTRY.get();
-        final ArrayList<LazyOptional<Device>> devices = new ArrayList<>();
+        final ArrayList<LazyOptional<DeviceInfo>> devices = new ArrayList<>();
         for (final DeviceProvider provider : providers.getValues()) {
             final LazyOptional<Device> device = provider.getDevice(query);
             if (device.isPresent()) {
-                devices.add(device);
+                final LazyOptional<DeviceInfo> info = device.lazyMap(d -> new DeviceInfo(d, provider));
+                device.addListener(unused -> info.invalidate());
+                devices.add(info);
             }
         }
         return devices;

@@ -29,7 +29,7 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
  * are registered. For example:
  * <pre>
  * class YourModInitialization {
- *     static DeferredRegister<DeviceProvider> PROVIDERS = DeferredRegister.create(DeviceProvider.class, "your_mod_id");
+ *     static DeferredRegister&lt;DeviceProvider&gt; PROVIDERS = DeferredRegister.create(DeviceProvider.class, "your_mod_id");
  *
  *     static void initialize() {
  *         PROVIDERS.register("your_device_name", YourDeviceProvider::new);

@@ -1,10 +1,10 @@
 package li.cil.oc2.common.block.entity;
 
-import li.cil.oc2.OpenComputers;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
@@ -36,7 +36,7 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
     ///////////////////////////////////////////////////////////////////
 
     public RedstoneInterfaceTileEntity() {
-        super(OpenComputers.REDSTONE_INTERFACE_TILE_ENTITY.get());
+        super(TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get());
     }
 
     @Override

@@ -1,9 +1,9 @@
 package li.cil.oc2.common.block.entity;
 
-import li.cil.oc2.OpenComputers;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
@@ -21,7 +21,7 @@ public class BusCableTileEntity extends AbstractTileEntity {
     ///////////////////////////////////////////////////////////////////
 
     public BusCableTileEntity() {
-        super(OpenComputers.BUS_CABLE_TILE_ENTITY.get());
+        super(TileEntities.BUS_CABLE_TILE_ENTITY.get());
 
         busElement = new BusElement();
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);

@@ -3,7 +3,6 @@ package li.cil.oc2.common.block.entity;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.Constants;
-import li.cil.oc2.OpenComputers;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMContext;
@@ -13,6 +12,8 @@ import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
+import li.cil.oc2.common.init.Items;
+import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
@@ -102,7 +103,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     ///////////////////////////////////////////////////////////////////
 
     public ComputerTileEntity() {
-        super(OpenComputers.COMPUTER_TILE_ENTITY.get());
+        super(TileEntities.COMPUTER_TILE_ENTITY.get());
 
         busElement = new BusElement();
         busController = new BusController();
@@ -121,11 +122,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY, busController);
 
-        itemHandler.setStackInSlot(0, new ItemStack(OpenComputers.RAM_8M_ITEM.get()));
-        itemHandler.setStackInSlot(1, new ItemStack(OpenComputers.RAM_8M_ITEM.get()));
-        itemHandler.setStackInSlot(2, new ItemStack(OpenComputers.RAM_8M_ITEM.get()));
+        itemHandler.setStackInSlot(0, new ItemStack(Items.RAM_8M_ITEM.get()));
+        itemHandler.setStackInSlot(1, new ItemStack(Items.RAM_8M_ITEM.get()));
+        itemHandler.setStackInSlot(2, new ItemStack(Items.RAM_8M_ITEM.get()));
 
-        final ItemStack hdd = new ItemStack(OpenComputers.HDD_ITEM.get());
+        final ItemStack hdd = new ItemStack(Items.HDD_ITEM.get());
         final CompoundNBT hddInfo = new CompoundNBT();
         hddInfo.putString(Constants.HDD_BASE_NBT_TAG_NAME, "linux");
         hdd.setTagInfo(Constants.HDD_INFO_NBT_TAG_NAME, hddInfo);

@@ -1,9 +1,10 @@
 package li.cil.oc2.data;
 
 import com.google.common.collect.Maps;
-import li.cil.oc2.OpenComputers;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.BusCableBlock;
+import li.cil.oc2.common.init.Blocks;
+import li.cil.oc2.common.init.Items;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.data.DataGenerator;
@@ -30,9 +31,9 @@ public class BlockStates extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-        horizontalBlock(OpenComputers.COMPUTER_BLOCK, OpenComputers.COMPUTER_ITEM);
-        horizontalBlock(OpenComputers.REDSTONE_INTERFACE_BLOCK, OpenComputers.REDSTONE_INTERFACE_ITEM);
-        horizontalBlock(OpenComputers.SCREEN_BLOCK, OpenComputers.SCREEN_ITEM);
+        horizontalBlock(Blocks.COMPUTER_BLOCK, Items.COMPUTER_ITEM);
+        horizontalBlock(Blocks.REDSTONE_INTERFACE_BLOCK, Items.REDSTONE_INTERFACE_ITEM);
+        horizontalBlock(Blocks.SCREEN_BLOCK, Items.SCREEN_ITEM);
 
         registerCableStates();
     }
@@ -47,7 +48,7 @@ public class BlockStates extends BlockStateProvider {
         final ModelFile plugModel = models().getExistingFile(new ResourceLocation(API.MOD_ID, "block/cable_plug"));
         final ModelFile straightModel = models().getExistingFile(new ResourceLocation(API.MOD_ID, "block/cable_straight"));
 
-        final MultiPartBlockStateBuilder builder = getMultipartBuilder(OpenComputers.BUS_CABLE_BLOCK.get());
+        final MultiPartBlockStateBuilder builder = getMultipartBuilder(Blocks.BUS_CABLE_BLOCK.get());
 
         // Core element, use straight connections if and only if two opposite ends are
         // links and there are no other connections. Since there's no "not" condition we
@@ -76,7 +77,7 @@ public class BlockStates extends BlockStateProvider {
             map.put(BusCableBlock.CONNECTION_EAST, BusCableBlock.ConnectionType.LINK);
             map.put(BusCableBlock.CONNECTION_WEST, BusCableBlock.ConnectionType.LINK);
         });
-        for (final BlockState state : OpenComputers.BUS_CABLE_BLOCK.get().getStateContainer().getValidStates()) {
+        for (final BlockState state : Blocks.BUS_CABLE_BLOCK.get().getStateContainer().getValidStates()) {
             final ConfiguredModel.Builder<PartBuilder> model = builder.part();
             final PartBuilder part;
             if (doesStateMatches(state, straightX)) {
@@ -126,7 +127,7 @@ public class BlockStates extends BlockStateProvider {
                     .end();
         });
 
-        itemModels().getBuilder(OpenComputers.BUS_CABLE_ITEM.getId().getPath())
+        itemModels().getBuilder(Items.BUS_CABLE_ITEM.getId().getPath())
                 .parent(baseModel);
     }
 

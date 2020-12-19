@@ -1,9 +1,9 @@
 package li.cil.oc2.common.block;
 
 import com.google.common.collect.Maps;
-import li.cil.oc2.OpenComputers;
 import li.cil.oc2.common.block.entity.BusCableTileEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -96,7 +96,7 @@ public final class BusCableBlock extends Block {
     @Nullable
     @Override
     public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
-        return OpenComputers.BUS_CABLE_TILE_ENTITY.get().create();
+        return TileEntities.BUS_CABLE_TILE_ENTITY.get().create();
     }
 
     @SuppressWarnings("deprecation")

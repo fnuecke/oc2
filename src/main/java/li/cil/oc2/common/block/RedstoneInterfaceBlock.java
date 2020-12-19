@@ -1,7 +1,7 @@
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.OpenComputers;
 import li.cil.oc2.common.block.entity.RedstoneInterfaceTileEntity;
+import li.cil.oc2.common.init.TileEntities;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalBlock;
@@ -35,7 +35,7 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
     @Nullable
     @Override
     public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
-        return OpenComputers.REDSTONE_INTERFACE_TILE_ENTITY.get().create();
+        return TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get().create();
     }
 
     @SuppressWarnings("deprecation")

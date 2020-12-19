@@ -4,8 +4,10 @@ import li.cil.oc2.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Cooperative memory allocation limit enforcement.
@@ -72,9 +74,10 @@ public final class Allocator {
      */
     public static void resetAndCheckLeaks() {
         if (allocated > 0) {
-            LOGGER.error("Not all memory was released; leaked allocation stack traces follow.");
             for (final Allocation allocation : ALLOCATIONS.values()) {
-                LOGGER.error(allocation.stacktrace);
+                // Skip first three: Allocator::claimMemory, Allocation::new, Throwable::getStacktrace
+                LOGGER.error(Arrays.stream(allocation.stacktrace).skip(3).map(StackTraceElement::toString)
+                        .collect(Collectors.joining("\n  ", "Leaked memory allocation:\n  ", "")));
             }
         }
 

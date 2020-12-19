@@ -11,7 +11,6 @@ import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import li.cil.sedna.device.rtc.GoldfishRTC;
 import li.cil.sedna.device.serial.UART16550A;
-import li.cil.sedna.device.virtio.VirtIOBlockDevice;
 import li.cil.sedna.device.virtio.VirtIOConsoleDevice;
 import li.cil.sedna.riscv.R5Board;
 import org.apache.logging.log4j.LogManager;
@@ -30,9 +29,8 @@ public final class VirtualMachine {
     public static final int ACTUAL_CPU_FREQUENCY = REPORTED_CPU_FREQUENCY * 72;
 
     private static final int UART_INTERRUPT = 0x1;
-    private static final int HDD_INTERRUPT = 0x2;
-    private static final int RTC_INTERRUPT = 0x3;
-    private static final int RPC_INTERRUPT = 0x4;
+    private static final int RTC_INTERRUPT = 0x2;
+    private static final int RPC_INTERRUPT = 0x3;
 
     private static final ByteBufferBlockDevice ROOT_FS;
 
@@ -56,7 +54,6 @@ public final class VirtualMachine {
     @Serialized public R5Board board;
     @Serialized public VirtualMachineDeviceBusAdapter vmAdapter;
     @Serialized public UART16550A uart;
-    @Serialized public VirtIOBlockDevice hdd;
     @Serialized public VirtIOConsoleDevice deviceBusSerialDevice;
     @Serialized public RPCAdapter rpcAdapter;
 
@@ -79,11 +76,6 @@ public final class VirtualMachine {
                 uart.getInterrupt().set(interrupt, interruptController));
         memoryRangeAllocator.claimMemoryRange(uart);
 
-        hdd = new VirtIOBlockDevice(board.getMemoryMap(), ROOT_FS);
-        interruptAllocator.claimInterrupt(HDD_INTERRUPT).ifPresent(interrupt ->
-                hdd.getInterrupt().set(interrupt, interruptController));
-        memoryRangeAllocator.claimMemoryRange(hdd);
-
         final GoldfishRTC rtc = new GoldfishRTC(this.rtc);
         interruptAllocator.claimInterrupt(RTC_INTERRUPT).ifPresent(interrupt ->
                 rtc.getInterrupt().set(interrupt, interruptController));
@@ -96,7 +88,7 @@ public final class VirtualMachine {
 
         rpcAdapter = new RPCAdapter(busController, deviceBusSerialDevice);
 
-        board.setBootArguments("root=/dev/vda ro");
+        board.setBootArguments("root=/dev/vda rw");
         board.setStandardOutputDevice(uart);
     }
 

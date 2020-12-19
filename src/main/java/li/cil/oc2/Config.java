@@ -1,5 +1,7 @@
 package li.cil.oc2;
 
 public final class Config {
-    public static final long maxAllocatedData = 512 * Constants.MEGABYTE;
+    public static long maxAllocatedData = 512 * Constants.MEGABYTE;
+
+    public static int maxHddSize = 8 * Constants.MEGABYTE;
 }

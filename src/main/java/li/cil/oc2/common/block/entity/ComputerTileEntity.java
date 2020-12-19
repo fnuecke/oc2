@@ -2,6 +2,7 @@ package li.cil.oc2.common.block.entity;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
+import li.cil.oc2.Constants;
 import li.cil.oc2.OpenComputers;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
@@ -70,7 +71,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final String ITEMS_NBT_TAG_NAME = "items";
 
     private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
-    private static final int VFS_INTERRUPT = 0x5;
+    private static final int VFS_INTERRUPT = 0x4;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -124,7 +125,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         itemHandler.setStackInSlot(1, new ItemStack(OpenComputers.RAM_8M_ITEM.get()));
         itemHandler.setStackInSlot(2, new ItemStack(OpenComputers.RAM_8M_ITEM.get()));
 
-        itemHandler.setStackInSlot(4, new ItemStack(OpenComputers.HDD_8M_ITEM.get()));
+        final ItemStack hdd = new ItemStack(OpenComputers.HDD_ITEM.get());
+        final CompoundNBT hddInfo = new CompoundNBT();
+        hddInfo.putString(Constants.HDD_BASE_NBT_TAG_NAME, "linux");
+        hdd.setTagInfo(Constants.HDD_INFO_NBT_TAG_NAME, hddInfo);
+        itemHandler.setStackInSlot(4, hdd);
     }
 
     public Terminal getTerminal() {

@@ -49,7 +49,7 @@ public final class OpenComputers {
     public static final RegistryObject<Item> SCREEN_ITEM = ITEMS.register(Constants.SCREEN_BLOCK_NAME, () -> new BlockItem(SCREEN_BLOCK.get(), new Item.Properties().group(ITEM_GROUP)));
 
     public static final RegistryObject<Item> RAM_8M_ITEM = ITEMS.register(Constants.RAM_NAME, () -> new Item(new Item.Properties().group(ITEM_GROUP)));
-    public static final RegistryObject<Item> HDD_8M_ITEM = ITEMS.register(Constants.HDD_NAME, () -> new Item(new Item.Properties().maxStackSize(1).group(ITEM_GROUP)));
+    public static final RegistryObject<Item> HDD_ITEM = ITEMS.register(Constants.HDD_NAME, () -> new Item(new Item.Properties().maxStackSize(1).group(ITEM_GROUP)));
 
     public static final DeferredRegister<TileEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, API.MOD_ID);
     public static final RegistryObject<TileEntityType<ComputerTileEntity>> COMPUTER_TILE_ENTITY = TILES.register(Constants.COMPUTER_BLOCK_NAME, () -> TileEntityType.Builder.create(ComputerTileEntity::new, COMPUTER_BLOCK.get()).build(null));

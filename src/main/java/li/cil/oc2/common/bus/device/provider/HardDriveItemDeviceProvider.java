@@ -2,6 +2,7 @@ package li.cil.oc2.common.bus.device.provider;
 
 import li.cil.oc2.Config;
 import li.cil.oc2.Constants;
+import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.bus.device.HardDiskDriveDevice;
@@ -36,7 +37,7 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
     protected LazyOptional<Device> getItemDevice(final ItemDeviceQuery query) {
         final ItemStack stack = query.getItemStack();
 
-        final CompoundNBT info = stack.getChildTag(Constants.HDD_INFO_NBT_TAG_NAME);
+        final CompoundNBT info = stack.getChildTag(API.MOD_ID);
         if (info == null) {
             return LazyOptional.empty();
         }

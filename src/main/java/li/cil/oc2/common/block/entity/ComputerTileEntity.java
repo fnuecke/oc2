@@ -3,6 +3,7 @@ package li.cil.oc2.common.block.entity;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.Constants;
+import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMContext;
@@ -129,7 +130,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         final ItemStack hdd = new ItemStack(Items.HDD_ITEM.get());
         final CompoundNBT hddInfo = new CompoundNBT();
         hddInfo.putString(Constants.HDD_BASE_NBT_TAG_NAME, "linux");
-        hdd.setTagInfo(Constants.HDD_INFO_NBT_TAG_NAME, hddInfo);
+        hdd.setTagInfo(API.MOD_ID, hddInfo);
         itemHandler.setStackInSlot(4, hdd);
     }
 

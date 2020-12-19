@@ -1,7 +1,5 @@
 package li.cil.oc2;
 
-import li.cil.oc2.api.API;
-
 public final class Constants {
     public static final int KILOBYTE = 1024;
     public static final int MEGABYTE = 1024 * KILOBYTE;
@@ -24,7 +22,6 @@ public final class Constants {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final String HDD_INFO_NBT_TAG_NAME = API.MOD_ID + "hdd";
     public static final String HDD_SIZE_NBT_TAG_NAME = "size";
     public static final String HDD_BASE_NBT_TAG_NAME = "base";
     public static final String HDD_READONLY_NBT_TAG_NAME = "readonly";

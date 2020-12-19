@@ -5,7 +5,6 @@ import li.cil.oc2.common.bus.device.provider.util.AbstractObjectProxy;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.vm.Allocator;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.virtio.VirtIOBlockDevice;
 import net.minecraft.item.ItemStack;
@@ -28,7 +27,6 @@ public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends
 
     ///////////////////////////////////////////////////////////////
 
-    private final UUID allocHandle = Allocator.createHandle();
     private BlobStorage.JobHandle jobHandle;
     private T data;
     private VirtIOBlockDevice device;
@@ -56,12 +54,10 @@ public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends
         }
 
         if (!claimAddress(context)) {
-            Allocator.freeMemory(allocHandle);
             return VMDeviceLoadResult.fail();
         }
 
         if (!claimInterrupt(context)) {
-            Allocator.freeMemory(allocHandle);
             return VMDeviceLoadResult.fail();
         }
 
@@ -152,7 +148,7 @@ public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends
     ///////////////////////////////////////////////////////////////
 
     private boolean allocateDevice(final VMContext context) {
-        if (!Allocator.claimMemory(allocHandle, getSize())) {
+        if (!context.getMemoryAllocator().claimMemory(getSize())) {
             return false;
         }
 
@@ -231,12 +227,12 @@ public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends
             }
         }
 
-        Allocator.freeMemory(allocHandle);
         data = null;
 
         device = null;
         deviceNbt = null;
         address = null;
         interrupt = null;
+        jobHandle = null;
     }
 }

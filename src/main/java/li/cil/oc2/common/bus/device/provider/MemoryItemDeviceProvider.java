@@ -9,7 +9,6 @@ import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.util.AbstractObjectProxy;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.vm.Allocator;
 import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.device.memory.Memory;
 import li.cil.sedna.memory.PhysicalMemoryInputStream;
@@ -46,7 +45,6 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
 
         ///////////////////////////////////////////////////////////////
 
-        private final UUID allocHandle = Allocator.createHandle();
         private BlobStorage.JobHandle jobHandle;
         private PhysicalMemory device;
 
@@ -63,7 +61,7 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
 
         @Override
         public VMDeviceLoadResult load(final VMContext context) {
-            if (!allocateDevice()) {
+            if (!allocateDevice(context)) {
                 return VMDeviceLoadResult.fail();
             }
 
@@ -122,8 +120,8 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
 
         ///////////////////////////////////////////////////////////////
 
-        private boolean allocateDevice() {
-            if (!Allocator.claimMemory(allocHandle, RAM_SIZE)) {
+        private boolean allocateDevice(final VMContext context) {
+            if (!context.getMemoryAllocator().claimMemory(RAM_SIZE)) {
                 return false;
             }
 
@@ -141,7 +139,6 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
             }
 
             if (!claimedAddress.isPresent()) {
-                Allocator.freeMemory(allocHandle);
                 return false;
             }
 
@@ -164,17 +161,13 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
         }
 
         private void unload() {
-            // Finish saves on unload to ensure future loads will read correct data.
-            awaitStorageOperation();
-
-            Allocator.freeMemory(allocHandle);
-            device = null;
-
             // RAM is volatile, so free up our persisted blob when device is unloaded.
             BlobStorage.freeHandle(blobHandle);
             blobHandle = null;
 
+            device = null;
             address = null;
+            jobHandle = null;
         }
     }
 }

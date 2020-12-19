@@ -1,6 +1,7 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.oc2.api.bus.device.vm.InterruptAllocator;
+import li.cil.oc2.api.bus.device.vm.MemoryAllocator;
 import li.cil.oc2.api.bus.device.vm.MemoryRangeAllocator;
 import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.sedna.api.Board;
@@ -14,6 +15,7 @@ public final class ManagedVMContext implements VMContext {
     private final ManagedInterruptController interruptController;
     private final ManagedMemoryRangeAllocator memoryRangeAllocator;
     private final ManagedInterruptAllocator interruptAllocator;
+    private final ManagedMemoryAllocator memoryAllocator;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -22,17 +24,20 @@ public final class ManagedVMContext implements VMContext {
         this.interruptAllocator = new ManagedInterruptAllocator(claimedInterrupts, reservedInterrupts, board.getInterruptCount());
         this.memoryMap = new ManagedMemoryMap(board.getMemoryMap());
         this.interruptController = new ManagedInterruptController(board.getInterruptController(), interruptAllocator);
+        this.memoryAllocator = new ManagedMemoryAllocator();
     }
 
     public void freeze() {
         memoryRangeAllocator.freeze();
         interruptAllocator.freeze();
+        memoryAllocator.freeze();
     }
 
     public void invalidate() {
         memoryRangeAllocator.invalidate();
         interruptAllocator.invalidate();
         interruptController.invalidate();
+        memoryAllocator.invalidate();
     }
 
     @Override
@@ -53,5 +58,10 @@ public final class ManagedVMContext implements VMContext {
     @Override
     public InterruptAllocator getInterruptAllocator() {
         return interruptAllocator;
+    }
+
+    @Override
+    public MemoryAllocator getMemoryAllocator() {
+        return memoryAllocator;
     }
 }

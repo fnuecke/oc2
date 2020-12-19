@@ -29,7 +29,8 @@ public interface VMContext {
      * made available through this instance will result in an exception.
      * <p>
      * Interrupts raised will automatically be lowered when the {@link VMDevice} that
-     * raised them is unloaded, e.g. because it is removed from the {@link DeviceBus}.
+     * raised them is unloaded, e.g. because it is removed from the {@link DeviceBus}
+     * or the VM stopped.
      *
      * @return the interrupt controller of the virtual machine.
      */
@@ -42,7 +43,8 @@ public interface VMContext {
      * Trying to add devices after that method has returned will result in an exception.
      * <p>
      * Added devices will be automatically removed when the {@link VMDevice} that added it
-     * is unloaded, e.g. because it has been removed from the {@link DeviceBus}.
+     * is unloaded, e.g. because it has been removed from the {@link DeviceBus} or the VM
+     * stopped.
      *
      * @return the memory range allocator.
      */
@@ -60,4 +62,23 @@ public interface VMContext {
      * @return the interrupt allocator.
      */
     InterruptAllocator getInterruptAllocator();
+
+    /**
+     * Allows reserving fixed amounts of memory respecting sandbox constraints.
+     * <p>
+     * It is strongly advised to use this allocator to make known large memory
+     * uses, e.g. when allocating large blobs for RAM or block devices. This
+     * allows respecting the built-in limits for overall memory usage of
+     * running VMs.
+     * <p>
+     * Devices failing to reserve the memory they would use should fail their
+     * {@link VMDevice#load(VMContext)}.
+     * <p>
+     * Memory will automatically be released when the {@link VMDevice} that claimed
+     * it is unloaded, e.g. because it is removed from the {@link DeviceBus} or the
+     * VM stopped.
+     *
+     * @return the memory allocator.
+     */
+    MemoryAllocator getMemoryAllocator();
 }

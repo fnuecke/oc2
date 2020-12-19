@@ -1,9 +1,7 @@
 package li.cil.oc2.common.integration;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.api.bus.device.provider.DeviceProvider;
 import li.cil.oc2.api.imc.RPCMethodParameterTypeAdapter;
-import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
 import net.minecraft.util.Util;
 import net.minecraftforge.fml.InterModComms;
@@ -21,7 +19,6 @@ public final class IMC {
     private static final HashMap<String, Consumer<InterModComms.IMCMessage>> METHODS = Util.make(() -> {
         HashMap<String, Consumer<InterModComms.IMCMessage>> map = new HashMap<>();
 
-        map.put(API.IMC_ADD_DEVICE_PROVIDER, IMC::addDeviceProvider);
         map.put(API.IMC_ADD_RPC_METHOD_PARAMETER_TYPE_ADAPTER, IMC::addRPCMethodParameterTypeAdapter);
 
         return map;
@@ -36,10 +33,6 @@ public final class IMC {
                 LOGGER.error("Received unknown IMC message [{}] from mod [{}], ignoring.", message.getMethod(), message.getSenderModId());
             }
         });
-    }
-
-    private static void addDeviceProvider(final InterModComms.IMCMessage message) {
-        getMessageParameter(message, DeviceProvider.class).ifPresent(Providers::addProvider);
     }
 
     private static void addRPCMethodParameterTypeAdapter(final InterModComms.IMCMessage message) {

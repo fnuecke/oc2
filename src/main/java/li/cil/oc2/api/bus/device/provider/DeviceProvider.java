@@ -4,6 +4,7 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**
  * Allows querying for devices given some context.
@@ -24,15 +25,26 @@ import net.minecraftforge.common.util.LazyOptional;
  * </li>
  * </ul>
  * <p>
- * Providers can be registered with the IMC message {@link li.cil.oc2.api.API#IMC_ADD_DEVICE_PROVIDER}.
+ * Providers can be registered via the device provider registry, much like blocks and items
+ * are registered. For example:
+ * <pre>
+ * class YourModInitialization {
+ *     static DeferredRegister<DeviceProvider> PROVIDERS = DeferredRegister.create(DeviceProvider.class, "your_mod_id");
+ *
+ *     static void initialize() {
+ *         PROVIDERS.register("your_device_name", YourDeviceProvider::new);
+ *
+ *         PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());
+ *     }
+ * }
+ * </pre>
  *
  * @see RPCDevice
  * @see ObjectDevice
  * @see DeviceQuery
  * @see BlockDeviceQuery
  */
-@FunctionalInterface
-public interface DeviceProvider {
+public interface DeviceProvider extends IForgeRegistryEntry<DeviceProvider> {
     /**
      * Get a device for the specified query.
      *

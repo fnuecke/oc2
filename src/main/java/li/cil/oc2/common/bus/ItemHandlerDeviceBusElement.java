@@ -1,7 +1,7 @@
 package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.common.bus.device.provider.Providers;
+import li.cil.oc2.common.bus.device.Devices;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.ItemStackHandler;
@@ -22,7 +22,7 @@ public class ItemHandlerDeviceBusElement extends AbstractGroupingDeviceBusElemen
         final HashSet<Device> newDevices = new HashSet<>();
         final ItemStack stack = handler.getStackInSlot(slot);
         if (!stack.isEmpty()) {
-            for (final LazyOptional<Device> device : Providers.getDevices(stack)) {
+            for (final LazyOptional<Device> device : Devices.getDevices(stack)) {
                 device.ifPresent(newDevices::add);
                 device.addListener(unused -> handleSlotChanged(slot));
             }

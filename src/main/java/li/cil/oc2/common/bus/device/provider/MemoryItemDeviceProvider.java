@@ -1,12 +1,12 @@
 package li.cil.oc2.common.bus.device.provider;
 
 import li.cil.oc2.Constants;
-import li.cil.oc2.OpenComputers;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.*;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.util.AbstractObjectProxy;
+import li.cil.oc2.common.init.Items;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.PhysicalMemory;
@@ -23,7 +23,7 @@ import java.util.UUID;
 
 public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
     public MemoryItemDeviceProvider() {
-        super(OpenComputers.RAM_8M_ITEM.get());
+        super(Items.RAM_8M_ITEM.get());
     }
 
     ///////////////////////////////////////////////////////////////////

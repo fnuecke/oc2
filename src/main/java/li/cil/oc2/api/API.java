@@ -2,7 +2,6 @@ package li.cil.oc2.api;
 
 import com.google.gson.GsonBuilder;
 import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.provider.DeviceProvider;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.imc.RPCMethodParameterTypeAdapter;
 
@@ -12,16 +11,6 @@ public final class API {
     public static final String MOD_ID = "oc2";
 
     ///////////////////////////////////////////////////////////////////
-
-    /**
-     * IMC message for registering a {@link DeviceProvider}.
-     * <p>
-     * Example:
-     * <pre>
-     * InterModComms.sendTo(API.MOD_ID, API.IMC_ADD_DEVICE_PROVIDER, () -&gt; new DeviceProvider() { ... });
-     * </pre>
-     */
-    public static final String IMC_ADD_DEVICE_PROVIDER = "addDeviceProvider";
 
     /**
      * IMC message for registering Gson type adapters for method parameter serialization and

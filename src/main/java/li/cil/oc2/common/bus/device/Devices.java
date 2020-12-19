@@ -1,44 +1,24 @@
-package li.cil.oc2.common.bus.device.provider;
+package li.cil.oc2.common.bus.device;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.DeviceProvider;
 import li.cil.oc2.api.bus.device.provider.DeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import li.cil.oc2.common.bus.device.provider.util.BlockDeviceProvider;
-import li.cil.oc2.common.bus.device.provider.util.TileEntityDeviceProvider;
+import li.cil.oc2.common.init.Providers;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.registries.IForgeRegistry;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class Providers {
-    private static final ArrayList<DeviceProvider> DEVICE_PROVIDERS = new ArrayList<>();
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static void initialize() {
-        addProvider(new EnergyStorageDeviceProvider());
-        addProvider(new FluidHandlerDeviceProvider());
-        addProvider(new ItemHandlerDeviceProvider());
-        addProvider(new TileEntityDeviceProvider());
-        addProvider(new BlockDeviceProvider());
-        addProvider(new MemoryItemDeviceProvider());
-        addProvider(new HardDriveItemDeviceProvider());
-    }
-
-    public static void addProvider(final DeviceProvider provider) {
-        if (!DEVICE_PROVIDERS.contains(provider)) {
-            DEVICE_PROVIDERS.add(provider);
-        }
-    }
-
+public final class Devices {
     public static List<LazyOptional<Device>> getDevices(final TileEntity tileEntity, final Direction side) {
         final World world = tileEntity.getWorld();
         final BlockPos pos = tileEntity.getPos();
@@ -57,8 +37,9 @@ public final class Providers {
     }
 
     public static List<LazyOptional<Device>> getDevices(final DeviceQuery query) {
+        final IForgeRegistry<DeviceProvider> providers = Providers.PROVIDERS_REGISTRY.get();
         final ArrayList<LazyOptional<Device>> devices = new ArrayList<>();
-        for (final DeviceProvider provider : DEVICE_PROVIDERS) {
+        for (final DeviceProvider provider : providers.getValues()) {
             final LazyOptional<Device> device = provider.getDevice(query);
             if (device.isPresent()) {
                 devices.add(device);

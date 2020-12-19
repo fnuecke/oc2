@@ -3,7 +3,7 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.common.bus.device.provider.Providers;
+import li.cil.oc2.common.bus.device.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.util.WorldUtils;
@@ -82,7 +82,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingDeviceBusElement
 
         final HashSet<Device> newDevices = new HashSet<>();
         if (canConnectToSide(direction)) {
-            for (final LazyOptional<Device> device : Providers.getDevices(world, pos, direction)) {
+            for (final LazyOptional<Device> device : Devices.getDevices(world, pos, direction)) {
                 device.ifPresent(newDevices::add);
                 device.addListener(unused -> handleNeighborChanged(pos));
             }

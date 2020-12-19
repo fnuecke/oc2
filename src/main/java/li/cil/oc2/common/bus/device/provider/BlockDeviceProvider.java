@@ -1,17 +1,17 @@
-package li.cil.oc2.common.bus.device.provider.util;
+package li.cil.oc2.common.bus.device.provider;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callbacks;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import li.cil.oc2.api.bus.device.provider.DeviceProvider;
 import li.cil.oc2.api.bus.device.provider.DeviceQuery;
+import li.cil.oc2.common.bus.device.provider.util.AbstractDeviceProvider;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraftforge.common.util.LazyOptional;
 
-public class BlockDeviceProvider implements DeviceProvider {
+public final class BlockDeviceProvider extends AbstractDeviceProvider {
     @Override
     public LazyOptional<Device> getDevice(final DeviceQuery query) {
         if (!(query instanceof BlockDeviceQuery)) {

@@ -2,12 +2,12 @@ package li.cil.oc2.common.bus.device.provider;
 
 import li.cil.oc2.Config;
 import li.cil.oc2.Constants;
-import li.cil.oc2.OpenComputers;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.bus.device.HardDiskDriveDevice;
 import li.cil.oc2.common.bus.device.SparseHardDiskDriveDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
+import li.cil.oc2.common.init.Items;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.buildroot.Buildroot;
@@ -21,13 +21,13 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.util.Objects;
 
-public class HardDriveItemDeviceProvider extends AbstractItemDeviceProvider {
+public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvider {
     private static final Logger LOGGER = LogManager.getLogger();
 
     ///////////////////////////////////////////////////////////////////
 
     public HardDriveItemDeviceProvider() {
-        super(OpenComputers.HDD_ITEM.get());
+        super(Items.HDD_ITEM.get());
     }
 
     ///////////////////////////////////////////////////////////////////

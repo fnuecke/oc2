@@ -2,13 +2,12 @@ package li.cil.oc2.common.bus.device.provider.util;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import li.cil.oc2.api.bus.device.provider.DeviceProvider;
 import li.cil.oc2.api.bus.device.provider.DeviceQuery;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.LazyOptional;
 
-public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> implements DeviceProvider {
+public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> extends AbstractDeviceProvider {
     private final Class<T> tileEntityType;
 
     ///////////////////////////////////////////////////////////////////

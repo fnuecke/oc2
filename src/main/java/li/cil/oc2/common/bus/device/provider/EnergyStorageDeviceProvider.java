@@ -10,7 +10,7 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 
-public class EnergyStorageDeviceProvider extends AbstractCapabilityAnyTileEntityDeviceProvider<IEnergyStorage> {
+public final class EnergyStorageDeviceProvider extends AbstractCapabilityAnyTileEntityDeviceProvider<IEnergyStorage> {
     private static final String ENERGY_STORAGE_TYPE_NAME = "energyStorage";
 
     ///////////////////////////////////////////////////////////////////

@@ -1,6 +1,5 @@
 package li.cil.oc2.common;
 
-import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.integration.IMC;
@@ -20,7 +19,6 @@ public final class CommonSetup {
     public static void run(final FMLCommonSetupEvent event) {
         Capabilities.initialize();
 
-        Providers.initialize();
         Network.setup();
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(IMC::handleIMCMessages);

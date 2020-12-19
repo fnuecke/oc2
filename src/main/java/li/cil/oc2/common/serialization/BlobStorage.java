@@ -36,7 +36,6 @@ public final class BlobStorage {
 
     private static final HashMultimap<UUID, Future<Void>> WRITE_HANDLES = HashMultimap.create();
     private static final HashMultimap<UUID, Future<Void>> READ_HANDLES = HashMultimap.create();
-    private static final HashSet<UUID> DELETED_HANDLES = new HashSet<>();
     private static final ExecutorService WORKERS = Executors.newCachedThreadPool(r -> {
         final Thread thread = new Thread(r, "OC2 BlobStorage Thread");
         thread.setDaemon(false);
@@ -134,10 +133,6 @@ public final class BlobStorage {
     public static void synchronize() {
         awaitCompletion(READ_HANDLES);
         awaitCompletion(WRITE_HANDLES);
-        for (final UUID handle : DELETED_HANDLES) {
-            delete(handle);
-        }
-        DELETED_HANDLES.clear();
     }
 
     /**
@@ -166,7 +161,10 @@ public final class BlobStorage {
      */
     public static void freeHandle(@Nullable final UUID handle) {
         if (handle != null) {
-            DELETED_HANDLES.add(handle);
+            awaitCompletion(READ_HANDLES, handle);
+            awaitCompletion(WRITE_HANDLES, handle);
+
+            submitJob(WRITE_HANDLES, handle, () -> delete(handle));
         }
     }
 
@@ -180,7 +178,6 @@ public final class BlobStorage {
         if (handle == null || (handle.getMostSignificantBits() == 0 && handle.getLeastSignificantBits() == 0)) {
             return allocateHandle();
         } else {
-            DELETED_HANDLES.remove(handle);
             return handle;
         }
     }
@@ -205,8 +202,6 @@ public final class BlobStorage {
         awaitCompletion(READ_HANDLES, handle);
         awaitCompletion(WRITE_HANDLES, handle);
 
-        DELETED_HANDLES.remove(handle);
-
         return submitJob(WRITE_HANDLES, handle, () -> save(handle, dataAccess));
     }
 
@@ -228,8 +223,6 @@ public final class BlobStorage {
     public static JobHandle submitLoad(final UUID handle, final OutputStream dataAccess) {
         // Multiple jobs may read from a handle at a time but none may write to it when reading from it.
         awaitCompletion(WRITE_HANDLES, handle);
-
-        DELETED_HANDLES.remove(handle);
 
         return submitJob(READ_HANDLES, handle, () -> load(handle, dataAccess));
     }

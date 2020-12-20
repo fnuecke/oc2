@@ -32,6 +32,7 @@ public final class TileEntities {
 
     ///////////////////////////////////////////////////////////////////
 
+    @SuppressWarnings("ConstantConditions") // .build(null) is fine
     private static <T extends TileEntity> RegistryObject<TileEntityType<T>> register(final String name, final RegistryObject<Block> block, final Supplier<T> factory) {
         return TILES.register(name, () -> TileEntityType.Builder.create(factory, block.get()).build(null));
     }

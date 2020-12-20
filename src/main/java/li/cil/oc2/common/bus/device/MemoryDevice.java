@@ -2,7 +2,6 @@ package li.cil.oc2.common.bus.device;
 
 import li.cil.oc2.Constants;
 import li.cil.oc2.api.bus.device.vm.*;
-import li.cil.oc2.common.bus.device.provider.util.AbstractObjectProxy;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.PhysicalMemory;
@@ -15,7 +14,7 @@ import net.minecraft.nbt.CompoundNBT;
 import java.util.OptionalLong;
 import java.util.UUID;
 
-public final class MemoryDevice extends AbstractObjectProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener {
+public final class MemoryDevice extends AbstractItemDevice implements VMDevice, VMDeviceLifecycleListener {
     private static final String BLOB_HANDLE_NBT_TAG_NAME = "blob";
     private static final String ADDRESS_NBT_TAG_NAME = "address";
 
@@ -36,6 +35,8 @@ public final class MemoryDevice extends AbstractObjectProxy<ItemStack> implement
     public MemoryDevice(final ItemStack value) {
         super(value);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     public VMDeviceLoadResult load(final VMContext context) {

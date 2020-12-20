@@ -17,6 +17,8 @@ import li.cil.sedna.api.device.MemoryMappedDevice;
  * for releasing unmanaged resources acquired in {@link #load(VMContext)}.
  *
  * @see VMDeviceLifecycleListener
+ * @see li.cil.oc2.api.bus.device.provider.BlockDeviceProvider
+ * @see li.cil.oc2.api.bus.device.provider.ItemDeviceProvider
  */
 public interface VMDevice extends Device {
     /**

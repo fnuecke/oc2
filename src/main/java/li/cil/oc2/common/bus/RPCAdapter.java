@@ -71,6 +71,8 @@ public final class RPCAdapter implements Steppable {
                 .create();
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public void reset() {
         transmitBuffer.clear();
         receiveBuffer = null;

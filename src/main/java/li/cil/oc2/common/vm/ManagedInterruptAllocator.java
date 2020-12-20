@@ -23,6 +23,8 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
         this.interruptCount = interruptCount;
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public void freeze() {
         isFrozen = true;
     }

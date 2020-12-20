@@ -1,55 +1,58 @@
 package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.common.bus.device.DeviceInfo;
+import li.cil.oc2.common.bus.device.AbstractDeviceInfo;
+import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class AbstractGroupingDeviceBusElement extends AbstractDeviceBusElement implements INBTSerializable<ListNBT> {
-    private static final String DEVICE_ID_NBT_TAG_NAME = "deviceId";
-    private static final String DEVICE_DATA_NBT_TAG_NAME = "deviceData";
+public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeRegistryEntry<TProvider>, TDeviceInfo extends AbstractDeviceInfo<TProvider, ?>> extends AbstractDeviceBusElement implements INBTSerializable<ListNBT> {
+    private static final String GROUP_ID_NBT_TAG_NAME = "groupId";
+    private static final String GROUP_DATA_NBT_TAG_NAME = "groupData";
 
     ///////////////////////////////////////////////////////////////////
 
     protected final int groupCount;
-    protected final ArrayList<HashSet<DeviceInfo>> devicesByGroup;
+    protected final ArrayList<HashSet<TDeviceInfo>> groups;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected final UUID[] deviceIds;
-    protected final CompoundNBT[] deviceData;
+    protected final UUID[] groupIds;
+    protected final CompoundNBT[] groupData;
 
     ///////////////////////////////////////////////////////////////////
 
     protected AbstractGroupingDeviceBusElement(final int groupCount) {
         this.groupCount = groupCount;
-        this.devicesByGroup = new ArrayList<>(groupCount);
-        this.deviceIds = new UUID[groupCount];
-        this.deviceData = new CompoundNBT[groupCount];
+        this.groups = new ArrayList<>(groupCount);
+        this.groupIds = new UUID[groupCount];
+        this.groupData = new CompoundNBT[groupCount];
 
         for (int i = 0; i < groupCount; i++) {
-            devicesByGroup.add(new HashSet<>());
-            deviceIds[i] = UUID.randomUUID();
-            deviceData[i] = new CompoundNBT();
+            groups.add(new HashSet<>());
+            groupIds[i] = UUID.randomUUID();
+            groupData[i] = new CompoundNBT();
         }
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
     public ListNBT serializeNBT() {
-        serializeDevices();
-
         final ListNBT nbt = new ListNBT();
         for (int i = 0; i < groupCount; i++) {
+            serializeDevices(i);
+
             final CompoundNBT sideNbt = new CompoundNBT();
 
-            sideNbt.putUniqueId(DEVICE_ID_NBT_TAG_NAME, deviceIds[i]);
-            sideNbt.put(DEVICE_DATA_NBT_TAG_NAME, deviceData[i]);
+            sideNbt.putUniqueId(GROUP_ID_NBT_TAG_NAME, groupIds[i]);
+            sideNbt.put(GROUP_DATA_NBT_TAG_NAME, groupData[i]);
 
             nbt.add(sideNbt);
         }
@@ -62,11 +65,11 @@ public abstract class AbstractGroupingDeviceBusElement extends AbstractDeviceBus
         for (int i = 0; i < count; i++) {
             final CompoundNBT sideNbt = nbt.getCompound(i);
 
-            if (sideNbt.hasUniqueId(DEVICE_ID_NBT_TAG_NAME)) {
-                deviceIds[i] = sideNbt.getUniqueId(DEVICE_ID_NBT_TAG_NAME);
+            if (sideNbt.hasUniqueId(GROUP_ID_NBT_TAG_NAME)) {
+                groupIds[i] = sideNbt.getUniqueId(GROUP_ID_NBT_TAG_NAME);
             }
-            if (sideNbt.contains(DEVICE_DATA_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-                deviceData[i] = sideNbt.getCompound(DEVICE_DATA_NBT_TAG_NAME);
+            if (sideNbt.contains(GROUP_DATA_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+                groupData[i] = sideNbt.getCompound(GROUP_DATA_NBT_TAG_NAME);
             }
         }
     }
@@ -74,10 +77,10 @@ public abstract class AbstractGroupingDeviceBusElement extends AbstractDeviceBus
     @Override
     public Optional<UUID> getDeviceIdentifier(final Device device) {
         for (int i = 0; i < groupCount; i++) {
-            final HashSet<DeviceInfo> group = devicesByGroup.get(i);
-            for (final DeviceInfo deviceInfo : group) {
+            final HashSet<TDeviceInfo> group = groups.get(i);
+            for (final TDeviceInfo deviceInfo : group) {
                 if (Objects.equals(device, deviceInfo.device)) {
-                    return Optional.of(deviceIds[i]);
+                    return Optional.of(groupIds[i]);
                 }
             }
         }
@@ -86,29 +89,29 @@ public abstract class AbstractGroupingDeviceBusElement extends AbstractDeviceBus
 
     ///////////////////////////////////////////////////////////////////
 
-    protected void setDevicesForGroup(final int index, final HashSet<DeviceInfo> newDevices) {
-        final HashSet<DeviceInfo> oldDevices = devicesByGroup.get(index);
+    protected final void setDevicesForGroup(final int index, final Set<TDeviceInfo> newDevices) {
+        final HashSet<TDeviceInfo> oldDevices = groups.get(index);
         if (Objects.equals(newDevices, oldDevices)) {
             return;
         }
 
-        final HashSet<DeviceInfo> removedDevices = new HashSet<>(oldDevices);
+        final HashSet<TDeviceInfo> removedDevices = new HashSet<>(oldDevices);
         removedDevices.removeAll(newDevices);
         devices.removeAll(removedDevices.stream().map(info -> info.device).collect(Collectors.toList()));
 
-        final HashSet<DeviceInfo> addedDevices = new HashSet<>(newDevices);
+        final HashSet<TDeviceInfo> addedDevices = new HashSet<>(newDevices);
         addedDevices.removeAll(oldDevices);
         devices.addAll(addedDevices.stream().map(info -> info.device).collect(Collectors.toList()));
 
         oldDevices.removeAll(removedDevices);
         oldDevices.addAll(newDevices);
 
-        final CompoundNBT devicesNbt = deviceData[index];
-        for (final DeviceInfo deviceInfo : removedDevices) {
-            getSerializationKey(deviceInfo).ifPresent(devicesNbt::remove);
+        final CompoundNBT devicesNbt = groupData[index];
+        for (final TDeviceInfo deviceInfo : removedDevices) {
+            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(devicesNbt::remove);
         }
-        for (final DeviceInfo deviceInfo : addedDevices) {
-            getSerializationKey(deviceInfo).ifPresent(key -> {
+        for (final TDeviceInfo deviceInfo : addedDevices) {
+            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(key -> {
                 if (devicesNbt.contains(key, NBTTagIds.TAG_COMPOUND)) {
                     deviceInfo.device.deserializeNBT(devicesNbt.getCompound(key));
                 }
@@ -120,27 +123,17 @@ public abstract class AbstractGroupingDeviceBusElement extends AbstractDeviceBus
 
     ///////////////////////////////////////////////////////////////////
 
-    private void serializeDevices() {
-        for (int i = 0; i < groupCount; i++) {
-            final CompoundNBT devicesNbt = new CompoundNBT();
-            for (final DeviceInfo deviceInfo : devicesByGroup.get(i)) {
-                getSerializationKey(deviceInfo).ifPresent(key -> {
-                    final CompoundNBT deviceNbt = deviceInfo.device.serializeNBT();
-                    if (!deviceNbt.isEmpty()) {
-                        devicesNbt.put(key, deviceNbt);
-                    }
-                });
-            }
-            deviceData[i] = devicesNbt;
-        }
-    }
-
-    private static Optional<String> getSerializationKey(final DeviceInfo info) {
-        final ResourceLocation providerName = info.provider.getRegistryName();
-        if (providerName == null) {
-            return Optional.empty();
+    private void serializeDevices(final int index) {
+        final CompoundNBT devicesNbt = new CompoundNBT();
+        for (final TDeviceInfo deviceInfo : groups.get(index)) {
+            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(key -> {
+                final CompoundNBT deviceNbt = deviceInfo.device.serializeNBT();
+                if (!deviceNbt.isEmpty()) {
+                    devicesNbt.put(key, deviceNbt);
+                }
+            });
         }
 
-        return Optional.of(providerName.toString());
+        groupData[index] = devicesNbt;
     }
 }

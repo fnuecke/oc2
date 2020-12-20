@@ -23,6 +23,8 @@ public class ComputerRunStateMessage {
         fromBytes(buffer);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public static boolean handleMessage(final ComputerRunStateMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
                 (tileEntity) -> tileEntity.setRunStateClient(message.runState)));

@@ -27,6 +27,8 @@ public class BusCableTileEntity extends AbstractTileEntity {
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public void handleNeighborChanged(final BlockPos pos) {
         busElement.handleNeighborChanged(pos);
     }

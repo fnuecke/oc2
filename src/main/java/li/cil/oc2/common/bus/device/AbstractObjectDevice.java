@@ -1,22 +1,24 @@
-package li.cil.oc2.common.bus.device.provider.util;
+package li.cil.oc2.common.bus.device;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-public abstract class AbstractObjectProxy<T> {
+public abstract class AbstractObjectDevice<T> {
     protected final T value;
 
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractObjectProxy(final T value) {
+    public AbstractObjectDevice(final T value) {
         this.value = value;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     public boolean equals(@Nullable final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        final AbstractObjectProxy<?> that = (AbstractObjectProxy<?>) o;
+        final AbstractObjectDevice<?> that = (AbstractObjectDevice<?>) o;
         return value.equals(that.value);
     }
 

@@ -1,37 +1,45 @@
 package li.cil.oc2.common.bus.device.provider.util;
 
-import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.provider.DeviceQuery;
+import li.cil.oc2.api.bus.device.ItemDevice;
+import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fml.RegistryObject;
+import net.minecraftforge.registries.ForgeRegistryEntry;
 
-public abstract class AbstractItemDeviceProvider extends AbstractDeviceProvider {
-    private final Item item;
+import java.util.Optional;
 
-    protected AbstractItemDeviceProvider(final Item item) {
+public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<ItemDeviceProvider> implements ItemDeviceProvider {
+    private final RegistryObject<Item> item;
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected AbstractItemDeviceProvider(final RegistryObject<Item> item) {
         this.item = item;
     }
 
-    @Override
-    public LazyOptional<Device> getDevice(final DeviceQuery query) {
-        if (!(query instanceof ItemDeviceQuery)) {
-            return LazyOptional.empty();
-        }
-
-        final ItemDeviceQuery itemDeviceQuery = (ItemDeviceQuery) query;
-        final ItemStack stack = itemDeviceQuery.getItemStack();
-        if (stack.isEmpty()) {
-            return LazyOptional.empty();
-        }
-
-        if (stack.getItem() != item) {
-            return LazyOptional.empty();
-        }
-
-        return getItemDevice(itemDeviceQuery);
+    protected AbstractItemDeviceProvider() {
+        this.item = null;
     }
 
-    protected abstract LazyOptional<Device> getItemDevice(final ItemDeviceQuery query);
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    public final Optional<ItemDevice> getDevice(final ItemDeviceQuery query) {
+        final ItemStack stack = query.getItemStack();
+        if (stack.isEmpty()) {
+            return Optional.empty();
+        }
+
+        if (item != null && stack.getItem() != item.get()) {
+            return Optional.empty();
+        }
+
+        return getItemDevice(query);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected abstract Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query);
 }

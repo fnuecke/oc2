@@ -57,11 +57,15 @@ public final class Terminal {
     private static final byte DEFAULT_COLORS = COLOR_WHITE << COLOR_FOREGROUND_SHIFT;
     private static final byte DEFAULT_STYLE = 0;
 
+    ///////////////////////////////////////////////////////////////////
+
     public enum State { // Must be public for serialization.
         NORMAL, // Currently reading characters normally.
         ESCAPE, // Last character was ESC, figure out what kind next.
         SEQUENCE, // Know what sequence we have, now parsing it.
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private final ByteArrayFIFOQueue input = new ByteArrayFIFOQueue(32);
     private final byte[] buffer = new byte[WIDTH * HEIGHT];
@@ -85,9 +89,13 @@ public final class Terminal {
     private transient Object renderer;
     private transient boolean displayOnly; // Set on client to not send responses to status requests.
 
+    ///////////////////////////////////////////////////////////////////
+
     public Terminal() {
         clear();
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     public void setDisplayOnly(final boolean value) {
         displayOnly = value;
@@ -331,6 +339,8 @@ public final class Terminal {
         }
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     private void selectStyle(final int sgr) {
         switch (sgr) {
             case 0: { // Reset / Normal
@@ -476,6 +486,8 @@ public final class Terminal {
         dirty.set(-1);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @OnlyIn(Dist.CLIENT)
     private static final class Renderer {
         private static final ResourceLocation LOCATION_FONT_TEXTURE = new ResourceLocation(API.MOD_ID, "textures/font/terminus.png");
@@ -506,14 +518,20 @@ public final class Terminal {
                 0x777777, // White
         };
 
+        ///////////////////////////////////////////////////////////////
+
         private final Terminal terminal;
 
         private final Object[] lines = new Object[HEIGHT]; // Cached vertex buffers for rendering, untyped for server.
         private Object lastMatrix; // Untyped for server.
 
+        ///////////////////////////////////////////////////////////////
+
         public Renderer(final Terminal terminal) {
             this.terminal = terminal;
         }
+
+        ///////////////////////////////////////////////////////////////
 
         public void render(final AtomicInteger dirty, final MatrixStack stack) {
             validateLineCache(dirty, stack);
@@ -523,6 +541,8 @@ public final class Terminal {
                 renderCursor(stack);
             }
         }
+
+        ///////////////////////////////////////////////////////////////
 
         private void renderBuffer() {
             GlStateManager.depthMask(false);

@@ -15,6 +15,8 @@ public final class ManagedInterruptController implements InterruptController {
         this.allocator = allocator;
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public void invalidate() {
         isValid = false;
         interruptController.lowerInterrupts(raisedInterrupts);

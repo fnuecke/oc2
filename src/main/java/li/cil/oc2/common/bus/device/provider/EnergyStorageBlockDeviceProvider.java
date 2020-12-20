@@ -4,31 +4,32 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import li.cil.oc2.common.bus.device.provider.util.AbstractCapabilityAnyTileEntityDeviceProvider;
-import li.cil.oc2.common.bus.device.provider.util.AbstractObjectProxy;
+import li.cil.oc2.common.bus.device.provider.util.AbstractTileEntityCapabilityDeviceProvider;
+import li.cil.oc2.common.bus.device.AbstractObjectDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 
-public final class EnergyStorageDeviceProvider extends AbstractCapabilityAnyTileEntityDeviceProvider<IEnergyStorage> {
+public final class EnergyStorageBlockDeviceProvider extends AbstractTileEntityCapabilityDeviceProvider<IEnergyStorage, TileEntity> {
     private static final String ENERGY_STORAGE_TYPE_NAME = "energyStorage";
 
     ///////////////////////////////////////////////////////////////////
 
-    public EnergyStorageDeviceProvider() {
+    public EnergyStorageBlockDeviceProvider() {
         super(() -> Capabilities.ENERGY_STORAGE_CAPABILITY);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected LazyOptional<Device> getDevice(final BlockDeviceQuery query, final IEnergyStorage value) {
+    protected LazyOptional<Device> getBlockDevice(final BlockDeviceQuery query, final IEnergyStorage value) {
         return LazyOptional.of(() -> new ObjectDevice(new EnergyStorageDevice(value), ENERGY_STORAGE_TYPE_NAME));
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final class EnergyStorageDevice extends AbstractObjectProxy<IEnergyStorage> {
+    public static final class EnergyStorageDevice extends AbstractObjectDevice<IEnergyStorage> {
         public EnergyStorageDevice(final IEnergyStorage energyStorage) {
             super(energyStorage);
         }

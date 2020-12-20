@@ -17,6 +17,8 @@ public final class TerminalBlockOutputMessage extends AbstractTerminalBlockMessa
         super(buffer);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public static boolean handleMessage(final AbstractTerminalBlockMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
                 tileEntity -> tileEntity.getTerminal().putOutput(ByteBuffer.wrap(message.data))));

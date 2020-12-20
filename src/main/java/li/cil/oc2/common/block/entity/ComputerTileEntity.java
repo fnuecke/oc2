@@ -3,7 +3,6 @@ package li.cil.oc2.common.block.entity;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.Constants;
-import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMContext;
@@ -20,10 +19,7 @@ import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.TerminalBlockOutputMessage;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.util.HorizontalBlockUtils;
-import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.util.NBTUtils;
-import li.cil.oc2.common.util.ServerScheduler;
+import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
@@ -128,9 +124,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         itemHandler.setStackInSlot(2, new ItemStack(Items.RAM_8M_ITEM.get()));
 
         final ItemStack hdd = new ItemStack(Items.HDD_ITEM.get());
-        final CompoundNBT hddInfo = new CompoundNBT();
-        hddInfo.putString(Constants.HDD_BASE_NBT_TAG_NAME, "linux");
-        hdd.setTagInfo(API.MOD_ID, hddInfo);
+        ItemStackUtils.getOrCreateModDataTag(hdd).putString(Constants.HDD_BASE_NBT_TAG_NAME, "linux");
         itemHandler.setStackInSlot(4, hdd);
     }
 

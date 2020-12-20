@@ -27,6 +27,8 @@ public final class ManagedVMContext implements VMContext {
         this.memoryAllocator = new ManagedMemoryAllocator();
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public void freeze() {
         memoryRangeAllocator.freeze();
         interruptAllocator.freeze();

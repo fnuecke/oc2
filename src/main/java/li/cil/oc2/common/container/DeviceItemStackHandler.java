@@ -24,8 +24,10 @@ public class DeviceItemStackHandler extends ItemStackHandler {
 
     public DeviceItemStackHandler(final NonNullList<ItemStack> stacks) {
         super(stacks);
-        this.busElement = new ItemHandlerDeviceBusElement(this);
+        this.busElement = new ItemHandlerDeviceBusElement(getSlots());
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     public DeviceBusElement getBusElement() {
         return busElement;
@@ -42,14 +44,19 @@ public class DeviceItemStackHandler extends ItemStackHandler {
     public void deserializeNBT(final CompoundNBT nbt) {
         super.deserializeNBT(nbt);
         busElement.deserializeNBT(nbt.getList(BUS_ELEMENT_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
-        for (int i = 0; i < getSlots(); i++) {
-            busElement.handleSlotChanged(i);
+        for (int slot = 0; slot < getSlots(); slot++) {
+            busElement.updateDevices(slot, getStackInSlot(slot));
         }
     }
 
+    @NotNull
     @Override
-    public boolean isItemValid(final int slot, @NotNull final ItemStack stack) {
-        return super.isItemValid(slot, stack);
+    public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
+        if (!simulate && amount > 0) {
+            busElement.handleBeforeItemRemoved(slot, getStackInSlot(slot));
+        }
+
+        return super.extractItem(slot, amount, simulate);
     }
 
     @Override
@@ -57,11 +64,16 @@ public class DeviceItemStackHandler extends ItemStackHandler {
         return 1;
     }
 
+    @Override
+    public boolean isItemValid(final int slot, @NotNull final ItemStack stack) {
+        return super.isItemValid(slot, stack);
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     @Override
     protected void onContentsChanged(final int slot) {
         super.onContentsChanged(slot);
-        busElement.handleSlotChanged(slot);
+        busElement.updateDevices(slot, getStackInSlot(slot));
     }
 }

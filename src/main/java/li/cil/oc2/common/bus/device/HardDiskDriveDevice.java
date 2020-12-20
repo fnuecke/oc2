@@ -11,11 +11,15 @@ public final class HardDiskDriveDevice extends AbstractHardDiskDriveDevice<ByteB
     private final int size;
     private final boolean readonly;
 
+    ///////////////////////////////////////////////////////////////////
+
     public HardDiskDriveDevice(final ItemStack stack, final int size, final boolean readonly) {
         super(stack);
         this.size = size;
         this.readonly = readonly;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     protected int getSize() {

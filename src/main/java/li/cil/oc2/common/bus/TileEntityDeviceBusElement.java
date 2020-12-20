@@ -2,7 +2,7 @@ package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.common.bus.device.DeviceInfo;
+import li.cil.oc2.common.bus.device.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.ServerScheduler;
@@ -21,7 +21,7 @@ import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
-public class TileEntityDeviceBusElement extends AbstractGroupingDeviceBusElement {
+public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusElement {
     private static final int NEIGHBOR_COUNT = 6;
     final Direction[] NEIGHBOR_DIRECTIONS = Direction.values();
 
@@ -35,6 +35,8 @@ public class TileEntityDeviceBusElement extends AbstractGroupingDeviceBusElement
         super(NEIGHBOR_COUNT);
         this.tileEntity = tileEntity;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
@@ -80,9 +82,9 @@ public class TileEntityDeviceBusElement extends AbstractGroupingDeviceBusElement
 
         final int index = direction.getIndex();
 
-        final HashSet<DeviceInfo> newDevices = new HashSet<>();
+        final HashSet<BlockDeviceInfo> newDevices = new HashSet<>();
         if (canConnectToSide(direction)) {
-            for (final LazyOptional<DeviceInfo> deviceInfo : Devices.getDevices(world, pos, direction)) {
+            for (final LazyOptional<BlockDeviceInfo> deviceInfo : Devices.getDevices(world, pos, direction)) {
                 deviceInfo.ifPresent(newDevices::add);
                 deviceInfo.addListener(unused -> handleNeighborChanged(pos));
             }

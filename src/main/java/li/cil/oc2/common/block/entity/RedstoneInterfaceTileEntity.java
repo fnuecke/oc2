@@ -39,6 +39,8 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
         super(TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get());
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
     public CompoundNBT write(CompoundNBT compound) {
         compound = super.write(compound);

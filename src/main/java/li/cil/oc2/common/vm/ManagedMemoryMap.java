@@ -18,6 +18,8 @@ final class ManagedMemoryMap implements MemoryMap {
         this.memoryMap = memoryMap;
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
     public OptionalLong findFreeRange(final long start, final long end, final int size) {
         return memoryMap.findFreeRange(start, end, size);

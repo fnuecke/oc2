@@ -36,6 +36,8 @@ public class VirtualMachineRunner implements Runnable {
         this.board = board;
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public void tick() {
         cycleLimit += getCyclesPerTick();
         if (timeQuotaInMillis.addAndGet(TIMESLICE_IN_MS) > 0 && lastSchedule == null || lastSchedule.isDone() || lastSchedule.isCancelled()) {

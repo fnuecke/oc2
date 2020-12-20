@@ -14,9 +14,13 @@ public final class ManagedMemoryRangeAllocator implements MemoryRangeAllocator {
     private final ArrayList<MemoryMappedDevice> managedDevices = new ArrayList<>();
     private boolean isFrozen;
 
+    ///////////////////////////////////////////////////////////////////
+
     public ManagedMemoryRangeAllocator(final Board board) {
         this.board = board;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     public void freeze() {
         isFrozen = true;

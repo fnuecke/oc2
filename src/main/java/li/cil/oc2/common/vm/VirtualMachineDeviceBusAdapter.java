@@ -33,6 +33,8 @@ public final class VirtualMachineDeviceBusAdapter {
         this.claimedInterrupts.set(0);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public VMContext getGlobalContext() {
         return globalContext;
     }

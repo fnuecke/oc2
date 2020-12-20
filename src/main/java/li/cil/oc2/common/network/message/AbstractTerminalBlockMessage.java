@@ -21,6 +21,8 @@ public abstract class AbstractTerminalBlockMessage {
         fromBytes(buffer);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
         data = buffer.readByteArray();

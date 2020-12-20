@@ -1,7 +1,6 @@
 package li.cil.oc2.common.bus.device;
 
 import li.cil.oc2.api.bus.device.vm.*;
-import li.cil.oc2.common.bus.device.provider.util.AbstractObjectProxy;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
@@ -17,7 +16,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.UUID;
 
-public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends AbstractObjectProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener {
+public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends AbstractItemDevice implements VMDevice, VMDeviceLifecycleListener {
     private static final String DEVICE_NBT_TAG_NAME = "device";
     private static final String ADDRESS_NBT_TAG_NAME = "address";
     private static final String INTERRUPT_NBT_TAG_NAME = "interrupt";
@@ -44,6 +43,8 @@ public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends
     protected AbstractHardDiskDriveDevice(final ItemStack stack) {
         super(stack);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     public VMDeviceLoadResult load(final VMContext context) {
@@ -73,6 +74,20 @@ public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends
             case UNLOAD:
                 unload();
                 break;
+        }
+    }
+
+    @Override
+    public void exportToItemStack(final CompoundNBT nbt) {
+        if (blobHandle != null) {
+            nbt.putUniqueId(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
+        }
+    }
+
+    @Override
+    public void importFromItemStack(final CompoundNBT nbt) {
+        if (nbt.hasUniqueId(BLOB_HANDLE_NBT_TAG_NAME)) {
+            blobHandle = nbt.getUniqueId(BLOB_HANDLE_NBT_TAG_NAME);
         }
     }
 

@@ -24,6 +24,8 @@ public class ComputerBusStateMessage {
         fromBytes(buffer);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public static boolean handleMessage(final ComputerBusStateMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
                 (tileEntity) -> tileEntity.setBusStateClient(message.busState)));

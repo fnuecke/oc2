@@ -2,7 +2,6 @@ package li.cil.oc2.api.bus.device.rpc;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
-import li.cil.oc2.api.bus.device.provider.DeviceProvider;
 
 import java.util.List;
 
@@ -20,7 +19,8 @@ import java.util.List;
  * the {@link ObjectDevice} class.
  *
  * @see ObjectDevice
- * @see DeviceProvider
+ * @see li.cil.oc2.api.bus.device.provider.BlockDeviceProvider
+ * @see li.cil.oc2.api.bus.device.provider.ItemDeviceProvider
  */
 public interface RPCDevice extends Device {
     /**

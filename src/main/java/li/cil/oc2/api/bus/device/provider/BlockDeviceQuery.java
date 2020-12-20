@@ -8,8 +8,10 @@ import javax.annotation.Nullable;
 
 /**
  * Device query for a block in the world.
+ *
+ * @see BlockDeviceProvider
  */
-public interface BlockDeviceQuery extends DeviceQuery {
+public interface BlockDeviceQuery {
     /**
      * The world containing the block this query is performed for.
      *

@@ -20,6 +20,8 @@ public abstract class AbstractTileEntity extends TileEntity {
         super(tileEntityType);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> capability, @Nullable final Direction side) {

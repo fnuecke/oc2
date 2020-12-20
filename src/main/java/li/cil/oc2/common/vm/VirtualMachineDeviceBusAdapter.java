@@ -69,6 +69,10 @@ public final class VirtualMachineDeviceBusAdapter {
     public void unload() {
         fireLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
 
+        suspend();
+    }
+
+    public void suspend() {
         deviceContexts.forEach((device, context) -> {
             if (context != null) {
                 context.invalidate();

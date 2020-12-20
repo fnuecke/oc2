@@ -272,6 +272,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     @Override
+    public void remove() {
+        super.remove();
+
+        // Regular dispose only suspends, but we want to do a full unload when we get
+        // destroyed, so stuff inside us can delete out-of-nbt persisted data.
+        virtualMachine.vmAdapter.unload();
+    }
+
+    @Override
     public CompoundNBT getUpdateTag() {
         final CompoundNBT result = super.getUpdateTag();
 
@@ -381,7 +390,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         ServerScheduler.removeOnUnload(getWorld(), onWorldUnloaded);
 
-        stopRunnerAndResetVM();
+        joinVirtualMachine();
+        virtualMachine.vmAdapter.suspend();
+
         busController.dispose();
         busElement.dispose();
     }

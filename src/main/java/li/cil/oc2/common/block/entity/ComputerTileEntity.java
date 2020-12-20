@@ -220,6 +220,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             return;
         }
 
+        if (chunk == null) {
+            chunk = world.getChunkAt(getPos());
+        }
+
         busController.scan();
         setBusState(busController.getState());
         if (busState != AbstractDeviceBusController.BusState.READY) {
@@ -368,8 +372,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         ServerScheduler.scheduleOnUnload(world, onWorldUnloaded);
 
         busElement.initialize();
-        virtualMachine.rtc.setWorld(requireNonNull(getWorld()));
-        ServerScheduler.schedule(() -> chunk = requireNonNull(getWorld()).getChunkAt(getPos()));
+        virtualMachine.rtc.setWorld(world);
     }
 
     @Override
@@ -392,7 +395,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         busState = value;
 
-        Network.sendToClientsTrackingChunk(new ComputerBusStateMessage(this), chunk);
+        final ComputerBusStateMessage message = new ComputerBusStateMessage(this);
+        Network.sendToClientsTrackingChunk(message, chunk);
     }
 
     private void setRunState(final RunState value) {
@@ -402,7 +406,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         runState = value;
 
-        Network.sendToClientsTrackingChunk(new ComputerRunStateMessage(this), chunk);
+        // This method can be called from disposal logic, so if we are disposed quickly enough
+        // chunk may not be initialized yet. Avoid resulting NRE in network logic.
+        if (chunk != null) {
+            final ComputerRunStateMessage message = new ComputerRunStateMessage(this);
+            Network.sendToClientsTrackingChunk(message, chunk);
+        }
     }
 
     private void stopRunnerAndResetVM() {
@@ -519,8 +528,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                 virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.INITIALIZE);
 
                 try {
-                    // TODO Initialize devices that need it asynchronously.
-
                     loadProgramFile(Buildroot.getFirmware());
                     loadProgramFile(Buildroot.getLinuxImage(), 0x200000);
                 } catch (final Throwable e) {
@@ -561,8 +568,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                 terminal.putOutput(output);
 
                 output.flip();
-                Network.sendToClientsTrackingChunk(
-                        new TerminalBlockOutputMessage(ComputerTileEntity.this, output), chunk);
+
+                final TerminalBlockOutputMessage message = new TerminalBlockOutputMessage(ComputerTileEntity.this, output);
+                Network.sendToClientsTrackingChunk(message, chunk);
             }
         }
     }

@@ -81,6 +81,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     ///////////////////////////////////////////////////////////////////
 
+    private final Runnable onWorldUnloaded = this::onWorldUnloaded;
     private Chunk chunk;
     private final AbstractDeviceBusController busController;
     private AbstractDeviceBusController.BusState busState;
@@ -363,6 +364,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     protected void initializeServer() {
         super.initializeServer();
 
+        final World world = requireNonNull(getWorld());
+        ServerScheduler.scheduleOnUnload(world, onWorldUnloaded);
+
         busElement.initialize();
         virtualMachine.rtc.setWorld(requireNonNull(getWorld()));
         ServerScheduler.schedule(() -> chunk = requireNonNull(getWorld()).getChunkAt(getPos()));
@@ -371,6 +375,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     @Override
     protected void disposeServer() {
         super.disposeServer();
+
+        ServerScheduler.removeOnUnload(getWorld(), onWorldUnloaded);
 
         stopRunnerAndResetVM();
         busController.dispose();
@@ -424,6 +430,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     private void loadProgramFile(final InputStream stream, final int offset) throws Throwable {
         MemoryMaps.store(virtualMachine.board.getMemoryMap(), 0x80000000L + offset, stream);
+    }
+
+    private void onWorldUnloaded() {
+        disposeServer();
     }
 
     ///////////////////////////////////////////////////////////////////

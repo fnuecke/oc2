@@ -1,19 +1,24 @@
 package li.cil.oc2.common.util;
 
 import net.minecraft.world.IWorld;
+import net.minecraft.world.chunk.IChunk;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.PriorityQueue;
-import java.util.WeakHashMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public final class ServerScheduler {
-    private static final Scheduler serverScheduler = new Scheduler();
-    private static final WeakHashMap<IWorld, Scheduler> worldSchedulers = new WeakHashMap<>();
+    private static final TickScheduler globalTickScheduler = new TickScheduler();
+    private static final WeakHashMap<IWorld, TickScheduler> worldTickSchedulers = new WeakHashMap<>();
+    private static final WeakHashMap<IWorld, UnloadScheduler> worldUnloadSchedulers = new WeakHashMap<>();
+    private static final WeakHashMap<IChunk, UnloadScheduler> chunkUnloadSchedulers = new WeakHashMap<>();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -26,7 +31,7 @@ public final class ServerScheduler {
     }
 
     public static void schedule(final Runnable runnable, final int afterTicks) {
-        serverScheduler.schedule(runnable, afterTicks);
+        globalTickScheduler.schedule(runnable, afterTicks);
     }
 
     public static void schedule(final IWorld world, final Runnable runnable) {
@@ -34,8 +39,38 @@ public final class ServerScheduler {
     }
 
     public static void schedule(final IWorld world, final Runnable runnable, final int afterTicks) {
-        final Scheduler scheduler = worldSchedulers.computeIfAbsent(world, w -> new Scheduler());
+        final TickScheduler scheduler = worldTickSchedulers.computeIfAbsent(world, w -> new TickScheduler());
         scheduler.schedule(runnable, afterTicks);
+    }
+
+    public static void scheduleOnUnload(final IWorld world, final Runnable listener) {
+        worldUnloadSchedulers.computeIfAbsent(world, unused -> new UnloadScheduler()).add(listener);
+    }
+
+    public static void removeOnUnload(@Nullable final IWorld world, final Runnable listener) {
+        if (world == null) {
+            return;
+        }
+
+        final UnloadScheduler scheduler = worldUnloadSchedulers.get(world);
+        if (scheduler != null) {
+            scheduler.remove(listener);
+        }
+    }
+
+    public static void scheduleOnUnload(final IChunk chunk, final Runnable listener) {
+        chunkUnloadSchedulers.computeIfAbsent(chunk, unused -> new UnloadScheduler()).add(listener);
+    }
+
+    public static void removeOnUnload(@Nullable final IChunk chunk, final Runnable listener) {
+        if (chunk == null) {
+            return;
+        }
+
+        final UnloadScheduler scheduler = chunkUnloadSchedulers.get(chunk);
+        if (scheduler != null) {
+            scheduler.remove(listener);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -43,21 +78,43 @@ public final class ServerScheduler {
     private static final class EventHandler {
         @SubscribeEvent
         public static void handleServerStoppedEvent(final FMLServerStoppedEvent event) {
-            serverScheduler.clear();
-            worldSchedulers.clear();
+            globalTickScheduler.clear();
+            worldTickSchedulers.clear();
+            worldUnloadSchedulers.clear();
+            chunkUnloadSchedulers.clear();
         }
 
         @SubscribeEvent
         public static void handleWorldUnload(final WorldEvent.Unload event) {
-            worldSchedulers.remove(event.getWorld());
+            worldTickSchedulers.remove(event.getWorld());
+
+            final List<IChunk> unloadedChunks = chunkUnloadSchedulers.keySet().stream()
+                    .filter(chunk -> chunk.getWorldForge() == event.getWorld())
+                    .collect(Collectors.toList());
+            for (final IChunk chunk : unloadedChunks) {
+                chunkUnloadSchedulers.remove(chunk);
+            }
+
+            final UnloadScheduler scheduler = worldUnloadSchedulers.remove(event.getWorld());
+            if (scheduler != null) {
+                scheduler.run();
+            }
+        }
+
+        @SubscribeEvent
+        public static void handleChunkUnload(final ChunkEvent.Unload event) {
+            final UnloadScheduler scheduler = chunkUnloadSchedulers.remove(event.getChunk());
+            if (scheduler != null) {
+                scheduler.run();
+            }
         }
 
         @SubscribeEvent
         public static void handleServerTick(final TickEvent.ServerTickEvent event) {
             if (event.phase == TickEvent.Phase.START) {
-                serverScheduler.tick();
+                globalTickScheduler.tick();
 
-                for (final Scheduler scheduler : worldSchedulers.values()) {
+                for (final TickScheduler scheduler : worldTickSchedulers.values()) {
                     scheduler.tick();
                 }
             }
@@ -69,16 +126,16 @@ public final class ServerScheduler {
                 return;
             }
 
-            serverScheduler.processQueue();
+            globalTickScheduler.processQueue();
 
-            final Scheduler scheduler = worldSchedulers.get(event.world);
+            final TickScheduler scheduler = worldTickSchedulers.get(event.world);
             if (scheduler != null) {
                 scheduler.processQueue();
             }
         }
     }
 
-    private static final class Scheduler {
+    private static final class TickScheduler {
         private final PriorityQueue<ScheduledRunnable> queue = new PriorityQueue<>();
         private int currentTick;
 
@@ -114,6 +171,26 @@ public final class ServerScheduler {
         @Override
         public int compareTo(@NotNull final ServerScheduler.ScheduledRunnable o) {
             return Integer.compare(tick, o.tick);
+        }
+    }
+
+    private static final class UnloadScheduler {
+        private final Set<Runnable> listeners = Collections.newSetFromMap(new WeakHashMap<>());
+
+        public void add(final Runnable listener) {
+            listeners.add(listener);
+        }
+
+        public void remove(final Runnable listener) {
+            listeners.remove(listener);
+        }
+
+        public void run() {
+            for (final Runnable runnable : listeners) {
+                runnable.run();
+            }
+
+            listeners.clear();
         }
     }
 }

@@ -47,6 +47,10 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
 
         final ArrayList<LazyOptional<DeviceBusElement>> neighbors = new ArrayList<>();
         for (final Direction neighborDirection : NEIGHBOR_DIRECTIONS) {
+            if (!canConnectToSide(neighborDirection)) {
+                continue;
+            }
+
             final BlockPos neighborPos = tileEntity.getPos().offset(neighborDirection);
 
             final ChunkPos chunkPos = new ChunkPos(neighborPos);

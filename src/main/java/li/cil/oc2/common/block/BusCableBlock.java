@@ -124,7 +124,6 @@ public final class BusCableBlock extends Block {
         return ActionResultType.SUCCESS;
     }
 
-    @Nullable
     @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
         BlockState state = getDefaultState();
@@ -164,6 +163,7 @@ public final class BusCableBlock extends Block {
 
     @Override
     protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
+        super.fillStateContainer(builder);
         FACING_TO_CONNECTION_MAP.values().forEach(builder::add);
     }
 

@@ -18,7 +18,7 @@ import li.cil.oc2.common.serialization.serializers.RPCMethodJsonSerializer;
 import li.cil.sedna.api.device.Steppable;
 import li.cil.sedna.api.device.serial.SerialDevice;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;

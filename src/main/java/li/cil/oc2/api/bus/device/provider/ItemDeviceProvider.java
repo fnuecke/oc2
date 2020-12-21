@@ -2,7 +2,6 @@ package li.cil.oc2.api.bus.device.provider;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.ItemDevice;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import java.util.Optional;
 
@@ -37,7 +36,7 @@ import java.util.Optional;
  * @see li.cil.oc2.api.bus.device.vm.VMDevice
  * @see ItemDeviceQuery
  */
-public interface ItemDeviceProvider extends IForgeRegistryEntry<ItemDeviceProvider> {
+public interface ItemDeviceProvider {
     /**
      * Get a device for the specified query.
      *

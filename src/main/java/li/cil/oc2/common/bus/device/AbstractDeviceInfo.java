@@ -1,17 +1,19 @@
 package li.cil.oc2.common.bus.device;
 
 import li.cil.oc2.api.bus.device.Device;
-import net.minecraftforge.registries.IForgeRegistryEntry;
+import net.minecraft.util.registry.Registry;
 
 import java.util.Objects;
 
-public abstract class AbstractDeviceInfo<TProvider extends IForgeRegistryEntry<TProvider>, TDevice extends Device> {
+public abstract class AbstractDeviceInfo<TProvider, TDevice extends Device> {
+    public final Registry<TProvider> registry;
     public final TProvider provider;
     public final TDevice device;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractDeviceInfo(final TProvider provider, final TDevice device) {
+    protected AbstractDeviceInfo(final Registry<TProvider> registry, final TProvider provider, final TDevice device) {
+        this.registry = registry;
         this.provider = provider;
         this.device = device;
     }

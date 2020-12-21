@@ -1,39 +1,28 @@
 package li.cil.oc2.common.init;
 
-import li.cil.oc2.api.API;
+import li.cil.oc2.Constants;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.*;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.RegistryBuilder;
-
-import java.util.function.Supplier;
+import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.SimpleRegistry;
 
 public final class Providers {
-    private static final DeferredRegister<BlockDeviceProvider> BLOCK_DEVICE_PROVIDERS = DeferredRegister.create(BlockDeviceProvider.class, API.MOD_ID);
-    private static final DeferredRegister<ItemDeviceProvider> ITEM_DEVICE_PROVIDERS = DeferredRegister.create(ItemDeviceProvider.class, API.MOD_ID);
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static final Supplier<IForgeRegistry<BlockDeviceProvider>> BLOCK_DEVICE_PROVIDER_REGISTRY = BLOCK_DEVICE_PROVIDERS.makeRegistry("block_device_providers", RegistryBuilder::new);
-    public static final Supplier<IForgeRegistry<ItemDeviceProvider>> ITEM_DEVICE_PROVIDER_REGISTRY = ITEM_DEVICE_PROVIDERS.makeRegistry("item_device_providers", RegistryBuilder::new);
+    public static final SimpleRegistry<BlockDeviceProvider> BLOCK_DEVICE_PROVIDER_REGISTRY = FabricRegistryBuilder.createSimple(BlockDeviceProvider.class, Constants.BLOCK_DEVICE_PROVIDER_REGISTRY_NAME).buildAndRegister();
+    public static final SimpleRegistry<ItemDeviceProvider> ITEM_DEVICE_PROVIDER_REGISTRY = FabricRegistryBuilder.createSimple(ItemDeviceProvider.class, Constants.ITEM_DEVICE_PROVIDER_REGISTRY_NAME).buildAndRegister();
 
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        BLOCK_DEVICE_PROVIDERS.register("block", BlockStateDeviceProvider::new);
-        BLOCK_DEVICE_PROVIDERS.register("tile_entity", TileEntityDeviceProvider::new);
+        Registry.register(BLOCK_DEVICE_PROVIDER_REGISTRY, "block", new BlockStateDeviceProvider());
+        Registry.register(BLOCK_DEVICE_PROVIDER_REGISTRY, "tile_entity", new TileEntityDeviceProvider());
 
-        BLOCK_DEVICE_PROVIDERS.register("energy_storage", EnergyStorageBlockDeviceProvider::new);
-        BLOCK_DEVICE_PROVIDERS.register("fluid_handler", FluidHandlerBlockDeviceProvider::new);
-        BLOCK_DEVICE_PROVIDERS.register("item_handler", ItemHandlerBlockDeviceProvider::new);
+//        Registry.register(BLOCK_DEVICE_PROVIDER_REGISTRY, "energy_storage", new EnergyStorageBlockDeviceProvider());
+        Registry.register(BLOCK_DEVICE_PROVIDER_REGISTRY, "fluid_handler", new FluidHandlerBlockDeviceProvider());
+        Registry.register(BLOCK_DEVICE_PROVIDER_REGISTRY, "item_handler", new ItemHandlerBlockDeviceProvider());
 
-        ITEM_DEVICE_PROVIDERS.register("item_memory", MemoryItemDeviceProvider::new);
-        ITEM_DEVICE_PROVIDERS.register("item_hard_drive", HardDriveItemDeviceProvider::new);
-
-        BLOCK_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());
-        ITEM_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());
+        Registry.register(ITEM_DEVICE_PROVIDER_REGISTRY, "item_memory", new MemoryItemDeviceProvider());
+        Registry.register(ITEM_DEVICE_PROVIDER_REGISTRY, "item_hard_drive", new HardDriveItemDeviceProvider());
     }
 }

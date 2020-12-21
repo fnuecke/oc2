@@ -2,8 +2,7 @@ package li.cil.oc2.api.bus.device;
 
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusController;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraft.nbt.CompoundTag;
 
 /**
  * Base interface for objects that can be registered as devices on a {@link DeviceBus}.
@@ -15,13 +14,11 @@ import net.minecraftforge.common.util.INBTSerializable;
  * {@link Object#equals(Object)} and {@link Object#hashCode()} so that identical devices can be
  * detected.
  */
-public interface Device extends INBTSerializable<CompoundNBT> {
-    @Override
-    default CompoundNBT serializeNBT() {
-        return new CompoundNBT();
+public interface Device {
+    default CompoundTag serializeNBT() {
+        return new CompoundTag();
     }
 
-    @Override
-    default void deserializeNBT(final CompoundNBT nbt) {
+    default void deserializeNBT(final CompoundTag nbt) {
     }
 }

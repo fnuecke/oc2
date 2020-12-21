@@ -1,7 +1,7 @@
 package li.cil.oc2.common.serialization;
 
 import li.cil.ceres.api.Serialized;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -26,7 +26,7 @@ public final class SerializationTests {
         value.stringValue = "test string";
         value.uuidValue = uuid;
 
-        final CompoundNBT nbt = assertDoesNotThrow(() -> NBTSerialization.serialize(value));
+        final CompoundTag nbt = assertDoesNotThrow(() -> NBTSerialization.serialize(value));
 
         assertEquals(123, nbt.getByte("byteValue"));
         assertEquals(234, nbt.getShort("shortValue"));
@@ -43,7 +43,7 @@ public final class SerializationTests {
 
     @Test
     public void testDeserializeFlatInto() {
-        final CompoundNBT nbt = new CompoundNBT();
+        final CompoundTag nbt = new CompoundTag();
         nbt.putByte("byteValue", (byte) 98);
         nbt.putShort("shortValue", (short) 876);
         nbt.putInt("intValue", 765);
@@ -55,7 +55,7 @@ public final class SerializationTests {
         nbt.putLongArray("longArrayValue", new long[]{7, 6, 5});
         nbt.putString("stringValue", "another test");
         final UUID uuid = UUID.randomUUID();
-        final CompoundNBT uuidNBT = new CompoundNBT();
+        final CompoundTag uuidNBT = new CompoundTag();
         uuidNBT.putUniqueId("uuidValue", uuid);
         nbt.put("uuidValue", uuidNBT);
 
@@ -76,7 +76,7 @@ public final class SerializationTests {
 
     @Test
     public void testDeserializeFlatNew() {
-        final CompoundNBT nbt = new CompoundNBT();
+        final CompoundTag nbt = new CompoundTag();
 
         nbt.putByte("byteValue", (byte) 98);
         nbt.putShort("shortValue", (short) 876);
@@ -89,7 +89,7 @@ public final class SerializationTests {
         nbt.putLongArray("longArrayValue", new long[]{7, 6, 5});
         nbt.putString("stringValue", "another test");
         final UUID uuid = UUID.randomUUID();
-        final CompoundNBT uuidNBT = new CompoundNBT();
+        final CompoundTag uuidNBT = new CompoundTag();
         uuidNBT.putUniqueId("uuidValue", uuid);
         nbt.put("uuidValue", uuidNBT);
 
@@ -111,7 +111,7 @@ public final class SerializationTests {
     @Test
     public void testModifiers() {
         final WithModifiers value = new WithModifiers();
-        final CompoundNBT nbt = assertDoesNotThrow(() -> NBTSerialization.serialize(value));
+        final CompoundTag nbt = assertDoesNotThrow(() -> NBTSerialization.serialize(value));
 
         assertTrue(nbt.contains("nonTransientInt"));
         assertEquals(123, nbt.getInt("nonTransientInt"));
@@ -132,7 +132,7 @@ public final class SerializationTests {
         root.child = new Nested();
         root.child.value = 234;
 
-        final CompoundNBT nbt = assertDoesNotThrow(() -> NBTSerialization.serialize(root));
+        final CompoundTag nbt = assertDoesNotThrow(() -> NBTSerialization.serialize(root));
 
         assertEquals(123, nbt.getInt("value"));
         assertTrue(nbt.contains("child"));
@@ -141,9 +141,9 @@ public final class SerializationTests {
 
     @Test
     public void testDeserializeNestedInto() {
-        final CompoundNBT nbt = new CompoundNBT();
+        final CompoundTag nbt = new CompoundTag();
         nbt.putInt("value", 123);
-        final CompoundNBT child = new CompoundNBT();
+        final CompoundTag child = new CompoundTag();
         nbt.put("child", child);
         child.putInt("value", 234);
 
@@ -156,9 +156,9 @@ public final class SerializationTests {
 
     @Test
     public void testDeserializeNestedNew() {
-        final CompoundNBT nbt = new CompoundNBT();
+        final CompoundTag nbt = new CompoundTag();
         nbt.putInt("value", 123);
-        final CompoundNBT child = new CompoundNBT();
+        final CompoundTag child = new CompoundTag();
         nbt.put("child", child);
         child.putInt("value", 234);
 

@@ -1,10 +1,9 @@
 package li.cil.oc2.api.bus.device.provider;
 
-import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Device query for a block in the world.

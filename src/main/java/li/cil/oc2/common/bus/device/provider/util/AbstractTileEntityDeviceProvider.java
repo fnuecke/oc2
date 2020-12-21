@@ -1,18 +1,20 @@
 package li.cil.oc2.common.bus.device.provider.util;
 
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.common.util.WorldUtils;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityType;
 
-public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> extends AbstractBlockDeviceProvider {
-    private final TileEntityType<T> tileEntityType;
+import java.util.Optional;
+
+public abstract class AbstractTileEntityDeviceProvider<T extends BlockEntity> implements BlockDeviceProvider {
+    private final BlockEntityType<T> tileEntityType;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractTileEntityDeviceProvider(final TileEntityType<T> tileEntityType) {
+    protected AbstractTileEntityDeviceProvider(final BlockEntityType<T> tileEntityType) {
         this.tileEntityType = tileEntityType;
     }
 
@@ -24,14 +26,14 @@ public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> ext
 
     @SuppressWarnings("unchecked")
     @Override
-    public final LazyOptional<Device> getDevice(final BlockDeviceQuery query) {
-        final TileEntity tileEntity = WorldUtils.getTileEntityIfChunkExists(query.getWorld(), query.getQueryPosition());
+    public final Optional<Device> getDevice(final BlockDeviceQuery query) {
+        final BlockEntity tileEntity = WorldUtils.getTileEntityIfChunkExists(query.getWorld(), query.getQueryPosition());
         if (tileEntity == null) {
-            return LazyOptional.empty();
+            return Optional.empty();
         }
 
         if (tileEntityType != null && tileEntity.getType() != tileEntityType) {
-            return LazyOptional.empty();
+            return Optional.empty();
         }
 
         return getBlockDevice(query, (T) tileEntity);
@@ -39,5 +41,5 @@ public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> ext
 
     ///////////////////////////////////////////////////////////////////
 
-    protected abstract LazyOptional<Device> getBlockDevice(final BlockDeviceQuery query, final T tileEntity);
+    protected abstract Optional<Device> getBlockDevice(final BlockDeviceQuery query, final T tileEntity);
 }

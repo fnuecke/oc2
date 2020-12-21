@@ -1,9 +1,9 @@
 package li.cil.oc2.common.vm;
 
+import com.sun.istack.internal.Nullable;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCParameter;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 abstract class AbstractTestMethod implements RPCMethod {

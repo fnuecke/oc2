@@ -1,15 +1,14 @@
 package li.cil.oc2.api.bus.device.object;
 
 import net.minecraft.block.Block;
-import net.minecraft.tileentity.TileEntity;
 
 import java.util.Collection;
 
 /**
  * This interface is used to declare additional type names for a device on targets of an {@link ObjectDevice}.
  * <p>
- * For example: {@link Block}s and {@link TileEntity}s that contain {@link Callback} methods may implement
- * this interface to provide additional type names.
+ * For example: {@link Block}s and {@link net.minecraft.block.entity.BlockEntity}s that contain {@link Callback}
+ * methods may implement this interface to provide additional type names.
  */
 public interface NamedDevice {
     /**

@@ -7,11 +7,11 @@ import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.block.BlockState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
@@ -20,7 +20,7 @@ import java.util.Collection;
 import static java.util.Collections.singletonList;
 import static li.cil.oc2.common.util.HorizontalBlockUtils.HORIZONTAL_DIRECTION_COUNT;
 
-public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevice, DocumentedDevice {
+public class RedstoneInterfaceTileEntity extends BlockEntity implements NamedDevice, DocumentedDevice {
     private static final String OUTPUT_NBT_TAG_NAME = "output";
 
     private static final String GET_REDSTONE_INPUT = "getRedstoneInput";
@@ -36,21 +36,21 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
     ///////////////////////////////////////////////////////////////////
 
     public RedstoneInterfaceTileEntity() {
-        super(TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get());
+        super(TileEntities.REDSTONE_INTERFACE_TILE_ENTITY);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        compound = super.write(compound);
+    public CompoundTag toTag(CompoundTag compound) {
+        compound = super.toTag(compound);
         compound.putByteArray(OUTPUT_NBT_TAG_NAME, output);
         return compound;
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT compound) {
-        super.read(state, compound);
+    public void fromTag(final BlockState state, final CompoundTag compound) {
+        super.fromTag(state, compound);
         final byte[] output = compound.getByteArray(OUTPUT_NBT_TAG_NAME);
         if (output.length == HORIZONTAL_DIRECTION_COUNT) {
             System.arraycopy(output, 0, this.output, 0, HORIZONTAL_DIRECTION_COUNT);
@@ -74,16 +74,16 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
         }
 
         final BlockPos pos = getPos();
-        final Direction direction = HorizontalBlockUtils.toGlobal(getBlockState(), Direction.byHorizontalIndex(side));
+        final Direction direction = HorizontalBlockUtils.toGlobal(getCachedState(), Direction.fromHorizontal(side));
         assert direction != null;
 
         final BlockPos neighborPos = pos.offset(direction);
         final ChunkPos chunkPos = new ChunkPos(neighborPos.getX(), neighborPos.getZ());
-        if (!world.chunkExists(chunkPos.x, chunkPos.z)) {
+        if (!world.isChunkLoaded(chunkPos.x, chunkPos.z)) {
             return 0;
         }
 
-        return world.getRedstonePower(neighborPos, direction);
+        return world.getEmittedRedstonePower(neighborPos, direction);
     }
 
     @Callback(name = GET_REDSTONE_OUTPUT)
@@ -138,14 +138,14 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
     }
 
     public int getOutputForDirection(final Direction direction) {
-        if (direction.getAxis().getPlane() != Direction.Plane.HORIZONTAL) {
+        if (direction.getAxis().getType() != Direction.Type.HORIZONTAL) {
             return 0;
         }
 
-        final Direction localDirection = HorizontalBlockUtils.toLocal(getBlockState(), direction);
+        final Direction localDirection = HorizontalBlockUtils.toLocal(getCachedState(), direction);
         assert localDirection != null;
 
-        return output[localDirection.getHorizontalIndex()];
+        return output[localDirection.getHorizontal()];
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -156,8 +156,8 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
             return;
         }
 
-        world.notifyNeighborsOfStateChange(getPos(), getBlockState().getBlock());
-        Direction.Plane.HORIZONTAL.iterator().forEachRemaining(direction ->
-                world.notifyNeighborsOfStateChange(getPos().offset(direction), getBlockState().getBlock()));
+        world.updateNeighbors(getPos(), getCachedState().getBlock());
+        Direction.Type.HORIZONTAL.iterator().forEachRemaining(direction ->
+                world.updateNeighbors(getPos().offset(direction), getCachedState().getBlock()));
     }
 }

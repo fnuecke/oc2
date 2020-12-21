@@ -1,17 +1,18 @@
 package li.cil.oc2.common.block.entity;
 
+import alexiil.mc.lib.attributes.AttributeList;
+import alexiil.mc.lib.attributes.AttributeProviderBlockEntity;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
-import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import net.minecraft.block.BlockState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.util.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
-public class BusCableTileEntity extends AbstractTileEntity {
+public class BusCableTileEntity extends AbstractTileEntity implements AttributeProviderBlockEntity {
     private static final String BUS_ELEMENT_NBT_TAG_NAME = "busElement";
 
     ///////////////////////////////////////////////////////////////////
@@ -21,10 +22,16 @@ public class BusCableTileEntity extends AbstractTileEntity {
     ///////////////////////////////////////////////////////////////////
 
     public BusCableTileEntity() {
-        super(TileEntities.BUS_CABLE_TILE_ENTITY.get());
+        super(TileEntities.BUS_CABLE_TILE_ENTITY);
 
         busElement = new BusElement();
-        setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    public void addAllAttributes(final AttributeList<?> attributeList) {
+        attributeList.offer(busElement);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -34,15 +41,15 @@ public class BusCableTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        compound = super.write(compound);
+    public CompoundTag toTag(CompoundTag compound) {
+        compound = super.toTag(compound);
         compound.put(BUS_ELEMENT_NBT_TAG_NAME, NBTSerialization.serialize(busElement));
         return compound;
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT compound) {
-        super.read(state, compound);
+    public void fromTag(final BlockState state, final CompoundTag compound) {
+        super.fromTag(state, compound);
         NBTSerialization.deserialize(compound.getCompound(BUS_ELEMENT_NBT_TAG_NAME), busElement);
     }
 
@@ -70,7 +77,7 @@ public class BusCableTileEntity extends AbstractTileEntity {
         @Override
         protected boolean canConnectToSide(final Direction direction) {
             final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(direction);
-            final BusCableBlock.ConnectionType connectionType = getBlockState().get(property);
+            final BusCableBlock.ConnectionType connectionType = getCachedState().get(property);
             return connectionType == BusCableBlock.ConnectionType.PLUG;
         }
     }

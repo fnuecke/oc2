@@ -2,53 +2,44 @@ package li.cil.oc2.common.block;
 
 import li.cil.oc2.common.block.entity.RedstoneInterfaceTileEntity;
 import li.cil.oc2.common.init.TileEntities;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
+import net.minecraft.block.*;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.state.StateManager;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.util.math.Direction;
+import net.minecraft.world.BlockView;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-public final class RedstoneInterfaceBlock extends HorizontalBlock {
+public final class RedstoneInterfaceBlock extends HorizontalFacingBlock implements BlockEntityProvider {
     public RedstoneInterfaceBlock() {
-        super(Properties.create(Material.IRON).sound(SoundType.METAL));
-        setDefaultState(getStateContainer().getBaseState().with(HORIZONTAL_FACING, Direction.NORTH));
+        super(Settings.of(Material.METAL).sounds(BlockSoundGroup.METAL));
+        setDefaultState(getStateManager().getDefaultState().with(FACING, Direction.NORTH));
     }
 
     @Override
-    public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
-    }
-
-    @Override
-    public boolean hasTileEntity(final BlockState state) {
-        return true;
+    public BlockState getPlacementState(final ItemPlacementContext context) {
+        return super.getDefaultState().with(FACING, context.getPlayerLookDirection().getOpposite());
     }
 
     @Nullable
     @Override
-    public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
-        return TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get().create();
+    public BlockEntity createBlockEntity(final BlockView world) {
+        return TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.instantiate();
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public boolean canProvidePower(final BlockState state) {
+    public boolean emitsRedstonePower(final BlockState state) {
         return true;
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getWeakPower(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
-        if (side.getAxis().getPlane() == Direction.Plane.HORIZONTAL) {
-            final TileEntity tileEntity = world.getTileEntity(pos);
+    public int getWeakRedstonePower(final BlockState state, final BlockView world, final BlockPos pos, final Direction side) {
+        if (side.getAxis().getType() == Direction.Type.HORIZONTAL) {
+            final BlockEntity tileEntity = world.getBlockEntity(pos);
             if (tileEntity instanceof RedstoneInterfaceTileEntity) {
                 final RedstoneInterfaceTileEntity redstoneInterface = (RedstoneInterfaceTileEntity) tileEntity;
                 // Redstone requests info for faces with external perspective. We treat
@@ -56,24 +47,24 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
                 return redstoneInterface.getOutputForDirection(side.getOpposite());
             }
         }
-        return super.getWeakPower(state, world, pos, side);
+        return super.getWeakRedstonePower(state, world, pos, side);
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getStrongPower(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
+    public int getStrongRedstonePower(final BlockState state, final BlockView world, final BlockPos pos, final Direction side) {
         if (side == Direction.NORTH || side == Direction.EAST || side == Direction.SOUTH || side == Direction.WEST) {
-            return getWeakPower(state, world, pos, side);
+            return getWeakRedstonePower(state, world, pos, side);
         } else {
-            return super.getStrongPower(state, world, pos, side);
+            return super.getStrongRedstonePower(state, world, pos, side);
         }
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
-        builder.add(HORIZONTAL_FACING);
+    protected void appendProperties(final StateManager.Builder<Block, BlockState> builder) {
+        super.appendProperties(builder);
+        builder.add(FACING);
     }
 }

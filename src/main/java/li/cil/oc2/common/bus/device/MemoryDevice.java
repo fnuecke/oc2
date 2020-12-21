@@ -9,7 +9,7 @@ import li.cil.sedna.device.memory.Memory;
 import li.cil.sedna.memory.PhysicalMemoryInputStream;
 import li.cil.sedna.memory.PhysicalMemoryOutputStream;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.OptionalLong;
 import java.util.UUID;
@@ -66,12 +66,12 @@ public final class MemoryDevice extends AbstractItemDevice implements VMDevice, 
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT nbt = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        final CompoundTag nbt = new CompoundTag();
 
         if (device != null) {
             blobHandle = BlobStorage.validateHandle(blobHandle);
-            nbt.putUniqueId(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
+            nbt.putUuid(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
 
             jobHandle = BlobStorage.submitSave(blobHandle, new PhysicalMemoryInputStream(device));
         }
@@ -83,9 +83,9 @@ public final class MemoryDevice extends AbstractItemDevice implements VMDevice, 
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT nbt) {
-        if (nbt.hasUniqueId(BLOB_HANDLE_NBT_TAG_NAME)) {
-            blobHandle = nbt.getUniqueId(BLOB_HANDLE_NBT_TAG_NAME);
+    public void deserializeNBT(final CompoundTag nbt) {
+        if (nbt.containsUuid(BLOB_HANDLE_NBT_TAG_NAME)) {
+            blobHandle = nbt.getUuid(BLOB_HANDLE_NBT_TAG_NAME);
         }
         if (nbt.contains(ADDRESS_NBT_TAG_NAME, NBTTagIds.TAG_LONG)) {
             address = nbt.getLong(ADDRESS_NBT_TAG_NAME);

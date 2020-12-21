@@ -1,35 +1,35 @@
 package li.cil.oc2.common.util;
 
 import net.minecraft.block.Block;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.IWorld;
-
-import javax.annotation.Nullable;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.WorldAccess;
+import org.jetbrains.annotations.Nullable;
 
 public final class WorldUtils {
     @Nullable
-    public static TileEntity getTileEntityIfChunkExists(final IWorld world, final BlockPos pos) {
+    public static BlockEntity getTileEntityIfChunkExists(final WorldAccess world, final BlockPos pos) {
         final ChunkPos chunkPos = new ChunkPos(pos);
-        if (!world.chunkExists(chunkPos.x, chunkPos.z)) {
+        if (!world.isChunkLoaded(chunkPos.x, chunkPos.z)) {
             return null;
         }
 
-        return world.getTileEntity(pos);
+        return world.getBlockEntity(pos);
     }
 
     @Nullable
-    public static String getBlockName(final IWorld world, final BlockPos pos) {
+    public static String getBlockName(final WorldAccess world, final BlockPos pos) {
         final ChunkPos chunkPos = new ChunkPos(pos);
-        if (!world.chunkExists(chunkPos.x, chunkPos.z)) {
+        if (!world.isChunkLoaded(chunkPos.x, chunkPos.z)) {
             return null;
         }
 
-        final TileEntity tileEntity = world.getTileEntity(pos);
+        final BlockEntity tileEntity = world.getBlockEntity(pos);
         if (tileEntity != null) {
-            final ResourceLocation registryName = tileEntity.getType().getRegistryName();
+            final Identifier registryName = Registry.BLOCK_ENTITY_TYPE.getId(tileEntity.getType());
             if (registryName != null) {
                 return registryName.toString();
             }
@@ -37,8 +37,8 @@ public final class WorldUtils {
 
         final Block block = world.getBlockState(pos).getBlock();
         {
-            final ResourceLocation registryName = block.getRegistryName();
-            if (registryName != null) {
+            final Identifier registryName = Registry.BLOCK.getId(block);
+            if (registryName != Registry.BLOCK.getDefaultId()) {
                 return registryName.toString();
             }
         }

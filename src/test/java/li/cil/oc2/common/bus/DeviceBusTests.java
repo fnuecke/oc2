@@ -1,11 +1,10 @@
 package li.cil.oc2.common.bus;
 
+import alexiil.mc.lib.attributes.Attribute;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.util.registry.Bootstrap;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraft.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,7 @@ import static org.mockito.Mockito.*;
 
 public class DeviceBusTests {
     @Mock
-    private Capability<DeviceBusElement> busElementCapability;
+    private Attribute<DeviceBusElement> busElementCapability;
     private AbstractDeviceBusController busController;
     private DeviceBusElement busControllerBusElement;
 
@@ -31,7 +30,7 @@ public class DeviceBusTests {
     public static void setup() {
         // Gotta go through regular MC bootstrapping first because otherwise class
         // load order may lead to errors because static fields reference each other.
-        Bootstrap.register();
+        Bootstrap.initialize();
     }
 
     @BeforeEach
@@ -81,11 +80,11 @@ public class DeviceBusTests {
         final DeviceBusElement busElement1 = mock(DeviceBusElement.class);
         final DeviceBusElement busElement2 = mock(DeviceBusElement.class);
 
-        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busElement1))));
-        when(busElement1.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busControllerBusElement))));
+        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(busElement1)));
+        when(busElement1.getNeighbors()).thenReturn(Optional.of(Collections.singleton(busControllerBusElement)));
 
-        when(busElement1.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busElement2))));
-        when(busElement2.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busElement1))));
+        when(busElement1.getNeighbors()).thenReturn(Optional.of(Collections.singleton(busElement2)));
+        when(busElement2.getNeighbors()).thenReturn(Optional.of(Collections.singleton(busElement1)));
 
         busController.scan();
         assertEquals(AbstractDeviceBusController.BusState.READY, busController.getState());

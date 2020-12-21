@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "oc2",
+  "version": "${mod_version}",
+
+  "name": "OpenComputers2",
+  "description": "Modern computers for the modern player.",
+  "authors": [
+    "Sangar"
+  ],
+  "contact": {
+    "homepage": "https://github.com/MightyPirates/OpenComputers2",
+    "sources": "https://github.com/MightyPirates/OpenComputers2"
+  },
+
+  "license": "MIT",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "li.cil.oc2.common.CommonSetup"
+    ],
+    "client": [
+      "li.cil.oc2.client.ClientSetup"
+    ]
+  },
+  "mixins": [
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.7.4",
+    "fabric": "*",
+    "minecraft": "1.16.x"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

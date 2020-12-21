@@ -5,17 +5,15 @@ import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import java.util.Optional;
 
-public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<ItemDeviceProvider> implements ItemDeviceProvider {
-    private final RegistryObject<Item> item;
+public abstract class AbstractItemDeviceProvider implements ItemDeviceProvider {
+    private final Item item;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractItemDeviceProvider(final RegistryObject<Item> item) {
+    protected AbstractItemDeviceProvider(final Item item) {
         this.item = item;
     }
 
@@ -32,7 +30,7 @@ public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<Item
             return Optional.empty();
         }
 
-        if (item != null && stack.getItem() != item.get()) {
+        if (item != null && stack.getItem() != item) {
             return Optional.empty();
         }
 

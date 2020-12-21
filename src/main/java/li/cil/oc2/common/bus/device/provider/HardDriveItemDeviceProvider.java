@@ -14,11 +14,11 @@ import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
@@ -53,7 +53,7 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
         final ItemStack stack = query.getItemStack();
 
-        final CompoundNBT info = ItemStackUtils.getModDataTag(stack);
+        final CompoundTag info = ItemStackUtils.getModDataTag(stack);
         if (info == null) {
             return Optional.empty();
         }

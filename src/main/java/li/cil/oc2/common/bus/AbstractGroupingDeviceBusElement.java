@@ -4,15 +4,13 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.common.bus.device.AbstractDeviceInfo;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.NBTTagIds;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.registries.IForgeRegistryEntry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeRegistryEntry<TProvider>, TDeviceInfo extends AbstractDeviceInfo<TProvider, ?>> extends AbstractDeviceBusElement implements INBTSerializable<ListNBT> {
+public abstract class AbstractGroupingDeviceBusElement<TProvider, TDeviceInfo extends AbstractDeviceInfo<TProvider, ?>> extends AbstractDeviceBusElement {
     private static final String GROUP_ID_NBT_TAG_NAME = "groupId";
     private static final String GROUP_DATA_NBT_TAG_NAME = "groupData";
 
@@ -24,7 +22,7 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
     ///////////////////////////////////////////////////////////////////
 
     protected final UUID[] groupIds;
-    protected final CompoundNBT[] groupData;
+    protected final CompoundTag[] groupData;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -32,26 +30,25 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         this.groupCount = groupCount;
         this.groups = new ArrayList<>(groupCount);
         this.groupIds = new UUID[groupCount];
-        this.groupData = new CompoundNBT[groupCount];
+        this.groupData = new CompoundTag[groupCount];
 
         for (int i = 0; i < groupCount; i++) {
             groups.add(new HashSet<>());
             groupIds[i] = UUID.randomUUID();
-            groupData[i] = new CompoundNBT();
+            groupData[i] = new CompoundTag();
         }
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    @Override
-    public ListNBT serializeNBT() {
-        final ListNBT nbt = new ListNBT();
+    public ListTag serializeNBT() {
+        final ListTag nbt = new ListTag();
         for (int i = 0; i < groupCount; i++) {
             serializeDevices(i);
 
-            final CompoundNBT sideNbt = new CompoundNBT();
+            final CompoundTag sideNbt = new CompoundTag();
 
-            sideNbt.putUniqueId(GROUP_ID_NBT_TAG_NAME, groupIds[i]);
+            sideNbt.putUuid(GROUP_ID_NBT_TAG_NAME, groupIds[i]);
             sideNbt.put(GROUP_DATA_NBT_TAG_NAME, groupData[i]);
 
             nbt.add(sideNbt);
@@ -59,14 +56,13 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         return nbt;
     }
 
-    @Override
-    public void deserializeNBT(final ListNBT nbt) {
+    public void deserializeNBT(final ListTag nbt) {
         final int count = Math.min(groupCount, nbt.size());
         for (int i = 0; i < count; i++) {
-            final CompoundNBT sideNbt = nbt.getCompound(i);
+            final CompoundTag sideNbt = nbt.getCompound(i);
 
-            if (sideNbt.hasUniqueId(GROUP_ID_NBT_TAG_NAME)) {
-                groupIds[i] = sideNbt.getUniqueId(GROUP_ID_NBT_TAG_NAME);
+            if (sideNbt.containsUuid(GROUP_ID_NBT_TAG_NAME)) {
+                groupIds[i] = sideNbt.getUuid(GROUP_ID_NBT_TAG_NAME);
             }
             if (sideNbt.contains(GROUP_DATA_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
                 groupData[i] = sideNbt.getCompound(GROUP_DATA_NBT_TAG_NAME);
@@ -106,12 +102,12 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         oldDevices.removeAll(removedDevices);
         oldDevices.addAll(newDevices);
 
-        final CompoundNBT devicesNbt = groupData[index];
+        final CompoundTag devicesNbt = groupData[index];
         for (final TDeviceInfo deviceInfo : removedDevices) {
-            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(devicesNbt::remove);
+            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.registry, deviceInfo.provider).ifPresent(devicesNbt::remove);
         }
         for (final TDeviceInfo deviceInfo : addedDevices) {
-            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(key -> {
+            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.registry, deviceInfo.provider).ifPresent(key -> {
                 if (devicesNbt.contains(key, NBTTagIds.TAG_COMPOUND)) {
                     deviceInfo.device.deserializeNBT(devicesNbt.getCompound(key));
                 }
@@ -124,10 +120,10 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
     ///////////////////////////////////////////////////////////////////
 
     private void serializeDevices(final int index) {
-        final CompoundNBT devicesNbt = new CompoundNBT();
+        final CompoundTag devicesNbt = new CompoundTag();
         for (final TDeviceInfo deviceInfo : groups.get(index)) {
-            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(key -> {
-                final CompoundNBT deviceNbt = deviceInfo.device.serializeNBT();
+            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.registry, deviceInfo.provider).ifPresent(key -> {
+                final CompoundTag deviceNbt = deviceInfo.device.serializeNBT();
                 if (!deviceNbt.isEmpty()) {
                     devicesNbt.put(key, deviceNbt);
                 }

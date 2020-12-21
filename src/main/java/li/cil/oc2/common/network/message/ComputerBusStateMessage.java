@@ -3,11 +3,9 @@ package li.cil.oc2.common.network.message;
 import li.cil.oc2.common.block.entity.ComputerTileEntity;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.network.MessageUtils;
-import net.minecraft.network.PacketBuffer;
+import li.cil.oc2.common.network.Network;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
-
-import java.util.function.Supplier;
 
 public class ComputerBusStateMessage {
     private BlockPos pos;
@@ -20,25 +18,24 @@ public class ComputerBusStateMessage {
         this.busState = tileEntity.getBusState();
     }
 
-    public ComputerBusStateMessage(final PacketBuffer buffer) {
+    public ComputerBusStateMessage(final PacketByteBuf buffer) {
         fromBytes(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final ComputerBusStateMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
+    public static void handleMessage(final ComputerBusStateMessage message, final Network.MessageContext context) {
+        context.enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
                 (tileEntity) -> tileEntity.setBusStateClient(message.busState)));
-        return true;
     }
 
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final PacketByteBuf buffer) {
         pos = buffer.readBlockPos();
-        busState = buffer.readEnumValue(AbstractDeviceBusController.BusState.class);
+        busState = buffer.readEnumConstant(AbstractDeviceBusController.BusState.class);
     }
 
-    public static void toBytes(final ComputerBusStateMessage message, final PacketBuffer buffer) {
+    public static void toBytes(final ComputerBusStateMessage message, final PacketByteBuf buffer) {
         buffer.writeBlockPos(message.pos);
-        buffer.writeEnumValue(message.busState);
+        buffer.writeEnumConstant(message.busState);
     }
 }

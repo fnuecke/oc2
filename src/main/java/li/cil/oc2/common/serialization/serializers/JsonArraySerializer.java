@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import li.cil.ceres.api.*;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 @RegisterSerializer
 public final class JsonArraySerializer implements Serializer<JsonArray> {

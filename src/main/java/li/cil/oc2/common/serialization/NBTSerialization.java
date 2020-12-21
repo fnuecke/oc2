@@ -9,34 +9,34 @@ import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.*;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public final class NBTSerialization {
-    public static <T> void serialize(final CompoundNBT nbt, final T value) throws SerializationException {
+    public static <T> void serialize(final CompoundTag nbt, final T value) throws SerializationException {
         @SuppressWarnings("unchecked") final Class<T> type = (Class<T>) value.getClass();
         Ceres.getSerializer(type).serialize(new Serializer(nbt), type, value);
     }
 
-    public static <T> CompoundNBT serialize(final T value) throws SerializationException {
-        final CompoundNBT nbt = new CompoundNBT();
+    public static <T> CompoundTag serialize(final T value) throws SerializationException {
+        final CompoundTag nbt = new CompoundTag();
         serialize(nbt, value);
         return nbt;
     }
 
-    public static <T> T deserialize(final CompoundNBT nbt, final Class<T> type, @Nullable final T into) throws SerializationException {
+    public static <T> T deserialize(final CompoundTag nbt, final Class<T> type, @Nullable final T into) throws SerializationException {
         return Ceres.getSerializer(type).deserialize(new Deserializer(nbt), type, into);
     }
 
-    public static <T> T deserialize(final CompoundNBT nbt, final Class<T> type) throws SerializationException {
+    public static <T> T deserialize(final CompoundTag nbt, final Class<T> type) throws SerializationException {
         return deserialize(nbt, type, null);
     }
 
-    public static <T> T deserialize(final CompoundNBT nbt, final T into) throws SerializationException {
+    public static <T> T deserialize(final CompoundTag nbt, final T into) throws SerializationException {
         @SuppressWarnings("unchecked") final Class<T> type = (Class<T>) into.getClass();
         return deserialize(nbt, type, into);
     }
@@ -62,9 +62,9 @@ public final class NBTSerialization {
     }
 
     private static final class Serializer implements SerializationVisitor {
-        private final CompoundNBT nbt;
+        private final CompoundTag nbt;
 
-        private Serializer(final CompoundNBT nbt) {
+        private Serializer(final CompoundTag nbt) {
             this.nbt = nbt;
         }
 
@@ -122,11 +122,11 @@ public final class NBTSerialization {
             } else if (type == String.class) {
                 nbt.putString(name, (String) value);
             } else if (type == UUID.class) {
-                final CompoundNBT uuidNBT = new CompoundNBT();
-                uuidNBT.putUniqueId(name, (UUID) value);
+                final CompoundTag uuidNBT = new CompoundTag();
+                uuidNBT.putUuid(name, (UUID) value);
                 nbt.put(name, uuidNBT);
             } else {
-                final CompoundNBT valueNBT = new CompoundNBT();
+                final CompoundTag valueNBT = new CompoundTag();
                 Ceres.getSerializer(type).serialize(new Serializer(valueNBT), (Class) type, value);
                 if (!valueNBT.isEmpty()) {
                     nbt.put(name, valueNBT);
@@ -136,11 +136,11 @@ public final class NBTSerialization {
 
         @FunctionalInterface
         private interface ArrayComponentSerializer {
-            INBT serialize(Class<?> type, Object value);
+            Tag serialize(Class<?> type, Object value);
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
-        private INBT putArray(final String name, final Class<?> type, final @NotNull Object value) {
+        private Tag putArray(final String name, final Class<?> type, final @NotNull Object value) {
             final Class<?> componentType = type.getComponentType();
 
             final ArraySerializer arraySerializer = ARRAY_SERIALIZERS.get(componentType);
@@ -153,13 +153,13 @@ public final class NBTSerialization {
                 } else {
                     final li.cil.ceres.api.Serializer<?> serializer = Ceres.getSerializer(componentType);
                     componentSerializer = (t, v) -> {
-                        final CompoundNBT nbt = new CompoundNBT();
+                        final CompoundTag nbt = new CompoundTag();
                         serializer.serialize(new Serializer(nbt), (Class) t, v);
                         return nbt;
                     };
                 }
 
-                final ListNBT listNBT = new ListNBT();
+                final ListTag listNBT = new ListTag();
                 final IntArrayList nullIndices = new IntArrayList();
 
                 final Object[] data = (Object[]) value;
@@ -178,7 +178,7 @@ public final class NBTSerialization {
                 if (nullIndices.isEmpty()) {
                     return listNBT;
                 } else {
-                    final CompoundNBT arrayNbt = new CompoundNBT();
+                    final CompoundTag arrayNbt = new CompoundTag();
                     arrayNbt.put("value", listNBT);
                     arrayNbt.putIntArray("nulls", nullIndices);
 
@@ -191,7 +191,7 @@ public final class NBTSerialization {
         private boolean putIsNull(final String name, @Nullable final Object value) {
             final boolean isNull = value == null;
             if (isNull) {
-                final CompoundNBT nullNBT = new CompoundNBT();
+                final CompoundTag nullNBT = new CompoundTag();
                 nullNBT.putBoolean(IS_NULL_KEY, true);
                 nbt.put(name, nullNBT);
             }
@@ -200,9 +200,9 @@ public final class NBTSerialization {
     }
 
     private static final class Deserializer implements DeserializationVisitor {
-        private final CompoundNBT nbt;
+        private final CompoundTag nbt;
 
-        private Deserializer(final CompoundNBT nbt) {
+        private Deserializer(final CompoundTag nbt) {
             this.nbt = nbt;
         }
 
@@ -260,7 +260,7 @@ public final class NBTSerialization {
             }
 
             if (type.isArray()) {
-                final INBT arrayNbt = nbt.get(name);
+                final Tag arrayNbt = nbt.get(name);
                 assert arrayNbt != null;
                 return getArray(arrayNbt, type, into);
             } else if (type.isEnum()) {
@@ -268,9 +268,9 @@ public final class NBTSerialization {
             } else if (type == String.class) {
                 return nbt.getString(name);
             } else if (type == UUID.class) {
-                return nbt.getCompound(name).getUniqueId(name);
+                return nbt.getCompound(name).getUuid(name);
             } else {
-                final CompoundNBT valueNBT = nbt.getCompound(name);
+                final CompoundTag valueNBT = nbt.getCompound(name);
                 return Ceres.getSerializer(type).deserialize(new Deserializer(valueNBT), (Class) type, into);
             }
         }
@@ -278,12 +278,12 @@ public final class NBTSerialization {
         @FunctionalInterface
         private interface ArrayComponentDeserializer {
             @Nullable
-            Object deserialize(INBT nbt, Class<?> type, @Nullable Object into);
+            Object deserialize(Tag nbt, Class<?> type, @Nullable Object into);
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         @Nullable
-        private static Object getArray(final INBT nbt, final Class<?> type, final @Nullable Object into) {
+        private static Object getArray(final Tag nbt, final Class<?> type, final @Nullable Object into) {
             final Class<?> componentType = type.getComponentType();
 
             final ArraySerializer arraySerializer = ARRAY_SERIALIZERS.get(componentType);
@@ -295,19 +295,19 @@ public final class NBTSerialization {
                     componentDeserializer = Deserializer::getArray;
                 } else {
                     final li.cil.ceres.api.Serializer<?> serializer = Ceres.getSerializer(componentType);
-                    componentDeserializer = (n, t, i) -> serializer.deserialize(new Deserializer((CompoundNBT) n), (Class) t, i);
+                    componentDeserializer = (n, t, i) -> serializer.deserialize(new Deserializer((CompoundTag) n), (Class) t, i);
                 }
 
                 Object[] data = (Object[]) into;
-                final ListNBT listNBT;
+                final ListTag listNBT;
                 final int[] nulls;
                 int nullsIndex = 0;
-                if (nbt instanceof ListNBT) {
-                    listNBT = (ListNBT) nbt;
+                if (nbt instanceof ListTag) {
+                    listNBT = (ListTag) nbt;
                     nulls = new int[0];
-                } else if (nbt instanceof CompoundNBT) {
-                    listNBT = (ListNBT) ((CompoundNBT) nbt).get("value");
-                    nulls = ((CompoundNBT) nbt).getIntArray("nulls");
+                } else if (nbt instanceof CompoundTag) {
+                    listNBT = (ListTag) ((CompoundTag) nbt).get("value");
+                    nulls = ((CompoundTag) nbt).getIntArray("nulls");
                 } else {
                     return data;
                 }
@@ -327,7 +327,7 @@ public final class NBTSerialization {
                         continue;
                     }
 
-                    final INBT itemNBT = listNBT.get(i - nullsIndex);
+                    final Tag itemNBT = listNBT.get(i - nullsIndex);
                     if (itemNBT == null) {
                         continue;
                     }
@@ -352,28 +352,28 @@ public final class NBTSerialization {
     ///////////////////////////////////////////////////////////////////
 
     private interface ArraySerializer {
-        INBT serialize(Object value);
+        Tag serialize(Object value);
 
         @Nullable
-        Object deserialize(INBT nbt, final Class<?> type, @Nullable final Object into);
+        Object deserialize(Tag nbt, final Class<?> type, @Nullable final Object into);
     }
 
     private static final class BooleanArraySerializer implements ArraySerializer {
         @Override
-        public INBT serialize(final Object value) {
+        public Tag serialize(final Object value) {
             final boolean[] data = (boolean[]) value;
             final byte[] convertedData = new byte[data.length];
             for (int i = 0; i < data.length; i++) {
                 convertedData[i] = data[i] ? (byte) 1 : (byte) 0;
             }
-            return new ByteArrayNBT(convertedData);
+            return new ByteArrayTag(convertedData);
         }
 
         @Override
-        public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
+        public Object deserialize(final Tag nbt, final Class<?> type, @Nullable final Object into) {
             boolean[] data = (boolean[]) into;
-            if (nbt instanceof ByteArrayNBT) {
-                final byte[] convertedData = ((ByteArrayNBT) nbt).getByteArray();
+            if (nbt instanceof ByteArrayTag) {
+                final byte[] convertedData = ((ByteArrayTag) nbt).getByteArray();
                 if (data == null || data.length != convertedData.length) {
                     data = new boolean[convertedData.length];
                 }
@@ -387,15 +387,15 @@ public final class NBTSerialization {
 
     private static final class ByteArraySerializer implements ArraySerializer {
         @Override
-        public INBT serialize(final Object value) {
-            return new ByteArrayNBT((byte[]) value);
+        public Tag serialize(final Object value) {
+            return new ByteArrayTag((byte[]) value);
         }
 
         @Override
-        public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
+        public Object deserialize(final Tag nbt, final Class<?> type, @Nullable final Object into) {
             final byte[] data = (byte[]) into;
-            if (nbt instanceof ByteArrayNBT) {
-                final byte[] serializedData = ((ByteArrayNBT) nbt).getByteArray();
+            if (nbt instanceof ByteArrayTag) {
+                final byte[] serializedData = ((ByteArrayTag) nbt).getByteArray();
                 if (data == null || data.length != serializedData.length) {
                     return serializedData;
                 }
@@ -407,20 +407,20 @@ public final class NBTSerialization {
 
     private static final class CharArraySerializer implements ArraySerializer {
         @Override
-        public INBT serialize(final Object value) {
+        public Tag serialize(final Object value) {
             final char[] data = (char[]) value;
             final int[] convertedData = new int[data.length];
             for (int i = 0; i < data.length; i++) {
                 convertedData[i] = data[i];
             }
-            return new IntArrayNBT(convertedData);
+            return new IntArrayTag(convertedData);
         }
 
         @Override
-        public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
+        public Object deserialize(final Tag nbt, final Class<?> type, @Nullable final Object into) {
             char[] data = (char[]) into;
-            if (nbt instanceof IntArrayNBT) {
-                final int[] convertedData = ((IntArrayNBT) nbt).getIntArray();
+            if (nbt instanceof IntArrayTag) {
+                final int[] convertedData = ((IntArrayTag) nbt).getIntArray();
                 if (data == null || data.length != convertedData.length) {
                     data = new char[convertedData.length];
                 }
@@ -434,20 +434,20 @@ public final class NBTSerialization {
 
     private static final class ShortArraySerializer implements ArraySerializer {
         @Override
-        public INBT serialize(final Object value) {
+        public Tag serialize(final Object value) {
             final short[] data = (short[]) value;
             final int[] convertedData = new int[data.length];
             for (int i = 0; i < data.length; i++) {
                 convertedData[i] = data[i];
             }
-            return new IntArrayNBT(convertedData);
+            return new IntArrayTag(convertedData);
         }
 
         @Override
-        public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
+        public Object deserialize(final Tag nbt, final Class<?> type, @Nullable final Object into) {
             short[] data = (short[]) into;
-            if (nbt instanceof IntArrayNBT) {
-                final int[] convertedData = ((IntArrayNBT) nbt).getIntArray();
+            if (nbt instanceof IntArrayTag) {
+                final int[] convertedData = ((IntArrayTag) nbt).getIntArray();
                 if (data == null || data.length != convertedData.length) {
                     data = new short[convertedData.length];
                 }
@@ -461,15 +461,15 @@ public final class NBTSerialization {
 
     private static final class IntArraySerializer implements ArraySerializer {
         @Override
-        public INBT serialize(final Object value) {
-            return new IntArrayNBT((int[]) value);
+        public Tag serialize(final Object value) {
+            return new IntArrayTag((int[]) value);
         }
 
         @Override
-        public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
+        public Object deserialize(final Tag nbt, final Class<?> type, @Nullable final Object into) {
             final int[] data = (int[]) into;
-            if (nbt instanceof IntArrayNBT) {
-                final int[] serializedData = ((IntArrayNBT) nbt).getIntArray();
+            if (nbt instanceof IntArrayTag) {
+                final int[] serializedData = ((IntArrayTag) nbt).getIntArray();
                 if (data == null || data.length != serializedData.length) {
                     return serializedData;
                 }
@@ -481,15 +481,15 @@ public final class NBTSerialization {
 
     private static final class LongArraySerializer implements ArraySerializer {
         @Override
-        public INBT serialize(final Object value) {
-            return new LongArrayNBT((long[]) value);
+        public Tag serialize(final Object value) {
+            return new LongArrayTag((long[]) value);
         }
 
         @Override
-        public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
+        public Object deserialize(final Tag nbt, final Class<?> type, @Nullable final Object into) {
             final long[] data = (long[]) into;
-            if (nbt instanceof LongArrayNBT) {
-                final long[] serializedData = ((LongArrayNBT) nbt).getAsLongArray();
+            if (nbt instanceof LongArrayTag) {
+                final long[] serializedData = ((LongArrayTag) nbt).getLongArray();
                 if (data == null || data.length != serializedData.length) {
                     return serializedData;
                 }
@@ -501,20 +501,20 @@ public final class NBTSerialization {
 
     private static final class FloatArraySerializer implements ArraySerializer {
         @Override
-        public INBT serialize(final Object value) {
+        public Tag serialize(final Object value) {
             final float[] data = (float[]) value;
             final int[] convertedData = new int[data.length];
             for (int i = 0; i < data.length; i++) {
                 convertedData[i] = Float.floatToRawIntBits(data[i]);
             }
-            return new IntArrayNBT(convertedData);
+            return new IntArrayTag(convertedData);
         }
 
         @Override
-        public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
+        public Object deserialize(final Tag nbt, final Class<?> type, @Nullable final Object into) {
             float[] data = (float[]) into;
-            if (nbt instanceof IntArrayNBT) {
-                final int[] convertedData = ((IntArrayNBT) nbt).getIntArray();
+            if (nbt instanceof IntArrayTag) {
+                final int[] convertedData = ((IntArrayTag) nbt).getIntArray();
                 if (data == null || data.length != convertedData.length) {
                     data = new float[convertedData.length];
                 }
@@ -528,20 +528,20 @@ public final class NBTSerialization {
 
     private static final class DoubleArraySerializer implements ArraySerializer {
         @Override
-        public INBT serialize(final Object value) {
+        public Tag serialize(final Object value) {
             final double[] data = (double[]) value;
             final long[] convertedData = new long[data.length];
             for (int i = 0; i < data.length; i++) {
                 convertedData[i] = Double.doubleToRawLongBits(data[i]);
             }
-            return new LongArrayNBT(convertedData);
+            return new LongArrayTag(convertedData);
         }
 
         @Override
-        public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
+        public Object deserialize(final Tag nbt, final Class<?> type, @Nullable final Object into) {
             double[] data = (double[]) into;
-            if (nbt instanceof LongArrayNBT) {
-                final long[] convertedData = ((LongArrayNBT) nbt).getAsLongArray();
+            if (nbt instanceof LongArrayTag) {
+                final long[] convertedData = ((LongArrayTag) nbt).getLongArray();
                 if (data == null || data.length != convertedData.length) {
                     data = new double[convertedData.length];
                 }
@@ -556,23 +556,23 @@ public final class NBTSerialization {
     @SuppressWarnings("rawtypes")
     private static final class EnumArraySerializer implements ArraySerializer {
         @Override
-        public INBT serialize(final Object value) {
+        public Tag serialize(final Object value) {
             final Enum[] data = (Enum[]) value;
             final int[] convertedData = new int[data.length];
             for (int i = 0; i < data.length; i++) {
                 convertedData[i] = data[i].ordinal();
             }
-            return new IntArrayNBT(convertedData);
+            return new IntArrayTag(convertedData);
         }
 
         @Override
-        public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
+        public Object deserialize(final Tag nbt, final Class<?> type, @Nullable final Object into) {
             final Class<?> componentType = type.getComponentType();
             final Object[] enumConstants = componentType.getEnumConstants();
 
             Enum[] data = (Enum[]) into;
-            if (nbt instanceof IntArrayNBT) {
-                final int[] serializedData = ((IntArrayNBT) nbt).getIntArray();
+            if (nbt instanceof IntArrayTag) {
+                final int[] serializedData = ((IntArrayTag) nbt).getIntArray();
                 if (data == null || data.length != serializedData.length) {
                     data = (Enum[]) Array.newInstance(componentType, serializedData.length);
                 }
@@ -586,20 +586,20 @@ public final class NBTSerialization {
 
     private static final class StringArraySerializer implements ArraySerializer {
         @Override
-        public INBT serialize(final Object value) {
+        public Tag serialize(final Object value) {
             final String[] data = (String[]) value;
-            final ListNBT list = new ListNBT();
+            final ListTag list = new ListTag();
             for (final String datum : data) {
-                list.add(StringNBT.valueOf(datum));
+                list.add(StringTag.of(datum));
             }
             return list;
         }
 
         @Override
-        public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
+        public Object deserialize(final Tag nbt, final Class<?> type, @Nullable final Object into) {
             String[] data = (String[]) into;
-            if (nbt instanceof ListNBT && ((ListNBT) nbt).getTagType() == NBTTagIds.TAG_STRING) {
-                final ListNBT serializedData = (ListNBT) nbt;
+            if (nbt instanceof ListTag && ((ListTag) nbt).getElementType() == NBTTagIds.TAG_STRING) {
+                final ListTag serializedData = (ListTag) nbt;
                 if (data == null || data.length != serializedData.size()) {
                     data = new String[serializedData.size()];
                 }
@@ -613,20 +613,20 @@ public final class NBTSerialization {
 
     private static final class UUIDArraySerializer implements ArraySerializer {
         @Override
-        public INBT serialize(final Object value) {
+        public Tag serialize(final Object value) {
             final UUID[] data = (UUID[]) value;
-            final ListNBT list = new ListNBT();
+            final ListTag list = new ListTag();
             for (final UUID datum : data) {
-                list.add(StringNBT.valueOf(datum.toString()));
+                list.add(StringTag.of(datum.toString()));
             }
             return list;
         }
 
         @Override
-        public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
+        public Object deserialize(final Tag nbt, final Class<?> type, @Nullable final Object into) {
             UUID[] data = (UUID[]) into;
-            if (nbt instanceof ListNBT && ((ListNBT) nbt).getTagType() == NBTTagIds.TAG_STRING) {
-                final ListNBT serializedData = (ListNBT) nbt;
+            if (nbt instanceof ListTag && ((ListTag) nbt).getElementType() == NBTTagIds.TAG_STRING) {
+                final ListTag serializedData = (ListTag) nbt;
                 if (data == null || data.length != serializedData.size()) {
                     data = new UUID[serializedData.size()];
                 }

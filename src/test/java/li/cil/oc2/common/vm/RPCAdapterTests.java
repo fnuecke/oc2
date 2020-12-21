@@ -1,6 +1,7 @@
 package li.cil.oc2.common.vm;
 
 import com.google.gson.*;
+import com.sun.istack.internal.Nullable;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.object.Callback;
@@ -13,7 +14,6 @@ import li.cil.sedna.api.device.serial.SerialDevice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.UUID;

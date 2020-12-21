@@ -1,42 +1,43 @@
 package li.cil.oc2.common.block;
 
+import alexiil.mc.lib.attributes.SearchOptions;
 import com.google.common.collect.Maps;
 import li.cil.oc2.common.block.entity.BusCableTileEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.init.TileEntities;
-import li.cil.oc2.common.util.WorldUtils;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
+import net.minecraft.block.*;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
+import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.*;
+import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.EnumProperty;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.Util;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
-public final class BusCableBlock extends Block {
-    public enum ConnectionType implements IStringSerializable {
+public final class BusCableBlock extends BlockWithEntity {
+    public enum ConnectionType implements StringIdentifiable {
         NONE,
         LINK,
         PLUG;
 
         @Override
-        public String getString() {
+        public String asString() {
             switch (this) {
                 case NONE:
                     return "none";
@@ -54,12 +55,12 @@ public final class BusCableBlock extends Block {
 
     private static final Direction[] FACING_VALUES = Direction.values();
 
-    public static final EnumProperty<ConnectionType> CONNECTION_NORTH = EnumProperty.create("connection_north", ConnectionType.class);
-    public static final EnumProperty<ConnectionType> CONNECTION_EAST = EnumProperty.create("connection_east", ConnectionType.class);
-    public static final EnumProperty<ConnectionType> CONNECTION_SOUTH = EnumProperty.create("connection_south", ConnectionType.class);
-    public static final EnumProperty<ConnectionType> CONNECTION_WEST = EnumProperty.create("connection_west", ConnectionType.class);
-    public static final EnumProperty<ConnectionType> CONNECTION_UP = EnumProperty.create("connection_up", ConnectionType.class);
-    public static final EnumProperty<ConnectionType> CONNECTION_DOWN = EnumProperty.create("connection_down", ConnectionType.class);
+    public static final EnumProperty<ConnectionType> CONNECTION_NORTH = EnumProperty.of("connection_north", ConnectionType.class);
+    public static final EnumProperty<ConnectionType> CONNECTION_EAST = EnumProperty.of("connection_east", ConnectionType.class);
+    public static final EnumProperty<ConnectionType> CONNECTION_SOUTH = EnumProperty.of("connection_south", ConnectionType.class);
+    public static final EnumProperty<ConnectionType> CONNECTION_WEST = EnumProperty.of("connection_west", ConnectionType.class);
+    public static final EnumProperty<ConnectionType> CONNECTION_UP = EnumProperty.of("connection_up", ConnectionType.class);
+    public static final EnumProperty<ConnectionType> CONNECTION_DOWN = EnumProperty.of("connection_down", ConnectionType.class);
 
     public static final Map<Direction, EnumProperty<ConnectionType>> FACING_TO_CONNECTION_MAP = Util.make(Maps.newEnumMap(Direction.class), (directions) -> {
         directions.put(Direction.NORTH, CONNECTION_NORTH);
@@ -77,9 +78,9 @@ public final class BusCableBlock extends Block {
     ///////////////////////////////////////////////////////////////////
 
     public BusCableBlock() {
-        super(Properties.create(Material.IRON).sound(SoundType.METAL));
+        super(Settings.of(Material.METAL).sounds(BlockSoundGroup.METAL));
 
-        BlockState defaultState = getStateContainer().getBaseState();
+        BlockState defaultState = getStateManager().getDefaultState();
         for (final EnumProperty<ConnectionType> property : FACING_TO_CONNECTION_MAP.values()) {
             defaultState = defaultState.with(property, ConnectionType.NONE);
         }
@@ -88,21 +89,16 @@ public final class BusCableBlock extends Block {
         shapes = makeShapes();
     }
 
-    @Override
-    public boolean hasTileEntity(final BlockState state) {
-        return true;
-    }
-
     @Nullable
     @Override
-    public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
-        return TileEntities.BUS_CABLE_TILE_ENTITY.get().create();
+    public BlockEntity createBlockEntity(final BlockView world) {
+        return TileEntities.BUS_CABLE_TILE_ENTITY.instantiate();
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public void neighborChanged(final BlockState state, final World world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
-        final TileEntity tileEntity = world.getTileEntity(pos);
+    public void neighborUpdate(final BlockState state, final World world, final BlockPos pos, final Block block, final BlockPos changedBlockPos, final boolean notify) {
+        final BlockEntity tileEntity = world.getBlockEntity(pos);
         if (tileEntity instanceof BusCableTileEntity) {
             final BusCableTileEntity busCable = (BusCableTileEntity) tileEntity;
             busCable.handleNeighborChanged(changedBlockPos);
@@ -111,30 +107,30 @@ public final class BusCableBlock extends Block {
 
     @SuppressWarnings("deprecation")
     @Override
-    public ActionResultType onBlockActivated(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
-        final ItemStack heldItem = player.getHeldItem(hand);
+    public ActionResult onUse(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockHitResult hit) {
+        final ItemStack heldItem = player.getStackInHand(hand);
         if (Block.getBlockFromItem(heldItem.getItem()) == this) {
-            return ActionResultType.PASS;
+            return ActionResult.PASS;
         }
 
-        final Vector3d localHitPos = hit.getHitVec().subtract(Vector3d.copyCentered(pos));
-        if (!tryTogglePlug(state, world, pos, Direction.getFacingFromVector(localHitPos.x, localHitPos.y, localHitPos.z))) {
-            tryTogglePlug(state, world, pos, hit.getFace());
+        final Vec3d localHitPos = hit.getPos().subtract(Vec3d.ofCenter(pos));
+        if (!tryTogglePlug(state, world, pos, Direction.getFacing(localHitPos.x, localHitPos.y, localHitPos.z))) {
+            tryTogglePlug(state, world, pos, hit.getSide());
         }
-        return ActionResultType.SUCCESS;
+        return ActionResult.SUCCESS;
     }
 
     @Nullable
     @Override
-    public BlockState getStateForPlacement(final BlockItemUseContext context) {
+    public BlockState getPlacementState(final ItemPlacementContext context) {
         BlockState state = getDefaultState();
 
         final World world = context.getWorld();
-        final BlockPos position = context.getPos();
+        final BlockPos position = context.getBlockPos();
         for (final Map.Entry<Direction, EnumProperty<ConnectionType>> entry : FACING_TO_CONNECTION_MAP.entrySet()) {
             final Direction facing = entry.getKey();
             final BlockPos facingPos = position.offset(facing);
-            if (canConnectTo(world, facing, world.getBlockState(facingPos), facingPos)) {
+            if (canConnectTo(world, position, facing, world.getBlockState(facingPos))) {
                 state = state.with(entry.getValue(), ConnectionType.LINK);
             }
         }
@@ -144,8 +140,8 @@ public final class BusCableBlock extends Block {
 
     @SuppressWarnings("deprecation")
     @Override
-    public BlockState updatePostPlacement(BlockState state, final Direction facing, final BlockState facingState, final IWorld world, final BlockPos currentPos, final BlockPos facingPos) {
-        if (canConnectTo(world, facing, facingState, facingPos)) {
+    public BlockState getStateForNeighborUpdate(BlockState state, final Direction facing, final BlockState facingState, final WorldAccess world, final BlockPos pos, final BlockPos facingPos) {
+        if (world instanceof World && canConnectTo((World) world, pos, facing, facingState)) {
             state = state.with(FACING_TO_CONNECTION_MAP.get(facing), ConnectionType.LINK);
         } else if (state.get(FACING_TO_CONNECTION_MAP.get(facing)) != ConnectionType.PLUG) {
             state = state.with(FACING_TO_CONNECTION_MAP.get(facing), ConnectionType.NONE);
@@ -156,31 +152,32 @@ public final class BusCableBlock extends Block {
 
     @SuppressWarnings("deprecation")
     @Override
-    public VoxelShape getShape(final BlockState state, final IBlockReader world, final BlockPos pos, final ISelectionContext context) {
+    public VoxelShape getCollisionShape(final BlockState state, final BlockView world, final BlockPos pos, final ShapeContext context) {
         return shapes[getShapeIndex(state)];
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
+    protected void appendProperties(final StateManager.Builder<Block, BlockState> builder) {
+        super.appendProperties(builder);
         FACING_TO_CONNECTION_MAP.values().forEach(builder::add);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     private VoxelShape[] makeShapes() {
-        final VoxelShape coreShape = Block.makeCuboidShape(5, 5, 5, 11, 11, 11);
+        final VoxelShape coreShape = Block.createCuboidShape(5, 5, 5, 11, 11, 11);
         final VoxelShape[] connectionShapes = new VoxelShape[FACING_VALUES.length];
         for (int i = 0; i < FACING_VALUES.length; i++) {
             final Direction direction = FACING_VALUES[i];
-            connectionShapes[i] = VoxelShapes.create(
-                    0.5 + Math.min((-2.0 / (16 - 6)), direction.getXOffset() * 0.5),
-                    0.5 + Math.min((-2.0 / (16 - 6)), direction.getYOffset() * 0.5),
-                    0.5 + Math.min((-2.0 / (16 - 6)), direction.getZOffset() * 0.5),
-                    0.5 + Math.max(2.0 / (16 - 6), direction.getXOffset() * 0.5),
-                    0.5 + Math.max(2.0 / (16 - 6), direction.getYOffset() * 0.5),
-                    0.5 + Math.max(2.0 / (16 - 6), direction.getZOffset() * 0.5));
+            connectionShapes[i] = VoxelShapes.cuboid(
+                    0.5 + Math.min((-2.0 / (16 - 6)), direction.getOffsetX() * 0.5),
+                    0.5 + Math.min((-2.0 / (16 - 6)), direction.getOffsetY() * 0.5),
+                    0.5 + Math.min((-2.0 / (16 - 6)), direction.getOffsetZ() * 0.5),
+                    0.5 + Math.max(2.0 / (16 - 6), direction.getOffsetX() * 0.5),
+                    0.5 + Math.max(2.0 / (16 - 6), direction.getOffsetY() * 0.5),
+                    0.5 + Math.max(2.0 / (16 - 6), direction.getOffsetZ() * 0.5));
         }
 
         final VoxelShape[] result = new VoxelShape[1 << 6];
@@ -189,7 +186,7 @@ public final class BusCableBlock extends Block {
 
             for (int j = 0; j < FACING_VALUES.length; j++) {
                 if ((i & (1 << j)) != 0) {
-                    shape = VoxelShapes.or(shape, connectionShapes[j]);
+                    shape = VoxelShapes.union(shape, connectionShapes[j]);
                 }
             }
 
@@ -211,17 +208,14 @@ public final class BusCableBlock extends Block {
         return index;
     }
 
-    private boolean canConnectTo(final IWorld world, final Direction facing, final BlockState facingState, final BlockPos facingPos) {
+    private boolean canConnectTo(final World world, final BlockPos pos, final Direction facing, final BlockState facingState) {
         if (facingState.getBlock() == this) {
             return true;
         }
 
-        final TileEntity tileEntity = WorldUtils.getTileEntityIfChunkExists(world, facingPos);
-        if (tileEntity == null) {
-            return false;
-        }
-
-        return tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, facing.getOpposite()).isPresent();
+        return Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY
+                .getAll(world, pos, SearchOptions.inDirection(facing))
+                .hasOfferedAny();
     }
 
     private boolean tryTogglePlug(final BlockState state, final World world, final BlockPos pos, final Direction face) {
@@ -234,7 +228,7 @@ public final class BusCableBlock extends Block {
             return false;
         }
 
-        final TileEntity tileEntity = world.getTileEntity(pos);
+        final BlockEntity tileEntity = world.getBlockEntity(pos);
         if (tileEntity instanceof BusCableTileEntity) {
             final BusCableTileEntity busCable = (BusCableTileEntity) tileEntity;
             busCable.handleNeighborChanged(pos.offset(face));

@@ -4,14 +4,19 @@ import li.cil.oc2.client.gui.ComputerContainerScreen;
 import li.cil.oc2.client.render.tile.ComputerTileEntityRenderer;
 import li.cil.oc2.common.init.Containers;
 import li.cil.oc2.common.init.TileEntities;
-import net.minecraft.client.gui.ScreenManager;
-import net.minecraftforge.fml.client.registry.ClientRegistry;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.rendereregistry.v1.BlockEntityRendererRegistry;
+import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
+import net.fabricmc.fabric.api.event.client.ClientSpriteRegistryCallback;
+import net.minecraft.screen.PlayerScreenHandler;
 
-public final class ClientSetup {
-    public static void run(final FMLClientSetupEvent event) {
-        ScreenManager.registerFactory(Containers.COMPUTER_CONTAINER.get(), ComputerContainerScreen::new);
+public final class ClientSetup implements ClientModInitializer {
+    @Override
+    public void onInitializeClient() {
+        ScreenRegistry.register(Containers.COMPUTER_CONTAINER, ComputerContainerScreen::new);
 
-        ClientRegistry.bindTileEntityRenderer(TileEntities.COMPUTER_TILE_ENTITY.get(), ComputerTileEntityRenderer::new);
+        BlockEntityRendererRegistry.INSTANCE.register(TileEntities.COMPUTER_TILE_ENTITY, ComputerTileEntityRenderer::new);
+
+        ClientSpriteRegistryCallback.event(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).register(ComputerTileEntityRenderer::registerComputerAtlasTextures);
     }
 }

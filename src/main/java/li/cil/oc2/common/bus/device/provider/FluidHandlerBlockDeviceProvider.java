@@ -1,18 +1,19 @@
 package li.cil.oc2.common.bus.device.provider;
 
+import alexiil.mc.lib.attributes.fluid.FixedFluidInvView;
+import com.google.gson.JsonObject;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import li.cil.oc2.common.bus.device.provider.util.AbstractTileEntityCapabilityDeviceProvider;
 import li.cil.oc2.common.bus.device.AbstractObjectDevice;
+import li.cil.oc2.common.bus.device.provider.util.AbstractBlockAttributeDeviceProvider;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraft.block.entity.BlockEntity;
 
-public final class FluidHandlerBlockDeviceProvider extends AbstractTileEntityCapabilityDeviceProvider<IFluidHandler, TileEntity> {
+import java.util.Optional;
+
+public final class FluidHandlerBlockDeviceProvider extends AbstractBlockAttributeDeviceProvider<FixedFluidInvView, BlockEntity> {
     private static final String FLUID_HANDLER_TYPE_NAME = "fluidHandler";
 
     ///////////////////////////////////////////////////////////////////
@@ -24,30 +25,30 @@ public final class FluidHandlerBlockDeviceProvider extends AbstractTileEntityCap
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected LazyOptional<Device> getBlockDevice(final BlockDeviceQuery query, final IFluidHandler value) {
-        return LazyOptional.of(() -> new ObjectDevice(new FluidHandlerDevice(value), FLUID_HANDLER_TYPE_NAME));
+    protected Optional<Device> getBlockDevice(final BlockDeviceQuery query, final FixedFluidInvView value) {
+        return Optional.of(new ObjectDevice(new FluidHandlerDevice(value), FLUID_HANDLER_TYPE_NAME));
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final class FluidHandlerDevice extends AbstractObjectDevice<IFluidHandler> {
-        public FluidHandlerDevice(final IFluidHandler fluidHandler) {
+    public static final class FluidHandlerDevice extends AbstractObjectDevice<FixedFluidInvView> {
+        public FluidHandlerDevice(final FixedFluidInvView fluidHandler) {
             super(fluidHandler);
         }
 
         @Callback
         public int getTanks() {
-            return value.getTanks();
+            return value.getTankCount();
         }
 
         @Callback
-        public FluidStack getFluidInTank(final int tank) {
-            return value.getFluidInTank(tank);
+        public JsonObject getFluidInTank(final int tank) {
+            return value.getInvFluid(tank).fluidKey.toJson();
         }
 
         @Callback
         public int getTankCapacity(final int tank) {
-            return value.getTankCapacity(tank);
+            return value.getTank(tank).getMaxAmount_F().as1620();
         }
     }
 }

@@ -3,7 +3,6 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
-import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.*;
 
@@ -136,7 +135,6 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
 
         final HashSet<DeviceBusElement> closed = new HashSet<>();
         final Stack<DeviceBusElement> open = new Stack<>();
-        final ArrayList<LazyOptional<DeviceBusElement>> optionals = new ArrayList<>();
 
         closed.add(root);
         open.add(root);
@@ -144,7 +142,7 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
         while (!open.isEmpty()) {
             final DeviceBusElement element = open.pop();
 
-            final Optional<Collection<LazyOptional<DeviceBusElement>>> elementNeighbors = element.getNeighbors();
+            final Optional<Collection<DeviceBusElement>> elementNeighbors = element.getNeighbors();
             if (!elementNeighbors.isPresent()) {
                 scanDelay = INCOMPLETE_RETRY_INTERVAL;
                 state = BusState.INCOMPLETE;
@@ -152,13 +150,10 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
             }
 
             elementNeighbors.ifPresent(neighbors -> {
-                for (final LazyOptional<DeviceBusElement> neighbor : neighbors) {
-                    neighbor.ifPresent(neighborElement -> {
-                        if (closed.add(neighborElement)) {
-                            open.add(neighborElement);
-                            optionals.add(neighbor);
-                        }
-                    });
+                for (final DeviceBusElement neighbor : neighbors) {
+                    if (closed.add(neighbor)) {
+                        open.add(neighbor);
+                    }
                 }
             });
 
@@ -188,12 +183,6 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
             state = BusState.MULTIPLE_CONTROLLERS;
             scanDelay = BAD_CONFIGURATION_RETRY_INTERVAL;
             return;
-        }
-
-        // Rescan if any bus element gets invalidated.
-        for (final LazyOptional<DeviceBusElement> optional : optionals) {
-            assert optional.isPresent();
-            optional.addListener(unused -> scheduleBusScan());
         }
 
         scanDevices();

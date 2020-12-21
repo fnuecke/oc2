@@ -1,11 +1,11 @@
 package li.cil.oc2.common.util;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.registries.IForgeRegistryEntry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public final class ItemDeviceUtils {
@@ -13,12 +13,12 @@ public final class ItemDeviceUtils {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static Optional<CompoundNBT> getItemDeviceData(final ItemStack stack) {
+    public static Optional<CompoundTag> getItemDeviceData(final ItemStack stack) {
         if (stack.isEmpty()) {
             return Optional.empty();
         }
 
-        final CompoundNBT nbt = ItemStackUtils.getModDataTag(stack);
+        final CompoundTag nbt = ItemStackUtils.getModDataTag(stack);
         if (nbt == null) {
             return Optional.empty();
         }
@@ -26,7 +26,7 @@ public final class ItemDeviceUtils {
         return Optional.of(nbt.getCompound(ITEM_DEVICE_DATA_NBT_TAG_NAME));
     }
 
-    public static void setItemDeviceData(final ItemStack stack, final CompoundNBT data) {
+    public static void setItemDeviceData(final ItemStack stack, final CompoundTag data) {
         if (data.isEmpty()) {
             return;
         }
@@ -34,12 +34,12 @@ public final class ItemDeviceUtils {
         ItemStackUtils.getOrCreateModDataTag(stack).put(ITEM_DEVICE_DATA_NBT_TAG_NAME, data);
     }
 
-    public static Optional<String> getItemDeviceDataKey(@Nullable final IForgeRegistryEntry<?> provider) {
+    public static <T> Optional<String> getItemDeviceDataKey(final Registry<T> registry, @Nullable final T provider) {
         if (provider == null) {
             return Optional.empty();
         }
 
-        final ResourceLocation providerName = provider.getRegistryName();
+        final Identifier providerName = registry.getId(provider);
         if (providerName == null) {
             return Optional.empty();
         }

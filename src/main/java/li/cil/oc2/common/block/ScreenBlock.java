@@ -2,29 +2,29 @@ package li.cil.oc2.common.block;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.StateContainer;
-import net.minecraft.util.Direction;
+import net.minecraft.block.HorizontalFacingBlock;
+import net.minecraft.block.Material;
+import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.state.StateManager;
+import net.minecraft.util.math.Direction;
 
-public final class ScreenBlock extends HorizontalBlock {
+public final class ScreenBlock extends HorizontalFacingBlock {
     public ScreenBlock() {
-        super(Properties.create(Material.IRON).sound(SoundType.METAL));
-        setDefaultState(getStateContainer().getBaseState().with(HORIZONTAL_FACING, Direction.NORTH));
+        super(Settings.of(Material.METAL).sounds(BlockSoundGroup.METAL));
+        setDefaultState(getStateManager().getDefaultState().with(FACING, Direction.NORTH));
     }
 
     @Override
-    public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
+    public BlockState getPlacementState(final ItemPlacementContext context) {
+        return super.getDefaultState().with(FACING, context.getPlayerLookDirection().getOpposite());
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
-        builder.add(HORIZONTAL_FACING);
+    protected void appendProperties(final StateManager.Builder<Block, BlockState> builder) {
+        super.appendProperties(builder);
+        builder.add(FACING);
     }
 }

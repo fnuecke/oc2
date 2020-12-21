@@ -1,69 +1,41 @@
 package li.cil.oc2.common.block.entity;
 
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
-import java.util.HashMap;
-
-public abstract class AbstractTileEntity extends TileEntity {
-    protected final HashMap<Capability<?>, LazyOptional<?>> capabilities = new HashMap<>();
+public abstract class AbstractTileEntity extends BlockEntity {
+    protected ChunkPos chunkPos;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractTileEntity(final TileEntityType<?> tileEntityType) {
+    protected AbstractTileEntity(final BlockEntityType<?> tileEntityType) {
         super(tileEntityType);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    @NotNull
     @Override
-    public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> capability, @Nullable final Direction side) {
-        final LazyOptional<?> optional = capabilities.get(capability);
-        if (optional != null) {
-            return optional.cast();
-        } else {
-            return super.getCapability(capability, side);
-        }
-    }
-
-    @Override
-    public void onLoad() {
-        super.onLoad();
+    public void setLocation(final World world, final BlockPos pos) {
+        super.setLocation(world, pos);
+        chunkPos = new ChunkPos(pos);
         initialize();
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void markRemoved() {
+        super.markRemoved();
         dispose();
     }
 
-    @Override
-    public void onChunkUnloaded() {
-        invalidateCaps();
-        dispose();
-    }
+//    @Override
+//    public void onChunkUnloaded() {
+//        dispose();
+//    }
 
     ///////////////////////////////////////////////////////////////////
-
-    protected <T> void setCapabilityIfAbsent(final Capability<T> capability, final T value) {
-        capabilities.putIfAbsent(capability, LazyOptional.of(() -> value));
-    }
-
-    @Override
-    protected void invalidateCaps() {
-        super.invalidateCaps();
-        for (final LazyOptional<?> capability : capabilities.values()) {
-            capability.invalidate();
-        }
-    }
 
     protected void initialize() {
         final World world = getWorld();
@@ -71,7 +43,7 @@ public abstract class AbstractTileEntity extends TileEntity {
             return;
         }
 
-        if (world.isRemote()) {
+        if (world.isClient()) {
             initializeClient();
         } else {
             initializeServer();
@@ -83,7 +55,7 @@ public abstract class AbstractTileEntity extends TileEntity {
         if (world == null) {
             return;
         }
-        if (world.isRemote()) {
+        if (world.isClient()) {
             disposeClient();
         } else {
             disposeServer();

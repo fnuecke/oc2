@@ -19,7 +19,7 @@ public final class MinecraftRealTimeCounter implements RealTimeCounter {
 
     @Override
     public long getTime() {
-        final long ticks = world != null ? world.getGameTime() : 0;
+        final long ticks = world != null ? world.getTime() : 0;
         final long days = ticks; // / TICKS_PER_DAY
         final long hours = days * 24;
         final long minutes = hours * 60;

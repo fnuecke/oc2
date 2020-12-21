@@ -5,7 +5,7 @@ import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.api.memory.MemoryRange;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.OptionalLong;
 

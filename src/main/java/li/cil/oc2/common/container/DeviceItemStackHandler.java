@@ -1,15 +1,17 @@
 package li.cil.oc2.common.container;
 
+import alexiil.mc.lib.attributes.Simulation;
+import alexiil.mc.lib.attributes.item.FixedItemInvView;
+import alexiil.mc.lib.attributes.item.filter.ItemFilter;
+import alexiil.mc.lib.attributes.item.impl.FullFixedItemInv;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.bus.ItemHandlerDeviceBusElement;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.NonNullList;
-import net.minecraftforge.items.ItemStackHandler;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.nbt.CompoundTag;
+import org.jetbrains.annotations.Nullable;
 
-public class DeviceItemStackHandler extends ItemStackHandler {
+public class DeviceItemStackHandler extends FullFixedItemInv {
     private static final String BUS_ELEMENT_NBT_TAG_NAME = "busElement";
 
     ///////////////////////////////////////////////////////////////////
@@ -19,12 +21,10 @@ public class DeviceItemStackHandler extends ItemStackHandler {
     ///////////////////////////////////////////////////////////////////
 
     public DeviceItemStackHandler(final int size) {
-        this(NonNullList.withSize(size, ItemStack.EMPTY));
-    }
-
-    public DeviceItemStackHandler(final NonNullList<ItemStack> stacks) {
-        super(stacks);
-        this.busElement = new ItemHandlerDeviceBusElement(getSlots());
+        super(size);
+        this.busElement = new ItemHandlerDeviceBusElement(getSlotCount());
+        addListener(this::onContentsChanged, () -> {
+        });
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -34,46 +34,43 @@ public class DeviceItemStackHandler extends ItemStackHandler {
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT nbt = super.serializeNBT();
+    public CompoundTag toTag(CompoundTag nbt) {
+        nbt = super.toTag(nbt);
         nbt.put(BUS_ELEMENT_NBT_TAG_NAME, busElement.serializeNBT());
         return nbt;
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT nbt) {
-        super.deserializeNBT(nbt);
+    public void fromTag(final CompoundTag nbt) {
+        super.fromTag(nbt);
         busElement.deserializeNBT(nbt.getList(BUS_ELEMENT_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
-        for (int slot = 0; slot < getSlots(); slot++) {
-            busElement.updateDevices(slot, getStackInSlot(slot));
+        for (int slot = 0; slot < getSlotCount(); slot++) {
+            busElement.updateDevices(slot, getInvStack(slot));
         }
     }
 
-    @NotNull
     @Override
-    public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
-        if (!simulate && amount > 0) {
-            busElement.handleBeforeItemRemoved(slot, getStackInSlot(slot));
+    public ItemStack extractStack(final int slot, @Nullable final ItemFilter filter, final ItemStack mergeWith, final int amount, final Simulation simulation) {
+        if (simulation.isAction() && amount > 0) {
+            busElement.handleBeforeItemRemoved(slot, getInvStack(slot));
         }
 
-        return super.extractItem(slot, amount, simulate);
+        return super.extractStack(slot, filter, mergeWith, amount, simulation);
     }
 
     @Override
-    public int getSlotLimit(final int slot) {
+    public int getMaxAmount(final int slot, final ItemStack stack) {
         return 1;
     }
 
-    @Override
-    public boolean isItemValid(final int slot, @NotNull final ItemStack stack) {
-        return super.isItemValid(slot, stack);
-    }
+//    @Override
+//    public boolean isItemValidForSlot(final int slot, final ItemStack item) {
+//        return super.isItemValidForSlot(slot, item);
+//    }
 
     ///////////////////////////////////////////////////////////////////
 
-    @Override
-    protected void onContentsChanged(final int slot) {
-        super.onContentsChanged(slot);
-        busElement.updateDevices(slot, getStackInSlot(slot));
+    private void onContentsChanged(final FixedItemInvView unused, final int slot, final ItemStack previous, final ItemStack current) {
+        busElement.updateDevices(slot, current);
     }
 }

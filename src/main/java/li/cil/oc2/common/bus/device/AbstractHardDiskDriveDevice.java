@@ -7,7 +7,7 @@ import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.virtio.VirtIOBlockDevice;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,7 +31,7 @@ public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends
     ///////////////////////////////////////////////////////////////
 
     // Online persisted data.
-    private CompoundNBT deviceNbt;
+    private CompoundTag deviceNbt;
     private Long address;
     private Integer interrupt;
 
@@ -78,22 +78,22 @@ public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends
     }
 
     @Override
-    public void exportToItemStack(final CompoundNBT nbt) {
+    public void exportToItemStack(final CompoundTag nbt) {
         if (blobHandle != null) {
-            nbt.putUniqueId(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
+            nbt.putUuid(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
         }
     }
 
     @Override
-    public void importFromItemStack(final CompoundNBT nbt) {
-        if (nbt.hasUniqueId(BLOB_HANDLE_NBT_TAG_NAME)) {
-            blobHandle = nbt.getUniqueId(BLOB_HANDLE_NBT_TAG_NAME);
+    public void importFromItemStack(final CompoundTag nbt) {
+        if (nbt.containsUuid(BLOB_HANDLE_NBT_TAG_NAME)) {
+            blobHandle = nbt.getUuid(BLOB_HANDLE_NBT_TAG_NAME);
         }
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT nbt = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        final CompoundTag nbt = new CompoundTag();
 
         if (data != null) {
             final Optional<InputStream> optional = getSerializationStream(data);
@@ -120,16 +120,16 @@ public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends
         }
 
         if (blobHandle != null) {
-            nbt.putUniqueId(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
+            nbt.putUuid(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
         }
 
         return nbt;
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT nbt) {
-        if (nbt.hasUniqueId(BLOB_HANDLE_NBT_TAG_NAME)) {
-            blobHandle = nbt.getUniqueId(BLOB_HANDLE_NBT_TAG_NAME);
+    public void deserializeNBT(final CompoundTag nbt) {
+        if (nbt.containsUuid(BLOB_HANDLE_NBT_TAG_NAME)) {
+            blobHandle = nbt.getUuid(BLOB_HANDLE_NBT_TAG_NAME);
         }
 
         if (nbt.contains(DEVICE_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {

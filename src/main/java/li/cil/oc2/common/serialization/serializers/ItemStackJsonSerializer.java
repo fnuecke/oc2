@@ -6,6 +6,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import li.cil.oc2.common.serialization.NBTToJsonConverter;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 
 import java.lang.reflect.Type;
 
@@ -16,7 +17,9 @@ public final class ItemStackJsonSerializer implements JsonSerializer<ItemStack> 
             return JsonNull.INSTANCE;
         }
 
-        final JsonElement json = NBTToJsonConverter.convert(src.serializeNBT());
+        final CompoundTag tag = new CompoundTag();
+        src.toTag(tag);
+        final JsonElement json = NBTToJsonConverter.convert(tag);
 
         // TODO Postprocessing, filter out tags that should not be visible to the VM.
 

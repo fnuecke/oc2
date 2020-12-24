@@ -17,10 +17,10 @@ public final class Blocks {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final RegistryObject<Block> COMPUTER_BLOCK = BLOCKS.register(Constants.COMPUTER_BLOCK_NAME, ComputerBlock::new);
-    public static final RegistryObject<Block> BUS_CABLE_BLOCK = BLOCKS.register(Constants.BUS_CABLE_BLOCK_NAME, BusCableBlock::new);
-    public static final RegistryObject<Block> REDSTONE_INTERFACE_BLOCK = BLOCKS.register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, RedstoneInterfaceBlock::new);
-    public static final RegistryObject<Block> SCREEN_BLOCK = BLOCKS.register(Constants.SCREEN_BLOCK_NAME, ScreenBlock::new);
+    public static final RegistryObject<ComputerBlock> COMPUTER_BLOCK = BLOCKS.register(Constants.COMPUTER_BLOCK_NAME, ComputerBlock::new);
+    public static final RegistryObject<BusCableBlock> BUS_CABLE_BLOCK = BLOCKS.register(Constants.BUS_CABLE_BLOCK_NAME, BusCableBlock::new);
+    public static final RegistryObject<RedstoneInterfaceBlock> REDSTONE_INTERFACE_BLOCK = BLOCKS.register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, RedstoneInterfaceBlock::new);
+    public static final RegistryObject<ScreenBlock> SCREEN_BLOCK = BLOCKS.register(Constants.SCREEN_BLOCK_NAME, ScreenBlock::new);
 
     ///////////////////////////////////////////////////////////////////
 

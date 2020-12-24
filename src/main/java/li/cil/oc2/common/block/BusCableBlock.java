@@ -3,7 +3,10 @@ package li.cil.oc2.common.block;
 import com.google.common.collect.Maps;
 import li.cil.oc2.common.block.entity.BusCableTileEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.init.Items;
 import li.cil.oc2.common.init.TileEntities;
+import li.cil.oc2.common.integration.Wrenches;
+import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -12,6 +15,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.loot.LootContext;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
@@ -22,11 +26,14 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public final class BusCableBlock extends Block {
@@ -88,6 +95,20 @@ public final class BusCableBlock extends Block {
         shapes = makeShapes();
     }
 
+    public boolean addPlug(final World world, final BlockPos pos, final BlockState state, final Direction side) {
+        final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(side);
+        if (state.get(property) == BusCableBlock.ConnectionType.NONE) {
+            if (!world.isRemote()) {
+                world.setBlockState(pos, state.with(property, ConnectionType.PLUG));
+                updateTileEntity(world, pos, side);
+                world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, soundType.getPlaceSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1f) / 2f, soundType.getPitch() * 0.8f);
+            }
+            return true;
+        }
+
+        return false;
+    }
+
     @Override
     public boolean hasTileEntity(final BlockState state) {
         return true;
@@ -113,14 +134,35 @@ public final class BusCableBlock extends Block {
     @Override
     public ActionResultType onBlockActivated(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
         final ItemStack heldItem = player.getHeldItem(hand);
-        if (Block.getBlockFromItem(heldItem.getItem()) == this) {
+        if (!Wrenches.isWrench(heldItem.getItem())) {
             return ActionResultType.PASS;
         }
 
         final Vector3d localHitPos = hit.getHitVec().subtract(Vector3d.copyCentered(pos));
-        if (!tryTogglePlug(state, world, pos, Direction.getFacingFromVector(localHitPos.x, localHitPos.y, localHitPos.z))) {
-            tryTogglePlug(state, world, pos, hit.getFace());
+        final Direction side = Direction.getFacingFromVector(localHitPos.x, localHitPos.y, localHitPos.z);
+        final EnumProperty<ConnectionType> property = FACING_TO_CONNECTION_MAP.get(side);
+
+        if (state.get(property) != ConnectionType.PLUG) {
+            return ActionResultType.PASS;
         }
+
+        final BlockPos neighborPos = pos.offset(side);
+        if (canConnectTo(world, side, world.getBlockState(neighborPos), neighborPos)) {
+            world.setBlockState(pos, state.with(property, ConnectionType.LINK));
+        } else {
+            world.setBlockState(pos, state.with(property, ConnectionType.NONE));
+        }
+        updateTileEntity(world, pos, side);
+
+        if (!player.isCreative() && world.getGameRules().getBoolean(GameRules.DO_TILE_DROPS)) {
+            ItemStackUtils.spawnAsEntity(world, pos, new ItemStack(Items.BUS_INTERFACE_ITEM.get()), side).ifPresent(entity -> {
+                entity.setNoPickupDelay();
+                entity.onCollideWithPlayer(player);
+            });
+        }
+
+        world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1f) / 2f, soundType.getPitch() * 0.8f);
+
         return ActionResultType.SUCCESS;
     }
 
@@ -224,22 +266,11 @@ public final class BusCableBlock extends Block {
         return tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, facing.getOpposite()).isPresent();
     }
 
-    private boolean tryTogglePlug(final BlockState state, final World world, final BlockPos pos, final Direction face) {
-        final EnumProperty<ConnectionType> property = FACING_TO_CONNECTION_MAP.get(face);
-        if (state.get(property) == ConnectionType.NONE) {
-            world.setBlockState(pos, state.with(property, ConnectionType.PLUG));
-        } else if (state.get(property) == ConnectionType.PLUG) {
-            world.setBlockState(pos, state.with(property, ConnectionType.NONE));
-        } else {
-            return false;
-        }
-
+    private void updateTileEntity(final World world, final BlockPos pos, final Direction face) {
         final TileEntity tileEntity = world.getTileEntity(pos);
         if (tileEntity instanceof BusCableTileEntity) {
             final BusCableTileEntity busCable = (BusCableTileEntity) tileEntity;
             busCable.handleNeighborChanged(pos.offset(face));
         }
-
-        return true;
     }
 }

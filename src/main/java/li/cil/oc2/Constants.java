@@ -13,6 +13,8 @@ public final class Constants {
 
     ///////////////////////////////////////////////////////////////////
 
+    public static final String WRENCH_ITEM_NAME = "wrench";
+    public static final String BUS_INTERFACE_ITEM_NAME = "bus_interface";
     public static final String RAM_ITEM_NAME = "ram";
     public static final String HDD_ITEM_NAME = "hdd";
 

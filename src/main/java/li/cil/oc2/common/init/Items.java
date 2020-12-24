@@ -2,6 +2,7 @@ package li.cil.oc2.common.init;
 
 import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
+import li.cil.oc2.common.item.BusInterfaceItem;
 import li.cil.oc2.common.item.ItemGroup;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
@@ -10,6 +11,8 @@ import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+
+import java.util.function.Function;
 
 public final class Items {
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, API.MOD_ID);
@@ -23,6 +26,8 @@ public final class Items {
 
     ///////////////////////////////////////////////////////////////////
 
+    public static final RegistryObject<Item> BUS_INTERFACE_ITEM = register(Constants.BUS_INTERFACE_ITEM_NAME, BusInterfaceItem::new);
+    public static final RegistryObject<Item> WRENCH_ITEM = register(Constants.WRENCH_ITEM_NAME);
     public static final RegistryObject<Item> HDD_ITEM = register(Constants.HDD_ITEM_NAME);
     public static final RegistryObject<Item> RAM_8M_ITEM = register(Constants.RAM_ITEM_NAME);
 
@@ -35,11 +40,15 @@ public final class Items {
     ///////////////////////////////////////////////////////////////////
 
     private static RegistryObject<Item> register(final String name) {
-        return ITEMS.register(name, () -> new Item(commonProperties()));
+        return register(name, Item::new);
     }
 
-    private static RegistryObject<Item> register(final String name, final RegistryObject<Block> block) {
-        return ITEMS.register(name, () -> new BlockItem(block.get(), commonProperties()));
+    private static <T extends Block> RegistryObject<Item> register(final String name, final RegistryObject<T> block) {
+        return register(name, (properties) -> new BlockItem(block.get(), properties));
+    }
+
+    private static <T extends Item> RegistryObject<T> register(final String name, final Function<Item.Properties, T> factory) {
+        return ITEMS.register(name, () -> factory.apply(commonProperties()));
     }
 
     private static Item.Properties commonProperties() {

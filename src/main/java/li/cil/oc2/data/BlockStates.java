@@ -14,10 +14,7 @@ import net.minecraft.state.Property;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
-import net.minecraftforge.client.model.generators.BlockStateProvider;
-import net.minecraftforge.client.model.generators.ConfiguredModel;
-import net.minecraftforge.client.model.generators.ModelFile;
-import net.minecraftforge.client.model.generators.MultiPartBlockStateBuilder;
+import net.minecraftforge.client.model.generators.*;
 import net.minecraftforge.client.model.generators.MultiPartBlockStateBuilder.PartBuilder;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.fml.RegistryObject;
@@ -129,9 +126,14 @@ public class BlockStates extends BlockStateProvider {
 
         itemModels().getBuilder(Items.BUS_CABLE_ITEM.getId().getPath())
                 .parent(baseModel);
+        itemModels().getBuilder(Items.BUS_INTERFACE_ITEM.getId().getPath())
+                .parent(plugModel)
+                .transforms()
+                .transform(ModelBuilder.Perspective.GUI)
+                .rotation(0, 90, 0);
     }
 
-    private void horizontalBlock(final RegistryObject<Block> block, final RegistryObject<Item> item) {
+    private <T extends Block> void horizontalBlock(final RegistryObject<T> block, final RegistryObject<Item> item) {
         horizontalBlock(block.get(), models().getBuilder(block.getId().getPath()));
         itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }

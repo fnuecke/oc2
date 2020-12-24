@@ -1,6 +1,5 @@
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.api.API;
 import li.cil.oc2.client.gui.TerminalScreen;
 import li.cil.oc2.common.block.entity.ComputerTileEntity;
 import li.cil.oc2.common.container.ComputerContainer;
@@ -22,7 +21,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.text.ITextComponent;
@@ -33,8 +31,6 @@ import net.minecraftforge.fml.network.NetworkHooks;
 import javax.annotation.Nullable;
 
 public final class ComputerBlock extends HorizontalBlock {
-    public static final ResourceLocation CONTENTS = new ResourceLocation(API.MOD_ID, "contents");
-
     public ComputerBlock() {
         super(Properties
                 .create(Material.IRON)

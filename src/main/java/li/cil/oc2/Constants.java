@@ -6,6 +6,11 @@ public final class Constants {
 
     ///////////////////////////////////////////////////////////////////
 
+    public static final String BLOCK_ENTITY_TAG_NAME_IN_ITEM = "BlockEntityTag";
+    public static final String BLOCK_ENTITY_INVENTORY_TAG_NAME = "items";
+
+    ///////////////////////////////////////////////////////////////////
+
     public static final String COMPUTER_BLOCK_NAME = "computer";
     public static final String BUS_CABLE_BLOCK_NAME = "bus_cable";
     public static final String REDSTONE_INTERFACE_BLOCK_NAME = "redstone_interface";

@@ -17,15 +17,6 @@
                   "op": "replace"
                 }
               ]
-            },
-            {
-              "function": "minecraft:set_contents",
-              "entries": [
-                {
-                  "type": "minecraft:dynamic",
-                  "name": "oc2:contents"
-                }
-              ]
             }
           ],
           "name": "oc2:computer"

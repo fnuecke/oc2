@@ -66,7 +66,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final String VFS_NBT_TAG_NAME = "vfs";
     private static final String RUNNER_NBT_TAG_NAME = "runner";
     private static final String RUN_STATE_NBT_TAG_NAME = "runState";
-    public static final String ITEMS_NBT_TAG_NAME = "items";
 
     private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
     private static final int VFS_INTERRUPT = 0x4;
@@ -318,7 +317,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             NBTUtils.putEnum(compound, RUN_STATE_NBT_TAG_NAME, runState);
         }
 
-        compound.put(ITEMS_NBT_TAG_NAME, itemHandler.serializeNBT());
+        compound.put(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, itemHandler.serializeNBT());
 
         return compound;
     }
@@ -356,11 +355,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             }
         }
 
-        if (compound.contains(ITEMS_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+        if (compound.contains(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             for (int i = 0; i < itemHandler.getSlots(); i++) {
                 itemHandler.setStackInSlot(i, ItemStack.EMPTY);
             }
-            itemHandler.deserializeNBT(compound.getCompound(ITEMS_NBT_TAG_NAME));
+            itemHandler.deserializeNBT(compound.getCompound(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME));
         }
     }
 

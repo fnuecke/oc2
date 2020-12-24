@@ -84,7 +84,10 @@ public final class BusCableBlock extends Block {
     ///////////////////////////////////////////////////////////////////
 
     public BusCableBlock() {
-        super(Properties.create(Material.IRON).sound(SoundType.METAL));
+        super(Properties
+                .create(Material.IRON)
+                .sound(SoundType.METAL)
+                .hardnessAndResistance(1.5F, 6.0F));
 
         BlockState defaultState = getStateContainer().getBaseState();
         for (final EnumProperty<ConnectionType> property : FACING_TO_CONNECTION_MAP.values()) {
@@ -164,6 +167,26 @@ public final class BusCableBlock extends Block {
         world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1f) / 2f, soundType.getPitch() * 0.8f);
 
         return ActionResultType.SUCCESS;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public List<ItemStack> getDrops(final BlockState state, final LootContext.Builder builder) {
+        final List<ItemStack> drops = new ArrayList<>(super.getDrops(state, builder));
+
+        int plugCount = 0;
+        for (final Direction side : FACING_VALUES) {
+            final ConnectionType connectionType = state.get(FACING_TO_CONNECTION_MAP.get(side));
+            if (connectionType == ConnectionType.PLUG) {
+                plugCount++;
+            }
+        }
+
+        if (plugCount > 0) {
+            drops.add(new ItemStack(Items.BUS_INTERFACE_ITEM.get(), plugCount));
+        }
+
+        return drops;
     }
 
     @Override

@@ -66,7 +66,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final String VFS_NBT_TAG_NAME = "vfs";
     private static final String RUNNER_NBT_TAG_NAME = "runner";
     private static final String RUN_STATE_NBT_TAG_NAME = "runState";
-    private static final String ITEMS_NBT_TAG_NAME = "items";
+    public static final String ITEMS_NBT_TAG_NAME = "items";
 
     private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
     private static final int VFS_INTERRUPT = 0x4;

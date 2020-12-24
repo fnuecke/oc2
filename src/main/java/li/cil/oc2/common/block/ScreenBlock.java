@@ -11,7 +11,10 @@ import net.minecraft.util.Direction;
 
 public final class ScreenBlock extends HorizontalBlock {
     public ScreenBlock() {
-        super(Properties.create(Material.IRON).sound(SoundType.METAL));
+        super(Properties
+                .create(Material.IRON)
+                .sound(SoundType.METAL)
+                .hardnessAndResistance(1.5F, 6.0F));
         setDefaultState(getStateContainer().getBaseState().with(HORIZONTAL_FACING, Direction.NORTH));
     }
 

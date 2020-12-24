@@ -16,6 +16,7 @@ public final class DataGenerators {
             final ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
             generator.addProvider(new BlockStates(generator, existingFileHelper));
             generator.addProvider(new ItemModels(generator, existingFileHelper));
+            generator.addProvider(new LootTables(generator));
         }
     }
 }

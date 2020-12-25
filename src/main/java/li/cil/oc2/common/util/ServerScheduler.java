@@ -1,7 +1,7 @@
 package li.cil.oc2.common.util;
 
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.IWorld;
-import net.minecraft.world.chunk.IChunk;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.world.ChunkEvent;
@@ -11,13 +11,13 @@ import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public final class ServerScheduler {
     private static final TickScheduler globalTickScheduler = new TickScheduler();
     private static final WeakHashMap<IWorld, TickScheduler> worldTickSchedulers = new WeakHashMap<>();
-    private static final WeakHashMap<IWorld, UnloadScheduler> worldUnloadSchedulers = new WeakHashMap<>();
-    private static final WeakHashMap<IChunk, UnloadScheduler> chunkUnloadSchedulers = new WeakHashMap<>();
+    private static final WeakHashMap<IWorld, SimpleScheduler> worldUnloadSchedulers = new WeakHashMap<>();
+    private static final WeakHashMap<IWorld, HashMap<ChunkPos, SimpleScheduler>> chunkLoadSchedulers = new WeakHashMap<>();
+    private static final WeakHashMap<IWorld, HashMap<ChunkPos, SimpleScheduler>> chunkUnloadSchedulers = new WeakHashMap<>();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -43,7 +43,7 @@ public final class ServerScheduler {
     }
 
     public static void scheduleOnUnload(final IWorld world, final Runnable listener) {
-        worldUnloadSchedulers.computeIfAbsent(world, unused -> new UnloadScheduler()).add(listener);
+        worldUnloadSchedulers.computeIfAbsent(world, unused -> new SimpleScheduler()).add(listener);
     }
 
     public static void cancelOnUnload(@Nullable final IWorld world, final Runnable listener) {
@@ -51,22 +51,53 @@ public final class ServerScheduler {
             return;
         }
 
-        final UnloadScheduler scheduler = worldUnloadSchedulers.get(world);
+        final SimpleScheduler scheduler = worldUnloadSchedulers.get(world);
         if (scheduler != null) {
             scheduler.remove(listener);
         }
     }
 
-    public static void scheduleOnUnload(final IChunk chunk, final Runnable listener) {
-        chunkUnloadSchedulers.computeIfAbsent(chunk, unused -> new UnloadScheduler()).add(listener);
+    public static void scheduleOnLoad(final IWorld world, final ChunkPos chunkPos, final Runnable listener) {
+        chunkLoadSchedulers
+                .computeIfAbsent(world, unused -> new HashMap<>())
+                .computeIfAbsent(chunkPos, unused -> new SimpleScheduler())
+                .add(listener);
     }
 
-    public static void cancelOnUnload(@Nullable final IChunk chunk, final Runnable listener) {
-        if (chunk == null) {
+    public static void cancelOnLoad(@Nullable final IWorld world, final ChunkPos chunkPos, final Runnable listener) {
+        if (world == null) {
             return;
         }
 
-        final UnloadScheduler scheduler = chunkUnloadSchedulers.get(chunk);
+        final HashMap<ChunkPos, SimpleScheduler> chunkMap = chunkLoadSchedulers.get(world);
+        if (chunkMap == null) {
+            return;
+        }
+
+        final SimpleScheduler scheduler = chunkMap.get(chunkPos);
+        if (scheduler != null) {
+            scheduler.remove(listener);
+        }
+    }
+
+    public static void scheduleOnUnload(final IWorld world, final ChunkPos chunkPos, final Runnable listener) {
+        chunkUnloadSchedulers
+                .computeIfAbsent(world, unused -> new HashMap<>())
+                .computeIfAbsent(chunkPos, unused -> new SimpleScheduler())
+                .add(listener);
+    }
+
+    public static void cancelOnUnload(@Nullable final IWorld world, final ChunkPos chunkPos, final Runnable listener) {
+        if (world == null) {
+            return;
+        }
+
+        final HashMap<ChunkPos, SimpleScheduler> chunkMap = chunkUnloadSchedulers.get(world);
+        if (chunkMap == null) {
+            return;
+        }
+
+        final SimpleScheduler scheduler = chunkMap.get(chunkPos);
         if (scheduler != null) {
             scheduler.remove(listener);
         }
@@ -80,21 +111,32 @@ public final class ServerScheduler {
             globalTickScheduler.clear();
             worldTickSchedulers.clear();
             worldUnloadSchedulers.clear();
+            chunkLoadSchedulers.clear();
             chunkUnloadSchedulers.clear();
         }
 
         @SubscribeEvent
         public static void handleWorldUnload(final WorldEvent.Unload event) {
-            worldTickSchedulers.remove(event.getWorld());
+            final IWorld world = event.getWorld();
 
-            final List<IChunk> unloadedChunks = chunkUnloadSchedulers.keySet().stream()
-                    .filter(chunk -> chunk.getWorldForge() == event.getWorld())
-                    .collect(Collectors.toList());
-            for (final IChunk chunk : unloadedChunks) {
-                chunkUnloadSchedulers.remove(chunk);
+            worldTickSchedulers.remove(world);
+            chunkLoadSchedulers.remove(world);
+            chunkUnloadSchedulers.remove(world);
+
+            final SimpleScheduler scheduler = worldUnloadSchedulers.remove(world);
+            if (scheduler != null) {
+                scheduler.run();
+            }
+        }
+
+        @SubscribeEvent
+        public static void handleChunkLoad(final ChunkEvent.Load event) {
+            final HashMap<ChunkPos, SimpleScheduler> chunkMap = chunkLoadSchedulers.get(event.getWorld());
+            if (chunkMap == null) {
+                return;
             }
 
-            final UnloadScheduler scheduler = worldUnloadSchedulers.remove(event.getWorld());
+            final SimpleScheduler scheduler = chunkMap.get(event.getChunk().getPos());
             if (scheduler != null) {
                 scheduler.run();
             }
@@ -102,7 +144,12 @@ public final class ServerScheduler {
 
         @SubscribeEvent
         public static void handleChunkUnload(final ChunkEvent.Unload event) {
-            final UnloadScheduler scheduler = chunkUnloadSchedulers.remove(event.getChunk());
+            final HashMap<ChunkPos, SimpleScheduler> chunkMap = chunkUnloadSchedulers.get(event.getWorld());
+            if (chunkMap == null) {
+                return;
+            }
+
+            final SimpleScheduler scheduler = chunkMap.get(event.getChunk().getPos());
             if (scheduler != null) {
                 scheduler.run();
             }
@@ -173,7 +220,7 @@ public final class ServerScheduler {
         }
     }
 
-    private static final class UnloadScheduler {
+    private static final class SimpleScheduler {
         private final Set<Runnable> listeners = Collections.newSetFromMap(new WeakHashMap<>());
 
         public void add(final Runnable listener) {

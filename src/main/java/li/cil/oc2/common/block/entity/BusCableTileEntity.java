@@ -33,6 +33,11 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         busElement.handleNeighborChanged(pos);
     }
 
+    public void handleConnectionTypeChanged(final Direction side) {
+        invalidateCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, side);
+        handleNeighborChanged(getPos().offset(side));
+    }
+
     @Override
     public CompoundNBT write(CompoundNBT compound) {
         compound = super.write(compound);
@@ -50,7 +55,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        if (busElement.canConnectToSide(direction)) {
+        if (BusCableBlock.getConnectionType(getBlockState(), direction) != BusCableBlock.ConnectionType.NONE) {
             collector.offer(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
         }
     }
@@ -58,12 +63,17 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     @Override
     protected void loadServer() {
         super.loadServer();
+
         busElement.initialize();
     }
 
     @Override
-    protected void unloadServer() {
-        super.unloadServer();
+    public void remove() {
+        super.remove();
+
+        // Bus element will usually be discovered via bus scan, not via capability request, so
+        // automatic invalidation via capability will *not* necessarily schedule a scan on the
+        // controller of our current bus. So we need to trigger that manually.
         busElement.dispose();
     }
 

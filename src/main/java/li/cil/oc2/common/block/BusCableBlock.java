@@ -111,7 +111,7 @@ public final class BusCableBlock extends Block {
         if (state.get(property) == BusCableBlock.ConnectionType.NONE) {
             if (!world.isRemote()) {
                 world.setBlockState(pos, state.with(property, ConnectionType.PLUG));
-                updateTileEntity(world, pos, side);
+                onConnectionTypeChanged(world, pos, side);
                 world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, soundType.getPlaceSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1f) / 2f, soundType.getPitch() * 0.8f);
             }
             return true;
@@ -162,7 +162,7 @@ public final class BusCableBlock extends Block {
         } else {
             world.setBlockState(pos, state.with(property, ConnectionType.NONE));
         }
-        updateTileEntity(world, pos, side);
+        onConnectionTypeChanged(world, pos, side);
 
         if (!player.isCreative() && world.getGameRules().getBoolean(GameRules.DO_TILE_DROPS)) {
             ItemStackUtils.spawnAsEntity(world, pos, new ItemStack(Items.BUS_INTERFACE_ITEM.get()), side).ifPresent(entity -> {
@@ -221,6 +221,7 @@ public final class BusCableBlock extends Block {
         } else if (state.get(FACING_TO_CONNECTION_MAP.get(facing)) != ConnectionType.PLUG) {
             state = state.with(FACING_TO_CONNECTION_MAP.get(facing), ConnectionType.NONE);
         }
+        onConnectionTypeChanged(world, currentPos, facing);
 
         return state;
     }
@@ -296,11 +297,11 @@ public final class BusCableBlock extends Block {
         return tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, facing.getOpposite()).isPresent();
     }
 
-    private void updateTileEntity(final World world, final BlockPos pos, final Direction face) {
+    private void onConnectionTypeChanged(final IWorld world, final BlockPos pos, final Direction face) {
         final TileEntity tileEntity = world.getTileEntity(pos);
         if (tileEntity instanceof BusCableTileEntity) {
             final BusCableTileEntity busCable = (BusCableTileEntity) tileEntity;
-            busCable.handleNeighborChanged(pos.offset(face));
+            busCable.handleConnectionTypeChanged(face);
         }
     }
 }

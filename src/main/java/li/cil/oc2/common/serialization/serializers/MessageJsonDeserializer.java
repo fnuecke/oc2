@@ -4,6 +4,7 @@ import com.google.gson.*;
 import li.cil.oc2.common.bus.RPCAdapter;
 
 import java.lang.reflect.Type;
+import java.util.UUID;
 
 public final class MessageJsonDeserializer implements JsonDeserializer<RPCAdapter.Message> {
     @Override
@@ -12,8 +13,12 @@ public final class MessageJsonDeserializer implements JsonDeserializer<RPCAdapte
         final String messageType = jsonObject.get("type").getAsString();
         final Object messageData;
         switch (messageType) {
-            case RPCAdapter.Message.MESSAGE_TYPE_STATUS: {
+            case RPCAdapter.Message.MESSAGE_TYPE_LIST: {
                 messageData = null;
+                break;
+            }
+            case RPCAdapter.Message.MESSAGE_TYPE_METHODS: {
+                messageData = UUID.fromString(jsonObject.getAsJsonPrimitive("data").getAsString());
                 break;
             }
             case RPCAdapter.Message.MESSAGE_TYPE_INVOKE_METHOD: {

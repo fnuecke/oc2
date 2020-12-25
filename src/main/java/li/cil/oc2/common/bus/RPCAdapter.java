@@ -67,7 +67,7 @@ public final class RPCAdapter implements Steppable {
                 .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
                 .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
                 .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
-                .registerTypeAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
+                .registerTypeHierarchyAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
                 .create();
     }
 
@@ -237,13 +237,24 @@ public final class RPCAdapter implements Steppable {
         try {
             final Message message = gson.fromJson(stream, Message.class);
             switch (message.type) {
-                case Message.MESSAGE_TYPE_STATUS: {
-                    writeStatus();
+                case Message.MESSAGE_TYPE_LIST: {
+                    writeDeviceList();
+                    break;
+                }
+                case Message.MESSAGE_TYPE_METHODS: {
+                    if (message.data != null) {
+                        writeDeviceMethods((UUID) message.data);
+                    } else {
+                        writeError("missing device id");
+                    }
                     break;
                 }
                 case Message.MESSAGE_TYPE_INVOKE_METHOD: {
-                    assert message.data != null : "MethodInvocation deserializer produced null data.";
-                    processMethodInvocation((MethodInvocation) message.data, false);
+                    if (message.data != null) {
+                        processMethodInvocation((MethodInvocation) message.data, false);
+                    } else {
+                        writeError("missing invocation data");
+                    }
                     break;
                 }
                 default: {
@@ -309,8 +320,17 @@ public final class RPCAdapter implements Steppable {
         writeError(error);
     }
 
-    private void writeStatus() {
-        writeMessage(Message.MESSAGE_TYPE_STATUS, devices);
+    private void writeDeviceList() {
+        writeMessage(Message.MESSAGE_TYPE_LIST, devices);
+    }
+
+    private void writeDeviceMethods(final UUID deviceId) {
+        final RPCDeviceList device = devicesById.get(deviceId);
+        if (device != null) {
+            writeMessage(Message.MESSAGE_TYPE_METHODS, device.getMethods());
+        } else {
+            writeError("unknown device");
+        }
     }
 
     private void writeError(final String message) {
@@ -352,7 +372,8 @@ public final class RPCAdapter implements Steppable {
 
     public static final class Message {
         // Device -> VM
-        public static final String MESSAGE_TYPE_STATUS = "status";
+        public static final String MESSAGE_TYPE_LIST = "list";
+        public static final String MESSAGE_TYPE_METHODS = "methods";
         public static final String MESSAGE_TYPE_RESULT = "result";
         public static final String MESSAGE_TYPE_ERROR = "error";
 

@@ -61,15 +61,13 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
 
     @Override
     public void scheduleBusScan() {
-        onDevicesInvalid();
-
         scanDelay = 0; // scan as soon as possible
         state = BusState.SCAN_PENDING;
     }
 
     @Override
     public void scanDevices() {
-        onDevicesInvalid();
+        onBeforeScan();
 
         final HashSet<Device> newDevices = new HashSet<>();
         final HashMap<Device, Set<UUID>> newDeviceIds = new HashMap<>();
@@ -106,7 +104,7 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
             deviceIds.putAll(newDeviceIds);
         }
 
-        onDevicesValid(didDevicesChange || didDeviceIdsChange);
+        onAfterDeviceScan(didDevicesChange || didDeviceIdsChange);
     }
 
     @Override
@@ -196,6 +194,8 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
             optional.addListener(unused -> scheduleBusScan());
         }
 
+        onAfterBusScan();
+
         scanDevices();
 
         state = BusState.READY;
@@ -203,10 +203,17 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
 
     ///////////////////////////////////////////////////////////////////
 
-    protected void onDevicesInvalid() {
+    protected Collection<DeviceBusElement> getElements() {
+        return elements;
     }
 
-    protected void onDevicesValid(final boolean didDevicesChange) {
+    protected void onAfterBusScan() {
+    }
+
+    protected void onBeforeScan() {
+    }
+
+    protected void onAfterDeviceScan(final boolean didDevicesChange) {
     }
 
     protected void onDevicesAdded(final Collection<Device> devices) {

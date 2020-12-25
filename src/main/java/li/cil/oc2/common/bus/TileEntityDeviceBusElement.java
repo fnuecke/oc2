@@ -73,14 +73,6 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
         return Optional.of(neighbors);
     }
 
-    public boolean canConnectToSide(@Nullable final Direction direction) {
-        return true;
-    }
-
-    public boolean hasInterfaceOnSide(@Nullable final Direction direction) {
-        return canConnectToSide(direction);
-    }
-
     public void handleNeighborChanged(final BlockPos pos) {
         final World world = tileEntity.getWorld();
         if (world == null || world.isRemote()) {
@@ -120,6 +112,16 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
 
     public void dispose() {
         scheduleScan();
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected boolean canConnectToSide(@Nullable final Direction direction) {
+        return true;
+    }
+
+    protected boolean hasInterfaceOnSide(@Nullable final Direction direction) {
+        return canConnectToSide(direction);
     }
 
     ///////////////////////////////////////////////////////////////////

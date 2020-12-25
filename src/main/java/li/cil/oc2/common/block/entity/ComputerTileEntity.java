@@ -457,7 +457,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         @Override
-        protected void onDevicesInvalid() {
+        protected void onBeforeScan() {
             if (runState == RunState.RUNNING) {
                 runState = RunState.LOADING_DEVICES;
             }
@@ -466,7 +466,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         @Override
-        protected void onDevicesValid(final boolean didDevicesChange) {
+        protected void onAfterDeviceScan(final boolean didDevicesChange) {
             virtualMachine.rpcAdapter.resume(didDevicesChange);
         }
 

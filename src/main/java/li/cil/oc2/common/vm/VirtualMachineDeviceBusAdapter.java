@@ -46,8 +46,9 @@ public final class VirtualMachineDeviceBusAdapter {
     }
 
     public boolean load() {
-        for (int i = incompleteLoads.size() - 1; i >= 0; i--) {
-            final VMDevice device = incompleteLoads.remove(i);
+        boolean anyFailed = false;
+        for (int i = 0; i < incompleteLoads.size(); i++) {
+            final VMDevice device = incompleteLoads.get(i);
 
             final ManagedVMContext context = new ManagedVMContext(
                     board, claimedInterrupts, reservedInterrupts,
@@ -59,14 +60,19 @@ public final class VirtualMachineDeviceBusAdapter {
             context.freeze();
 
             if (!result.wasSuccessful()) {
-                context.invalidate();
-                incompleteLoads.add(device);
+                anyFailed = true;
+                for (; i >= 0; i--) {
+                    deviceContexts.get(incompleteLoads.get(i)).invalidate();
+                }
+                break;
             }
         }
 
-        if (!incompleteLoads.isEmpty()) {
+        if (anyFailed) {
             return false;
         }
+
+        incompleteLoads.clear();
 
         reservedInterrupts.clear();
         reservedInterrupts.or(claimedInterrupts);

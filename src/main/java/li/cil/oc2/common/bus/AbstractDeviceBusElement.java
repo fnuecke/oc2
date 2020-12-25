@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AbstractDeviceBusElement implements DeviceBusElement {
-    protected final List<Device> devices = new ArrayList<>();
+    protected final HashSet<Device> devices = new HashSet<>();
     protected final HashSet<DeviceBusController> controllers = new HashSet<>();
 
     ///////////////////////////////////////////////////////////////////

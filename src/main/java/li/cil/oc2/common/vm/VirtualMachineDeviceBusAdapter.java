@@ -97,7 +97,7 @@ public final class VirtualMachineDeviceBusAdapter {
         }
     }
 
-    public void addDevices(final Set<Device> devices) {
+    public void addDevices(final Collection<Device> devices) {
         for (final Device device : devices) {
             if (device instanceof VMDevice) {
                 final VMDevice vmDevice = (VMDevice) device;
@@ -116,7 +116,7 @@ public final class VirtualMachineDeviceBusAdapter {
         }
     }
 
-    public void removeDevices(final Set<Device> devices) {
+    public void removeDevices(final Collection<Device> devices) {
         for (final Device device : devices) {
             if (device instanceof VMDevice) {
                 final VMDevice vmDevice = (VMDevice) device;

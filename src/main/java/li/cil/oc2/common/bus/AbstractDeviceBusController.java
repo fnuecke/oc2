@@ -209,10 +209,10 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
     protected void onDevicesValid(final boolean didDevicesChange) {
     }
 
-    protected void onDevicesAdded(final Set<Device> devices) {
+    protected void onDevicesAdded(final Collection<Device> devices) {
     }
 
-    protected void onDevicesRemoved(final Set<Device> devices) {
+    protected void onDevicesRemoved(final Collection<Device> devices) {
     }
 
     ///////////////////////////////////////////////////////////////////

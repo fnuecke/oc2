@@ -495,12 +495,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         @Override
-        protected void onDevicesAdded(final Set<Device> devices) {
+        protected void onDevicesAdded(final Collection<Device> devices) {
             virtualMachine.vmAdapter.addDevices(devices);
         }
 
         @Override
-        protected void onDevicesRemoved(final Set<Device> devices) {
+        protected void onDevicesRemoved(final Collection<Device> devices) {
             virtualMachine.vmAdapter.removeDevices(devices);
         }
     }

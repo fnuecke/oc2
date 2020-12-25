@@ -14,6 +14,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -72,6 +73,14 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
         return Optional.of(neighbors);
     }
 
+    public boolean canConnectToSide(@Nullable final Direction direction) {
+        return true;
+    }
+
+    public boolean hasInterfaceOnSide(@Nullable final Direction direction) {
+        return canConnectToSide(direction);
+    }
+
     public void handleNeighborChanged(final BlockPos pos) {
         final World world = tileEntity.getWorld();
         if (world == null || world.isRemote()) {
@@ -111,16 +120,6 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
 
     public void dispose() {
         scheduleScan();
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    protected boolean canConnectToSide(final Direction direction) {
-        return true;
-    }
-
-    protected boolean hasInterfaceOnSide(final Direction direction) {
-        return canConnectToSide(direction);
     }
 
     ///////////////////////////////////////////////////////////////////

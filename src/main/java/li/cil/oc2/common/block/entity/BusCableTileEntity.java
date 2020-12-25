@@ -7,11 +7,12 @@ import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.state.EnumProperty;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 
-public class BusCableTileEntity extends AbstractTileEntity {
+import javax.annotation.Nullable;
+
+public final class BusCableTileEntity extends AbstractTileEntity {
     private static final String BUS_ELEMENT_NBT_TAG_NAME = "busElement";
 
     ///////////////////////////////////////////////////////////////////
@@ -24,7 +25,6 @@ public class BusCableTileEntity extends AbstractTileEntity {
         super(TileEntities.BUS_CABLE_TILE_ENTITY.get());
 
         busElement = new BusElement();
-        setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -49,14 +49,21 @@ public class BusCableTileEntity extends AbstractTileEntity {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void initializeServer() {
-        super.initializeServer();
+    protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
+        if (busElement.canConnectToSide(direction)) {
+            collector.offer(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
+        }
+    }
+
+    @Override
+    protected void loadServer() {
+        super.loadServer();
         busElement.initialize();
     }
 
     @Override
-    protected void disposeServer() {
-        super.disposeServer();
+    protected void unloadServer() {
+        super.unloadServer();
         busElement.dispose();
     }
 
@@ -68,18 +75,13 @@ public class BusCableTileEntity extends AbstractTileEntity {
         }
 
         @Override
-        protected boolean canConnectToSide(final Direction direction) {
-            return getConnectionType(direction) == BusCableBlock.ConnectionType.LINK;
+        public boolean canConnectToSide(@Nullable final Direction direction) {
+            return BusCableBlock.getConnectionType(getBlockState(), direction) == BusCableBlock.ConnectionType.LINK;
         }
 
         @Override
-        protected boolean hasInterfaceOnSide(final Direction direction) {
-            return getConnectionType(direction) == BusCableBlock.ConnectionType.PLUG;
-        }
-
-        private BusCableBlock.ConnectionType getConnectionType(final Direction direction) {
-            final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(direction);
-            return getBlockState().get(property);
+        public boolean hasInterfaceOnSide(@Nullable final Direction direction) {
+            return BusCableBlock.getConnectionType(getBlockState(), direction) == BusCableBlock.ConnectionType.PLUG;
         }
     }
 }

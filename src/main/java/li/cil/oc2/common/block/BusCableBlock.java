@@ -77,6 +77,14 @@ public final class BusCableBlock extends Block {
         directions.put(Direction.DOWN, CONNECTION_DOWN);
     });
 
+    public static ConnectionType getConnectionType(final BlockState state, @Nullable final Direction direction) {
+        if (direction != null) {
+            return state.get(BusCableBlock.FACING_TO_CONNECTION_MAP.get(direction));
+        } else {
+            return ConnectionType.NONE;
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     private final VoxelShape[] shapes;

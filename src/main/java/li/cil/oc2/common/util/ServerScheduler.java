@@ -46,7 +46,7 @@ public final class ServerScheduler {
         worldUnloadSchedulers.computeIfAbsent(world, unused -> new UnloadScheduler()).add(listener);
     }
 
-    public static void removeOnUnload(@Nullable final IWorld world, final Runnable listener) {
+    public static void cancelOnUnload(@Nullable final IWorld world, final Runnable listener) {
         if (world == null) {
             return;
         }
@@ -61,7 +61,7 @@ public final class ServerScheduler {
         chunkUnloadSchedulers.computeIfAbsent(chunk, unused -> new UnloadScheduler()).add(listener);
     }
 
-    public static void removeOnUnload(@Nullable final IChunk chunk, final Runnable listener) {
+    public static void cancelOnUnload(@Nullable final IChunk chunk, final Runnable listener) {
         if (chunk == null) {
             return;
         }

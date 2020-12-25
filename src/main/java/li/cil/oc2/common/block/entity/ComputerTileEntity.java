@@ -23,7 +23,6 @@ import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
-import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
@@ -55,8 +54,6 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import static java.util.Objects.requireNonNull;
-
 public final class ComputerTileEntity extends AbstractTileEntity implements ITickableTileEntity {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -86,7 +83,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     ///////////////////////////////////////////////////////////////////
 
-    private final Runnable onWorldUnloaded = this::onWorldUnloaded;
     private Chunk chunk;
     private final AbstractDeviceBusController busController;
     private AbstractDeviceBusController.BusState busState;
@@ -108,6 +104,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     public ComputerTileEntity() {
         super(TileEntities.COMPUTER_TILE_ENTITY.get());
 
+        needsWorldUnloadEvent = true;
+
         busElement = new BusElement();
         busController = new BusController();
         busState = AbstractDeviceBusController.BusState.SCAN_PENDING;
@@ -122,10 +120,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         context.getInterruptAllocator().claimInterrupt(VFS_INTERRUPT).ifPresent(interrupt ->
                 vfs.getInterrupt().set(interrupt, context.getInterruptController()));
         context.getMemoryRangeAllocator().claimMemoryRange(vfs);
-
-        setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
-        setCapabilityIfAbsent(Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY, busController);
-        setCapabilityIfAbsent(Capabilities.ITEM_HANDLER_CAPABILITY, itemHandler);
     }
 
     public Terminal getTerminal() {
@@ -193,17 +187,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(final @NotNull Capability<T> capability, @Nullable final Direction side) {
-        if (capability == Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY ||
-            capability == Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY) {
-            if (side == getBlockState().get(ComputerBlock.HORIZONTAL_FACING)) {
-                return LazyOptional.empty();
-            } else { // Do not allow item devices to override our bus element and controller.
-                return super.getCapability(capability, side);
-            }
+        final LazyOptional<T> optional = super.getCapability(capability, side);
+        if (optional.isPresent()) {
+            return optional;
         }
 
         final Direction localSide = HorizontalBlockUtils.toLocal(getBlockState(), side);
-
         for (final Device device : busController.getDevices()) {
             if (device instanceof ICapabilityProvider) {
                 final LazyOptional<T> value = ((ICapabilityProvider) device).getCapability(capability, localSide);
@@ -213,7 +202,17 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             }
         }
 
-        return super.getCapability(capability, side);
+        return LazyOptional.empty();
+    }
+
+    @Override
+    protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
+        if (direction != getBlockState().get(ComputerBlock.HORIZONTAL_FACING)) {
+            collector.offer(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
+            collector.offer(Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY, busController);
+        }
+
+        collector.offer(Capabilities.ITEM_HANDLER_CAPABILITY, itemHandler);
     }
 
     @Override
@@ -278,7 +277,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     public void remove() {
         super.remove();
 
-        // Regular dispose only suspends, but we want to do a full unload when we get
+        // Unload only suspends, but we want to do a full clean-up when we get
         // destroyed, so stuff inside us can delete out-of-nbt persisted data.
         virtualMachine.vmAdapter.unload();
     }
@@ -367,28 +366,23 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void initializeClient() {
-        super.initializeClient();
+    protected void loadClient() {
+        super.loadClient();
 
         terminal.setDisplayOnly(true);
     }
 
     @Override
-    protected void initializeServer() {
-        super.initializeServer();
-
-        final World world = requireNonNull(getWorld());
-        ServerScheduler.scheduleOnUnload(world, onWorldUnloaded);
+    protected void loadServer() {
+        super.loadServer();
 
         busElement.initialize();
-        virtualMachine.rtc.setWorld(world);
+        virtualMachine.rtc.setWorld(getWorld());
     }
 
     @Override
-    protected void disposeServer() {
-        super.disposeServer();
-
-        ServerScheduler.removeOnUnload(getWorld(), onWorldUnloaded);
+    protected void unloadServer() {
+        super.unloadServer();
 
         joinVirtualMachine();
         virtualMachine.vmAdapter.suspend();
@@ -469,10 +463,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         MemoryMaps.store(virtualMachine.board.getMemoryMap(), 0x80000000L + offset, stream);
     }
 
-    private void onWorldUnloaded() {
-        disposeServer();
-    }
-
     ///////////////////////////////////////////////////////////////////
 
     private final class BusController extends AbstractDeviceBusController {
@@ -520,7 +510,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         @Override
-        protected boolean canConnectToSide(final Direction direction) {
+        public boolean canConnectToSide(@Nullable final Direction direction) {
             return getBlockState().get(ComputerBlock.HORIZONTAL_FACING) != direction;
         }
     }

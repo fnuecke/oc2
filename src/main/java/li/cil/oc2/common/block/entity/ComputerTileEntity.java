@@ -3,6 +3,7 @@ package li.cil.oc2.common.block.entity;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.Constants;
+import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMContext;
@@ -29,6 +30,7 @@ import li.cil.oc2.common.vm.VirtualMachineRunner;
 import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.buildroot.Buildroot;
+import li.cil.sedna.device.serial.UART16550A;
 import li.cil.sedna.device.virtio.VirtIOFileSystemDevice;
 import li.cil.sedna.fs.HostFileSystem;
 import li.cil.sedna.memory.MemoryMaps;
@@ -63,12 +65,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final String BUS_STATE_NBT_TAG_NAME = "busState";
     private static final String TERMINAL_NBT_TAG_NAME = "terminal";
     private static final String VIRTUAL_MACHINE_NBT_TAG_NAME = "virtualMachine";
-    private static final String VFS_NBT_TAG_NAME = "vfs";
     private static final String RUNNER_NBT_TAG_NAME = "runner";
     private static final String RUN_STATE_NBT_TAG_NAME = "runState";
 
     private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
-    private static final int VFS_INTERRUPT = 0x4;
 
     private static final long ITEM_DEVICE_BASE_ADDRESS = 0x40000000L;
     private static final int ITEM_DEVICE_STRIDE = 0x1000;
@@ -91,13 +91,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     ///////////////////////////////////////////////////////////////////
 
-    private final TileEntityDeviceBusElement busElement;
-    private final Terminal terminal;
-    private final VirtualMachine virtualMachine;
-    private final VirtIOFileSystemDevice vfs;
-    private ConsoleRunner runner;
-
     private final DeviceItemStackHandler itemHandler = new DeviceItemStackHandler(8);
+    private final Terminal terminal = new Terminal();
+    private final TileEntityDeviceBusElement busElement = new BusElement();
+    private final ComputerVirtualMachine virtualMachine;
+    private ComputerVirtualMachineRunner runner;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -107,20 +105,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         // We want to unload devices even on world unload to free global resources.
         setNeedsWorldUnloadEvent();
 
-        busElement = new BusElement();
-        busController = new BusController();
+        busController = new BusController(busElement);
         busState = AbstractDeviceBusController.BusState.SCAN_PENDING;
         runState = RunState.STOPPED;
 
-        terminal = new Terminal();
-        virtualMachine = new VirtualMachine(busController);
+        virtualMachine = new ComputerVirtualMachine(busController);
         virtualMachine.vmAdapter.setDefaultAddressProvider(this::getDefaultDeviceAddress);
-
-        final VMContext context = virtualMachine.vmAdapter.getGlobalContext();
-        vfs = new VirtIOFileSystemDevice(context.getMemoryMap(), "scripts", new HostFileSystem());
-        context.getInterruptAllocator().claimInterrupt(VFS_INTERRUPT).ifPresent(interrupt ->
-                vfs.getInterrupt().set(interrupt, context.getInterruptController()));
-        context.getMemoryRangeAllocator().claimMemoryRange(vfs);
     }
 
     public Terminal getTerminal() {
@@ -254,7 +244,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                     virtualMachine.board.initialize();
                     virtualMachine.board.setRunning(true);
 
-                    runner = new ConsoleRunner(virtualMachine);
+                    runner = new ComputerVirtualMachineRunner(virtualMachine);
                 }
 
                 setRunState(RunState.RUNNING);
@@ -313,7 +303,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         compound.put(BUS_ELEMENT_NBT_TAG_NAME, NBTSerialization.serialize(busElement));
         compound.put(VIRTUAL_MACHINE_NBT_TAG_NAME, NBTSerialization.serialize(virtualMachine));
-        compound.put(VFS_NBT_TAG_NAME, NBTSerialization.serialize(vfs));
 
         if (runner != null) {
             compound.put(RUNNER_NBT_TAG_NAME, NBTSerialization.serialize(runner));
@@ -342,12 +331,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             NBTSerialization.deserialize(compound.getCompound(VIRTUAL_MACHINE_NBT_TAG_NAME), virtualMachine);
         }
 
-        if (compound.contains(VFS_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            NBTSerialization.deserialize(compound.getCompound(VFS_NBT_TAG_NAME), vfs);
-        }
-
         if (compound.contains(RUNNER_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            runner = new ConsoleRunner(virtualMachine);
+            runner = new ComputerVirtualMachineRunner(virtualMachine);
             NBTSerialization.deserialize(compound.getCompound(RUNNER_NBT_TAG_NAME), runner);
             runState = RunState.LOADING_DEVICES;
         } else {
@@ -516,7 +501,31 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
     }
 
-    private final class ConsoleRunner extends VirtualMachineRunner {
+    private static final class ComputerVirtualMachine extends VirtualMachine {
+        private static final int UART_INTERRUPT = 0x3;
+        private static final int VFS_INTERRUPT = 0x4;
+
+        @Serialized public UART16550A uart;
+        @Serialized public VirtIOFileSystemDevice vfs;
+
+        public ComputerVirtualMachine(final DeviceBusController busController) {
+            super(busController);
+
+            final VMContext context = vmAdapter.getGlobalContext();
+            uart = new UART16550A();
+            context.getInterruptAllocator().claimInterrupt(UART_INTERRUPT).ifPresent(interrupt ->
+                    uart.getInterrupt().set(interrupt, context.getInterruptController()));
+            context.getMemoryRangeAllocator().claimMemoryRange(uart);
+            board.setStandardOutputDevice(uart);
+
+            vfs = new VirtIOFileSystemDevice(context.getMemoryMap(), "scripts", new HostFileSystem());
+            context.getInterruptAllocator().claimInterrupt(VFS_INTERRUPT).ifPresent(interrupt ->
+                    vfs.getInterrupt().set(interrupt, context.getInterruptController()));
+            context.getMemoryRangeAllocator().claimMemoryRange(vfs);
+        }
+    }
+
+    private final class ComputerVirtualMachineRunner extends VirtualMachineRunner {
         // Thread-local buffers for lock-free read/writes in inner loop.
         private final ByteArrayFIFOQueue outputBuffer = new ByteArrayFIFOQueue(1024);
         private final ByteArrayFIFOQueue inputBuffer = new ByteArrayFIFOQueue(32);
@@ -524,7 +533,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         private boolean firedResumeEvent;
         @Serialized private boolean firedInitializationEvent;
 
-        public ConsoleRunner(final VirtualMachine virtualMachine) {
+        public ComputerVirtualMachineRunner(final VirtualMachine virtualMachine) {
             super(virtualMachine.board);
         }
 

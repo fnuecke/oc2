@@ -87,7 +87,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
         final int index = direction.getIndex();
 
         final HashSet<BlockDeviceInfo> newDevices = new HashSet<>();
-        if (canConnectToSide(direction)) {
+        if (hasInterfaceOnSide(direction)) {
             for (final LazyOptional<BlockDeviceInfo> deviceInfo : Devices.getDevices(world, pos, direction)) {
                 deviceInfo.ifPresent(newDevices::add);
                 deviceInfo.addListener(unused -> handleNeighborChanged(pos));
@@ -117,6 +117,10 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
 
     protected boolean canConnectToSide(final Direction direction) {
         return true;
+    }
+
+    protected boolean hasInterfaceOnSide(final Direction direction) {
+        return canConnectToSide(direction);
     }
 
     ///////////////////////////////////////////////////////////////////

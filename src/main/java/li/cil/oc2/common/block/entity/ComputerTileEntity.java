@@ -6,10 +6,12 @@ import li.cil.oc2.Constants;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMContext;
+import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
+import li.cil.oc2.common.bus.device.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.init.TileEntities;
@@ -25,6 +27,8 @@ import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
+import li.cil.sedna.api.device.MemoryMappedDevice;
+import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.device.virtio.VirtIOFileSystemDevice;
 import li.cil.sedna.fs.HostFileSystem;
@@ -69,6 +73,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
     private static final int VFS_INTERRUPT = 0x4;
 
+    private static final long ITEM_DEVICE_BASE_ADDRESS = 0x40000000L;
+    private static final int ITEM_DEVICE_STRIDE = 0x1000;
+
     ///////////////////////////////////////////////////////////////////
 
     public enum RunState {
@@ -108,6 +115,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         terminal = new Terminal();
         virtualMachine = new VirtualMachine(busController);
+        virtualMachine.vmAdapter.setDefaultAddressProvider(this::getDefaultDeviceAddress);
 
         final VMContext context = virtualMachine.vmAdapter.getGlobalContext();
         vfs = new VirtIOFileSystemDevice(context.getMemoryMap(), "scripts", new HostFileSystem());
@@ -434,6 +442,23 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                 runner = null;
             }
         }
+    }
+
+    private OptionalLong getDefaultDeviceAddress(final VMDevice wrapper, final MemoryMappedDevice device) {
+        if (device instanceof PhysicalMemory) {
+            return OptionalLong.empty();
+        }
+
+        for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
+            final Collection<ItemDeviceInfo> devices = itemHandler.getBusElement().getDeviceGroup(slot);
+            for (final ItemDeviceInfo info : devices) {
+                if (Objects.equals(info.device, wrapper)) {
+                    return OptionalLong.of(ITEM_DEVICE_BASE_ADDRESS + slot * ITEM_DEVICE_STRIDE);
+                }
+            }
+        }
+
+        return OptionalLong.empty();
     }
 
     private void loadProgramFile(final InputStream stream) throws Throwable {

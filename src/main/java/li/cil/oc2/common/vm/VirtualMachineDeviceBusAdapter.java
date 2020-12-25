@@ -16,6 +16,7 @@ public final class VirtualMachineDeviceBusAdapter {
     private final ArrayList<VMDevice> incompleteLoads = new ArrayList<>();
 
     private final HashSet<VMDeviceLifecycleListener> lifecycleEventListeners = new HashSet<>();
+    private DefaultAddressProvider defaultAddressProvider = (wrapper, device) -> OptionalLong.empty();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -29,7 +30,8 @@ public final class VirtualMachineDeviceBusAdapter {
 
     public VirtualMachineDeviceBusAdapter(final Board board) {
         this.board = board;
-        this.globalContext = new ManagedVMContext(board, claimedInterrupts, reservedInterrupts);
+        this.globalContext = new ManagedVMContext(
+                board, claimedInterrupts, reservedInterrupts);
         this.claimedInterrupts.set(0);
     }
 
@@ -39,12 +41,18 @@ public final class VirtualMachineDeviceBusAdapter {
         return globalContext;
     }
 
+    public void setDefaultAddressProvider(final DefaultAddressProvider provider) {
+        defaultAddressProvider = provider;
+    }
+
     public boolean load() {
         for (int i = incompleteLoads.size() - 1; i >= 0; i--) {
             final VMDevice device = incompleteLoads.remove(i);
 
             final ManagedVMContext context = new ManagedVMContext(
-                    board, claimedInterrupts, reservedInterrupts);
+                    board, claimedInterrupts, reservedInterrupts,
+                    (memoryMappedDevice) -> defaultAddressProvider.getDefaultAddress(device, memoryMappedDevice));
+
             deviceContexts.put(device, context);
 
             final VMDeviceLoadResult result = device.load(context);

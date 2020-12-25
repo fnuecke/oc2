@@ -8,16 +8,19 @@ import li.cil.sedna.api.memory.MemoryRange;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.function.Function;
 
 public final class ManagedMemoryRangeAllocator implements MemoryRangeAllocator {
     private final Board board;
+    private final Function<MemoryMappedDevice, OptionalLong> defaultAddress;
     private final ArrayList<MemoryMappedDevice> managedDevices = new ArrayList<>();
     private boolean isFrozen;
 
     ///////////////////////////////////////////////////////////////////
 
-    public ManagedMemoryRangeAllocator(final Board board) {
+    public ManagedMemoryRangeAllocator(final Board board, final Function<MemoryMappedDevice, OptionalLong> defaultAddress) {
         this.board = board;
+        this.defaultAddress = defaultAddress;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -51,6 +54,12 @@ public final class ManagedMemoryRangeAllocator implements MemoryRangeAllocator {
     public OptionalLong claimMemoryRange(final MemoryMappedDevice device) {
         if (isFrozen) {
             throw new IllegalStateException();
+        }
+
+        final OptionalLong address = defaultAddress.apply(device);
+        if (address.isPresent() && board.addDevice(address.getAsLong(), device)) {
+            managedDevices.add(device);
+            return OptionalLong.of(address.getAsLong());
         }
 
         if (!board.addDevice(device)) {

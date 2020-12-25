@@ -43,6 +43,10 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
 
     ///////////////////////////////////////////////////////////////////
 
+    public Collection<TDeviceInfo> getDeviceGroup(final int index) {
+        return groups.get(index);
+    }
+
     @Override
     public ListNBT serializeNBT() {
         final ListNBT nbt = new ListNBT();

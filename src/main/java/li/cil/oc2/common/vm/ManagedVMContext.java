@@ -6,9 +6,12 @@ import li.cil.oc2.api.bus.device.vm.MemoryRangeAllocator;
 import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.sedna.api.Board;
 import li.cil.sedna.api.device.InterruptController;
+import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.memory.MemoryMap;
 
 import java.util.BitSet;
+import java.util.OptionalLong;
+import java.util.function.Function;
 
 public final class ManagedVMContext implements VMContext {
     private final ManagedMemoryMap memoryMap;
@@ -19,12 +22,17 @@ public final class ManagedVMContext implements VMContext {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ManagedVMContext(final Board board, final BitSet claimedInterrupts, final BitSet reservedInterrupts) {
-        this.memoryRangeAllocator = new ManagedMemoryRangeAllocator(board);
+    public ManagedVMContext(final Board board, final BitSet claimedInterrupts, final BitSet reservedInterrupts,
+                            final Function<MemoryMappedDevice, OptionalLong> defaultAddress) {
+        this.memoryRangeAllocator = new ManagedMemoryRangeAllocator(board, defaultAddress);
         this.interruptAllocator = new ManagedInterruptAllocator(claimedInterrupts, reservedInterrupts, board.getInterruptCount());
         this.memoryMap = new ManagedMemoryMap(board.getMemoryMap());
         this.interruptController = new ManagedInterruptController(board.getInterruptController(), interruptAllocator);
         this.memoryAllocator = new ManagedMemoryAllocator();
+    }
+
+    public ManagedVMContext(final Board board, final BitSet claimedInterrupts, final BitSet reservedInterrupts) {
+        this(board, claimedInterrupts, reservedInterrupts, (memoryMappedDevice) -> OptionalLong.empty());
     }
 
     ///////////////////////////////////////////////////////////////////

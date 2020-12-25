@@ -1,6 +1,5 @@
 package li.cil.oc2.common.container;
 
-import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.bus.ItemHandlerDeviceBusElement;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.item.ItemStack;
@@ -29,7 +28,7 @@ public class DeviceItemStackHandler extends ItemStackHandler {
 
     ///////////////////////////////////////////////////////////////////
 
-    public DeviceBusElement getBusElement() {
+    public ItemHandlerDeviceBusElement getBusElement() {
         return busElement;
     }
 

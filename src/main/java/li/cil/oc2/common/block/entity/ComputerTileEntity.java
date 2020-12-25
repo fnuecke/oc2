@@ -104,7 +104,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     public ComputerTileEntity() {
         super(TileEntities.COMPUTER_TILE_ENTITY.get());
 
-        needsWorldUnloadEvent = true;
+        // We want to unload devices even on world unload to free global resources.
+        setNeedsWorldUnloadEvent();
 
         busElement = new BusElement();
         busController = new BusController();

@@ -11,15 +11,13 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.HashMap;
+import java.util.Objects;
 
 public abstract class AbstractTileEntity extends TileEntity {
-    protected final Set<LazyOptional<?>> capabilities = Collections.newSetFromMap(new WeakHashMap<>());
-    protected boolean needsWorldUnloadEvent;
-
     private final Runnable onWorldUnloaded = this::onWorldUnloaded;
+    private final HashMap<CapabilityCacheKey, LazyOptional<?>> capabilityCache = new HashMap<>();
+    private boolean needsWorldUnloadEvent;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -32,24 +30,36 @@ public abstract class AbstractTileEntity extends TileEntity {
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> capability, @Nullable final Direction side) {
-        final ArrayList<T> list = new ArrayList<>();
-        collectCapabilities(new CapabilityCollector() {
-            @SuppressWarnings("unchecked")
-            @Override
-            public <TOffered> void offer(final Capability<TOffered> offeredCapability, final TOffered instance) {
-                if (offeredCapability == capability) {
-                    list.add((T) instance);
+        final CapabilityCacheKey key = new CapabilityCacheKey(capability, side);
+        final LazyOptional<?> value;
+        if (capabilityCache.containsKey(key)) {
+            value = capabilityCache.get(key);
+        } else {
+            final ArrayList<T> list = new ArrayList<>();
+            collectCapabilities(new CapabilityCollector() {
+                @SuppressWarnings("unchecked")
+                @Override
+                public <TOffered> void offer(final Capability<TOffered> offeredCapability, final TOffered instance) {
+                    if (offeredCapability == capability) {
+                        list.add((T) instance);
+                    }
                 }
-            }
-        }, side);
+            }, side);
 
-        if (!list.isEmpty()) {
-            final LazyOptional<T> optional = LazyOptional.of(() -> list.get(0));
-            capabilities.add(optional);
-            return optional;
+            if (!list.isEmpty()) {
+                final T instance = list.get(0);
+                value = LazyOptional.of(() -> instance);
+            } else {
+                value = super.getCapability(capability, side);
+            }
+
+            if (value.isPresent()) {
+                capabilityCache.put(key, value);
+                value.addListener(optional -> capabilityCache.remove(key, optional));
+            }
         }
 
-        return super.getCapability(capability, side);
+        return value.cast();
     }
 
     @Override
@@ -91,31 +101,37 @@ public abstract class AbstractTileEntity extends TileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    @FunctionalInterface
-    protected interface CapabilityCollector {
-        <T> void offer(Capability<T> capability, T instance);
-    }
-
-    protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
+    protected <T> void invalidateCapability(final Capability<T> capability, @Nullable final Direction direction) {
+        final CapabilityCacheKey key = new CapabilityCacheKey(capability, direction);
+        final LazyOptional<?> value = capabilityCache.get(key);
+        if (value != null) {
+            value.invalidate();
+        }
     }
 
     @Override
     protected void invalidateCaps() {
         super.invalidateCaps();
-        for (final LazyOptional<?> capability : capabilities) {
+
+        // Copy values because invalidate callback will modify map (removes invalidated entry).
+        for (final LazyOptional<?> capability : new ArrayList<>(capabilityCache.values())) {
             capability.invalidate();
         }
     }
 
     protected void onUnload() {
         final World world = getWorld();
-        if (world == null) {
-            return;
-        }
-        if (!world.isRemote()) {
+        if (world != null && !world.isRemote()) {
             unloadServer();
             ServerScheduler.cancelOnUnload(world, onWorldUnloaded);
         }
+    }
+
+    protected void setNeedsWorldUnloadEvent() {
+        needsWorldUnloadEvent = true;
+    }
+
+    protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
     }
 
     protected void loadClient() {
@@ -125,5 +141,37 @@ public abstract class AbstractTileEntity extends TileEntity {
     }
 
     protected void unloadServer() {
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @FunctionalInterface
+    protected interface CapabilityCollector {
+        <T> void offer(Capability<T> capability, T instance);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private static final class CapabilityCacheKey {
+        public final Capability<?> capability;
+        @Nullable public final Direction direction;
+
+        public CapabilityCacheKey(final Capability<?> capability, @Nullable final Direction direction) {
+            this.capability = capability;
+            this.direction = direction;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            final CapabilityCacheKey that = (CapabilityCacheKey) o;
+            return capability.equals(that.capability) && direction == that.direction;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(capability, direction);
+        }
     }
 }

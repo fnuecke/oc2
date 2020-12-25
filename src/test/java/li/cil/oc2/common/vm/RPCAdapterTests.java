@@ -45,7 +45,7 @@ public class RPCAdapterTests {
         setDevice(device, DEVICE_UUID);
 
         final JsonObject request = new JsonObject();
-        request.addProperty("type", "status");
+        request.addProperty("type", "list");
         serialDevice.putAsVM(request.toString());
         rpcAdapter.step(0); // process message
 
@@ -59,8 +59,8 @@ public class RPCAdapterTests {
 
         final JsonObject deviceJson = devicesJson.get(0).getAsJsonObject();
 
-        final JsonArray methodsJson = deviceJson.getAsJsonArray("methods");
-        assertEquals(1, methodsJson.size());
+        assertNotNull(deviceJson.get("deviceId"));
+        assertNotNull(deviceJson.get("typeNames"));
     }
 
     @Test

@@ -1,0 +1,15 @@
+{
+  "itemGroup.oc2.common": "OpenComputers2",
+
+  "block.oc2.computer": "Computer",
+  "block.oc2.bus_cable": "Bus Cable",
+  "block.oc2.redstone_interface": "Redstone Interface",
+  "block.oc2.screen": "Screen",
+
+  "item.oc2.wrench": "Scrench",
+  "item.oc2.bus_interface": "Bus Interface",
+  "item.oc2.ram": "RAM",
+  "item.oc2.hdd": "HDD",
+
+  "tooltip.oc2.suffix_format": " (%s)"
+}

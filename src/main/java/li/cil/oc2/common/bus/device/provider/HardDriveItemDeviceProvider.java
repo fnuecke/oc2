@@ -1,20 +1,20 @@
 package li.cil.oc2.common.bus.device.provider;
 
 import li.cil.oc2.Config;
-import li.cil.oc2.Constants;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.bus.device.HardDiskDriveDevice;
 import li.cil.oc2.common.bus.device.SparseHardDiskDriveDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.init.Items;
+import li.cil.oc2.common.item.HddItem;
 import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.math.MathHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -58,21 +58,17 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
             return Optional.empty();
         }
 
-        final boolean readonly = info.getBoolean(Constants.HDD_READONLY_NBT_TAG_NAME);
-        if (info.contains(Constants.HDD_BASE_NBT_TAG_NAME, NBTTagIds.TAG_STRING)) {
-            final String baseName = info.getString(Constants.HDD_BASE_NBT_TAG_NAME);
-
-            final BlockDevice base = getBaseBlockDevice(baseName);
-
+        final boolean readonly = HddItem.isReadonly(stack);
+        final String baseBlockDevice = HddItem.getBaseBlockDevice(stack);
+        if (baseBlockDevice != null) {
+            final BlockDevice base = getBaseBlockDevice(baseBlockDevice);
             if (base != null) {
                 return Optional.of(new SparseHardDiskDriveDevice(stack, base, readonly));
             }
-        } else if (info.contains(Constants.HDD_SIZE_NBT_TAG_NAME, NBTTagIds.TAG_INT)) {
-            final int size = Math.max(0, Math.min(Config.maxHddSize, info.getInt(Constants.HDD_SIZE_NBT_TAG_NAME)));
-            return Optional.of(new HardDiskDriveDevice(stack, size, readonly));
         }
 
-        return Optional.empty();
+        final int size = MathHelper.clamp(HddItem.getCapacity(stack), 0, Config.maxHddSize);
+        return Optional.of(new HardDiskDriveDevice(stack, size, readonly));
     }
 
     ///////////////////////////////////////////////////////////////////

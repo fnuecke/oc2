@@ -18,14 +18,16 @@ public final class ComputerContainerScreen extends ContainerScreen<ComputerConta
 
     public ComputerContainerScreen(final ComputerContainer container, final PlayerInventory inventory, final ITextComponent title) {
         super(container, inventory, title);
-        xSize = 196;
-        ySize = 197;
+        xSize = 176;
+        ySize = 133;
+        playerInventoryTitleY = ySize - 94;
     }
 
     @Override
     public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
         renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
+        renderHoveredTooltip(matrixStack, mouseX, mouseY);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -12,14 +12,16 @@ import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
-import li.cil.oc2.common.init.Items;
 import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.TerminalBlockOutputMessage;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.util.*;
+import li.cil.oc2.common.util.HorizontalBlockUtils;
+import li.cil.oc2.common.util.NBTTagIds;
+import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
@@ -28,7 +30,6 @@ import li.cil.sedna.device.virtio.VirtIOFileSystemDevice;
 import li.cil.sedna.fs.HostFileSystem;
 import li.cil.sedna.memory.MemoryMaps;
 import net.minecraft.block.BlockState;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
@@ -40,6 +41,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.items.IItemHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -47,10 +49,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -118,18 +117,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
         setCapabilityIfAbsent(Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY, busController);
-
-        itemHandler.setStackInSlot(0, new ItemStack(Items.RAM_8M_ITEM.get()));
-        itemHandler.setStackInSlot(1, new ItemStack(Items.RAM_8M_ITEM.get()));
-        itemHandler.setStackInSlot(2, new ItemStack(Items.RAM_8M_ITEM.get()));
-
-        final ItemStack hdd = new ItemStack(Items.HDD_ITEM.get());
-        ItemStackUtils.getOrCreateModDataTag(hdd).putString(Constants.HDD_BASE_NBT_TAG_NAME, "linux");
-        itemHandler.setStackInSlot(4, hdd);
+        setCapabilityIfAbsent(Capabilities.ITEM_HANDLER_CAPABILITY, itemHandler);
     }
 
     public Terminal getTerminal() {
         return terminal;
+    }
+
+    public IItemHandler getItemHandler() {
+        return itemHandler;
     }
 
     public void start() {
@@ -356,9 +352,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         if (compound.contains(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            for (int i = 0; i < itemHandler.getSlots(); i++) {
-                itemHandler.setStackInSlot(i, ItemStack.EMPTY);
-            }
             itemHandler.deserializeNBT(compound.getCompound(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME));
         }
     }

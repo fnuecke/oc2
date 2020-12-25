@@ -8,9 +8,8 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -169,7 +168,7 @@ public final class ServerScheduler {
         }
 
         @Override
-        public int compareTo(@NotNull final ServerScheduler.ScheduledRunnable o) {
+        public int compareTo(final ServerScheduler.ScheduledRunnable o) {
             return Integer.compare(tick, o.tick);
         }
     }

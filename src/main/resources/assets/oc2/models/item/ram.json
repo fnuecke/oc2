@@ -1,0 +1,20 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "oc2:items/ram1"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "oc2:ram_capacity": 4194304.0
+      },
+      "model": "oc2:item/ram2"
+    },
+    {
+      "predicate": {
+        "oc2:ram_capacity": 8388608.0
+      },
+      "model": "oc2:item/ram3"
+    }
+  ]
+}

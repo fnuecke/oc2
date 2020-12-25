@@ -136,8 +136,7 @@ public final class BusCableBlock extends Block {
     @SuppressWarnings("deprecation")
     @Override
     public ActionResultType onBlockActivated(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
-        final ItemStack heldItem = player.getHeldItem(hand);
-        if (!Wrenches.isWrench(heldItem.getItem())) {
+        if (!Wrenches.isWrench(player.getHeldItem(hand))) {
             return ActionResultType.PASS;
         }
 

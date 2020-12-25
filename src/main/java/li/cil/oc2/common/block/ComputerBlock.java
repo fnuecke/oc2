@@ -4,18 +4,22 @@ import li.cil.oc2.client.gui.TerminalScreen;
 import li.cil.oc2.common.block.entity.ComputerTileEntity;
 import li.cil.oc2.common.container.ComputerContainer;
 import li.cil.oc2.common.init.TileEntities;
+import li.cil.oc2.common.integration.Wrenches;
+import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.BlockItemUseContext;
+import net.minecraft.item.ItemStack;
 import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
@@ -26,9 +30,12 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public final class ComputerBlock extends HorizontalBlock {
     public ComputerBlock() {
@@ -37,6 +44,13 @@ public final class ComputerBlock extends HorizontalBlock {
                 .sound(SoundType.METAL)
                 .hardnessAndResistance(1.5F, 6.0F));
         setDefaultState(getStateContainer().getBaseState().with(HORIZONTAL_FACING, Direction.NORTH));
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    @Override
+    public void addInformation(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
+        super.addInformation(stack, world, tooltip, advanced);
+        TooltipUtils.addInventoryInformation(stack, tooltip);
     }
 
     @Override
@@ -74,25 +88,24 @@ public final class ComputerBlock extends HorizontalBlock {
         }
 
         final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
-        if (player.isSneaking()) {
-            if (!world.isRemote()) {
-                computer.start();
-            }
-        } else {
-            final boolean openContainer = false; // TODO
-            if (openContainer) {
+        if (!Wrenches.isWrench(player.getHeldItem(hand))) {
+            if (player.isSneaking()) {
                 if (!world.isRemote()) {
-                    if (!(player instanceof ServerPlayerEntity)) {
-                        throw new IllegalArgumentException();
-                    }
-                    openContainerScreen(tileEntity, (ServerPlayerEntity) player);
+                    computer.start();
                 }
             } else {
                 if (world.isRemote()) {
                     openTerminalScreen(computer);
                 }
             }
+        } else {
+            if (!world.isRemote()) {
+                if (player instanceof ServerPlayerEntity) {
+                    openContainerScreen(computer, (ServerPlayerEntity) player);
+                }
+            }
         }
+
         return ActionResultType.SUCCESS;
     }
 
@@ -106,7 +119,11 @@ public final class ComputerBlock extends HorizontalBlock {
 
     ///////////////////////////////////////////////////////////////////
 
-    private void openContainerScreen(final TileEntity tileEntity, final ServerPlayerEntity player) {
+    private void openTerminalScreen(final ComputerTileEntity computer) {
+        Minecraft.getInstance().displayGuiScreen(new TerminalScreen(computer, getTranslatedName()));
+    }
+
+    private void openContainerScreen(final ComputerTileEntity tileEntity, final ServerPlayerEntity player) {
         NetworkHooks.openGui(player, new INamedContainerProvider() {
             @Override
             public ITextComponent getDisplayName() {
@@ -115,12 +132,8 @@ public final class ComputerBlock extends HorizontalBlock {
 
             @Override
             public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
-                return new ComputerContainer(id, (ComputerTileEntity) tileEntity);
+                return new ComputerContainer(id, tileEntity, inventory);
             }
         }, tileEntity.getPos());
-    }
-
-    private void openTerminalScreen(final ComputerTileEntity computer) {
-        Minecraft.getInstance().displayGuiScreen(new TerminalScreen(computer, getTranslatedName()));
     }
 }

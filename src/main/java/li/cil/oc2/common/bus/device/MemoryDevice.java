@@ -1,7 +1,8 @@
 package li.cil.oc2.common.bus.device;
 
-import li.cil.oc2.Constants;
+import li.cil.oc2.Config;
 import li.cil.oc2.api.bus.device.vm.*;
+import li.cil.oc2.common.item.RamItem;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.PhysicalMemory;
@@ -10,6 +11,7 @@ import li.cil.sedna.memory.PhysicalMemoryInputStream;
 import li.cil.sedna.memory.PhysicalMemoryOutputStream;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.math.MathHelper;
 
 import java.util.OptionalLong;
 import java.util.UUID;
@@ -18,10 +20,9 @@ public final class MemoryDevice extends AbstractItemDevice implements VMDevice, 
     private static final String BLOB_HANDLE_NBT_TAG_NAME = "blob";
     private static final String ADDRESS_NBT_TAG_NAME = "address";
 
-    final int RAM_SIZE = 8 * Constants.MEGABYTE;
-
     ///////////////////////////////////////////////////////////////
 
+    private final int size;
     private BlobStorage.JobHandle jobHandle;
     private PhysicalMemory device;
 
@@ -34,6 +35,7 @@ public final class MemoryDevice extends AbstractItemDevice implements VMDevice, 
 
     public MemoryDevice(final ItemStack value) {
         super(value);
+        size = MathHelper.clamp(RamItem.getCapacity(value), 0, Config.maxRamSize);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -95,11 +97,11 @@ public final class MemoryDevice extends AbstractItemDevice implements VMDevice, 
     ///////////////////////////////////////////////////////////////
 
     private boolean allocateDevice(final VMContext context) {
-        if (!context.getMemoryAllocator().claimMemory(RAM_SIZE)) {
+        if (!context.getMemoryAllocator().claimMemory(size)) {
             return false;
         }
 
-        device = Memory.create(RAM_SIZE);
+        device = Memory.create(size);
 
         return true;
     }

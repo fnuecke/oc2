@@ -1,5 +1,6 @@
 package li.cil.oc2.common.bus;
 
+import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.bus.device.BlockDeviceInfo;
@@ -22,7 +23,7 @@ import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
-public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusElement {
+public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusElement implements BlockDeviceBusElement {
     private static final int NEIGHBOR_COUNT = 6;
     final Direction[] NEIGHBOR_DIRECTIONS = Direction.values();
 
@@ -38,6 +39,11 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    @Override
+    public BlockPos getPosition() {
+        return tileEntity.getPos();
+    }
 
     @Override
     public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {

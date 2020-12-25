@@ -11,6 +11,7 @@ import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
+import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.bus.device.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -113,12 +114,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         virtualMachine.vmAdapter.setDefaultAddressProvider(this::getDefaultDeviceAddress);
     }
 
-    public Terminal getTerminal() {
-        return terminal;
-    }
-
     public IItemHandler getItemHandler() {
         return itemHandler;
+    }
+
+    public Terminal getTerminal() {
+        return terminal;
     }
 
     public void start() {
@@ -157,7 +158,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     public void handleNeighborChanged(final BlockPos pos) {
-        busElement.handleNeighborChanged(pos);
+        busController.scheduleBusScan();
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -198,11 +199,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        if (direction != getBlockState().get(ComputerBlock.HORIZONTAL_FACING)) {
-            collector.offer(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
-            collector.offer(Capabilities.DEVICE_BUS_CONTROLLER_CAPABILITY, busController);
-        }
-
         collector.offer(Capabilities.ITEM_HANDLER_CAPABILITY, itemHandler);
     }
 
@@ -241,7 +237,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                 // bus setup and devices to load. So we can keep using it.
                 if (runner == null) {
                     virtualMachine.board.reset();
-                    virtualMachine.board.initialize();
+
+                    try {
+                        virtualMachine.board.initialize();
+                    } catch (final Throwable e) {
+                        LOGGER.error(e);
+                        setRunState(RunState.STOPPED);
+                        return;
+                    }
+
                     virtualMachine.board.setRunning(true);
 
                     runner = new ComputerVirtualMachineRunner(virtualMachine);
@@ -451,9 +455,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     ///////////////////////////////////////////////////////////////////
 
-    private final class BusController extends AbstractDeviceBusController {
-        private BusController() {
-            super(busElement);
+    private final class BusController extends TileEntityDeviceBusController {
+        private BusController(final DeviceBusElement root) {
+            super(root, ComputerTileEntity.this);
         }
 
         @Override

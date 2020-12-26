@@ -25,6 +25,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.text.ITextComponent;
@@ -51,11 +52,6 @@ public final class ComputerBlock extends HorizontalBlock {
     public void addInformation(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
         super.addInformation(stack, world, tooltip, advanced);
         TooltipUtils.addInventoryInformation(stack, tooltip);
-    }
-
-    @Override
-    public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
     }
 
     @Override
@@ -88,7 +84,8 @@ public final class ComputerBlock extends HorizontalBlock {
         }
 
         final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
-        if (!Wrenches.isWrench(player.getHeldItem(hand))) {
+        final ItemStack heldItem = player.getHeldItem(hand);
+        if (!Wrenches.isWrench(heldItem)) {
             if (player.isSneaking()) {
                 if (!world.isRemote()) {
                     computer.start();
@@ -99,14 +96,23 @@ public final class ComputerBlock extends HorizontalBlock {
                 }
             }
         } else {
-            if (!world.isRemote()) {
-                if (player instanceof ServerPlayerEntity) {
-                    openContainerScreen(computer, (ServerPlayerEntity) player);
+            if (!world.isRemote() && player instanceof ServerPlayerEntity) {
+                final ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+                if (player.isSneaking()) {
+                    serverPlayer.interactionManager.tryHarvestBlock(pos);
+                    world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1f) / 2f, soundType.getPitch() * 0.8f);
+                } else {
+                    openContainerScreen(computer, serverPlayer);
                 }
             }
         }
 
         return ActionResultType.SUCCESS;
+    }
+
+    @Override
+    public BlockState getStateForPlacement(final BlockItemUseContext context) {
+        return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
     }
 
     ///////////////////////////////////////////////////////////////////

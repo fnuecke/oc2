@@ -2,10 +2,7 @@ package li.cil.oc2.common.init;
 
 import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.item.BusInterfaceItem;
-import li.cil.oc2.common.item.HddItem;
-import li.cil.oc2.common.item.ItemGroup;
-import li.cil.oc2.common.item.RamItem;
+import li.cil.oc2.common.item.*;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -29,7 +26,7 @@ public final class Items {
     ///////////////////////////////////////////////////////////////////
 
     public static final RegistryObject<Item> BUS_INTERFACE_ITEM = register(Constants.BUS_INTERFACE_ITEM_NAME, BusInterfaceItem::new);
-    public static final RegistryObject<Item> WRENCH_ITEM = register(Constants.WRENCH_ITEM_NAME);
+    public static final RegistryObject<Item> WRENCH_ITEM = register(Constants.WRENCH_ITEM_NAME, WrenchItem::new);
     public static final RegistryObject<Item> HDD_ITEM = register(Constants.HDD_ITEM_NAME, HddItem::new, new Item.Properties());
     public static final RegistryObject<Item> RAM_ITEM = register(Constants.RAM_ITEM_NAME, RamItem::new, new Item.Properties());
 

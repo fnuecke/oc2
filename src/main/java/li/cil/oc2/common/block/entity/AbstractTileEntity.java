@@ -30,6 +30,10 @@ public abstract class AbstractTileEntity extends TileEntity {
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> capability, @Nullable final Direction side) {
+        if (isRemoved()) {
+            return LazyOptional.empty();
+        }
+
         final CapabilityCacheKey key = new CapabilityCacheKey(capability, side);
         final LazyOptional<?> value;
         if (capabilityCache.containsKey(key)) {

@@ -179,6 +179,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(final @NotNull Capability<T> capability, @Nullable final Direction side) {
+        if (isRemoved()) {
+            return LazyOptional.empty();
+        }
+
         final LazyOptional<T> optional = super.getCapability(capability, side);
         if (optional.isPresent()) {
             return optional;

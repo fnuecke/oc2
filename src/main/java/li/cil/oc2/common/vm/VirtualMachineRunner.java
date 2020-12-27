@@ -98,7 +98,7 @@ public class VirtualMachineRunner implements Runnable {
 
     ///////////////////////////////////////////////////////////////////
 
-    private int getCyclesPerTick() {
-        return VirtualMachine.ACTUAL_CPU_FREQUENCY / TICKS_PER_SECOND;
+    private static int getCyclesPerTick() {
+        return VirtualMachine.CPU_FREQUENCY / TICKS_PER_SECOND;
     }
 }

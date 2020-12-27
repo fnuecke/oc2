@@ -416,7 +416,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         super.loadServer();
 
         busElement.initialize();
-        virtualMachine.rtc.setWorld(getWorld());
+        virtualMachine.rtcMinecraft.setWorld(getWorld());
     }
 
     @Override
@@ -565,8 +565,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     private static final class ComputerVirtualMachine extends VirtualMachine {
-        private static final int UART_INTERRUPT = 0x3;
-        private static final int VFS_INTERRUPT = 0x4;
+        private static final int UART_INTERRUPT = 0x4;
+        private static final int VFS_INTERRUPT = 0x5;
 
         @Serialized public UART16550A uart;
         @Serialized public VirtIOFileSystemDevice vfs;

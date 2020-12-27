@@ -59,11 +59,11 @@ public final class VMDeviceTests {
         when(device2.load(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device1));
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
         verify(device1).load(any());
 
         adapter.addDevices(Collections.singleton(device2));
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
 
         verifyNoMoreInteractions(device1);
         verify(device2).load(any());
@@ -75,7 +75,7 @@ public final class VMDeviceTests {
         when(device.load(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
 
         adapter.removeDevices(Collections.singleton(device));
         verify(device).handleLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
@@ -87,7 +87,7 @@ public final class VMDeviceTests {
         when(device.load(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
 
         adapter.unload();
         verify(device).handleLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
@@ -99,13 +99,13 @@ public final class VMDeviceTests {
         when(device.load(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
         verify(device).load(any());
 
         adapter.unload();
         verify(device).handleLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
 
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
         verify(device, times(2)).load(any());
     }
 
@@ -120,7 +120,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
 
         verify(device).load(any());
     }
@@ -141,7 +141,7 @@ public final class VMDeviceTests {
         adapter.getGlobalContext().getInterruptAllocator().claimInterrupt(claimedInterrupt);
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
     }
 
     @Test
@@ -160,7 +160,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
 
         final int claimedInterruptMask = 1 << deviceData.interrupt;
         deviceData.context.getInterruptController().raiseInterrupts(claimedInterruptMask);
@@ -178,7 +178,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
 
         final int someInterruptMask = 0x1;
         assertThrows(IllegalArgumentException.class, () ->
@@ -201,7 +201,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
 
         final int claimedInterruptMask = 1 << deviceData.interrupt;
         deviceData.context.getInterruptController().raiseInterrupts(claimedInterruptMask);
@@ -246,7 +246,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
 
         assertTrue(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
     }
@@ -268,7 +268,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load());
+        assertTrue(adapter.load().wasSuccessful());
 
         assertTrue(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
 

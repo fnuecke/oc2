@@ -45,8 +45,7 @@ public final class VirtualMachineDeviceBusAdapter {
         defaultAddressProvider = provider;
     }
 
-    public boolean load() {
-        boolean anyFailed = false;
+    public VMDeviceLoadResult load() {
         for (int i = 0; i < incompleteLoads.size(); i++) {
             final VMDevice device = incompleteLoads.get(i);
 
@@ -60,16 +59,11 @@ public final class VirtualMachineDeviceBusAdapter {
             context.freeze();
 
             if (!result.wasSuccessful()) {
-                anyFailed = true;
                 for (; i >= 0; i--) {
                     deviceContexts.get(incompleteLoads.get(i)).invalidate();
                 }
-                break;
+                return result;
             }
-        }
-
-        if (anyFailed) {
-            return false;
         }
 
         incompleteLoads.clear();
@@ -77,7 +71,7 @@ public final class VirtualMachineDeviceBusAdapter {
         reservedInterrupts.clear();
         reservedInterrupts.or(claimedInterrupts);
 
-        return true;
+        return VMDeviceLoadResult.success();
     }
 
     public void unload() {

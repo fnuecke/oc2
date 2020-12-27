@@ -9,6 +9,7 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusController;
@@ -251,7 +252,13 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                     break;
                 }
 
-                if (!virtualMachine.vmAdapter.load()) {
+                final VMDeviceLoadResult loadResult = virtualMachine.vmAdapter.load();
+                if (!loadResult.wasSuccessful()) {
+                    if (loadResult.getErrorMessage() != null) {
+                        setBootError(loadResult.getErrorMessage());
+                    } else {
+                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_UNKNOWN));
+                    }
                     loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
                     break;
                 }
@@ -441,6 +448,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     private void setBootError(@Nullable final ITextComponent value) {
+        if (Objects.equals(value, bootError)) {
+            return;
+        }
+
         bootError = value;
         final ComputerBootErrorMessage message = new ComputerBootErrorMessage(this);
         Network.sendToClientsTrackingChunk(message, chunk);

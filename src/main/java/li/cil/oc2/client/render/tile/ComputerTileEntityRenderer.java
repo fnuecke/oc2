@@ -3,11 +3,13 @@ package li.cil.oc2.client.render.tile;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
+import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.render.OpenComputersRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.block.entity.ComputerTileEntity;
 import li.cil.oc2.common.vm.Terminal;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.model.RenderMaterial;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
@@ -19,10 +21,16 @@ import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.ITextProperties;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import java.util.List;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class ComputerTileEntityRenderer extends TileEntityRenderer<ComputerTileEntity> {
@@ -80,6 +88,8 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
 
         if (tileEntity.isRunning()) {
             renderTerminal(tileEntity, stack, buffer, cameraPosition);
+        } else {
+            renderStatusText(tileEntity, stack, buffer, cameraPosition);
         }
 
         stack.translate(0, 0, -0.1f);
@@ -88,23 +98,23 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         switch (tileEntity.getBusState()) {
             case SCAN_PENDING:
             case INCOMPLETE:
-                drawStatus(matrix, buffer);
+                renderStatus(matrix, buffer);
                 break;
             case TOO_COMPLEX:
-                drawStatus(matrix, buffer, 1000);
+                renderStatus(matrix, buffer, 1000);
                 break;
             case MULTIPLE_CONTROLLERS:
-                drawStatus(matrix, buffer, 250);
+                renderStatus(matrix, buffer, 250);
                 break;
             case READY:
                 switch (tileEntity.getRunState()) {
                     case STOPPED:
                         break;
                     case LOADING_DEVICES:
-                        drawStatus(matrix, buffer);
+                        renderStatus(matrix, buffer);
                         break;
                     case RUNNING:
-                        drawPower(matrix, buffer);
+                        renderPower(matrix, buffer);
                         break;
                 }
                 break;
@@ -149,27 +159,82 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
             stack.translate(0, 0, -0.9f);
 
             final Matrix4f matrix = stack.getLast().getMatrix();
-            drawQuad(matrix, TEXTURE_TERMINAL.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
+            renderQuad(matrix, TEXTURE_TERMINAL.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
 
             stack.pop();
         }
     }
 
-    private void drawStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer) {
-        drawStatus(matrix, buffer, 0);
+    private void renderStatusText(final ComputerTileEntity tileEntity, final MatrixStack stack, final IRenderTypeBuffer buffer, final Vector3d cameraPosition) {
+        if (!Vector3d.copyCentered(tileEntity.getPos()).isWithinDistanceOf(cameraPosition, 6f * 6f)) {
+            return;
+        }
+
+        stack.push();
+        stack.translate(3, 3, -0.9f);
+
+        switch (tileEntity.getBusState()) {
+            case SCAN_PENDING:
+            case INCOMPLETE:
+                drawText(stack, new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_INCOMPLETE), 0xFFFFFF);
+                break;
+            case TOO_COMPLEX:
+                drawText(stack, new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_TOO_COMPLEX), 0xFFFFFF);
+                break;
+            case MULTIPLE_CONTROLLERS:
+                drawText(stack, new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS), 0xFFFFFF);
+                break;
+            case READY:
+                switch (tileEntity.getRunState()) {
+                    case STOPPED:
+                    case LOADING_DEVICES:
+                        final ITextComponent bootError = tileEntity.getBootError();
+                        if (bootError != null) {
+                            drawText(stack, bootError, 0xFFFFFF);
+                        }
+                        break;
+                }
+                break;
+        }
+
+        stack.pop();
     }
 
-    private void drawStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer, final int frequency) {
+    private void drawText(final MatrixStack stack, final ITextComponent text, final int color) {
+        final int maxWidth = 100;
+
+        stack.push();
+        stack.scale(10f / maxWidth, 10f / maxWidth, 10f / maxWidth);
+
+        final FontRenderer fontRenderer = renderDispatcher.getFontRenderer();
+        final List<ITextProperties> wrappedText = renderDispatcher.getFontRenderer().getCharacterManager().func_238362_b_(text, maxWidth, Style.EMPTY);
+        if (wrappedText.size() == 1) {
+            final int textWidth = fontRenderer.getStringPropertyWidth(text);
+            fontRenderer.func_243248_b(stack, text, (maxWidth - textWidth) * 0.5f, 0, 0xEE3322);
+        } else {
+            for (int i = 0; i < wrappedText.size(); i++) {
+                fontRenderer.drawString(stack, wrappedText.get(i).getString(), 0, i * fontRenderer.FONT_HEIGHT, 0xEE3322);
+            }
+        }
+
+        stack.pop();
+    }
+
+    private void renderStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer) {
+        renderStatus(matrix, buffer, 0);
+    }
+
+    private void renderStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer, final int frequency) {
         if (frequency <= 0 || (((System.currentTimeMillis() + hashCode()) / frequency) % 2) == 1) {
-            drawQuad(matrix, TEXTURE_STATUS.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
+            renderQuad(matrix, TEXTURE_STATUS.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
         }
     }
 
-    private void drawPower(final Matrix4f matrix, final IRenderTypeBuffer buffer) {
-        drawQuad(matrix, TEXTURE_POWER.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
+    private void renderPower(final Matrix4f matrix, final IRenderTypeBuffer buffer) {
+        renderQuad(matrix, TEXTURE_POWER.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
     }
 
-    private static void drawQuad(final Matrix4f matrix, final IVertexBuilder buffer) {
+    private static void renderQuad(final Matrix4f matrix, final IVertexBuilder buffer) {
         // NB: We may get a SpriteAwareVertexBuilder here. Sadly, its chaining is broken,
         //     because methods may return the underlying vertex builder, so e.g. calling
         //     buffer.pos(...).tex(...) will not actually call SpriteAwareVertexBuilder.tex(...)

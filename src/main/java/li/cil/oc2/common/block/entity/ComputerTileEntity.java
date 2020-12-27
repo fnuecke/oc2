@@ -18,6 +18,7 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.network.Network;
+import li.cil.oc2.common.network.message.ComputerBootErrorMessage;
 import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.TerminalBlockOutputMessage;
@@ -30,6 +31,7 @@ import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
 import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.device.PhysicalMemory;
+import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.device.serial.UART16550A;
 import li.cil.sedna.device.virtio.VirtIOFileSystemDevice;
@@ -39,7 +41,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.api.distmarker.Dist;
@@ -62,12 +65,14 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final String BUS_ELEMENT_NBT_TAG_NAME = "busElement";
-    private static final String BUS_STATE_NBT_TAG_NAME = "busState";
-    private static final String TERMINAL_NBT_TAG_NAME = "terminal";
-    private static final String VIRTUAL_MACHINE_NBT_TAG_NAME = "virtualMachine";
-    private static final String RUNNER_NBT_TAG_NAME = "runner";
-    private static final String RUN_STATE_NBT_TAG_NAME = "runState";
+    private static final String BUS_ELEMENT_TAG_NAME = "busElement";
+    private static final String TERMINAL_TAG_NAME = "terminal";
+    private static final String VIRTUAL_MACHINE_TAG_NAME = "virtualMachine";
+    private static final String RUNNER_TAG_NAME = "runner";
+
+    private static final String BUS_STATE_TAG_NAME = "busState";
+    private static final String RUN_STATE_TAG_NAME = "runState";
+    private static final String BOOT_ERROR_TAG_NAME = "bootError";
 
     private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
 
@@ -88,6 +93,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private final AbstractDeviceBusController busController;
     private AbstractDeviceBusController.BusState busState;
     private RunState runState;
+    private ITextComponent bootError;
     private int loadDevicesDelay;
 
     ///////////////////////////////////////////////////////////////////
@@ -127,6 +133,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             return;
         }
 
+        setBootError(null);
         setRunState(RunState.LOADING_DEVICES);
         loadDevicesDelay = 0;
     }
@@ -157,7 +164,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         return runState;
     }
 
-    public void handleNeighborChanged(final BlockPos pos) {
+    @Nullable
+    public ITextComponent getBootError() {
+        return bootError;
+    }
+
+    public void handleNeighborChanged() {
         busController.scheduleBusScan();
     }
 
@@ -174,6 +186,13 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         final World world = getWorld();
         if (world != null && world.isRemote()) {
             busState = value;
+        }
+    }
+
+    public void setBootErrorClient(final ITextComponent value) {
+        final World world = getWorld();
+        if (world != null && world.isRemote()) {
+            bootError = value;
         }
     }
 
@@ -240,17 +259,23 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                 // May have a valid runner after load. In which case we just had to wait for
                 // bus setup and devices to load. So we can keep using it.
                 if (runner == null) {
-                    virtualMachine.board.reset();
-
                     try {
+                        virtualMachine.board.reset();
                         virtualMachine.board.initialize();
-                    } catch (final Throwable e) {
+                    } catch (final IllegalStateException e) {
+                        // FDT did not fit into memory. Technically it's possible to run with
+                        // a program that only uses registers. But not supporting that esoteric
+                        // use-case loses out against avoiding people getting confused for having
+                        // forgotten to add some RAM modules.
+                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_NO_RAM));
+                        setRunState(RunState.STOPPED);
+                        return;
+                    } catch (final MemoryAccessException e) {
                         LOGGER.error(e);
+                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_UNKNOWN));
                         setRunState(RunState.STOPPED);
                         return;
                     }
-
-                    virtualMachine.board.setRunning(true);
 
                     runner = new ComputerVirtualMachineRunner(virtualMachine);
                 }
@@ -285,9 +310,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     public CompoundNBT getUpdateTag() {
         final CompoundNBT result = super.getUpdateTag();
 
-        result.put(TERMINAL_NBT_TAG_NAME, NBTSerialization.serialize(terminal));
-        result.putInt(BUS_STATE_NBT_TAG_NAME, busState.ordinal());
-        result.putInt(RUN_STATE_NBT_TAG_NAME, runState.ordinal());
+        result.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+        result.putInt(BUS_STATE_TAG_NAME, busState.ordinal());
+        result.putInt(RUN_STATE_TAG_NAME, runState.ordinal());
+        result.putString(BOOT_ERROR_TAG_NAME, ITextComponent.Serializer.toJson(bootError));
 
         return result;
     }
@@ -296,9 +322,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     public void handleUpdateTag(final BlockState state, final CompoundNBT tag) {
         super.handleUpdateTag(state, tag);
 
-        NBTSerialization.deserialize(tag.getCompound(TERMINAL_NBT_TAG_NAME), terminal);
-        busState = AbstractDeviceBusController.BusState.values()[tag.getInt(BUS_STATE_NBT_TAG_NAME)];
-        runState = RunState.values()[tag.getInt(RUN_STATE_NBT_TAG_NAME)];
+        NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
+        busState = AbstractDeviceBusController.BusState.values()[tag.getInt(BUS_STATE_TAG_NAME)];
+        runState = RunState.values()[tag.getInt(RUN_STATE_TAG_NAME)];
+        bootError = ITextComponent.Serializer.getComponentFromJson(tag.getString(BOOT_ERROR_TAG_NAME));
     }
 
     @Override
@@ -307,15 +334,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         joinVirtualMachine();
 
-        compound.put(TERMINAL_NBT_TAG_NAME, NBTSerialization.serialize(terminal));
+        compound.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
 
-        compound.put(BUS_ELEMENT_NBT_TAG_NAME, NBTSerialization.serialize(busElement));
-        compound.put(VIRTUAL_MACHINE_NBT_TAG_NAME, NBTSerialization.serialize(virtualMachine));
+        compound.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
+        compound.put(VIRTUAL_MACHINE_TAG_NAME, NBTSerialization.serialize(virtualMachine));
 
         if (runner != null) {
-            compound.put(RUNNER_NBT_TAG_NAME, NBTSerialization.serialize(runner));
+            compound.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
         } else {
-            NBTUtils.putEnum(compound, RUN_STATE_NBT_TAG_NAME, runState);
+            NBTUtils.putEnum(compound, RUN_STATE_TAG_NAME, runState);
         }
 
         compound.put(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, itemHandler.serializeNBT());
@@ -329,22 +356,22 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         joinVirtualMachine();
 
-        NBTSerialization.deserialize(compound.getCompound(TERMINAL_NBT_TAG_NAME), terminal);
+        NBTSerialization.deserialize(compound.getCompound(TERMINAL_TAG_NAME), terminal);
 
-        if (compound.contains(BUS_ELEMENT_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            NBTSerialization.deserialize(compound.getCompound(BUS_ELEMENT_NBT_TAG_NAME), busElement);
+        if (compound.contains(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            NBTSerialization.deserialize(compound.getCompound(BUS_ELEMENT_TAG_NAME), busElement);
         }
 
-        if (compound.contains(VIRTUAL_MACHINE_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            NBTSerialization.deserialize(compound.getCompound(VIRTUAL_MACHINE_NBT_TAG_NAME), virtualMachine);
+        if (compound.contains(VIRTUAL_MACHINE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            NBTSerialization.deserialize(compound.getCompound(VIRTUAL_MACHINE_TAG_NAME), virtualMachine);
         }
 
-        if (compound.contains(RUNNER_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+        if (compound.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             runner = new ComputerVirtualMachineRunner(virtualMachine);
-            NBTSerialization.deserialize(compound.getCompound(RUNNER_NBT_TAG_NAME), runner);
+            NBTSerialization.deserialize(compound.getCompound(RUNNER_TAG_NAME), runner);
             runState = RunState.LOADING_DEVICES;
         } else {
-            runState = NBTUtils.getEnum(compound, RUN_STATE_NBT_TAG_NAME, RunState.class);
+            runState = NBTUtils.getEnum(compound, RUN_STATE_TAG_NAME, RunState.class);
             if (runState == null) {
                 runState = RunState.STOPPED;
             } else if (runState == RunState.RUNNING) {
@@ -411,6 +438,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             final ComputerRunStateMessage message = new ComputerRunStateMessage(this);
             Network.sendToClientsTrackingChunk(message, chunk);
         }
+    }
+
+    private void setBootError(@Nullable final ITextComponent value) {
+        bootError = value;
+        final ComputerBootErrorMessage message = new ComputerBootErrorMessage(this);
+        Network.sendToClientsTrackingChunk(message, chunk);
     }
 
     private void stopRunnerAndResetVM() {

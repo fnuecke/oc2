@@ -25,5 +25,13 @@ public final class Constants {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final String SUFFIX_FORMAT = "tooltip.oc2.suffix_format";
+    public static final String TOOLTIP_SUFFIX_FORMAT = "tooltip.oc2.suffix_format";
+
+    ///////////////////////////////////////////////////////////////////
+
+    public static final String COMPUTER_BOOT_ERROR_UNKNOWN = "gui.oc2.computer.boot_error.unknown";
+    public static final String COMPUTER_BOOT_ERROR_NO_RAM = "gui.oc2.computer.boot_error.no_ram";
+    public static final String COMPUTER_BUS_STATE_INCOMPLETE = "gui.oc2.computer.bus_state.incomplete";
+    public static final String COMPUTER_BUS_STATE_TOO_COMPLEX = "gui.oc2.computer.bus_state.too_complex";
+    public static final String COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS = "gui.oc2.computer.bus_state.multiple_controllers";
 }

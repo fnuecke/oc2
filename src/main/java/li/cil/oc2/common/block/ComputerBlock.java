@@ -71,7 +71,7 @@ public final class ComputerBlock extends HorizontalBlock {
         final TileEntity tileEntity = world.getTileEntity(pos);
         if (tileEntity instanceof ComputerTileEntity) {
             final ComputerTileEntity busCable = (ComputerTileEntity) tileEntity;
-            busCable.handleNeighborChanged(changedBlockPos);
+            busCable.handleNeighborChanged();
         }
     }
 

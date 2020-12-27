@@ -1,10 +1,7 @@
 package li.cil.oc2.common.network;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.network.message.ComputerBusStateMessage;
-import li.cil.oc2.common.network.message.ComputerRunStateMessage;
-import li.cil.oc2.common.network.message.TerminalBlockInputMessage;
-import li.cil.oc2.common.network.message.TerminalBlockOutputMessage;
+import li.cil.oc2.common.network.message.*;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fml.network.NetworkDirection;
@@ -51,6 +48,12 @@ public final class Network {
                 .encoder(ComputerBusStateMessage::toBytes)
                 .decoder(ComputerBusStateMessage::new)
                 .consumer(ComputerBusStateMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(ComputerBootErrorMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ComputerBootErrorMessage::toBytes)
+                .decoder(ComputerBootErrorMessage::new)
+                .consumer(ComputerBootErrorMessage::handleMessage)
                 .add();
     }
 

@@ -74,11 +74,11 @@ public class HddItem extends Item {
         if (baseBlockDevice != null) {
             return new StringTextComponent("")
                     .append(super.getDisplayName(stack))
-                    .append(new TranslationTextComponent(Constants.SUFFIX_FORMAT, baseBlockDevice));
+                    .append(new TranslationTextComponent(Constants.TOOLTIP_SUFFIX_FORMAT, baseBlockDevice));
         } else {
             return new StringTextComponent("")
                     .append(super.getDisplayName(stack))
-                    .append(new TranslationTextComponent(Constants.SUFFIX_FORMAT, TextFormatUtils.formatSize(getCapacity(stack))));
+                    .append(new TranslationTextComponent(Constants.TOOLTIP_SUFFIX_FORMAT, TextFormatUtils.formatSize(getCapacity(stack))));
         }
     }
 

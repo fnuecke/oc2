@@ -44,7 +44,7 @@ public class RamItem extends Item {
     public ITextComponent getDisplayName(final ItemStack stack) {
         return new StringTextComponent("")
                 .append(super.getDisplayName(stack))
-                .append(new TranslationTextComponent(Constants.SUFFIX_FORMAT, TextFormatUtils.formatSize(getCapacity(stack))));
+                .append(new TranslationTextComponent(Constants.TOOLTIP_SUFFIX_FORMAT, TextFormatUtils.formatSize(getCapacity(stack))));
     }
 
     private static float getRamItemProperties(final ItemStack stack, final ClientWorld world, final LivingEntity entity) {

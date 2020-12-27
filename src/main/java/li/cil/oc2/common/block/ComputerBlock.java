@@ -85,17 +85,7 @@ public final class ComputerBlock extends HorizontalBlock {
 
         final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
         final ItemStack heldItem = player.getHeldItem(hand);
-        if (!Wrenches.isWrench(heldItem)) {
-            if (player.isSneaking()) {
-                if (!world.isRemote()) {
-                    computer.start();
-                }
-            } else {
-                if (world.isRemote()) {
-                    openTerminalScreen(computer);
-                }
-            }
-        } else {
+        if (Wrenches.isWrench(heldItem)) {
             if (!world.isRemote() && player instanceof ServerPlayerEntity) {
                 final ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
                 if (player.isSneaking()) {
@@ -103,6 +93,16 @@ public final class ComputerBlock extends HorizontalBlock {
                     world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1f) / 2f, soundType.getPitch() * 0.8f);
                 } else {
                     openContainerScreen(computer, serverPlayer);
+                }
+            }
+        } else {
+            if (player.isSneaking()) {
+                if (!world.isRemote()) {
+                    computer.start();
+                }
+            } else {
+                if (world.isRemote()) {
+                    openTerminalScreen(computer);
                 }
             }
         }

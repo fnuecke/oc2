@@ -78,6 +78,10 @@ public final class TerminalScreen extends Screen {
         if (input != null) {
             Network.INSTANCE.sendToServer(new TerminalBlockInputMessage(tileEntity, input));
         }
+
+        if (!tileEntity.isRunning()) {
+            closeScreen();
+        }
     }
 
     @Override

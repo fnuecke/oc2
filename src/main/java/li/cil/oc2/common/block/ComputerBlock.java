@@ -25,7 +25,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.text.ITextComponent;
@@ -86,14 +85,8 @@ public final class ComputerBlock extends HorizontalBlock {
         final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
         final ItemStack heldItem = player.getHeldItem(hand);
         if (Wrenches.isWrench(heldItem)) {
-            if (!world.isRemote() && player instanceof ServerPlayerEntity) {
-                final ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
-                if (player.isSneaking()) {
-                    serverPlayer.interactionManager.tryHarvestBlock(pos);
-                    world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1f) / 2f, soundType.getPitch() * 0.8f);
-                } else {
-                    openContainerScreen(computer, serverPlayer);
-                }
+            if (player instanceof ServerPlayerEntity) {
+                openContainerScreen(computer, (ServerPlayerEntity) player);
             }
         } else {
             if (player.isSneaking()) {

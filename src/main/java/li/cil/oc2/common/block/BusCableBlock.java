@@ -112,7 +112,7 @@ public final class BusCableBlock extends Block {
             if (!world.isRemote()) {
                 world.setBlockState(pos, state.with(property, ConnectionType.PLUG));
                 onConnectionTypeChanged(world, pos, side);
-                world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, soundType.getPlaceSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1f) / 2f, soundType.getPitch() * 0.8f);
+                WorldUtils.playSound(world, pos, state.getSoundType(), SoundType::getPlaceSound);
             }
             return true;
         }
@@ -171,7 +171,7 @@ public final class BusCableBlock extends Block {
             });
         }
 
-        world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, soundType.getBreakSound(), SoundCategory.BLOCKS, (soundType.getVolume() + 1f) / 2f, soundType.getPitch() * 0.8f);
+        WorldUtils.playSound(world, pos, state.getSoundType(), SoundType::getBreakSound);
 
         return ActionResultType.SUCCESS;
     }

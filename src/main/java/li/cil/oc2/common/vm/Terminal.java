@@ -583,56 +583,122 @@ public final class Terminal {
 
                 buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX);
 
-                float tx = 0f;
-                for (int col = 0, index = row * WIDTH; col < WIDTH; col++, index++) {
-                    final int character = terminal.buffer[index] & 0xFF;
-                    final byte colors = terminal.colors[index];
-                    final byte style = terminal.styles[index];
-
-                    if ((style & STYLE_HIDDEN_MASK) != 0) continue;
-
-                    final int x = character % TEXTURE_COLUMNS + ((style & STYLE_BOLD_MASK) != 0 ? TEXTURE_BOLD_SHIFT : 0);
-                    final int y = character / TEXTURE_COLUMNS;
-                    final float u0 = x * (CHAR_WIDTH * ONE_OVER_TEXTURE_RESOLUTION);
-                    final float u1 = (x + 1) * (CHAR_WIDTH * ONE_OVER_TEXTURE_RESOLUTION);
-                    final float v0 = y * (CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION);
-                    final float v1 = (y + 1) * (CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION);
-
-                    final int[] palette = (style & STYLE_DIM_MASK) != 0 ? DIM_COLORS : COLORS;
-
-                    final int foreground = palette[(colors >> COLOR_FOREGROUND_SHIFT) & COLOR_MASK];
-                    final int background = palette[colors & COLOR_MASK];
-
-                    final int color = (style & STYLE_INVERT_MASK) != 0 ? background : foreground;
-                    final float r = ((color >> 16) & 0xFF) / 255f;
-                    final float g = ((color >> 8) & 0xFF) / 255f;
-                    final float b = ((color) & 0xFF) / 255f;
-
-                    if (isPrintableCharacter((char) character)) {
-                        buffer.pos(matrix, tx, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u0, v1).endVertex();
-                        buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u1, v1).endVertex();
-                        buffer.pos(matrix, tx + CHAR_WIDTH, 0, 0).color(r, g, b, 1).tex(u1, v0).endVertex();
-                        buffer.pos(matrix, tx, 0, 0).color(r, g, b, 1).tex(u0, v0).endVertex();
-                    }
-
-                    if ((style & STYLE_UNDERLINE_MASK) != 0) {
-                        final float ulu = (TEXTURE_RESOLUTION - 1) / (float) TEXTURE_RESOLUTION;
-                        final float ulv = 1 / (float) TEXTURE_RESOLUTION;
-
-                        buffer.pos(matrix, tx, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-                        buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-                        buffer.pos(matrix, tx + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-                        buffer.pos(matrix, tx, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-                    }
-
-                    tx += CHAR_WIDTH;
-                }
+                renderBackground(matrix, buffer, row);
+                renderForeground(matrix, buffer, row);
 
                 lines[row] = buffer.getVertexState();
                 buffer.finishDrawing();
                 buffer.discard();
 
                 stack.pop();
+            }
+        }
+
+        private void renderBackground(final Matrix4f matrix, final BufferBuilder buffer, final int row) {
+            // State tracking for drawing background quads spanning multiple characters.
+            float backgroundStartX = -1;
+            int backgroundColor = 0;
+
+            float tx = 0f;
+            for (int col = 0, index = row * WIDTH; col < WIDTH; col++, index++) {
+                final byte colors = terminal.colors[index];
+                final byte style = terminal.styles[index];
+
+                if ((style & STYLE_HIDDEN_MASK) != 0) continue;
+
+                final int[] palette = (style & STYLE_DIM_MASK) != 0 ? DIM_COLORS : COLORS;
+
+                final int foregroundIndex = (colors >> COLOR_FOREGROUND_SHIFT) & COLOR_MASK;
+                final int backgroundIndex = colors & COLOR_MASK;
+                final int background = palette[(style & STYLE_INVERT_MASK) == 0 ? backgroundIndex : foregroundIndex];
+
+                final boolean hadBackground = backgroundStartX >= 0;
+                final boolean hasBackground = background != palette[0];
+                if (!hadBackground && hasBackground) {
+                    backgroundStartX = tx;
+                    backgroundColor = background;
+                } else if (hadBackground && (!hasBackground || backgroundColor != background)) {
+                    renderBackground(matrix, buffer, backgroundStartX, tx, backgroundColor);
+
+                    if (hasBackground) {
+                        backgroundStartX = tx;
+                        backgroundColor = background;
+                    } else {
+                        backgroundStartX = -1;
+                    }
+                }
+
+                tx += CHAR_WIDTH;
+            }
+
+            if (backgroundStartX >= 0) {
+                renderBackground(matrix, buffer, backgroundStartX, tx, backgroundColor);
+            }
+        }
+
+        private void renderBackground(final Matrix4f matrix, final BufferBuilder buffer, final float x0, final float x1, final int color) {
+            final float r = ((color >> 16) & 0xFF) / 255f;
+            final float g = ((color >> 8) & 0xFF) / 255f;
+            final float b = (color & 0xFF) / 255f;
+
+            final float ulu = (TEXTURE_RESOLUTION - 1) / (float) TEXTURE_RESOLUTION;
+            final float ulv = 1 / (float) TEXTURE_RESOLUTION;
+
+            buffer.pos(matrix, x0, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+            buffer.pos(matrix, x1, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+            buffer.pos(matrix, x1, 0, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+            buffer.pos(matrix, x0, 0, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+        }
+
+        private void renderForeground(final Matrix4f matrix, final BufferBuilder buffer, final int row) {
+            float tx = 0f;
+            for (int col = 0, index = row * WIDTH; col < WIDTH; col++, index++) {
+                final byte colors = terminal.colors[index];
+                final byte style = terminal.styles[index];
+
+                if ((style & STYLE_HIDDEN_MASK) != 0) continue;
+
+                final int[] palette = (style & STYLE_DIM_MASK) != 0 ? DIM_COLORS : COLORS;
+
+                final int foregroundIndex = (colors >> COLOR_FOREGROUND_SHIFT) & COLOR_MASK;
+                final int backgroundIndex = colors & COLOR_MASK;
+                final int foreground = palette[(style & STYLE_INVERT_MASK) == 0 ? foregroundIndex : backgroundIndex];
+
+                final int character = terminal.buffer[index] & 0xFF;
+
+                renderForeground(matrix, buffer, tx, character, foreground, style);
+
+                tx += CHAR_WIDTH;
+            }
+        }
+
+        private void renderForeground(final Matrix4f matrix, final BufferBuilder buffer, final float offset, final int character, final int color, final byte style) {
+            final float r = ((color >> 16) & 0xFF) / 255f;
+            final float g = ((color >> 8) & 0xFF) / 255f;
+            final float b = (color & 0xFF) / 255f;
+
+            if (isPrintableCharacter((char) character)) {
+                final int x = character % TEXTURE_COLUMNS + ((style & STYLE_BOLD_MASK) != 0 ? TEXTURE_BOLD_SHIFT : 0);
+                final int y = character / TEXTURE_COLUMNS;
+                final float u0 = x * (CHAR_WIDTH * ONE_OVER_TEXTURE_RESOLUTION);
+                final float u1 = (x + 1) * (CHAR_WIDTH * ONE_OVER_TEXTURE_RESOLUTION);
+                final float v0 = y * (CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION);
+                final float v1 = (y + 1) * (CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION);
+
+                buffer.pos(matrix, offset, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u0, v1).endVertex();
+                buffer.pos(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u1, v1).endVertex();
+                buffer.pos(matrix, offset + CHAR_WIDTH, 0, 0).color(r, g, b, 1).tex(u1, v0).endVertex();
+                buffer.pos(matrix, offset, 0, 0).color(r, g, b, 1).tex(u0, v0).endVertex();
+            }
+
+            if ((style & STYLE_UNDERLINE_MASK) != 0) {
+                final float ulu = (TEXTURE_RESOLUTION - 1) / (float) TEXTURE_RESOLUTION;
+                final float ulv = 1 / (float) TEXTURE_RESOLUTION;
+
+                buffer.pos(matrix, offset, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                buffer.pos(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                buffer.pos(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                buffer.pos(matrix, offset, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
             }
         }
 

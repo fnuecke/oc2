@@ -13,7 +13,7 @@ import li.cil.sedna.device.virtio.VirtIOConsoleDevice;
 import li.cil.sedna.riscv.R5Board;
 
 public class VirtualMachine {
-    public static final int CPU_FREQUENCY = 33_000_000;
+    public static final int CPU_FREQUENCY = 25_000_000;
 
     public static final int RTC_HOST_INTERRUPT = 0x1;
     public static final int RTC_MINECRAFT_INTERRUPT = 0x2;

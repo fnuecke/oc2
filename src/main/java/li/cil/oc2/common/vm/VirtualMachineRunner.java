@@ -40,7 +40,10 @@ public class VirtualMachineRunner implements Runnable {
 
     public void tick() {
         cycleLimit += getCyclesPerTick();
-        if (timeQuotaInMillis.addAndGet(TIMESLICE_IN_MS) > 0 && lastSchedule == null || lastSchedule.isDone() || lastSchedule.isCancelled()) {
+
+        final int timeQuota = timeQuotaInMillis.updateAndGet(x -> Math.min(x + TIMESLICE_IN_MS, TIMESLICE_IN_MS));
+        final boolean needsScheduling = lastSchedule == null || lastSchedule.isDone() || lastSchedule.isCancelled();
+        if (cycleLimit > 0 && timeQuota > 0 && needsScheduling) {
             lastSchedule = VM_RUNNERS.submit(this);
         }
     }

@@ -89,7 +89,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         if (tileEntity.isRunning()) {
             renderTerminal(tileEntity, stack, buffer, cameraPosition);
         } else {
-            renderStatusText(tileEntity, stack, buffer, cameraPosition);
+            renderStatusText(tileEntity, stack, cameraPosition);
         }
 
         stack.translate(0, 0, -0.1f);
@@ -165,7 +165,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         }
     }
 
-    private void renderStatusText(final ComputerTileEntity tileEntity, final MatrixStack stack, final IRenderTypeBuffer buffer, final Vector3d cameraPosition) {
+    private void renderStatusText(final ComputerTileEntity tileEntity, final MatrixStack stack, final Vector3d cameraPosition) {
         if (!Vector3d.copyCentered(tileEntity.getPos()).isWithinDistanceOf(cameraPosition, 12f)) {
             return;
         }
@@ -176,13 +176,13 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         switch (tileEntity.getBusState()) {
             case SCAN_PENDING:
             case INCOMPLETE:
-                drawText(stack, new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_INCOMPLETE), 0xFFFFFF);
+                drawText(stack, new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_INCOMPLETE));
                 break;
             case TOO_COMPLEX:
-                drawText(stack, new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_TOO_COMPLEX), 0xFFFFFF);
+                drawText(stack, new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_TOO_COMPLEX));
                 break;
             case MULTIPLE_CONTROLLERS:
-                drawText(stack, new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS), 0xFFFFFF);
+                drawText(stack, new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS));
                 break;
             case READY:
                 switch (tileEntity.getRunState()) {
@@ -190,7 +190,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
                     case LOADING_DEVICES:
                         final ITextComponent bootError = tileEntity.getBootError();
                         if (bootError != null) {
-                            drawText(stack, bootError, 0xFFFFFF);
+                            drawText(stack, bootError);
                         }
                         break;
                 }
@@ -200,7 +200,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         stack.pop();
     }
 
-    private void drawText(final MatrixStack stack, final ITextComponent text, final int color) {
+    private void drawText(final MatrixStack stack, final ITextComponent text) {
         final int maxWidth = 100;
 
         stack.push();

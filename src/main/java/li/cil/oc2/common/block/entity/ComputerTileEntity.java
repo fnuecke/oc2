@@ -134,6 +134,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             return;
         }
 
+        final World world = getWorld();
+        if (world == null || world.isRemote()) {
+            return;
+        }
+
         setBootError(null);
         setRunState(RunState.LOADING_DEVICES);
         loadDevicesDelay = 0;
@@ -141,6 +146,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     public void stop() {
         if (runState == RunState.STOPPED) {
+            return;
+        }
+
+        final World world = getWorld();
+        if (world == null || world.isRemote()) {
             return;
         }
 

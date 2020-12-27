@@ -279,6 +279,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                     try {
                         virtualMachine.board.reset();
                         virtualMachine.board.initialize();
+                        virtualMachine.board.setRunning(true);
                     } catch (final IllegalStateException e) {
                         // FDT did not fit into memory. Technically it's possible to run with
                         // a program that only uses registers. But not supporting that esoteric

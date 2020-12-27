@@ -127,7 +127,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
 
     private void renderTerminal(final ComputerTileEntity tileEntity, final MatrixStack stack, final IRenderTypeBuffer buffer, final Vector3d cameraPosition) {
         // Render terminal content if close enough.
-        if (Vector3d.copyCentered(tileEntity.getPos()).isWithinDistanceOf(cameraPosition, 6f * 6f)) {
+        if (Vector3d.copyCentered(tileEntity.getPos()).isWithinDistanceOf(cameraPosition, 6f)) {
             stack.push();
             stack.translate(2, 2, -0.9f);
 
@@ -166,7 +166,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
     }
 
     private void renderStatusText(final ComputerTileEntity tileEntity, final MatrixStack stack, final IRenderTypeBuffer buffer, final Vector3d cameraPosition) {
-        if (!Vector3d.copyCentered(tileEntity.getPos()).isWithinDistanceOf(cameraPosition, 6f * 6f)) {
+        if (!Vector3d.copyCentered(tileEntity.getPos()).isWithinDistanceOf(cameraPosition, 12f)) {
             return;
         }
 

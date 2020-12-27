@@ -96,14 +96,10 @@ public final class ComputerBlock extends HorizontalBlock {
                 }
             }
         } else {
-            if (player.isSneaking()) {
-                if (!world.isRemote()) {
-                    computer.start();
-                }
+            if (world.isRemote()) {
+                openTerminalScreen(computer);
             } else {
-                if (world.isRemote()) {
-                    openTerminalScreen(computer);
-                }
+                computer.start();
             }
         }
 

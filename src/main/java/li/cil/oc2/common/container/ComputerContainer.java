@@ -1,5 +1,6 @@
 package li.cil.oc2.common.container;
 
+import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.block.entity.ComputerTileEntity;
 import li.cil.oc2.common.init.Blocks;
 import li.cil.oc2.common.init.Containers;
@@ -10,8 +11,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nullable;
 
@@ -38,13 +37,31 @@ public final class ComputerContainer extends AbstractContainer {
         this.world = inventory.player.getEntityWorld();
         this.pos = tileEntity.getPos();
 
-        final IItemHandler itemHandler = tileEntity.getItemHandler();
+        tileEntity.getItemHandler(DeviceTypes.EEPROM).ifPresent(itemHandler -> {
+            if (itemHandler.getSlots() > 0) {
+                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.EEPROM, 0, 64, 78));
+            }
+        });
 
-        for (int i = 0; i < itemHandler.getSlots(); ++i) {
-            this.addSlot(new SlotItemHandler(itemHandler, i, 8 + i * SLOT_SIZE, 20));
-        }
+        tileEntity.getItemHandler(DeviceTypes.MEMORY).ifPresent(itemHandler -> {
+            for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
+                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.MEMORY, slot, 64 + slot * SLOT_SIZE, 24));
+            }
+        });
 
-        createPlayerInventoryAndHotbarSlots(inventory, 8, 51);
+        tileEntity.getItemHandler(DeviceTypes.HARD_DRIVE).ifPresent(itemHandler -> {
+            for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
+                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE, slot, 100 + (slot % 2) * SLOT_SIZE, 60 + (slot / 2) * SLOT_SIZE));
+            }
+        });
+
+        tileEntity.getItemHandler(DeviceTypes.CARD).ifPresent(itemHandler -> {
+            for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
+                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.CARD, slot, 38, 24 + slot * SLOT_SIZE));
+            }
+        });
+
+        createPlayerInventoryAndHotbarSlots(inventory, 8, 115);
     }
 
     @Override

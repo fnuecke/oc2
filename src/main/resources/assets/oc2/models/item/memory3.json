@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/handheld",
   "textures": {
-    "layer0": "oc2:items/hdd2"
+    "layer0": "oc2:items/memory3"
   }
 }

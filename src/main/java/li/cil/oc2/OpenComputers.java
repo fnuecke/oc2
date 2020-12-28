@@ -17,6 +17,7 @@ public final class OpenComputers {
         TileEntities.initialize();
         Containers.initialize();
         Providers.initialize();
+        DeviceTypes.initialize();
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(CommonSetup::run);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientSetup::run);

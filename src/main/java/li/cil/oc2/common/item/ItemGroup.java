@@ -17,14 +17,14 @@ public final class ItemGroup {
         public void fill(final NonNullList<ItemStack> items) {
             super.fill(items);
 
-            items.add(RamItem.withCapacity(new ItemStack(Items.RAM_ITEM.get()), 2 * Constants.MEGABYTE));
-            items.add(RamItem.withCapacity(new ItemStack(Items.RAM_ITEM.get()), 4 * Constants.MEGABYTE));
-            items.add(RamItem.withCapacity(new ItemStack(Items.RAM_ITEM.get()), 8 * Constants.MEGABYTE));
+            items.add(MemoryItem.withCapacity(new ItemStack(Items.MEMORY_ITEM.get()), 2 * Constants.MEGABYTE));
+            items.add(MemoryItem.withCapacity(new ItemStack(Items.MEMORY_ITEM.get()), 4 * Constants.MEGABYTE));
+            items.add(MemoryItem.withCapacity(new ItemStack(Items.MEMORY_ITEM.get()), 8 * Constants.MEGABYTE));
 
-            items.add(HddItem.withCapacity(new ItemStack(Items.HDD_ITEM.get()), 2 * Constants.MEGABYTE));
-            items.add(HddItem.withCapacity(new ItemStack(Items.HDD_ITEM.get()), 4 * Constants.MEGABYTE));
-            items.add(HddItem.withCapacity(new ItemStack(Items.HDD_ITEM.get()), 8 * Constants.MEGABYTE));
-            items.add(HddItem.withBaseBlockDevice(new ItemStack(Items.HDD_ITEM.get()), "linux"));
+            items.add(HardDriveItem.withCapacity(new ItemStack(Items.HARD_DRIVE_ITEM.get()), 2 * Constants.MEGABYTE));
+            items.add(HardDriveItem.withCapacity(new ItemStack(Items.HARD_DRIVE_ITEM.get()), 4 * Constants.MEGABYTE));
+            items.add(HardDriveItem.withCapacity(new ItemStack(Items.HARD_DRIVE_ITEM.get()), 8 * Constants.MEGABYTE));
+            items.add(HardDriveItem.withBaseBlockDevice(new ItemStack(Items.HARD_DRIVE_ITEM.get()), "linux"));
         }
     };
 }

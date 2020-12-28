@@ -7,13 +7,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Optional;
 
-public final class HardDiskDriveDevice extends AbstractHardDiskDriveDevice<ByteBufferBlockDevice> {
+public final class HardDriveDevice extends AbstractHardDriveDevice<ByteBufferBlockDevice> {
     private final int size;
     private final boolean readonly;
 
     ///////////////////////////////////////////////////////////////////
 
-    public HardDiskDriveDevice(final ItemStack stack, final int size, final boolean readonly) {
+    public HardDriveDevice(final ItemStack stack, final int size, final boolean readonly) {
         super(stack);
         this.size = size;
         this.readonly = readonly;

@@ -1,13 +1,15 @@
 package li.cil.oc2.common.bus.device.provider;
 
 import li.cil.oc2.Config;
+import li.cil.oc2.api.bus.device.DeviceType;
+import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import li.cil.oc2.common.bus.device.HardDiskDriveDevice;
-import li.cil.oc2.common.bus.device.SparseHardDiskDriveDevice;
+import li.cil.oc2.common.bus.device.HardDriveDevice;
+import li.cil.oc2.common.bus.device.SparseHardDriveDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.init.Items;
-import li.cil.oc2.common.item.HddItem;
+import li.cil.oc2.common.item.HardDriveItem;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.buildroot.Buildroot;
@@ -44,7 +46,7 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
     ///////////////////////////////////////////////////////////////////
 
     public HardDriveItemDeviceProvider() {
-        super(Items.HDD_ITEM);
+        super(Items.HARD_DRIVE_ITEM);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -58,17 +60,22 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
             return Optional.empty();
         }
 
-        final boolean readonly = HddItem.isReadonly(stack);
-        final String baseBlockDevice = HddItem.getBaseBlockDevice(stack);
+        final boolean readonly = HardDriveItem.isReadonly(stack);
+        final String baseBlockDevice = HardDriveItem.getBaseBlockDevice(stack);
         if (baseBlockDevice != null) {
             final BlockDevice base = getBaseBlockDevice(baseBlockDevice);
             if (base != null) {
-                return Optional.of(new SparseHardDiskDriveDevice(stack, base, readonly));
+                return Optional.of(new SparseHardDriveDevice(stack, base, readonly));
             }
         }
 
-        final int size = MathHelper.clamp(HddItem.getCapacity(stack), 0, Config.maxHddSize);
-        return Optional.of(new HardDiskDriveDevice(stack, size, readonly));
+        final int size = MathHelper.clamp(HardDriveItem.getCapacity(stack), 0, Config.maxHardDriveSize);
+        return Optional.of(new HardDriveDevice(stack, size, readonly));
+    }
+
+    @Override
+    protected Optional<DeviceType> getItemDeviceType(final ItemDeviceQuery query) {
+        return Optional.of(DeviceTypes.HARD_DRIVE);
     }
 
     ///////////////////////////////////////////////////////////////////

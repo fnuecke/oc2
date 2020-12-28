@@ -67,7 +67,7 @@ public interface VMContext {
      * Allows reserving fixed amounts of memory respecting sandbox constraints.
      * <p>
      * It is strongly advised to use this allocator to make known large memory
-     * uses, e.g. when allocating large blobs for RAM or block devices. This
+     * uses, e.g. when allocating large blobs for memory or block devices. This
      * allows respecting the built-in limits for overall memory usage of
      * running VMs.
      * <p>

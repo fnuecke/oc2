@@ -16,8 +16,8 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 
-public class RamItem extends Item {
-    public static final ResourceLocation CAPACITY_PROPERTY = new ResourceLocation(API.MOD_ID, "ram_capacity");
+public final class MemoryItem extends Item {
+    public static final ResourceLocation CAPACITY_PROPERTY = new ResourceLocation(API.MOD_ID, "memory_capacity");
     public static final String CAPACITY_TAG_NAME = "size";
     public static final int DEFAULT_CAPACITY = 2 * Constants.MEGABYTE;
 
@@ -35,9 +35,9 @@ public class RamItem extends Item {
         return stack;
     }
 
-    public RamItem(final Properties properties) {
+    public MemoryItem(final Properties properties) {
         super(properties);
-        ItemModelsProperties.registerProperty(this, CAPACITY_PROPERTY, RamItem::getRamItemProperties);
+        ItemModelsProperties.registerProperty(this, CAPACITY_PROPERTY, MemoryItem::getMemoryItemProperties);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class RamItem extends Item {
                 .append(new TranslationTextComponent(Constants.TOOLTIP_SUFFIX_FORMAT, TextFormatUtils.formatSize(getCapacity(stack))));
     }
 
-    private static float getRamItemProperties(final ItemStack stack, final ClientWorld world, final LivingEntity entity) {
+    private static float getMemoryItemProperties(final ItemStack stack, final ClientWorld world, final LivingEntity entity) {
         return getCapacity(stack);
     }
 }

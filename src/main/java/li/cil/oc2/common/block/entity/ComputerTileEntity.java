@@ -6,6 +6,8 @@ import li.cil.oc2.Constants;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.DeviceType;
+import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
@@ -17,6 +19,7 @@ import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.bus.device.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
+import li.cil.oc2.common.container.TypedDeviceItemStackHandler;
 import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBootErrorMessage;
@@ -30,8 +33,6 @@ import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.VirtualMachineRunner;
-import li.cil.sedna.api.device.MemoryMappedDevice;
-import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.device.serial.UART16550A;
@@ -52,6 +53,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -70,12 +72,21 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String VIRTUAL_MACHINE_TAG_NAME = "virtualMachine";
     private static final String RUNNER_TAG_NAME = "runner";
+    private static final String EEPROM_TAG_NAME = "eeprom";
+    private static final String MEMORY_TAG_NAME = "memory";
+    private static final String HARD_DRIVE_TAG_NAME = "hard_drive";
+    private static final String CARD_TAG_NAME = "card";
 
     private static final String BUS_STATE_TAG_NAME = "busState";
     private static final String RUN_STATE_TAG_NAME = "runState";
     private static final String BOOT_ERROR_TAG_NAME = "bootError";
 
     private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
+
+    private static final int EEPROM_SLOTS = 1;
+    private static final int MEMORY_SLOTS = 4;
+    private static final int HARD_DRIVE_SLOTS = 4;
+    private static final int CARD_SLOTS = 4;
 
     private static final long ITEM_DEVICE_BASE_ADDRESS = 0x40000000L;
     private static final int ITEM_DEVICE_STRIDE = 0x1000;
@@ -99,7 +110,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     ///////////////////////////////////////////////////////////////////
 
-    private final DeviceItemStackHandler itemHandler = new DeviceItemStackHandler(8);
+    private final DeviceItemStackHandler eepromItemHandler = new TypedDeviceItemStackHandler(EEPROM_SLOTS, DeviceTypes.EEPROM);
+    private final DeviceItemStackHandler memoryItemHandler = new TypedDeviceItemStackHandler(MEMORY_SLOTS, DeviceTypes.MEMORY);
+    private final DeviceItemStackHandler hardDriveItemHandler = new TypedDeviceItemStackHandler(HARD_DRIVE_SLOTS, DeviceTypes.HARD_DRIVE);
+    private final DeviceItemStackHandler cardItemHandler = new TypedDeviceItemStackHandler(CARD_SLOTS, DeviceTypes.CARD);
+    private final IItemHandler itemHandlers = new CombinedInvWrapper(eepromItemHandler, memoryItemHandler, hardDriveItemHandler, cardItemHandler);
+
     private final Terminal terminal = new Terminal();
     private final TileEntityDeviceBusElement busElement = new BusElement();
     private final ComputerVirtualMachine virtualMachine;
@@ -121,8 +137,17 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         virtualMachine.vmAdapter.setDefaultAddressProvider(this::getDefaultDeviceAddress);
     }
 
-    public IItemHandler getItemHandler() {
-        return itemHandler;
+    public Optional<IItemHandler> getItemHandler(final DeviceType deviceType) {
+        if (deviceType == DeviceTypes.EEPROM) {
+            return Optional.of(eepromItemHandler);
+        } else if (deviceType == DeviceTypes.MEMORY) {
+            return Optional.of(memoryItemHandler);
+        } else if (deviceType == DeviceTypes.HARD_DRIVE) {
+            return Optional.of(hardDriveItemHandler);
+        } else if (deviceType == DeviceTypes.CARD) {
+            return Optional.of(cardItemHandler);
+        }
+        return Optional.empty();
     }
 
     public Terminal getTerminal() {
@@ -233,7 +258,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        collector.offer(Capabilities.ITEM_HANDLER_CAPABILITY, itemHandler);
+        collector.offer(Capabilities.ITEM_HANDLER_CAPABILITY, itemHandlers);
     }
 
     @Override
@@ -285,7 +310,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                         // a program that only uses registers. But not supporting that esoteric
                         // use-case loses out against avoiding people getting confused for having
                         // forgotten to add some RAM modules.
-                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_NO_RAM));
+                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_NO_MEMORY));
                         setRunState(RunState.STOPPED);
                         return;
                     } catch (final MemoryAccessException e) {
@@ -301,7 +326,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                 setRunState(RunState.RUNNING);
 
                 // Only start running next tick. This gives loaded devices one tick to do async
-                // initialization. This is used by RAM to restore data from disk, for example.
+                // initialization. This is used by devices to restore data from disk, for example.
                 break;
             case RUNNING:
                 if (!virtualMachine.board.isRunning()) {
@@ -363,7 +388,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             NBTUtils.putEnum(compound, RUN_STATE_TAG_NAME, runState);
         }
 
-        compound.put(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, itemHandler.serializeNBT());
+        final CompoundNBT items = new CompoundNBT();
+        items.put(EEPROM_TAG_NAME, eepromItemHandler.serializeNBT());
+        items.put(MEMORY_TAG_NAME, memoryItemHandler.serializeNBT());
+        items.put(HARD_DRIVE_TAG_NAME, hardDriveItemHandler.serializeNBT());
+        items.put(CARD_TAG_NAME, cardItemHandler.serializeNBT());
+        compound.put(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, items);
 
         return compound;
     }
@@ -398,7 +428,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         if (compound.contains(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            itemHandler.deserializeNBT(compound.getCompound(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME));
+            final CompoundNBT items = compound.getCompound(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME);
+            eepromItemHandler.deserializeNBT(items.getCompound(EEPROM_TAG_NAME));
+            memoryItemHandler.deserializeNBT(items.getCompound(MEMORY_TAG_NAME));
+            hardDriveItemHandler.deserializeNBT(items.getCompound(HARD_DRIVE_TAG_NAME));
+            cardItemHandler.deserializeNBT(items.getCompound(CARD_TAG_NAME));
         }
     }
 
@@ -487,18 +521,29 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
     }
 
-    private OptionalLong getDefaultDeviceAddress(final VMDevice wrapper, final MemoryMappedDevice device) {
-        if (device instanceof PhysicalMemory) {
-            return OptionalLong.empty();
-        }
+    private OptionalLong getDefaultDeviceAddress(final VMDevice wrapper) {
+        long address = ITEM_DEVICE_BASE_ADDRESS;
 
-        for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-            final Collection<ItemDeviceInfo> devices = itemHandler.getBusElement().getDeviceGroup(slot);
+        for (int slot = 0; slot < hardDriveItemHandler.getSlots(); slot++) {
+            final Collection<ItemDeviceInfo> devices = hardDriveItemHandler.getBusElement().getDeviceGroup(slot);
             for (final ItemDeviceInfo info : devices) {
                 if (Objects.equals(info.device, wrapper)) {
-                    return OptionalLong.of(ITEM_DEVICE_BASE_ADDRESS + slot * ITEM_DEVICE_STRIDE);
+                    return OptionalLong.of(address);
                 }
             }
+
+            address += ITEM_DEVICE_STRIDE;
+        }
+
+        for (int slot = 0; slot < cardItemHandler.getSlots(); slot++) {
+            final Collection<ItemDeviceInfo> devices = cardItemHandler.getBusElement().getDeviceGroup(slot);
+            for (final ItemDeviceInfo info : devices) {
+                if (Objects.equals(info.device, wrapper)) {
+                    return OptionalLong.of(address);
+                }
+            }
+
+            address += ITEM_DEVICE_STRIDE;
         }
 
         return OptionalLong.empty();
@@ -553,7 +598,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
             return super.getNeighbors().map(neighbors -> {
                 final ArrayList<LazyOptional<DeviceBusElement>> list = new ArrayList<>(neighbors);
-                list.add(LazyOptional.of(itemHandler::getBusElement));
+                list.add(LazyOptional.of(eepromItemHandler::getBusElement));
+                list.add(LazyOptional.of(memoryItemHandler::getBusElement));
+                list.add(LazyOptional.of(hardDriveItemHandler::getBusElement));
+                list.add(LazyOptional.of(cardItemHandler::getBusElement));
                 return list;
             });
         }

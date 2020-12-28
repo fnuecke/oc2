@@ -19,7 +19,7 @@ public final class ComputerContainerScreen extends ContainerScreen<ComputerConta
     public ComputerContainerScreen(final ComputerContainer container, final PlayerInventory inventory, final ITextComponent title) {
         super(container, inventory, title);
         xSize = 176;
-        ySize = 133;
+        ySize = 197;
         playerInventoryTitleY = ySize - 94;
     }
 

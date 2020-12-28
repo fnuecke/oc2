@@ -13,11 +13,11 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-public final class SparseHardDiskDriveDevice extends AbstractHardDiskDriveDevice<SparseBlockDevice> {
+public final class SparseHardDriveDevice extends AbstractHardDriveDevice<SparseBlockDevice> {
     private final BlockDevice base;
     private final boolean readonly;
 
-    public SparseHardDiskDriveDevice(final ItemStack stack, final BlockDevice base, final boolean readonly) {
+    public SparseHardDriveDevice(final ItemStack stack, final BlockDevice base, final boolean readonly) {
         super(stack);
         this.base = base;
         this.readonly = readonly;

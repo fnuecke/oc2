@@ -1,5 +1,7 @@
 package li.cil.oc2.common.bus.device.provider.util;
 
+import li.cil.oc2.api.bus.device.DeviceType;
+import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
@@ -27,19 +29,26 @@ public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<Item
 
     @Override
     public final Optional<ItemDevice> getDevice(final ItemDeviceQuery query) {
-        final ItemStack stack = query.getItemStack();
-        if (stack.isEmpty()) {
-            return Optional.empty();
-        }
+        return matches(query) ? getItemDevice(query) : Optional.empty();
+    }
 
-        if (item != null && stack.getItem() != item.get()) {
-            return Optional.empty();
-        }
-
-        return getItemDevice(query);
+    @Override
+    public final Optional<DeviceType> getDeviceType(final ItemDeviceQuery query) {
+        return matches(query) ? getItemDeviceType(query) : Optional.empty();
     }
 
     ///////////////////////////////////////////////////////////////////
 
     protected abstract Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query);
+
+    protected Optional<DeviceType> getItemDeviceType(final ItemDeviceQuery query) {
+        return Optional.of(DeviceTypes.CARD);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private boolean matches(final ItemDeviceQuery query) {
+        final ItemStack stack = query.getItemStack();
+        return !stack.isEmpty() && (item == null || stack.getItem() == item.get());
+    }
 }

@@ -8,14 +8,19 @@
 
   "item.oc2.wrench": "Scrench",
   "item.oc2.bus_interface": "Bus Interface",
-  "item.oc2.ram": "RAM",
-  "item.oc2.hdd": "HDD",
+  "item.oc2.memory": "Memory",
+  "item.oc2.hard_drive": "Hard Drive",
 
   "tooltip.oc2.suffix_format": " (%s)",
 
   "gui.oc2.computer.boot_error.unknown": "Unknown Error",
-  "gui.oc2.computer.boot_error.no_ram": "Insufficient Memory",
+  "gui.oc2.computer.boot_error.no_memory": "Insufficient Memory",
   "gui.oc2.computer.bus_state.incomplete": "Bus Incomplete",
   "gui.oc2.computer.bus_state.too_complex": "Bus Too Complex",
-  "gui.oc2.computer.bus_state.multiple_controllers": "Multiple Bus Controllers"
+  "gui.oc2.computer.bus_state.multiple_controllers": "Multiple Bus Controllers",
+
+  "gui.oc2.device_type.eeprom": "EEPROM",
+  "gui.oc2.device_type.memory": "Memory",
+  "gui.oc2.device_type.hard_drive": "Hard Drive",
+  "gui.oc2.device_type.card": "Card"
 }

@@ -3,8 +3,8 @@ package li.cil.oc2.data;
 import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.init.Items;
-import li.cil.oc2.common.item.HddItem;
-import li.cil.oc2.common.item.RamItem;
+import li.cil.oc2.common.item.HardDriveItem;
+import li.cil.oc2.common.item.MemoryItem;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
@@ -22,24 +22,24 @@ public final class ItemModels extends ItemModelProvider {
     protected void registerModels() {
         simple(Items.WRENCH_ITEM, "items/wrench");
 
-        simple(Items.RAM_ITEM, "items/ram1")
+        simple(Items.MEMORY_ITEM, "items/memory1")
                 .override()
-                .predicate(RamItem.CAPACITY_PROPERTY, 4 * Constants.MEGABYTE)
-                .model(simple(Items.RAM_ITEM, "items/ram2", "2"))
+                .predicate(MemoryItem.CAPACITY_PROPERTY, 4 * Constants.MEGABYTE)
+                .model(simple(Items.MEMORY_ITEM, "items/memory2", "2"))
                 .end()
                 .override()
-                .predicate(RamItem.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
-                .model(simple(Items.RAM_ITEM, "items/ram3", "3"))
+                .predicate(MemoryItem.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
+                .model(simple(Items.MEMORY_ITEM, "items/memory3", "3"))
                 .end();
 
-        simple(Items.HDD_ITEM, "items/hdd1")
+        simple(Items.HARD_DRIVE_ITEM, "items/hard_drive1")
                 .override()
-                .predicate(HddItem.CAPACITY_PROPERTY, 4 * Constants.MEGABYTE)
-                .model(simple(Items.HDD_ITEM, "items/hdd2", "2"))
+                .predicate(HardDriveItem.CAPACITY_PROPERTY, 4 * Constants.MEGABYTE)
+                .model(simple(Items.HARD_DRIVE_ITEM, "items/hard_drive2", "2"))
                 .end()
                 .override()
-                .predicate(HddItem.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
-                .model(simple(Items.HDD_ITEM, "items/hdd3", "3"))
+                .predicate(HardDriveItem.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
+                .model(simple(Items.HARD_DRIVE_ITEM, "items/hard_drive3", "3"))
                 .end();
     }
 

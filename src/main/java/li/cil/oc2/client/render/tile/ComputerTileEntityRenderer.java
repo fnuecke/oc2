@@ -46,6 +46,10 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
 
     @SubscribeEvent
     public static void handleTextureStitchEvent(final TextureStitchEvent.Pre event) {
+        if (event.getMap().getTextureLocation() != PlayerContainer.LOCATION_BLOCKS_TEXTURE) {
+            return;
+        }
+
         event.addSprite(OVERLAY_POWER_LOCATION);
         event.addSprite(OVERLAY_STATUS_LOCATION);
         event.addSprite(OVERLAY_TERMINAL_LOCATION);

@@ -18,8 +18,8 @@ import net.minecraft.util.text.TranslationTextComponent;
 
 import javax.annotation.Nullable;
 
-public class HddItem extends Item {
-    public static final ResourceLocation CAPACITY_PROPERTY = new ResourceLocation(API.MOD_ID, "hdd_capacity");
+public final class HardDriveItem extends Item {
+    public static final ResourceLocation CAPACITY_PROPERTY = new ResourceLocation(API.MOD_ID, "hard_drive_capacity");
     public static final String CAPACITY_TAG_NAME = "size";
     public static final String BASE_TAG_NAME = "base";
     public static final String READONLY_TAG_NAME = "readonly";
@@ -63,9 +63,9 @@ public class HddItem extends Item {
         return modNbt.getBoolean(READONLY_TAG_NAME);
     }
 
-    public HddItem(final Properties properties) {
+    public HardDriveItem(final Properties properties) {
         super(properties);
-        ItemModelsProperties.registerProperty(this, CAPACITY_PROPERTY, HddItem::getHddItemProperties);
+        ItemModelsProperties.registerProperty(this, CAPACITY_PROPERTY, HardDriveItem::getHardDriveItemProperties);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class HddItem extends Item {
         }
     }
 
-    private static float getHddItemProperties(final ItemStack stack, final ClientWorld world, final LivingEntity entity) {
+    private static float getHardDriveItemProperties(final ItemStack stack, final ClientWorld world, final LivingEntity entity) {
         return getCapacity(stack);
     }
 }

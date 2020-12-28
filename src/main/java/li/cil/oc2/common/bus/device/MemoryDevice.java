@@ -2,7 +2,7 @@ package li.cil.oc2.common.bus.device;
 
 import li.cil.oc2.Config;
 import li.cil.oc2.api.bus.device.vm.*;
-import li.cil.oc2.common.item.RamItem;
+import li.cil.oc2.common.item.MemoryItem;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.PhysicalMemory;
@@ -35,7 +35,7 @@ public final class MemoryDevice extends AbstractItemDevice implements VMDevice, 
 
     public MemoryDevice(final ItemStack value) {
         super(value);
-        size = MathHelper.clamp(RamItem.getCapacity(value), 0, Config.maxRamSize);
+        size = MathHelper.clamp(MemoryItem.getCapacity(value), 0, Config.maxMemorySize);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ public final class MemoryDevice extends AbstractItemDevice implements VMDevice, 
     }
 
     private void unload() {
-        // RAM is volatile, so free up our persisted blob when device is unloaded.
+        // Memory is volatile, so free up our persisted blob when device is unloaded.
         BlobStorage.freeHandle(blobHandle);
         blobHandle = null;
 

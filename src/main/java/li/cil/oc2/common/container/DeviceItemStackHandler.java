@@ -63,11 +63,6 @@ public class DeviceItemStackHandler extends ItemStackHandler {
         return 1;
     }
 
-    @Override
-    public boolean isItemValid(final int slot, @NotNull final ItemStack stack) {
-        return super.isItemValid(slot, stack);
-    }
-
     ///////////////////////////////////////////////////////////////////
 
     @Override

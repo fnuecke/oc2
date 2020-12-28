@@ -9,19 +9,19 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 
 public final class Capabilities {
-    @CapabilityInject(DeviceBusElement.class) @SuppressWarnings("FieldMayBeFinal")
+    @CapabilityInject(DeviceBusElement.class)
     public static Capability<DeviceBusElement> DEVICE_BUS_ELEMENT_CAPABILITY = null;
 
-    @CapabilityInject(DeviceBusController.class) @SuppressWarnings("FieldMayBeFinal")
+    @CapabilityInject(DeviceBusController.class)
     public static Capability<DeviceBusController> DEVICE_BUS_CONTROLLER_CAPABILITY = null;
 
-    @CapabilityInject(IEnergyStorage.class) @SuppressWarnings("FieldMayBeFinal")
+    @CapabilityInject(IEnergyStorage.class)
     public static Capability<IEnergyStorage> ENERGY_STORAGE_CAPABILITY = null;
 
-    @CapabilityInject(IFluidHandler.class) @SuppressWarnings("FieldMayBeFinal")
+    @CapabilityInject(IFluidHandler.class)
     public static Capability<IFluidHandler> FLUID_HANDLER_CAPABILITY = null;
 
-    @CapabilityInject(IItemHandler.class) @SuppressWarnings("FieldMayBeFinal")
+    @CapabilityInject(IItemHandler.class)
     public static Capability<IItemHandler> ITEM_HANDLER_CAPABILITY = null;
 
     ///////////////////////////////////////////////////////////////////

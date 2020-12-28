@@ -6,5 +6,5 @@ import li.cil.sedna.api.device.MemoryMappedDevice;
 import java.util.OptionalLong;
 
 public interface DefaultAddressProvider {
-    OptionalLong getDefaultAddress(final VMDevice wrapper, final MemoryMappedDevice device);
+    OptionalLong getDefaultAddress(final VMDevice wrapper);
 }

@@ -1,6 +1,8 @@
 package li.cil.oc2.api.bus.device.provider;
 
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.DeviceType;
+import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
@@ -45,4 +47,8 @@ public interface ItemDeviceProvider extends IForgeRegistryEntry<ItemDeviceProvid
      * @return a device for the specified query, if available.
      */
     Optional<ItemDevice> getDevice(ItemDeviceQuery query);
+
+    default Optional<DeviceType> getDeviceType(final ItemDeviceQuery query) {
+        return Optional.of(DeviceTypes.CARD);
+    }
 }

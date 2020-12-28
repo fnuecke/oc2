@@ -16,7 +16,7 @@ public final class VirtualMachineDeviceBusAdapter {
     private final ArrayList<VMDevice> incompleteLoads = new ArrayList<>();
 
     private final HashSet<VMDeviceLifecycleListener> lifecycleEventListeners = new HashSet<>();
-    private DefaultAddressProvider defaultAddressProvider = (wrapper, device) -> OptionalLong.empty();
+    private DefaultAddressProvider defaultAddressProvider = unused -> OptionalLong.empty();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -51,7 +51,7 @@ public final class VirtualMachineDeviceBusAdapter {
 
             final ManagedVMContext context = new ManagedVMContext(
                     board, claimedInterrupts, reservedInterrupts,
-                    (memoryMappedDevice) -> defaultAddressProvider.getDefaultAddress(device, memoryMappedDevice));
+                    (memoryMappedDevice) -> defaultAddressProvider.getDefaultAddress(device));
 
             deviceContexts.put(device, context);
 

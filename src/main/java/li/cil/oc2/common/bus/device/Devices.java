@@ -1,6 +1,7 @@
 package li.cil.oc2.common.bus.device;
 
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
@@ -16,9 +17,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.registries.IForgeRegistry;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public final class Devices {
     public static List<LazyOptional<BlockDeviceInfo>> getDevices(final TileEntity tileEntity, final Direction side) {
@@ -36,6 +35,10 @@ public final class Devices {
 
     public static List<ItemDeviceInfo> getDevices(final ItemStack stack) {
         return getDevices(new ItemQuery(stack));
+    }
+
+    public static Collection<DeviceType> getDeviceTypes(final ItemStack stack) {
+        return getDeviceTypes(new ItemQuery(stack));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -62,6 +65,16 @@ public final class Devices {
             device.ifPresent(d -> devices.add(new ItemDeviceInfo(provider, d)));
         }
         return devices;
+    }
+
+    private static Collection<DeviceType> getDeviceTypes(final ItemQuery query) {
+        final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
+        final HashSet<DeviceType> deviceTypes = new HashSet<>();
+        for (final ItemDeviceProvider provider : registry.getValues()) {
+            final Optional<DeviceType> device = provider.getDeviceType(query);
+            device.ifPresent(deviceTypes::add);
+        }
+        return deviceTypes;
     }
 
     ///////////////////////////////////////////////////////////////////

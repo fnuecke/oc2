@@ -1,0 +1,20 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "oc2:items/memory1"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "oc2:memory_capacity": 4194304.0
+      },
+      "model": "oc2:item/memory2"
+    },
+    {
+      "predicate": {
+        "oc2:memory_capacity": 8388608.0
+      },
+      "model": "oc2:item/memory3"
+    }
+  ]
+}

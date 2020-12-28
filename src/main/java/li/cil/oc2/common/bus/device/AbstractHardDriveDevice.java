@@ -16,7 +16,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.UUID;
 
-public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends AbstractItemDevice implements VMDevice, VMDeviceLifecycleListener {
+public abstract class AbstractHardDriveDevice<T extends BlockDevice> extends AbstractItemDevice implements VMDevice, VMDeviceLifecycleListener {
     private static final String DEVICE_NBT_TAG_NAME = "device";
     private static final String ADDRESS_NBT_TAG_NAME = "address";
     private static final String INTERRUPT_NBT_TAG_NAME = "interrupt";
@@ -40,7 +40,7 @@ public abstract class AbstractHardDiskDriveDevice<T extends BlockDevice> extends
 
     ///////////////////////////////////////////////////////////////
 
-    protected AbstractHardDiskDriveDevice(final ItemStack stack) {
+    protected AbstractHardDriveDevice(final ItemStack stack) {
         super(stack);
     }
 

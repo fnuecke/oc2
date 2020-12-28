@@ -3,7 +3,6 @@ package li.cil.oc2.client.render.tile;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
-import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.render.OpenComputersRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
@@ -24,7 +23,6 @@ import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -174,32 +172,15 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
             return;
         }
 
+        final ITextComponent bootError = tileEntity.getBootError();
+        if (bootError == null) {
+            return;
+        }
+
         stack.push();
         stack.translate(3, 3, -0.9f);
 
-        switch (tileEntity.getBusState()) {
-            case SCAN_PENDING:
-            case INCOMPLETE:
-                drawText(stack, new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_INCOMPLETE));
-                break;
-            case TOO_COMPLEX:
-                drawText(stack, new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_TOO_COMPLEX));
-                break;
-            case MULTIPLE_CONTROLLERS:
-                drawText(stack, new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS));
-                break;
-            case READY:
-                switch (tileEntity.getRunState()) {
-                    case STOPPED:
-                    case LOADING_DEVICES:
-                        final ITextComponent bootError = tileEntity.getBootError();
-                        if (bootError != null) {
-                            drawText(stack, bootError);
-                        }
-                        break;
-                }
-                break;
-        }
+        drawText(stack, bootError);
 
         stack.pop();
     }

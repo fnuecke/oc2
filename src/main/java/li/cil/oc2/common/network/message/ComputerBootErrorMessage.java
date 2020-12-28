@@ -9,7 +9,7 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class ComputerBootErrorMessage {
+public final class ComputerBootErrorMessage {
     private BlockPos pos;
     private ITextComponent value;
 

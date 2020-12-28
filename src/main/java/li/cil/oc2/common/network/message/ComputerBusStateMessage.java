@@ -9,7 +9,7 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class ComputerBusStateMessage {
+public final class ComputerBusStateMessage {
     private BlockPos pos;
     private AbstractDeviceBusController.BusState busState;
 

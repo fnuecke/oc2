@@ -55,6 +55,12 @@ public final class Network {
                 .decoder(ComputerBootErrorMessage::new)
                 .consumer(ComputerBootErrorMessage::handleMessage)
                 .add();
+
+        INSTANCE.messageBuilder(ComputerPowerMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ComputerPowerMessage::toBytes)
+                .decoder(ComputerPowerMessage::new)
+                .consumer(ComputerPowerMessage::handleMessage)
+                .add();
     }
 
     public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {

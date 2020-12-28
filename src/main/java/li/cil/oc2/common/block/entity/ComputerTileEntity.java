@@ -202,7 +202,23 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     @Nullable
     public ITextComponent getBootError() {
-        return bootError;
+        switch (getBusState()) {
+            case SCAN_PENDING:
+            case INCOMPLETE:
+                return new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_INCOMPLETE);
+            case TOO_COMPLEX:
+                return new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_TOO_COMPLEX);
+            case MULTIPLE_CONTROLLERS:
+                return new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS);
+            case READY:
+                switch (getRunState()) {
+                    case STOPPED:
+                    case LOADING_DEVICES:
+                        return bootError;
+                }
+                break;
+        }
+        return null;
     }
 
     public void handleNeighborChanged() {
@@ -225,6 +241,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
     }
 
+    @OnlyIn(Dist.CLIENT)
     public void setBootErrorClient(final ITextComponent value) {
         final World world = getWorld();
         if (world != null && world.isRemote()) {

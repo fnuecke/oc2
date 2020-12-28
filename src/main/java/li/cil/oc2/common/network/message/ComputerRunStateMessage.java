@@ -8,7 +8,7 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class ComputerRunStateMessage {
+public final class ComputerRunStateMessage {
     private BlockPos pos;
     private ComputerTileEntity.RunState runState;
 

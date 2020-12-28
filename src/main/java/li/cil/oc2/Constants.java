@@ -29,6 +29,10 @@ public final class Constants {
 
     ///////////////////////////////////////////////////////////////////
 
+    public static final String COMPUTER_SCREEN_CAPTURE_INPUT_CAPTION = "gui.oc2.computer.capture_input.capt";
+    public static final String COMPUTER_SCREEN_CAPTURE_INPUT_DESCRIPTION = "gui.oc2.computer.capture_input.desc";
+    public static final String COMPUTER_SCREEN_POWER_CAPTION = "gui.oc2.computer.power.capt";
+    public static final String COMPUTER_SCREEN_POWER_DESCRIPTION = "gui.oc2.computer.power.desc";
     public static final String COMPUTER_BOOT_ERROR_UNKNOWN = "gui.oc2.computer.boot_error.unknown";
     public static final String COMPUTER_BOOT_ERROR_NO_MEMORY = "gui.oc2.computer.boot_error.no_memory";
     public static final String COMPUTER_BUS_STATE_INCOMPLETE = "gui.oc2.computer.bus_state.incomplete";

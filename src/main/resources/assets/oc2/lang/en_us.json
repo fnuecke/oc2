@@ -19,6 +19,11 @@
   "gui.oc2.computer.bus_state.too_complex": "Bus Too Complex",
   "gui.oc2.computer.bus_state.multiple_controllers": "Multiple Bus Controllers",
 
+  "gui.oc2.computer.capture_input.capt": "Capture Input",
+  "gui.oc2.computer.capture_input.desc": "When enabled, as long as the mouse cursor is hovering the terminal contents, all input will be captured, including the escape key.",
+  "gui.oc2.computer.power.capt": "Toggle Power",
+  "gui.oc2.computer.power.desc": "Toggles the power state of the computer.",
+
   "gui.oc2.device_type.eeprom": "EEPROM",
   "gui.oc2.device_type.memory": "Memory",
   "gui.oc2.device_type.hard_drive": "Hard Drive",

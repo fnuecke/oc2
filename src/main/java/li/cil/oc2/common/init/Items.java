@@ -30,6 +30,7 @@ public final class Items {
     public static final RegistryObject<Item> MEMORY_ITEM = register(Constants.MEMORY_ITEM_NAME, MemoryItem::new, new Item.Properties());
     public static final RegistryObject<Item> HARD_DRIVE_ITEM = register(Constants.HARD_DRIVE_ITEM_NAME, HardDriveItem::new, new Item.Properties());
     public static final RegistryObject<Item> FLASH_MEMORY_ITEM = register(Constants.FLASH_MEMORY_ITEM_NAME, FlashMemoryItem::new, new Item.Properties());
+    public static final RegistryObject<Item> REDSTONE_INTERFACE_CARD_ITEM = register(Constants.REDSTONE_INTERFACE_CARD_NAME);
 
     ///////////////////////////////////////////////////////////////////
 

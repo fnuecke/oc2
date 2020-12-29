@@ -43,6 +43,7 @@ public final class ItemModels extends ItemModelProvider {
                 .end();
 
         simple(Items.FLASH_MEMORY_ITEM, "items/flash_memory");
+        simple(Items.REDSTONE_INTERFACE_CARD_ITEM, "items/redstone_interface_card");
     }
 
     private <T extends Item> ItemModelBuilder simple(final RegistryObject<T> item, final String texturePath) {

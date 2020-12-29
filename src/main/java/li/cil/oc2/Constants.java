@@ -23,6 +23,7 @@ public final class Constants {
     public static final String FLASH_MEMORY_ITEM_NAME = "flash_memory";
     public static final String MEMORY_ITEM_NAME = "memory";
     public static final String HARD_DRIVE_ITEM_NAME = "hard_drive";
+    public static final String REDSTONE_INTERFACE_CARD_NAME = "redstone_interface_card";
 
     ///////////////////////////////////////////////////////////////////
 

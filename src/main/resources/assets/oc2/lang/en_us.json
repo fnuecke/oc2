@@ -11,6 +11,7 @@
   "item.oc2.memory": "Memory",
   "item.oc2.hard_drive": "Hard Drive",
   "item.oc2.flash_memory": "Flash Memory",
+  "item.oc2.redstone_interface_card": "Redstone Interface Card",
 
   "gui.oc2.computer.boot_error.unknown": "Unknown Error",
   "gui.oc2.computer.boot_error.no_memory": "Insufficient Memory",

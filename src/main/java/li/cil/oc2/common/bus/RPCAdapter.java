@@ -311,7 +311,7 @@ public final class RPCAdapter implements Steppable {
                 final Object result = method.invoke(parameters);
                 writeMessage(Message.MESSAGE_TYPE_RESULT, result);
             } catch (final Throwable e) {
-                writeError(e.getMessage());
+                writeError(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
             }
 
             return;

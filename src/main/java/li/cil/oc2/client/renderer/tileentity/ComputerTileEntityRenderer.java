@@ -1,10 +1,10 @@
-package li.cil.oc2.client.render.tile;
+package li.cil.oc2.client.renderer.tileentity;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import li.cil.oc2.api.API;
-import li.cil.oc2.client.render.OpenComputersRenderType;
+import li.cil.oc2.client.renderer.OpenComputersRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.block.entity.ComputerTileEntity;
 import li.cil.oc2.common.vm.Terminal;

@@ -1,6 +1,6 @@
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package li.cil.oc2.client.render.tile;
+package li.cil.oc2.client.renderer.tileentity;
 
 import mcp.MethodsReturnNonnullByDefault;
 

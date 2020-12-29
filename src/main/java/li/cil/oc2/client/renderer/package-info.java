@@ -1,6 +1,6 @@
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package li.cil.oc2.client.render;
+package li.cil.oc2.client.renderer;
 
 import mcp.MethodsReturnNonnullByDefault;
 

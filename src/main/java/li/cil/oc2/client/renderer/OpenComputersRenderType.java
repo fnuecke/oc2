@@ -1,4 +1,4 @@
-package li.cil.oc2.client.render;
+package li.cil.oc2.client.renderer;
 
 import li.cil.oc2.api.API;
 import net.minecraft.client.renderer.RenderType;

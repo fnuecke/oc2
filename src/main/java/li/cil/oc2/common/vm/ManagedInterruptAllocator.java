@@ -1,7 +1,6 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.oc2.api.bus.device.vm.InterruptAllocator;
-import li.cil.sedna.riscv.device.R5PlatformLevelInterruptController;
 
 import java.util.BitSet;
 import java.util.OptionalInt;
@@ -45,7 +44,7 @@ public final class ManagedInterruptAllocator implements InterruptAllocator {
             throw new IllegalStateException();
         }
 
-        if (interrupt < 1 || interrupt >= R5PlatformLevelInterruptController.INTERRUPT_COUNT) {
+        if (interrupt < 1 || interrupt >= interruptCount) {
             throw new IllegalArgumentException();
         }
 

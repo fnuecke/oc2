@@ -136,6 +136,7 @@ public class BlockStates extends BlockStateProvider {
                 .scale(0.75f)
                 .end()
                 .transform(ModelBuilder.Perspective.FIXED)
+                .rotation(0, 180, 0)
                 .scale(1.0f)
                 .end()
                 .transform(ModelBuilder.Perspective.THIRDPERSON_RIGHT)

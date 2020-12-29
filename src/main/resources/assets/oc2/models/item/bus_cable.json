@@ -25,6 +25,13 @@
         0.75
       ]
     },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ]
+    },
     "thirdperson_righthand": {
       "rotation": [
         75,

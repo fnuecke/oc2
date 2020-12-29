@@ -63,6 +63,8 @@ public final class ObjectDevice implements RPCDevice {
         this(object, emptyList());
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
     public List<String> getTypeNames() {
         return typeNames;

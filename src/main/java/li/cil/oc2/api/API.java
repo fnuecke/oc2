@@ -26,9 +26,4 @@ public final class API {
      * @see Callback
      */
     public static final String IMC_ADD_RPC_METHOD_PARAMETER_TYPE_ADAPTER = "addRPCMethodParameterTypeAdapter";
-
-    ///////////////////////////////////////////////////////////////////
-
-    private API() {
-    }
 }

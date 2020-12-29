@@ -41,7 +41,7 @@ public class RPCAdapterTests {
     @Test
     public void resetAndReadDescriptor() {
         final VoidIntMethod method = new VoidIntMethod();
-        final TestRPCDeviceInterface device = new TestRPCDeviceInterface(method);
+        final TestRPCDevice device = new TestRPCDevice(method);
         setDevice(device, DEVICE_UUID);
 
         final JsonObject request = new JsonObject();
@@ -66,7 +66,7 @@ public class RPCAdapterTests {
     @Test
     public void simpleMethod() {
         final VoidIntMethod method = new VoidIntMethod();
-        final TestRPCDeviceInterface device = new TestRPCDeviceInterface(method);
+        final TestRPCDevice device = new TestRPCDevice(method);
         setDevice(device, DEVICE_UUID);
 
         invokeMethod(DEVICE_UUID, method.getName(), 0xdeadbeef);
@@ -77,7 +77,7 @@ public class RPCAdapterTests {
     @Test
     public void returningMethod() {
         final IntLongMethod method = new IntLongMethod();
-        final TestRPCDeviceInterface device = new TestRPCDeviceInterface(method);
+        final TestRPCDevice device = new TestRPCDevice(method);
         setDevice(device, DEVICE_UUID);
 
         final JsonElement result = invokeMethod(DEVICE_UUID, method.getName(), 0xdeadbeefcafebabeL);
@@ -220,10 +220,10 @@ public class RPCAdapterTests {
         }
     }
 
-    private static final class TestRPCDeviceInterface implements RPCDevice {
+    private static final class TestRPCDevice implements RPCDevice {
         private final RPCMethod method;
 
-        public TestRPCDeviceInterface(final RPCMethod method) {
+        public TestRPCDevice(final RPCMethod method) {
             this.method = method;
         }
 

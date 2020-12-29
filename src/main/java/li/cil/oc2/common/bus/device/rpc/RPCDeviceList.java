@@ -10,17 +10,17 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public final class RPCDeviceList implements RPCDevice {
-    private final ArrayList<RPCDevice> deviceInterfaces;
+    private final ArrayList<RPCDevice> devices;
 
     ///////////////////////////////////////////////////////////////////
 
-    public RPCDeviceList(final ArrayList<RPCDevice> deviceInterfaces) {
-        this.deviceInterfaces = deviceInterfaces;
+    public RPCDeviceList(final ArrayList<RPCDevice> devices) {
+        this.devices = devices;
     }
 
     @Override
     public List<String> getTypeNames() {
-        return deviceInterfaces.stream()
+        return devices.stream()
                 .map(RPCDevice::getTypeNames)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
@@ -28,7 +28,7 @@ public final class RPCDeviceList implements RPCDevice {
 
     @Override
     public List<RPCMethod> getMethods() {
-        return deviceInterfaces.stream()
+        return devices.stream()
                 .map(RPCDevice::getMethods)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
@@ -39,11 +39,11 @@ public final class RPCDeviceList implements RPCDevice {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         final RPCDeviceList that = (RPCDeviceList) o;
-        return deviceInterfaces.equals(that.deviceInterfaces);
+        return devices.equals(that.devices);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(deviceInterfaces);
+        return Objects.hash(devices);
     }
 }

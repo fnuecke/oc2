@@ -1,7 +1,9 @@
 package li.cil.oc2.common.block;
 
+import li.cil.oc2.api.bus.device.capabilities.RedstoneEmitter;
 import li.cil.oc2.client.gui.TerminalScreen;
 import li.cil.oc2.common.block.entity.ComputerTileEntity;
+import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ComputerContainer;
 import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.integration.Wrenches;
@@ -62,6 +64,34 @@ public final class ComputerBlock extends HorizontalBlock {
     @Override
     public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
         return TileEntities.COMPUTER_TILE_ENTITY.get().create();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public boolean canProvidePower(final BlockState state) {
+        return true;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public int getWeakPower(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
+        if (side.getAxis().getPlane() == Direction.Plane.HORIZONTAL) {
+            final TileEntity tileEntity = world.getTileEntity(pos);
+            if (tileEntity != null) {
+                // Redstone requests info for faces with external perspective. Capabilities treat
+                // the Direction from internal perspective, so flip it.
+                return tileEntity.getCapability(Capabilities.REDSTONE_EMITTER, side.getOpposite())
+                        .map(RedstoneEmitter::getRedstoneOutput)
+                        .orElse(0);
+            }
+        }
+        return super.getWeakPower(state, world, pos, side);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public int getStrongPower(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
+        return getWeakPower(state, world, pos, side);
     }
 
     @SuppressWarnings("deprecation")

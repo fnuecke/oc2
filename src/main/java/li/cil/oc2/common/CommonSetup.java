@@ -5,10 +5,12 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.integration.IMC;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.serialization.BlobStorage;
+import li.cil.oc2.common.serialization.serializers.DirectionJsonSerializer;
 import li.cil.oc2.common.serialization.serializers.ItemStackJsonSerializer;
 import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.vm.Allocator;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Direction;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
@@ -42,5 +44,6 @@ public final class CommonSetup {
 
     private static void addBuiltinRPCMethodParameterTypeAdapters() {
         RPCMethodParameterTypeAdapters.addTypeAdapter(ItemStack.class, new ItemStackJsonSerializer());
+        RPCMethodParameterTypeAdapters.addTypeAdapter(Direction.class, new DirectionJsonSerializer());
     }
 }

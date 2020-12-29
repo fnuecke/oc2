@@ -61,6 +61,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.function.Function;
 
 public final class ComputerTileEntity extends AbstractTileEntity implements ITickableTileEntity {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -106,13 +107,14 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private RunState runState;
     private ITextComponent bootError;
     private int loadDevicesDelay;
+    private boolean isNeighborUpdateScheduled;
 
     ///////////////////////////////////////////////////////////////////
 
-    private final DeviceItemStackHandler memoryItemHandler = new TypedDeviceItemStackHandler(MEMORY_SLOTS, this::getDevices, DeviceTypes.MEMORY);
-    private final DeviceItemStackHandler hardDriveItemHandler = new TypedDeviceItemStackHandler(HARD_DRIVE_SLOTS, this::getDevices, DeviceTypes.HARD_DRIVE);
-    private final DeviceItemStackHandler flashMemoryItemHandler = new TypedDeviceItemStackHandler(FLASH_MEMORY_SLOTS, this::getDevices, DeviceTypes.FLASH_MEMORY);
-    private final DeviceItemStackHandler cardItemHandler = new TypedDeviceItemStackHandler(CARD_SLOTS, this::getDevices, DeviceTypes.CARD);
+    private final DeviceItemStackHandler memoryItemHandler = new ComputerItemHandler(MEMORY_SLOTS, this::getDevices, DeviceTypes.MEMORY);
+    private final DeviceItemStackHandler hardDriveItemHandler = new ComputerItemHandler(HARD_DRIVE_SLOTS, this::getDevices, DeviceTypes.HARD_DRIVE);
+    private final DeviceItemStackHandler flashMemoryItemHandler = new ComputerItemHandler(FLASH_MEMORY_SLOTS, this::getDevices, DeviceTypes.FLASH_MEMORY);
+    private final DeviceItemStackHandler cardItemHandler = new ComputerItemHandler(CARD_SLOTS, this::getDevices, DeviceTypes.CARD);
 
     private final IItemHandler itemHandlers = new CombinedInvWrapper(memoryItemHandler, hardDriveItemHandler, flashMemoryItemHandler, cardItemHandler);
 
@@ -287,6 +289,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         if (chunk == null) {
             chunk = world.getChunkAt(getPos());
+        }
+
+        if (isNeighborUpdateScheduled) {
+            isNeighborUpdateScheduled = false;
+            world.notifyNeighborsOfStateChange(getPos(), getBlockState().getBlock());
         }
 
         busController.scan();
@@ -571,6 +578,19 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    private final class ComputerItemHandler extends TypedDeviceItemStackHandler {
+        public ComputerItemHandler(final int size, final Function<ItemStack, List<ItemDeviceInfo>> deviceLookup, final DeviceType deviceType) {
+            super(size, deviceLookup, deviceType);
+        }
+
+        @Override
+        protected void onContentsChanged(final int slot) {
+            super.onContentsChanged(slot);
+            markDirty();
+            isNeighborUpdateScheduled = true;
+        }
+    }
 
     private final class BusController extends TileEntityDeviceBusController {
         private BusController(final DeviceBusElement root) {

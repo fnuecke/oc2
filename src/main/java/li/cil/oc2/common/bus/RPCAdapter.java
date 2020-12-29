@@ -87,9 +87,6 @@ public final class RPCAdapter implements Steppable {
         pauseLock.lock();
         isPaused = true;
         pauseLock.unlock();
-
-        devices.clear();
-        devicesById.clear();
     }
 
     public void resume(final boolean didDevicesChange) {
@@ -98,6 +95,9 @@ public final class RPCAdapter implements Steppable {
         if (!didDevicesChange) {
             return;
         }
+
+        devices.clear();
+        devicesById.clear();
 
         // How device grouping works:
         // Each device can have multiple UUIDs due to being attached to multiple bus elements.

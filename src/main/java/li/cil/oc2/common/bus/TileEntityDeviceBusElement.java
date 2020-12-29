@@ -70,7 +70,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
                 continue;
             }
 
-            final LazyOptional<DeviceBusElement> capability = tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, neighborDirection.getOpposite());
+            final LazyOptional<DeviceBusElement> capability = tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT, neighborDirection.getOpposite());
             if (capability.isPresent()) {
                 neighbors.add(capability);
             }
@@ -149,7 +149,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
             }
 
             final LazyOptional<DeviceBusElement> capability = tileEntity
-                    .getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, direction.getOpposite());
+                    .getCapability(Capabilities.DEVICE_BUS_ELEMENT, direction.getOpposite());
             capability.ifPresent(DeviceBus::scheduleScan);
         }
     }

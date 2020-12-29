@@ -275,7 +275,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        collector.offer(Capabilities.ITEM_HANDLER_CAPABILITY, itemHandlers);
+        collector.offer(Capabilities.ITEM_HANDLER, itemHandlers);
     }
 
     @Override

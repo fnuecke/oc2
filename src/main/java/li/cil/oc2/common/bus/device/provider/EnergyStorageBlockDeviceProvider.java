@@ -17,7 +17,7 @@ public final class EnergyStorageBlockDeviceProvider extends AbstractTileEntityCa
     ///////////////////////////////////////////////////////////////////
 
     public EnergyStorageBlockDeviceProvider() {
-        super(() -> Capabilities.ENERGY_STORAGE_CAPABILITY);
+        super(() -> Capabilities.ENERGY_STORAGE);
     }
 
     ///////////////////////////////////////////////////////////////////

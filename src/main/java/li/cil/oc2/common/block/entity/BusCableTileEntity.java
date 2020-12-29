@@ -34,7 +34,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     public void handleConnectionTypeChanged(final Direction side) {
-        invalidateCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, side);
+        invalidateCapability(Capabilities.DEVICE_BUS_ELEMENT, side);
         handleNeighborChanged(getPos().offset(side));
     }
 
@@ -56,7 +56,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         if (BusCableBlock.getConnectionType(getBlockState(), direction) != BusCableBlock.ConnectionType.NONE) {
-            collector.offer(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, busElement);
+            collector.offer(Capabilities.DEVICE_BUS_ELEMENT, busElement);
         }
     }
 

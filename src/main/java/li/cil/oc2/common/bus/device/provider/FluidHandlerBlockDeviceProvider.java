@@ -18,7 +18,7 @@ public final class FluidHandlerBlockDeviceProvider extends AbstractTileEntityCap
     ///////////////////////////////////////////////////////////////////
 
     public FluidHandlerBlockDeviceProvider() {
-        super(() -> Capabilities.FLUID_HANDLER_CAPABILITY);
+        super(() -> Capabilities.FLUID_HANDLER);
     }
 
     ///////////////////////////////////////////////////////////////////

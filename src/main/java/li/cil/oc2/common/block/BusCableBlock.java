@@ -294,7 +294,7 @@ public final class BusCableBlock extends Block {
             return false;
         }
 
-        return tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY, facing.getOpposite()).isPresent();
+        return tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT, facing.getOpposite()).isPresent();
     }
 
     private void onConnectionTypeChanged(final IWorld world, final BlockPos pos, final Direction face) {

@@ -18,7 +18,7 @@ public final class ItemHandlerBlockDeviceProvider extends AbstractTileEntityCapa
     ///////////////////////////////////////////////////////////////////
 
     public ItemHandlerBlockDeviceProvider() {
-        super(() -> Capabilities.ITEM_HANDLER_CAPABILITY);
+        super(() -> Capabilities.ITEM_HANDLER);
     }
 
     ///////////////////////////////////////////////////////////////////

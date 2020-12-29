@@ -37,7 +37,7 @@ public class DeviceBusTests {
     @BeforeEach
     public void setupEach() {
         MockitoAnnotations.initMocks(this);
-        Capabilities.DEVICE_BUS_ELEMENT_CAPABILITY = busElementCapability;
+        Capabilities.DEVICE_BUS_ELEMENT = busElementCapability;
 
         busControllerBusElement = mock(DeviceBusElement.class);
         when(busControllerBusElement.getLocalDevices()).thenReturn(emptyList());

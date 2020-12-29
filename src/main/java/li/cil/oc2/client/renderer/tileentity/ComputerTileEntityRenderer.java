@@ -6,7 +6,7 @@ import com.mojang.blaze3d.vertex.IVertexBuilder;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.OpenComputersRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
-import li.cil.oc2.common.block.entity.ComputerTileEntity;
+import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.IRenderTypeBuffer;

@@ -2,7 +2,7 @@ package li.cil.oc2.common.container;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.block.Blocks;
-import li.cil.oc2.common.block.entity.ComputerTileEntity;
+import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketBuffer;

@@ -1,4 +1,4 @@
-package li.cil.oc2.common.block.entity;
+package li.cil.oc2.common.tileentity;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;

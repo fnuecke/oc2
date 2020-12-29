@@ -1,4 +1,4 @@
-package li.cil.oc2.common.block.entity;
+package li.cil.oc2.common.tileentity;
 
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;

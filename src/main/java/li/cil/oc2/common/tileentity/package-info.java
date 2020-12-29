@@ -1,6 +1,6 @@
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package li.cil.oc2.common.block.entity;
+package li.cil.oc2.common.tileentity;
 
 import mcp.MethodsReturnNonnullByDefault;
 

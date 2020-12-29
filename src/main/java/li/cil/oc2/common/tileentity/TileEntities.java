@@ -1,4 +1,4 @@
-package li.cil.oc2.common.block.entity;
+package li.cil.oc2.common.tileentity;
 
 import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;

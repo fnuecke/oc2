@@ -22,6 +22,10 @@ public final class HorizontalBlockUtils {
             return direction;
         }
 
+        if (!blockState.hasProperty(HorizontalBlock.HORIZONTAL_FACING)) {
+            return direction;
+        }
+
         final Direction facing = blockState.get(HorizontalBlock.HORIZONTAL_FACING);
         final int toLocal = HORIZONTAL_DIRECTION_COUNT - facing.getHorizontalIndex();
         final int rotatedIndex = (index + toLocal) % HORIZONTAL_DIRECTION_COUNT;
@@ -36,6 +40,10 @@ public final class HorizontalBlockUtils {
 
         final int index = direction.getHorizontalIndex();
         if (index < 0) {
+            return direction;
+        }
+
+        if (!blockState.hasProperty(HorizontalBlock.HORIZONTAL_FACING)) {
             return direction;
         }
 

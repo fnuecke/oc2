@@ -20,12 +20,9 @@ public final class Constants {
 
     public static final String WRENCH_ITEM_NAME = "wrench";
     public static final String BUS_INTERFACE_ITEM_NAME = "bus_interface";
+    public static final String FLASH_MEMORY_ITEM_NAME = "flash_memory";
     public static final String MEMORY_ITEM_NAME = "memory";
     public static final String HARD_DRIVE_ITEM_NAME = "hard_drive";
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static final String TOOLTIP_SUFFIX_FORMAT = "tooltip.oc2.suffix_format";
 
     ///////////////////////////////////////////////////////////////////
 

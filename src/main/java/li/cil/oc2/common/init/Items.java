@@ -27,8 +27,9 @@ public final class Items {
 
     public static final RegistryObject<Item> BUS_INTERFACE_ITEM = register(Constants.BUS_INTERFACE_ITEM_NAME, BusInterfaceItem::new);
     public static final RegistryObject<Item> WRENCH_ITEM = register(Constants.WRENCH_ITEM_NAME, WrenchItem::new);
-    public static final RegistryObject<Item> HARD_DRIVE_ITEM = register(Constants.HARD_DRIVE_ITEM_NAME, HardDriveItem::new, new Item.Properties());
     public static final RegistryObject<Item> MEMORY_ITEM = register(Constants.MEMORY_ITEM_NAME, MemoryItem::new, new Item.Properties());
+    public static final RegistryObject<Item> HARD_DRIVE_ITEM = register(Constants.HARD_DRIVE_ITEM_NAME, HardDriveItem::new, new Item.Properties());
+    public static final RegistryObject<Item> FLASH_MEMORY_ITEM = register(Constants.FLASH_MEMORY_ITEM_NAME, FlashMemoryItem::new, new Item.Properties());
 
     ///////////////////////////////////////////////////////////////////
 

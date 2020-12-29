@@ -32,6 +32,7 @@ public final class Providers {
 
         ITEM_DEVICE_PROVIDERS.register("item_memory", MemoryItemDeviceProvider::new);
         ITEM_DEVICE_PROVIDERS.register("item_hard_drive", HardDriveItemDeviceProvider::new);
+        ITEM_DEVICE_PROVIDERS.register("item_flash_memory", FlashMemoryItemDeviceProvider::new);
 
         BLOCK_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());
         ITEM_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());

@@ -15,7 +15,7 @@ public final class DeviceTypeImpl extends ForgeRegistryEntry<DeviceType> impleme
     }
 
     @Override
-    public ResourceLocation getIcon() {
+    public ResourceLocation getBackgroundIcon() {
         return icon;
     }
 

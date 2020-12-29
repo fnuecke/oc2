@@ -19,14 +19,14 @@ public final class DeviceTypes {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final Supplier<IForgeRegistry<DeviceType>> DEVICE_TYPE_REGISTRY = DEVICE_TYPES.makeRegistry(DeviceType.REGISTRY_ID.getPath(), RegistryBuilder::new);
+    private static final Supplier<IForgeRegistry<DeviceType>> DEVICE_TYPE_REGISTRY = DEVICE_TYPES.makeRegistry(DeviceType.REGISTRY.getPath(), RegistryBuilder::new);
 
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        register("eeprom");
         register("memory");
         register("hard_drive");
+        register("flash_memory");
         register("card");
 
         DEVICE_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus());
@@ -49,7 +49,7 @@ public final class DeviceTypes {
         }
 
         for (final DeviceType deviceType : DEVICE_TYPE_REGISTRY.get().getValues()) {
-            event.addSprite(deviceType.getIcon());
+            event.addSprite(deviceType.getBackgroundIcon());
         }
     }
 }

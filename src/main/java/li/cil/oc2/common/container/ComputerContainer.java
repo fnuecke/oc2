@@ -37,9 +37,9 @@ public final class ComputerContainer extends AbstractContainer {
         this.world = inventory.player.getEntityWorld();
         this.pos = tileEntity.getPos();
 
-        tileEntity.getItemHandler(DeviceTypes.EEPROM).ifPresent(itemHandler -> {
+        tileEntity.getItemHandler(DeviceTypes.FLASH_MEMORY).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {
-                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.EEPROM, 0, 64, 78));
+                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.FLASH_MEMORY, 0, 64, 78));
             }
         });
 

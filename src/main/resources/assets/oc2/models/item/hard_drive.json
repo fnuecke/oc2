@@ -6,13 +6,13 @@
   "overrides": [
     {
       "predicate": {
-        "oc2:hard_drive_capacity": 4194304.0
+        "oc2:capacity": 4194304.0
       },
       "model": "oc2:item/hard_drive2"
     },
     {
       "predicate": {
-        "oc2:hard_drive_capacity": 8388608.0
+        "oc2:capacity": 8388608.0
       },
       "model": "oc2:item/hard_drive3"
     }

@@ -41,6 +41,8 @@ public final class ItemModels extends ItemModelProvider {
                 .predicate(HardDriveItem.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
                 .model(simple(Items.HARD_DRIVE_ITEM, "items/hard_drive3", "3"))
                 .end();
+
+        simple(Items.FLASH_MEMORY_ITEM, "items/flash_memory");
     }
 
     private <T extends Item> ItemModelBuilder simple(final RegistryObject<T> item, final String texturePath) {

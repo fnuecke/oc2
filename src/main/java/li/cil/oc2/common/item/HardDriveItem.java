@@ -1,60 +1,66 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.Constants;
-import li.cil.oc2.api.API;
+import li.cil.oc2.api.bus.device.data.BaseBlockDevice;
+import li.cil.oc2.common.init.BaseBlockDevices;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.util.TextFormatUtils;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemModelsProperties;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.ResourceLocationException;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 
 import javax.annotation.Nullable;
 
-public final class HardDriveItem extends Item {
-    public static final ResourceLocation CAPACITY_PROPERTY = new ResourceLocation(API.MOD_ID, "hard_drive_capacity");
-    public static final String CAPACITY_TAG_NAME = "size";
+public final class HardDriveItem extends AbstractStorageItem {
     public static final String BASE_TAG_NAME = "base";
     public static final String READONLY_TAG_NAME = "readonly";
-    public static final int DEFAULT_CAPACITY = 2 * Constants.MEGABYTE;
 
-    public static int getCapacity(final ItemStack stack) {
-        final CompoundNBT modNbt = ItemStackUtils.getModDataTag(stack);
-        if (modNbt == null || !modNbt.contains(CAPACITY_TAG_NAME, NBTTagIds.TAG_INT)) {
-            return DEFAULT_CAPACITY;
-        }
+    private static final int DEFAULT_CAPACITY = 2 * Constants.MEGABYTE;
 
-        return modNbt.getInt(CAPACITY_TAG_NAME);
-    }
-
-    public static ItemStack withCapacity(final ItemStack stack, final int capacity) {
-        ItemStackUtils.getOrCreateModDataTag(stack).putInt(CAPACITY_TAG_NAME, capacity);
-        return stack;
-    }
+    ///////////////////////////////////////////////////////////////////
 
     @Nullable
-    public static String getBaseBlockDevice(final ItemStack stack) {
+    public static BaseBlockDevice getBaseBlockDevice(final ItemStack stack) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof HardDriveItem)) {
+            return null;
+        }
+
         final CompoundNBT modNbt = ItemStackUtils.getModDataTag(stack);
         if (modNbt == null || !modNbt.contains(BASE_TAG_NAME, NBTTagIds.TAG_STRING)) {
             return null;
         }
 
-        return modNbt.getString(BASE_TAG_NAME);
+        final String registryName = modNbt.getString(BASE_TAG_NAME);
+
+        try {
+            return BaseBlockDevices.REGISTRY.get().getValue(new ResourceLocation(registryName));
+        } catch (final ResourceLocationException ignored) {
+            return null;
+        }
     }
 
-    public static ItemStack withBaseBlockDevice(final ItemStack stack, final String baseBlockDevice) {
-        ItemStackUtils.getOrCreateModDataTag(stack).putString(BASE_TAG_NAME, baseBlockDevice);
+    public static ItemStack withBase(final ItemStack stack, final BaseBlockDevice baseBlockDevice) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof HardDriveItem)) {
+            return stack;
+        }
+
+        final ResourceLocation key = BaseBlockDevices.REGISTRY.get().getKey(baseBlockDevice);
+        if (key == null) {
+            return stack;
+        }
+
+        ItemStackUtils.getOrCreateModDataTag(stack).putString(BASE_TAG_NAME, key.toString());
+
         return stack;
     }
 
     public static boolean isReadonly(final ItemStack stack) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof HardDriveItem)) {
+            return false;
+        }
+
         final CompoundNBT modNbt = ItemStackUtils.getModDataTag(stack);
         if (modNbt == null) {
             return false;
@@ -63,26 +69,29 @@ public final class HardDriveItem extends Item {
         return modNbt.getBoolean(READONLY_TAG_NAME);
     }
 
-    public HardDriveItem(final Properties properties) {
-        super(properties);
-        ItemModelsProperties.registerProperty(this, CAPACITY_PROPERTY, HardDriveItem::getHardDriveItemProperties);
+    public static ItemStack withReadonly(final ItemStack stack, final boolean readonly) {
+        if (!stack.isEmpty() && stack.getItem() instanceof HardDriveItem) {
+            ItemStackUtils.getOrCreateModDataTag(stack).putBoolean(READONLY_TAG_NAME, readonly);
+        }
+
+        return stack;
     }
+
+    ///////////////////////////////////////////////////////////////////
+
+    public HardDriveItem(final Properties properties) {
+        super(properties, DEFAULT_CAPACITY);
+    }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
-    public ITextComponent getDisplayName(final ItemStack stack) {
-        final String baseBlockDevice = getBaseBlockDevice(stack);
+    protected ITextComponent getDisplayNameSuffix(final ItemStack stack) {
+        final BaseBlockDevice baseBlockDevice = getBaseBlockDevice(stack);
         if (baseBlockDevice != null) {
-            return new StringTextComponent("")
-                    .append(super.getDisplayName(stack))
-                    .append(new TranslationTextComponent(Constants.TOOLTIP_SUFFIX_FORMAT, baseBlockDevice));
+            return baseBlockDevice.getName();
         } else {
-            return new StringTextComponent("")
-                    .append(super.getDisplayName(stack))
-                    .append(new TranslationTextComponent(Constants.TOOLTIP_SUFFIX_FORMAT, TextFormatUtils.formatSize(getCapacity(stack))));
+            return super.getDisplayNameSuffix(stack);
         }
-    }
-
-    private static float getHardDriveItemProperties(final ItemStack stack, final ClientWorld world, final LivingEntity entity) {
-        return getCapacity(stack);
     }
 }

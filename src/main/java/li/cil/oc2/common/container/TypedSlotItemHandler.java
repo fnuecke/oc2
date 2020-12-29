@@ -23,7 +23,7 @@ public final class TypedSlotItemHandler extends SlotItemHandler {
         if (getHasStack()) {
             return super.getBackground();
         } else {
-            return Pair.of(PlayerContainer.LOCATION_BLOCKS_TEXTURE, deviceType.getIcon());
+            return Pair.of(PlayerContainer.LOCATION_BLOCKS_TEXTURE, deviceType.getBackgroundIcon());
         }
     }
 }

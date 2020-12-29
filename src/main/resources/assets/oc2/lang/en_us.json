@@ -10,8 +10,7 @@
   "item.oc2.bus_interface": "Bus Interface",
   "item.oc2.memory": "Memory",
   "item.oc2.hard_drive": "Hard Drive",
-
-  "tooltip.oc2.suffix_format": " (%s)",
+  "item.oc2.flash_memory": "Flash Memory",
 
   "gui.oc2.computer.boot_error.unknown": "Unknown Error",
   "gui.oc2.computer.boot_error.no_memory": "Insufficient Memory",
@@ -24,8 +23,8 @@
   "gui.oc2.computer.power.capt": "Toggle Power",
   "gui.oc2.computer.power.desc": "Toggles the power state of the computer.",
 
-  "gui.oc2.device_type.eeprom": "EEPROM",
   "gui.oc2.device_type.memory": "Memory",
   "gui.oc2.device_type.hard_drive": "Hard Drive",
+  "gui.oc2.device_type.flash_memory": "Flash Memory",
   "gui.oc2.device_type.card": "Card"
 }

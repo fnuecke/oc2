@@ -5,8 +5,8 @@ import net.minecraftforge.registries.ObjectHolder;
 
 @ObjectHolder(API.MOD_ID)
 public final class DeviceTypes {
-    @ObjectHolder("eeprom") public static DeviceType EEPROM = null;
     @ObjectHolder("memory") public static DeviceType MEMORY = null;
     @ObjectHolder("hard_drive") public static DeviceType HARD_DRIVE = null;
+    @ObjectHolder("flash_memory") public static DeviceType FLASH_MEMORY = null;
     @ObjectHolder("card") public static DeviceType CARD = null;
 }

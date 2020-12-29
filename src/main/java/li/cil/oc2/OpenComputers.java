@@ -18,6 +18,8 @@ public final class OpenComputers {
         Containers.initialize();
         Providers.initialize();
         DeviceTypes.initialize();
+        BaseBlockDevices.initialize();
+        Firmwares.initialize();
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(CommonSetup::run);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientSetup::run);

@@ -1,5 +1,6 @@
 package li.cil.oc2.api.bus.device.vm;
 
+import java.util.Optional;
 import java.util.OptionalInt;
 
 /**
@@ -22,7 +23,8 @@ public interface InterruptAllocator {
     OptionalInt claimInterrupt(int interrupt);
 
     /**
-     *
+     * Tries to claim the next free interrupt. If no more interrupts are available,
+     * this will return {@link Optional#empty()}.
      *
      * @return the interrupt that was claimed, if any.
      */

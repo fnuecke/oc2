@@ -1,12 +1,16 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.bus.ItemHandlerDeviceBusElement;
+import li.cil.oc2.common.bus.device.ItemDeviceInfo;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.function.Function;
 
 public class DeviceItemStackHandler extends ItemStackHandler {
     private static final String BUS_ELEMENT_NBT_TAG_NAME = "busElement";
@@ -17,13 +21,13 @@ public class DeviceItemStackHandler extends ItemStackHandler {
 
     ///////////////////////////////////////////////////////////////////
 
-    public DeviceItemStackHandler(final int size) {
-        this(NonNullList.withSize(size, ItemStack.EMPTY));
+    public DeviceItemStackHandler(final int size, final Function<ItemStack, List<ItemDeviceInfo>> deviceLookup) {
+        this(NonNullList.withSize(size, ItemStack.EMPTY), deviceLookup);
     }
 
-    public DeviceItemStackHandler(final NonNullList<ItemStack> stacks) {
+    public DeviceItemStackHandler(final NonNullList<ItemStack> stacks, final Function<ItemStack, List<ItemDeviceInfo>> deviceLookup) {
         super(stacks);
-        this.busElement = new ItemHandlerDeviceBusElement(getSlots());
+        this.busElement = new ItemHandlerDeviceBusElement(getSlots(), deviceLookup);
     }
 
     ///////////////////////////////////////////////////////////////////

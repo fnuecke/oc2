@@ -16,6 +16,7 @@ import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
+import li.cil.oc2.common.bus.device.Devices;
 import li.cil.oc2.common.bus.device.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
@@ -38,6 +39,7 @@ import li.cil.sedna.device.serial.UART16550A;
 import li.cil.sedna.device.virtio.VirtIOFileSystemDevice;
 import li.cil.sedna.fs.HostFileSystem;
 import net.minecraft.block.BlockState;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
@@ -107,10 +109,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     ///////////////////////////////////////////////////////////////////
 
-    private final DeviceItemStackHandler memoryItemHandler = new TypedDeviceItemStackHandler(MEMORY_SLOTS, DeviceTypes.MEMORY);
-    private final DeviceItemStackHandler hardDriveItemHandler = new TypedDeviceItemStackHandler(HARD_DRIVE_SLOTS, DeviceTypes.HARD_DRIVE);
-    private final DeviceItemStackHandler flashMemoryItemHandler = new TypedDeviceItemStackHandler(FLASH_MEMORY_SLOTS, DeviceTypes.FLASH_MEMORY);
-    private final DeviceItemStackHandler cardItemHandler = new TypedDeviceItemStackHandler(CARD_SLOTS, DeviceTypes.CARD);
+    private final DeviceItemStackHandler memoryItemHandler = new TypedDeviceItemStackHandler(MEMORY_SLOTS, this::getDevices, DeviceTypes.MEMORY);
+    private final DeviceItemStackHandler hardDriveItemHandler = new TypedDeviceItemStackHandler(HARD_DRIVE_SLOTS, this::getDevices, DeviceTypes.HARD_DRIVE);
+    private final DeviceItemStackHandler flashMemoryItemHandler = new TypedDeviceItemStackHandler(FLASH_MEMORY_SLOTS, this::getDevices, DeviceTypes.FLASH_MEMORY);
+    private final DeviceItemStackHandler cardItemHandler = new TypedDeviceItemStackHandler(CARD_SLOTS, this::getDevices, DeviceTypes.CARD);
+
     private final IItemHandler itemHandlers = new CombinedInvWrapper(memoryItemHandler, hardDriveItemHandler, flashMemoryItemHandler, cardItemHandler);
 
     private final Terminal terminal = new Terminal();
@@ -479,6 +482,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    private List<ItemDeviceInfo> getDevices(final ItemStack stack) {
+        return Devices.getDevices(this, stack);
+    }
 
     private void setBusState(final AbstractDeviceBusController.BusState value) {
         if (value == busState) {

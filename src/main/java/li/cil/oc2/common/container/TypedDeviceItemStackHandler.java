@@ -2,13 +2,17 @@ package li.cil.oc2.common.container;
 
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.common.bus.device.Devices;
+import li.cil.oc2.common.bus.device.ItemDeviceInfo;
 import net.minecraft.item.ItemStack;
+
+import java.util.List;
+import java.util.function.Function;
 
 public class TypedDeviceItemStackHandler extends DeviceItemStackHandler {
     private final DeviceType deviceType;
 
-    public TypedDeviceItemStackHandler(final int size, final DeviceType deviceType) {
-        super(size);
+    public TypedDeviceItemStackHandler(final int size, final Function<ItemStack, List<ItemDeviceInfo>> deviceLookup, final DeviceType deviceType) {
+        super(size, deviceLookup);
         this.deviceType = deviceType;
     }
 

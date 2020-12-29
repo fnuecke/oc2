@@ -1,6 +1,5 @@
 package li.cil.oc2.common.bus;
 
-import li.cil.oc2.common.bus.device.Devices;
 import li.cil.oc2.common.bus.device.ItemDeviceInfo;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.NBTTagIds;
@@ -9,17 +8,22 @@ import net.minecraft.nbt.CompoundNBT;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.function.Function;
 
 public class ItemHandlerDeviceBusElement extends AbstractGroupingItemDeviceBusElement {
-    public ItemHandlerDeviceBusElement(final int slotCount) {
+    private final Function<ItemStack, List<ItemDeviceInfo>> deviceLookup;
+
+    public ItemHandlerDeviceBusElement(final int slotCount, final Function<ItemStack, List<ItemDeviceInfo>> deviceLookup) {
         super(slotCount);
+        this.deviceLookup = deviceLookup;
     }
 
     ///////////////////////////////////////////////////////////////////
 
     public void updateDevices(final int slot, final ItemStack stack) {
         if (!stack.isEmpty()) {
-            final HashSet<ItemDeviceInfo> newDevices = new HashSet<>(Devices.getDevices(stack));
+            final HashSet<ItemDeviceInfo> newDevices = new HashSet<>(deviceLookup.apply(stack));
             importDeviceDataFromItemStack(stack, newDevices);
             setDevicesForGroup(slot, newDevices);
         } else {

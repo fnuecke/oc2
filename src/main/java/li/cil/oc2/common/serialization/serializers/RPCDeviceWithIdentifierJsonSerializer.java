@@ -1,7 +1,6 @@
 package li.cil.oc2.common.serialization.serializers;
 
 import com.google.gson.*;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.common.bus.RPCAdapter;
 
 import java.lang.reflect.Type;

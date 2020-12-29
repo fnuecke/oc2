@@ -2,9 +2,9 @@ package li.cil.oc2.data;
 
 import com.google.common.collect.Maps;
 import li.cil.oc2.api.API;
+import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
-import li.cil.oc2.common.init.Blocks;
-import li.cil.oc2.common.init.Items;
+import li.cil.oc2.common.item.Items;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.data.DataGenerator;

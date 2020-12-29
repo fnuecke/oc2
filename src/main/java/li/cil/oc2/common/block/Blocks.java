@@ -1,11 +1,7 @@
-package li.cil.oc2.common.init;
+package li.cil.oc2.common.block;
 
 import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.block.BusCableBlock;
-import li.cil.oc2.common.block.ComputerBlock;
-import li.cil.oc2.common.block.RedstoneInterfaceBlock;
-import li.cil.oc2.common.block.ScreenBlock;
 import net.minecraft.block.Block;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;

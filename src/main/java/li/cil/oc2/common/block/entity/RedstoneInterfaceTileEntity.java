@@ -4,7 +4,6 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;

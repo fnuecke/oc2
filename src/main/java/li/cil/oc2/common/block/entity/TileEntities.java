@@ -1,10 +1,8 @@
-package li.cil.oc2.common.init;
+package li.cil.oc2.common.block.entity;
 
 import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.block.entity.BusCableTileEntity;
-import li.cil.oc2.common.block.entity.ComputerTileEntity;
-import li.cil.oc2.common.block.entity.RedstoneInterfaceTileEntity;
+import li.cil.oc2.common.block.Blocks;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;

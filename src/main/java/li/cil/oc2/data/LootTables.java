@@ -2,7 +2,7 @@ package li.cil.oc2.data;
 
 import com.mojang.datafixers.util.Pair;
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.init.Blocks;
+import li.cil.oc2.common.block.Blocks;
 import net.minecraft.block.Block;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.LootTableProvider;

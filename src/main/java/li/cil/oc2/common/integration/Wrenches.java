@@ -1,6 +1,6 @@
 package li.cil.oc2.common.integration;
 
-import li.cil.oc2.common.init.Items;
+import li.cil.oc2.common.item.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 

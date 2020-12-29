@@ -2,10 +2,10 @@ package li.cil.oc2.common.block;
 
 import com.google.common.collect.Maps;
 import li.cil.oc2.common.block.entity.BusCableTileEntity;
+import li.cil.oc2.common.block.entity.TileEntities;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.init.Items;
-import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.integration.Wrenches;
+import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.block.Block;

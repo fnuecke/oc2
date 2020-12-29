@@ -1,8 +1,7 @@
-package li.cil.oc2.common.init;
+package li.cil.oc2.common.container;
 
 import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.container.ComputerContainer;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraftforge.common.extensions.IForgeContainerType;
 import net.minecraftforge.fml.RegistryObject;

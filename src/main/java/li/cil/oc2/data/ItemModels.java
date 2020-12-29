@@ -2,8 +2,8 @@ package li.cil.oc2.data;
 
 import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.init.Items;
 import li.cil.oc2.common.item.HardDriveItem;
+import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.MemoryItem;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.item.Item;

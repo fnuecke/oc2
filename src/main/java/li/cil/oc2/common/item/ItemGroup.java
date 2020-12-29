@@ -2,9 +2,8 @@ package li.cil.oc2.common.item;
 
 import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.init.BaseBlockDevices;
-import li.cil.oc2.common.init.Firmwares;
-import li.cil.oc2.common.init.Items;
+import li.cil.oc2.common.bus.device.data.BaseBlockDevices;
+import li.cil.oc2.common.bus.device.data.Firmwares;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 

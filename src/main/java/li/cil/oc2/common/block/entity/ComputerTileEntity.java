@@ -21,7 +21,6 @@ import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.container.TypedDeviceItemStackHandler;
-import li.cil.oc2.common.init.TileEntities;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBootErrorMessage;
 import li.cil.oc2.common.network.message.ComputerBusStateMessage;

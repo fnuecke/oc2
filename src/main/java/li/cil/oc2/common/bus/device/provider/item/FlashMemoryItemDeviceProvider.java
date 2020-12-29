@@ -9,8 +9,8 @@ import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.bus.device.item.ByteBufferFlashMemoryVMDevice;
 import li.cil.oc2.common.bus.device.item.FirmwareFlashMemoryVMDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
-import li.cil.oc2.common.init.Items;
 import li.cil.oc2.common.item.FlashMemoryItem;
+import li.cil.oc2.common.item.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
 

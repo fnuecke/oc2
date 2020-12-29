@@ -86,7 +86,7 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
         return world.getRedstonePower(neighborPos, direction);
     }
 
-    @Callback(name = GET_REDSTONE_OUTPUT)
+    @Callback(name = GET_REDSTONE_OUTPUT, synchronize = false)
     public int getRedstoneOutput(@Parameter(SIDE) final int side) {
         if (side < 0 || side > 3) {
             throw new IllegalArgumentException("invalid side");

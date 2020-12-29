@@ -1,4 +1,4 @@
-package li.cil.oc2.common.bus.device.provider;
+package li.cil.oc2.common.bus.device.provider.item;
 
 import li.cil.oc2.Config;
 import li.cil.oc2.api.bus.device.DeviceType;
@@ -6,8 +6,8 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.data.Firmware;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import li.cil.oc2.common.bus.device.ByteBufferFlashMemoryDevice;
-import li.cil.oc2.common.bus.device.FirmwareFlashMemoryDevice;
+import li.cil.oc2.common.bus.device.item.ByteBufferFlashMemoryVMDevice;
+import li.cil.oc2.common.bus.device.item.FirmwareFlashMemoryVMDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.init.Items;
 import li.cil.oc2.common.item.FlashMemoryItem;
@@ -29,11 +29,11 @@ public final class FlashMemoryItemDeviceProvider extends AbstractItemDeviceProvi
 
         final Firmware firmware = FlashMemoryItem.getFirmware(stack);
         if (firmware != null) {
-            return Optional.of(new FirmwareFlashMemoryDevice(stack, firmware));
+            return Optional.of(new FirmwareFlashMemoryVMDevice(stack, firmware));
         }
 
         final int size = MathHelper.clamp(FlashMemoryItem.getCapacity(stack), 0, Config.maxFlashMemorySize);
-        return Optional.of(new ByteBufferFlashMemoryDevice(stack, size));
+        return Optional.of(new ByteBufferFlashMemoryVMDevice(stack, size));
     }
 
     @Override

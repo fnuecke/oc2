@@ -2,7 +2,7 @@ package li.cil.oc2.common.init;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.common.bus.device.DeviceTypeImpl;
+import li.cil.oc2.common.bus.device.util.DeviceTypeImpl;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TranslationTextComponent;

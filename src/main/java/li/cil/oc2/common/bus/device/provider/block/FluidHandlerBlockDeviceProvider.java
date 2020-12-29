@@ -1,11 +1,11 @@
-package li.cil.oc2.common.bus.device.provider;
+package li.cil.oc2.common.bus.device.provider.block;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.common.bus.device.provider.util.AbstractTileEntityCapabilityDeviceProvider;
-import li.cil.oc2.common.bus.device.AbstractObjectDevice;
+import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.LazyOptional;
@@ -30,24 +30,24 @@ public final class FluidHandlerBlockDeviceProvider extends AbstractTileEntityCap
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final class FluidHandlerDevice extends AbstractObjectDevice<IFluidHandler> {
+    public static final class FluidHandlerDevice extends IdentityProxy<IFluidHandler> {
         public FluidHandlerDevice(final IFluidHandler fluidHandler) {
             super(fluidHandler);
         }
 
         @Callback
         public int getTanks() {
-            return value.getTanks();
+            return identity.getTanks();
         }
 
         @Callback
         public FluidStack getFluidInTank(final int tank) {
-            return value.getFluidInTank(tank);
+            return identity.getFluidInTank(tank);
         }
 
         @Callback
         public int getTankCapacity(final int tank) {
-            return value.getTankCapacity(tank);
+            return identity.getTankCapacity(tank);
         }
     }
 }

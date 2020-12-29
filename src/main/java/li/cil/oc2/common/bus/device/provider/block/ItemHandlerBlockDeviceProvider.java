@@ -1,10 +1,10 @@
-package li.cil.oc2.common.bus.device.provider;
+package li.cil.oc2.common.bus.device.provider.block;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import li.cil.oc2.common.bus.device.AbstractObjectDevice;
+import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.provider.util.AbstractTileEntityCapabilityDeviceProvider;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.item.ItemStack;
@@ -30,24 +30,24 @@ public final class ItemHandlerBlockDeviceProvider extends AbstractTileEntityCapa
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final class ItemHandlerDevice extends AbstractObjectDevice<IItemHandler> {
+    public static final class ItemHandlerDevice extends IdentityProxy<IItemHandler> {
         public ItemHandlerDevice(final IItemHandler itemHandler) {
             super(itemHandler);
         }
 
         @Callback
         public int getSlots() {
-            return value.getSlots();
+            return identity.getSlots();
         }
 
         @Callback
         public ItemStack getStackInSlot(final int slot) {
-            return value.getStackInSlot(slot);
+            return identity.getStackInSlot(slot);
         }
 
         @Callback
         public int getSlotLimit(final int slot) {
-            return value.getSlotLimit(slot);
+            return identity.getSlotLimit(slot);
         }
     }
 }

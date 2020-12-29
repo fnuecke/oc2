@@ -1,8 +1,8 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.common.bus.device.Devices;
-import li.cil.oc2.common.bus.device.ItemDeviceInfo;
+import li.cil.oc2.common.bus.device.util.Devices;
+import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import net.minecraft.item.ItemStack;
 
 import java.util.List;

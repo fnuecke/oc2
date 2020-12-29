@@ -1,17 +1,19 @@
-package li.cil.oc2.common.bus.device;
+package li.cil.oc2.common.bus.device.item;
 
+import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.data.Firmware;
 import li.cil.oc2.api.bus.device.vm.*;
+import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.sedna.api.memory.MemoryMap;
 import net.minecraft.item.ItemStack;
 
-public final class FirmwareFlashMemoryDevice extends AbstractItemDevice implements VMDevice, VMDeviceLifecycleListener {
+public final class FirmwareFlashMemoryVMDevice extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice {
     private final Firmware firmware;
     private MemoryMap memoryMap;
 
     ///////////////////////////////////////////////////////////////
 
-    public FirmwareFlashMemoryDevice(final ItemStack stack, final Firmware firmware) {
+    public FirmwareFlashMemoryVMDevice(final ItemStack stack, final Firmware firmware) {
         super(stack);
         this.firmware = firmware;
     }

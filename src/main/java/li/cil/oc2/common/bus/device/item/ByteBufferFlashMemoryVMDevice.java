@@ -1,44 +1,48 @@
-package li.cil.oc2.common.bus.device;
+package li.cil.oc2.common.bus.device.item;
 
-import li.cil.oc2.Config;
+import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.*;
-import li.cil.oc2.common.item.MemoryItem;
-import li.cil.oc2.common.serialization.BlobStorage;
-import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.sedna.api.device.PhysicalMemory;
-import li.cil.sedna.device.memory.Memory;
-import li.cil.sedna.memory.PhysicalMemoryInputStream;
-import li.cil.sedna.memory.PhysicalMemoryOutputStream;
+import li.cil.oc2.common.bus.device.util.IdentityProxy;
+import li.cil.sedna.api.memory.MemoryAccessException;
+import li.cil.sedna.api.memory.MemoryMap;
+import li.cil.sedna.device.flash.FlashMemoryDevice;
+import li.cil.sedna.memory.MemoryMaps;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.MathHelper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.nio.ByteBuffer;
 import java.util.OptionalLong;
-import java.util.UUID;
 
-public final class MemoryDevice extends AbstractItemDevice implements VMDevice, VMDeviceLifecycleListener {
-    private static final String BLOB_HANDLE_NBT_TAG_NAME = "blob";
-    private static final String ADDRESS_NBT_TAG_NAME = "address";
+public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice {
+    private static final Logger LOGGER = LogManager.getLogger();
+
+    ///////////////////////////////////////////////////////////////
+
+    public static final String DATA_TAG_NAME = "data";
 
     ///////////////////////////////////////////////////////////////
 
     private final int size;
-    private BlobStorage.JobHandle jobHandle;
-    private PhysicalMemory device;
+    private MemoryMap memoryMap;
+    private ByteBuffer data;
+    private FlashMemoryDevice device;
 
     ///////////////////////////////////////////////////////////////
 
-    private UUID blobHandle;
+    // Online persisted data.
+    private CompoundNBT deviceNbt;
     private Long address;
 
     ///////////////////////////////////////////////////////////////
 
-    public MemoryDevice(final ItemStack value) {
+    public ByteBufferFlashMemoryVMDevice(final ItemStack value, final int size) {
         super(value);
-        size = MathHelper.clamp(MemoryItem.getCapacity(value), 0, Config.maxMemorySize);
+        this.size = size;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////
 
     @Override
     public VMDeviceLoadResult load(final VMContext context) {
@@ -52,14 +56,17 @@ public final class MemoryDevice extends AbstractItemDevice implements VMDevice, 
 
         loadPersistedState();
 
+        memoryMap = context.getMemoryMap();
+
         return VMDeviceLoadResult.success();
     }
 
     @Override
     public void handleLifecycleEvent(final VMDeviceLifecycleEventType event) {
         switch (event) {
-            case RESUME_RUNNING:
-                awaitStorageOperation();
+            case INITIALIZE:
+                // TODO Have start address passed with event?
+                copyDataToMemory(0x80000000L);
                 break;
             case UNLOAD:
                 unload();
@@ -72,13 +79,7 @@ public final class MemoryDevice extends AbstractItemDevice implements VMDevice, 
         final CompoundNBT nbt = new CompoundNBT();
 
         if (device != null) {
-            blobHandle = BlobStorage.validateHandle(blobHandle);
-            nbt.putUniqueId(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
-
-            jobHandle = BlobStorage.submitSave(blobHandle, new PhysicalMemoryInputStream(device));
-        }
-        if (address != null) {
-            nbt.putLong(ADDRESS_NBT_TAG_NAME, address);
+            nbt.putByteArray(DATA_TAG_NAME, device.getData().array());
         }
 
         return nbt;
@@ -86,12 +87,7 @@ public final class MemoryDevice extends AbstractItemDevice implements VMDevice, 
 
     @Override
     public void deserializeNBT(final CompoundNBT nbt) {
-        if (nbt.hasUniqueId(BLOB_HANDLE_NBT_TAG_NAME)) {
-            blobHandle = nbt.getUniqueId(BLOB_HANDLE_NBT_TAG_NAME);
-        }
-        if (nbt.contains(ADDRESS_NBT_TAG_NAME, NBTTagIds.TAG_LONG)) {
-            address = nbt.getLong(ADDRESS_NBT_TAG_NAME);
-        }
+
     }
 
     ///////////////////////////////////////////////////////////////
@@ -101,7 +97,8 @@ public final class MemoryDevice extends AbstractItemDevice implements VMDevice, 
             return false;
         }
 
-        device = Memory.create(size);
+        data = ByteBuffer.allocate(size);
+        device = new FlashMemoryDevice(data);
 
         return true;
     }
@@ -124,25 +121,30 @@ public final class MemoryDevice extends AbstractItemDevice implements VMDevice, 
     }
 
     private void loadPersistedState() {
-        if (blobHandle != null) {
-            jobHandle = BlobStorage.submitLoad(blobHandle, new PhysicalMemoryOutputStream(device));
+        if (deviceNbt != null) {
+            data.clear();
+
+            final byte[] persistedData = deviceNbt.getByteArray(DATA_TAG_NAME);
+            data.put(persistedData, 0, Math.min(persistedData.length, data.capacity()));
         }
     }
 
-    private void awaitStorageOperation() {
-        if (jobHandle != null) {
-            jobHandle.await();
-            jobHandle = null;
+    private void copyDataToMemory(final long startAddress) {
+        final ByteBuffer data = device.getData();
+        data.clear();
+
+        try {
+            MemoryMaps.store(memoryMap, startAddress, data);
+        } catch (final MemoryAccessException e) {
+            LOGGER.error(e);
         }
     }
 
     private void unload() {
-        // Memory is volatile, so free up our persisted blob when device is unloaded.
-        BlobStorage.freeHandle(blobHandle);
-        blobHandle = null;
-
+        memoryMap = null;
+        data = null;
         device = null;
+        deviceNbt = null;
         address = null;
-        jobHandle = null;
     }
 }

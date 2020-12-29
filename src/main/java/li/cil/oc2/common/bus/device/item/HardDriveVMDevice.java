@@ -1,4 +1,4 @@
-package li.cil.oc2.common.bus.device;
+package li.cil.oc2.common.bus.device.item;
 
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.item.ItemStack;
@@ -7,13 +7,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Optional;
 
-public final class HardDriveDevice extends AbstractHardDriveDevice<ByteBufferBlockDevice> {
+public final class HardDriveVMDevice extends AbstractHardDriveVMDevice<ByteBufferBlockDevice> {
     private final int size;
     private final boolean readonly;
 
     ///////////////////////////////////////////////////////////////////
 
-    public HardDriveDevice(final ItemStack stack, final int size, final boolean readonly) {
+    public HardDriveVMDevice(final ItemStack stack, final int size, final boolean readonly) {
         super(stack);
         this.size = size;
         this.readonly = readonly;

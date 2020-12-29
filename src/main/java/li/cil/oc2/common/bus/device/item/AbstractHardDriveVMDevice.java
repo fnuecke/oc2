@@ -1,6 +1,8 @@
-package li.cil.oc2.common.bus.device;
+package li.cil.oc2.common.bus.device.item;
 
+import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.*;
+import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
@@ -16,7 +18,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.UUID;
 
-public abstract class AbstractHardDriveDevice<T extends BlockDevice> extends AbstractItemDevice implements VMDevice, VMDeviceLifecycleListener {
+public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice {
     private static final String DEVICE_NBT_TAG_NAME = "device";
     private static final String ADDRESS_NBT_TAG_NAME = "address";
     private static final String INTERRUPT_NBT_TAG_NAME = "interrupt";
@@ -40,7 +42,7 @@ public abstract class AbstractHardDriveDevice<T extends BlockDevice> extends Abs
 
     ///////////////////////////////////////////////////////////////
 
-    protected AbstractHardDriveDevice(final ItemStack stack) {
+    protected AbstractHardDriveVMDevice(final ItemStack stack) {
         super(stack);
     }
 

@@ -1,15 +1,15 @@
-package li.cil.oc2.common.bus.device;
+package li.cil.oc2.common.bus.device.util;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-public abstract class AbstractObjectDevice<T> {
-    protected final T value;
+public abstract class IdentityProxy<T> {
+    protected final T identity;
 
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractObjectDevice(final T value) {
-        this.value = value;
+    public IdentityProxy(final T identity) {
+        this.identity = identity;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -18,12 +18,12 @@ public abstract class AbstractObjectDevice<T> {
     public boolean equals(@Nullable final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        final AbstractObjectDevice<?> that = (AbstractObjectDevice<?>) o;
-        return value.equals(that.value);
+        final IdentityProxy<?> that = (IdentityProxy<?>) o;
+        return identity.equals(that.identity);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return Objects.hash(identity);
     }
 }

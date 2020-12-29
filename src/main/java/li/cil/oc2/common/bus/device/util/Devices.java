@@ -1,4 +1,4 @@
-package li.cil.oc2.common.bus.device;
+package li.cil.oc2.common.bus.device.util;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceType;

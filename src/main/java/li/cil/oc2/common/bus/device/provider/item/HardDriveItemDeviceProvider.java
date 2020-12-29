@@ -1,4 +1,4 @@
-package li.cil.oc2.common.bus.device.provider;
+package li.cil.oc2.common.bus.device.provider.item;
 
 import li.cil.oc2.Config;
 import li.cil.oc2.api.bus.device.DeviceType;
@@ -6,8 +6,8 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.data.BaseBlockDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import li.cil.oc2.common.bus.device.HardDriveDevice;
-import li.cil.oc2.common.bus.device.SparseHardDriveDevice;
+import li.cil.oc2.common.bus.device.item.HardDriveVMDevice;
+import li.cil.oc2.common.bus.device.item.SparseHardDriveVMDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.init.Items;
 import li.cil.oc2.common.item.HardDriveItem;
@@ -32,11 +32,11 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
         final BaseBlockDevice baseBlockDevice = HardDriveItem.getBaseBlockDevice(stack);
         if (baseBlockDevice != null) {
             final BlockDevice base = baseBlockDevice.get();
-            return Optional.of(new SparseHardDriveDevice(stack, base, readonly));
+            return Optional.of(new SparseHardDriveVMDevice(stack, base, readonly));
         }
 
         final int size = MathHelper.clamp(HardDriveItem.getCapacity(stack), 0, Config.maxHardDriveSize);
-        return Optional.of(new HardDriveDevice(stack, size, readonly));
+        return Optional.of(new HardDriveVMDevice(stack, size, readonly));
     }
 
     @Override

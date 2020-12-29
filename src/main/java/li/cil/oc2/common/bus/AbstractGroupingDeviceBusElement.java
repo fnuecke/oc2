@@ -1,7 +1,7 @@
 package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.common.bus.device.AbstractDeviceInfo;
+import li.cil.oc2.common.bus.device.util.AbstractDeviceInfo;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundNBT;

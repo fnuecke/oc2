@@ -1,4 +1,4 @@
-package li.cil.oc2.common.bus.device;
+package li.cil.oc2.common.bus.device.item;
 
 import li.cil.ceres.BinarySerialization;
 import li.cil.sedna.api.device.BlockDevice;
@@ -13,15 +13,19 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-public final class SparseHardDriveDevice extends AbstractHardDriveDevice<SparseBlockDevice> {
+public final class SparseHardDriveVMDevice extends AbstractHardDriveVMDevice<SparseBlockDevice> {
     private final BlockDevice base;
     private final boolean readonly;
 
-    public SparseHardDriveDevice(final ItemStack stack, final BlockDevice base, final boolean readonly) {
+    ///////////////////////////////////////////////////////////////////
+
+    public SparseHardDriveVMDevice(final ItemStack stack, final BlockDevice base, final boolean readonly) {
         super(stack);
         this.base = base;
         this.readonly = readonly;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     protected int getSize() {
@@ -46,6 +50,8 @@ public final class SparseHardDriveDevice extends AbstractHardDriveDevice<SparseB
     protected OutputStream getDeserializationStream(final SparseBlockDevice device) {
         return new DeserializationStream(device);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private static final class SerializationStream extends InputStream {
         private final SparseBlockDevice device;

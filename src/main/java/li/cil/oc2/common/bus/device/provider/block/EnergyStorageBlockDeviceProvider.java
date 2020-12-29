@@ -1,11 +1,11 @@
-package li.cil.oc2.common.bus.device.provider;
+package li.cil.oc2.common.bus.device.provider.block;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.common.bus.device.provider.util.AbstractTileEntityCapabilityDeviceProvider;
-import li.cil.oc2.common.bus.device.AbstractObjectDevice;
+import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.LazyOptional;
@@ -29,29 +29,29 @@ public final class EnergyStorageBlockDeviceProvider extends AbstractTileEntityCa
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final class EnergyStorageDevice extends AbstractObjectDevice<IEnergyStorage> {
+    public static final class EnergyStorageDevice extends IdentityProxy<IEnergyStorage> {
         public EnergyStorageDevice(final IEnergyStorage energyStorage) {
             super(energyStorage);
         }
 
         @Callback
         public int getEnergyStored() {
-            return value.getEnergyStored();
+            return identity.getEnergyStored();
         }
 
         @Callback
         public int getMaxEnergyStored() {
-            return value.getMaxEnergyStored();
+            return identity.getMaxEnergyStored();
         }
 
         @Callback
         public boolean canExtract() {
-            return value.canExtract();
+            return identity.canExtract();
         }
 
         @Callback
         public boolean canReceive() {
-            return value.canReceive();
+            return identity.canReceive();
         }
     }
 }

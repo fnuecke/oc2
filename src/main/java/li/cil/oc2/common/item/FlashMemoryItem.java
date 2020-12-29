@@ -3,7 +3,7 @@ package li.cil.oc2.common.item;
 import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.data.Firmware;
-import li.cil.oc2.common.bus.device.ByteBufferFlashMemoryDevice;
+import li.cil.oc2.common.bus.device.item.ByteBufferFlashMemoryVMDevice;
 import li.cil.oc2.common.init.Firmwares;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
@@ -70,7 +70,7 @@ public final class FlashMemoryItem extends AbstractStorageItem {
     public CompoundNBT getShareTag(final ItemStack stack) {
         final CompoundNBT tag = super.getShareTag(stack);
         if (tag != null && tag.contains(API.MOD_ID, NBTTagIds.TAG_COMPOUND)) {
-            tag.getCompound(API.MOD_ID).remove(ByteBufferFlashMemoryDevice.DATA_TAG_NAME);
+            tag.getCompound(API.MOD_ID).remove(ByteBufferFlashMemoryVMDevice.DATA_TAG_NAME);
         }
         return tag;
     }

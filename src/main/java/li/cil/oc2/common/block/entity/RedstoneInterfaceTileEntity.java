@@ -101,12 +101,12 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
             throw new IllegalArgumentException("invalid side");
         }
 
-        final int clamped = MathHelper.clamp(value, 0, 15);
-        if (clamped == output[side]) {
+        final byte clampedValue = (byte) MathHelper.clamp(value, 0, 15);
+        if (clampedValue == output[side]) {
             return;
         }
 
-        output[side] = (byte) clamped;
+        output[side] = clampedValue;
 
         notifyNeighbors();
     }

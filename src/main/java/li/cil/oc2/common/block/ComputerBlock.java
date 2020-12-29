@@ -69,8 +69,8 @@ public final class ComputerBlock extends HorizontalBlock {
     public void neighborChanged(final BlockState state, final World world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
         final TileEntity tileEntity = world.getTileEntity(pos);
         if (tileEntity instanceof ComputerTileEntity) {
-            final ComputerTileEntity busCable = (ComputerTileEntity) tileEntity;
-            busCable.handleNeighborChanged();
+            final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
+            computer.handleNeighborChanged();
         }
     }
 

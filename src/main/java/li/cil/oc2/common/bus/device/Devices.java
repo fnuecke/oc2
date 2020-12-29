@@ -8,6 +8,7 @@ import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.init.Providers;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -35,6 +36,14 @@ public final class Devices {
 
     public static List<ItemDeviceInfo> getDevices(final ItemStack stack) {
         return getDevices(new ItemQuery(stack));
+    }
+
+    public static List<ItemDeviceInfo> getDevices(final TileEntity tileEntity, final ItemStack stack) {
+        return getDevices(new ItemQuery(tileEntity, stack));
+    }
+
+    public static List<ItemDeviceInfo> getDevices(final Entity entity, final ItemStack stack) {
+        return getDevices(new ItemQuery(entity, stack));
     }
 
     public static Collection<DeviceType> getDeviceTypes(final ItemStack stack) {
@@ -108,10 +117,36 @@ public final class Devices {
     }
 
     private static final class ItemQuery implements ItemDeviceQuery {
+        @Nullable private final TileEntity tileEntity;
+        @Nullable private final Entity entity;
         private final ItemStack stack;
 
         public ItemQuery(final ItemStack stack) {
+            tileEntity = null;
+            entity = null;
             this.stack = stack;
+        }
+
+        public ItemQuery(final TileEntity tileEntity, final ItemStack stack) {
+            this.tileEntity = tileEntity;
+            entity = null;
+            this.stack = stack;
+        }
+
+        public ItemQuery(final Entity entity, final ItemStack stack) {
+            tileEntity = null;
+            this.entity = entity;
+            this.stack = stack;
+        }
+
+        @Override
+        public Optional<TileEntity> getContainerTileEntity() {
+            return Optional.ofNullable(tileEntity);
+        }
+
+        @Override
+        public Optional<Entity> getContainerEntity() {
+            return Optional.ofNullable(entity);
         }
 
         @Override

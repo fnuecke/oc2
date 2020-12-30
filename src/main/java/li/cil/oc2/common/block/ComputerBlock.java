@@ -31,6 +31,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -92,6 +93,11 @@ public final class ComputerBlock extends HorizontalBlock {
     @Override
     public int getStrongPower(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
         return getWeakPower(state, world, pos, side);
+    }
+
+    @Override
+    public boolean shouldCheckWeakPower(final BlockState state, final IWorldReader world, final BlockPos pos, final Direction side) {
+        return false;
     }
 
     @SuppressWarnings("deprecation")

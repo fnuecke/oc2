@@ -13,6 +13,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorldReader;
 
 import javax.annotation.Nullable;
 
@@ -59,6 +60,11 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
         }
 
         return super.getWeakPower(state, world, pos, side);
+    }
+
+    @Override
+    public boolean shouldCheckWeakPower(final BlockState state, final IWorldReader world, final BlockPos pos, final Direction side) {
+        return false;
     }
 
     @SuppressWarnings("deprecation")

@@ -3,14 +3,14 @@ package li.cil.oc2.common.bus.device.item;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.capabilities.RedstoneEmitter;
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
+import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
@@ -28,10 +28,16 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice, ICapabilityProvider {
+public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements RPCDevice, DocumentedDevice, ItemDevice, ICapabilityProvider {
     private static final int FACE_COUNT = Direction.values().length;
 
     private static final String OUTPUT_TAG_NAME = "output";
+
+    private static final String GET_REDSTONE_INPUT = "getRedstoneInput";
+    private static final String GET_REDSTONE_OUTPUT = "getRedstoneOutput";
+    private static final String SET_REDSTONE_OUTPUT = "setRedstoneOutput";
+    private static final String SIDE = "side";
+    private static final String VALUE = "value";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -56,20 +62,10 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
 
     ///////////////////////////////////////////////////////////////////
 
-    @Override
-    public List<String> getTypeNames() {
-        return device.getTypeNames();
-    }
-
-    @Override
-    public List<RPCMethod> getMethods() {
-        return device.getMethods();
-    }
-
     @Nonnull
     @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull final Capability<T> cap, @Nullable final Direction side) {
-        if (cap == Capabilities.REDSTONE_EMITTER && side != null) {
+    public <T> LazyOptional<T> getCapability(@Nonnull final Capability<T> capability, @Nullable final Direction side) {
+        if (capability == Capabilities.REDSTONE_EMITTER && side != null) {
             return LazyOptional.of(() -> capabilities[side.getIndex()]).cast();
         }
 
@@ -89,30 +85,18 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
     }
 
-    ///////////////////////////////////////////////////////////////////
-
-    @Callback(synchronize = false)
-    public int getRedstoneOutput(final Direction side) {
-        return output[side.getIndex()];
+    @Override
+    public List<String> getTypeNames() {
+        return device.getTypeNames();
     }
 
-    @Callback
-    public void setRedstoneOutput(final Direction side, final int value) {
-        final byte clampedValue = (byte) MathHelper.clamp(value, 0, 15);
-        if (clampedValue == output[side.getIndex()]) {
-            return;
-        }
-
-        output[side.getIndex()] = clampedValue;
-
-        final Direction direction = HorizontalBlockUtils.toGlobal(tileEntity.getBlockState(), side);
-        if (direction != null) {
-            notifyNeighbors(direction);
-        }
+    @Override
+    public List<RPCMethod> getMethods() {
+        return device.getMethods();
     }
 
-    @Callback
-    public int getRedstoneInput(final Direction side) {
+    @Callback(name = GET_REDSTONE_INPUT)
+    public int getRedstoneInput(@Parameter(SIDE) final Direction side) {
         final World world = tileEntity.getWorld();
         if (world == null) {
             return 0;
@@ -131,7 +115,51 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
         return world.getRedstonePower(neighborPos, direction);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    @Callback(name = GET_REDSTONE_OUTPUT, synchronize = false)
+    public int getRedstoneOutput(@Parameter(SIDE) final Direction side) {
+        return output[side.getIndex()];
+    }
+
+    @Callback(name = SET_REDSTONE_OUTPUT)
+    public void setRedstoneOutput(@Parameter(SIDE) final Direction side, @Parameter(VALUE) final int value) {
+        final byte clampedValue = (byte) MathHelper.clamp(value, 0, 15);
+        if (clampedValue == output[side.getIndex()]) {
+            return;
+        }
+
+        output[side.getIndex()] = clampedValue;
+
+        final Direction direction = HorizontalBlockUtils.toGlobal(tileEntity.getBlockState(), side);
+        if (direction != null) {
+            notifyNeighbor(direction);
+        }
+    }
+
+    @Override
+    public void getDeviceDocumentation(final DocumentedDevice.DeviceVisitor visitor) {
+        visitor.visitCallback(GET_REDSTONE_INPUT)
+                .description("Get the current redstone level received on the specified side. " +
+                             "Note that if the current output level on the specified side is not " +
+                             "zero, this will affect the measured level.\n" +
+                             "Sides may be specified by name or zero-based index. Please note that" +
+                             "the side depends on the orientation of the device's container.")
+                .returnValueDescription("the current received level on the specified side.")
+                .parameterDescription(SIDE, "the side to read the input level from.");
+
+        visitor.visitCallback(GET_REDSTONE_OUTPUT)
+                .description("Get the current redstone level transmitted on the specified side. " +
+                             "This will return the value last set via setRedstoneOutput().\n" +
+                             "Sides may be specified by name or zero-based index. Please note that" +
+                             "the side depends on the orientation of the device's container.")
+                .returnValueDescription("the current transmitted level on the specified side.")
+                .parameterDescription(SIDE, "the side to read the output level from.");
+        visitor.visitCallback(SET_REDSTONE_OUTPUT)
+                .description("Set the new redstone level transmitted on the specified side.\n" +
+                             "Sides may be specified by name or zero-based index. Please note that" +
+                             "the side depends on the orientation of the device's container.")
+                .parameterDescription(SIDE, "the side to write the output level to.")
+                .parameterDescription(VALUE, "the output level to set, will be clamped to [0, 15].");
+    }
 
     @Override
     public boolean equals(final Object o) {
@@ -149,17 +177,13 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
 
     ///////////////////////////////////////////////////////////////////
 
-    private void notifyNeighbors(final Direction direction) {
+    private void notifyNeighbor(final Direction direction) {
         final World world = tileEntity.getWorld();
         if (world == null) {
             return;
         }
 
-        final BlockPos pos = tileEntity.getPos();
-        final BlockState state = tileEntity.getBlockState();
-        final Block block = state.getBlock();
-
-        world.notifyNeighborsOfStateChange(pos, block);
-        world.notifyNeighborsOfStateChange(pos.offset(direction), block);
+        world.notifyNeighborsOfStateChange(tileEntity.getPos(), tileEntity.getBlockState().getBlock());
+        world.notifyNeighborsOfStateChange(tileEntity.getPos().offset(direction), tileEntity.getBlockState().getBlock());
     }
 }

@@ -50,26 +50,21 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
     @SuppressWarnings("deprecation")
     @Override
     public int getWeakPower(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
-        if (side.getAxis().getPlane() == Direction.Plane.HORIZONTAL) {
-            final TileEntity tileEntity = world.getTileEntity(pos);
-            if (tileEntity instanceof RedstoneInterfaceTileEntity) {
-                final RedstoneInterfaceTileEntity redstoneInterface = (RedstoneInterfaceTileEntity) tileEntity;
-                // Redstone requests info for faces with external perspective. We treat
-                // the Direction from internal perspective, so flip it.
-                return redstoneInterface.getOutputForDirection(side.getOpposite());
-            }
+        final TileEntity tileEntity = world.getTileEntity(pos);
+        if (tileEntity instanceof RedstoneInterfaceTileEntity) {
+            final RedstoneInterfaceTileEntity redstoneInterface = (RedstoneInterfaceTileEntity) tileEntity;
+            // Redstone requests info for faces with external perspective. We treat
+            // the Direction from internal perspective, so flip it.
+            return redstoneInterface.getOutputForDirection(side.getOpposite());
         }
+
         return super.getWeakPower(state, world, pos, side);
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public int getStrongPower(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
-        if (side == Direction.NORTH || side == Direction.EAST || side == Direction.SOUTH || side == Direction.WEST) {
-            return getWeakPower(state, world, pos, side);
-        } else {
-            return super.getStrongPower(state, world, pos, side);
-        }
+        return getWeakPower(state, world, pos, side);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -28,6 +28,8 @@ public final class TerminalScreen extends Screen {
     private static final ResourceLocation BACKGROUND_TERMINAL_FOCUSED = new ResourceLocation(API.MOD_ID, "textures/gui/screen/terminal_focused.png");
     private static final int TEXTURE_SIZE = 512;
 
+    private static final Sprite CONTROLS_BACKGROUND = new Sprite(BACKGROUND, TEXTURE_SIZE, 19, 34, 82, 244);
+
     private static final Sprite CAPTURE_INPUT_BASE = new Sprite(BACKGROUND, TEXTURE_SIZE, 12, 12, 15, 241);
     private static final Sprite CAPTURE_INPUT_PRESSED = new Sprite(BACKGROUND, TEXTURE_SIZE, 12, 12, 29, 241);
     private static final Sprite CAPTURE_INPUT_ACTIVE = new Sprite(BACKGROUND, TEXTURE_SIZE, 12, 12, 1, 241);
@@ -37,11 +39,12 @@ public final class TerminalScreen extends Screen {
     private static final Sprite POWER_ACTIVE = new Sprite(BACKGROUND, TEXTURE_SIZE, 12, 12, 1, 255);
 
     private static final int SCREEN_WIDTH = 336;
-    private static final int SCREEN_HEIGHT = 228;
+    private static final int SCREEN_HEIGHT = 208;
     private static final int TERMINAL_AREA_X = 8;
     private static final int TERMINAL_AREA_Y = 8;
     private static final int TERMINAL_AREA_WIDTH = 80 * 8 / 2;
     private static final int TERMINAL_AREA_HEIGHT = 24 * 16 / 2;
+    private static final int CONTROLS_TOP = 8;
 
     private static boolean enableInputCapture;
 
@@ -71,6 +74,8 @@ public final class TerminalScreen extends Screen {
         RenderSystem.color4f(1f, 1f, 1f, 1f);
         requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND);
         blit(matrixStack, windowLeft, windowTop, 0, 0, windowWidth, windowHeight, TEXTURE_SIZE, TEXTURE_SIZE);
+
+        CONTROLS_BACKGROUND.draw(matrixStack, windowLeft - CONTROLS_BACKGROUND.width, windowTop + CONTROLS_TOP);
 
         if (shouldCaptureInput()) {
             requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND_TERMINAL_FOCUSED);
@@ -169,27 +174,8 @@ public final class TerminalScreen extends Screen {
         requireNonNull(minecraft).keyboardListener.enableRepeatEvents(true);
 
         addButton(new ToggleImageButton(
-                this, windowLeft + 104, windowTop + 212, 12, 12,
-                new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_CAPTION),
-                new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_DESCRIPTION),
-                CAPTURE_INPUT_BASE,
-                CAPTURE_INPUT_PRESSED,
-                CAPTURE_INPUT_ACTIVE
-        ) {
-            @Override
-            public void onPress() {
-                super.onPress();
-                enableInputCapture = !enableInputCapture;
-            }
-
-            @Override
-            public boolean isToggled() {
-                return enableInputCapture;
-            }
-        });
-
-        addButton(new ToggleImageButton(
-                this, windowLeft + 220, windowTop + 212, 12, 12,
+                this, windowLeft - CONTROLS_BACKGROUND.width + 4, windowTop + CONTROLS_TOP + 4,
+                12, 12,
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION),
                 POWER_BASE,
@@ -206,6 +192,27 @@ public final class TerminalScreen extends Screen {
             @Override
             public boolean isToggled() {
                 return tileEntity.isRunning();
+            }
+        });
+
+        addButton(new ToggleImageButton(
+                this, windowLeft - CONTROLS_BACKGROUND.width + 4, windowTop + CONTROLS_TOP + 18,
+                12, 12,
+                new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_CAPTION),
+                new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_DESCRIPTION),
+                CAPTURE_INPUT_BASE,
+                CAPTURE_INPUT_PRESSED,
+                CAPTURE_INPUT_ACTIVE
+        ) {
+            @Override
+            public void onPress() {
+                super.onPress();
+                enableInputCapture = !enableInputCapture;
+            }
+
+            @Override
+            public boolean isToggled() {
+                return enableInputCapture;
             }
         });
     }

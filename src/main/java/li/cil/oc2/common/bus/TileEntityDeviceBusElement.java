@@ -3,6 +3,8 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.api.bus.device.rpc.RPCDevice;
+import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -101,6 +103,8 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
             }
         }
 
+        insertBlockNameDevice(world, pos, newDevices);
+
         setDevicesForGroup(index, newDevices);
     }
 
@@ -151,6 +155,15 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
             final LazyOptional<DeviceBusElement> capability = tileEntity
                     .getCapability(Capabilities.DEVICE_BUS_ELEMENT, direction.getOpposite());
             capability.ifPresent(DeviceBus::scheduleScan);
+        }
+    }
+
+    private void insertBlockNameDevice(final World world, final BlockPos pos, final HashSet<BlockDeviceInfo> devices) {
+        if (devices.stream().anyMatch(info -> info.device instanceof RPCDevice)) {
+            final String blockName = WorldUtils.getBlockName(world, pos);
+            if (blockName != null) {
+                devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(blockName)));
+            }
         }
     }
 }

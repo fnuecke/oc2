@@ -12,10 +12,6 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 
 public final class EnergyStorageBlockDeviceProvider extends AbstractTileEntityCapabilityDeviceProvider<IEnergyStorage, TileEntity> {
-    private static final String ENERGY_STORAGE_TYPE_NAME = "energyStorage";
-
-    ///////////////////////////////////////////////////////////////////
-
     public EnergyStorageBlockDeviceProvider() {
         super(() -> Capabilities.ENERGY_STORAGE);
     }
@@ -24,7 +20,7 @@ public final class EnergyStorageBlockDeviceProvider extends AbstractTileEntityCa
 
     @Override
     protected LazyOptional<Device> getBlockDevice(final BlockDeviceQuery query, final IEnergyStorage value) {
-        return LazyOptional.of(() -> new ObjectDevice(new EnergyStorageDevice(value), ENERGY_STORAGE_TYPE_NAME));
+        return LazyOptional.of(() -> new ObjectDevice(new EnergyStorageDevice(value), "energy_storage"));
     }
 
     ///////////////////////////////////////////////////////////////////

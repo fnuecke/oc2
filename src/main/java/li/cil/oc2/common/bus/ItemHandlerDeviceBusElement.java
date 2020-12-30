@@ -1,10 +1,13 @@
 package li.cil.oc2.common.bus;
 
+import li.cil.oc2.api.bus.device.rpc.RPCDevice;
+import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.ResourceLocation;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -24,6 +27,7 @@ public class ItemHandlerDeviceBusElement extends AbstractGroupingItemDeviceBusEl
     public void updateDevices(final int slot, final ItemStack stack) {
         if (!stack.isEmpty()) {
             final HashSet<ItemDeviceInfo> newDevices = new HashSet<>(deviceLookup.apply(stack));
+            insertItemNameDevice(stack, newDevices);
             importDeviceDataFromItemStack(stack, newDevices);
             setDevicesForGroup(slot, newDevices);
         } else {
@@ -64,5 +68,14 @@ public class ItemHandlerDeviceBusElement extends AbstractGroupingItemDeviceBusEl
                 });
             }
         });
+    }
+
+    private void insertItemNameDevice(final ItemStack stack, final HashSet<ItemDeviceInfo> devices) {
+        if (devices.stream().anyMatch(info -> info.device instanceof RPCDevice)) {
+            final ResourceLocation registryName = stack.getItem().getRegistryName();
+            if (registryName != null) {
+                devices.add(new ItemDeviceInfo(null, new TypeNameRPCDevice(registryName.toString())));
+            }
+        }
     }
 }

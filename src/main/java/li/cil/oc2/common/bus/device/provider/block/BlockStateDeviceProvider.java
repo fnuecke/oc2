@@ -5,7 +5,6 @@ import li.cil.oc2.api.bus.device.object.Callbacks;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.common.bus.device.provider.util.AbstractBlockDeviceProvider;
-import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
@@ -29,7 +28,6 @@ public final class BlockStateDeviceProvider extends AbstractBlockDeviceProvider 
             return LazyOptional.empty();
         }
 
-        final String typeName = WorldUtils.getBlockName(world, position);
-        return LazyOptional.of(() -> new ObjectDevice(block, typeName));
+        return LazyOptional.of(() -> new ObjectDevice(block));
     }
 }

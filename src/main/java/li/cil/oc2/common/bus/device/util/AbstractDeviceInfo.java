@@ -3,15 +3,16 @@ package li.cil.oc2.common.bus.device.util;
 import li.cil.oc2.api.bus.device.Device;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 
 public abstract class AbstractDeviceInfo<TProvider extends IForgeRegistryEntry<TProvider>, TDevice extends Device> {
-    public final TProvider provider;
+    @Nullable public final TProvider provider;
     public final TDevice device;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractDeviceInfo(final TProvider provider, final TDevice device) {
+    protected AbstractDeviceInfo(@Nullable final TProvider provider, final TDevice device) {
         this.provider = provider;
         this.device = device;
     }
@@ -23,7 +24,7 @@ public abstract class AbstractDeviceInfo<TProvider extends IForgeRegistryEntry<T
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         final AbstractDeviceInfo<?, ?> that = (AbstractDeviceInfo<?, ?>) o;
-        return provider.equals(that.provider) && device.equals(that.device);
+        return Objects.equals(provider, that.provider) && device.equals(that.device);
     }
 
     @Override

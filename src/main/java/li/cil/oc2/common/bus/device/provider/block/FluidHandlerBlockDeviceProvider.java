@@ -13,10 +13,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 public final class FluidHandlerBlockDeviceProvider extends AbstractTileEntityCapabilityDeviceProvider<IFluidHandler, TileEntity> {
-    private static final String FLUID_HANDLER_TYPE_NAME = "fluidHandler";
-
-    ///////////////////////////////////////////////////////////////////
-
     public FluidHandlerBlockDeviceProvider() {
         super(() -> Capabilities.FLUID_HANDLER);
     }
@@ -25,7 +21,7 @@ public final class FluidHandlerBlockDeviceProvider extends AbstractTileEntityCap
 
     @Override
     protected LazyOptional<Device> getBlockDevice(final BlockDeviceQuery query, final IFluidHandler value) {
-        return LazyOptional.of(() -> new ObjectDevice(new FluidHandlerDevice(value), FLUID_HANDLER_TYPE_NAME));
+        return LazyOptional.of(() -> new ObjectDevice(new FluidHandlerDevice(value), "fluid_handler"));
     }
 
     ///////////////////////////////////////////////////////////////////

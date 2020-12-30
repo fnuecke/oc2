@@ -23,6 +23,7 @@ public final class RPCDeviceList implements RPCDevice {
         return devices.stream()
                 .map(RPCDevice::getTypeNames)
                 .flatMap(Collection::stream)
+                .distinct()
                 .collect(Collectors.toList());
     }
 

@@ -5,6 +5,7 @@ import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -40,6 +41,17 @@ public final class ObjectDevice implements RPCDevice {
             final NamedDevice namedDevice = (NamedDevice) object;
             this.typeNames.addAll(namedDevice.getDeviceTypeNames());
         }
+    }
+
+    /**
+     * Creates a new object device with methods in the specified object and the
+     * specified list of type names.
+     *
+     * @param object    the object containing methods provided by this device.
+     * @param typeNames the type names of the device.
+     */
+    public ObjectDevice(final Object object, final String... typeNames) {
+        this(object, Arrays.asList(typeNames));
     }
 
     /**

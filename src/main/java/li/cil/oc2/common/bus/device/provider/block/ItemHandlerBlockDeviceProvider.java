@@ -13,10 +13,6 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 
 public final class ItemHandlerBlockDeviceProvider extends AbstractTileEntityCapabilityDeviceProvider<IItemHandler, TileEntity> {
-    private static final String ITEM_HANDLER_TYPE_NAME = "itemHandler";
-
-    ///////////////////////////////////////////////////////////////////
-
     public ItemHandlerBlockDeviceProvider() {
         super(() -> Capabilities.ITEM_HANDLER);
     }
@@ -25,7 +21,7 @@ public final class ItemHandlerBlockDeviceProvider extends AbstractTileEntityCapa
 
     @Override
     protected LazyOptional<Device> getBlockDevice(final BlockDeviceQuery query, final IItemHandler value) {
-        return LazyOptional.of(() -> new ObjectDevice(new ItemHandlerDevice(value), ITEM_HANDLER_TYPE_NAME));
+        return LazyOptional.of(() -> new ObjectDevice(new ItemHandlerDevice(value), "item_handler"));
     }
 
     ///////////////////////////////////////////////////////////////////

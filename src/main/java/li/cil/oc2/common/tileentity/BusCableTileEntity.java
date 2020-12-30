@@ -3,7 +3,7 @@ package li.cil.oc2.common.tileentity;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
@@ -40,14 +40,14 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     @Override
     public CompoundNBT write(CompoundNBT compound) {
         compound = super.write(compound);
-        compound.put(BUS_ELEMENT_NBT_TAG_NAME, NBTSerialization.serialize(busElement));
+        compound.put(BUS_ELEMENT_NBT_TAG_NAME, busElement.serializeNBT());
         return compound;
     }
 
     @Override
     public void read(final BlockState state, final CompoundNBT compound) {
         super.read(state, compound);
-        NBTSerialization.deserialize(compound.getCompound(BUS_ELEMENT_NBT_TAG_NAME), busElement);
+        busElement.deserializeNBT(compound.getList(BUS_ELEMENT_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
     }
 
     ///////////////////////////////////////////////////////////////////

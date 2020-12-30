@@ -5,6 +5,7 @@ import li.cil.oc2.client.gui.TerminalScreen;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ComputerContainer;
 import li.cil.oc2.common.integration.Wrenches;
+import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
 import li.cil.oc2.common.util.TooltipUtils;
@@ -53,7 +54,11 @@ public final class ComputerBlock extends HorizontalBlock {
     @Override
     public void addInformation(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
         super.addInformation(stack, world, tooltip, advanced);
-        TooltipUtils.addInventoryInformation(stack, tooltip);
+        TooltipUtils.addInventoryInformation(stack, tooltip,
+                ComputerTileEntity.MEMORY_TAG_NAME,
+                ComputerTileEntity.HARD_DRIVE_TAG_NAME,
+                ComputerTileEntity.FLASH_MEMORY_TAG_NAME,
+                ComputerTileEntity.CARD_TAG_NAME);
     }
 
     @Override
@@ -133,6 +138,21 @@ public final class ComputerBlock extends HorizontalBlock {
         }
 
         return ActionResultType.SUCCESS;
+    }
+
+    @Override
+    public void onBlockHarvested(final World world, final BlockPos pos, final BlockState state, final PlayerEntity player) {
+        final TileEntity tileEntity = world.getTileEntity(pos);
+        if (tileEntity instanceof ComputerTileEntity) {
+            final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
+            if (!world.isRemote() && player.isCreative() && !computer.isEmpty()) {
+                final ItemStack stack = new ItemStack(Items.COMPUTER_ITEM.get());
+                computer.exportToItemStack(stack);
+                spawnAsEntity(world, pos, stack);
+            }
+        }
+
+        super.onBlockHarvested(world, pos, state, player);
     }
 
     @Override

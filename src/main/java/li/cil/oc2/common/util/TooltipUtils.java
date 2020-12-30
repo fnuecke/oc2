@@ -21,35 +21,24 @@ public final class TooltipUtils {
     private static final ThreadLocal<IntList> ITEM_STACKS_SIZES = ThreadLocal.withInitial(IntArrayList::new);
 
     public static void addInventoryInformation(final ItemStack stack, final List<ITextComponent> tooltip) {
+        addInventoryInformation(stack, tooltip, new String[0]);
+    }
+
+    public static void addInventoryInformation(final ItemStack stack, final List<ITextComponent> tooltip, final String... itemHandlerTags) {
         final CompoundNBT tileEntityNbt = stack.getChildTag(BLOCK_ENTITY_TAG_NAME_IN_ITEM);
         if (tileEntityNbt != null && tileEntityNbt.contains(BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             final CompoundNBT itemHandlerNbt = tileEntityNbt.getCompound(BLOCK_ENTITY_INVENTORY_TAG_NAME);
-            final ListNBT itemsNbt = itemHandlerNbt.getList("Items", NBTTagIds.TAG_COMPOUND);
 
             final List<ItemStack> itemStacks = ITEM_STACKS.get();
             itemStacks.clear();
             final IntList itemStackSizes = ITEM_STACKS_SIZES.get();
             itemStackSizes.clear();
 
-            for (int i = 0; i < itemsNbt.size(); i++) {
-                final CompoundNBT itemNbt = itemsNbt.getCompound(i);
-                final ItemStack itemStack = ItemStack.read(itemNbt);
+            collectItemStacks(itemHandlerNbt, itemStacks, itemStackSizes);
 
-                boolean didMerge = false;
-                for (int j = 0; j < itemStacks.size(); j++) {
-                    final ItemStack existingStack = itemStacks.get(j);
-                    if (ItemStack.areItemsEqual(existingStack, itemStack) &&
-                        ItemStack.areItemStackTagsEqual(existingStack, itemStack)) {
-                        final int existingCount = itemStackSizes.getInt(j);
-                        itemStackSizes.set(j, existingCount + itemStack.getCount());
-                        didMerge = true;
-                        break;
-                    }
-                }
-
-                if (!didMerge) {
-                    itemStacks.add(itemStack);
-                    itemStackSizes.add(itemStack.getCount());
+            for (final String itemHandlerTagName : itemHandlerTags) {
+                if (itemHandlerNbt.contains(itemHandlerTagName, NBTTagIds.TAG_COMPOUND)) {
+                    collectItemStacks(itemHandlerNbt.getCompound(itemHandlerTagName), itemStacks, itemStackSizes);
                 }
             }
 
@@ -62,6 +51,31 @@ public final class TooltipUtils {
                                 .appendString(String.valueOf(itemStackSizes.getInt(i)))
                                 .modifyStyle(style -> style.setColor(Color.fromTextFormatting(TextFormatting.DARK_GRAY))))
                 );
+            }
+        }
+    }
+
+    private static void collectItemStacks(final CompoundNBT nbt, final List<ItemStack> stacks, final IntList stackSizes) {
+        final ListNBT itemsNbt = nbt.getList("Items", NBTTagIds.TAG_COMPOUND);
+        for (int i = 0; i < itemsNbt.size(); i++) {
+            final CompoundNBT itemNbt = itemsNbt.getCompound(i);
+            final ItemStack itemStack = ItemStack.read(itemNbt);
+
+            boolean didMerge = false;
+            for (int j = 0; j < stacks.size(); j++) {
+                final ItemStack existingStack = stacks.get(j);
+                if (ItemStack.areItemsEqual(existingStack, itemStack) &&
+                    ItemStack.areItemStackTagsEqual(existingStack, itemStack)) {
+                    final int existingCount = stackSizes.getInt(j);
+                    stackSizes.set(j, existingCount + itemStack.getCount());
+                    didMerge = true;
+                    break;
+                }
+            }
+
+            if (!didMerge) {
+                stacks.add(itemStack);
+                stackSizes.add(itemStack.getCount());
             }
         }
     }

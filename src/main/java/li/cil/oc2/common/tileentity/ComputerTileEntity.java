@@ -67,14 +67,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     ///////////////////////////////////////////////////////////////////
 
+    public static final String MEMORY_TAG_NAME = "memory";
+    public static final String HARD_DRIVE_TAG_NAME = "hard_drive";
+    public static final String FLASH_MEMORY_TAG_NAME = "flash_memory";
+    public static final String CARD_TAG_NAME = "card";
+
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String VIRTUAL_MACHINE_TAG_NAME = "virtualMachine";
     private static final String RUNNER_TAG_NAME = "runner";
-    private static final String MEMORY_TAG_NAME = "memory";
-    private static final String HARD_DRIVE_TAG_NAME = "hard_drive";
-    private static final String FLASH_MEMORY_TAG_NAME = "flash_memory";
-    private static final String CARD_TAG_NAME = "card";
 
     private static final String BUS_STATE_TAG_NAME = "busState";
     private static final String RUN_STATE_TAG_NAME = "runState";
@@ -457,6 +458,26 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             flashMemoryItemHandler.deserializeNBT(items.getCompound(FLASH_MEMORY_TAG_NAME));
             cardItemHandler.deserializeNBT(items.getCompound(CARD_TAG_NAME));
         }
+    }
+
+    public boolean isEmpty() {
+        for (int slot = 0; slot < itemHandlers.getSlots(); slot++) {
+            if (!itemHandlers.getStackInSlot(slot).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void exportToItemStack(final ItemStack stack) {
+        final CompoundNBT items = new CompoundNBT();
+        items.put(MEMORY_TAG_NAME, memoryItemHandler.serializeNBT());
+        items.put(HARD_DRIVE_TAG_NAME, hardDriveItemHandler.serializeNBT());
+        items.put(FLASH_MEMORY_TAG_NAME, flashMemoryItemHandler.serializeNBT());
+        items.put(CARD_TAG_NAME, cardItemHandler.serializeNBT());
+
+        stack.getOrCreateChildTag(Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM)
+                .put(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, items);
     }
 
     ///////////////////////////////////////////////////////////////////

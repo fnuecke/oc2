@@ -100,6 +100,8 @@ public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevi
         if (direction != null) {
             notifyNeighbor(direction);
         }
+
+        markDirty();
     }
 
     @Override

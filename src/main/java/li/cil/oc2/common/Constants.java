@@ -3,6 +3,7 @@ package li.cil.oc2.common;
 public final class Constants {
     public static final int KILOBYTE = 1024;
     public static final int MEGABYTE = 1024 * KILOBYTE;
+    public static final int GIGABYTE = 1024 * MEGABYTE;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -24,6 +25,13 @@ public final class Constants {
     public static final String MEMORY_ITEM_NAME = "memory";
     public static final String HARD_DRIVE_ITEM_NAME = "hard_drive";
     public static final String REDSTONE_INTERFACE_CARD_NAME = "redstone_interface_card";
+
+    ///////////////////////////////////////////////////////////////////
+
+    public static final String CONFIG_MAX_ALLOCATED_MEMORY = "config.oc2.maxAllocatedMemory";
+    public static final String CONFIG_MAX_MEMORY_SIZE = "config.oc2.maxMemorySize";
+    public static final String CONFIG_MAX_HARD_DRIVE_SIZE = "config.oc2.maxHardDriveSize";
+    public static final String CONFIG_MAX_FLASH_MEMORY_SIZE = "config.oc2.maxFlashMemorySize";
 
     ///////////////////////////////////////////////////////////////////
 

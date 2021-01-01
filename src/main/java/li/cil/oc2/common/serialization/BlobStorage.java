@@ -1,7 +1,7 @@
 package li.cil.oc2.common.serialization;
 
 import com.google.common.collect.HashMultimap;
-import li.cil.oc2.Constants;
+import li.cil.oc2.common.Constants;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.storage.FolderName;
 import org.apache.logging.log4j.LogManager;

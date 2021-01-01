@@ -2,11 +2,11 @@ package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.client.gui.widget.Sprite;
 import li.cil.oc2.client.gui.widget.ToggleImageButton;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerPowerMessage;
 import li.cil.oc2.common.network.message.TerminalBlockInputMessage;

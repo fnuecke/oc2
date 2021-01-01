@@ -1,7 +1,7 @@
 package li.cil.oc2.common.item;
 
-import li.cil.oc2.Constants;
 import li.cil.oc2.api.bus.device.data.BaseBlockDevice;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.data.BaseBlockDevices;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;

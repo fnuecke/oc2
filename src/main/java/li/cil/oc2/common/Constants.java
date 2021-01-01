@@ -1,4 +1,4 @@
-package li.cil.oc2;
+package li.cil.oc2.common;
 
 public final class Constants {
     public static final int KILOBYTE = 1024;

@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.util.Objects.requireNonNull;
-import static li.cil.oc2.Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME;
-import static li.cil.oc2.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
+import static li.cil.oc2.common.Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME;
+import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
 
 public final class LootTables extends LootTableProvider {
     public LootTables(final DataGenerator generator) {

@@ -1,4 +1,4 @@
-package li.cil.oc2;
+package li.cil.oc2.common;
 
 import li.cil.ceres.Ceres;
 import li.cil.oc2.api.API;

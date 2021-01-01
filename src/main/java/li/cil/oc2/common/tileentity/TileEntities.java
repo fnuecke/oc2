@@ -1,6 +1,6 @@
 package li.cil.oc2.common.tileentity;
 
-import li.cil.oc2.Constants;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
 import net.minecraft.block.Block;

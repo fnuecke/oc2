@@ -1,11 +1,11 @@
 package li.cil.oc2.common.bus.device.provider.item;
 
-import li.cil.oc2.Config;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.data.BaseBlockDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
+import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.item.HardDriveVMDevice;
 import li.cil.oc2.common.bus.device.item.SparseHardDriveVMDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;

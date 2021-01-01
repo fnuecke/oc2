@@ -1,4 +1,4 @@
-package li.cil.oc2;
+package li.cil.oc2.common;
 
 public final class Config {
     public static long maxAllocatedData = 512 * Constants.MEGABYTE;

@@ -1,6 +1,6 @@
 package li.cil.oc2.common.vm;
 
-import li.cil.oc2.Config;
+import li.cil.oc2.common.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

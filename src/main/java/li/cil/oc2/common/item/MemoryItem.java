@@ -1,6 +1,6 @@
 package li.cil.oc2.common.item;
 
-import li.cil.oc2.Constants;
+import li.cil.oc2.common.Constants;
 
 public final class MemoryItem extends AbstractStorageItem {
     private static final int DEFAULT_CAPACITY = 2 * Constants.MEGABYTE;

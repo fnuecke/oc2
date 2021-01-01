@@ -1,7 +1,7 @@
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.Constants;
 import li.cil.oc2.api.API;
+import li.cil.oc2.common.Constants;
 import net.minecraft.block.Block;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;

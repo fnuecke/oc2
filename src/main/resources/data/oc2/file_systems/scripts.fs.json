@@ -1,0 +1,4 @@
+{
+  "type": "virtio-9p",
+  "location": "oc2:file_systems/scripts"
+}

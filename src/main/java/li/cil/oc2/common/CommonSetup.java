@@ -1,5 +1,6 @@
 package li.cil.oc2.common;
 
+import li.cil.oc2.common.bus.device.data.FileSystems;
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.integration.IMC;
@@ -33,11 +34,13 @@ public final class CommonSetup {
 
     public static void handleServerAboutToStart(final FMLServerAboutToStartEvent event) {
         BlobStorage.setServer(event.getServer());
+        FileSystems.initialize(event.getServer());
     }
 
     public static void handleServerStopped(final FMLServerStoppedEvent event) {
         BlobStorage.synchronize();
         Allocator.resetAndCheckLeaks();
+        FileSystems.reset();
     }
 
     ///////////////////////////////////////////////////////////////////

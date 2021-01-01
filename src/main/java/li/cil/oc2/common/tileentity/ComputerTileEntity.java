@@ -16,6 +16,7 @@ import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
+import li.cil.oc2.common.bus.device.data.FileSystems;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -36,7 +37,6 @@ import li.cil.oc2.common.vm.VirtualMachineRunner;
 import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.device.serial.UART16550A;
 import li.cil.sedna.device.virtio.VirtIOFileSystemDevice;
-import li.cil.sedna.fs.HostFileSystem;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -682,7 +682,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             context.getMemoryRangeAllocator().claimMemoryRange(uart);
             board.setStandardOutputDevice(uart);
 
-            vfs = new VirtIOFileSystemDevice(context.getMemoryMap(), "scripts", new HostFileSystem());
+            vfs = new VirtIOFileSystemDevice(context.getMemoryMap(), "data", FileSystems.getLayeredFileSystem());
             context.getInterruptAllocator().claimInterrupt(VFS_INTERRUPT).ifPresent(interrupt ->
                     vfs.getInterrupt().set(interrupt, context.getInterruptController()));
             context.getMemoryRangeAllocator().claimMemoryRange(vfs);

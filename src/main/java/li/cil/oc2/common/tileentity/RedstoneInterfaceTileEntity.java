@@ -18,7 +18,7 @@ import java.util.Collection;
 
 import static java.util.Collections.singletonList;
 
-public class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevice, DocumentedDevice {
+public final class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevice, DocumentedDevice {
     private static final int FACE_COUNT = Direction.values().length;
 
     private static final String OUTPUT_NBT_TAG_NAME = "output";

@@ -73,7 +73,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         // Bus element will usually be discovered via bus scan, not via capability request, so
         // automatic invalidation via capability will *not* necessarily schedule a scan on the
         // controller of our current bus. So we need to trigger that manually.
-        busElement.dispose();
+        busElement.scheduleScan();
     }
 
     ///////////////////////////////////////////////////////////////////

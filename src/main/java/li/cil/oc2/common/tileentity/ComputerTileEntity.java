@@ -514,7 +514,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         virtualMachine.vmAdapter.suspend();
 
         busController.dispose();
-        busElement.dispose();
+
+        // This is necessary in case some other controller found us before our controller
+        // did its scan, which can happen because the scan can happen with a delay.
+        busElement.scheduleScan();
     }
 
     ///////////////////////////////////////////////////////////////////

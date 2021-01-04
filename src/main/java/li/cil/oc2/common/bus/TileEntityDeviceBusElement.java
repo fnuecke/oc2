@@ -120,10 +120,6 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
         });
     }
 
-    public void dispose() {
-        scheduleScan();
-    }
-
     ///////////////////////////////////////////////////////////////////
 
     protected boolean canScanContinueTowards(@Nullable final Direction direction) {

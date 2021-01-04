@@ -108,6 +108,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private RunState runState;
     private ITextComponent bootError;
     private int loadDevicesDelay;
+    private boolean hasAddedOwnDevices;
     private boolean isNeighborUpdateScheduled;
 
     ///////////////////////////////////////////////////////////////////
@@ -285,6 +286,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         if (chunk == null) {
             chunk = world.getChunkAt(getPos());
+        }
+
+        // Always add devices provided for the computer itself, even if there's no
+        // adjacent cable. Because that would just be weird.
+        if (!hasAddedOwnDevices) {
+            hasAddedOwnDevices = true;
+            for (final LazyOptional<BlockDeviceInfo> optional : Devices.getDevices(this, (Direction) null)) {
+                optional.ifPresent(info -> busElement.addDevice(info.device));
+            }
         }
 
         if (isNeighborUpdateScheduled) {
@@ -505,12 +515,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         busElement.initialize();
         virtualMachine.rtcMinecraft.setWorld(getWorld());
-
-        // Always add devices provided for the computer itself, even if there's no
-        // adjacent cable. Because that would just be weird.
-        for (final LazyOptional<BlockDeviceInfo> optional : Devices.getDevices(this, (Direction) null)) {
-            optional.ifPresent(info -> busElement.addDevice(info.device));
-        }
     }
 
     @Override

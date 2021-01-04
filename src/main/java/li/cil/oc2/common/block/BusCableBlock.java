@@ -1,7 +1,6 @@
 package li.cil.oc2.common.block;
 
 import com.google.common.collect.Maps;
-import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tileentity.BusCableTileEntity;
@@ -95,7 +94,7 @@ public final class BusCableBlock extends Block {
         super(Properties
                 .create(Material.IRON)
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(1.5F, 6.0F));
+                .hardnessAndResistance(1.5f, 6.0f));
 
         BlockState defaultState = getStateContainer().getBaseState();
         for (final EnumProperty<ConnectionType> property : FACING_TO_CONNECTION_MAP.values()) {

@@ -22,7 +22,7 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
         super(Properties
                 .create(Material.IRON)
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(1.5F, 6.0F));
+                .hardnessAndResistance(1.5f, 6.0f));
         setDefaultState(getStateContainer().getBaseState().with(HORIZONTAL_FACING, Direction.NORTH));
     }
 

@@ -17,6 +17,7 @@ import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.bus.device.data.FileSystems;
+import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -504,6 +505,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         busElement.initialize();
         virtualMachine.rtcMinecraft.setWorld(getWorld());
+
+        // Always add devices provided for the computer itself, even if there's no
+        // adjacent cable. Because that would just be weird.
+        for (final LazyOptional<BlockDeviceInfo> optional : Devices.getDevices(this, (Direction) null)) {
+            optional.ifPresent(info -> busElement.addDevice(info.device));
+        }
     }
 
     @Override

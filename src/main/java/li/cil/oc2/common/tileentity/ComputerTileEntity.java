@@ -406,7 +406,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         tag = super.write(tag);
 
         joinVirtualMachine();
-        runner.scheduleResumeEvent(); // Allow synchronizing to async device saves.
 
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
 
@@ -415,6 +414,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         if (runner != null) {
             tag.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
+            runner.scheduleResumeEvent(); // Allow synchronizing to async device saves.
         } else {
             NBTUtils.putEnum(tag, RUN_STATE_TAG_NAME, runState);
         }

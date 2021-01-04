@@ -395,6 +395,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         tag = super.write(tag);
 
         joinVirtualMachine();
+        runner.scheduleResumeEvent(); // Allow synchronizing to async device saves.
 
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
 
@@ -709,13 +710,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             super(virtualMachine.board);
         }
 
+        public void scheduleResumeEvent() {
+            firedResumeEvent = false;
+        }
+
         @Override
         public void tick() {
-            if (!firedResumeEvent) {
-                firedResumeEvent = true;
-                virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.RESUME_RUNNING);
-            }
-
             virtualMachine.rpcAdapter.tick();
 
             super.tick();
@@ -726,6 +726,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             if (!firedInitializationEvent) {
                 firedInitializationEvent = true;
                 virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.INITIALIZE);
+            }
+
+            if (!firedResumeEvent) {
+                firedResumeEvent = true;
+                virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.RESUME_RUNNING);
             }
 
             int value;

@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 public final class Devices {
-    public static List<LazyOptional<BlockDeviceInfo>> getDevices(final TileEntity tileEntity, final Direction side) {
+    public static List<LazyOptional<BlockDeviceInfo>> getDevices(final TileEntity tileEntity, @Nullable final Direction side) {
         final World world = tileEntity.getWorld();
         final BlockPos pos = tileEntity.getPos();
 
@@ -30,7 +30,7 @@ public final class Devices {
         return getDevices(world, pos, side);
     }
 
-    public static List<LazyOptional<BlockDeviceInfo>> getDevices(final World world, final BlockPos pos, final Direction side) {
+    public static List<LazyOptional<BlockDeviceInfo>> getDevices(final World world, final BlockPos pos, @Nullable final Direction side) {
         return getDevices(new BlockQuery(world, pos, side));
     }
 

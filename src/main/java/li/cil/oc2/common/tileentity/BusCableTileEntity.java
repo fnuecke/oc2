@@ -84,13 +84,16 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         }
 
         @Override
-        public boolean canConnectToSide(@Nullable final Direction direction) {
-            return BusCableBlock.getConnectionType(getBlockState(), direction) == BusCableBlock.ConnectionType.LINK;
+        public boolean canScanContinueTowards(@Nullable final Direction direction) {
+            final BusCableBlock.ConnectionType connectionType = BusCableBlock.getConnectionType(getBlockState(), direction);
+            return connectionType == BusCableBlock.ConnectionType.LINK ||
+                   connectionType == BusCableBlock.ConnectionType.PLUG;
         }
 
         @Override
-        public boolean hasInterfaceOnSide(@Nullable final Direction direction) {
-            return BusCableBlock.getConnectionType(getBlockState(), direction) == BusCableBlock.ConnectionType.PLUG;
+        public boolean canDetectDevicesTowards(@Nullable final Direction direction) {
+            final BusCableBlock.ConnectionType connectionType = BusCableBlock.getConnectionType(getBlockState(), direction);
+            return connectionType == BusCableBlock.ConnectionType.PLUG;
         }
     }
 }

@@ -276,11 +276,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     @Override
-    protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        collector.offer(Capabilities.ITEM_HANDLER, itemHandlers);
-    }
-
-    @Override
     public void tick() {
         final World world = getWorld();
         if (world == null || world.isRemote()) {
@@ -490,6 +485,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     ///////////////////////////////////////////////////////////////////
 
     @Override
+    protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
+        collector.offer(Capabilities.ITEM_HANDLER, itemHandlers);
+        collector.offer(Capabilities.DEVICE_BUS_ELEMENT, busElement);
+    }
+
+    @Override
     protected void loadClient() {
         super.loadClient();
 
@@ -667,7 +668,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         @Override
-        public boolean canConnectToSide(@Nullable final Direction direction) {
+        public boolean canScanContinueTowards(@Nullable final Direction direction) {
             return getBlockState().get(ComputerBlock.HORIZONTAL_FACING) != direction;
         }
     }

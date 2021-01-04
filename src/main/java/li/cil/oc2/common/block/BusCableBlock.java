@@ -157,7 +157,7 @@ public final class BusCableBlock extends Block {
         }
 
         final BlockPos neighborPos = pos.offset(side);
-        if (canConnectTo(world, side, world.getBlockState(neighborPos), neighborPos)) {
+        if (isCableBlock(world.getBlockState(neighborPos))) {
             world.setBlockState(pos, state.with(property, ConnectionType.LINK));
         } else {
             world.setBlockState(pos, state.with(property, ConnectionType.NONE));
@@ -205,7 +205,7 @@ public final class BusCableBlock extends Block {
         for (final Map.Entry<Direction, EnumProperty<ConnectionType>> entry : FACING_TO_CONNECTION_MAP.entrySet()) {
             final Direction facing = entry.getKey();
             final BlockPos facingPos = position.offset(facing);
-            if (canConnectTo(world, facing, world.getBlockState(facingPos), facingPos)) {
+            if (isCableBlock(world.getBlockState(facingPos))) {
                 state = state.with(entry.getValue(), ConnectionType.LINK);
             }
         }
@@ -216,7 +216,7 @@ public final class BusCableBlock extends Block {
     @SuppressWarnings("deprecation")
     @Override
     public BlockState updatePostPlacement(BlockState state, final Direction facing, final BlockState facingState, final IWorld world, final BlockPos currentPos, final BlockPos facingPos) {
-        if (canConnectTo(world, facing, facingState, facingPos)) {
+        if (isCableBlock(facingState)) {
             state = state.with(FACING_TO_CONNECTION_MAP.get(facing), ConnectionType.LINK);
         } else if (state.get(FACING_TO_CONNECTION_MAP.get(facing)) != ConnectionType.PLUG) {
             state = state.with(FACING_TO_CONNECTION_MAP.get(facing), ConnectionType.NONE);
@@ -284,17 +284,8 @@ public final class BusCableBlock extends Block {
         return index;
     }
 
-    private boolean canConnectTo(final IWorld world, final Direction facing, final BlockState facingState, final BlockPos facingPos) {
-        if (facingState.getBlock() == this) {
-            return true;
-        }
-
-        final TileEntity tileEntity = WorldUtils.getTileEntityIfChunkExists(world, facingPos);
-        if (tileEntity == null) {
-            return false;
-        }
-
-        return tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT, facing.getOpposite()).isPresent();
+    private boolean isCableBlock(final BlockState state) {
+        return state.getBlock() == this;
     }
 
     private void onConnectionTypeChanged(final IWorld world, final BlockPos pos, final Direction face) {

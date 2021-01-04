@@ -469,6 +469,13 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         return true;
     }
 
+    public void exportDeviceDataToItemStacks() {
+        memoryItemHandler.exportDeviceDataToItemStacks();
+        hardDriveItemHandler.exportDeviceDataToItemStacks();
+        flashMemoryItemHandler.exportDeviceDataToItemStacks();
+        cardItemHandler.exportDeviceDataToItemStacks();
+    }
+
     public void exportToItemStack(final ItemStack stack) {
         final CompoundNBT items = new CompoundNBT();
         items.put(MEMORY_TAG_NAME, memoryItemHandler.serializeNBT());

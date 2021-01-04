@@ -36,6 +36,12 @@ public class DeviceItemStackHandler extends ItemStackHandler {
         return busElement;
     }
 
+    public void exportDeviceDataToItemStacks() {
+        for (int slot = 0; slot < getSlots(); slot++) {
+            busElement.exportDeviceDataToItemStack(slot, getStackInSlot(slot));
+        }
+    }
+
     @Override
     public CompoundNBT serializeNBT() {
         final CompoundNBT nbt = super.serializeNBT();
@@ -56,7 +62,7 @@ public class DeviceItemStackHandler extends ItemStackHandler {
     @Override
     public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
         if (!simulate && amount > 0) {
-            busElement.handleBeforeItemRemoved(slot, getStackInSlot(slot));
+            busElement.exportDeviceDataToItemStack(slot, getStackInSlot(slot));
         }
 
         return super.extractItem(slot, amount, simulate);

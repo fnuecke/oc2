@@ -143,12 +143,16 @@ public final class ComputerBlock extends HorizontalBlock {
     @Override
     public void onBlockHarvested(final World world, final BlockPos pos, final BlockState state, final PlayerEntity player) {
         final TileEntity tileEntity = world.getTileEntity(pos);
-        if (tileEntity instanceof ComputerTileEntity) {
+        if (!world.isRemote() && tileEntity instanceof ComputerTileEntity) {
             final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
-            if (!world.isRemote() && player.isCreative() && !computer.isEmpty()) {
-                final ItemStack stack = new ItemStack(Items.COMPUTER_ITEM.get());
-                computer.exportToItemStack(stack);
-                spawnAsEntity(world, pos, stack);
+            if (!computer.isEmpty()) {
+                computer.exportDeviceDataToItemStacks();
+
+                if (player.isCreative()) {
+                    final ItemStack stack = new ItemStack(Items.COMPUTER_ITEM.get());
+                    computer.exportToItemStack(stack);
+                    spawnAsEntity(world, pos, stack);
+                }
             }
         }
 

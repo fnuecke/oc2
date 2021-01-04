@@ -35,15 +35,11 @@ public class ItemHandlerDeviceBusElement extends AbstractGroupingItemDeviceBusEl
         }
     }
 
-    public void handleBeforeItemRemoved(final int slot, final ItemStack stack) {
-        if (!stack.isEmpty()) {
-            exportDeviceDataToItemStack(slot, stack);
+    public void exportDeviceDataToItemStack(final int slot, final ItemStack stack) {
+        if (stack.isEmpty()) {
+            return;
         }
-    }
 
-    ///////////////////////////////////////////////////////////////////
-
-    private void exportDeviceDataToItemStack(final int slot, final ItemStack stack) {
         final CompoundNBT exportedNbt = new CompoundNBT();
         for (final ItemDeviceInfo info : groups.get(slot)) {
             ItemDeviceUtils.getItemDeviceDataKey(info.provider).ifPresent(key -> {
@@ -57,6 +53,8 @@ public class ItemHandlerDeviceBusElement extends AbstractGroupingItemDeviceBusEl
 
         ItemDeviceUtils.setItemDeviceData(stack, exportedNbt);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private void importDeviceDataFromItemStack(final ItemStack stack, final HashSet<ItemDeviceInfo> devices) {
         ItemDeviceUtils.getItemDeviceData(stack).ifPresent(exportedNbt -> {

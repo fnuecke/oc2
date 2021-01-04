@@ -1,6 +1,8 @@
 package li.cil.oc2.common.vm.fs;
 
 import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.objects.Object2LongArrayMap;
+import li.cil.oc2.common.Constants;
 import li.cil.sedna.fs.*;
 import net.minecraft.resources.IResource;
 import net.minecraft.resources.IResourceManager;
@@ -22,6 +24,9 @@ import java.util.stream.Collectors;
 public final class ResourceFileSystem implements FileSystem {
     private final IResourceManager resourceManager;
     private final Node root;
+    private final Object2LongArrayMap<Node> sizes = new Object2LongArrayMap<>();
+
+    ///////////////////////////////////////////////////////////////////
 
     public ResourceFileSystem(final IResourceManager resourceManager, final ResourceLocation rootLocation) {
         this.resourceManager = resourceManager;
@@ -45,6 +50,8 @@ public final class ResourceFileSystem implements FileSystem {
 
         root.buildEntries();
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     public FileSystemStats statfs() {
@@ -127,7 +134,7 @@ public final class ResourceFileSystem implements FileSystem {
 
             @Override
             public long size() {
-                return 0;
+                return getCachedSize(node);
             }
 
             @Override
@@ -223,6 +230,31 @@ public final class ResourceFileSystem implements FileSystem {
         throw new IOException();
     }
 
+    ///////////////////////////////////////////////////////////////////
+
+    private long getCachedSize(final Node node) {
+        if (node.isDirectory || node.location == null) {
+            return 0L;
+        }
+
+        return sizes.computeIfAbsent(node, n -> {
+            try (final IResource resource = node.resourceManager.getResource(node.location)) {
+                final InputStream stream = resource.getInputStream();
+                final byte[] buffer = new byte[4 * Constants.KILOBYTE];
+
+                long size = 0;
+                int readCount;
+                while ((readCount = stream.read(buffer)) != -1) {
+                    size += readCount;
+                }
+
+                return size;
+            } catch (final IOException e) {
+                return 0L;
+            }
+        });
+    }
+
     @Nullable
     private Node getNode(final Path path) {
         Node node = root;
@@ -244,6 +276,8 @@ public final class ResourceFileSystem implements FileSystem {
         }
         return node;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private static final class Node {
         public final IResourceManager resourceManager;

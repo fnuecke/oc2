@@ -119,7 +119,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private final IItemHandler itemHandlers = new CombinedInvWrapper(memoryItemHandler, hardDriveItemHandler, flashMemoryItemHandler, cardItemHandler);
 
     private final Terminal terminal = new Terminal();
-    private final TileEntityDeviceBusElement busElement = new BusElement();
+    private final TileEntityDeviceBusElement busElement = new ComputerBusElement();
     private final ComputerVirtualMachine virtualMachine;
     private ComputerVirtualMachineRunner runner;
 
@@ -131,7 +131,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         // We want to unload devices even on world unload to free global resources.
         setNeedsWorldUnloadEvent();
 
-        busController = new BusController(busElement);
+        busController = new ComputerBusController(busElement);
         busState = AbstractDeviceBusController.BusState.SCAN_PENDING;
         runState = RunState.STOPPED;
 
@@ -396,20 +396,20 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        compound = super.write(compound);
+    public CompoundNBT write(CompoundNBT tag) {
+        tag = super.write(tag);
 
         joinVirtualMachine();
 
-        compound.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+        tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
 
-        compound.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
-        compound.put(VIRTUAL_MACHINE_TAG_NAME, NBTSerialization.serialize(virtualMachine));
+        tag.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
+        tag.put(VIRTUAL_MACHINE_TAG_NAME, NBTSerialization.serialize(virtualMachine));
 
         if (runner != null) {
-            compound.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
+            tag.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
         } else {
-            NBTUtils.putEnum(compound, RUN_STATE_TAG_NAME, runState);
+            NBTUtils.putEnum(tag, RUN_STATE_TAG_NAME, runState);
         }
 
         final CompoundNBT items = new CompoundNBT();
@@ -417,33 +417,33 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         items.put(HARD_DRIVE_TAG_NAME, hardDriveItemHandler.serializeNBT());
         items.put(FLASH_MEMORY_TAG_NAME, flashMemoryItemHandler.serializeNBT());
         items.put(CARD_TAG_NAME, cardItemHandler.serializeNBT());
-        compound.put(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, items);
+        tag.put(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, items);
 
-        return compound;
+        return tag;
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT compound) {
-        super.read(state, compound);
+    public void read(final BlockState state, final CompoundNBT tag) {
+        super.read(state, tag);
 
         joinVirtualMachine();
 
-        NBTSerialization.deserialize(compound.getCompound(TERMINAL_TAG_NAME), terminal);
+        NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
 
-        if (compound.contains(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            NBTSerialization.deserialize(compound.getCompound(BUS_ELEMENT_TAG_NAME), busElement);
+        if (tag.contains(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            NBTSerialization.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME), busElement);
         }
 
-        if (compound.contains(VIRTUAL_MACHINE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            NBTSerialization.deserialize(compound.getCompound(VIRTUAL_MACHINE_TAG_NAME), virtualMachine);
+        if (tag.contains(VIRTUAL_MACHINE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            NBTSerialization.deserialize(tag.getCompound(VIRTUAL_MACHINE_TAG_NAME), virtualMachine);
         }
 
-        if (compound.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+        if (tag.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             runner = new ComputerVirtualMachineRunner(virtualMachine);
-            NBTSerialization.deserialize(compound.getCompound(RUNNER_TAG_NAME), runner);
+            NBTSerialization.deserialize(tag.getCompound(RUNNER_TAG_NAME), runner);
             runState = RunState.LOADING_DEVICES;
         } else {
-            runState = NBTUtils.getEnum(compound, RUN_STATE_TAG_NAME, RunState.class);
+            runState = NBTUtils.getEnum(tag, RUN_STATE_TAG_NAME, RunState.class);
             if (runState == null) {
                 runState = RunState.STOPPED;
             } else if (runState == RunState.RUNNING) {
@@ -451,8 +451,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             }
         }
 
-        if (compound.contains(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            final CompoundNBT items = compound.getCompound(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME);
+        if (tag.contains(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            final CompoundNBT items = tag.getCompound(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME);
             memoryItemHandler.deserializeNBT(items.getCompound(MEMORY_TAG_NAME));
             hardDriveItemHandler.deserializeNBT(items.getCompound(HARD_DRIVE_TAG_NAME));
             flashMemoryItemHandler.deserializeNBT(items.getCompound(FLASH_MEMORY_TAG_NAME));
@@ -612,8 +612,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
     }
 
-    private final class BusController extends TileEntityDeviceBusController {
-        private BusController(final DeviceBusElement root) {
+    private final class ComputerBusController extends TileEntityDeviceBusController {
+        private ComputerBusController(final DeviceBusElement root) {
             super(root, ComputerTileEntity.this);
         }
 
@@ -642,8 +642,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
     }
 
-    private final class BusElement extends TileEntityDeviceBusElement {
-        public BusElement() {
+    private final class ComputerBusElement extends TileEntityDeviceBusElement {
+        public ComputerBusElement() {
             super(ComputerTileEntity.this);
         }
 

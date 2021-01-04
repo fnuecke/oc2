@@ -12,18 +12,16 @@ import net.minecraft.util.math.BlockPos;
 import javax.annotation.Nullable;
 
 public final class BusCableTileEntity extends AbstractTileEntity {
-    private static final String BUS_ELEMENT_NBT_TAG_NAME = "busElement";
+    private static final String BUS_ELEMENT_TAG_NAME = "busElement";
 
     ///////////////////////////////////////////////////////////////////
 
-    private final TileEntityDeviceBusElement busElement;
+    private final TileEntityDeviceBusElement busElement = new BusCableBusElement();
 
     ///////////////////////////////////////////////////////////////////
 
     public BusCableTileEntity() {
         super(TileEntities.BUS_CABLE_TILE_ENTITY.get());
-
-        busElement = new BusElement();
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -38,16 +36,18 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        compound = super.write(compound);
-        compound.put(BUS_ELEMENT_NBT_TAG_NAME, busElement.serializeNBT());
-        return compound;
+    public CompoundNBT write(CompoundNBT tag) {
+        tag = super.write(tag);
+        tag.put(BUS_ELEMENT_TAG_NAME, busElement.serializeNBT());
+        return tag;
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT compound) {
-        super.read(state, compound);
-        busElement.deserializeNBT(compound.getList(BUS_ELEMENT_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
+    public void read(final BlockState state, final CompoundNBT tag) {
+        super.read(state, tag);
+        if (tag.contains(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            busElement.deserializeNBT(tag.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
+        }
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -78,8 +78,8 @@ public final class BusCableTileEntity extends AbstractTileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final class BusElement extends TileEntityDeviceBusElement {
-        public BusElement() {
+    private final class BusCableBusElement extends TileEntityDeviceBusElement {
+        public BusCableBusElement() {
             super(BusCableTileEntity.this);
         }
 

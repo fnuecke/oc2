@@ -608,13 +608,15 @@ public final class NBTSerialization {
         @Override
         public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
             String[] data = (String[]) into;
-            if (nbt instanceof ListNBT && ((ListNBT) nbt).getTagType() == NBTTagIds.TAG_STRING) {
+            if (nbt instanceof ListNBT) {
                 final ListNBT serializedData = (ListNBT) nbt;
-                if (data == null || data.length != serializedData.size()) {
-                    data = new String[serializedData.size()];
-                }
-                for (int i = 0; i < serializedData.size(); i++) {
-                    data[i] = serializedData.getString(i);
+                if (serializedData.isEmpty() || serializedData.getTagType() == NBTTagIds.TAG_STRING) {
+                    if (data == null || data.length != serializedData.size()) {
+                        data = new String[serializedData.size()];
+                    }
+                    for (int i = 0; i < serializedData.size(); i++) {
+                        data[i] = serializedData.getString(i);
+                    }
                 }
             }
             return data;
@@ -635,13 +637,15 @@ public final class NBTSerialization {
         @Override
         public Object deserialize(final INBT nbt, final Class<?> type, @Nullable final Object into) {
             UUID[] data = (UUID[]) into;
-            if (nbt instanceof ListNBT && ((ListNBT) nbt).getTagType() == NBTTagIds.TAG_STRING) {
+            if (nbt instanceof ListNBT) {
                 final ListNBT serializedData = (ListNBT) nbt;
-                if (data == null || data.length != serializedData.size()) {
-                    data = new UUID[serializedData.size()];
-                }
-                for (int i = 0; i < serializedData.size(); i++) {
-                    data[i] = UUID.fromString(serializedData.getString(i));
+                if (serializedData.isEmpty() || serializedData.getTagType() == NBTTagIds.TAG_STRING) {
+                    if (data == null || data.length != serializedData.size()) {
+                        data = new UUID[serializedData.size()];
+                    }
+                    for (int i = 0; i < serializedData.size(); i++) {
+                        data[i] = UUID.fromString(serializedData.getString(i));
+                    }
                 }
             }
             return data;

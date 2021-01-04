@@ -7,7 +7,8 @@ public enum VMDeviceLifecycleEventType {
      * Fired after all devices reported success from {@link VMDevice#load(VMContext)}.
      * <p>
      * Fired on initial boot-up as well as when the VM resumes after being restored
-     * from a saved state. It is intended for awaiting asynchronous load operations.
+     * from a saved state as well as when continuing to run after being paused for
+     * a save. It is intended for awaiting asynchronous load and store operations.
      */
     RESUME_RUNNING,
 

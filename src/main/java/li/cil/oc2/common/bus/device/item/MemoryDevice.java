@@ -4,6 +4,7 @@ import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.*;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
+import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.item.MemoryItem;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
@@ -15,7 +16,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.MathHelper;
 
-import java.util.OptionalLong;
 import java.util.UUID;
 
 public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice {
@@ -30,8 +30,8 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     ///////////////////////////////////////////////////////////////
 
+    private final OptionalAddress address = new OptionalAddress();
     private UUID blobHandle;
-    private Long address;
 
     ///////////////////////////////////////////////////////////////
 
@@ -48,7 +48,7 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
             return VMDeviceLoadResult.fail();
         }
 
-        if (!claimAddress(context)) {
+        if (!address.claim(context, device)) {
             return VMDeviceLoadResult.fail();
         }
 
@@ -79,8 +79,8 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
             jobHandle = BlobStorage.submitSave(blobHandle, new PhysicalMemoryInputStream(device));
         }
-        if (address != null) {
-            nbt.putLong(ADDRESS_NBT_TAG_NAME, address);
+        if (address.isPresent()) {
+            nbt.putLong(ADDRESS_NBT_TAG_NAME, address.getAsLong());
         }
 
         return nbt;
@@ -92,7 +92,7 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
             blobHandle = nbt.getUniqueId(BLOB_HANDLE_NBT_TAG_NAME);
         }
         if (nbt.contains(ADDRESS_NBT_TAG_NAME, NBTTagIds.TAG_LONG)) {
-            address = nbt.getLong(ADDRESS_NBT_TAG_NAME);
+            address.set(nbt.getLong(ADDRESS_NBT_TAG_NAME));
         }
     }
 
@@ -104,23 +104,6 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
         }
 
         device = Memory.create(size);
-
-        return true;
-    }
-
-    private boolean claimAddress(final VMContext context) {
-        final OptionalLong claimedAddress;
-        if (this.address != null) {
-            claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(this.address, device);
-        } else {
-            claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(device);
-        }
-
-        if (!claimedAddress.isPresent()) {
-            return false;
-        }
-
-        this.address = claimedAddress.getAsLong();
 
         return true;
     }
@@ -142,9 +125,9 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
         // Memory is volatile, so free up our persisted blob when device is unloaded.
         BlobStorage.freeHandle(blobHandle);
         blobHandle = null;
+        jobHandle = null;
 
         device = null;
-        address = null;
-        jobHandle = null;
+        address.clear();
     }
 }

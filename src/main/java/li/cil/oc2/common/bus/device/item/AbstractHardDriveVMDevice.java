@@ -3,6 +3,8 @@ package li.cil.oc2.common.bus.device.item;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.*;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
+import li.cil.oc2.common.bus.device.util.OptionalAddress;
+import li.cil.oc2.common.bus.device.util.OptionalInterrupt;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
@@ -14,8 +16,6 @@ import net.minecraft.nbt.CompoundNBT;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
 import java.util.UUID;
 
 public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice {
@@ -33,9 +33,9 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
     ///////////////////////////////////////////////////////////////
 
     // Online persisted data.
+    private final OptionalAddress address = new OptionalAddress();
+    private final OptionalInterrupt interrupt = new OptionalInterrupt();
     private CompoundNBT deviceNbt;
-    private Long address;
-    private Integer interrupt;
 
     // Offline persisted data.
     private UUID blobHandle;
@@ -54,11 +54,13 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
             return VMDeviceLoadResult.fail();
         }
 
-        if (!claimAddress(context)) {
+        if (!address.claim(context, device)) {
             return VMDeviceLoadResult.fail();
         }
 
-        if (!claimInterrupt(context)) {
+        if (interrupt.claim(context)) {
+            device.getInterrupt().set(interrupt.getAsInt(), context.getInterruptController());
+        } else {
             return VMDeviceLoadResult.fail();
         }
 
@@ -114,11 +116,11 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
         if (deviceNbt != null) {
             nbt.put(DEVICE_NBT_TAG_NAME, deviceNbt);
         }
-        if (address != null) {
-            nbt.putLong(ADDRESS_NBT_TAG_NAME, address);
+        if (address.isPresent()) {
+            nbt.putLong(ADDRESS_NBT_TAG_NAME, address.getAsLong());
         }
-        if (interrupt != null) {
-            nbt.putInt(INTERRUPT_NBT_TAG_NAME, interrupt);
+        if (interrupt.isPresent()) {
+            nbt.putInt(INTERRUPT_NBT_TAG_NAME, interrupt.getAsInt());
         }
 
         if (blobHandle != null) {
@@ -138,10 +140,10 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
             deviceNbt = nbt.getCompound(DEVICE_NBT_TAG_NAME);
         }
         if (nbt.contains(ADDRESS_NBT_TAG_NAME, NBTTagIds.TAG_LONG)) {
-            address = nbt.getLong(ADDRESS_NBT_TAG_NAME);
+            address.set(nbt.getLong(ADDRESS_NBT_TAG_NAME));
         }
         if (nbt.contains(INTERRUPT_NBT_TAG_NAME, NBTTagIds.TAG_INT)) {
-            interrupt = nbt.getInt(INTERRUPT_NBT_TAG_NAME);
+            interrupt.set(nbt.getInt(INTERRUPT_NBT_TAG_NAME));
         }
     }
 
@@ -164,42 +166,6 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
 
         data = createDevice();
         device = new VirtIOBlockDevice(context.getMemoryMap(), data);
-
-        return true;
-    }
-
-    private boolean claimAddress(final VMContext context) {
-        final OptionalLong claimedAddress;
-        if (this.address != null) {
-            claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(this.address, device);
-        } else {
-            claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(device);
-        }
-
-        if (!claimedAddress.isPresent()) {
-            return false;
-        }
-
-        this.address = claimedAddress.getAsLong();
-
-        return true;
-    }
-
-    private boolean claimInterrupt(final VMContext context) {
-        final OptionalInt claimedInterrupt;
-        if (this.interrupt != null) {
-            claimedInterrupt = context.getInterruptAllocator().claimInterrupt(this.interrupt);
-        } else {
-            claimedInterrupt = context.getInterruptAllocator().claimInterrupt();
-        }
-
-        if (!claimedInterrupt.isPresent()) {
-            return false;
-        }
-
-        this.interrupt = claimedInterrupt.getAsInt();
-
-        device.getInterrupt().set(this.interrupt, context.getInterruptController());
 
         return true;
     }
@@ -238,11 +204,11 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
         }
 
         data = null;
+        jobHandle = null;
 
         device = null;
         deviceNbt = null;
-        address = null;
-        interrupt = null;
-        jobHandle = null;
+        address.clear();
+        interrupt.clear();
     }
 }

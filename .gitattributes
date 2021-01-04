@@ -3,3 +3,6 @@
 # are changed when only line endings change.
 src/generated/**/.cache/cache text eol=lf
 src/generated/**/*.json text eol=lf
+
+# Files provided to VM.
+src/main/resources/data/oc2/file_systems/**/*.lua text eol=lf

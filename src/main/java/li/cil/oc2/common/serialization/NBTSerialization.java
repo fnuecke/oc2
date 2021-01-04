@@ -17,9 +17,19 @@ import java.util.Map;
 import java.util.UUID;
 
 public final class NBTSerialization {
+    public static <T> void serialize(final CompoundNBT nbt, final T value, final Class<T> type) throws SerializationException {
+        Ceres.getSerializer(type).serialize(new Serializer(nbt), type, value);
+    }
+
     public static <T> void serialize(final CompoundNBT nbt, final T value) throws SerializationException {
         @SuppressWarnings("unchecked") final Class<T> type = (Class<T>) value.getClass();
-        Ceres.getSerializer(type).serialize(new Serializer(nbt), type, value);
+        serialize(nbt, value, type);
+    }
+
+    public static <T> CompoundNBT serialize(final T value, final Class<T> type) throws SerializationException {
+        final CompoundNBT nbt = new CompoundNBT();
+        serialize(nbt, value, type);
+        return nbt;
     }
 
     public static <T> CompoundNBT serialize(final T value) throws SerializationException {

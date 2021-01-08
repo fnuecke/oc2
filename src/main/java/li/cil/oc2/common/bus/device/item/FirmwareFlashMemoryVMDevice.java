@@ -30,7 +30,7 @@ public final class FirmwareFlashMemoryVMDevice extends IdentityProxy<ItemStack> 
     @Override
     public void handleLifecycleEvent(final VMDeviceLifecycleEventType event) {
         switch (event) {
-            case INITIALIZE:
+            case INITIALIZING:
                 // TODO Have start address passed with event?
                 firmware.run(memoryMap, 0x80000000L);
                 break;

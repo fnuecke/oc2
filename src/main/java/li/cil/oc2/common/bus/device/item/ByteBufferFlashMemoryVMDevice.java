@@ -64,7 +64,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
     @Override
     public void handleLifecycleEvent(final VMDeviceLifecycleEventType event) {
         switch (event) {
-            case INITIALIZE:
+            case INITIALIZING:
                 // TODO Have start address passed with event?
                 copyDataToMemory(0x80000000L);
                 break;

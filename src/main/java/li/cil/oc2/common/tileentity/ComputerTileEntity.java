@@ -407,17 +407,18 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         joinVirtualMachine();
 
-        tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
-
-        tag.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
-        tag.put(VIRTUAL_MACHINE_TAG_NAME, NBTSerialization.serialize(virtualMachine));
-
         if (runner != null) {
             tag.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
+            virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.PAUSING);
             runner.scheduleResumeEvent(); // Allow synchronizing to async device saves.
         } else {
             NBTUtils.putEnum(tag, RUN_STATE_TAG_NAME, runState);
         }
+
+        tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+
+        tag.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
+        tag.put(VIRTUAL_MACHINE_TAG_NAME, NBTSerialization.serialize(virtualMachine));
 
         final CompoundNBT items = new CompoundNBT();
         items.put(MEMORY_TAG_NAME, memoryItemHandler.serializeNBT());
@@ -739,12 +740,13 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         protected void handleBeforeRun() {
             if (!firedInitializationEvent) {
                 firedInitializationEvent = true;
-                virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.INITIALIZE);
+                virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.INITIALIZING);
             }
 
             if (!firedResumeEvent) {
                 firedResumeEvent = true;
                 virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.RESUME_RUNNING);
+                virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.RESUMED_RUNNING);
             }
 
             int value;

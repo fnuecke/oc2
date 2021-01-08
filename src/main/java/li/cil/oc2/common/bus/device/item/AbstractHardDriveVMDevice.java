@@ -83,6 +83,9 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
 
     @Override
     public void exportToItemStack(final CompoundNBT nbt) {
+        if (blobHandle == null && data != null) {
+            getSerializationStream(data).ifPresent(stream -> blobHandle = BlobStorage.validateHandle(blobHandle));
+        }
         if (blobHandle != null) {
             nbt.putUniqueId(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
         }

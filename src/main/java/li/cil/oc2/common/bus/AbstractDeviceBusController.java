@@ -3,6 +3,7 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.common.Constants;
 import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.*;
@@ -21,9 +22,8 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
     ///////////////////////////////////////////////////////////////////
 
     private static final int MAX_BUS_ELEMENT_COUNT = 128;
-    private static final int TICKS_PER_SECOND = 20;
-    private static final int INCOMPLETE_RETRY_INTERVAL = 10 * TICKS_PER_SECOND;
-    private static final int BAD_CONFIGURATION_RETRY_INTERVAL = 5 * TICKS_PER_SECOND;
+    private static final int INCOMPLETE_RETRY_INTERVAL = 10 * Constants.TICK_SECONDS;
+    private static final int BAD_CONFIGURATION_RETRY_INTERVAL = 5 * Constants.TICK_SECONDS;
 
     ///////////////////////////////////////////////////////////////////
 

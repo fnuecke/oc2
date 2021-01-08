@@ -82,7 +82,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final String RUN_STATE_TAG_NAME = "runState";
     private static final String BOOT_ERROR_TAG_NAME = "bootError";
 
-    private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * 20; // In ticks.
+    private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * Constants.TICK_SECONDS;
 
     private static final int MEMORY_SLOTS = 4;
     private static final int HARD_DRIVE_SLOTS = 4;

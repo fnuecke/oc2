@@ -60,9 +60,17 @@ public class DeviceItemStackHandler extends ItemStackHandler {
 
     @NotNull
     @Override
+    public ItemStack getStackInSlot(final int slot) {
+        final ItemStack stack = super.getStackInSlot(slot);
+        busElement.exportDeviceDataToItemStack(slot, stack);
+        return stack;
+    }
+
+    @NotNull
+    @Override
     public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
         if (!simulate && amount > 0) {
-            busElement.exportDeviceDataToItemStack(slot, getStackInSlot(slot));
+            busElement.exportDeviceDataToItemStack(slot, super.getStackInSlot(slot));
         }
 
         return super.extractItem(slot, amount, simulate);

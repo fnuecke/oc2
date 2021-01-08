@@ -6,6 +6,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
@@ -33,6 +34,10 @@ public final class ItemStackUtils {
     }
 
     public static Optional<ItemEntity> spawnAsEntity(final World world, final BlockPos pos, final ItemStack stack) {
+        return spawnAsEntity(world, Vector3d.copyCentered(pos), stack);
+    }
+
+    public static Optional<ItemEntity> spawnAsEntity(final World world, final Vector3d pos, final ItemStack stack) {
         if (world.isRemote() || stack.isEmpty()) {
             return Optional.empty();
         }
@@ -42,9 +47,9 @@ public final class ItemStackUtils {
         final float tx = 0.5f * (rng.nextFloat() - 1.0f);
         final float ty = 0.5f * (rng.nextFloat() - 1.0f);
         final float tz = 0.5f * (rng.nextFloat() - 1.0f);
-        final double px = pos.getX() + 0.5 + tx;
-        final double py = pos.getY() + 0.5 + ty;
-        final double pz = pos.getZ() + 0.5 + tz;
+        final double px = pos.getX() + tx;
+        final double py = pos.getY() + ty;
+        final double pz = pos.getZ() + tz;
 
         final ItemEntity entity = new ItemEntity(world, px, py, pz, stack);
         entity.setDefaultPickupDelay();
@@ -54,6 +59,10 @@ public final class ItemStackUtils {
     }
 
     public static Optional<ItemEntity> spawnAsEntity(final World world, final BlockPos pos, final ItemStack stack, final Direction direction) {
+        return spawnAsEntity(world, Vector3d.copyCentered(pos), stack, direction);
+    }
+
+    public static Optional<ItemEntity> spawnAsEntity(final World world, final Vector3d pos, final ItemStack stack, final Direction direction) {
         if (world.isRemote() || stack.isEmpty()) {
             return Optional.empty();
         }
@@ -66,9 +75,9 @@ public final class ItemStackUtils {
         final float tx = 0.1f * (rng.nextFloat() - 0.5f) + ox * 0.65f;
         final float ty = 0.1f * (rng.nextFloat() - 0.5f) + oy * 0.75f + (ox + oz) * 0.25f;
         final float tz = 0.1f * (rng.nextFloat() - 0.5f) + oz * 0.65f;
-        final double px = pos.getX() + 0.5 + tx;
-        final double py = pos.getY() + 0.5 + ty;
-        final double pz = pos.getZ() + 0.5 + tz;
+        final double px = pos.getX() + tx;
+        final double py = pos.getY() + ty;
+        final double pz = pos.getZ() + tz;
 
         final ItemEntity entity = new ItemEntity(world, px, py, pz, stack);
 

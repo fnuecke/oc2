@@ -17,7 +17,7 @@ public interface NetworkInterface {
     /**
      * Tries to read an ethernet frame from this network interface.
      * <p>
-     * The frame <em>should</em>> be a Layer 2 Ethernet frame.
+     * The frame <em>should</em> be a Layer 2 Ethernet frame.
      * <p>
      * When no data is available, {@code null} should be returned.
      *

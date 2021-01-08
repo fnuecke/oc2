@@ -42,8 +42,8 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
 
     ///////////////////////////////////////////////////////////////
 
-    protected AbstractHardDriveVMDevice(final ItemStack stack) {
-        super(stack);
+    protected AbstractHardDriveVMDevice(final ItemStack identity) {
+        super(identity);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
 
     @Override
     public CompoundNBT serializeNBT() {
-        final CompoundNBT nbt = new CompoundNBT();
+        final CompoundNBT tag = new CompoundNBT();
 
         if (data != null) {
             final Optional<InputStream> optional = getSerializationStream(data);
@@ -114,36 +114,36 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
             deviceNbt = NBTSerialization.serialize(device);
         }
         if (deviceNbt != null) {
-            nbt.put(DEVICE_NBT_TAG_NAME, deviceNbt);
+            tag.put(DEVICE_NBT_TAG_NAME, deviceNbt);
         }
         if (address.isPresent()) {
-            nbt.putLong(ADDRESS_NBT_TAG_NAME, address.getAsLong());
+            tag.putLong(ADDRESS_NBT_TAG_NAME, address.getAsLong());
         }
         if (interrupt.isPresent()) {
-            nbt.putInt(INTERRUPT_NBT_TAG_NAME, interrupt.getAsInt());
+            tag.putInt(INTERRUPT_NBT_TAG_NAME, interrupt.getAsInt());
         }
 
         if (blobHandle != null) {
-            nbt.putUniqueId(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
+            tag.putUniqueId(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
         }
 
-        return nbt;
+        return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT nbt) {
-        if (nbt.hasUniqueId(BLOB_HANDLE_NBT_TAG_NAME)) {
-            blobHandle = nbt.getUniqueId(BLOB_HANDLE_NBT_TAG_NAME);
+    public void deserializeNBT(final CompoundNBT tag) {
+        if (tag.hasUniqueId(BLOB_HANDLE_NBT_TAG_NAME)) {
+            blobHandle = tag.getUniqueId(BLOB_HANDLE_NBT_TAG_NAME);
         }
 
-        if (nbt.contains(DEVICE_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            deviceNbt = nbt.getCompound(DEVICE_NBT_TAG_NAME);
+        if (tag.contains(DEVICE_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            deviceNbt = tag.getCompound(DEVICE_NBT_TAG_NAME);
         }
-        if (nbt.contains(ADDRESS_NBT_TAG_NAME, NBTTagIds.TAG_LONG)) {
-            address.set(nbt.getLong(ADDRESS_NBT_TAG_NAME));
+        if (tag.contains(ADDRESS_NBT_TAG_NAME, NBTTagIds.TAG_LONG)) {
+            address.set(tag.getLong(ADDRESS_NBT_TAG_NAME));
         }
-        if (nbt.contains(INTERRUPT_NBT_TAG_NAME, NBTTagIds.TAG_INT)) {
-            interrupt.set(nbt.getInt(INTERRUPT_NBT_TAG_NAME));
+        if (tag.contains(INTERRUPT_NBT_TAG_NAME, NBTTagIds.TAG_INT)) {
+            interrupt.set(tag.getInt(INTERRUPT_NBT_TAG_NAME));
         }
     }
 

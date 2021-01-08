@@ -105,6 +105,8 @@ public final class BusCableBlock extends Block {
         shapes = makeShapes();
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public boolean addPlug(final World world, final BlockPos pos, final BlockState state, final Direction side) {
         final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(side);
         if (state.get(property) == BusCableBlock.ConnectionType.NONE) {

@@ -35,9 +35,9 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     ///////////////////////////////////////////////////////////////
 
-    public MemoryDevice(final ItemStack value) {
-        super(value);
-        size = MathHelper.clamp(MemoryItem.getCapacity(value), 0, Config.maxMemorySize);
+    public MemoryDevice(final ItemStack identity) {
+        super(identity);
+        size = MathHelper.clamp(MemoryItem.getCapacity(identity), 0, Config.maxMemorySize);
     }
 
     ///////////////////////////////////////////////////////////////////

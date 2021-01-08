@@ -26,6 +26,8 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
         setDefaultState(getStateContainer().getBaseState().with(HORIZONTAL_FACING, Direction.NORTH));
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
         return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());

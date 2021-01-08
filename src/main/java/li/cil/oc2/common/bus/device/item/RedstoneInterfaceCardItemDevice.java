@@ -26,7 +26,6 @@ import net.minecraftforge.common.util.LazyOptional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Objects;
 
 public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements RPCDevice, DocumentedDevice, ItemDevice, ICapabilityProvider {
     private static final int FACE_COUNT = Direction.values().length;
@@ -159,20 +158,6 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
                              "the side depends on the orientation of the device's container.")
                 .parameterDescription(SIDE, "the side to write the output level to.")
                 .parameterDescription(VALUE, "the output level to set, will be clamped to [0, 15].");
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        final RedstoneInterfaceCardItemDevice that = (RedstoneInterfaceCardItemDevice) o;
-        return tileEntity.equals(that.tileEntity);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), tileEntity);
     }
 
     ///////////////////////////////////////////////////////////////////

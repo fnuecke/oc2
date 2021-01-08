@@ -29,6 +29,9 @@ public final class NetworkCableRenderer {
     private static final int MAX_RENDER_DISTANCE = 100;
     private static final int CABLE_VERTEX_COUNT = 9;
     private static final float CABLE_THICKNESS = 0.025f;
+    private static final float CABLE_LENGTH_FOR_MAX_SWING = 6f;
+    private static final float CABLE_MAX_SWING_AMOUNT = 0.05f;
+    private static final int CABLE_SWING_INTERVAL = 8000;
     private static final float CABLE_HANG_MIN = 0.1f;
     private static final float CABLE_HANG_MAX = 0.5f;
     private static final float CABLE_MAX_LENGTH = 8f;
@@ -100,7 +103,11 @@ public final class NetworkCableRenderer {
                 continue;
             }
 
-            final Vector3d p2 = addNoisyMovement(lerp(p0, p1, 0.5f).subtract(0, computeCableHang(p0, p1), 0), connection.hashCode());
+            final Vector3d p2 = animateCableSwing(
+                    lerp(p0, p1, 0.5f).subtract(0, computeCableHang(p0, p1), 0),
+                    connection.right,
+                    computeCableSwingAmount(p0, p1),
+                    connection.hashCode());
 
             final IVertexBuilder buffer = bufferSource.getBuffer(renderType);
 
@@ -155,11 +162,17 @@ public final class NetworkCableRenderer {
         return (float) (CABLE_HANG_MIN + (CABLE_HANG_MAX - CABLE_HANG_MIN) * hangFactor);
     }
 
-    private static Vector3d addNoisyMovement(final Vector3d c, final int seed) {
-        final float relTime = ((System.currentTimeMillis() + seed) % 10000) / 10000f;
+    private static float computeCableSwingAmount(final Vector3d p0, final Vector3d p1) {
+        return MathHelper.clamp((float) p0.distanceTo(p1) / CABLE_LENGTH_FOR_MAX_SWING, 0.1f, 1f) * CABLE_MAX_SWING_AMOUNT;
+    }
+
+    private static Vector3d animateCableSwing(final Vector3d c, final Vector3d right, final float swingAmount, final int seed) {
+        final float relTime = ((System.currentTimeMillis() + seed) % CABLE_SWING_INTERVAL) / (float) CABLE_SWING_INTERVAL;
         final float relRadialTime = relTime * 2 * (float) Math.PI;
 
-        return c.add(0.1f * MathHelper.cos(relRadialTime), 0.025f + 0.025f * MathHelper.sin(relRadialTime), 0.1f * MathHelper.cos(relRadialTime));
+        return c.add(swingAmount * MathHelper.cos(relRadialTime) * right.getX(),
+                0.5f * swingAmount * MathHelper.sin(relRadialTime * 2 - (float) Math.PI) - swingAmount,
+                swingAmount * MathHelper.cos(relRadialTime) * right.getZ());
     }
 
     private static void validateConnectors() {
@@ -195,8 +208,11 @@ public final class NetworkCableRenderer {
     ///////////////////////////////////////////////////////////////////
 
     private static final class Connection {
+        private static final Vector3d POS_X = new Vector3d(1, 0, 0);
+        private static final Vector3d POS_Y = new Vector3d(0, 1, 0);
+
         public final BlockPos fromPos, toPos;
-        public final Vector3d from, to, forward;
+        public final Vector3d from, to, forward, right;
         public final AxisAlignedBB bounds;
 
         private Connection(final BlockPos fromPos, final BlockPos toPos) {
@@ -211,6 +227,8 @@ public final class NetworkCableRenderer {
             from = Vector3d.copyCentered(fromPos);
             to = Vector3d.copyCentered(toPos);
             forward = to.subtract(from).normalize();
+            right = fromPos.getX() == toPos.getX() && fromPos.getZ() == toPos.getZ()
+                    ? POS_X : forward.crossProduct(POS_Y);
             bounds = new AxisAlignedBB(from, to).grow(0, CABLE_HANG_MAX, 0);
         }
 

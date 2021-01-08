@@ -50,6 +50,8 @@ public final class ComputerBlock extends HorizontalBlock {
         setDefaultState(getStateContainer().getBaseState().with(HORIZONTAL_FACING, Direction.NORTH));
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @OnlyIn(Dist.CLIENT)
     @Override
     public void addInformation(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
@@ -81,16 +83,15 @@ public final class ComputerBlock extends HorizontalBlock {
     @SuppressWarnings("deprecation")
     @Override
     public int getWeakPower(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
-        if (side.getAxis().getPlane() == Direction.Plane.HORIZONTAL) {
-            final TileEntity tileEntity = world.getTileEntity(pos);
-            if (tileEntity != null) {
-                // Redstone requests info for faces with external perspective. Capabilities treat
-                // the Direction from internal perspective, so flip it.
-                return tileEntity.getCapability(Capabilities.REDSTONE_EMITTER, side.getOpposite())
-                        .map(RedstoneEmitter::getRedstoneOutput)
-                        .orElse(0);
-            }
+        final TileEntity tileEntity = world.getTileEntity(pos);
+        if (tileEntity != null) {
+            // Redstone requests info for faces with external perspective. Capabilities treat
+            // the Direction from internal perspective, so flip it.
+            return tileEntity.getCapability(Capabilities.REDSTONE_EMITTER, side.getOpposite())
+                    .map(RedstoneEmitter::getRedstoneOutput)
+                    .orElse(0);
         }
+
         return super.getWeakPower(state, world, pos, side);
     }
 

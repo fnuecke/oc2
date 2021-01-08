@@ -3,15 +3,18 @@
 
   "block.oc2.computer": "Computer",
   "block.oc2.bus_cable": "Bus Cable",
+  "block.oc2.network_connector": "Network Connector",
   "block.oc2.redstone_interface": "Redstone Interface",
   "block.oc2.screen": "Screen",
 
   "item.oc2.wrench": "Scrench",
   "item.oc2.bus_interface": "Bus Interface",
+  "item.oc2.network_cable": "Network Cable",
   "item.oc2.memory": "Memory",
   "item.oc2.hard_drive": "Hard Drive",
   "item.oc2.flash_memory": "Flash Memory",
   "item.oc2.redstone_interface_card": "Redstone Interface Card",
+  "item.oc2.network_interface_card": "Network Interface Card",
 
   "gui.oc2.computer.boot_error.unknown": "Unknown Error",
   "gui.oc2.computer.boot_error.no_memory": "Insufficient Memory",
@@ -27,5 +30,9 @@
   "gui.oc2.device_type.memory": "Memory",
   "gui.oc2.device_type.hard_drive": "Hard Drive",
   "gui.oc2.device_type.flash_memory": "Flash Memory",
-  "gui.oc2.device_type.card": "Card"
+  "gui.oc2.device_type.card": "Card",
+
+  "message.oc2.connector.error.full": "Cannot attach more cables.",
+  "message.oc2.connector.error.too_far": "Distance between connectors is too large.",
+  "message.oc2.connector.error.obstructed": "No clear line of sight between connectors."
 }

@@ -1,6 +1,7 @@
 package li.cil.oc2.common.capabilities;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.api.bus.device.capabilities.NetworkInterface;
 import li.cil.oc2.api.bus.device.capabilities.RedstoneEmitter;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
@@ -25,11 +26,15 @@ public final class Capabilities {
     @CapabilityInject(RedstoneEmitter.class)
     public static Capability<RedstoneEmitter> REDSTONE_EMITTER = null;
 
+    @CapabilityInject(NetworkInterface.class)
+    public static Capability<NetworkInterface> NETWORK_INTERFACE = null;
+
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
         register(DeviceBusElement.class);
         register(RedstoneEmitter.class);
+        register(NetworkInterface.class);
     }
 
     ///////////////////////////////////////////////////////////////////

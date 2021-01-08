@@ -1,7 +1,7 @@
 package li.cil.oc2.common.tileentity;
 
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.api.API;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.Blocks;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
@@ -21,6 +21,7 @@ public final class TileEntities {
     public static final RegistryObject<TileEntityType<RedstoneInterfaceTileEntity>> REDSTONE_INTERFACE_TILE_ENTITY = register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, Blocks.REDSTONE_INTERFACE_BLOCK, RedstoneInterfaceTileEntity::new);
     public static final RegistryObject<TileEntityType<BusCableTileEntity>> BUS_CABLE_TILE_ENTITY = register(Constants.BUS_CABLE_BLOCK_NAME, Blocks.BUS_CABLE_BLOCK, BusCableTileEntity::new);
     public static final RegistryObject<TileEntityType<ComputerTileEntity>> COMPUTER_TILE_ENTITY = register(Constants.COMPUTER_BLOCK_NAME, Blocks.COMPUTER_BLOCK, ComputerTileEntity::new);
+    public static final RegistryObject<TileEntityType<NetworkConnectorTileEntity>> NETWORK_CONNECTOR_TILE_ENTITY = register(Constants.NETWORK_CONNECTOR_BLOCK_NAME, Blocks.NETWORK_CONNECTOR_BLOCK, NetworkConnectorTileEntity::new);
 
     ///////////////////////////////////////////////////////////////////
 

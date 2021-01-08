@@ -4,10 +4,7 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.block.*;
-import li.cil.oc2.common.bus.device.provider.item.FlashMemoryItemDeviceProvider;
-import li.cil.oc2.common.bus.device.provider.item.HardDriveItemDeviceProvider;
-import li.cil.oc2.common.bus.device.provider.item.MemoryItemDeviceProvider;
-import li.cil.oc2.common.bus.device.provider.item.RedstoneInterfaceCardItemDeviceProvider;
+import li.cil.oc2.common.bus.device.provider.item.*;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -38,6 +35,7 @@ public final class Providers {
         ITEM_DEVICE_PROVIDERS.register("item_hard_drive", HardDriveItemDeviceProvider::new);
         ITEM_DEVICE_PROVIDERS.register("item_flash_memory", FlashMemoryItemDeviceProvider::new);
         ITEM_DEVICE_PROVIDERS.register("item_redstone_interface_card", RedstoneInterfaceCardItemDeviceProvider::new);
+        ITEM_DEVICE_PROVIDERS.register("item_network_interface_card", NetworkInterfaceCardItemDeviceProvider::new);
 
         BLOCK_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());
         ITEM_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());

@@ -31,6 +31,18 @@ public class BlockStates extends BlockStateProvider {
         horizontalBlock(Blocks.COMPUTER_BLOCK, Items.COMPUTER_ITEM);
         horizontalBlock(Blocks.REDSTONE_INTERFACE_BLOCK, Items.REDSTONE_INTERFACE_ITEM);
         horizontalBlock(Blocks.SCREEN_BLOCK, Items.SCREEN_ITEM);
+        horizontalFaceBlock(Blocks.NETWORK_CONNECTOR_BLOCK, Items.NETWORK_CONNECTOR_ITEM)
+                .transforms()
+                .transform(ModelBuilder.Perspective.GUI)
+                .rotation(30, 315, 0)
+                .translation(0, 2, 0)
+                .scale(0.75f, 0.75f, 0.75f)
+                .end()
+                .transform(ModelBuilder.Perspective.FIXED)
+                .rotation(270, 0, 0)
+                .translation(0, 0, -5)
+                .end()
+                .end();
 
         registerCableStates();
     }
@@ -187,8 +199,13 @@ public class BlockStates extends BlockStateProvider {
                 .end();
     }
 
-    private <T extends Block> void horizontalBlock(final RegistryObject<T> block, final RegistryObject<Item> item) {
+    private <T extends Block> ItemModelBuilder horizontalBlock(final RegistryObject<T> block, final RegistryObject<Item> item) {
         horizontalBlock(block.get(), models().getBuilder(block.getId().getPath()));
-        itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
+        return itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
+    }
+
+    private <T extends Block> ItemModelBuilder horizontalFaceBlock(final RegistryObject<T> block, final RegistryObject<Item> item) {
+        horizontalFaceBlock(block.get(), models().getBuilder(block.getId().getPath()));
+        return itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }
 }

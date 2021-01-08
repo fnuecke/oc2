@@ -61,6 +61,12 @@ public final class Network {
                 .decoder(ComputerPowerMessage::new)
                 .consumer(ComputerPowerMessage::handleMessage)
                 .add();
+
+        INSTANCE.messageBuilder(NetworkConnectorConnectionsMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(NetworkConnectorConnectionsMessage::toBytes)
+                .decoder(NetworkConnectorConnectionsMessage::new)
+                .consumer(NetworkConnectorConnectionsMessage::handleMessage)
+                .add();
     }
 
     public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {

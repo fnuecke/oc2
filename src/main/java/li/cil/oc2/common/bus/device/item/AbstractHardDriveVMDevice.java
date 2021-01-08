@@ -99,17 +99,7 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
     public CompoundNBT serializeNBT() {
         final CompoundNBT tag = new CompoundNBT();
 
-        if (data != null) {
-            final Optional<InputStream> optional = getSerializationStream(data);
-            optional.ifPresent(stream -> {
-                blobHandle = BlobStorage.validateHandle(blobHandle);
-                jobHandle = BlobStorage.submitSave(blobHandle, stream);
-            });
-            if (!optional.isPresent()) {
-                BlobStorage.freeHandle(blobHandle);
-                blobHandle = null;
-            }
-        }
+        serializeData();
         if (device != null) {
             deviceNbt = NBTSerialization.serialize(device);
         }
@@ -191,17 +181,7 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
         // actual data being unloaded at that point, but want to permanently persist
         // it (it's the contents of the block device) we need to serialize it in the
         // unload, too. Don't need to wait for the job, though.
-        if (data != null) {
-            final Optional<InputStream> optional = getSerializationStream(data);
-            optional.ifPresent(stream -> {
-                blobHandle = BlobStorage.validateHandle(blobHandle);
-                BlobStorage.submitSave(blobHandle, stream);
-            });
-            if (!optional.isPresent()) {
-                BlobStorage.freeHandle(blobHandle);
-                blobHandle = null;
-            }
-        }
+        serializeData();
 
         data = null;
         jobHandle = null;
@@ -210,5 +190,19 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
         deviceNbt = null;
         address.clear();
         interrupt.clear();
+    }
+
+    private void serializeData() {
+        if (data != null) {
+            final Optional<InputStream> optional = getSerializationStream(data);
+            optional.ifPresent(stream -> {
+                blobHandle = BlobStorage.validateHandle(blobHandle);
+                jobHandle = BlobStorage.submitSave(blobHandle, stream);
+            });
+            if (!optional.isPresent()) {
+                BlobStorage.freeHandle(blobHandle);
+                blobHandle = null;
+            }
+        }
     }
 }

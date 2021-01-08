@@ -21,6 +21,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Objects;
@@ -166,13 +167,19 @@ public final class NetworkCableRenderer {
         return MathHelper.clamp((float) p0.distanceTo(p1) / CABLE_LENGTH_FOR_MAX_SWING, 0.1f, 1f) * CABLE_MAX_SWING_AMOUNT;
     }
 
-    private static Vector3d animateCableSwing(final Vector3d c, final Vector3d right, final float swingAmount, final int seed) {
+    private static Vector3d animateCableSwing(final Vector3d c, @Nullable final Vector3d right, final float swingAmount, final int seed) {
         final float relTime = ((System.currentTimeMillis() + seed) % CABLE_SWING_INTERVAL) / (float) CABLE_SWING_INTERVAL;
         final float relRadialTime = relTime * 2 * (float) Math.PI;
 
-        return c.add(swingAmount * MathHelper.cos(relRadialTime) * right.getX(),
-                0.5f * swingAmount * MathHelper.sin(relRadialTime * 2 - (float) Math.PI) - swingAmount,
-                swingAmount * MathHelper.cos(relRadialTime) * right.getZ());
+        if (right == null) {
+            return c.add(swingAmount * MathHelper.sin(relRadialTime),
+                    0,
+                    swingAmount * MathHelper.cos(relRadialTime));
+        } else {
+            return c.add(swingAmount * MathHelper.cos(relRadialTime) * right.getX(),
+                    0.5f * swingAmount * MathHelper.sin(relRadialTime * 2 - (float) Math.PI) - swingAmount,
+                    swingAmount * MathHelper.cos(relRadialTime) * right.getZ());
+        }
     }
 
     private static void validateConnectors() {
@@ -208,7 +215,6 @@ public final class NetworkCableRenderer {
     ///////////////////////////////////////////////////////////////////
 
     private static final class Connection {
-        private static final Vector3d POS_X = new Vector3d(1, 0, 0);
         private static final Vector3d POS_Y = new Vector3d(0, 1, 0);
 
         public final BlockPos fromPos, toPos;
@@ -228,7 +234,7 @@ public final class NetworkCableRenderer {
             to = Vector3d.copyCentered(toPos);
             forward = to.subtract(from).normalize();
             right = fromPos.getX() == toPos.getX() && fromPos.getZ() == toPos.getZ()
-                    ? POS_X : forward.crossProduct(POS_Y);
+                    ? null : forward.crossProduct(POS_Y);
             bounds = new AxisAlignedBB(from, to).grow(0, CABLE_HANG_MAX, 0);
         }
 

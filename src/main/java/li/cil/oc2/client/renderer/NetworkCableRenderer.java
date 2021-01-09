@@ -22,9 +22,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Objects;
+import java.util.*;
 
 public final class NetworkCableRenderer {
     private static final int MAX_RENDER_DISTANCE = 100;
@@ -38,9 +36,11 @@ public final class NetworkCableRenderer {
     private static final float CABLE_MAX_LENGTH = 8f;
     private static final Vector3f CABLE_COLOR = new Vector3f(0.0f, 0.33f, 0.4f);
 
-    private static final ArrayList<NetworkConnectorTileEntity> connectors = new ArrayList<>();
-    private static final ArrayList<Connection> connections = new ArrayList<>();
+    private static final Set<NetworkConnectorTileEntity> connectors = Collections.newSetFromMap(new WeakHashMap<>());
+    private static int lastKnownConnectorCount;
     private static boolean isDirty;
+
+    private static final ArrayList<Connection> connections = new ArrayList<>();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -183,13 +183,20 @@ public final class NetworkCableRenderer {
     }
 
     private static void validateConnectors() {
-        for (int i = connectors.size() - 1; i >= 0; i--) {
-            final NetworkConnectorTileEntity connector = connectors.get(i);
+        final ArrayList<NetworkConnectorTileEntity> list = new ArrayList<>(connectors);
+        for (final NetworkConnectorTileEntity connector : list) {
             if (connector.isRemoved()) {
-                connectors.remove(i);
+                connectors.remove(connector);
                 invalidateConnections();
             }
         }
+
+        // We track the size because the WeakHasMap may expunge dead entries without
+        // us knowing otherwise.
+        if (list.size() != lastKnownConnectorCount) {
+            invalidateConnections();
+        }
+        lastKnownConnectorCount = list.size();
     }
 
     private static void validatePairs() {

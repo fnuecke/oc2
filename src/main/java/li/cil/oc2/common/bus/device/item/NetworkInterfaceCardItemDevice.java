@@ -1,8 +1,8 @@
 package li.cil.oc2.common.bus.device.item;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.capabilities.NetworkInterface;
 import li.cil.oc2.api.bus.device.vm.*;
+import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.bus.device.util.OptionalInterrupt;

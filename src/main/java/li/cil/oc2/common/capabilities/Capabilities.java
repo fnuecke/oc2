@@ -1,8 +1,8 @@
 package li.cil.oc2.common.capabilities;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
-import li.cil.oc2.api.bus.device.capabilities.NetworkInterface;
-import li.cil.oc2.api.bus.device.capabilities.RedstoneEmitter;
+import li.cil.oc2.api.capabilities.NetworkInterface;
+import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;

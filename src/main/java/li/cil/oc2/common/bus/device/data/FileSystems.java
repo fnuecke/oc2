@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import li.cil.oc2.common.vm.fs.LayeredFileSystem;
 import li.cil.oc2.common.vm.fs.ResourceFileSystem;
-import li.cil.sedna.fs.*;
+import li.cil.sedna.fs.FileSystem;
 import net.minecraft.resources.IResource;
 import net.minecraft.resources.IResourceManager;
 import net.minecraft.server.MinecraftServer;
@@ -13,7 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.Collection;
 
 public final class FileSystems {
     private static final Logger LOGGER = LogManager.getLogger();

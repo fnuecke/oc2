@@ -1,6 +1,6 @@
 package li.cil.oc2.common.tileentity;
 
-import li.cil.oc2.api.bus.device.capabilities.NetworkInterface;
+import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.NetworkConnectorBlock;

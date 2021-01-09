@@ -1,13 +1,13 @@
 package li.cil.oc2.common.bus.device.item;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.capabilities.RedstoneEmitter;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
+import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.HorizontalBlockUtils;

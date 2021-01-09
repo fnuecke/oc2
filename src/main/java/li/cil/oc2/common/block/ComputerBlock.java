@@ -1,6 +1,6 @@
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.api.bus.device.capabilities.RedstoneEmitter;
+import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.client.gui.TerminalScreen;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ComputerContainer;

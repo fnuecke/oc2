@@ -29,6 +29,6 @@ side = "BOTH"
 [[dependencies.oc2]]
 modId = "oc2-sedna"
 mandatory = true
-versionRange = "[${oc2_sedna_version_min}]"
+versionRange = "[${oc2_sedna_version_min},)"
 ordering = "NONE"
 side = "BOTH"

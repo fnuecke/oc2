@@ -44,11 +44,6 @@ archivesBaseName = "${mod_name}-MC${minecraft_version}"
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 compileJava.sourceCompatibility = compileJava.targetCompatibility = JavaVersion.VERSION_1_8
 
-configurations {
-    embed
-    implementation.extendsFrom embed
-}
-
 repositories {
     mavenCentral()
     maven { url "http://dvs1.progwml6.com/files/maven" } // JEI
@@ -60,12 +55,16 @@ dependencies {
 
     compileOnly 'org.jetbrains:annotations:16.0.2'
 
-    embed('li.cil.ceres:ceres:0.0.2+') { transitive = false }
-    embed('li.cil.sedna:sedna:0.0.1+') { transitive = false }
-    embed('li.cil.sedna:sedna-buildroot:0.0.1+') { transitive = false }
+    implementation 'li.cil.ceres:ceres:0.0.2+18'
+    implementation 'li.cil.sedna:sedna:0.0.1+83'
+    implementation 'li.cil.sedna:sedna-buildroot:0.0.1+'
+    implementation 'li.cil.oc2:oc2-sedna:0.0.1+'
 
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
+
+    testImplementation 'li.cil.ceres:ceres:0.0.2+18'
+    testImplementation 'li.cil.sedna:sedna:0.0.1+83'
 
     testImplementation "org.mockito:mockito-core:2.+"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
@@ -77,13 +76,13 @@ processResources {
         include 'META-INF/mods.toml'
 
         expand([
-                'mod_id'               : mod_id,
                 'mod_version'          : version,
                 'mod_name'             : mod_name,
                 'mod_url'              : mod_url,
                 'mod_issues_url'       : mod_issues_url,
                 'forge_version_min'    : forge_version_min,
-                'minecraft_version_min': minecraft_version_min
+                'minecraft_version_min': minecraft_version_min,
+                'oc2_sedna_version_min': oc2_sedna_version_min
         ])
     }
 }
@@ -138,12 +137,6 @@ minecraft {
 
 jar {
     finalizedBy 'reobfJar'
-
-    configurations.embed.each {
-        from(project.zipTree(it)) {
-            exclude 'META-INF', 'META-INF/**'
-        }
-    }
 
     manifest {
         attributes([

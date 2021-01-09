@@ -2,11 +2,13 @@ package li.cil.oc2.common.serialization.serializers;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
-import li.cil.ceres.api.*;
+import li.cil.ceres.api.DeserializationVisitor;
+import li.cil.ceres.api.SerializationException;
+import li.cil.ceres.api.SerializationVisitor;
+import li.cil.ceres.api.Serializer;
 
 import javax.annotation.Nullable;
 
-@RegisterSerializer
 public final class JsonArraySerializer implements Serializer<JsonArray> {
     @Override
     public void serialize(final SerializationVisitor visitor, final Class<JsonArray> type, final Object value) throws SerializationException {

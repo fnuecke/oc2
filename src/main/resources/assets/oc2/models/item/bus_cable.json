@@ -1,5 +1,5 @@
 {
-  "parent": "oc2:block/cable_base",
+  "parent": "oc2:block/cable_straight",
   "display": {
     "gui": {
       "rotation": [

@@ -145,36 +145,11 @@ public final class BusCableBlock extends Block {
     @SuppressWarnings("deprecation")
     @Override
     public ActionResultType onBlockActivated(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
-        if (!Wrenches.isWrench(player.getHeldItem(hand))) {
-            return ActionResultType.PASS;
+        if (Wrenches.isWrench(player.getHeldItem(hand)) && tryRemovePlug(state, world, pos, player, hit)) {
+            return ActionResultType.SUCCESS;
         }
 
-        final Vector3d localHitPos = hit.getHitVec().subtract(Vector3d.copyCentered(pos));
-        final Direction side = Direction.getFacingFromVector(localHitPos.x, localHitPos.y, localHitPos.z);
-        final EnumProperty<ConnectionType> property = FACING_TO_CONNECTION_MAP.get(side);
-
-        if (state.get(property) != ConnectionType.PLUG) {
-            return ActionResultType.PASS;
-        }
-
-        final BlockPos neighborPos = pos.offset(side);
-        if (isCableBlock(world.getBlockState(neighborPos))) {
-            world.setBlockState(pos, state.with(property, ConnectionType.LINK));
-        } else {
-            world.setBlockState(pos, state.with(property, ConnectionType.NONE));
-        }
-        onConnectionTypeChanged(world, pos, side);
-
-        if (!player.isCreative() && world.getGameRules().getBoolean(GameRules.DO_TILE_DROPS)) {
-            ItemStackUtils.spawnAsEntity(world, pos, new ItemStack(Items.BUS_INTERFACE_ITEM.get()), side).ifPresent(entity -> {
-                entity.setNoPickupDelay();
-                entity.onCollideWithPlayer(player);
-            });
-        }
-
-        WorldUtils.playSound(world, pos, state.getSoundType(), SoundType::getBreakSound);
-
-        return ActionResultType.SUCCESS;
+        return ActionResultType.PASS;
     }
 
     @SuppressWarnings("deprecation")
@@ -295,5 +270,34 @@ public final class BusCableBlock extends Block {
             final BusCableTileEntity busCable = (BusCableTileEntity) tileEntity;
             busCable.handleConnectionTypeChanged(face);
         }
+    }
+
+    private boolean tryRemovePlug(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final BlockRayTraceResult hit) {
+        final Vector3d localHitPos = hit.getHitVec().subtract(Vector3d.copyCentered(pos));
+        final Direction side = Direction.getFacingFromVector(localHitPos.x, localHitPos.y, localHitPos.z);
+        final EnumProperty<ConnectionType> property = FACING_TO_CONNECTION_MAP.get(side);
+
+        if (state.get(property) != ConnectionType.PLUG) {
+            return false;
+        }
+
+        final BlockPos neighborPos = pos.offset(side);
+        if (isCableBlock(world.getBlockState(neighborPos))) {
+            world.setBlockState(pos, state.with(property, ConnectionType.LINK));
+        } else {
+            world.setBlockState(pos, state.with(property, ConnectionType.NONE));
+        }
+        onConnectionTypeChanged(world, pos, side);
+
+        if (!player.isCreative() && world.getGameRules().getBoolean(GameRules.DO_TILE_DROPS)) {
+            ItemStackUtils.spawnAsEntity(world, pos, new ItemStack(Items.BUS_INTERFACE_ITEM.get()), side).ifPresent(entity -> {
+                entity.setNoPickupDelay();
+                entity.onCollideWithPlayer(player);
+            });
+        }
+
+        WorldUtils.playSound(world, pos, state.getSoundType(), SoundType::getBreakSound);
+
+        return true;
     }
 }

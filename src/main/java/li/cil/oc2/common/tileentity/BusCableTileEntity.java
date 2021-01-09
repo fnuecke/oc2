@@ -1,5 +1,6 @@
 package li.cil.oc2.common.tileentity;
 
+import li.cil.oc2.client.model.BusCableBakedModel;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -8,6 +9,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraftforge.client.model.data.IModelData;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
@@ -28,6 +32,9 @@ public final class BusCableTileEntity extends AbstractTileEntity {
 
     public void handleNeighborChanged(final BlockPos pos) {
         busElement.handleNeighborChanged(pos);
+
+        // TODO Remove if https://github.com/MinecraftForge/MinecraftForge/pull/7595 gets merged.
+        requestModelDataUpdate();
     }
 
     public void handleConnectionTypeChanged(final Direction side) {
@@ -74,6 +81,17 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         // automatic invalidation via capability will *not* necessarily schedule a scan on the
         // controller of our current bus. So we need to trigger that manually.
         busElement.scheduleScan();
+    }
+
+    // TODO Remove if https://github.com/MinecraftForge/MinecraftForge/pull/7595 gets merged.
+    @NotNull
+    @Override
+    public IModelData getModelData() {
+        final World world = getWorld();
+        if (world != null) {
+            return BusCableBakedModel.getBusCableSupportSideData(world, getPos(), getBlockState(), super.getModelData());
+        }
+        return super.getModelData();
     }
 
     ///////////////////////////////////////////////////////////////////

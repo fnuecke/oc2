@@ -13,13 +13,15 @@ import li.cil.oc2.common.vm.Allocator;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 public final class CommonSetup {
-    public static void run(final FMLCommonSetupEvent event) {
+    @SubscribeEvent
+    public static void handleSetupEvent(final FMLCommonSetupEvent event) {
         Capabilities.initialize();
 
         Network.setup();
@@ -32,18 +34,18 @@ public final class CommonSetup {
         addBuiltinRPCMethodParameterTypeAdapters();
     }
 
-    public static void handleServerAboutToStart(final FMLServerAboutToStartEvent event) {
+    ///////////////////////////////////////////////////////////////////
+
+    private static void handleServerAboutToStart(final FMLServerAboutToStartEvent event) {
         BlobStorage.setServer(event.getServer());
         FileSystems.initialize(event.getServer());
     }
 
-    public static void handleServerStopped(final FMLServerStoppedEvent event) {
+    private static void handleServerStopped(final FMLServerStoppedEvent event) {
         BlobStorage.synchronize();
         Allocator.resetAndCheckLeaks();
         FileSystems.reset();
     }
-
-    ///////////////////////////////////////////////////////////////////
 
     private static void addBuiltinRPCMethodParameterTypeAdapters() {
         RPCMethodParameterTypeAdapters.addTypeAdapter(ItemStack.class, new ItemStackJsonSerializer());

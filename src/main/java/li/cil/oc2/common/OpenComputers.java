@@ -32,7 +32,7 @@ public final class OpenComputers {
         BaseBlockDevices.initialize();
         Firmwares.initialize();
 
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(CommonSetup::run);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientSetup::run);
+        FMLJavaModLoadingContext.get().getModEventBus().register(CommonSetup.class);
+        FMLJavaModLoadingContext.get().getModEventBus().register(ClientSetup.class);
     }
 }

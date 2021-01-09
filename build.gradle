@@ -39,7 +39,7 @@ if (build_number == null)
 
 version = "${semver}+${build_number}"
 group = mod_group
-archivesBaseName = "${mod_name}-MC${minecraft_version}"
+archivesBaseName = "${mod_name}-MC${minecraft_version}-Forge"
 
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 compileJava.sourceCompatibility = compileJava.targetCompatibility = JavaVersion.VERSION_1_8

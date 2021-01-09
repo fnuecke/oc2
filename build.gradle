@@ -55,8 +55,8 @@ dependencies {
 
     compileOnly 'org.jetbrains:annotations:16.0.2'
 
-    implementation 'li.cil.ceres:ceres:0.0.2+18'
-    implementation 'li.cil.sedna:sedna:0.0.1+83'
+    implementation 'li.cil.ceres:ceres:0.0.2+'
+    implementation 'li.cil.sedna:sedna:0.0.1+'
     implementation 'li.cil.sedna:sedna-buildroot:0.0.1+'
     implementation 'li.cil.oc2:oc2-sedna:0.0.1+'
 

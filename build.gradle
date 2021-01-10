@@ -55,7 +55,7 @@ dependencies {
 
     compileOnly 'org.jetbrains:annotations:16.0.2'
 
-    implementation 'li.cil.oc2:oc2-sedna:0.0.1+4'
+    implementation 'li.cil.oc2:oc2-sedna:0.0.1+5'
 
     // These three will be provided by oc2-sedna in standalone.
     implementation 'li.cil.ceres:ceres:0.0.2+19'

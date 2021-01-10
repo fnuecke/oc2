@@ -84,7 +84,7 @@ public final class NetworkCableRenderer {
 
         final Matrix4f viewMatrix = matrixStack.getLast().getMatrix();
 
-        final RenderType renderType = OpenComputersRenderType.getNetworkCable();
+        final RenderType renderType = CustomRenderType.getNetworkCable();
         final IRenderTypeBuffer.Impl bufferSource = Minecraft.getInstance().getRenderTypeBuffers().getBufferSource();
 
         final float r = CABLE_COLOR.getX();

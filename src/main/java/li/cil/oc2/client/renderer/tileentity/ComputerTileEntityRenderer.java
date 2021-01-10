@@ -4,7 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import li.cil.oc2.api.API;
-import li.cil.oc2.client.renderer.OpenComputersRenderType;
+import li.cil.oc2.client.renderer.CustomRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.vm.Terminal;
@@ -161,7 +161,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
             stack.translate(0, 0, -0.9f);
 
             final Matrix4f matrix = stack.getLast().getMatrix();
-            renderQuad(matrix, TEXTURE_TERMINAL.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
+            renderQuad(matrix, TEXTURE_TERMINAL.getBuffer(buffer, CustomRenderType::getUnlitBlock));
 
             stack.pop();
         }
@@ -211,12 +211,12 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
 
     private void renderStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer, final int frequency) {
         if (frequency <= 0 || (((System.currentTimeMillis() + hashCode()) / frequency) % 2) == 1) {
-            renderQuad(matrix, TEXTURE_STATUS.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
+            renderQuad(matrix, TEXTURE_STATUS.getBuffer(buffer, CustomRenderType::getUnlitBlock));
         }
     }
 
     private void renderPower(final Matrix4f matrix, final IRenderTypeBuffer buffer) {
-        renderQuad(matrix, TEXTURE_POWER.getBuffer(buffer, OpenComputersRenderType::getUnlitBlock));
+        renderQuad(matrix, TEXTURE_POWER.getBuffer(buffer, CustomRenderType::getUnlitBlock));
     }
 
     private static void renderQuad(final Matrix4f matrix, final IVertexBuilder buffer) {

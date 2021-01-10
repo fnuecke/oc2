@@ -17,8 +17,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(API.MOD_ID)
-public final class OpenComputers {
-    public OpenComputers() {
+public final class Main {
+    public Main() {
         Ceres.initialize();
         Sedna.initialize();
         Serializers.initialize();

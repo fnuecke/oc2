@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
-public abstract class OpenComputersRenderType extends RenderType {
+public abstract class CustomRenderType extends RenderType {
     public static RenderType getUnlitBlock(final ResourceLocation location) {
         final TextureState texture = new TextureState(location, false, true);
         final RenderType.State state = RenderType.State.getBuilder()
@@ -39,7 +39,7 @@ public abstract class OpenComputersRenderType extends RenderType {
 
     ///////////////////////////////////////////////////////////////////
 
-    private OpenComputersRenderType(final String name, final VertexFormat format, final int drawMode, final int bufferSize, final boolean useDelegate, final boolean needsSorting, final Runnable setupTask, final Runnable clearTask) {
+    private CustomRenderType(final String name, final VertexFormat format, final int drawMode, final int bufferSize, final boolean useDelegate, final boolean needsSorting, final Runnable setupTask, final Runnable clearTask) {
         super(name, format, drawMode, bufferSize, useDelegate, needsSorting, setupTask, clearTask);
     }
 }

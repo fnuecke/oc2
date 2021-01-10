@@ -60,7 +60,7 @@ dependencies {
     // These three will be provided by oc2-sedna in standalone.
     implementation 'li.cil.ceres:ceres:0.0.2+19'
     implementation 'li.cil.sedna:sedna:0.0.1+85'
-    implementation 'li.cil.sedna:sedna-buildroot:0.0.1+6'
+    implementation 'li.cil.sedna:sedna-buildroot:0.0.1+7'
 
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")

@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "RTR",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:gold_nugget"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "item": "oc2:microchip"
+  }
+}

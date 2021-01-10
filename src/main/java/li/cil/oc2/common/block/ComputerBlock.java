@@ -9,6 +9,7 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
 import li.cil.oc2.common.util.TooltipUtils;
+import li.cil.oc2.common.util.VoxelShapeUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalBlock;
@@ -30,6 +31,9 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
@@ -42,6 +46,21 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public final class ComputerBlock extends HorizontalBlock {
+    // We bake the "screen" indent on the front into the collision shape to prevent stuff being
+    // placeable on that side, such as network connectors, torches, etc.
+    private static final VoxelShape NEG_Z_SHAPE = VoxelShapes.or(
+            Block.makeCuboidShape(0, 0, 1, 16, 16, 16), // main body
+            Block.makeCuboidShape(0, 15, 0, 16, 16, 1), // across top
+            Block.makeCuboidShape(0, 0, 0, 16, 6, 1), // across bottom
+            Block.makeCuboidShape(0, 0, 0, 1, 16, 1), // up left
+            Block.makeCuboidShape(15, 0, 0, 16, 16, 1) // up right
+    );
+    private static final VoxelShape NEG_X_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_Z_SHAPE);
+    private static final VoxelShape POS_Z_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_X_SHAPE);
+    private static final VoxelShape POS_X_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(POS_Z_SHAPE);
+
+    ///////////////////////////////////////////////////////////////////
+
     public ComputerBlock() {
         super(Properties
                 .create(Material.IRON)
@@ -113,6 +132,22 @@ public final class ComputerBlock extends HorizontalBlock {
         if (tileEntity instanceof ComputerTileEntity) {
             final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
             computer.handleNeighborChanged();
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public VoxelShape getShape(final BlockState state, final IBlockReader world, final BlockPos pos, final ISelectionContext context) {
+        switch (state.get(HORIZONTAL_FACING)) {
+            case NORTH:
+                return NEG_Z_SHAPE;
+            case SOUTH:
+                return POS_Z_SHAPE;
+            case WEST:
+                return NEG_X_SHAPE;
+            case EAST:
+            default:
+                return POS_X_SHAPE;
         }
     }
 

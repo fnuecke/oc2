@@ -47,8 +47,8 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
 
     ///////////////////////////////////////////////////////////////////
 
-    public RedstoneInterfaceCardItemDevice(final ItemStack value, final TileEntity tileEntity) {
-        super(value);
+    public RedstoneInterfaceCardItemDevice(final ItemStack identity, final TileEntity tileEntity) {
+        super(identity);
         this.tileEntity = tileEntity;
         this.device = new ObjectDevice(this, "redstone");
 

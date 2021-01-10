@@ -27,8 +27,8 @@ public final class ItemHandlerBlockDeviceProvider extends AbstractTileEntityCapa
     ///////////////////////////////////////////////////////////////////
 
     public static final class ItemHandlerDevice extends IdentityProxy<IItemHandler> {
-        public ItemHandlerDevice(final IItemHandler itemHandler) {
-            super(itemHandler);
+        public ItemHandlerDevice(final IItemHandler identity) {
+            super(identity);
         }
 
         @Callback

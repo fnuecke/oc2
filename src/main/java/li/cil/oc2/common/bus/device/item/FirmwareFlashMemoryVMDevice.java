@@ -13,8 +13,8 @@ public final class FirmwareFlashMemoryVMDevice extends IdentityProxy<ItemStack> 
 
     ///////////////////////////////////////////////////////////////
 
-    public FirmwareFlashMemoryVMDevice(final ItemStack stack, final Firmware firmware) {
-        super(stack);
+    public FirmwareFlashMemoryVMDevice(final ItemStack identity, final Firmware firmware) {
+        super(identity);
         this.firmware = firmware;
     }
 

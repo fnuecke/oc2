@@ -27,8 +27,8 @@ public final class FluidHandlerBlockDeviceProvider extends AbstractTileEntityCap
     ///////////////////////////////////////////////////////////////////
 
     public static final class FluidHandlerDevice extends IdentityProxy<IFluidHandler> {
-        public FluidHandlerDevice(final IFluidHandler fluidHandler) {
-            super(fluidHandler);
+        public FluidHandlerDevice(final IFluidHandler identity) {
+            super(identity);
         }
 
         @Callback

@@ -13,8 +13,8 @@ public final class HardDriveVMDevice extends AbstractHardDriveVMDevice<ByteBuffe
 
     ///////////////////////////////////////////////////////////////////
 
-    public HardDriveVMDevice(final ItemStack stack, final int size, final boolean readonly) {
-        super(stack);
+    public HardDriveVMDevice(final ItemStack identity, final int size, final boolean readonly) {
+        super(identity);
         this.size = size;
         this.readonly = readonly;
     }

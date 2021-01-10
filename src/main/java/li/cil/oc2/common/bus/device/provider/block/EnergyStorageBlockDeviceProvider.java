@@ -26,8 +26,8 @@ public final class EnergyStorageBlockDeviceProvider extends AbstractTileEntityCa
     ///////////////////////////////////////////////////////////////////
 
     public static final class EnergyStorageDevice extends IdentityProxy<IEnergyStorage> {
-        public EnergyStorageDevice(final IEnergyStorage energyStorage) {
-            super(energyStorage);
+        public EnergyStorageDevice(final IEnergyStorage identity) {
+            super(identity);
         }
 
         @Callback

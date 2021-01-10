@@ -19,8 +19,8 @@ public final class SparseHardDriveVMDevice extends AbstractHardDriveVMDevice<Spa
 
     ///////////////////////////////////////////////////////////////////
 
-    public SparseHardDriveVMDevice(final ItemStack stack, final BlockDevice base, final boolean readonly) {
-        super(stack);
+    public SparseHardDriveVMDevice(final ItemStack identity, final BlockDevice base, final boolean readonly) {
+        super(identity);
         this.base = base;
         this.readonly = readonly;
     }

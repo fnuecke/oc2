@@ -37,8 +37,8 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
 
     ///////////////////////////////////////////////////////////////
 
-    public ByteBufferFlashMemoryVMDevice(final ItemStack value, final int size) {
-        super(value);
+    public ByteBufferFlashMemoryVMDevice(final ItemStack identity, final int size) {
+        super(identity);
         this.size = size;
     }
 

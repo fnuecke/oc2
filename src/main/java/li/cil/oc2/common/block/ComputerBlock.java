@@ -128,7 +128,7 @@ public final class ComputerBlock extends HorizontalBlock {
         final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
         final ItemStack heldItem = player.getHeldItem(hand);
         if (Wrenches.isWrench(heldItem)) {
-            if (!world.isRemote()) {
+            if (!world.isRemote() && player instanceof ServerPlayerEntity) {
                 openContainerScreen(computer, player);
             }
         } else {

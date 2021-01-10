@@ -9,6 +9,8 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
+import javax.annotation.Nullable;
+
 public abstract class AbstractStorageItem extends Item {
     private static final String CAPACITY_TAG_NAME = "size";
 
@@ -49,16 +51,27 @@ public abstract class AbstractStorageItem extends Item {
 
     @Override
     public ITextComponent getDisplayName(final ItemStack stack) {
-        return new StringTextComponent("")
-                .append(super.getDisplayName(stack))
-                .appendString(" (")
-                .append(getDisplayNameSuffix(stack))
-                .appendString(")");
+        final ITextComponent suffix = getDisplayNameSuffix(stack);
+        if (suffix != null) {
+            return new StringTextComponent("")
+                    .append(super.getDisplayName(stack))
+                    .appendString(" (")
+                    .append(suffix)
+                    .appendString(")");
+        } else {
+            return super.getDisplayName(stack);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////
 
+    @Nullable
     protected ITextComponent getDisplayNameSuffix(final ItemStack stack) {
-        return new StringTextComponent(TextFormatUtils.formatSize(getCapacity(stack)));
+        final int capacity = getCapacity(stack);
+        if (capacity > 0) {
+            return new StringTextComponent(TextFormatUtils.formatSize(capacity));
+        } else {
+            return null;
+        }
     }
 }

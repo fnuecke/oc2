@@ -22,6 +22,10 @@ public final class FlashMemoryItem extends AbstractStorageItem {
 
     ///////////////////////////////////////////////////////////////////
 
+    public static ItemStack withCapacity(final int capacity) {
+        return withCapacity(new ItemStack(Items.FLASH_MEMORY_ITEM.get()), capacity);
+    }
+
     @Nullable
     public static Firmware getFirmware(final ItemStack stack) {
         if (stack.isEmpty() || !(stack.getItem() instanceof FlashMemoryItem)) {
@@ -55,6 +59,10 @@ public final class FlashMemoryItem extends AbstractStorageItem {
         ItemStackUtils.getOrCreateModDataTag(stack).putString(FIRMWARE_TAG_NAME, key.toString());
 
         return stack;
+    }
+
+    public static ItemStack withFirmware(final Firmware firmware) {
+        return withFirmware(new ItemStack(Items.FLASH_MEMORY_ITEM.get()), firmware);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -13,9 +13,6 @@ import net.minecraft.util.text.TextFormatting;
 import java.util.ArrayList;
 import java.util.List;
 
-import static li.cil.oc2.common.Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME;
-import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
-
 public final class TooltipUtils {
     private static final ThreadLocal<List<ItemStack>> ITEM_STACKS = ThreadLocal.withInitial(ArrayList::new);
     private static final ThreadLocal<IntList> ITEM_STACKS_SIZES = ThreadLocal.withInitial(IntArrayList::new);
@@ -25,10 +22,8 @@ public final class TooltipUtils {
     }
 
     public static void addInventoryInformation(final ItemStack stack, final List<ITextComponent> tooltip, final String... itemHandlerTags) {
-        final CompoundNBT tileEntityNbt = stack.getChildTag(BLOCK_ENTITY_TAG_NAME_IN_ITEM);
-        if (tileEntityNbt != null && tileEntityNbt.contains(BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            final CompoundNBT itemHandlerNbt = tileEntityNbt.getCompound(BLOCK_ENTITY_INVENTORY_TAG_NAME);
-
+        final CompoundNBT itemHandlerNbt = ItemStackUtils.getTileEntityInventoryTag(stack);
+        if (itemHandlerNbt != null) {
             final List<ItemStack> itemStacks = ITEM_STACKS.get();
             itemStacks.clear();
             final IntList itemStackSizes = ITEM_STACKS_SIZES.get();

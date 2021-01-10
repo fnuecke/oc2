@@ -1,4 +1,4 @@
-# OpenComputers2 [Working Title]
+# OpenComputers II [Working Title]
 
 Yet another computer mod.
 

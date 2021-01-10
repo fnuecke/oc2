@@ -30,6 +30,7 @@ import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.TerminalBlockOutputMessage;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
+import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.vm.Terminal;
@@ -500,14 +501,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        final CompoundNBT items = new CompoundNBT();
+        final CompoundNBT items = ItemStackUtils.getOrCreateTileEntityInventoryTag(stack);
         items.put(MEMORY_TAG_NAME, memoryItemHandler.serializeNBT());
         items.put(HARD_DRIVE_TAG_NAME, hardDriveItemHandler.serializeNBT());
         items.put(FLASH_MEMORY_TAG_NAME, flashMemoryItemHandler.serializeNBT());
         items.put(CARD_TAG_NAME, cardItemHandler.serializeNBT());
-
-        stack.getOrCreateChildTag(Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM)
-                .put(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, items);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -31,13 +31,13 @@ public final class Constants {
     public static final String WRENCH_ITEM_NAME = "wrench";
 
     public static final String BUS_INTERFACE_ITEM_NAME = "bus_interface";
-    public static final String NETWORK_CABLE_NAME = "network_cable";
+    public static final String NETWORK_CABLE_ITEM_NAME = "network_cable";
 
     public static final String FLASH_MEMORY_ITEM_NAME = "flash_memory";
     public static final String MEMORY_ITEM_NAME = "memory";
     public static final String HARD_DRIVE_ITEM_NAME = "hard_drive";
-    public static final String REDSTONE_INTERFACE_CARD_NAME = "redstone_interface_card";
-    public static final String NETWORK_INTERFACE_CARD_NAME = "network_interface_card";
+    public static final String REDSTONE_INTERFACE_CARD_ITEM_NAME = "redstone_interface_card";
+    public static final String NETWORK_INTERFACE_CARD_ITEM_NAME = "network_interface_card";
 
     ///////////////////////////////////////////////////////////////////
 

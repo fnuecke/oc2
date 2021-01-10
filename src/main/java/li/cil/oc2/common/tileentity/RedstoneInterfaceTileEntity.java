@@ -4,6 +4,7 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
@@ -19,9 +20,7 @@ import java.util.Collection;
 import static java.util.Collections.singletonList;
 
 public final class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevice, DocumentedDevice {
-    private static final int FACE_COUNT = Direction.values().length;
-
-    private static final String OUTPUT_NBT_TAG_NAME = "output";
+    private static final String OUTPUT_TAG_NAME = "output";
 
     private static final String GET_REDSTONE_INPUT = "getRedstoneInput";
     private static final String GET_REDSTONE_OUTPUT = "getRedstoneOutput";
@@ -31,7 +30,7 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
 
     ///////////////////////////////////////////////////////////////////
 
-    private final byte[] output = new byte[FACE_COUNT];
+    private final byte[] output = new byte[Constants.BLOCK_FACE_COUNT];
 
     ///////////////////////////////////////////////////////////////////
 
@@ -44,14 +43,14 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
     @Override
     public CompoundNBT write(CompoundNBT compound) {
         compound = super.write(compound);
-        compound.putByteArray(OUTPUT_NBT_TAG_NAME, output);
+        compound.putByteArray(OUTPUT_TAG_NAME, output);
         return compound;
     }
 
     @Override
     public void read(final BlockState state, final CompoundNBT compound) {
         super.read(state, compound);
-        final byte[] serializedOutput = compound.getByteArray(OUTPUT_NBT_TAG_NAME);
+        final byte[] serializedOutput = compound.getByteArray(OUTPUT_TAG_NAME);
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
     }
 

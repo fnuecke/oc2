@@ -1,11 +1,17 @@
 package li.cil.oc2.common;
 
+import net.minecraft.util.Direction;
+
 public final class Constants {
     public static final int KILOBYTE = 1024;
     public static final int MEGABYTE = 1024 * KILOBYTE;
     public static final int GIGABYTE = 1024 * MEGABYTE;
 
     public static final int TICK_SECONDS = 20;
+
+    public static final Direction[] DIRECTIONS = Direction.values();
+    public static final Direction.Axis[] AXES = Direction.Axis.values();
+    public static final int BLOCK_FACE_COUNT = DIRECTIONS.length;
 
     ///////////////////////////////////////////////////////////////////
 

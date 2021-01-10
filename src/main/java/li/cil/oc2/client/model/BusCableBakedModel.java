@@ -1,5 +1,6 @@
 package li.cil.oc2.client.model;
 
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.BusCableBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.model.BakedQuad;
@@ -21,8 +22,6 @@ import java.util.List;
 import java.util.Random;
 
 public final class BusCableBakedModel implements IDynamicBakedModel {
-    private static final Direction[] DIRECTIONS = Direction.values();
-    private static final Direction.Axis[] AXES = Direction.Axis.values();
 
     private final IBakedModel proxy;
     private final IBakedModel[] straightModelByAxis;
@@ -40,8 +39,8 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
             return proxy.getQuads(null, side, rand, extraData);
         }
 
-        for (int i = 0; i < AXES.length; i++) {
-            final Direction.Axis axis = AXES[i];
+        for (int i = 0; i < Constants.AXES.length; i++) {
+            final Direction.Axis axis = Constants.AXES[i];
             if (isStraightAlongAxis(state, axis)) {
                 return straightModelByAxis[i].getQuads(state, side, rand, extraData);
             }
@@ -94,7 +93,7 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
 
     public static IModelData getBusCableSupportSideData(final IBlockDisplayReader world, final BlockPos pos, final BlockState state, final IModelData tileData) {
         Direction supportSide = null;
-        for (final Direction direction : DIRECTIONS) {
+        for (final Direction direction : Constants.DIRECTIONS) {
             if (isNeighborInDirectionSolid(world, pos, direction)) {
                 final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(direction);
                 if (state.hasProperty(property) && state.get(property) == BusCableBlock.ConnectionType.PLUG) {
@@ -124,7 +123,7 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
     }
 
     private static boolean isStraightAlongAxis(final BlockState state, final Direction.Axis axis) {
-        for (final Direction direction : DIRECTIONS) {
+        for (final Direction direction : Constants.DIRECTIONS) {
             final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(direction);
             if (axis.test(direction)) {
                 if (state.get(property) != BusCableBlock.ConnectionType.LINK) {

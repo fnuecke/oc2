@@ -1,6 +1,7 @@
 package li.cil.oc2.common.block;
 
 import com.google.common.collect.Maps;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tileentity.BusCableTileEntity;
@@ -57,8 +58,6 @@ public final class BusCableBlock extends Block {
     }
 
     ///////////////////////////////////////////////////////////////////
-
-    private static final Direction[] FACING_VALUES = Direction.values();
 
     public static final EnumProperty<ConnectionType> CONNECTION_NORTH = EnumProperty.create("connection_north", ConnectionType.class);
     public static final EnumProperty<ConnectionType> CONNECTION_EAST = EnumProperty.create("connection_east", ConnectionType.class);
@@ -158,7 +157,7 @@ public final class BusCableBlock extends Block {
         final List<ItemStack> drops = new ArrayList<>(super.getDrops(state, builder));
 
         int plugCount = 0;
-        for (final Direction side : FACING_VALUES) {
+        for (final Direction side : Constants.DIRECTIONS) {
             final ConnectionType connectionType = state.get(FACING_TO_CONNECTION_MAP.get(side));
             if (connectionType == ConnectionType.PLUG) {
                 plugCount++;
@@ -220,9 +219,9 @@ public final class BusCableBlock extends Block {
 
     private VoxelShape[] makeShapes() {
         final VoxelShape coreShape = Block.makeCuboidShape(5, 5, 5, 11, 11, 11);
-        final VoxelShape[] connectionShapes = new VoxelShape[FACING_VALUES.length];
-        for (int i = 0; i < FACING_VALUES.length; i++) {
-            final Direction direction = FACING_VALUES[i];
+        final VoxelShape[] connectionShapes = new VoxelShape[Constants.DIRECTIONS.length];
+        for (int i = 0; i < Constants.DIRECTIONS.length; i++) {
+            final Direction direction = Constants.DIRECTIONS[i];
             connectionShapes[i] = VoxelShapes.create(
                     0.5 + Math.min((-2.0 / (16 - 6)), direction.getXOffset() * 0.5),
                     0.5 + Math.min((-2.0 / (16 - 6)), direction.getYOffset() * 0.5),
@@ -236,7 +235,7 @@ public final class BusCableBlock extends Block {
         for (int i = 0; i < result.length; i++) {
             VoxelShape shape = coreShape;
 
-            for (int j = 0; j < FACING_VALUES.length; j++) {
+            for (int j = 0; j < Constants.DIRECTIONS.length; j++) {
                 if ((i & (1 << j)) != 0) {
                     shape = VoxelShapes.or(shape, connectionShapes[j]);
                 }
@@ -251,8 +250,8 @@ public final class BusCableBlock extends Block {
     private int getShapeIndex(final BlockState state) {
         int index = 0;
 
-        for (int i = 0; i < FACING_VALUES.length; i++) {
-            if (state.get(FACING_TO_CONNECTION_MAP.get(FACING_VALUES[i])) != ConnectionType.NONE) {
+        for (int i = 0; i < Constants.DIRECTIONS.length; i++) {
+            if (state.get(FACING_TO_CONNECTION_MAP.get(Constants.DIRECTIONS[i])) != ConnectionType.NONE) {
                 index |= 1 << i;
             }
         }

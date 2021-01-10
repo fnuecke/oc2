@@ -4,6 +4,7 @@ import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
@@ -26,17 +27,12 @@ import java.util.Optional;
 import static java.util.Objects.requireNonNull;
 
 public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusElement implements BlockDeviceBusElement {
-    private static final int NEIGHBOR_COUNT = 6;
-    final Direction[] NEIGHBOR_DIRECTIONS = Direction.values();
-
-    ///////////////////////////////////////////////////////////////////
-
     private final TileEntity tileEntity;
 
     ///////////////////////////////////////////////////////////////////
 
     public TileEntityDeviceBusElement(final TileEntity tileEntity) {
-        super(NEIGHBOR_COUNT);
+        super(Constants.BLOCK_FACE_COUNT);
         this.tileEntity = tileEntity;
     }
 
@@ -55,7 +51,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
         }
 
         final ArrayList<LazyOptional<DeviceBusElement>> neighbors = new ArrayList<>();
-        for (final Direction neighborDirection : NEIGHBOR_DIRECTIONS) {
+        for (final Direction neighborDirection : Constants.DIRECTIONS) {
             if (!canScanContinueTowards(neighborDirection)) {
                 continue;
             }
@@ -133,7 +129,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     ///////////////////////////////////////////////////////////////////
 
     private void scanNeighborsForDevices() {
-        for (final Direction direction : Direction.values()) {
+        for (final Direction direction : Constants.DIRECTIONS) {
             handleNeighborChanged(tileEntity.getPos().offset(direction));
         }
     }
@@ -141,7 +137,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     private void scheduleBusScanInAdjacentBusElements() {
         final World world = requireNonNull(tileEntity.getWorld());
         final BlockPos pos = tileEntity.getPos();
-        for (final Direction direction : Direction.values()) {
+        for (final Direction direction : Constants.DIRECTIONS) {
             final BlockPos neighborPos = pos.offset(direction);
             final TileEntity tileEntity = WorldUtils.getTileEntityIfChunkExists(world, neighborPos);
             if (tileEntity == null) {

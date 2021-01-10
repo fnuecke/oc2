@@ -8,6 +8,7 @@ import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
@@ -28,7 +29,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements RPCDevice, DocumentedDevice, ItemDevice, ICapabilityProvider {
-    private static final int FACE_COUNT = Direction.values().length;
 
     private static final String OUTPUT_TAG_NAME = "output";
 
@@ -43,7 +43,7 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
     private final TileEntity tileEntity;
     private final ObjectDevice device;
     private final RedstoneEmitter[] capabilities;
-    private final byte[] output = new byte[FACE_COUNT];
+    private final byte[] output = new byte[Constants.BLOCK_FACE_COUNT];
 
     ///////////////////////////////////////////////////////////////////
 
@@ -52,8 +52,8 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
         this.tileEntity = tileEntity;
         this.device = new ObjectDevice(this, "redstone");
 
-        capabilities = new RedstoneEmitter[FACE_COUNT];
-        for (int i = 0; i < FACE_COUNT; i++) {
+        capabilities = new RedstoneEmitter[Constants.BLOCK_FACE_COUNT];
+        for (int i = 0; i < Constants.BLOCK_FACE_COUNT; i++) {
             final int indexForClosure = i;
             capabilities[i] = () -> output[indexForClosure];
         }

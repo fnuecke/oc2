@@ -13,6 +13,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
 public abstract class AbstractStorageItem extends Item {
     public static final ResourceLocation CAPACITY_PROPERTY = new ResourceLocation(API.MOD_ID, "capacity");
@@ -50,6 +52,7 @@ public abstract class AbstractStorageItem extends Item {
         super(properties);
         this.defaultCapacity = defaultCapacity;
 
+        if(FMLEnvironment.dist == Dist.CLIENT)
         ItemModelsProperties.registerProperty(this, CAPACITY_PROPERTY, AbstractStorageItem::getCapacityProperty);
     }
 

@@ -33,8 +33,6 @@ public final class DeviceTypes {
 
         DEVICE_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus());
 
-        if(FMLEnvironment.dist == Dist.CLIENT)
-            FMLJavaModLoadingContext.get().getModEventBus().addListener(DeviceTypes::handleTextureStitchEvent);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -46,7 +44,7 @@ public final class DeviceTypes {
         ));
     }
 
-    private static void handleTextureStitchEvent(final TextureStitchEvent.Pre event) {
+    public static void handleTextureStitchEvent(final TextureStitchEvent.Pre event) {
         if (event.getMap().getTextureLocation() != PlayerContainer.LOCATION_BLOCKS_TEXTURE) {
             return;
         }

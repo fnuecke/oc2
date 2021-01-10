@@ -6,8 +6,10 @@ import li.cil.oc2.common.bus.device.util.DeviceTypeImpl;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryBuilder;
@@ -31,7 +33,6 @@ public final class DeviceTypes {
 
         DEVICE_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus());
 
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(DeviceTypes::handleTextureStitchEvent);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -43,7 +44,7 @@ public final class DeviceTypes {
         ));
     }
 
-    private static void handleTextureStitchEvent(final TextureStitchEvent.Pre event) {
+    public static void handleTextureStitchEvent(final TextureStitchEvent.Pre event) {
         if (event.getMap().getTextureLocation() != PlayerContainer.LOCATION_BLOCKS_TEXTURE) {
             return;
         }

@@ -4,7 +4,6 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.TextFormatUtils;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemModelsProperties;
@@ -13,6 +12,9 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
 public abstract class AbstractStorageItem extends Item {
     public static final ResourceLocation CAPACITY_PROPERTY = new ResourceLocation(API.MOD_ID, "capacity");
@@ -49,7 +51,10 @@ public abstract class AbstractStorageItem extends Item {
     public AbstractStorageItem(final Properties properties, final int defaultCapacity) {
         super(properties);
         this.defaultCapacity = defaultCapacity;
-        ItemModelsProperties.registerProperty(this, CAPACITY_PROPERTY, AbstractStorageItem::getCapacityProperty);
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            ItemModelsProperties.registerProperty(this, CAPACITY_PROPERTY, AbstractStorageItem::getCapacityProperty);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -71,7 +76,7 @@ public abstract class AbstractStorageItem extends Item {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static float getCapacityProperty(final ItemStack stack, final ClientWorld world, final LivingEntity entity) {
+    private static float getCapacityProperty(final ItemStack stack, final World world, final LivingEntity entity) {
         return getCapacity(stack);
     }
 }

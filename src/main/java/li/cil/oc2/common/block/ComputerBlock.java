@@ -35,6 +35,7 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
@@ -162,8 +163,8 @@ public final class ComputerBlock extends HorizontalBlock {
         final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
         final ItemStack heldItem = player.getHeldItem(hand);
         if (Wrenches.isWrench(heldItem)) {
-            if (player instanceof ServerPlayerEntity) {
-                openContainerScreen(computer, (ServerPlayerEntity) player);
+            if (!world.isRemote() && player instanceof ServerPlayerEntity) {
+                openContainerScreen(computer, player);
             }
         } else {
             if (player.isSneaking()) {
@@ -210,15 +211,16 @@ public final class ComputerBlock extends HorizontalBlock {
 
     ///////////////////////////////////////////////////////////////////
 
+    @OnlyIn(Dist.CLIENT)
     private void openTerminalScreen(final ComputerTileEntity computer) {
         Minecraft.getInstance().displayGuiScreen(new TerminalScreen(computer, getTranslatedName()));
     }
 
-    private void openContainerScreen(final ComputerTileEntity tileEntity, final ServerPlayerEntity player) {
-        NetworkHooks.openGui(player, new INamedContainerProvider() {
+    private void openContainerScreen(final ComputerTileEntity tileEntity, final PlayerEntity player) {
+        NetworkHooks.openGui((ServerPlayerEntity) player, new INamedContainerProvider() {
             @Override
             public ITextComponent getDisplayName() {
-                return getTranslatedName();
+                return new TranslationTextComponent(getTranslationKey());
             }
 
             @Override

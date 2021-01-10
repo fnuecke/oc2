@@ -26,6 +26,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.LazyOptional;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,10 +49,11 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     private static final int RETRY_UNLOADED_CHUNK_INTERVAL = 5 * Constants.TICK_SECONDS;
     private static final int MAX_CONNECTION_COUNT = 2;
     private static final int MAX_CONNECTION_DISTANCE = 16;
-    private static final int INITIAL_PACKET_TIME_TO_LIVE = 8;
+    private static final int INITIAL_PACKET_TIME_TO_LIVE = 12;
     private static final int BYTES_PER_SECOND = 64 * 1024;
     private static final int BYTES_PER_TICK = BYTES_PER_SECOND / Constants.TICK_SECONDS;
     private static final int MIN_ETHERNET_FRAME_SIZE = 42;
+    private static final int TTL_COST = 1;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -292,8 +294,10 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void collectCapabilities(final CapabilityCollector collector, @org.jetbrains.annotations.Nullable final Direction direction) {
-        collector.offer(Capabilities.NETWORK_INTERFACE, networkInterface);
+    protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
+        if (direction == NetworkConnectorBlock.getFacing(getBlockState()).getOpposite()) {
+            collector.offer(Capabilities.NETWORK_INTERFACE, networkInterface);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -438,14 +442,14 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
                 if (dst == source) {
                     return;
                 }
-                dst.writeEthernetFrame(this, frame, timeToLive - 1);
+                dst.writeEthernetFrame(this, frame, timeToLive - TTL_COST);
             });
 
             for (final NetworkConnectorTileEntity dst : connectors.values()) {
                 if (dst.isRemoved() || dst.networkInterface == source) {
                     continue;
                 }
-                dst.networkInterface.writeEthernetFrame(this, frame, timeToLive - 1);
+                dst.networkInterface.writeEthernetFrame(this, frame, timeToLive - TTL_COST);
             }
         }
     }

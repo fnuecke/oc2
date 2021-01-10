@@ -48,13 +48,14 @@ public final class ItemStackUtils {
     @Nullable
     public static CompoundNBT getTileEntityInventoryTag(final ItemStack stack) {
         final CompoundNBT tag = getTileEntityTag(stack);
-        return tag == null ? null : tag.getCompound(BLOCK_ENTITY_INVENTORY_TAG_NAME);
+        return tag != null && tag.contains(BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)
+                ? tag.getCompound(BLOCK_ENTITY_INVENTORY_TAG_NAME) : null;
     }
 
     @Nullable
     public static CompoundNBT getOrCreateTileEntityInventoryTag(final ItemStack stack) {
         final CompoundNBT tag = getOrCreateTileEntityTag(stack);
-        if (tag.contains(BLOCK_ENTITY_INVENTORY_TAG_NAME)) {
+        if (tag.contains(BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             return tag.getCompound(BLOCK_ENTITY_INVENTORY_TAG_NAME);
         }
 

@@ -311,10 +311,17 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             world.notifyNeighborsOfStateChange(getPos(), getBlockState().getBlock());
         }
 
+        final AbstractDeviceBusController.BusState oldBusState = busController.getState();
         busController.scan();
         setBusState(busController.getState());
         if (busState != AbstractDeviceBusController.BusState.READY) {
             return;
+        }
+
+        if (oldBusState != AbstractDeviceBusController.BusState.READY) {
+            // Bus just became ready, meaning new devices may be available, meaning new
+            // capabilities may be available, so we need to tell our neighbors.
+            world.notifyNeighborsOfStateChange(getPos(), getBlockState().getBlock());
         }
 
         switch (runState) {

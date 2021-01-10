@@ -6,12 +6,11 @@ import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
-import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.List;
 import java.util.function.Function;
 
-public class DeviceItemStackHandler extends ItemStackHandler {
+public class DeviceItemStackHandler extends FixedSizeItemStackHandler {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
 
     ///////////////////////////////////////////////////////////////////

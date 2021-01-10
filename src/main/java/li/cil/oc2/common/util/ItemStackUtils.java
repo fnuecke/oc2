@@ -13,6 +13,9 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.Random;
 
+import static li.cil.oc2.common.Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME;
+import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
+
 public final class ItemStackUtils {
     private static final String MOD_TAG_NAME = API.MOD_ID;
 
@@ -31,6 +34,34 @@ public final class ItemStackUtils {
         }
 
         return stack.getOrCreateChildTag(MOD_TAG_NAME);
+    }
+
+    @Nullable
+    public static CompoundNBT getTileEntityTag(final ItemStack stack) {
+        return stack.getChildTag(BLOCK_ENTITY_TAG_NAME_IN_ITEM);
+    }
+
+    public static CompoundNBT getOrCreateTileEntityTag(final ItemStack stack) {
+        return stack.getOrCreateChildTag(BLOCK_ENTITY_TAG_NAME_IN_ITEM);
+    }
+
+    @Nullable
+    public static CompoundNBT getTileEntityInventoryTag(final ItemStack stack) {
+        final CompoundNBT tag = getTileEntityTag(stack);
+        return tag == null ? null : tag.getCompound(BLOCK_ENTITY_INVENTORY_TAG_NAME);
+    }
+
+    @Nullable
+    public static CompoundNBT getOrCreateTileEntityInventoryTag(final ItemStack stack) {
+        final CompoundNBT tag = getOrCreateTileEntityTag(stack);
+        if (tag.contains(BLOCK_ENTITY_INVENTORY_TAG_NAME)) {
+            return tag.getCompound(BLOCK_ENTITY_INVENTORY_TAG_NAME);
+        }
+
+        final CompoundNBT inventoryNbt = new CompoundNBT();
+        tag.put(BLOCK_ENTITY_INVENTORY_TAG_NAME, inventoryNbt);
+
+        return inventoryNbt;
     }
 
     public static Optional<ItemEntity> spawnAsEntity(final World world, final BlockPos pos, final ItemStack stack) {

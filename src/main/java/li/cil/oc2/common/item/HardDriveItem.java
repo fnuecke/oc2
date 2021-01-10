@@ -21,6 +21,10 @@ public final class HardDriveItem extends AbstractStorageItem {
 
     ///////////////////////////////////////////////////////////////////
 
+    public static ItemStack withCapacity(final int capacity) {
+        return withCapacity(new ItemStack(Items.HARD_DRIVE_ITEM.get()), capacity);
+    }
+
     @Nullable
     public static BaseBlockDevice getBaseBlockDevice(final ItemStack stack) {
         if (stack.isEmpty() || !(stack.getItem() instanceof HardDriveItem)) {
@@ -54,6 +58,10 @@ public final class HardDriveItem extends AbstractStorageItem {
         ItemStackUtils.getOrCreateModDataTag(stack).putString(BASE_TAG_NAME, key.toString());
 
         return stack;
+    }
+
+    public static ItemStack withBase(final BaseBlockDevice baseBlockDevice) {
+        return withBase(new ItemStack(Items.HARD_DRIVE_ITEM.get()), baseBlockDevice);
     }
 
     public static boolean isReadonly(final ItemStack stack) {

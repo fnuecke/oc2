@@ -1,6 +1,8 @@
 package li.cil.oc2.common.util;
 
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 
@@ -23,5 +25,13 @@ public final class NBTUtils {
         } catch (final IndexOutOfBoundsException ignored) {
             return null;
         }
+    }
+
+    public static CompoundNBT makeInventoryTag(final ItemStack... items) {
+        final ItemStackHandler itemStackHandler = new ItemStackHandler(items.length);
+        for (int i = 0; i < items.length; i++) {
+            itemStackHandler.setStackInSlot(i, items[i]);
+        }
+        return itemStackHandler.serializeNBT();
     }
 }

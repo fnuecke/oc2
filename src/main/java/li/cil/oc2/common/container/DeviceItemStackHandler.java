@@ -7,7 +7,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.items.ItemStackHandler;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.function.Function;
@@ -58,7 +57,6 @@ public class DeviceItemStackHandler extends ItemStackHandler {
         }
     }
 
-    @NotNull
     @Override
     public ItemStack getStackInSlot(final int slot) {
         final ItemStack stack = super.getStackInSlot(slot);
@@ -66,7 +64,6 @@ public class DeviceItemStackHandler extends ItemStackHandler {
         return stack;
     }
 
-    @NotNull
     @Override
     public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
         if (!simulate && amount > 0) {

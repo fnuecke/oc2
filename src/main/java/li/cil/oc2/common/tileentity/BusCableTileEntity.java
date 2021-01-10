@@ -11,7 +11,6 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.data.IModelData;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
@@ -84,7 +83,6 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     // TODO Remove if https://github.com/MinecraftForge/MinecraftForge/pull/7595 gets merged.
-    @NotNull
     @Override
     public IModelData getModelData() {
         final World world = getWorld();

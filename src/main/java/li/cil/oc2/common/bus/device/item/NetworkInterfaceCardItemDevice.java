@@ -16,8 +16,8 @@ import net.minecraft.util.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice, ICapabilityProvider {
     private static final String DEVICE_TAG_NAME = "device";
@@ -42,9 +42,8 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
 
     ///////////////////////////////////////////////////////////////
 
-    @NotNull
     @Override
-    public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> cap, @Nullable final Direction side) {
+    public <T> LazyOptional<T> getCapability(final Capability<T> cap, @Nullable final Direction side) {
         if (cap == Capabilities.NETWORK_INTERFACE && side != null) {
             return LazyOptional.of(() -> networkInterface).cast();
         }

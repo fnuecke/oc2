@@ -8,7 +8,6 @@ import li.cil.ceres.api.SerializationVisitor;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.*;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Array;
@@ -150,7 +149,7 @@ public final class NBTSerialization {
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
-        private INBT putArray(final String name, final Class<?> type, final @NotNull Object value) {
+        private INBT putArray(final String name, final Class<?> type, final Object value) {
             final Class<?> componentType = type.getComponentType();
 
             final ArraySerializer arraySerializer = ARRAY_SERIALIZERS.get(componentType);

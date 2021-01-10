@@ -7,7 +7,6 @@ import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -27,9 +26,8 @@ public abstract class AbstractTileEntity extends TileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    @NotNull
     @Override
-    public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> capability, @Nullable final Direction side) {
+    public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
         if (isRemoved()) {
             return LazyOptional.empty();
         }

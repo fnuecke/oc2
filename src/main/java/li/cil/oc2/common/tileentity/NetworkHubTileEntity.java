@@ -8,7 +8,8 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 public final class NetworkHubTileEntity extends AbstractTileEntity implements NetworkInterface {
     private static final int TTL_COST = 1;

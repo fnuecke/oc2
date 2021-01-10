@@ -88,6 +88,7 @@ public final class Terminal {
     private final transient AtomicInteger dirty = new AtomicInteger(-1);
     private transient Object renderer;
     private transient boolean displayOnly; // Set on client to not send responses to status requests.
+    private transient boolean hasPendingBell;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -111,6 +112,12 @@ public final class Terminal {
 
     @OnlyIn(Dist.CLIENT)
     public void render(final MatrixStack stack) {
+        if (hasPendingBell) {
+            hasPendingBell = false;
+            final Minecraft client = Minecraft.getInstance();
+            client.execute(() -> client.getSoundHandler().play(SimpleSound.master(NoteBlockInstrument.PLING.getSound(), 1)));
+        }
+
         if (renderer == null) {
             renderer = new Renderer(this);
         }
@@ -182,7 +189,7 @@ public final class Terminal {
                         break;
                     }
                     case 7: {
-                        Minecraft.getInstance().execute(() -> Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(NoteBlockInstrument.PLING.getSound(), 1)));
+                        hasPendingBell = true;
                         break;
                     }
                     case 27: {

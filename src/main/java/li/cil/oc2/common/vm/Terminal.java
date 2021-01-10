@@ -182,7 +182,7 @@ public final class Terminal {
                         break;
                     }
                     case 7: {
-                        Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(NoteBlockInstrument.PLING.getSound(), 1));
+                        Minecraft.getInstance().execute(() -> Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(NoteBlockInstrument.PLING.getSound(), 1)));
                         break;
                     }
                     case 27: {

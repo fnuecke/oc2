@@ -52,8 +52,9 @@ public abstract class AbstractStorageItem extends Item {
         super(properties);
         this.defaultCapacity = defaultCapacity;
 
-        if(FMLEnvironment.dist == Dist.CLIENT)
-        ItemModelsProperties.registerProperty(this, CAPACITY_PROPERTY, AbstractStorageItem::getCapacityProperty);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            ItemModelsProperties.registerProperty(this, CAPACITY_PROPERTY, AbstractStorageItem::getCapacityProperty);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////

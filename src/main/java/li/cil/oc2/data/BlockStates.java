@@ -34,6 +34,7 @@ public class BlockStates extends BlockStateProvider {
                 .translation(0, 0, -5)
                 .end()
                 .end();
+        horizontalBlock(Blocks.NETWORK_HUB_BLOCK, Items.NETWORK_HUB_ITEM);
 
         registerCableStates();
     }

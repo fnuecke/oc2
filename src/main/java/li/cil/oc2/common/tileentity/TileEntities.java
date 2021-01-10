@@ -22,6 +22,7 @@ public final class TileEntities {
     public static final RegistryObject<TileEntityType<BusCableTileEntity>> BUS_CABLE_TILE_ENTITY = register(Constants.BUS_CABLE_BLOCK_NAME, Blocks.BUS_CABLE_BLOCK, BusCableTileEntity::new);
     public static final RegistryObject<TileEntityType<ComputerTileEntity>> COMPUTER_TILE_ENTITY = register(Constants.COMPUTER_BLOCK_NAME, Blocks.COMPUTER_BLOCK, ComputerTileEntity::new);
     public static final RegistryObject<TileEntityType<NetworkConnectorTileEntity>> NETWORK_CONNECTOR_TILE_ENTITY = register(Constants.NETWORK_CONNECTOR_BLOCK_NAME, Blocks.NETWORK_CONNECTOR_BLOCK, NetworkConnectorTileEntity::new);
+    public static final RegistryObject<TileEntityType<NetworkHubTileEntity>> NETWORK_HUB_TILE_ENTITY = register(Constants.NETWORK_HUB_BLOCK_NAME, Blocks.NETWORK_HUB_BLOCK, NetworkHubTileEntity::new);
 
     ///////////////////////////////////////////////////////////////////
 

@@ -21,6 +21,7 @@ public final class Items {
     public static final RegistryObject<Item> COMPUTER_ITEM = register(Constants.COMPUTER_BLOCK_NAME, Blocks.COMPUTER_BLOCK);
     public static final RegistryObject<Item> BUS_CABLE_ITEM = register(Constants.BUS_CABLE_BLOCK_NAME, Blocks.BUS_CABLE_BLOCK);
     public static final RegistryObject<Item> NETWORK_CONNECTOR_ITEM = register(Constants.NETWORK_CONNECTOR_BLOCK_NAME, Blocks.NETWORK_CONNECTOR_BLOCK);
+    public static final RegistryObject<Item> NETWORK_HUB_ITEM = register(Constants.NETWORK_HUB_BLOCK_NAME, Blocks.NETWORK_HUB_BLOCK);
     public static final RegistryObject<Item> REDSTONE_INTERFACE_ITEM = register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, Blocks.REDSTONE_INTERFACE_BLOCK);
 
     ///////////////////////////////////////////////////////////////////

@@ -5,6 +5,7 @@ import li.cil.oc2.client.gui.ComputerContainerScreen;
 import li.cil.oc2.client.model.BusCableModelLoader;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.client.renderer.tileentity.ComputerTileEntityRenderer;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.tileentity.TileEntities;
 import net.minecraft.client.gui.ScreenManager;
@@ -27,6 +28,6 @@ public final class ClientSetup {
 
     @SubscribeEvent
     public static void handleModelRegistryEvent(final ModelRegistryEvent event) {
-        ModelLoaderRegistry.registerLoader(new ResourceLocation(API.MOD_ID, "bus_cable"), new BusCableModelLoader());
+        ModelLoaderRegistry.registerLoader(new ResourceLocation(API.MOD_ID, Constants.BUS_CABLE_BLOCK_NAME), new BusCableModelLoader());
     }
 }

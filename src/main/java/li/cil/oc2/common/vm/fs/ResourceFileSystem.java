@@ -3,6 +3,7 @@ package li.cil.oc2.common.vm.fs;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2LongArrayMap;
 import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.util.ResourceUtils;
 import li.cil.sedna.fs.*;
 import net.minecraft.resources.IResource;
 import net.minecraft.resources.IResourceManager;
@@ -298,9 +299,10 @@ public final class ResourceFileSystem implements FileSystem {
             boolean isDirectory;
             boolean isExecutable;
             if (location != null) {
-                try (final IResource resource = resourceManager.getResource(location)) {
-                    // Successfully retrieved resource, meaning it's a file.
-                    final FileAttributesMetadataSection metadata = resource.getMetadata(FileAttributesMetadataSection.SERIALIZER);
+                try {
+                    // If we can successfully retrieved resource it's a file. Directories cause errors.
+                    resourceManager.getResource(location);
+                    final FileAttributesMetadataSection metadata = ResourceUtils.getMetadata(resourceManager, location, FileAttributesMetadataSection.SERIALIZER);
                     isExecutable = metadata != null && metadata.isExecutable();
                     isDirectory = false;
                 } catch (final IOException e) {

@@ -175,6 +175,7 @@ public final class ComputerBlock extends HorizontalBlock {
 
     ///////////////////////////////////////////////////////////////////
 
+    @OnlyIn(Dist.CLIENT)
     private void openTerminalScreen(final ComputerTileEntity computer) {
         Minecraft.getInstance().displayGuiScreen(new TerminalScreen(computer, getTranslatedName()));
     }

@@ -38,7 +38,7 @@ public final class ResourceFileSystem implements FileSystem {
             final String path = location.getPath();
             assert path.startsWith(rootLocationPath);
             final String localPath = path.substring(rootLocationPath.length());
-            if (localPath.isEmpty()) {
+            if (localPath.isEmpty() || "/".equals(localPath)) {
                 continue; // Skip the directory we're using as root.
             }
 

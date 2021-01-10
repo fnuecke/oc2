@@ -17,7 +17,6 @@ public final class Blocks {
     public static final RegistryObject<BusCableBlock> BUS_CABLE_BLOCK = BLOCKS.register(Constants.BUS_CABLE_BLOCK_NAME, BusCableBlock::new);
     public static final RegistryObject<NetworkConnectorBlock> NETWORK_CONNECTOR_BLOCK = BLOCKS.register(Constants.NETWORK_CONNECTOR_BLOCK_NAME, NetworkConnectorBlock::new);
     public static final RegistryObject<RedstoneInterfaceBlock> REDSTONE_INTERFACE_BLOCK = BLOCKS.register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, RedstoneInterfaceBlock::new);
-    public static final RegistryObject<ScreenBlock> SCREEN_BLOCK = BLOCKS.register(Constants.SCREEN_BLOCK_NAME, ScreenBlock::new);
 
     ///////////////////////////////////////////////////////////////////
 

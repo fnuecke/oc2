@@ -5,7 +5,6 @@
   "block.oc2.bus_cable": "Bus Cable",
   "block.oc2.network_connector": "Network Connector",
   "block.oc2.redstone_interface": "Redstone Interface",
-  "block.oc2.screen": "Screen",
 
   "item.oc2.wrench": "Scrench",
   "item.oc2.bus_interface": "Bus Interface",
@@ -16,11 +15,18 @@
   "item.oc2.redstone_interface_card": "Redstone Interface Card",
   "item.oc2.network_interface_card": "Network Interface Card",
 
+  "config.oc2.maxAllocatedMemory": "Maximum allocated memory",
+  "config.oc2.maxMemorySize:": "Maximum memory device size",
+  "config.oc2.maxHardDriveSize": "Maximum hard drive device size",
+  "config.oc2.maxFlashMemorySize:": "Maximum flash memory device size",
+  "config.oc2.computerEnergyPerTick": "Energy/tick used by computers",
+
   "gui.oc2.computer.boot_error.unknown": "Unknown Error",
   "gui.oc2.computer.boot_error.no_memory": "Insufficient Memory",
   "gui.oc2.computer.bus_state.incomplete": "Bus Incomplete",
   "gui.oc2.computer.bus_state.too_complex": "Bus Too Complex",
   "gui.oc2.computer.bus_state.multiple_controllers": "Multiple Bus Controllers",
+  "gui.oc2.computer.error.not_enough_energy": "Not Enough Energy",
 
   "gui.oc2.computer.capture_input.capt": "Capture Input",
   "gui.oc2.computer.capture_input.desc": "When enabled, as long as the mouse cursor is hovering the terminal contents, all input will be captured, including the escape key.",

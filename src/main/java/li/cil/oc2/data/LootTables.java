@@ -44,7 +44,6 @@ public final class LootTables extends LootTableProvider {
         protected void addTables() {
             registerDropSelfLootTable(Blocks.BUS_CABLE_BLOCK.get());
             registerDropSelfLootTable(Blocks.REDSTONE_INTERFACE_BLOCK.get());
-            registerDropSelfLootTable(Blocks.SCREEN_BLOCK.get());
             registerDropSelfLootTable(Blocks.NETWORK_CONNECTOR_BLOCK.get());
 
             registerLootTable(Blocks.COMPUTER_BLOCK.get(), ModBlockLootTables::droppingWithInventory);

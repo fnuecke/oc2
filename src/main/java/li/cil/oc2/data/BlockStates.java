@@ -22,7 +22,6 @@ public class BlockStates extends BlockStateProvider {
     protected void registerStatesAndModels() {
         horizontalBlock(Blocks.COMPUTER_BLOCK, Items.COMPUTER_ITEM);
         horizontalBlock(Blocks.REDSTONE_INTERFACE_BLOCK, Items.REDSTONE_INTERFACE_ITEM);
-        horizontalBlock(Blocks.SCREEN_BLOCK, Items.SCREEN_ITEM);
         horizontalFaceBlock(Blocks.NETWORK_CONNECTOR_BLOCK, Items.NETWORK_CONNECTOR_ITEM)
                 .transforms()
                 .transform(ModelBuilder.Perspective.GUI)

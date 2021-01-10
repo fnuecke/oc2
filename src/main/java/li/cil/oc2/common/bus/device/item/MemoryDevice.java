@@ -19,8 +19,8 @@ import net.minecraft.util.math.MathHelper;
 import java.util.UUID;
 
 public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice {
-    private static final String BLOB_HANDLE_NBT_TAG_NAME = "blob";
-    private static final String ADDRESS_NBT_TAG_NAME = "address";
+    private static final String BLOB_HANDLE_TAG_NAME = "blob";
+    private static final String ADDRESS_TAG_NAME = "address";
 
     ///////////////////////////////////////////////////////////////
 
@@ -75,12 +75,12 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
         if (device != null) {
             blobHandle = BlobStorage.validateHandle(blobHandle);
-            nbt.putUniqueId(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
+            nbt.putUniqueId(BLOB_HANDLE_TAG_NAME, blobHandle);
 
             jobHandle = BlobStorage.submitSave(blobHandle, new PhysicalMemoryInputStream(device));
         }
         if (address.isPresent()) {
-            nbt.putLong(ADDRESS_NBT_TAG_NAME, address.getAsLong());
+            nbt.putLong(ADDRESS_TAG_NAME, address.getAsLong());
         }
 
         return nbt;
@@ -88,11 +88,11 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     @Override
     public void deserializeNBT(final CompoundNBT nbt) {
-        if (nbt.hasUniqueId(BLOB_HANDLE_NBT_TAG_NAME)) {
-            blobHandle = nbt.getUniqueId(BLOB_HANDLE_NBT_TAG_NAME);
+        if (nbt.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
+            blobHandle = nbt.getUniqueId(BLOB_HANDLE_TAG_NAME);
         }
-        if (nbt.contains(ADDRESS_NBT_TAG_NAME, NBTTagIds.TAG_LONG)) {
-            address.set(nbt.getLong(ADDRESS_NBT_TAG_NAME));
+        if (nbt.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
+            address.set(nbt.getLong(ADDRESS_TAG_NAME));
         }
     }
 

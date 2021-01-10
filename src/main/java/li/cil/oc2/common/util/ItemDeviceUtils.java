@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 public final class ItemDeviceUtils {
-    private static final String ITEM_DEVICE_DATA_NBT_TAG_NAME = "item_device";
+    private static final String ITEM_DEVICE_DATA_TAG_NAME = "item_device";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -23,7 +23,7 @@ public final class ItemDeviceUtils {
             return Optional.empty();
         }
 
-        return Optional.of(nbt.getCompound(ITEM_DEVICE_DATA_NBT_TAG_NAME));
+        return Optional.of(nbt.getCompound(ITEM_DEVICE_DATA_TAG_NAME));
     }
 
     public static void setItemDeviceData(final ItemStack stack, final CompoundNBT data) {
@@ -31,7 +31,7 @@ public final class ItemDeviceUtils {
             return;
         }
 
-        ItemStackUtils.getOrCreateModDataTag(stack).put(ITEM_DEVICE_DATA_NBT_TAG_NAME, data);
+        ItemStackUtils.getOrCreateModDataTag(stack).put(ITEM_DEVICE_DATA_TAG_NAME, data);
     }
 
     public static Optional<String> getItemDeviceDataKey(@Nullable final IForgeRegistryEntry<?> provider) {

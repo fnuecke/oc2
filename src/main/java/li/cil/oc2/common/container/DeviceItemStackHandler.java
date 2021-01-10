@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.function.Function;
 
 public class DeviceItemStackHandler extends ItemStackHandler {
-    private static final String BUS_ELEMENT_NBT_TAG_NAME = "busElement";
+    private static final String BUS_ELEMENT_TAG_NAME = "busElement";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -45,14 +45,14 @@ public class DeviceItemStackHandler extends ItemStackHandler {
     @Override
     public CompoundNBT serializeNBT() {
         final CompoundNBT nbt = super.serializeNBT();
-        nbt.put(BUS_ELEMENT_NBT_TAG_NAME, busElement.serializeNBT());
+        nbt.put(BUS_ELEMENT_TAG_NAME, busElement.serializeNBT());
         return nbt;
     }
 
     @Override
     public void deserializeNBT(final CompoundNBT nbt) {
         super.deserializeNBT(nbt);
-        busElement.deserializeNBT(nbt.getList(BUS_ELEMENT_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
+        busElement.deserializeNBT(nbt.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
         for (int slot = 0; slot < getSlots(); slot++) {
             busElement.updateDevices(slot, getStackInSlot(slot));
         }

@@ -13,8 +13,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeRegistryEntry<TProvider>, TDeviceInfo extends AbstractDeviceInfo<TProvider, ?>> extends AbstractDeviceBusElement implements INBTSerializable<ListNBT> {
-    private static final String GROUP_ID_NBT_TAG_NAME = "groupId";
-    private static final String GROUP_DATA_NBT_TAG_NAME = "groupData";
+    private static final String GROUP_ID_TAG_NAME = "groupId";
+    private static final String GROUP_DATA_TAG_NAME = "groupData";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -55,8 +55,8 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
 
             final CompoundNBT sideNbt = new CompoundNBT();
 
-            sideNbt.putUniqueId(GROUP_ID_NBT_TAG_NAME, groupIds[i]);
-            sideNbt.put(GROUP_DATA_NBT_TAG_NAME, groupData[i]);
+            sideNbt.putUniqueId(GROUP_ID_TAG_NAME, groupIds[i]);
+            sideNbt.put(GROUP_DATA_TAG_NAME, groupData[i]);
 
             nbt.add(sideNbt);
         }
@@ -69,11 +69,11 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         for (int i = 0; i < count; i++) {
             final CompoundNBT sideNbt = nbt.getCompound(i);
 
-            if (sideNbt.hasUniqueId(GROUP_ID_NBT_TAG_NAME)) {
-                groupIds[i] = sideNbt.getUniqueId(GROUP_ID_NBT_TAG_NAME);
+            if (sideNbt.hasUniqueId(GROUP_ID_TAG_NAME)) {
+                groupIds[i] = sideNbt.getUniqueId(GROUP_ID_TAG_NAME);
             }
-            if (sideNbt.contains(GROUP_DATA_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-                groupData[i] = sideNbt.getCompound(GROUP_DATA_NBT_TAG_NAME);
+            if (sideNbt.contains(GROUP_DATA_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+                groupData[i] = sideNbt.getCompound(GROUP_DATA_TAG_NAME);
             }
         }
     }

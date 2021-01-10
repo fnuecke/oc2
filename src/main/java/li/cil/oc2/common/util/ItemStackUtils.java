@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.Random;
 
 public final class ItemStackUtils {
-    public static final String MOD_NBT_TAG_NAME = API.MOD_ID;
+    public static final String MOD_TAG_NAME = API.MOD_ID;
 
     @Nullable
     public static CompoundNBT getModDataTag(final ItemStack stack) {
@@ -22,7 +22,7 @@ public final class ItemStackUtils {
             return null;
         }
 
-        return stack.getChildTag(MOD_NBT_TAG_NAME);
+        return stack.getChildTag(MOD_TAG_NAME);
     }
 
     public static CompoundNBT getOrCreateModDataTag(final ItemStack stack) {
@@ -30,7 +30,7 @@ public final class ItemStackUtils {
             throw new IllegalArgumentException();
         }
 
-        return stack.getOrCreateChildTag(MOD_NBT_TAG_NAME);
+        return stack.getOrCreateChildTag(MOD_TAG_NAME);
     }
 
     public static Optional<ItemEntity> spawnAsEntity(final World world, final BlockPos pos, final ItemStack stack) {

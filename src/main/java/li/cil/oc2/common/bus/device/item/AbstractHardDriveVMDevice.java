@@ -19,10 +19,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice {
-    private static final String DEVICE_NBT_TAG_NAME = "device";
-    private static final String ADDRESS_NBT_TAG_NAME = "address";
-    private static final String INTERRUPT_NBT_TAG_NAME = "interrupt";
-    private static final String BLOB_HANDLE_NBT_TAG_NAME = "blob";
+    private static final String DEVICE_TAG_NAME = "device";
+    private static final String ADDRESS_TAG_NAME = "address";
+    private static final String INTERRUPT_TAG_NAME = "interrupt";
+    private static final String BLOB_HANDLE_TAG_NAME = "blob";
 
     ///////////////////////////////////////////////////////////////
 
@@ -87,14 +87,14 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
             getSerializationStream(data).ifPresent(stream -> blobHandle = BlobStorage.validateHandle(blobHandle));
         }
         if (blobHandle != null) {
-            nbt.putUniqueId(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
+            nbt.putUniqueId(BLOB_HANDLE_TAG_NAME, blobHandle);
         }
     }
 
     @Override
     public void importFromItemStack(final CompoundNBT nbt) {
-        if (nbt.hasUniqueId(BLOB_HANDLE_NBT_TAG_NAME)) {
-            blobHandle = nbt.getUniqueId(BLOB_HANDLE_NBT_TAG_NAME);
+        if (nbt.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
+            blobHandle = nbt.getUniqueId(BLOB_HANDLE_TAG_NAME);
         }
     }
 
@@ -107,17 +107,17 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
             deviceNbt = NBTSerialization.serialize(device);
         }
         if (deviceNbt != null) {
-            tag.put(DEVICE_NBT_TAG_NAME, deviceNbt);
+            tag.put(DEVICE_TAG_NAME, deviceNbt);
         }
         if (address.isPresent()) {
-            tag.putLong(ADDRESS_NBT_TAG_NAME, address.getAsLong());
+            tag.putLong(ADDRESS_TAG_NAME, address.getAsLong());
         }
         if (interrupt.isPresent()) {
-            tag.putInt(INTERRUPT_NBT_TAG_NAME, interrupt.getAsInt());
+            tag.putInt(INTERRUPT_TAG_NAME, interrupt.getAsInt());
         }
 
         if (blobHandle != null) {
-            tag.putUniqueId(BLOB_HANDLE_NBT_TAG_NAME, blobHandle);
+            tag.putUniqueId(BLOB_HANDLE_TAG_NAME, blobHandle);
         }
 
         return tag;
@@ -125,18 +125,18 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
 
     @Override
     public void deserializeNBT(final CompoundNBT tag) {
-        if (tag.hasUniqueId(BLOB_HANDLE_NBT_TAG_NAME)) {
-            blobHandle = tag.getUniqueId(BLOB_HANDLE_NBT_TAG_NAME);
+        if (tag.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
+            blobHandle = tag.getUniqueId(BLOB_HANDLE_TAG_NAME);
         }
 
-        if (tag.contains(DEVICE_NBT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            deviceNbt = tag.getCompound(DEVICE_NBT_TAG_NAME);
+        if (tag.contains(DEVICE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            deviceNbt = tag.getCompound(DEVICE_TAG_NAME);
         }
-        if (tag.contains(ADDRESS_NBT_TAG_NAME, NBTTagIds.TAG_LONG)) {
-            address.set(tag.getLong(ADDRESS_NBT_TAG_NAME));
+        if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
+            address.set(tag.getLong(ADDRESS_TAG_NAME));
         }
-        if (tag.contains(INTERRUPT_NBT_TAG_NAME, NBTTagIds.TAG_INT)) {
-            interrupt.set(tag.getInt(INTERRUPT_NBT_TAG_NAME));
+        if (tag.contains(INTERRUPT_TAG_NAME, NBTTagIds.TAG_INT)) {
+            interrupt.set(tag.getInt(INTERRUPT_TAG_NAME));
         }
     }
 

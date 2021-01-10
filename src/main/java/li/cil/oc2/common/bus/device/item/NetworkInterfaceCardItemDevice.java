@@ -21,8 +21,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice, ICapabilityProvider {
     private static final String DEVICE_TAG_NAME = "device";
-    private static final String ADDRESS_NBT_TAG_NAME = "address";
-    private static final String INTERRUPT_NBT_TAG_NAME = "interrupt";
+    private static final String ADDRESS_TAG_NAME = "address";
+    private static final String INTERRUPT_TAG_NAME = "interrupt";
 
     ///////////////////////////////////////////////////////////////
 
@@ -96,10 +96,10 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
             tag.put(DEVICE_TAG_NAME, deviceNbt);
         }
         if (address.isPresent()) {
-            tag.putLong(ADDRESS_NBT_TAG_NAME, address.getAsLong());
+            tag.putLong(ADDRESS_TAG_NAME, address.getAsLong());
         }
         if (interrupt.isPresent()) {
-            tag.putInt(INTERRUPT_NBT_TAG_NAME, interrupt.getAsInt());
+            tag.putInt(INTERRUPT_TAG_NAME, interrupt.getAsInt());
         }
 
         return tag;
@@ -110,11 +110,11 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
         if (tag.contains(DEVICE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             deviceNbt = tag.getCompound(DEVICE_TAG_NAME);
         }
-        if (tag.contains(ADDRESS_NBT_TAG_NAME, NBTTagIds.TAG_LONG)) {
-            address.set(tag.getLong(ADDRESS_NBT_TAG_NAME));
+        if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
+            address.set(tag.getLong(ADDRESS_TAG_NAME));
         }
-        if (tag.contains(INTERRUPT_NBT_TAG_NAME, NBTTagIds.TAG_INT)) {
-            interrupt.set(tag.getInt(INTERRUPT_NBT_TAG_NAME));
+        if (tag.contains(INTERRUPT_TAG_NAME, NBTTagIds.TAG_INT)) {
+            interrupt.set(tag.getInt(INTERRUPT_TAG_NAME));
         }
     }
 

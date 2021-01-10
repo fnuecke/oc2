@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.Random;
 
 public final class ItemStackUtils {
-    public static final String MOD_TAG_NAME = API.MOD_ID;
+    private static final String MOD_TAG_NAME = API.MOD_ID;
 
     @Nullable
     public static CompoundNBT getModDataTag(final ItemStack stack) {

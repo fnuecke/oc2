@@ -1,10 +1,9 @@
 package li.cil.oc2.data;
 
 import li.cil.oc2.api.API;
+import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.item.HardDriveItem;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.item.MemoryItem;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
@@ -26,20 +25,20 @@ public final class ItemModels extends ItemModelProvider {
 
         simple(Items.MEMORY_ITEM, "items/memory1")
                 .override()
-                .predicate(MemoryItem.CAPACITY_PROPERTY, 4 * Constants.MEGABYTE)
+                .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 4 * Constants.MEGABYTE)
                 .model(simple(Items.MEMORY_ITEM, "items/memory2", "2"))
                 .end()
                 .override()
-                .predicate(MemoryItem.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
+                .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
                 .model(simple(Items.MEMORY_ITEM, "items/memory3", "3"))
                 .end();
         simple(Items.HARD_DRIVE_ITEM, "items/hard_drive1")
                 .override()
-                .predicate(HardDriveItem.CAPACITY_PROPERTY, 4 * Constants.MEGABYTE)
+                .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 4 * Constants.MEGABYTE)
                 .model(simple(Items.HARD_DRIVE_ITEM, "items/hard_drive2", "2"))
                 .end()
                 .override()
-                .predicate(HardDriveItem.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
+                .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
                 .model(simple(Items.HARD_DRIVE_ITEM, "items/hard_drive3", "3"))
                 .end();
         simple(Items.FLASH_MEMORY_ITEM, "items/flash_memory");

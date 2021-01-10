@@ -14,8 +14,8 @@ import net.minecraft.util.text.ITextComponent;
 import javax.annotation.Nullable;
 
 public final class HardDriveItem extends AbstractStorageItem {
-    public static final String BASE_TAG_NAME = "base";
-    public static final String READONLY_TAG_NAME = "readonly";
+    private static final String BASE_TAG_NAME = "base";
+    private static final String READONLY_TAG_NAME = "readonly";
 
     private static final int DEFAULT_CAPACITY = 2 * Constants.MEGABYTE;
 

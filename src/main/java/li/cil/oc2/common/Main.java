@@ -13,6 +13,8 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.serialization.serializers.Serializers;
 import li.cil.oc2.common.tileentity.TileEntities;
 import li.cil.sedna.Sedna;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
@@ -33,6 +35,6 @@ public final class Main {
         Firmwares.initialize();
 
         FMLJavaModLoadingContext.get().getModEventBus().register(CommonSetup.class);
-        FMLJavaModLoadingContext.get().getModEventBus().register(ClientSetup.class);
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().register(ClientSetup.class));
     }
 }

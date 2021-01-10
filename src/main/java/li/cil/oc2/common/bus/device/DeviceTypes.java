@@ -3,13 +3,9 @@ package li.cil.oc2.common.bus.device;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.common.bus.device.util.DeviceTypeImpl;
-import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryBuilder;
@@ -21,7 +17,7 @@ public final class DeviceTypes {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final Supplier<IForgeRegistry<DeviceType>> DEVICE_TYPE_REGISTRY = DEVICE_TYPES.makeRegistry(DeviceType.REGISTRY.getPath(), RegistryBuilder::new);
+    public static final Supplier<IForgeRegistry<DeviceType>> DEVICE_TYPE_REGISTRY = DEVICE_TYPES.makeRegistry(DeviceType.REGISTRY.getPath(), RegistryBuilder::new);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -32,7 +28,6 @@ public final class DeviceTypes {
         register("card");
 
         DEVICE_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus());
-
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -42,15 +37,5 @@ public final class DeviceTypes {
                 new ResourceLocation(API.MOD_ID, "gui/icon/" + name),
                 new TranslationTextComponent("gui.oc2.device_type." + name)
         ));
-    }
-
-    public static void handleTextureStitchEvent(final TextureStitchEvent.Pre event) {
-        if (event.getMap().getTextureLocation() != PlayerContainer.LOCATION_BLOCKS_TEXTURE) {
-            return;
-        }
-
-        for (final DeviceType deviceType : DEVICE_TYPE_REGISTRY.get().getValues()) {
-            event.addSprite(deviceType.getBackgroundIcon());
-        }
     }
 }

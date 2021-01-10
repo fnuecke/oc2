@@ -23,35 +23,17 @@ import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.Style;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.TextureStitchEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 import java.util.List;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class ComputerTileEntityRenderer extends TileEntityRenderer<ComputerTileEntity> {
-    private static final ResourceLocation OVERLAY_POWER_LOCATION = new ResourceLocation(API.MOD_ID, "blocks/computer/computer_overlay_power");
-    private static final ResourceLocation OVERLAY_STATUS_LOCATION = new ResourceLocation(API.MOD_ID, "blocks/computer/computer_overlay_status");
-    private static final ResourceLocation OVERLAY_TERMINAL_LOCATION = new ResourceLocation(API.MOD_ID, "blocks/computer/computer_overlay_terminal");
+    public static final ResourceLocation OVERLAY_POWER_LOCATION = new ResourceLocation(API.MOD_ID, "blocks/computer/computer_overlay_power");
+    public static final ResourceLocation OVERLAY_STATUS_LOCATION = new ResourceLocation(API.MOD_ID, "blocks/computer/computer_overlay_status");
+    public static final ResourceLocation OVERLAY_TERMINAL_LOCATION = new ResourceLocation(API.MOD_ID, "blocks/computer/computer_overlay_terminal");
 
     private static final RenderMaterial TEXTURE_POWER = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_POWER_LOCATION);
     private static final RenderMaterial TEXTURE_STATUS = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_STATUS_LOCATION);
     private static final RenderMaterial TEXTURE_TERMINAL = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_TERMINAL_LOCATION);
-
-    ///////////////////////////////////////////////////////////////////
-
-    @SubscribeEvent
-    public static void handleTextureStitchEvent(final TextureStitchEvent.Pre event) {
-        if (event.getMap().getTextureLocation() != PlayerContainer.LOCATION_BLOCKS_TEXTURE) {
-            return;
-        }
-
-        event.addSprite(OVERLAY_POWER_LOCATION);
-        event.addSprite(OVERLAY_STATUS_LOCATION);
-        event.addSprite(OVERLAY_TERMINAL_LOCATION);
-    }
 
     ///////////////////////////////////////////////////////////////////
 

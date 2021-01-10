@@ -92,6 +92,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final long ITEM_DEVICE_BASE_ADDRESS = 0x40000000L;
     private static final int ITEM_DEVICE_STRIDE = 0x1000;
 
+    private static final ByteBuffer TERMINAL_RESET_SEQUENCE = ByteBuffer.wrap(new byte[]{
+            // Make sure we're in normal mode.
+            'J',
+            // Reset color and style.
+            '\033', '[', '0', 'm',
+            // Clear screen.
+            '\033', '[', '2', 'J'
+    });
+
     ///////////////////////////////////////////////////////////////////
 
     public enum RunState {
@@ -188,7 +197,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             return;
         }
 
-        stopRunnerAndResetVM();
+        stopRunnerAndReset();
     }
 
     public boolean isRunning() {
@@ -360,7 +369,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                 break;
             case RUNNING:
                 if (!virtualMachine.board.isRunning()) {
-                    stopRunnerAndResetVM();
+                    stopRunnerAndReset();
                     break;
                 }
 
@@ -574,12 +583,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         Network.sendToClientsTrackingChunk(message, chunk);
     }
 
-    private void stopRunnerAndResetVM() {
+    private void stopRunnerAndReset() {
         joinVirtualMachine();
         runner = null;
         setRunState(RunState.STOPPED);
 
         virtualMachine.reset();
+
+        TERMINAL_RESET_SEQUENCE.clear();
+        putTerminalOutput(TERMINAL_RESET_SEQUENCE);
     }
 
     private void joinVirtualMachine() {
@@ -619,6 +631,17 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         return OptionalLong.empty();
+    }
+
+    private void putTerminalOutput(final ByteBuffer output) {
+        if (output.hasRemaining()) {
+            terminal.putOutput(output);
+
+            output.flip();
+
+            final TerminalBlockOutputMessage message = new TerminalBlockOutputMessage(ComputerTileEntity.this, output);
+            Network.sendToClientsTrackingChunk(message, chunk);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -778,14 +801,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             }
 
             output.flip();
-            if (output.hasRemaining()) {
-                terminal.putOutput(output);
-
-                output.flip();
-
-                final TerminalBlockOutputMessage message = new TerminalBlockOutputMessage(ComputerTileEntity.this, output);
-                Network.sendToClientsTrackingChunk(message, chunk);
-            }
+            putTerminalOutput(output);
         }
     }
 }

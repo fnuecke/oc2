@@ -17,7 +17,7 @@ public final class ResourceUtils {
     @Nullable
     public static <T> T getMetadata(final IResourceManager manager, final ResourceLocation resourceLocation, final IMetadataSectionSerializer<T> serializer) throws IOException {
         final ResourceLocation metadataLocation = new ResourceLocation(
-                resourceLocation.getNamespace(), resourceLocation.getNamespace() + ".mcmeta");
+                resourceLocation.getNamespace(), resourceLocation.getPath() + ".mcmeta");
         if (!manager.hasResource(metadataLocation)) {
             return null;
         }

@@ -12,6 +12,7 @@ import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.ServerScheduler;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
@@ -288,6 +289,15 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             if (connector.connectorPositions.contains(pos)) {
                 connector.dirtyConnectors.add(pos);
             }
+        }
+    }
+
+    @Override
+    public AxisAlignedBB getRenderBoundingBox() {
+        if (Minecraft.isFabulousGraphicsEnabled()) {
+            return new AxisAlignedBB(pos.add(-MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE), pos.add(1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE));
+        } else {
+            return super.getRenderBoundingBox();
         }
     }
 

@@ -26,8 +26,9 @@ public abstract class CustomRenderType extends RenderType {
 
     public static RenderType getNetworkCable() {
         final State state = State.getBuilder()
+                .texture(RenderState.NO_TEXTURE)
                 .transparency(RenderState.NO_TRANSPARENCY)
-                .diffuseLighting(RenderState.DIFFUSE_LIGHTING_ENABLED)
+                .cull(RenderState.CULL_DISABLED)
                 .lightmap(RenderState.LIGHTMAP_ENABLED)
                 .build(false);
         return RenderType.makeType(API.MOD_ID + ":network_cable",

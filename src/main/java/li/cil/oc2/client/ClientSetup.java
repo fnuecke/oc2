@@ -7,6 +7,7 @@ import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.BusCableModelLoader;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.client.renderer.tileentity.ComputerTileEntityRenderer;
+import li.cil.oc2.client.renderer.tileentity.NetworkConnectorTileEntityRenderer;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.DeviceTypes;
 import li.cil.oc2.common.container.Containers;
@@ -30,6 +31,7 @@ public final class ClientSetup {
         ScreenManager.registerFactory(Containers.COMPUTER_CONTAINER.get(), ComputerContainerScreen::new);
 
         ClientRegistry.bindTileEntityRenderer(TileEntities.COMPUTER_TILE_ENTITY.get(), ComputerTileEntityRenderer::new);
+        ClientRegistry.bindTileEntityRenderer(TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), NetworkConnectorTileEntityRenderer::new);
     }
 
     @SubscribeEvent

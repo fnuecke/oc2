@@ -11,19 +11,31 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.ClippingHelper;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.world.IBlockDisplayReader;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.event.world.ChunkEvent;
+import net.minecraftforge.event.world.WorldEvent;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Predicate;
 
+// Note on cable rendering and Fabulous rendering mode: sadly at the time of writing,
+// there is no hook to render before the Fabulous shaders. And those sadly appear to
+// completely flatten / break the depth buffer. So using the RenderWorldLastEvent will
+// not work anymore for rendering cables in one nice efficient batch. So instead we
+// fall back to letting the TESRs trigger the cable rendering. We still use the data
+// structures with precomputed data and such, it's just that they need much larger
+// render bounds and require an addition hash map look-up.
 public final class NetworkCableRenderer {
     private static final int MAX_RENDER_DISTANCE = 100;
     private static final int CABLE_VERTEX_COUNT = 9;
@@ -41,11 +53,14 @@ public final class NetworkCableRenderer {
     private static boolean isDirty;
 
     private static final ArrayList<Connection> connections = new ArrayList<>();
+    private static final WeakHashMap<NetworkConnectorTileEntity, ArrayList<Connection>> connectionsByConnector = new WeakHashMap<>();
 
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
         MinecraftForge.EVENT_BUS.addListener(NetworkCableRenderer::handleRenderWorld);
+        MinecraftForge.EVENT_BUS.addListener(NetworkCableRenderer::handleChunkUnloadEvent);
+        MinecraftForge.EVENT_BUS.addListener(NetworkCableRenderer::handleWorldUnloadEvent);
     }
 
     public static void addNetworkConnector(final NetworkConnectorTileEntity connector) {
@@ -57,23 +72,67 @@ public final class NetworkCableRenderer {
         isDirty = true;
     }
 
-    @SubscribeEvent
-    public static void handleRenderWorld(final RenderWorldLastEvent event) {
+    public static void renderCablesFor(final IBlockDisplayReader world, final MatrixStack matrixStack, final Vector3d eye, final NetworkConnectorTileEntity connector) {
+        final ArrayList<Connection> connections = connectionsByConnector.get(connector);
+        if (connections != null) {
+            renderCables(world, matrixStack, eye, connections, unused -> true);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private static void handleChunkUnloadEvent(final ChunkEvent.Unload event) {
+        if (event.getWorld().isRemote()) {
+            final ChunkPos chunkPos = event.getChunk().getPos();
+
+            final ArrayList<NetworkConnectorTileEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
+            for (final NetworkConnectorTileEntity connector : list) {
+                final ChunkPos connectorChunkPos = new ChunkPos(connector.getPos());
+                if (Objects.equals(connectorChunkPos, chunkPos)) {
+                    connectors.remove(connector);
+                }
+            }
+
+            invalidateConnections();
+        }
+    }
+
+    private static void handleWorldUnloadEvent(final WorldEvent.Unload event) {
+        if (event.getWorld().isRemote()) {
+            final IWorld world = event.getWorld();
+
+            final ArrayList<NetworkConnectorTileEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
+            for (final NetworkConnectorTileEntity connector : list) {
+                if (connector.getWorld() == world) {
+                    connectors.remove(connector);
+                }
+            }
+
+            invalidateConnections();
+        }
+    }
+
+    private static void handleRenderWorld(final RenderWorldLastEvent event) {
         validateConnectors();
         validatePairs();
+
+        if (Minecraft.isFabulousGraphicsEnabled()) {
+            return;
+        }
 
         if (connections.isEmpty()) {
             return;
         }
 
-        final World world = Minecraft.getInstance().world;
+        final Minecraft client = Minecraft.getInstance();
+        final World world = client.world;
         if (world == null) {
             return;
         }
 
         final MatrixStack matrixStack = event.getMatrixStack();
 
-        final ActiveRenderInfo activeRenderInfo = Minecraft.getInstance().gameRenderer.getActiveRenderInfo();
+        final ActiveRenderInfo activeRenderInfo = client.gameRenderer.getActiveRenderInfo();
         final Vector3d eye = activeRenderInfo.getProjectedView();
 
         final ClippingHelper frustum = new ClippingHelper(matrixStack.getLast().getMatrix(), event.getProjectionMatrix());
@@ -82,6 +141,12 @@ public final class NetworkCableRenderer {
         matrixStack.push();
         matrixStack.translate(-eye.getX(), -eye.getY(), -eye.getZ());
 
+        renderCables(world, matrixStack, eye, connections, frustum::isBoundingBoxInFrustum);
+
+        matrixStack.pop();
+    }
+
+    private static void renderCables(final IBlockDisplayReader world, final MatrixStack matrixStack, final Vector3d eye, final ArrayList<Connection> connections, final Predicate<AxisAlignedBB> filter) {
         final Matrix4f viewMatrix = matrixStack.getLast().getMatrix();
 
         final RenderType renderType = CustomRenderType.getNetworkCable();
@@ -100,7 +165,7 @@ public final class NetworkCableRenderer {
             }
 
             // We may easily get false positives here for diagonal cables, but it's good enough for now.
-            if (!frustum.isBoundingBoxInFrustum(connection.bounds)) {
+            if (!filter.test(connection.bounds)) {
                 continue;
             }
 
@@ -137,11 +202,7 @@ public final class NetworkCableRenderer {
 
             bufferSource.finish(renderType);
         }
-
-        matrixStack.pop();
     }
-
-    ///////////////////////////////////////////////////////////////////
 
     private static Vector3d lerp(final Vector3d a, final Vector3d b, final float t) {
         return a.add(b.subtract(a).scale(t)); // a + (b - a)*t = a*(1-t) + b*t
@@ -187,6 +248,7 @@ public final class NetworkCableRenderer {
         for (final NetworkConnectorTileEntity connector : list) {
             if (connector.isRemoved()) {
                 connectors.remove(connector);
+                connectionsByConnector.remove(connector);
                 invalidateConnections();
             }
         }
@@ -206,6 +268,7 @@ public final class NetworkCableRenderer {
 
         isDirty = false;
         connections.clear();
+        connectionsByConnector.clear();
 
         final HashSet<Connection> seen = new HashSet<>();
         for (final NetworkConnectorTileEntity connector : connectors) {
@@ -214,6 +277,7 @@ public final class NetworkCableRenderer {
                 final Connection connection = new Connection(position, connectedPosition);
                 if (seen.add(connection)) {
                     connections.add(connection);
+                    connectionsByConnector.computeIfAbsent(connector, unused -> new ArrayList<>()).add(connection);
                 }
             }
         }

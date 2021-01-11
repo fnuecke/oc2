@@ -66,7 +66,7 @@ dependencies {
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
 
     testImplementation 'li.cil.ceres:ceres:0.0.2+19'
-    testImplementation 'li.cil.sedna:sedna:0.0.1+86'
+    testImplementation 'li.cil.sedna:sedna:0.0.1+88'
 
     testImplementation "org.mockito:mockito-core:2.+"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'

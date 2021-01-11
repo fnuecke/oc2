@@ -42,7 +42,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
     }
 
     @Override
-    public void render(final ComputerTileEntity tileEntity, final float partialTicks, final MatrixStack stack, final IRenderTypeBuffer buffer, final int combinedLightIn, final int combinedOverlayIn) {
+    public void render(final ComputerTileEntity tileEntity, final float partialTicks, final MatrixStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
         final Direction blockFacing = tileEntity.getBlockState().get(ComputerBlock.HORIZONTAL_FACING);
         final Vector3d cameraPosition = renderDispatcher.renderInfo.getRenderViewEntity().getEyePosition(partialTicks);
 
@@ -54,30 +54,30 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
             return;
         }
 
-        stack.push();
+        matrixStack.push();
 
         // Align with front face of block.
         final Quaternion rotation = new Quaternion(Vector3f.YN, blockFacing.getHorizontalAngle() + 180, true);
-        stack.translate(0.5f, 0, 0.5f);
-        stack.rotate(rotation);
-        stack.translate(-0.5f, 0, -0.5f);
+        matrixStack.translate(0.5f, 0, 0.5f);
+        matrixStack.rotate(rotation);
+        matrixStack.translate(-0.5f, 0, -0.5f);
 
         // Flip and align with top left corner.
-        stack.translate(1, 1, 0);
-        stack.scale(-1, -1, -1);
+        matrixStack.translate(1, 1, 0);
+        matrixStack.scale(-1, -1, -1);
 
         // Scale to make 1/16th of the block one unit and align with top left of terminal area.
         final float pixelScale = 1 / 16f;
-        stack.scale(pixelScale, pixelScale, pixelScale);
+        matrixStack.scale(pixelScale, pixelScale, pixelScale);
 
         if (tileEntity.isRunning()) {
-            renderTerminal(tileEntity, stack, buffer, cameraPosition);
+            renderTerminal(tileEntity, matrixStack, buffer, cameraPosition);
         } else {
-            renderStatusText(tileEntity, stack, cameraPosition);
+            renderStatusText(tileEntity, matrixStack, cameraPosition);
         }
 
-        stack.translate(0, 0, -0.1f);
-        final Matrix4f matrix = stack.getLast().getMatrix();
+        matrixStack.translate(0, 0, -0.1f);
+        final Matrix4f matrix = matrixStack.getLast().getMatrix();
 
         switch (tileEntity.getBusState()) {
             case SCAN_PENDING:
@@ -104,7 +104,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
                 break;
         }
 
-        stack.pop();
+        matrixStack.pop();
     }
 
     ///////////////////////////////////////////////////////////////////

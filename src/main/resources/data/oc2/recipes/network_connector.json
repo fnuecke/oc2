@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    "NWN",
+    "NWN"
+  ],
+  "key": {
+    "N": {
+        "item": "minecraft:gold_nugget"
+    },
+    "W": {
+      "item": "oc2:network_cable"
+    }
+  },
+  "result": {
+    "item": "oc2:network_connector",
+    "count": 2
+  }
+}

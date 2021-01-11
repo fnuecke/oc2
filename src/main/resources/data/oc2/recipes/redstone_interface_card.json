@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "POG",
+    "PC ",
+    "PI "
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:gold_nugget"
+    },
+    "P": {
+      "item": "minecraft:iron_nugget"
+    },
+    "C": {
+      "item": "oc2:pcb"
+    },
+    "O": {
+      "item": "oc2:microchip"
+    },
+    "G": {
+      "item": "minecraft:redstone_torch"
+    }
+  },
+  "result": {
+    "item": "oc2:redstone_interface_card"
+  }
+}

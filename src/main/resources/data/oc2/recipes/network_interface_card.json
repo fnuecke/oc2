@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "POG",
+    "PC ",
+    "PI "
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:gold_nugget"
+    },
+    "P": {
+      "item": "minecraft:iron_nugget"
+    },
+    "C": {
+      "item": "oc2:pcb"
+    },
+    "O": {
+      "item": "oc2:microchip"
+    },
+    "G": {
+      "item": "oc2:network_cable"
+    }
+  },
+  "result": {
+    "item": "oc2:network_interface_card"
+  }
+}

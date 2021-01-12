@@ -1,14 +1,9 @@
 package li.cil.oc2.data;
 
-import li.cil.oc2.api.API;
-import li.cil.oc2.common.customrecipes.CustomRecipes;
-import li.cil.oc2.common.customrecipes.MemoryRecipe;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.data.*;
 import net.minecraft.item.Item;
 import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.fml.RegistryObject;
 

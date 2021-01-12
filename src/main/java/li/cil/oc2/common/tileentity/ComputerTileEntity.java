@@ -1,13 +1,9 @@
 package li.cil.oc2.common.tileentity;
 
-import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
-import li.cil.ceres.api.Serialized;
-import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
@@ -16,7 +12,6 @@ import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
-import li.cil.oc2.common.bus.device.data.FileSystems;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
@@ -33,12 +28,10 @@ import li.cil.oc2.common.util.HorizontalBlockUtils;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.vm.AbstractTerminalVirtualMachineRunner;
+import li.cil.oc2.common.vm.CommonVirtualMachine;
 import li.cil.oc2.common.vm.Terminal;
-import li.cil.oc2.common.vm.VirtualMachine;
-import li.cil.oc2.common.vm.VirtualMachineRunner;
 import li.cil.sedna.api.memory.MemoryAccessException;
-import li.cil.sedna.device.serial.UART16550A;
-import li.cil.sedna.device.virtio.VirtIOFileSystemDevice;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -131,7 +124,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     private final Terminal terminal = new Terminal();
     private final TileEntityDeviceBusElement busElement = new ComputerBusElement();
-    private final ComputerVirtualMachine virtualMachine;
+    private final CommonVirtualMachine virtualMachine;
     private ComputerVirtualMachineRunner runner;
 
     ///////////////////////////////////////////////////////////////////
@@ -146,7 +139,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         busState = AbstractDeviceBusController.BusState.SCAN_PENDING;
         runState = RunState.STOPPED;
 
-        virtualMachine = new ComputerVirtualMachine(busController);
+        virtualMachine = new CommonVirtualMachine(busController);
         virtualMachine.vmAdapter.setDefaultAddressProvider(this::getDefaultDeviceAddress);
     }
 
@@ -366,7 +359,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                         return;
                     }
 
-                    runner = new ComputerVirtualMachineRunner(virtualMachine);
+                    runner = new ComputerVirtualMachineRunner(virtualMachine, terminal);
                 }
 
                 setRunState(RunState.RUNNING);
@@ -463,7 +456,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         if (tag.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            runner = new ComputerVirtualMachineRunner(virtualMachine);
+            runner = new ComputerVirtualMachineRunner(virtualMachine, terminal);
             NBTSerialization.deserialize(tag.getCompound(RUNNER_TAG_NAME), runner);
             runState = RunState.LOADING_DEVICES;
         } else {
@@ -589,13 +582,13 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     private void stopRunnerAndReset() {
         joinVirtualMachine();
-        runner = null;
         setRunState(RunState.STOPPED);
 
         virtualMachine.reset();
 
         TERMINAL_RESET_SEQUENCE.clear();
-        putTerminalOutput(TERMINAL_RESET_SEQUENCE);
+        runner.putTerminalOutput(TERMINAL_RESET_SEQUENCE);
+        runner = null;
     }
 
     private void joinVirtualMachine() {
@@ -635,17 +628,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         return OptionalLong.empty();
-    }
-
-    private void putTerminalOutput(final ByteBuffer output) {
-        if (output.hasRemaining()) {
-            terminal.putOutput(output);
-
-            output.flip();
-
-            final TerminalBlockOutputMessage message = new TerminalBlockOutputMessage(ComputerTileEntity.this, output);
-            Network.sendToClientsTrackingChunk(message, chunk);
-        }
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -716,96 +698,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
     }
 
-    private static final class ComputerVirtualMachine extends VirtualMachine {
-        private static final int UART_INTERRUPT = 0x4;
-        private static final int VFS_INTERRUPT = 0x5;
-
-        @Serialized public UART16550A uart;
-        @Serialized public VirtIOFileSystemDevice vfs;
-
-        public ComputerVirtualMachine(final DeviceBusController busController) {
-            super(busController);
-
-            final VMContext context = vmAdapter.getGlobalContext();
-            uart = new UART16550A();
-            context.getInterruptAllocator().claimInterrupt(UART_INTERRUPT).ifPresent(interrupt ->
-                    uart.getInterrupt().set(interrupt, context.getInterruptController()));
-            context.getMemoryRangeAllocator().claimMemoryRange(uart);
-            board.setStandardOutputDevice(uart);
-
-            vfs = new VirtIOFileSystemDevice(context.getMemoryMap(), "data", FileSystems.getLayeredFileSystem());
-            context.getInterruptAllocator().claimInterrupt(VFS_INTERRUPT).ifPresent(interrupt ->
-                    vfs.getInterrupt().set(interrupt, context.getInterruptController()));
-            context.getMemoryRangeAllocator().claimMemoryRange(vfs);
-        }
-    }
-
-    private final class ComputerVirtualMachineRunner extends VirtualMachineRunner {
-        // Thread-local buffers for lock-free read/writes in inner loop.
-        private final ByteArrayFIFOQueue outputBuffer = new ByteArrayFIFOQueue(1024);
-        private final ByteArrayFIFOQueue inputBuffer = new ByteArrayFIFOQueue(32);
-
-        private boolean firedResumeEvent;
-        @Serialized private boolean firedInitializationEvent;
-
-        public ComputerVirtualMachineRunner(final VirtualMachine virtualMachine) {
-            super(virtualMachine.board);
-        }
-
-        public void scheduleResumeEvent() {
-            firedResumeEvent = false;
+    private final class ComputerVirtualMachineRunner extends AbstractTerminalVirtualMachineRunner {
+        public ComputerVirtualMachineRunner(final CommonVirtualMachine virtualMachine, final Terminal terminal) {
+            super(virtualMachine, terminal);
         }
 
         @Override
-        public void tick() {
-            virtualMachine.rpcAdapter.tick();
-
-            super.tick();
-        }
-
-        @Override
-        protected void handleBeforeRun() {
-            if (!firedInitializationEvent) {
-                firedInitializationEvent = true;
-                virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.INITIALIZING);
-            }
-
-            if (!firedResumeEvent) {
-                firedResumeEvent = true;
-                virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.RESUME_RUNNING);
-                virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.RESUMED_RUNNING);
-            }
-
-            int value;
-            while ((value = terminal.readInput()) != -1) {
-                inputBuffer.enqueue((byte) value);
-            }
-        }
-
-        @Override
-        protected void step(final int cyclesPerStep) {
-            while (!inputBuffer.isEmpty() && virtualMachine.uart.canPutByte()) {
-                virtualMachine.uart.putByte(inputBuffer.dequeueByte());
-            }
-            virtualMachine.uart.flush();
-
-            int value;
-            while ((value = virtualMachine.uart.read()) != -1) {
-                outputBuffer.enqueue((byte) value);
-            }
-
-            virtualMachine.rpcAdapter.step(cyclesPerStep);
-        }
-
-        @Override
-        protected void handleAfterRun() {
-            final ByteBuffer output = ByteBuffer.allocate(outputBuffer.size());
-            while (!outputBuffer.isEmpty()) {
-                output.put(outputBuffer.dequeueByte());
-            }
-
-            output.flip();
-            putTerminalOutput(output);
+        protected void sendTerminalUpdateToClient(final ByteBuffer output) {
+            final TerminalBlockOutputMessage message = new TerminalBlockOutputMessage(ComputerTileEntity.this, output);
+            Network.sendToClientsTrackingChunk(message, chunk);
         }
     }
 }

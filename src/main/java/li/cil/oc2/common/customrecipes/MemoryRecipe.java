@@ -17,12 +17,12 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.jetbrains.annotations.NotNull;
 
-public class MEMORYRecipe implements ICraftingRecipe {
+public class MemoryRecipe implements ICraftingRecipe {
     private static final RegistryObject<Item> regObject = RegistryObject.of(new ResourceLocation("oc2:memory"), ForgeRegistries.ITEMS);
 
     private final ResourceLocation id;
 
-    public MEMORYRecipe(ResourceLocation idIn) {
+    public MemoryRecipe(ResourceLocation idIn) {
         id = idIn;
     }
 
@@ -51,7 +51,7 @@ public class MEMORYRecipe implements ICraftingRecipe {
 
     @Override
     public boolean canFit(int width, int height) {
-        return width * height >= 9;
+        return width * height >= 4;
     }
 
     @Override
@@ -59,41 +59,43 @@ public class MEMORYRecipe implements ICraftingRecipe {
         return CustomRecipes.MEMORY_RECIPE.get();
     }
 
-    public static class Serializer extends ForgeRegistryEntry<IRecipeSerializer<?>> implements IRecipeSerializer<MEMORYRecipe> {
+    public static class Serializer extends ForgeRegistryEntry<IRecipeSerializer<?>> implements IRecipeSerializer<MemoryRecipe> {
         @Override
-        public @NotNull MEMORYRecipe read(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
-            return new MEMORYRecipe(recipeId);
+        public @NotNull MemoryRecipe read(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
+            return new MemoryRecipe(recipeId);
         }
 
         @Override
-        public MEMORYRecipe read(@NotNull ResourceLocation recipeId, @NotNull PacketBuffer buffer) {
-            return new MEMORYRecipe(recipeId);
+        public MemoryRecipe read(@NotNull ResourceLocation recipeId, @NotNull PacketBuffer buffer) {
+            return new MemoryRecipe(recipeId);
         }
 
         @Override
-        public void write(@NotNull PacketBuffer buffer, @NotNull MEMORYRecipe recipe) {
+        public void write(@NotNull PacketBuffer buffer, @NotNull MemoryRecipe recipe) {
 
         }
     }
 
     private int getLevelOfMemory(CraftingInventory inv) {
-        if(!inv.getStackInSlot(0).getItem().equals(Items.PCB_ITEM.get())) return 0;
+        if (!inv.getStackInSlot(0).getItem().equals(Items.PCB_ITEM.get())) return 0;
+        ItemStack[] array = new ItemStack[8];
+
+        for (int i = 0; i < 8; i++) {
+            array[i] = inv.getStackInSlot(i);
+        }
 
         int value = 0;
         for (int i = 1; i < 9; i++) {
-            if(inv.getStackInSlot(i).getItem().equals(Items.MICROCHIP_ITEM.get())) {
+            if (array[0].getItem().equals(Items.MICROCHIP_ITEM.get())) {
                 value++;
             }
         }
         int valueEmpty = 0;
         for (int i = 1; i < 9; i++) {
-            if(inv.getStackInSlot(i).isEmpty()) {
+            if (array[0].isEmpty()) {
                 valueEmpty++;
             }
         }
-        if(valueEmpty + value == 8) {
-            return value;
-        }
-        return 0;
+        return valueEmpty + value == 8 ? value : 0;
     }
 }

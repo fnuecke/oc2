@@ -44,10 +44,10 @@ public class HDDRecipe implements ICraftingRecipe {
     public @NotNull ItemStack getCraftingResult(@NotNull CraftingInventory inv) {
         boolean checkTemplate = craftingTemplateForTiers(inv);
 
-        if(!checkTemplate) return ItemStack.EMPTY;
+        if (!checkTemplate) return ItemStack.EMPTY;
 
         int tier = creatingTiers(inv);
-        return (tier != -1) ? HardDriveItem.withCapacity(((int)Math.pow(2,tier)) * Constants.MEGABYTE) : ItemStack.EMPTY;
+        return (tier != -1) ? HardDriveItem.withCapacity(((int) Math.pow(2, tier)) * Constants.MEGABYTE) : ItemStack.EMPTY;
     }
 
     @Override
@@ -76,6 +76,7 @@ public class HDDRecipe implements ICraftingRecipe {
 
         }
     }
+
     private int creatingTiers(CraftingInventory inv) {
         Item iron = net.minecraft.item.Items.IRON_INGOT;
         Item gold = net.minecraft.item.Items.GOLD_INGOT;
@@ -86,9 +87,9 @@ public class HDDRecipe implements ICraftingRecipe {
         boolean goldTemplate = first.equals(gold) && second.equals(gold);
         boolean diamondTemplate = first.equals(diamond) && second.equals(diamond);
 
-        if(ironTemplate) return 1;
-        else if(goldTemplate) return 2;
-        else if(diamondTemplate) return 3;
+        if (ironTemplate) return 1;
+        else if (goldTemplate) return 2;
+        else if (diamondTemplate) return 3;
         else return -1;
 
     }
@@ -98,11 +99,11 @@ public class HDDRecipe implements ICraftingRecipe {
         Item slot5 = inv.getStackInSlot(5).getItem();
 
         return inv.getStackInSlot(0).getItem().equals(Items.MICROCHIP_ITEM.get())
-            && inv.getStackInSlot(1).getItem().equals(Items.DISK_PLATTER_ITEM.get())
-            && inv.getStackInSlot(3).getItem().equals(Items.PCB_ITEM.get())
-            && inv.getStackInSlot(4).getItem().equals(Items.DISK_PLATTER_ITEM.get())
-            && (slot5.equals(net.minecraft.item.Items.PISTON) || slot5.equals(net.minecraft.item.Items.STICKY_PISTON))
-            && inv.getStackInSlot(6).getItem().equals(Items.MICROCHIP_ITEM.get())
-            && inv.getStackInSlot(7).getItem().equals(Items.DISK_PLATTER_ITEM.get());
+               && inv.getStackInSlot(1).getItem().equals(Items.DISK_PLATTER_ITEM.get())
+               && inv.getStackInSlot(3).getItem().equals(Items.PCB_ITEM.get())
+               && inv.getStackInSlot(4).getItem().equals(Items.DISK_PLATTER_ITEM.get())
+               && (slot5.equals(net.minecraft.item.Items.PISTON) || slot5.equals(net.minecraft.item.Items.STICKY_PISTON))
+               && inv.getStackInSlot(6).getItem().equals(Items.MICROCHIP_ITEM.get())
+               && inv.getStackInSlot(7).getItem().equals(Items.DISK_PLATTER_ITEM.get());
     }
 }

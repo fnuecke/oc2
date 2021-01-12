@@ -52,7 +52,7 @@ public final class ItemModels extends ItemModelProvider {
 
     private <T extends Item> ItemModelBuilder simple(final RegistryObject<T> item, final String texturePath, final String nameSuffix) {
         return singleTexture(item.getId().getPath() + nameSuffix,
-                new ResourceLocation("item/handheld"),
+                new ResourceLocation("item/generated"),
                 "layer0",
                 new ResourceLocation(API.MOD_ID, texturePath));
     }

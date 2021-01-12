@@ -36,6 +36,7 @@ public final class Main {
         BaseBlockDevices.initialize();
         Firmwares.initialize();
         CustomRecipes.initialize();
+
         FMLJavaModLoadingContext.get().getModEventBus().register(CommonSetup.class);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().register(ClientSetup.class));
     }

@@ -11,6 +11,7 @@ public final class CustomRecipes {
     private static final DeferredRegister<IRecipeSerializer<?>> INITIALIZER = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, API.MOD_ID);
 
     public static final RegistryObject<HDDRecipe.Serializer> HDD_RECIPE = INITIALIZER.register("hard_drive", HDDRecipe.Serializer::new);
+    public static final RegistryObject<MEMORYRecipe.Serializer> MEMORY_RECIPE = INITIALIZER.register("memory", MEMORYRecipe.Serializer::new);
 
     public static void initialize() {
         INITIALIZER.register(FMLJavaModLoadingContext.get().getModEventBus());

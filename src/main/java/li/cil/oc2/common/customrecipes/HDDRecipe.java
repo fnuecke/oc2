@@ -17,7 +17,7 @@ import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.jetbrains.annotations.NotNull;
 
 public class HDDRecipe implements ICraftingRecipe {
-    private static final RegistryObject<Item> WRITTEN_BOOK = RegistryObject.of(new ResourceLocation("oc2:hard_drive"), ForgeRegistries.ITEMS);
+    private static final RegistryObject<Item> regObject = RegistryObject.of(new ResourceLocation("oc2:hard_drive"), ForgeRegistries.ITEMS);
 
     private final ResourceLocation id;
 
@@ -32,7 +32,7 @@ public class HDDRecipe implements ICraftingRecipe {
 
     @Override
     public @NotNull ItemStack getRecipeOutput() {
-        return new ItemStack(WRITTEN_BOOK.get());
+        return new ItemStack(regObject.get());
     }
 
     @Override

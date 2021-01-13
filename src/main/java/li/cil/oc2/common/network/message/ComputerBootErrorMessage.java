@@ -17,7 +17,7 @@ public final class ComputerBootErrorMessage {
 
     public ComputerBootErrorMessage(final ComputerTileEntity tileEntity) {
         this.pos = tileEntity.getPos();
-        this.value = tileEntity.getBootError();
+        this.value = tileEntity.getState().getBootError();
     }
 
     public ComputerBootErrorMessage(final PacketBuffer buffer) {
@@ -28,7 +28,7 @@ public final class ComputerBootErrorMessage {
 
     public static boolean handleMessage(final ComputerBootErrorMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
-                (tileEntity) -> tileEntity.setBootErrorClient(message.value)));
+                (tileEntity) -> tileEntity.getState().setBootErrorClient(message.value)));
         return true;
     }
 

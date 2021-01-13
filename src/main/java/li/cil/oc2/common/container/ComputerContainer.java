@@ -3,6 +3,7 @@ package li.cil.oc2.common.container;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.vm.CommonVirtualMachineItemStackHandlers;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketBuffer;
@@ -36,25 +37,26 @@ public final class ComputerContainer extends AbstractContainer {
         this.world = inventory.player.getEntityWorld();
         this.pos = tileEntity.getPos();
 
-        tileEntity.getItemHandler(DeviceTypes.FLASH_MEMORY).ifPresent(itemHandler -> {
+        final CommonVirtualMachineItemStackHandlers itemHandlers = tileEntity.getItemHandlers();
+        itemHandlers.getItemHandler(DeviceTypes.FLASH_MEMORY).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {
                 this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.FLASH_MEMORY, 0, 64, 78));
             }
         });
 
-        tileEntity.getItemHandler(DeviceTypes.MEMORY).ifPresent(itemHandler -> {
+        itemHandlers.getItemHandler(DeviceTypes.MEMORY).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
                 this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.MEMORY, slot, 64 + slot * SLOT_SIZE, 24));
             }
         });
 
-        tileEntity.getItemHandler(DeviceTypes.HARD_DRIVE).ifPresent(itemHandler -> {
+        itemHandlers.getItemHandler(DeviceTypes.HARD_DRIVE).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
                 this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE, slot, 100 + (slot % 2) * SLOT_SIZE, 60 + (slot / 2) * SLOT_SIZE));
             }
         });
 
-        tileEntity.getItemHandler(DeviceTypes.CARD).ifPresent(itemHandler -> {
+        itemHandlers.getItemHandler(DeviceTypes.CARD).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
                 this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.CARD, slot, 38, 24 + slot * SLOT_SIZE));
             }

@@ -7,6 +7,15 @@ import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
 import java.nio.ByteBuffer;
 
 public abstract class AbstractTerminalVirtualMachineRunner extends VirtualMachineRunner {
+    private static final ByteBuffer TERMINAL_RESET_SEQUENCE = ByteBuffer.wrap(new byte[]{
+            // Make sure we're in normal mode.
+            'J',
+            // Reset color and style.
+            '\033', '[', '0', 'm',
+            // Clear screen.
+            '\033', '[', '2', 'J'
+    });
+
     private final CommonVirtualMachine virtualMachine;
     private final Terminal terminal;
 
@@ -32,6 +41,11 @@ public abstract class AbstractTerminalVirtualMachineRunner extends VirtualMachin
     protected abstract void sendTerminalUpdateToClient(final ByteBuffer output);
 
     ///////////////////////////////////////////////////////////////////
+
+    public void resetTerminal() {
+        TERMINAL_RESET_SEQUENCE.clear();
+        putTerminalOutput(TERMINAL_RESET_SEQUENCE);
+    }
 
     public void putTerminalOutput(final ByteBuffer output) {
         if (output.hasRemaining()) {

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.util.Objects.requireNonNull;
-import static li.cil.oc2.common.Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME;
+import static li.cil.oc2.common.Constants.INVENTORY_TAG_NAME;
 import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
 
 public final class LootTables extends LootTableProvider {
@@ -63,8 +63,8 @@ public final class LootTables extends LootTableProvider {
                             .rolls(ConstantRange.of(1))
                             .addEntry(ItemLootEntry.builder(block)
                                     .acceptFunction(CopyNbt.builder(CopyNbt.Source.BLOCK_ENTITY)
-                                            .addOperation(BLOCK_ENTITY_INVENTORY_TAG_NAME,
-                                                    concat(BLOCK_ENTITY_TAG_NAME_IN_ITEM, BLOCK_ENTITY_INVENTORY_TAG_NAME),
+                                            .addOperation(INVENTORY_TAG_NAME,
+                                                    concat(BLOCK_ENTITY_TAG_NAME_IN_ITEM, INVENTORY_TAG_NAME),
                                                     CopyNbt.Action.REPLACE)
                                     )
                             )

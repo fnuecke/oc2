@@ -1,9 +1,20 @@
 package li.cil.oc2.common.entity;
 
+import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.bus.AbstractDeviceBusController;
+import li.cil.oc2.common.bus.device.util.Devices;
+import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.entity.robot.*;
 import li.cil.oc2.common.integration.Wrenches;
+import li.cil.oc2.common.network.Network;
+import li.cil.oc2.common.network.message.RobotBootErrorMessage;
+import li.cil.oc2.common.network.message.RobotTerminalOutputMessage;
+import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.WorldUtils;
+import li.cil.oc2.common.vm.*;
 import net.minecraft.block.SoundType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -18,27 +29,37 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.Queue;
-import java.util.Random;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 public final class RobotEntity extends Entity {
-    public static int MAX_QUEUED_ACTIONS = 16;
-
+    private static final String TERMINAL_TAG_NAME = "terminal";
+    private static final String STATE_TAG_NAME = "state";
     private static final String COMMAND_PROCESSOR_TAG_NAME = "commands";
 
     private static final DataParameter<Boolean> IS_RUNNING = EntityDataManager.createKey(RobotEntity.class, DataSerializers.BOOLEAN);
+    private static final int MAX_QUEUED_ACTIONS = 16;
+
+    private static final int MEMORY_SLOTS = 4;
+    private static final int HARD_DRIVE_SLOTS = 2;
+    private static final int FLASH_MEMORY_SLOTS = 1;
+    private static final int CARD_SLOTS = 2;
 
     ///////////////////////////////////////////////////////////////////
 
     private final AnimationState animationState = new AnimationState();
     private final CommandProcessor commandProcessor = new CommandProcessor();
+    private final Terminal terminal = new Terminal();
+
+    private final RobotVirtualMachineState state;
+    private final RobotItemStackHandlers items = new RobotItemStackHandlers();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -46,6 +67,9 @@ public final class RobotEntity extends Entity {
         super(type, world);
         this.preventEntitySpawning = true;
         setNoGravity(true);
+
+        final RobotBusController busController = new RobotBusController(items.busElement);
+        state = new RobotVirtualMachineState(busController, new CommonVirtualMachine(busController));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -55,18 +79,38 @@ public final class RobotEntity extends Entity {
         return animationState;
     }
 
+    public Terminal getTerminal() {
+        return terminal;
+    }
+
+    public VirtualMachineState getState() {
+        return state;
+    }
+
+    public CommonVirtualMachineItemStackHandlers getItemHandlers() {
+        return items;
+    }
+
     public boolean isRunning() {
         return dataManager.get(IS_RUNNING);
     }
 
     public void start() {
-        // todo start vm
+        final World world = getEntityWorld();
+        if (world == null || world.isRemote()) {
+            return;
+        }
+
+        state.start();
     }
 
     public void stop() {
-        // todo stop vm
+        final World world = getEntityWorld();
+        if (world == null || world.isRemote()) {
+            return;
+        }
 
-        commandProcessor.clear();
+        state.stop();
     }
 
     @Override
@@ -90,10 +134,7 @@ public final class RobotEntity extends Entity {
             }
         } else {
             if (player.isSneaking()) {
-                // TODO start machine
-                if (!world.isRemote()) {
-                    dataManager.set(IS_RUNNING, !dataManager.get(IS_RUNNING));
-                }
+                start();
             } else {
 //                if (rand.nextBoolean()) {
 //                    commandProcessor.move(MovementDirection.values()[rand.nextInt(MovementDirection.values().length)]);
@@ -146,13 +187,22 @@ public final class RobotEntity extends Entity {
     }
 
     @Override
-    protected void writeAdditional(final CompoundNBT compound) {
-        compound.put(COMMAND_PROCESSOR_TAG_NAME, commandProcessor.serialize());
+    protected void writeAdditional(final CompoundNBT tag) {
+        tag.put(STATE_TAG_NAME, state.serialize());
+        tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+        tag.put(COMMAND_PROCESSOR_TAG_NAME, commandProcessor.serialize());
+        tag.put(Constants.INVENTORY_TAG_NAME, items.serialize());
     }
 
     @Override
-    protected void readAdditional(final CompoundNBT compound) {
-        commandProcessor.deserialize(compound.getCompound(COMMAND_PROCESSOR_TAG_NAME));
+    protected void readAdditional(final CompoundNBT tag) {
+        state.deserialize(tag.getCompound(STATE_TAG_NAME));
+        NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
+        commandProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
+
+        if (tag.contains(Constants.INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            items.deserialize(tag.getCompound(Constants.INVENTORY_TAG_NAME));
+        }
     }
 
     @Override
@@ -301,8 +351,6 @@ public final class RobotEntity extends Entity {
             }
         }
 
-        ///////////////////////////////////////////////////////////////////
-
         private boolean addAction(final AbstractRobotAction action) {
             if (getEntityWorld().isRemote()) {
                 return false;
@@ -318,6 +366,86 @@ public final class RobotEntity extends Entity {
             } else {
                 return false;
             }
+        }
+    }
+
+    private final class RobotItemStackHandlers extends CommonVirtualMachineItemStackHandlers {
+        public RobotItemStackHandlers() {
+            super(MEMORY_SLOTS, HARD_DRIVE_SLOTS, FLASH_MEMORY_SLOTS, CARD_SLOTS);
+        }
+
+        @Override
+        protected List<ItemDeviceInfo> getDevices(final ItemStack stack) {
+            return Devices.getDevices(RobotEntity.this, stack);
+        }
+    }
+
+    private final class RobotBusController extends AbstractDeviceBusController {
+        public RobotBusController(final DeviceBusElement root) {
+            super(root);
+        }
+
+        @Override
+        protected void onBeforeScan() {
+            state.reload();
+            state.virtualMachine.rpcAdapter.pause();
+        }
+
+        @Override
+        protected void onAfterDeviceScan(final boolean didDevicesChange) {
+            state.virtualMachine.rpcAdapter.resume(didDevicesChange);
+        }
+
+        @Override
+        protected void onDevicesAdded(final Collection<Device> devices) {
+            state.virtualMachine.vmAdapter.addDevices(devices);
+        }
+
+        @Override
+        protected void onDevicesRemoved(final Collection<Device> devices) {
+            state.virtualMachine.vmAdapter.removeDevices(devices);
+        }
+    }
+
+    private final class RobotVirtualMachineRunner extends AbstractTerminalVirtualMachineRunner {
+        public RobotVirtualMachineRunner(final CommonVirtualMachine virtualMachine, final Terminal terminal) {
+            super(virtualMachine, terminal);
+        }
+
+        @Override
+        protected void sendTerminalUpdateToClient(final ByteBuffer output) {
+            final RobotTerminalOutputMessage message = new RobotTerminalOutputMessage(RobotEntity.this, output);
+            Network.sendToClientsTrackingEntity(message, RobotEntity.this);
+        }
+    }
+
+    private final class RobotVirtualMachineState extends AbstractVirtualMachineState<RobotBusController, CommonVirtualMachine> {
+        private RobotVirtualMachineState(final RobotBusController busController, final CommonVirtualMachine virtualMachine) {
+            super(busController, virtualMachine);
+            virtualMachine.vmAdapter.setDefaultAddressProvider(items::getDefaultDeviceAddress);
+        }
+
+        @Override
+        protected AbstractTerminalVirtualMachineRunner createRunner() {
+            return new RobotVirtualMachineRunner(virtualMachine, terminal);
+        }
+
+        @Override
+        public void stopRunnerAndReset() {
+            super.stopRunnerAndReset();
+
+            commandProcessor.clear();
+        }
+
+        @Override
+        protected void handleRunStateChanged(final RunState value) {
+            dataManager.set(IS_RUNNING, isRunning());
+        }
+
+        @Override
+        protected void handleBootErrorChanged(@Nullable final ITextComponent value) {
+            final RobotBootErrorMessage message = new RobotBootErrorMessage(RobotEntity.this);
+            Network.sendToClientsTrackingEntity(message, RobotEntity.this);
         }
     }
 }

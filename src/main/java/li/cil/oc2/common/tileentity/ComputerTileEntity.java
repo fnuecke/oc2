@@ -2,11 +2,6 @@ package li.cil.oc2.common.tileentity;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.api.bus.device.vm.VMDevice;
-import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
-import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
@@ -17,115 +12,56 @@ import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
-import li.cil.oc2.common.container.TypedDeviceItemStackHandler;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBootErrorMessage;
 import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
-import li.cil.oc2.common.network.message.TerminalBlockOutputMessage;
+import li.cil.oc2.common.network.message.ComputerTerminalOutputMessage;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
-import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.util.NBTUtils;
-import li.cil.oc2.common.vm.AbstractTerminalVirtualMachineRunner;
-import li.cil.oc2.common.vm.CommonVirtualMachine;
-import li.cil.oc2.common.vm.Terminal;
-import li.cil.sedna.api.memory.MemoryAccessException;
+import li.cil.oc2.common.vm.*;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.CombinedInvWrapper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 public final class ComputerTileEntity extends AbstractTileEntity implements ITickableTileEntity {
-    private static final Logger LOGGER = LogManager.getLogger();
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static final String MEMORY_TAG_NAME = "memory";
-    public static final String HARD_DRIVE_TAG_NAME = "hard_drive";
-    public static final String FLASH_MEMORY_TAG_NAME = "flash_memory";
-    public static final String CARD_TAG_NAME = "card";
-
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
     private static final String TERMINAL_TAG_NAME = "terminal";
-    private static final String VIRTUAL_MACHINE_TAG_NAME = "virtualMachine";
-    private static final String RUNNER_TAG_NAME = "runner";
-
-    private static final String BUS_STATE_TAG_NAME = "busState";
-    private static final String RUN_STATE_TAG_NAME = "runState";
-    private static final String BOOT_ERROR_TAG_NAME = "bootError";
-
-    private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * Constants.TICK_SECONDS;
+    private static final String STATE_TAG_NAME = "state";
 
     private static final int MEMORY_SLOTS = 4;
     private static final int HARD_DRIVE_SLOTS = 4;
     private static final int FLASH_MEMORY_SLOTS = 1;
     private static final int CARD_SLOTS = 4;
 
-    private static final long ITEM_DEVICE_BASE_ADDRESS = 0x40000000L;
-    private static final int ITEM_DEVICE_STRIDE = 0x1000;
-
-    private static final ByteBuffer TERMINAL_RESET_SEQUENCE = ByteBuffer.wrap(new byte[]{
-            // Make sure we're in normal mode.
-            'J',
-            // Reset color and style.
-            '\033', '[', '0', 'm',
-            // Clear screen.
-            '\033', '[', '2', 'J'
-    });
-
     ///////////////////////////////////////////////////////////////////
 
-    public enum RunState {
-        STOPPED,
-        LOADING_DEVICES,
-        RUNNING,
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    private Chunk chunk;
-    private final AbstractDeviceBusController busController;
-    private AbstractDeviceBusController.BusState busState;
-    private RunState runState;
-    private ITextComponent bootError;
-    private int loadDevicesDelay;
     private boolean hasAddedOwnDevices;
     private boolean isNeighborUpdateScheduled;
 
     ///////////////////////////////////////////////////////////////////
 
-    private final DeviceItemStackHandler memoryItemHandler = new ComputerItemHandler(MEMORY_SLOTS, this::getDevices, DeviceTypes.MEMORY);
-    private final DeviceItemStackHandler hardDriveItemHandler = new ComputerItemHandler(HARD_DRIVE_SLOTS, this::getDevices, DeviceTypes.HARD_DRIVE);
-    private final DeviceItemStackHandler flashMemoryItemHandler = new ComputerItemHandler(FLASH_MEMORY_SLOTS, this::getDevices, DeviceTypes.FLASH_MEMORY);
-    private final DeviceItemStackHandler cardItemHandler = new ComputerItemHandler(CARD_SLOTS, this::getDevices, DeviceTypes.CARD);
-
-    private final IItemHandler itemHandlers = new CombinedInvWrapper(memoryItemHandler, hardDriveItemHandler, flashMemoryItemHandler, cardItemHandler);
-
     private final Terminal terminal = new Terminal();
     private final TileEntityDeviceBusElement busElement = new ComputerBusElement();
-    private final CommonVirtualMachine virtualMachine;
-    private ComputerVirtualMachineRunner runner;
+
+    private final ComputerVirtualMachineState state;
+    private final ComputerItemStackHandlers items = new ComputerItemStackHandlers();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -135,124 +71,42 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         // We want to unload devices even on world unload to free global resources.
         setNeedsWorldUnloadEvent();
 
-        busController = new ComputerBusController(busElement);
-        busState = AbstractDeviceBusController.BusState.SCAN_PENDING;
-        runState = RunState.STOPPED;
-
-        virtualMachine = new CommonVirtualMachine(busController);
-        virtualMachine.vmAdapter.setDefaultAddressProvider(this::getDefaultDeviceAddress);
-    }
-
-    public Optional<IItemHandler> getItemHandler(final DeviceType deviceType) {
-        if (deviceType == DeviceTypes.MEMORY) {
-            return Optional.of(memoryItemHandler);
-        } else if (deviceType == DeviceTypes.HARD_DRIVE) {
-            return Optional.of(hardDriveItemHandler);
-        } else if (deviceType == DeviceTypes.FLASH_MEMORY) {
-            return Optional.of(flashMemoryItemHandler);
-        } else if (deviceType == DeviceTypes.CARD) {
-            return Optional.of(cardItemHandler);
-        }
-        return Optional.empty();
+        final ComputerBusController busController = new ComputerBusController(busElement);
+        state = new ComputerVirtualMachineState(busController, new CommonVirtualMachine(busController));
     }
 
     public Terminal getTerminal() {
         return terminal;
     }
 
-    public void start() {
-        if (runState == RunState.RUNNING) {
-            return;
-        }
+    public VirtualMachineState getState() {
+        return state;
+    }
 
+    public CommonVirtualMachineItemStackHandlers getItemHandlers() {
+        return items;
+    }
+
+    public void start() {
         final World world = getWorld();
         if (world == null || world.isRemote()) {
             return;
         }
 
-        setBootError(null);
-        setRunState(RunState.LOADING_DEVICES);
-        loadDevicesDelay = 0;
+        state.start();
     }
 
     public void stop() {
-        if (runState == RunState.STOPPED) {
-            return;
-        }
-
         final World world = getWorld();
         if (world == null || world.isRemote()) {
             return;
         }
 
-        if (runState == RunState.LOADING_DEVICES) {
-            setRunState(RunState.STOPPED);
-            return;
-        }
-
-        stopRunnerAndReset();
-    }
-
-    public boolean isRunning() {
-        return getBusState() == AbstractDeviceBusController.BusState.READY &&
-               getRunState() == RunState.RUNNING;
-    }
-
-    public AbstractDeviceBusController.BusState getBusState() {
-        return busState;
-    }
-
-    public RunState getRunState() {
-        return runState;
-    }
-
-    @Nullable
-    public ITextComponent getBootError() {
-        switch (getBusState()) {
-            case SCAN_PENDING:
-            case INCOMPLETE:
-                return new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_INCOMPLETE);
-            case TOO_COMPLEX:
-                return new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_TOO_COMPLEX);
-            case MULTIPLE_CONTROLLERS:
-                return new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS);
-            case READY:
-                switch (getRunState()) {
-                    case STOPPED:
-                    case LOADING_DEVICES:
-                        return bootError;
-                }
-                break;
-        }
-        return null;
+        state.stop();
     }
 
     public void handleNeighborChanged() {
-        busController.scheduleBusScan();
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public void setRunStateClient(final RunState value) {
-        final World world = getWorld();
-        if (world != null && world.isRemote()) {
-            runState = value;
-        }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public void setBusStateClient(final AbstractDeviceBusController.BusState value) {
-        final World world = getWorld();
-        if (world != null && world.isRemote()) {
-            busState = value;
-        }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public void setBootErrorClient(final ITextComponent value) {
-        final World world = getWorld();
-        if (world != null && world.isRemote()) {
-            bootError = value;
-        }
+        state.busController.scheduleBusScan();
     }
 
     @Override
@@ -267,7 +121,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         final Direction localSide = HorizontalBlockUtils.toLocal(getBlockState(), side);
-        for (final Device device : busController.getDevices()) {
+        for (final Device device : state.busController.getDevices()) {
             if (device instanceof ICapabilityProvider) {
                 final LazyOptional<T> value = ((ICapabilityProvider) device).getCapability(capability, localSide);
                 if (value.isPresent()) {
@@ -286,10 +140,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             return;
         }
 
-        if (chunk == null) {
-            chunk = world.getChunkAt(getPos());
-        }
-
         // Always add devices provided for the computer itself, even if there's no
         // adjacent cable. Because that would just be weird.
         if (!hasAddedOwnDevices) {
@@ -304,79 +154,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             world.notifyNeighborsOfStateChange(getPos(), getBlockState().getBlock());
         }
 
-        final AbstractDeviceBusController.BusState oldBusState = busController.getState();
-        busController.scan();
-        setBusState(busController.getState());
-        if (busState != AbstractDeviceBusController.BusState.READY) {
-            return;
-        }
-
-        if (oldBusState != AbstractDeviceBusController.BusState.READY) {
-            // Bus just became ready, meaning new devices may be available, meaning new
-            // capabilities may be available, so we need to tell our neighbors.
-            world.notifyNeighborsOfStateChange(getPos(), getBlockState().getBlock());
-        }
-
-        switch (runState) {
-            case STOPPED:
-                break;
-            case LOADING_DEVICES:
-                if (loadDevicesDelay > 0) {
-                    loadDevicesDelay--;
-                    break;
-                }
-
-                final VMDeviceLoadResult loadResult = virtualMachine.vmAdapter.load();
-                if (!loadResult.wasSuccessful()) {
-                    if (loadResult.getErrorMessage() != null) {
-                        setBootError(loadResult.getErrorMessage());
-                    } else {
-                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_UNKNOWN));
-                    }
-                    loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
-                    break;
-                }
-
-                // May have a valid runner after load. In which case we just had to wait for
-                // bus setup and devices to load. So we can keep using it.
-                if (runner == null) {
-                    try {
-                        virtualMachine.board.reset();
-                        virtualMachine.board.initialize();
-                        virtualMachine.board.setRunning(true);
-                    } catch (final IllegalStateException e) {
-                        // FDT did not fit into memory. Technically it's possible to run with
-                        // a program that only uses registers. But not supporting that esoteric
-                        // use-case loses out against avoiding people getting confused for having
-                        // forgotten to add some RAM modules.
-                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_NO_MEMORY));
-                        setRunState(RunState.STOPPED);
-                        return;
-                    } catch (final MemoryAccessException e) {
-                        LOGGER.error(e);
-                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_UNKNOWN));
-                        setRunState(RunState.STOPPED);
-                        return;
-                    }
-
-                    runner = new ComputerVirtualMachineRunner(virtualMachine, terminal);
-                }
-
-                setRunState(RunState.RUNNING);
-
-                // Only start running next tick. This gives loaded devices one tick to do async
-                // initialization. This is used by devices to restore data from disk, for example.
-                break;
-            case RUNNING:
-                if (!virtualMachine.board.isRunning()) {
-                    stopRunnerAndReset();
-                    break;
-                }
-
-                runner.tick();
-                chunk.markDirty();
-                break;
-        }
+        state.tick();
     }
 
     @Override
@@ -385,127 +163,68 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         // Unload only suspends, but we want to do a full clean-up when we get
         // destroyed, so stuff inside us can delete out-of-nbt persisted data.
-        virtualMachine.vmAdapter.unload();
+        state.virtualMachine.vmAdapter.unload();
     }
 
     @Override
     public CompoundNBT getUpdateTag() {
-        final CompoundNBT result = super.getUpdateTag();
+        final CompoundNBT tag = super.getUpdateTag();
 
-        result.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
-        result.putInt(BUS_STATE_TAG_NAME, busState.ordinal());
-        result.putInt(RUN_STATE_TAG_NAME, runState.ordinal());
-        result.putString(BOOT_ERROR_TAG_NAME, ITextComponent.Serializer.toJson(bootError));
+        tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+        tag.putInt(AbstractVirtualMachineState.BUS_STATE_TAG_NAME, state.getBusState().ordinal());
+        tag.putInt(AbstractVirtualMachineState.RUN_STATE_TAG_NAME, state.getRunState().ordinal());
+        tag.putString(AbstractVirtualMachineState.BOOT_ERROR_TAG_NAME, ITextComponent.Serializer.toJson(state.getBootError()));
 
-        return result;
+        return tag;
     }
 
     @Override
-    public void handleUpdateTag(final BlockState state, final CompoundNBT tag) {
-        super.handleUpdateTag(state, tag);
+    public void handleUpdateTag(final BlockState blockState, final CompoundNBT tag) {
+        super.handleUpdateTag(blockState, tag);
 
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
-        busState = AbstractDeviceBusController.BusState.values()[tag.getInt(BUS_STATE_TAG_NAME)];
-        runState = RunState.values()[tag.getInt(RUN_STATE_TAG_NAME)];
-        bootError = ITextComponent.Serializer.getComponentFromJson(tag.getString(BOOT_ERROR_TAG_NAME));
+        state.setBusStateClient(AbstractDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachineState.BUS_STATE_TAG_NAME)]);
+        state.setRunStateClient(VirtualMachineState.RunState.values()[tag.getInt(AbstractVirtualMachineState.RUN_STATE_TAG_NAME)]);
+        state.setBootErrorClient(ITextComponent.Serializer.getComponentFromJson(tag.getString(AbstractVirtualMachineState.BOOT_ERROR_TAG_NAME)));
     }
 
     @Override
     public CompoundNBT write(CompoundNBT tag) {
         tag = super.write(tag);
 
-        joinVirtualMachine();
-
-        if (runner != null) {
-            tag.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
-            virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.PAUSING);
-            runner.scheduleResumeEvent(); // Allow synchronizing to async device saves.
-        } else {
-            NBTUtils.putEnum(tag, RUN_STATE_TAG_NAME, runState);
-        }
-
+        tag.put(STATE_TAG_NAME, state.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
-
         tag.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
-        tag.put(VIRTUAL_MACHINE_TAG_NAME, NBTSerialization.serialize(virtualMachine));
-
-        final CompoundNBT items = new CompoundNBT();
-        items.put(MEMORY_TAG_NAME, memoryItemHandler.serializeNBT());
-        items.put(HARD_DRIVE_TAG_NAME, hardDriveItemHandler.serializeNBT());
-        items.put(FLASH_MEMORY_TAG_NAME, flashMemoryItemHandler.serializeNBT());
-        items.put(CARD_TAG_NAME, cardItemHandler.serializeNBT());
-        tag.put(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, items);
+        tag.put(Constants.INVENTORY_TAG_NAME, items.serialize());
 
         return tag;
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT tag) {
-        super.read(state, tag);
+    public void read(final BlockState blockState, final CompoundNBT tag) {
+        super.read(blockState, tag);
 
-        joinVirtualMachine();
-
+        state.deserialize(tag.getCompound(STATE_TAG_NAME));
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
 
         if (tag.contains(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             NBTSerialization.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME), busElement);
         }
 
-        if (tag.contains(VIRTUAL_MACHINE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            NBTSerialization.deserialize(tag.getCompound(VIRTUAL_MACHINE_TAG_NAME), virtualMachine);
+        if (tag.contains(Constants.INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            items.deserialize(tag.getCompound(Constants.INVENTORY_TAG_NAME));
         }
-
-        if (tag.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            runner = new ComputerVirtualMachineRunner(virtualMachine, terminal);
-            NBTSerialization.deserialize(tag.getCompound(RUNNER_TAG_NAME), runner);
-            runState = RunState.LOADING_DEVICES;
-        } else {
-            runState = NBTUtils.getEnum(tag, RUN_STATE_TAG_NAME, RunState.class);
-            if (runState == null) {
-                runState = RunState.STOPPED;
-            } else if (runState == RunState.RUNNING) {
-                runState = RunState.LOADING_DEVICES;
-            }
-        }
-
-        if (tag.contains(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            final CompoundNBT items = tag.getCompound(Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME);
-            memoryItemHandler.deserializeNBT(items.getCompound(MEMORY_TAG_NAME));
-            hardDriveItemHandler.deserializeNBT(items.getCompound(HARD_DRIVE_TAG_NAME));
-            flashMemoryItemHandler.deserializeNBT(items.getCompound(FLASH_MEMORY_TAG_NAME));
-            cardItemHandler.deserializeNBT(items.getCompound(CARD_TAG_NAME));
-        }
-    }
-
-    public boolean isEmpty() {
-        for (int slot = 0; slot < itemHandlers.getSlots(); slot++) {
-            if (!itemHandlers.getStackInSlot(slot).isEmpty()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public void exportDeviceDataToItemStacks() {
-        memoryItemHandler.exportDeviceDataToItemStacks();
-        hardDriveItemHandler.exportDeviceDataToItemStacks();
-        flashMemoryItemHandler.exportDeviceDataToItemStacks();
-        cardItemHandler.exportDeviceDataToItemStacks();
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        final CompoundNBT items = ItemStackUtils.getOrCreateTileEntityInventoryTag(stack);
-        items.put(MEMORY_TAG_NAME, memoryItemHandler.serializeNBT());
-        items.put(HARD_DRIVE_TAG_NAME, hardDriveItemHandler.serializeNBT());
-        items.put(FLASH_MEMORY_TAG_NAME, flashMemoryItemHandler.serializeNBT());
-        items.put(CARD_TAG_NAME, cardItemHandler.serializeNBT());
+        items.exportToItemStack(stack);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        collector.offer(Capabilities.ITEM_HANDLER, itemHandlers);
+        collector.offer(Capabilities.ITEM_HANDLER, items.itemHandlers);
         collector.offer(Capabilities.DEVICE_BUS_ELEMENT, busElement);
     }
 
@@ -521,17 +240,17 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         super.loadServer();
 
         busElement.initialize();
-        virtualMachine.rtcMinecraft.setWorld(getWorld());
+        state.virtualMachine.rtcMinecraft.setWorld(getWorld());
     }
 
     @Override
     protected void unloadServer() {
         super.unloadServer();
 
-        joinVirtualMachine();
-        virtualMachine.vmAdapter.suspend();
+        state.joinVirtualMachine();
+        state.virtualMachine.vmAdapter.suspend();
 
-        busController.dispose();
+        state.busController.dispose();
 
         // This is necessary in case some other controller found us before our controller
         // did its scan, which can happen because the scan can happen with a delay.
@@ -540,106 +259,19 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     ///////////////////////////////////////////////////////////////////
 
-    private List<ItemDeviceInfo> getDevices(final ItemStack stack) {
-        return Devices.getDevices(this, stack);
-    }
-
-    private void setBusState(final AbstractDeviceBusController.BusState value) {
-        if (value == busState) {
-            return;
-        }
-
-        busState = value;
-
-        final ComputerBusStateMessage message = new ComputerBusStateMessage(this);
-        Network.sendToClientsTrackingChunk(message, chunk);
-    }
-
-    private void setRunState(final RunState value) {
-        if (value == runState) {
-            return;
-        }
-
-        runState = value;
-
-        // This method can be called from disposal logic, so if we are disposed quickly enough
-        // chunk may not be initialized yet. Avoid resulting NRE in network logic.
-        if (chunk != null) {
-            final ComputerRunStateMessage message = new ComputerRunStateMessage(this);
-            Network.sendToClientsTrackingChunk(message, chunk);
-        }
-    }
-
-    private void setBootError(@Nullable final ITextComponent value) {
-        if (Objects.equals(value, bootError)) {
-            return;
-        }
-
-        bootError = value;
-        final ComputerBootErrorMessage message = new ComputerBootErrorMessage(this);
-        Network.sendToClientsTrackingChunk(message, chunk);
-    }
-
-    private void stopRunnerAndReset() {
-        joinVirtualMachine();
-        setRunState(RunState.STOPPED);
-
-        virtualMachine.reset();
-
-        TERMINAL_RESET_SEQUENCE.clear();
-        runner.putTerminalOutput(TERMINAL_RESET_SEQUENCE);
-        runner = null;
-    }
-
-    private void joinVirtualMachine() {
-        if (runner != null) {
-            try {
-                runner.join();
-            } catch (final Throwable e) {
-                LOGGER.error(e);
-                runner = null;
-            }
-        }
-    }
-
-    private OptionalLong getDefaultDeviceAddress(final VMDevice wrapper) {
-        long address = ITEM_DEVICE_BASE_ADDRESS;
-
-        for (int slot = 0; slot < hardDriveItemHandler.getSlots(); slot++) {
-            final Collection<ItemDeviceInfo> devices = hardDriveItemHandler.getBusElement().getDeviceGroup(slot);
-            for (final ItemDeviceInfo info : devices) {
-                if (Objects.equals(info.device, wrapper)) {
-                    return OptionalLong.of(address);
-                }
-            }
-
-            address += ITEM_DEVICE_STRIDE;
-        }
-
-        for (int slot = 0; slot < cardItemHandler.getSlots(); slot++) {
-            final Collection<ItemDeviceInfo> devices = cardItemHandler.getBusElement().getDeviceGroup(slot);
-            for (final ItemDeviceInfo info : devices) {
-                if (Objects.equals(info.device, wrapper)) {
-                    return OptionalLong.of(address);
-                }
-            }
-
-            address += ITEM_DEVICE_STRIDE;
-        }
-
-        return OptionalLong.empty();
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    private final class ComputerItemHandler extends TypedDeviceItemStackHandler {
-        public ComputerItemHandler(final int size, final Function<ItemStack, List<ItemDeviceInfo>> deviceLookup, final DeviceType deviceType) {
-            super(size, deviceLookup, deviceType);
+    private final class ComputerItemStackHandlers extends CommonVirtualMachineItemStackHandlers {
+        public ComputerItemStackHandlers() {
+            super(MEMORY_SLOTS, HARD_DRIVE_SLOTS, FLASH_MEMORY_SLOTS, CARD_SLOTS);
         }
 
         @Override
-        protected void onContentsChanged(final int slot) {
-            super.onContentsChanged(slot);
+        protected List<ItemDeviceInfo> getDevices(final ItemStack stack) {
+            return Devices.getDevices(ComputerTileEntity.this, stack);
+        }
+
+        @Override
+        protected void onContentsChanged(final DeviceItemStackHandler itemStackHandler, final int slot) {
+            super.onContentsChanged(itemStackHandler, slot);
             markDirty();
             isNeighborUpdateScheduled = true;
         }
@@ -652,26 +284,23 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         @Override
         protected void onBeforeScan() {
-            if (runState == RunState.RUNNING) {
-                runState = RunState.LOADING_DEVICES;
-            }
-
-            virtualMachine.rpcAdapter.pause();
+            state.reload();
+            state.virtualMachine.rpcAdapter.pause();
         }
 
         @Override
         protected void onAfterDeviceScan(final boolean didDevicesChange) {
-            virtualMachine.rpcAdapter.resume(didDevicesChange);
+            state.virtualMachine.rpcAdapter.resume(didDevicesChange);
         }
 
         @Override
         protected void onDevicesAdded(final Collection<Device> devices) {
-            virtualMachine.vmAdapter.addDevices(devices);
+            state.virtualMachine.vmAdapter.addDevices(devices);
         }
 
         @Override
         protected void onDevicesRemoved(final Collection<Device> devices) {
-            virtualMachine.vmAdapter.removeDevices(devices);
+            state.virtualMachine.vmAdapter.removeDevices(devices);
         }
     }
 
@@ -684,10 +313,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
             return super.getNeighbors().map(neighbors -> {
                 final ArrayList<LazyOptional<DeviceBusElement>> list = new ArrayList<>(neighbors);
-                list.add(LazyOptional.of(flashMemoryItemHandler::getBusElement));
-                list.add(LazyOptional.of(memoryItemHandler::getBusElement));
-                list.add(LazyOptional.of(hardDriveItemHandler::getBusElement));
-                list.add(LazyOptional.of(cardItemHandler::getBusElement));
+                list.add(LazyOptional.of(() -> items.busElement));
                 return list;
             });
         }
@@ -705,7 +331,62 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         @Override
         protected void sendTerminalUpdateToClient(final ByteBuffer output) {
-            final TerminalBlockOutputMessage message = new TerminalBlockOutputMessage(ComputerTileEntity.this, output);
+            final ComputerTerminalOutputMessage message = new ComputerTerminalOutputMessage(ComputerTileEntity.this, output);
+            Network.sendToClientsTrackingChunk(message, state.chunk);
+        }
+    }
+
+    private final class ComputerVirtualMachineState extends AbstractVirtualMachineState<ComputerBusController, CommonVirtualMachine> {
+        private Chunk chunk;
+
+        private ComputerVirtualMachineState(final ComputerBusController busController, final CommonVirtualMachine virtualMachine) {
+            super(busController, virtualMachine);
+            virtualMachine.vmAdapter.setDefaultAddressProvider(items::getDefaultDeviceAddress);
+        }
+
+        @Override
+        public void tick() {
+            if (chunk == null) {
+                chunk = world.getChunkAt(getPos());
+            }
+
+            if (isRunning()) {
+                chunk.markDirty();
+            }
+
+            super.tick();
+        }
+
+        @Override
+        protected AbstractTerminalVirtualMachineRunner createRunner() {
+            return new ComputerVirtualMachineRunner(virtualMachine, terminal);
+        }
+
+        @Override
+        protected void handleBusStateChanged(final AbstractDeviceBusController.BusState value) {
+            final ComputerBusStateMessage message = new ComputerBusStateMessage(ComputerTileEntity.this);
+            Network.sendToClientsTrackingChunk(message, chunk);
+
+            if (value == AbstractDeviceBusController.BusState.READY) {
+                // Bus just became ready, meaning new devices may be available, meaning new
+                // capabilities may be available, so we need to tell our neighbors.
+                world.notifyNeighborsOfStateChange(getPos(), getBlockState().getBlock());
+            }
+        }
+
+        @Override
+        protected void handleRunStateChanged(final RunState value) {
+            // This method can be called from disposal logic, so if we are disposed quickly enough
+            // chunk may not be initialized yet. Avoid resulting NRE in network logic.
+            if (chunk != null) {
+                final ComputerRunStateMessage message = new ComputerRunStateMessage(ComputerTileEntity.this);
+                Network.sendToClientsTrackingChunk(message, chunk);
+            }
+        }
+
+        @Override
+        protected void handleBootErrorChanged(@Nullable final ITextComponent value) {
+            final ComputerBootErrorMessage message = new ComputerBootErrorMessage(ComputerTileEntity.this);
             Network.sendToClientsTrackingChunk(message, chunk);
         }
     }

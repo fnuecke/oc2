@@ -8,8 +8,8 @@ import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
-import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.VoxelShapeUtils;
+import li.cil.oc2.common.vm.CommonVirtualMachineItemStackHandlers;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalBlock;
@@ -76,11 +76,7 @@ public final class ComputerBlock extends HorizontalBlock {
     @Override
     public void addInformation(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
         super.addInformation(stack, world, tooltip, advanced);
-        TooltipUtils.addInventoryInformation(stack, tooltip,
-                ComputerTileEntity.MEMORY_TAG_NAME,
-                ComputerTileEntity.HARD_DRIVE_TAG_NAME,
-                ComputerTileEntity.FLASH_MEMORY_TAG_NAME,
-                ComputerTileEntity.CARD_TAG_NAME);
+        CommonVirtualMachineItemStackHandlers.addInformation(stack, tooltip);
     }
 
     @Override
@@ -182,8 +178,8 @@ public final class ComputerBlock extends HorizontalBlock {
         final TileEntity tileEntity = world.getTileEntity(pos);
         if (!world.isRemote() && tileEntity instanceof ComputerTileEntity) {
             final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
-            if (!computer.isEmpty()) {
-                computer.exportDeviceDataToItemStacks();
+            if (!computer.getItemHandlers().isEmpty()) {
+                computer.getItemHandlers().exportDeviceDataToItemStacks();
 
                 if (player.isCreative()) {
                     final ItemStack stack = new ItemStack(Items.COMPUTER_ITEM.get());

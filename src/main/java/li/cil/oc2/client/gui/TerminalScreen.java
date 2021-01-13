@@ -9,7 +9,7 @@ import li.cil.oc2.client.gui.widget.ToggleImageButton;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerPowerMessage;
-import li.cil.oc2.common.network.message.TerminalBlockInputMessage;
+import li.cil.oc2.common.network.message.ComputerTerminalInputMessage;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
@@ -84,13 +84,13 @@ public final class TerminalScreen extends Screen {
 
         super.render(matrixStack, mouseX, mouseY, partialTicks);
 
-        if (tileEntity.isRunning()) {
+        if (tileEntity.getState().isRunning()) {
             final MatrixStack stack = new MatrixStack();
             stack.translate(windowLeft + TERMINAL_AREA_X, windowTop + TERMINAL_AREA_Y, this.itemRenderer.zLevel);
             stack.scale(TERMINAL_AREA_WIDTH / (float) terminal.getWidth(), TERMINAL_AREA_HEIGHT / (float) terminal.getHeight(), 1f);
             terminal.render(stack);
         } else {
-            final ITextComponent bootError = tileEntity.getBootError();
+            final ITextComponent bootError = tileEntity.getState().getBootError();
             if (bootError != null) {
                 final int textWidth = font.getStringPropertyWidth(bootError);
                 final int textOffsetX = (TERMINAL_AREA_WIDTH - textWidth) / 2;
@@ -110,7 +110,7 @@ public final class TerminalScreen extends Screen {
 
         final ByteBuffer input = terminal.getInput();
         if (input != null) {
-            Network.INSTANCE.sendToServer(new TerminalBlockInputMessage(tileEntity, input));
+            Network.INSTANCE.sendToServer(new ComputerTerminalInputMessage(tileEntity, input));
         }
 
         assert minecraft != null;
@@ -185,13 +185,13 @@ public final class TerminalScreen extends Screen {
             @Override
             public void onPress() {
                 super.onPress();
-                final ComputerPowerMessage message = new ComputerPowerMessage(tileEntity, !tileEntity.isRunning());
+                final ComputerPowerMessage message = new ComputerPowerMessage(tileEntity, !tileEntity.getState().isRunning());
                 Network.INSTANCE.sendToServer(message);
             }
 
             @Override
             public boolean isToggled() {
-                return tileEntity.isRunning();
+                return tileEntity.getState().isRunning();
             }
         });
 
@@ -220,7 +220,7 @@ public final class TerminalScreen extends Screen {
     ///////////////////////////////////////////////////////////////////
 
     private boolean shouldCaptureInput() {
-        return isMouseOverTerminal && enableInputCapture && tileEntity.isRunning();
+        return isMouseOverTerminal && enableInputCapture && tileEntity.getState().isRunning();
     }
 
     private boolean isPointInRegion(final int x, final int y, final int width, final int height, double mouseX, double mouseY) {

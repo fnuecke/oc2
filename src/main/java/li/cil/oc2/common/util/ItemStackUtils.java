@@ -13,7 +13,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.Random;
 
-import static li.cil.oc2.common.Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME;
+import static li.cil.oc2.common.Constants.INVENTORY_TAG_NAME;
 import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
 
 public final class ItemStackUtils {
@@ -48,19 +48,19 @@ public final class ItemStackUtils {
     @Nullable
     public static CompoundNBT getTileEntityInventoryTag(final ItemStack stack) {
         final CompoundNBT tag = getTileEntityTag(stack);
-        return tag != null && tag.contains(BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)
-                ? tag.getCompound(BLOCK_ENTITY_INVENTORY_TAG_NAME) : null;
+        return tag != null && tag.contains(INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)
+                ? tag.getCompound(INVENTORY_TAG_NAME) : null;
     }
 
     @Nullable
     public static CompoundNBT getOrCreateTileEntityInventoryTag(final ItemStack stack) {
         final CompoundNBT tag = getOrCreateTileEntityTag(stack);
-        if (tag.contains(BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            return tag.getCompound(BLOCK_ENTITY_INVENTORY_TAG_NAME);
+        if (tag.contains(INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            return tag.getCompound(INVENTORY_TAG_NAME);
         }
 
         final CompoundNBT inventoryNbt = new CompoundNBT();
-        tag.put(BLOCK_ENTITY_INVENTORY_TAG_NAME, inventoryNbt);
+        tag.put(INVENTORY_TAG_NAME, inventoryNbt);
 
         return inventoryNbt;
     }

@@ -2,7 +2,6 @@ package li.cil.oc2.data;
 
 import li.cil.oc2.common.item.Items;
 import net.minecraft.advancements.criterion.InventoryChangeTrigger;
-import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.data.*;
 import net.minecraft.item.Item;
 import net.minecraft.item.crafting.Ingredient;
@@ -189,8 +188,7 @@ public final class CraftingRecipes extends RecipeProvider {
                 .build(consumer);
     }
 
-    private static InventoryChangeTrigger.Instance inventoryChange(IItemProvider item )
-    {
+    private static InventoryChangeTrigger.Instance inventoryChange(IItemProvider item) {
         return InventoryChangeTrigger.Instance.forItems(item);
     }
 }

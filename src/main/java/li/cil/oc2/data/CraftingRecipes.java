@@ -1,9 +1,12 @@
 package li.cil.oc2.data;
 
 import li.cil.oc2.common.item.Items;
+import net.minecraft.advancements.criterion.InventoryChangeTrigger;
+import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.data.*;
 import net.minecraft.item.Item;
 import net.minecraft.item.crafting.Ingredient;
+import net.minecraft.util.IItemProvider;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.fml.RegistryObject;
 
@@ -24,6 +27,7 @@ public final class CraftingRecipes extends RecipeProvider {
                 .patternLine(" I ")
                 .key('I', net.minecraft.item.Items.IRON_INGOT)
                 .key('C', Items.MICROCHIP_ITEM.get())
+                .addCriterion("has_microchip", inventoryChange(Items.MICROCHIP_ITEM.get()))
                 .build(consumer);
 
         ShapedRecipeBuilder
@@ -35,6 +39,7 @@ public final class CraftingRecipes extends RecipeProvider {
                 .key('G', net.minecraft.item.Items.GOLD_NUGGET)
                 .key('R', net.minecraft.item.Items.REDSTONE)
                 .key('P', net.minecraft.item.Items.PAPER)
+                .addCriterion("has_iron", inventoryChange(net.minecraft.item.Items.GOLD_NUGGET))
                 .build(consumer);
 
         createInterfaceCard(Items.REDSTONE_INTERFACE_CARD_ITEM, net.minecraft.item.Items.REDSTONE_TORCH, consumer);
@@ -46,6 +51,7 @@ public final class CraftingRecipes extends RecipeProvider {
                 .addIngredient(net.minecraft.item.Items.GOLD_NUGGET)
                 .addIngredient(Ingredient.fromItems(net.minecraft.item.Items.SLIME_BALL, net.minecraft.item.Items.HONEY_BOTTLE))
                 .addIngredient(Ingredient.fromItems(net.minecraft.item.Items.KELP, net.minecraft.item.Items.GREEN_DYE))
+                .addCriterion("has_iron", inventoryChange(net.minecraft.item.Items.GOLD_NUGGET))
                 .build(consumer);
 
         createInterfaceCard(Items.NETWORK_INTERFACE_CARD_ITEM, Items.NETWORK_CABLE_ITEM.get(), consumer);
@@ -58,14 +64,16 @@ public final class CraftingRecipes extends RecipeProvider {
                 .patternLine("NWN")
                 .key('N', net.minecraft.item.Items.GOLD_NUGGET)
                 .key('W', Items.NETWORK_CABLE_ITEM.get())
+                .addCriterion("has_iron", inventoryChange(Items.NETWORK_CABLE_ITEM.get()))
                 .build(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.NETWORK_CONNECTOR_ITEM.get(), 6)
+                .shapedRecipe(Items.NETWORK_CABLE_ITEM.get(), 6)
                 .patternLine("SSS")
                 .patternLine("GGG")
                 .key('G', net.minecraft.item.Items.GOLD_NUGGET)
                 .key('S', net.minecraft.item.Items.STRING)
+                .addCriterion("has_iron", inventoryChange(net.minecraft.item.Items.GOLD_NUGGET))
                 .build(consumer);
 
         ShapedRecipeBuilder
@@ -76,6 +84,7 @@ public final class CraftingRecipes extends RecipeProvider {
                 .key('I', net.minecraft.item.Items.GOLD_NUGGET)
                 .key('T', Items.TRANSISTOR_ITEM.get())
                 .key('R', net.minecraft.item.Items.REDSTONE)
+                .addCriterion("has_iron", inventoryChange(net.minecraft.item.Items.IRON_INGOT))
                 .build(consumer);
 
         // MEMORY
@@ -89,6 +98,7 @@ public final class CraftingRecipes extends RecipeProvider {
                 .patternLine("N N")
                 .patternLine(" N ")
                 .key('N', net.minecraft.item.Items.IRON_NUGGET)
+                .addCriterion("has_iron", inventoryChange(net.minecraft.item.Items.IRON_NUGGET))
                 .build(consumer);
 
         ShapedRecipeBuilder
@@ -100,6 +110,7 @@ public final class CraftingRecipes extends RecipeProvider {
                 .key('T', Items.TRANSISTOR_ITEM.get())
                 .key('C', net.minecraft.item.Items.CLOCK)
                 .key('R', net.minecraft.item.Items.REDSTONE)
+                .addCriterion("has_transistor", inventoryChange(Items.TRANSISTOR_ITEM.get()))
                 .build(consumer);
 
         ShapedRecipeBuilder
@@ -112,6 +123,8 @@ public final class CraftingRecipes extends RecipeProvider {
                 .key('M', Items.MICROCHIP_ITEM.get())
                 .key('P', Items.PCB_ITEM.get())
                 .key('B', net.minecraft.item.Items.IRON_BARS)
+                .addCriterion("has_microchip", inventoryChange(Items.MICROCHIP_ITEM.get()))
+                .addCriterion("has_pcb", inventoryChange(Items.PCB_ITEM.get()))
                 .build(consumer);
 
         ShapedRecipeBuilder
@@ -121,6 +134,7 @@ public final class CraftingRecipes extends RecipeProvider {
                 .patternLine("N  ")
                 .key('N', net.minecraft.item.Items.GOLD_NUGGET)
                 .key('C', Items.BUS_CABLE_ITEM.get())
+                .addCriterion("has_bus_cable", inventoryChange(Items.BUS_CABLE_ITEM.get()))
                 .build(consumer);
 
         ShapedRecipeBuilder
@@ -130,10 +144,11 @@ public final class CraftingRecipes extends RecipeProvider {
                 .patternLine("NNN")
                 .key('N', net.minecraft.item.Items.GOLD_NUGGET)
                 .key('W', Items.NETWORK_CABLE_ITEM.get())
+                .addCriterion("has_network_cable", inventoryChange(Items.NETWORK_CABLE_ITEM.get()))
                 .build(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.CONTROL_UNIT_ITEM.get())
+                .shapedRecipe(Items.ARITHMETIC_LOGIC_UNIT_ITEM.get())
                 .patternLine("IRI")
                 .patternLine("TNT")
                 .patternLine("ITI")
@@ -141,6 +156,8 @@ public final class CraftingRecipes extends RecipeProvider {
                 .key('T', Items.TRANSISTOR_ITEM.get())
                 .key('N', Items.MICROCHIP_ITEM.get())
                 .key('R', net.minecraft.item.Items.REDSTONE)
+                .addCriterion("has_microchip", inventoryChange(Items.MICROCHIP_ITEM.get()))
+                .addCriterion("has_transistor", inventoryChange(Items.TRANSISTOR_ITEM.get()))
                 .build(consumer);
     }
 
@@ -155,6 +172,8 @@ public final class CraftingRecipes extends RecipeProvider {
                 .key('C', Items.PCB_ITEM.get())
                 .key('O', Items.MICROCHIP_ITEM.get())
                 .key('G', type)
+                .addCriterion("has_pcb", inventoryChange(Items.PCB_ITEM.get()))
+                .addCriterion("has_microchip", inventoryChange(Items.MICROCHIP_ITEM.get()))
                 .build(consumer);
     }
 
@@ -166,7 +185,12 @@ public final class CraftingRecipes extends RecipeProvider {
                 .patternLine("GGG")
                 .key('G', net.minecraft.item.Items.GOLD_NUGGET)
                 .key('C', type.get())
+                .addCriterion("has_custom_card", inventoryChange(type.get()))
                 .build(consumer);
     }
 
+    private static InventoryChangeTrigger.Instance inventoryChange(IItemProvider item )
+    {
+        return InventoryChangeTrigger.Instance.forItems(item);
+    }
 }

@@ -4,7 +4,6 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.entity.RobotEntity;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -13,11 +12,8 @@ import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.model.TransformationHelper;
 
 public final class RobotEntityRenderer extends EntityRenderer<RobotEntity> {
@@ -57,10 +53,10 @@ public final class RobotEntityRenderer extends EntityRenderer<RobotEntity> {
 
         matrixStack.pop();
 
-        final RayTraceResult hit = Minecraft.getInstance().objectMouseOver;
-        if (hit instanceof EntityRayTraceResult && entity == ((EntityRayTraceResult) hit).getEntity()) {
-            super.renderName(entity, new StringTextComponent("hi"), matrixStack, buffer, packedLight);
-        }
+//        final RayTraceResult hit = Minecraft.getInstance().objectMouseOver;
+//        if (hit instanceof EntityRayTraceResult && entity == ((EntityRayTraceResult) hit).getEntity()) {
+//            super.renderName(entity, new StringTextComponent("hi"), matrixStack, buffer, packedLight);
+//        }
     }
 
     ///////////////////////////////////////////////////////////////////

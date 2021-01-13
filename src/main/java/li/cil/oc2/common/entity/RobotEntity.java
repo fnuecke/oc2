@@ -2,23 +2,33 @@ package li.cil.oc2.common.entity;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.ObjectDevice;
+import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.client.gui.RobotTerminalScreen;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
+import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
+import li.cil.oc2.common.container.RobotContainer;
 import li.cil.oc2.common.entity.robot.*;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.network.Network;
-import li.cil.oc2.common.network.message.RobotBootErrorMessage;
-import li.cil.oc2.common.network.message.RobotTerminalOutputMessage;
+import li.cil.oc2.common.network.message.*;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.WorldUtils;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.block.SoundType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
@@ -27,25 +37,36 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.event.world.ChunkEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.function.Consumer;
 
 public final class RobotEntity extends Entity {
+    public static final DataParameter<BlockPos> TARGET_POSITION = EntityDataManager.createKey(RobotEntity.class, DataSerializers.BLOCK_POS);
+    public static final DataParameter<Direction> TARGET_DIRECTION = EntityDataManager.createKey(RobotEntity.class, DataSerializers.DIRECTION);
+
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String STATE_TAG_NAME = "state";
+    private static final String BUS_ELEMENT_TAG_NAME = "bus_element";
     private static final String COMMAND_PROCESSOR_TAG_NAME = "commands";
 
-    private static final DataParameter<Boolean> IS_RUNNING = EntityDataManager.createKey(RobotEntity.class, DataSerializers.BOOLEAN);
-    private static final int MAX_QUEUED_ACTIONS = 16;
+    private static final int MAX_QUEUED_ACTIONS = 15;
 
     private static final int MEMORY_SLOTS = 4;
     private static final int HARD_DRIVE_SLOTS = 2;
@@ -54,12 +75,15 @@ public final class RobotEntity extends Entity {
 
     ///////////////////////////////////////////////////////////////////
 
+    private final Consumer<ChunkEvent.Unload> chunkUnloadListener = this::handleChunkUnload;
+    private final Consumer<WorldEvent.Unload> worldUnloadListener = this::handleWorldUnload;
+
     private final AnimationState animationState = new AnimationState();
     private final CommandProcessor commandProcessor = new CommandProcessor();
     private final Terminal terminal = new Terminal();
-
     private final RobotVirtualMachineState state;
     private final RobotItemStackHandlers items = new RobotItemStackHandlers();
+    private final RobotBusElement busElement = new RobotBusElement();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -68,8 +92,11 @@ public final class RobotEntity extends Entity {
         this.preventEntitySpawning = true;
         setNoGravity(true);
 
-        final RobotBusController busController = new RobotBusController(items.busElement);
+        final RobotBusController busController = new RobotBusController(busElement);
         state = new RobotVirtualMachineState(busController, new CommonVirtualMachine(busController));
+        state.virtualMachine.rtcMinecraft.setWorld(world);
+
+        items.busElement.addDevice(new ObjectDevice(new RobotDevice(), "robot"));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -87,12 +114,8 @@ public final class RobotEntity extends Entity {
         return state;
     }
 
-    public CommonVirtualMachineItemStackHandlers getItemHandlers() {
+    public VirtualMachineItemStackHandlers getItemStackHandlers() {
         return items;
-    }
-
-    public boolean isRunning() {
-        return dataManager.get(IS_RUNNING);
     }
 
     public void start() {
@@ -115,7 +138,23 @@ public final class RobotEntity extends Entity {
 
     @Override
     public void tick() {
+        if (firstUpdate) {
+            if (getEntityWorld().isRemote()) {
+                requestInitialState();
+            } else {
+                registerListeners();
+                RobotActions.initializeData(this);
+                if (commandProcessor.action != null) {
+                    commandProcessor.action.initialize(this);
+                }
+            }
+        }
+
         super.tick();
+
+        if (!getEntityWorld().isRemote()) {
+            state.tick();
+        }
 
         commandProcessor.tick();
     }
@@ -124,25 +163,19 @@ public final class RobotEntity extends Entity {
     public ActionResultType processInitialInteract(final PlayerEntity player, final Hand hand) {
         final ItemStack stack = player.getHeldItem(hand);
         if (Wrenches.isWrench(stack)) {
-            if (!world.isRemote()) {
+            if (!world.isRemote() && player instanceof ServerPlayerEntity) {
                 if (player.isSneaking()) {
                     remove();
                     WorldUtils.playSound(world, getPosition(), SoundType.METAL, SoundType::getBreakSound);
                 } else {
-                    // todo open container
+                    openContainerScreen(player);
                 }
             }
         } else {
             if (player.isSneaking()) {
                 start();
-            } else {
-//                if (rand.nextBoolean()) {
-//                    commandProcessor.move(MovementDirection.values()[rand.nextInt(MovementDirection.values().length)]);
-//                } else {
-//                    commandProcessor.rotate(rand.nextBoolean() ? RotationDirection.LEFT : RotationDirection.RIGHT);
-                commandProcessor.rotate(RotationDirection.RIGHT);
-//                }
-                // TODO open terminal + inventory screen
+            } else if (world.isRemote()) {
+                openTerminalScreen();
             }
         }
 
@@ -152,6 +185,18 @@ public final class RobotEntity extends Entity {
     @Override
     public IPacket<?> createSpawnPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
+    }
+
+    @Override
+    public void remove(final boolean keepData) {
+        super.remove(keepData);
+
+        handleUnload();
+
+        // Full unload to release out-of-nbt persisted runtime-only data such as ram.
+        state.virtualMachine.vmAdapter.unload();
+
+        // TODO drop self as item
     }
 
     @Override
@@ -182,7 +227,6 @@ public final class RobotEntity extends Entity {
 
     @Override
     protected void registerData() {
-        getDataManager().register(IS_RUNNING, false);
         RobotActions.registerData(getDataManager());
     }
 
@@ -191,6 +235,7 @@ public final class RobotEntity extends Entity {
         tag.put(STATE_TAG_NAME, state.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(COMMAND_PROCESSOR_TAG_NAME, commandProcessor.serialize());
+        tag.put(BUS_ELEMENT_TAG_NAME, busElement.serialize());
         tag.put(Constants.INVENTORY_TAG_NAME, items.serialize());
     }
 
@@ -199,6 +244,7 @@ public final class RobotEntity extends Entity {
         state.deserialize(tag.getCompound(STATE_TAG_NAME));
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
         commandProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
+        busElement.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME));
 
         if (tag.contains(Constants.INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             items.deserialize(tag.getCompound(Constants.INVENTORY_TAG_NAME));
@@ -215,6 +261,69 @@ public final class RobotEntity extends Entity {
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    @OnlyIn(Dist.CLIENT)
+    private void requestInitialState() {
+        Network.INSTANCE.sendToServer(new RobotInitializationRequestMessage(this));
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void openTerminalScreen() {
+        Minecraft.getInstance().displayGuiScreen(new RobotTerminalScreen(this, getName()));
+    }
+
+    private void registerListeners() {
+        MinecraftForge.EVENT_BUS.addListener(chunkUnloadListener);
+        MinecraftForge.EVENT_BUS.addListener(worldUnloadListener);
+    }
+
+    private void unregisterListeners() {
+        MinecraftForge.EVENT_BUS.unregister(chunkUnloadListener);
+        MinecraftForge.EVENT_BUS.unregister(worldUnloadListener);
+    }
+
+    private void handleChunkUnload(final ChunkEvent.Unload event) {
+        if (event.getWorld() != getEntityWorld()) {
+            return;
+        }
+
+        final ChunkPos chunkPos = new ChunkPos(getPosition());
+        if (!Objects.equals(chunkPos, event.getChunk().getPos())) {
+            return;
+        }
+
+        unregisterListeners();
+        handleUnload();
+    }
+
+    private void handleWorldUnload(final WorldEvent.Unload event) {
+        if (event.getWorld() != getEntityWorld()) {
+            return;
+        }
+
+        unregisterListeners();
+        handleUnload();
+    }
+
+    private void handleUnload() {
+        state.joinVirtualMachine();
+        state.virtualMachine.vmAdapter.suspend();
+        state.busController.dispose();
+    }
+
+    private void openContainerScreen(final PlayerEntity player) {
+        NetworkHooks.openGui((ServerPlayerEntity) player, new INamedContainerProvider() {
+            @Override
+            public ITextComponent getDisplayName() {
+                return getName();
+            }
+
+            @Override
+            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
+                return new RobotContainer(id, RobotEntity.this, inventory);
+            }
+        }, b -> b.writeVarInt(getEntityId()));
+    }
 
     private static float lerpClamped(final float from, final float to, final float delta) {
         if (from < to) {
@@ -255,7 +364,7 @@ public final class RobotEntity extends Entity {
         public float topRenderHover = -(hashCode() & 0xFFFF); // init to "random" to avoid synchronous hovering
 
         public void update(final float deltaTime, final Random random) {
-            if (isRunning() || commandProcessor.hasQueuedActions()) {
+            if (getState().isRunning() || commandProcessor.hasQueuedActions()) {
                 topRenderHover = topRenderHover + deltaTime * HOVER_ANIMATION_SPEED;
                 final float topOffsetY = MathHelper.sin(topRenderHover) / 32f;
 
@@ -285,6 +394,10 @@ public final class RobotEntity extends Entity {
 
         public boolean hasQueuedActions() {
             return action != null || !queue.isEmpty();
+        }
+
+        public int getQueuedActionCount() {
+            return (action != null ? 1 : 0) + queue.size();
         }
 
         public boolean move(final MovementDirection direction) {
@@ -347,7 +460,6 @@ public final class RobotEntity extends Entity {
 
             if (tag.contains(ACTION_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
                 action = RobotActions.deserialize(tag.getCompound(ACTION_TAG_NAME));
-                action.initialize(RobotEntity.this);
             }
         }
 
@@ -356,7 +468,7 @@ public final class RobotEntity extends Entity {
                 return false;
             }
 
-            if (!isRunning()) {
+            if (!getState().isRunning()) {
                 return false;
             }
 
@@ -369,7 +481,7 @@ public final class RobotEntity extends Entity {
         }
     }
 
-    private final class RobotItemStackHandlers extends CommonVirtualMachineItemStackHandlers {
+    private final class RobotItemStackHandlers extends AbstractVirtualMachineItemStackHandlers {
         public RobotItemStackHandlers() {
             super(MEMORY_SLOTS, HARD_DRIVE_SLOTS, FLASH_MEMORY_SLOTS, CARD_SLOTS);
         }
@@ -377,6 +489,43 @@ public final class RobotEntity extends Entity {
         @Override
         protected List<ItemDeviceInfo> getDevices(final ItemStack stack) {
             return Devices.getDevices(RobotEntity.this, stack);
+        }
+    }
+
+    private final class RobotBusElement extends AbstractDeviceBusElement {
+        private static final String DEVICE_ID_TAG_NAME = "device_id";
+
+        private final Device device = new ObjectDevice(new RobotDevice(), "robot");
+        private UUID deviceId = UUID.randomUUID();
+
+        @Override
+        public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
+            return Optional.of(Collections.singleton(LazyOptional.of(() -> items.busElement)));
+        }
+
+        @Override
+        public Collection<Device> getLocalDevices() {
+            return Collections.singleton(device);
+        }
+
+        @Override
+        public Optional<UUID> getDeviceIdentifier(final Device device) {
+            if (device == this.device) {
+                return Optional.of(deviceId);
+            }
+            return super.getDeviceIdentifier(device);
+        }
+
+        public CompoundNBT serialize() {
+            final CompoundNBT tag = new CompoundNBT();
+            tag.putUniqueId(DEVICE_ID_TAG_NAME, deviceId);
+            return tag;
+        }
+
+        public void deserialize(final CompoundNBT tag) {
+            if (tag.hasUniqueId(DEVICE_ID_TAG_NAME)) {
+                deviceId = tag.getUniqueId(DEVICE_ID_TAG_NAME);
+            }
         }
     }
 
@@ -438,14 +587,40 @@ public final class RobotEntity extends Entity {
         }
 
         @Override
+        protected void handleBusStateChanged(final AbstractDeviceBusController.BusState value) {
+            Network.sendToClientsTrackingEntity(new RobotBusStateMessage(RobotEntity.this), RobotEntity.this);
+        }
+
+        @Override
         protected void handleRunStateChanged(final RunState value) {
-            dataManager.set(IS_RUNNING, isRunning());
+            Network.sendToClientsTrackingEntity(new RobotRunStateMessage(RobotEntity.this), RobotEntity.this);
         }
 
         @Override
         protected void handleBootErrorChanged(@Nullable final ITextComponent value) {
-            final RobotBootErrorMessage message = new RobotBootErrorMessage(RobotEntity.this);
-            Network.sendToClientsTrackingEntity(message, RobotEntity.this);
+            Network.sendToClientsTrackingEntity(new RobotBootErrorMessage(RobotEntity.this), RobotEntity.this);
+        }
+    }
+
+    public final class RobotDevice {
+        @Callback
+        public boolean move(@Parameter("direction") @Nullable final MovementDirection direction) {
+            if (direction == null) throw new IllegalArgumentException();
+            return commandProcessor.move(direction);
+        }
+
+        @Callback
+        public boolean turn(@Parameter("direction") @Nullable final RotationDirection direction) {
+            if (direction == null) throw new IllegalArgumentException();
+            return commandProcessor.rotate(direction);
+        }
+
+        @Callback
+        public int getQueuedActionCount() {
+            return commandProcessor.getQueuedActionCount();
+        }
+
+        private RobotDevice() {
         }
     }
 }

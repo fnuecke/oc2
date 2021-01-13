@@ -11,13 +11,13 @@ import java.util.function.Supplier;
 
 public final class ComputerRunStateMessage {
     private BlockPos pos;
-    private VirtualMachineState.RunState runState;
+    private VirtualMachineState.RunState value;
 
     ///////////////////////////////////////////////////////////////////
 
     public ComputerRunStateMessage(final ComputerTileEntity tileEntity) {
         this.pos = tileEntity.getPos();
-        this.runState = tileEntity.getState().getRunState();
+        this.value = tileEntity.getState().getRunState();
     }
 
     public ComputerRunStateMessage(final PacketBuffer buffer) {
@@ -28,17 +28,17 @@ public final class ComputerRunStateMessage {
 
     public static boolean handleMessage(final ComputerRunStateMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
-                (tileEntity) -> tileEntity.getState().setRunStateClient(message.runState)));
+                (tileEntity) -> tileEntity.getState().setRunStateClient(message.value)));
         return true;
     }
 
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
-        runState = buffer.readEnumValue(VirtualMachineState.RunState.class);
+        value = buffer.readEnumValue(VirtualMachineState.RunState.class);
     }
 
     public static void toBytes(final ComputerRunStateMessage message, final PacketBuffer buffer) {
         buffer.writeBlockPos(message.pos);
-        buffer.writeEnumValue(message.runState);
+        buffer.writeEnumValue(message.value);
     }
 }

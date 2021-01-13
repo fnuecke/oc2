@@ -7,13 +7,11 @@ import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.client.gui.widget.Sprite;
 import li.cil.oc2.client.gui.widget.ToggleImageButton;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.network.Network;
-import li.cil.oc2.common.network.message.ComputerPowerMessage;
-import li.cil.oc2.common.network.message.ComputerTerminalInputMessage;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.vm.Terminal;
+import li.cil.oc2.common.vm.VirtualMachineState;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -23,7 +21,7 @@ import java.nio.ByteBuffer;
 
 import static java.util.Objects.requireNonNull;
 
-public final class TerminalScreen extends Screen {
+public abstract class AbstractTerminalScreen extends Screen {
     private static final ResourceLocation BACKGROUND = new ResourceLocation(API.MOD_ID, "textures/gui/screen/terminal.png");
     private static final ResourceLocation BACKGROUND_TERMINAL_FOCUSED = new ResourceLocation(API.MOD_ID, "textures/gui/screen/terminal_focused.png");
     private static final int TEXTURE_SIZE = 512;
@@ -50,7 +48,7 @@ public final class TerminalScreen extends Screen {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final ComputerTileEntity tileEntity;
+    private final VirtualMachineState state;
     private final Terminal terminal;
     private final int windowWidth, windowHeight;
     private int windowLeft, windowTop;
@@ -58,10 +56,10 @@ public final class TerminalScreen extends Screen {
 
     ///////////////////////////////////////////////////////////////////
 
-    public TerminalScreen(final ComputerTileEntity tileEntity, final ITextComponent title) {
+    public AbstractTerminalScreen(final VirtualMachineState state, final Terminal terminal, final ITextComponent title) {
         super(title);
-        this.tileEntity = tileEntity;
-        terminal = tileEntity.getTerminal();
+        this.state = state;
+        this.terminal = terminal;
         windowWidth = SCREEN_WIDTH;
         windowHeight = SCREEN_HEIGHT;
     }
@@ -84,13 +82,13 @@ public final class TerminalScreen extends Screen {
 
         super.render(matrixStack, mouseX, mouseY, partialTicks);
 
-        if (tileEntity.getState().isRunning()) {
+        if (state.isRunning()) {
             final MatrixStack stack = new MatrixStack();
             stack.translate(windowLeft + TERMINAL_AREA_X, windowTop + TERMINAL_AREA_Y, this.itemRenderer.zLevel);
             stack.scale(TERMINAL_AREA_WIDTH / (float) terminal.getWidth(), TERMINAL_AREA_HEIGHT / (float) terminal.getHeight(), 1f);
             terminal.render(stack);
         } else {
-            final ITextComponent bootError = tileEntity.getState().getBootError();
+            final ITextComponent bootError = state.getBootError();
             if (bootError != null) {
                 final int textWidth = font.getStringPropertyWidth(bootError);
                 final int textOffsetX = (TERMINAL_AREA_WIDTH - textWidth) / 2;
@@ -110,13 +108,13 @@ public final class TerminalScreen extends Screen {
 
         final ByteBuffer input = terminal.getInput();
         if (input != null) {
-            Network.INSTANCE.sendToServer(new ComputerTerminalInputMessage(tileEntity, input));
+            sendTerminalInputToServer(input);
         }
 
         assert minecraft != null;
         final ClientPlayerEntity player = minecraft.player;
         assert player != null;
-        if (!player.isAlive() || !tileEntity.getPos().withinDistance(player.getPositionVec(), 8)) {
+        if (!player.isAlive() || !canInteractWith(player)) {
             closeScreen();
         }
     }
@@ -166,6 +164,12 @@ public final class TerminalScreen extends Screen {
 
     ///////////////////////////////////////////////////////////////////
 
+    protected abstract void sendPowerStateToServer(boolean value);
+
+    protected abstract void sendTerminalInputToServer(final ByteBuffer input);
+
+    protected abstract boolean canInteractWith(PlayerEntity player);
+
     protected void init() {
         super.init();
         this.windowLeft = (this.width - this.windowWidth) / 2;
@@ -185,13 +189,12 @@ public final class TerminalScreen extends Screen {
             @Override
             public void onPress() {
                 super.onPress();
-                final ComputerPowerMessage message = new ComputerPowerMessage(tileEntity, !tileEntity.getState().isRunning());
-                Network.INSTANCE.sendToServer(message);
+                sendPowerStateToServer(!state.isRunning());
             }
 
             @Override
             public boolean isToggled() {
-                return tileEntity.getState().isRunning();
+                return state.isRunning();
             }
         });
 
@@ -220,7 +223,7 @@ public final class TerminalScreen extends Screen {
     ///////////////////////////////////////////////////////////////////
 
     private boolean shouldCaptureInput() {
-        return isMouseOverTerminal && enableInputCapture && tileEntity.getState().isRunning();
+        return isMouseOverTerminal && enableInputCapture && state.isRunning();
     }
 
     private boolean isPointInRegion(final int x, final int y, final int width, final int height, double mouseX, double mouseY) {

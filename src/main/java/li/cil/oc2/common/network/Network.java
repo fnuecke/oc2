@@ -81,10 +81,40 @@ public final class Network {
                 .consumer(RobotTerminalInputMessage::handleMessage)
                 .add();
 
+        INSTANCE.messageBuilder(RobotRunStateMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(RobotRunStateMessage::toBytes)
+                .decoder(RobotRunStateMessage::new)
+                .consumer(RobotRunStateMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(RobotBusStateMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(RobotBusStateMessage::toBytes)
+                .decoder(RobotBusStateMessage::new)
+                .consumer(RobotBusStateMessage::handleMessage)
+                .add();
+
         INSTANCE.messageBuilder(RobotBootErrorMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(RobotBootErrorMessage::toBytes)
                 .decoder(RobotBootErrorMessage::new)
                 .consumer(RobotBootErrorMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(RobotPowerMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(RobotPowerMessage::toBytes)
+                .decoder(RobotPowerMessage::new)
+                .consumer(RobotPowerMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(RobotInitializationRequestMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(RobotInitializationRequestMessage::toBytes)
+                .decoder(RobotInitializationRequestMessage::new)
+                .consumer(RobotInitializationRequestMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(RobotInitializationMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(RobotInitializationMessage::toBytes)
+                .decoder(RobotInitializationMessage::new)
+                .consumer(RobotInitializationMessage::handleMessage)
                 .add();
     }
 

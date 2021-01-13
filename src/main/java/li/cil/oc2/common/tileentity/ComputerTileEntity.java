@@ -83,7 +83,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         return state;
     }
 
-    public CommonVirtualMachineItemStackHandlers getItemHandlers() {
+    public VirtualMachineItemStackHandlers getItemStackHandlers() {
         return items;
     }
 
@@ -162,7 +162,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         super.remove();
 
         // Unload only suspends, but we want to do a full clean-up when we get
-        // destroyed, so stuff inside us can delete out-of-nbt persisted data.
+        // destroyed, so stuff inside us can delete out-of-nbt persisted runtime-
+        // only data such as ram.
         state.virtualMachine.vmAdapter.unload();
     }
 
@@ -259,7 +260,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     ///////////////////////////////////////////////////////////////////
 
-    private final class ComputerItemStackHandlers extends CommonVirtualMachineItemStackHandlers {
+    private final class ComputerItemStackHandlers extends AbstractVirtualMachineItemStackHandlers {
         public ComputerItemStackHandlers() {
             super(MEMORY_SLOTS, HARD_DRIVE_SLOTS, FLASH_MEMORY_SLOTS, CARD_SLOTS);
         }
@@ -364,8 +365,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         @Override
         protected void handleBusStateChanged(final AbstractDeviceBusController.BusState value) {
-            final ComputerBusStateMessage message = new ComputerBusStateMessage(ComputerTileEntity.this);
-            Network.sendToClientsTrackingChunk(message, chunk);
+            Network.sendToClientsTrackingChunk(new ComputerBusStateMessage(ComputerTileEntity.this), chunk);
 
             if (value == AbstractDeviceBusController.BusState.READY) {
                 // Bus just became ready, meaning new devices may be available, meaning new
@@ -379,15 +379,13 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             // This method can be called from disposal logic, so if we are disposed quickly enough
             // chunk may not be initialized yet. Avoid resulting NRE in network logic.
             if (chunk != null) {
-                final ComputerRunStateMessage message = new ComputerRunStateMessage(ComputerTileEntity.this);
-                Network.sendToClientsTrackingChunk(message, chunk);
+                Network.sendToClientsTrackingChunk(new ComputerRunStateMessage(ComputerTileEntity.this), chunk);
             }
         }
 
         @Override
         protected void handleBootErrorChanged(@Nullable final ITextComponent value) {
-            final ComputerBootErrorMessage message = new ComputerBootErrorMessage(ComputerTileEntity.this);
-            Network.sendToClientsTrackingChunk(message, chunk);
+            Network.sendToClientsTrackingChunk(new ComputerBootErrorMessage(ComputerTileEntity.this), chunk);
         }
     }
 }

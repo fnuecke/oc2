@@ -15,17 +15,17 @@ public final class RobotMovementActionType extends AbstractRobotActionType {
 
     @Override
     public void registerData(final EntityDataManager dataManager) {
-        dataManager.register(RobotMovementAction.TARGET_POSITION, BlockPos.ZERO);
+        dataManager.register(RobotEntity.TARGET_POSITION, BlockPos.ZERO);
     }
 
     @Override
     public void initializeData(final RobotEntity robot) {
-        robot.getDataManager().set(RobotMovementAction.TARGET_POSITION, robot.getPosition());
+        robot.getDataManager().set(RobotEntity.TARGET_POSITION, robot.getPosition());
     }
 
     @Override
     public void performClient(final RobotEntity robot) {
-        final Vector3d target = RobotMovementAction.getTargetPositionInBlock(robot.getDataManager().get(RobotMovementAction.TARGET_POSITION));
+        final Vector3d target = RobotMovementAction.getTargetPositionInBlock(robot.getDataManager().get(RobotEntity.TARGET_POSITION));
         if (robot.getPositionVec().squareDistanceTo(target) > RobotMovementAction.TARGET_EPSILON) {
             RobotMovementAction.moveTowards(robot, target);
         }

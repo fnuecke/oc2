@@ -1,7 +1,7 @@
 package li.cil.oc2.common.block;
 
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
-import li.cil.oc2.client.gui.TerminalScreen;
+import li.cil.oc2.client.gui.ComputerTerminalScreen;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ComputerContainer;
 import li.cil.oc2.common.integration.Wrenches;
@@ -9,7 +9,7 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
 import li.cil.oc2.common.util.VoxelShapeUtils;
-import li.cil.oc2.common.vm.CommonVirtualMachineItemStackHandlers;
+import li.cil.oc2.common.vm.AbstractVirtualMachineItemStackHandlers;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalBlock;
@@ -76,7 +76,7 @@ public final class ComputerBlock extends HorizontalBlock {
     @Override
     public void addInformation(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
         super.addInformation(stack, world, tooltip, advanced);
-        CommonVirtualMachineItemStackHandlers.addInformation(stack, tooltip);
+        AbstractVirtualMachineItemStackHandlers.addInformation(stack, tooltip);
     }
 
     @Override
@@ -178,8 +178,8 @@ public final class ComputerBlock extends HorizontalBlock {
         final TileEntity tileEntity = world.getTileEntity(pos);
         if (!world.isRemote() && tileEntity instanceof ComputerTileEntity) {
             final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
-            if (!computer.getItemHandlers().isEmpty()) {
-                computer.getItemHandlers().exportDeviceDataToItemStacks();
+            if (!computer.getItemStackHandlers().isEmpty()) {
+                computer.getItemStackHandlers().exportDeviceDataToItemStacks();
 
                 if (player.isCreative()) {
                     final ItemStack stack = new ItemStack(Items.COMPUTER_ITEM.get());
@@ -209,7 +209,7 @@ public final class ComputerBlock extends HorizontalBlock {
 
     @OnlyIn(Dist.CLIENT)
     private void openTerminalScreen(final ComputerTileEntity computer) {
-        Minecraft.getInstance().displayGuiScreen(new TerminalScreen(computer, getTranslatedName()));
+        Minecraft.getInstance().displayGuiScreen(new ComputerTerminalScreen(computer, getTranslatedName()));
     }
 
     private void openContainerScreen(final ComputerTileEntity tileEntity, final PlayerEntity player) {

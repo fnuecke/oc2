@@ -5,7 +5,7 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.data.BaseBlockDevices;
 import li.cil.oc2.common.bus.device.data.Firmwares;
 import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.vm.CommonVirtualMachineItemStackHandlers;
+import li.cil.oc2.common.vm.AbstractVirtualMachineItemStackHandlers;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
@@ -46,18 +46,18 @@ public final class ItemGroup {
             final ItemStack computer = new ItemStack(Items.COMPUTER_ITEM.get());
 
             final CompoundNBT computerItems = ItemStackUtils.getOrCreateTileEntityInventoryTag(computer);
-            computerItems.put(CommonVirtualMachineItemStackHandlers.MEMORY_TAG_NAME, makeInventoryTag(
+            computerItems.put(AbstractVirtualMachineItemStackHandlers.MEMORY_TAG_NAME, makeInventoryTag(
                     MemoryItem.withCapacity(8 * Constants.MEGABYTE),
                     MemoryItem.withCapacity(8 * Constants.MEGABYTE),
                     MemoryItem.withCapacity(8 * Constants.MEGABYTE)
             ));
-            computerItems.put(CommonVirtualMachineItemStackHandlers.HARD_DRIVE_TAG_NAME, makeInventoryTag(
+            computerItems.put(AbstractVirtualMachineItemStackHandlers.HARD_DRIVE_TAG_NAME, makeInventoryTag(
                     HardDriveItem.withBase(BaseBlockDevices.BUILDROOT.get())
             ));
-            computerItems.put(CommonVirtualMachineItemStackHandlers.FLASH_MEMORY_TAG_NAME, makeInventoryTag(
+            computerItems.put(AbstractVirtualMachineItemStackHandlers.FLASH_MEMORY_TAG_NAME, makeInventoryTag(
                     FlashMemoryItem.withFirmware(Firmwares.BUILDROOT.get())
             ));
-            computerItems.put(CommonVirtualMachineItemStackHandlers.CARD_TAG_NAME, makeInventoryTag(
+            computerItems.put(AbstractVirtualMachineItemStackHandlers.CARD_TAG_NAME, makeInventoryTag(
                     new ItemStack(Items.NETWORK_INTERFACE_CARD_ITEM.get())
             ));
 

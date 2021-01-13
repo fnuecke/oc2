@@ -7,9 +7,6 @@ import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import net.minecraft.entity.MoverType;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
@@ -17,12 +14,11 @@ import net.minecraft.util.math.vector.Vector3d;
 import javax.annotation.Nullable;
 
 public final class RobotMovementAction extends AbstractRobotAction {
-    public static final DataParameter<BlockPos> TARGET_POSITION = EntityDataManager.createKey(RobotEntity.class, DataSerializers.BLOCK_POS);
     public static final double TARGET_EPSILON = 0.0001;
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final float MOVEMENT_SPEED = 0.5f / Constants.TICK_SECONDS; // In blocks per second.
+    private static final float MOVEMENT_SPEED = 1f / Constants.TICK_SECONDS; // In blocks per second.
 
     private static final String DIRECTION_TAG_NAME = "direction";
     private static final String START_TAG_NAME = "start";
@@ -84,7 +80,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
             target = getTargetPositionInBlock(targetPosition);
         }
 
-        robot.getDataManager().set(TARGET_POSITION, new BlockPos(target));
+        robot.getDataManager().set(RobotEntity.TARGET_POSITION, new BlockPos(target));
     }
 
     @Override
@@ -99,7 +95,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
         if (didCollide && !robot.getEntityWorld().isRemote()) {
             if (start != null) {
                 target = getTargetPositionInBlock(start);
-                robot.getDataManager().set(TARGET_POSITION, start);
+                robot.getDataManager().set(RobotEntity.TARGET_POSITION, start);
 
                 start = null;
             } else {

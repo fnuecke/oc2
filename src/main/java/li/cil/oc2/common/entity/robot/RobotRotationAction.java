@@ -5,21 +5,17 @@ import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.MathHelper;
 
 import javax.annotation.Nullable;
 
 public final class RobotRotationAction extends AbstractRobotAction {
-    public static final DataParameter<Direction> TARGET_DIRECTION = EntityDataManager.createKey(RobotEntity.class, DataSerializers.DIRECTION);
     public static final float TARGET_EPSILON = 0.0001f;
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final float ROTATION_SPEED = 45f / Constants.TICK_SECONDS; // In degrees per second.
+    private static final float ROTATION_SPEED = 90f / Constants.TICK_SECONDS; // In degrees per second.
 
     private static final String DIRECTION_TAG_NAME = "direction";
     private static final String TARGET_TAG_NAME = "start";
@@ -61,7 +57,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
             }
         }
 
-        robot.getDataManager().set(TARGET_DIRECTION, target);
+        robot.getDataManager().set(RobotEntity.TARGET_DIRECTION, target);
     }
 
     @Override

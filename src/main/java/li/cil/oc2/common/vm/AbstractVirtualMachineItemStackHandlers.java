@@ -20,7 +20,7 @@ import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 import java.util.*;
 import java.util.function.Function;
 
-public abstract class CommonVirtualMachineItemStackHandlers {
+public abstract class AbstractVirtualMachineItemStackHandlers implements VirtualMachineItemStackHandlers {
     private static final long ITEM_DEVICE_BASE_ADDRESS = 0x40000000L;
     private static final int ITEM_DEVICE_STRIDE = 0x1000;
 
@@ -52,10 +52,10 @@ public abstract class CommonVirtualMachineItemStackHandlers {
 
     ///////////////////////////////////////////////////////////////////
 
-    public CommonVirtualMachineItemStackHandlers(final int memorySlots,
-                                                 final int hardDriveSlots,
-                                                 final int flashMemorySlots,
-                                                 final int cardSlots) {
+    public AbstractVirtualMachineItemStackHandlers(final int memorySlots,
+                                                   final int hardDriveSlots,
+                                                   final int flashMemorySlots,
+                                                   final int cardSlots) {
         memoryItemHandler = new ItemHandler(memorySlots, this::getDevices, DeviceTypes.MEMORY);
         hardDriveItemHandler = new ItemHandler(hardDriveSlots, this::getDevices, DeviceTypes.HARD_DRIVE);
         flashMemoryItemHandler = new ItemHandler(flashMemorySlots, this::getDevices, DeviceTypes.FLASH_MEMORY);
@@ -66,6 +66,7 @@ public abstract class CommonVirtualMachineItemStackHandlers {
 
     ///////////////////////////////////////////////////////////////////
 
+    @Override
     public Optional<IItemHandler> getItemHandler(final DeviceType deviceType) {
         if (deviceType == DeviceTypes.MEMORY) {
             return Optional.of(memoryItemHandler);
@@ -79,6 +80,7 @@ public abstract class CommonVirtualMachineItemStackHandlers {
         return Optional.empty();
     }
 
+    @Override
     public boolean isEmpty() {
         for (int slot = 0; slot < itemHandlers.getSlots(); slot++) {
             if (!itemHandlers.getStackInSlot(slot).isEmpty()) {
@@ -116,6 +118,7 @@ public abstract class CommonVirtualMachineItemStackHandlers {
         return OptionalLong.empty();
     }
 
+    @Override
     public void exportDeviceDataToItemStacks() {
         memoryItemHandler.exportDeviceDataToItemStacks();
         hardDriveItemHandler.exportDeviceDataToItemStacks();
@@ -166,7 +169,7 @@ public abstract class CommonVirtualMachineItemStackHandlers {
         @Override
         protected void onContentsChanged(final int slot) {
             super.onContentsChanged(slot);
-            CommonVirtualMachineItemStackHandlers.this.onContentsChanged(this, slot);
+            AbstractVirtualMachineItemStackHandlers.this.onContentsChanged(this, slot);
         }
     }
 

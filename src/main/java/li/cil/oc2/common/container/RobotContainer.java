@@ -1,40 +1,37 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.common.block.Blocks;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.vm.VirtualMachineItemStackHandlers;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.BlockPos;
 
 import javax.annotation.Nullable;
 
-public final class ComputerContainer extends AbstractContainer {
+public final class RobotContainer extends AbstractContainer {
     @Nullable
-    public static ComputerContainer create(final int id, final PlayerInventory inventory, final PacketBuffer data) {
-        final BlockPos pos = data.readBlockPos();
-        final TileEntity tileEntity = inventory.player.getEntityWorld().getTileEntity(pos);
-        if (!(tileEntity instanceof ComputerTileEntity)) {
+    public static RobotContainer create(final int id, final PlayerInventory inventory, final PacketBuffer data) {
+        final int entityId = data.readVarInt();
+        final Entity entity = inventory.player.getEntityWorld().getEntityByID(entityId);
+        if (!(entity instanceof RobotEntity)) {
             return null;
         }
-        return new ComputerContainer(id, (ComputerTileEntity) tileEntity, inventory);
+        return new RobotContainer(id, (RobotEntity) entity, inventory);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private final ComputerTileEntity computer;
+    private final RobotEntity robot;
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerContainer(final int id, final ComputerTileEntity computer, final PlayerInventory inventory) {
-        super(Containers.COMPUTER_CONTAINER.get(), id);
-        this.computer = computer;
+    public RobotContainer(final int id, final RobotEntity robot, final PlayerInventory inventory) {
+        super(Containers.ROBOT_CONTAINER.get(), id);
+        this.robot = robot;
 
-        final VirtualMachineItemStackHandlers handlers = computer.getItemStackHandlers();
+        final VirtualMachineItemStackHandlers handlers = robot.getItemStackHandlers();
 
         handlers.getItemHandler(DeviceTypes.FLASH_MEMORY).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {
@@ -67,6 +64,6 @@ public final class ComputerContainer extends AbstractContainer {
 
     @Override
     public boolean canInteractWith(final PlayerEntity player) {
-        return isWithinUsableDistance(IWorldPosCallable.of(computer.getWorld(), computer.getPos()), player, Blocks.COMPUTER_BLOCK.get());
+        return robot.isEntityInRange(player, 8);
     }
 }

@@ -30,6 +30,7 @@ public final class Items {
 
     public static final RegistryObject<Item> BUS_INTERFACE_ITEM = register(Constants.BUS_INTERFACE_ITEM_NAME, BusInterfaceItem::new);
     public static final RegistryObject<Item> NETWORK_CABLE_ITEM = register(Constants.NETWORK_CABLE_ITEM_NAME, NetworkCableItem::new);
+    public static final RegistryObject<Item> ROBOT_ITEM = register(Constants.ROBOT_ENTITY_NAME, RobotItem::new);
 
     public static final RegistryObject<Item> MEMORY_ITEM = register(Constants.MEMORY_ITEM_NAME, MemoryItem::new, new Item.Properties());
     public static final RegistryObject<Item> HARD_DRIVE_ITEM = register(Constants.HARD_DRIVE_ITEM_NAME, HardDriveItem::new, new Item.Properties());

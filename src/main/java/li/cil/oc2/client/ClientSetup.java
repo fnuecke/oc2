@@ -6,11 +6,13 @@ import li.cil.oc2.client.gui.ComputerContainerScreen;
 import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.BusCableModelLoader;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
+import li.cil.oc2.client.renderer.entity.RobotEntityRenderer;
 import li.cil.oc2.client.renderer.tileentity.ComputerTileEntityRenderer;
 import li.cil.oc2.client.renderer.tileentity.NetworkConnectorTileEntityRenderer;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.DeviceTypes;
 import li.cil.oc2.common.container.Containers;
+import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.tileentity.TileEntities;
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.inventory.container.PlayerContainer;
@@ -20,6 +22,7 @@ import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
+import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 public final class ClientSetup {
@@ -32,6 +35,8 @@ public final class ClientSetup {
 
         ClientRegistry.bindTileEntityRenderer(TileEntities.COMPUTER_TILE_ENTITY.get(), ComputerTileEntityRenderer::new);
         ClientRegistry.bindTileEntityRenderer(TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), NetworkConnectorTileEntityRenderer::new);
+
+        RenderingRegistry.registerEntityRenderingHandler(Entities.ROBOT.get(), RobotEntityRenderer::new);
     }
 
     @SubscribeEvent

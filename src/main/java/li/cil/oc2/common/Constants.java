@@ -41,6 +41,10 @@ public final class Constants {
 
     ///////////////////////////////////////////////////////////////////
 
+    public static final String ROBOT_ENTITY_NAME = "robot";
+
+    ///////////////////////////////////////////////////////////////////
+
     public static final String CONFIG_MAX_ALLOCATED_MEMORY = "config.oc2.maxAllocatedMemory";
     public static final String CONFIG_MAX_MEMORY_SIZE = "config.oc2.maxMemorySize";
     public static final String CONFIG_MAX_HARD_DRIVE_SIZE = "config.oc2.maxHardDriveSize";

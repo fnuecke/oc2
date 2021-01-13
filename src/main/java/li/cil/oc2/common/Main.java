@@ -9,6 +9,7 @@ import li.cil.oc2.common.bus.device.data.BaseBlockDevices;
 import li.cil.oc2.common.bus.device.data.Firmwares;
 import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.container.Containers;
+import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.serialization.serializers.Serializers;
 import li.cil.oc2.common.tileentity.TileEntities;
@@ -28,6 +29,7 @@ public final class Main {
         Items.initialize();
         Blocks.initialize();
         TileEntities.initialize();
+        Entities.initialize();
         Containers.initialize();
         Providers.initialize();
         DeviceTypes.initialize();

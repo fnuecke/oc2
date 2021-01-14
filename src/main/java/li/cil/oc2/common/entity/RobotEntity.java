@@ -183,7 +183,9 @@ public final class RobotEntity extends Entity {
                 final int z = iterator.getZ();
                 mutablePosition.setPos(x, y, z);
                 final BlockState blockState = world.getBlockState(mutablePosition);
-                if (blockState.isAir(world, mutablePosition)) {
+                if (blockState.isAir(world, mutablePosition) ||
+                    blockState.isIn(Blocks.MOVING_PISTON) ||
+                    blockState.isIn(Blocks.PISTON_HEAD)) {
                     continue;
                 }
 
@@ -313,6 +315,11 @@ public final class RobotEntity extends Entity {
 
     @Override
     protected void doBlockCollisions() {
+    }
+
+    @Override
+    protected Vector3d handlePistonMovement(final Vector3d pos) {
+        return Vector3d.ZERO;
     }
 
     ///////////////////////////////////////////////////////////////////

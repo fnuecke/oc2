@@ -12,6 +12,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public final class RobotMovementAction extends AbstractRobotAction {
     public static final double TARGET_EPSILON = 0.0001;
@@ -21,14 +22,17 @@ public final class RobotMovementAction extends AbstractRobotAction {
     private static final float MOVEMENT_SPEED = 1f / Constants.TICK_SECONDS; // In blocks per second.
 
     private static final String DIRECTION_TAG_NAME = "direction";
+    private static final String ORIGIN_TAG_NAME = "origin";
     private static final String START_TAG_NAME = "start";
-    private static final String TARGET_TAG_NAME = "start";
+    private static final String TARGET_TAG_NAME = "target";
 
     ///////////////////////////////////////////////////////////////////
 
     private MovementDirection direction;
+    @Nullable private BlockPos origin;
     @Nullable private BlockPos start;
-    @Nullable private Vector3d target;
+    @Nullable private BlockPos target;
+    @Nullable private Vector3d targetPos;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -57,82 +61,94 @@ public final class RobotMovementAction extends AbstractRobotAction {
         robot.move(MoverType.SELF, delta);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
     public void initialize(final RobotEntity robot) {
-        if (target == null) {
-            start = robot.getPosition();
-            BlockPos targetPosition = start;
+        if (origin == null || start == null || target == null) {
+            origin = robot.getPosition();
+            start = origin;
+            target = start;
             switch (direction) {
                 case UP:
-                    targetPosition = targetPosition.offset(Direction.UP);
+                    target = target.offset(Direction.UP);
                     break;
                 case DOWN:
-                    targetPosition = targetPosition.offset(Direction.DOWN);
+                    target = target.offset(Direction.DOWN);
                     break;
                 case FORWARD:
-                    targetPosition = targetPosition.offset(robot.getHorizontalFacing());
+                    target = target.offset(robot.getHorizontalFacing());
                     break;
                 case BACKWARD:
-                    targetPosition = targetPosition.offset(robot.getHorizontalFacing().getOpposite());
+                    target = target.offset(robot.getHorizontalFacing().getOpposite());
                     break;
             }
-
-            target = getTargetPositionInBlock(targetPosition);
         }
 
-        robot.getDataManager().set(RobotEntity.TARGET_POSITION, new BlockPos(target));
+        targetPos = getTargetPositionInBlock(target);
+        robot.getDataManager().set(RobotEntity.TARGET_POSITION, target);
     }
 
     @Override
-    public boolean perform(final RobotEntity robot) {
-        if (target == null) {
-            return true;
+    public RobotActionResult perform(final RobotEntity robot) {
+        if (targetPos == null) {
+            throw new IllegalStateException();
         }
 
-        moveTowards(robot, target);
+        moveTowards(robot, targetPos);
 
         final boolean didCollide = robot.collidedHorizontally || robot.collidedVertically;
         if (didCollide && !robot.getEntityWorld().isRemote()) {
-            if (start != null) {
-                target = getTargetPositionInBlock(start);
-                robot.getDataManager().set(RobotEntity.TARGET_POSITION, start);
+            final BlockPos newStart = target;
+            target = start;
+            start = newStart;
+            targetPos = getTargetPositionInBlock(target);
+            robot.getDataManager().set(RobotEntity.TARGET_POSITION, target);
+        }
 
-                start = null;
+        if (robot.getPositionVec().squareDistanceTo(targetPos) < TARGET_EPSILON) {
+            if (Objects.equals(target, origin)) {
+                return RobotActionResult.FAILURE; // Collided and returned.
             } else {
-                // todo if it's a block, try to break it. or just drop ourselves?
+                return RobotActionResult.SUCCESS; // Made it to new location.
             }
         }
 
-        return robot.getPositionVec().squareDistanceTo(target) < TARGET_EPSILON;
+        return RobotActionResult.INCOMPLETE;
     }
-
-    ///////////////////////////////////////////////////////////////////
 
     @Override
     public CompoundNBT serialize() {
         final CompoundNBT tag = super.serialize();
 
         NBTUtils.putEnum(tag, DIRECTION_TAG_NAME, direction);
+        if (origin != null) {
+            NBTUtils.putBlockPos(tag, ORIGIN_TAG_NAME, origin);
+        }
         if (start != null) {
             NBTUtils.putBlockPos(tag, START_TAG_NAME, start);
         }
         if (target != null) {
-            NBTUtils.putVector3d(tag, TARGET_TAG_NAME, target);
+            NBTUtils.putBlockPos(tag, TARGET_TAG_NAME, target);
         }
 
         return tag;
     }
 
     @Override
-    protected void deserialize(final CompoundNBT tag) {
+    public void deserialize(final CompoundNBT tag) {
         super.deserialize(tag);
 
         direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, MovementDirection.class);
+        if (tag.contains(ORIGIN_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            origin = NBTUtils.getBlockPos(tag, ORIGIN_TAG_NAME);
+        }
         if (tag.contains(START_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             start = NBTUtils.getBlockPos(tag, START_TAG_NAME);
         }
         if (tag.contains(TARGET_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            target = NBTUtils.getVector3d(tag, TARGET_TAG_NAME);
+            target = NBTUtils.getBlockPos(tag, TARGET_TAG_NAME);
+            targetPos = getTargetPositionInBlock(target);
         }
     }
 }

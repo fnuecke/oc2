@@ -19,6 +19,7 @@ import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.*;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
+import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.WorldUtils;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.block.SoundType;
@@ -67,7 +68,8 @@ public final class RobotEntity extends Entity {
     private static final String BUS_ELEMENT_TAG_NAME = "bus_element";
     private static final String COMMAND_PROCESSOR_TAG_NAME = "commands";
 
-    private static final int MAX_QUEUED_ACTIONS = 15;
+    private static final int MAX_QUEUED_ACTIONS = 16;
+    private static final int MAX_QUEUED_RESULTS = 16;
 
     private static final int MEMORY_SLOTS = 4;
     private static final int HARD_DRIVE_SLOTS = 2;
@@ -80,7 +82,7 @@ public final class RobotEntity extends Entity {
     private final Consumer<WorldEvent.Unload> worldUnloadListener = this::handleWorldUnload;
 
     private final AnimationState animationState = new AnimationState();
-    private final CommandProcessor commandProcessor = new CommandProcessor();
+    private final RobotActionProcessor actionProcessor = new RobotActionProcessor();
     private final Terminal terminal = new Terminal();
     private final RobotVirtualMachineState state;
     private final RobotItemStackHandlers items = new RobotItemStackHandlers();
@@ -145,8 +147,8 @@ public final class RobotEntity extends Entity {
             } else {
                 registerListeners();
                 RobotActions.initializeData(this);
-                if (commandProcessor.action != null) {
-                    commandProcessor.action.initialize(this);
+                if (actionProcessor.action != null) {
+                    actionProcessor.action.initialize(this);
                 }
             }
         }
@@ -157,7 +159,7 @@ public final class RobotEntity extends Entity {
             state.tick();
         }
 
-        commandProcessor.tick();
+        actionProcessor.tick();
     }
 
     @Override
@@ -235,7 +237,7 @@ public final class RobotEntity extends Entity {
     protected void writeAdditional(final CompoundNBT tag) {
         tag.put(STATE_TAG_NAME, state.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
-        tag.put(COMMAND_PROCESSOR_TAG_NAME, commandProcessor.serialize());
+        tag.put(COMMAND_PROCESSOR_TAG_NAME, actionProcessor.serialize());
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.serialize());
         tag.put(Constants.INVENTORY_TAG_NAME, items.serialize());
     }
@@ -244,7 +246,7 @@ public final class RobotEntity extends Entity {
     protected void readAdditional(final CompoundNBT tag) {
         state.deserialize(tag.getCompound(STATE_TAG_NAME));
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
-        commandProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
+        actionProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
         busElement.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME));
 
         if (tag.contains(Constants.INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
@@ -365,7 +367,7 @@ public final class RobotEntity extends Entity {
         public float topRenderHover = -(hashCode() & 0xFFFF); // init to "random" to avoid synchronous hovering
 
         public void update(final float deltaTime, final Random random) {
-            if (getState().isRunning() || commandProcessor.hasQueuedActions()) {
+            if (getState().isRunning() || actionProcessor.hasQueuedActions()) {
                 topRenderHover = topRenderHover + deltaTime * HOVER_ANIMATION_SPEED;
                 final float topOffsetY = MathHelper.sin(topRenderHover) / 32f;
 
@@ -386,12 +388,48 @@ public final class RobotEntity extends Entity {
         }
     }
 
-    private final class CommandProcessor {
+    private static final class RobotActionProcessorResult {
+        private static final String ACTION_ID_TAG_NAME = "action_id";
+        private static final String RESULT_TAG_NAME = "result";
+
+        public int actionId;
+        public RobotActionResult result;
+
+        public RobotActionProcessorResult(final int actionId, final RobotActionResult result) {
+            this.actionId = actionId;
+            this.result = result;
+        }
+
+        public RobotActionProcessorResult(final CompoundNBT tag) {
+            deserialize(tag);
+        }
+
+        public CompoundNBT serialize() {
+            final CompoundNBT tag = new CompoundNBT();
+
+            tag.putInt(ACTION_ID_TAG_NAME, actionId);
+            NBTUtils.putEnum(tag, RESULT_TAG_NAME, result);
+
+            return tag;
+        }
+
+        public void deserialize(final CompoundNBT tag) {
+            actionId = tag.getInt(ACTION_ID_TAG_NAME);
+            result = NBTUtils.getEnum(tag, RESULT_TAG_NAME, RobotActionResult.class);
+        }
+    }
+
+    private final class RobotActionProcessor {
         private static final String QUEUE_TAG_NAME = "queue";
         private static final String ACTION_TAG_NAME = "action";
+        private static final String RESULTS_TAG_NAME = "results";
+        private static final String LAST_ACTION_ID_TAG_NAME = "last_action_id";
 
-        private final Queue<AbstractRobotAction> queue = new ArrayDeque<>(MAX_QUEUED_ACTIONS);
+        private final Queue<AbstractRobotAction> queue = new ArrayDeque<>(MAX_QUEUED_ACTIONS - 1);
         @Nullable private AbstractRobotAction action;
+
+        private final Queue<RobotActionProcessorResult> results = new ArrayDeque<>(MAX_QUEUED_RESULTS);
+        private int lastActionId;
 
         public boolean hasQueuedActions() {
             return action != null || !queue.isEmpty();
@@ -414,7 +452,16 @@ public final class RobotEntity extends Entity {
                 RobotActions.performClient(RobotEntity.this);
             } else {
                 if (action != null) {
-                    if (action.perform(RobotEntity.this)) {
+                    final RobotActionResult result = action.perform(RobotEntity.this);
+                    if (result != RobotActionResult.INCOMPLETE) {
+                        synchronized (results) {
+                            if (results.size() == MAX_QUEUED_RESULTS) {
+                                results.remove();
+                            }
+
+                            results.add(new RobotActionProcessorResult(action.getId(), result));
+                        }
+
                         action = null;
                     }
                 }
@@ -429,6 +476,8 @@ public final class RobotEntity extends Entity {
 
         public void clear() {
             queue.clear();
+            results.clear();
+            lastActionId = 0;
         }
 
         public CompoundNBT serialize() {
@@ -444,24 +493,40 @@ public final class RobotEntity extends Entity {
                 tag.put(ACTION_TAG_NAME, RobotActions.serialize(action));
             }
 
+            final ListNBT resultsTag = new ListNBT();
+            for (final RobotActionProcessorResult result : results) {
+                resultsTag.add(result.serialize());
+            }
+            tag.put(RESULTS_TAG_NAME, resultsTag);
+
+            tag.putInt(LAST_ACTION_ID_TAG_NAME, lastActionId);
+
             return tag;
         }
 
         public void deserialize(final CompoundNBT tag) {
             queue.clear();
-            action = null;
+            results.clear();
 
             final ListNBT queueTag = tag.getList(QUEUE_TAG_NAME, NBTTagIds.TAG_COMPOUND);
-            for (int i = 0; i < queueTag.size(); i++) {
+            for (int i = 0; i < Math.min(queueTag.size(), MAX_QUEUED_ACTIONS - 1); i++) {
                 final AbstractRobotAction action = RobotActions.deserialize(queueTag.getCompound(i));
                 if (action != null) {
                     queue.add(action);
                 }
             }
 
-            if (tag.contains(ACTION_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-                action = RobotActions.deserialize(tag.getCompound(ACTION_TAG_NAME));
+            action = RobotActions.deserialize(tag.getCompound(ACTION_TAG_NAME));
+
+            final ListNBT resultsTag = tag.getList(RESULTS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
+            for (int i = 0; i < Math.min(resultsTag.size(), MAX_QUEUED_RESULTS); i++) {
+                final RobotActionProcessorResult result = new RobotActionProcessorResult(resultsTag.getCompound(i));
+                if (result.actionId != 0) {
+                    results.add(result);
+                }
             }
+
+            lastActionId = tag.getInt(LAST_ACTION_ID_TAG_NAME);
         }
 
         private boolean addAction(final AbstractRobotAction action) {
@@ -473,8 +538,12 @@ public final class RobotEntity extends Entity {
                 return false;
             }
 
-            if (queue.size() < MAX_QUEUED_ACTIONS) {
-                queue.add(action);
+            if (queue.size() < MAX_QUEUED_ACTIONS - 1) { // -1 for current action
+                lastActionId = (lastActionId + 1) & 0x7FFFFFFF; // only positive ids; unlikely to ever wrap, but eh.
+                action.setId(lastActionId);
+                synchronized (queue) {
+                    queue.add(action);
+                }
                 return true;
             } else {
                 return false;
@@ -589,7 +658,7 @@ public final class RobotEntity extends Entity {
         public void stopRunnerAndReset() {
             super.stopRunnerAndReset();
 
-            commandProcessor.clear();
+            actionProcessor.clear();
         }
 
         @Override
@@ -609,21 +678,51 @@ public final class RobotEntity extends Entity {
     }
 
     public final class RobotDevice {
-        @Callback
+        @Callback(synchronize = false)
         public boolean move(@Parameter("direction") @Nullable final MovementDirection direction) {
             if (direction == null) throw new IllegalArgumentException();
-            return commandProcessor.move(direction);
+            return actionProcessor.move(direction);
         }
 
-        @Callback
+        @Callback(synchronize = false)
         public boolean turn(@Parameter("direction") @Nullable final RotationDirection direction) {
             if (direction == null) throw new IllegalArgumentException();
-            return commandProcessor.rotate(direction);
+            return actionProcessor.rotate(direction);
         }
 
-        @Callback
+        @Callback(synchronize = false)
+        public int getLastActionId() {
+            return actionProcessor.lastActionId;
+        }
+
+        @Callback(synchronize = false)
         public int getQueuedActionCount() {
-            return commandProcessor.getQueuedActionCount();
+            return actionProcessor.getQueuedActionCount();
+        }
+
+        @Nullable
+        @Callback(synchronize = false)
+        public RobotActionResult getActionResult(@Parameter("actionId") final int actionId) {
+            final AbstractRobotAction currentAction = actionProcessor.action;
+            if (currentAction != null && currentAction.getId() == actionId) {
+                return RobotActionResult.INCOMPLETE;
+            }
+            synchronized (actionProcessor.queue) {
+                for (final AbstractRobotAction action : actionProcessor.queue) {
+                    if (action.getId() == actionId) {
+                        return RobotActionResult.INCOMPLETE;
+                    }
+                }
+            }
+            synchronized (actionProcessor.results) {
+                for (final RobotActionProcessorResult result : actionProcessor.results) {
+                    if (result.actionId == actionId) {
+                        return result.result;
+                    }
+                }
+            }
+
+            return null;
         }
 
         private RobotDevice() {

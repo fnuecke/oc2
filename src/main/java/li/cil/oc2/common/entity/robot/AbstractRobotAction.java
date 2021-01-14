@@ -4,7 +4,12 @@ import li.cil.oc2.common.entity.RobotEntity;
 import net.minecraft.nbt.CompoundNBT;
 
 public abstract class AbstractRobotAction {
+    private static final String ID_TAG_NAME = "id";
+
+    ///////////////////////////////////////////////////////////////////
+
     private final AbstractRobotActionType type;
+    private int id;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -23,17 +28,28 @@ public abstract class AbstractRobotAction {
         return type;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(final int value) {
+        id = value;
+    }
+
     public void initialize(final RobotEntity robot) {
     }
 
-    public abstract boolean perform(RobotEntity robot);
+    public abstract RobotActionResult perform(RobotEntity robot);
 
     public CompoundNBT serialize() {
-        return new CompoundNBT();
+        final CompoundNBT tag = new CompoundNBT();
+
+        tag.putInt(ID_TAG_NAME, id);
+
+        return tag;
     }
 
-    ///////////////////////////////////////////////////////////////////
-
-    protected void deserialize(final CompoundNBT tag) {
+    public void deserialize(final CompoundNBT tag) {
+        id = tag.getInt(ID_TAG_NAME);
     }
 }

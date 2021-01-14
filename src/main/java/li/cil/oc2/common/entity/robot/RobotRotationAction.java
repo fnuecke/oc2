@@ -43,6 +43,8 @@ public final class RobotRotationAction extends AbstractRobotAction {
         robot.rotationYaw = MathHelper.approachDegrees(robot.rotationYaw, targetRotation.getHorizontalAngle(), ROTATION_SPEED);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
     public void initialize(final RobotEntity robot) {
         if (target == null) {
@@ -61,17 +63,19 @@ public final class RobotRotationAction extends AbstractRobotAction {
     }
 
     @Override
-    public boolean perform(final RobotEntity robot) {
+    public RobotActionResult perform(final RobotEntity robot) {
         if (target == null) {
-            return true;
+            throw new IllegalStateException();
         }
 
         rotateTowards(robot, target);
 
-        return MathHelper.degreesDifferenceAbs(robot.rotationYaw, target.getHorizontalAngle()) < TARGET_EPSILON;
-    }
+        if (MathHelper.degreesDifferenceAbs(robot.rotationYaw, target.getHorizontalAngle()) < TARGET_EPSILON) {
+            return RobotActionResult.SUCCESS;
+        }
 
-    ///////////////////////////////////////////////////////////////////
+        return RobotActionResult.INCOMPLETE;
+    }
 
     @Override
     public CompoundNBT serialize() {
@@ -86,7 +90,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
     }
 
     @Override
-    protected void deserialize(final CompoundNBT tag) {
+    public void deserialize(final CompoundNBT tag) {
         super.deserialize(tag);
 
         direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, RotationDirection.class);

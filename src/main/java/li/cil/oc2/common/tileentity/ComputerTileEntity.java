@@ -2,6 +2,7 @@ package li.cil.oc2.common.tileentity;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
@@ -225,7 +226,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        collector.offer(Capabilities.ITEM_HANDLER, items.itemHandlers);
+        collector.offer(Capabilities.ITEM_HANDLER, items.combinedItemHandlers);
         collector.offer(Capabilities.DEVICE_BUS_ELEMENT, busElement);
     }
 
@@ -262,7 +263,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     private final class ComputerItemStackHandlers extends AbstractVirtualMachineItemStackHandlers {
         public ComputerItemStackHandlers() {
-            super(MEMORY_SLOTS, HARD_DRIVE_SLOTS, FLASH_MEMORY_SLOTS, CARD_SLOTS);
+            super(
+                    GroupDefinition.of(DeviceTypes.MEMORY, MEMORY_SLOTS),
+                    GroupDefinition.of(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
+                    GroupDefinition.of(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS),
+                    GroupDefinition.of(DeviceTypes.CARD, CARD_SLOTS)
+            );
         }
 
         @Override

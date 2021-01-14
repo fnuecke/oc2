@@ -12,4 +12,5 @@ public final class DeviceTypes {
     @ObjectHolder("hard_drive") public static DeviceType HARD_DRIVE = null;
     @ObjectHolder("flash_memory") public static DeviceType FLASH_MEMORY = null;
     @ObjectHolder("card") public static DeviceType CARD = null;
+    @ObjectHolder("robot_module") public static DeviceType ROBOT_MODULE = null;
 }

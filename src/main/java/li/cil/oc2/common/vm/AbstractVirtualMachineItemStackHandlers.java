@@ -15,75 +15,77 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
+import net.minecraftforge.registries.ForgeRegistry;
+import net.minecraftforge.registries.RegistryManager;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public abstract class AbstractVirtualMachineItemStackHandlers implements VirtualMachineItemStackHandlers {
+    public static final class GroupDefinition {
+        public final DeviceType deviceType;
+        public final int count;
+
+        public static GroupDefinition of(final DeviceType deviceType, final int count) {
+            return new GroupDefinition(deviceType, count);
+        }
+
+        private GroupDefinition(final DeviceType deviceType, final int count) {
+            this.deviceType = deviceType;
+            this.count = count;
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
     private static final long ITEM_DEVICE_BASE_ADDRESS = 0x40000000L;
     private static final int ITEM_DEVICE_STRIDE = 0x1000;
-
-    public static final String MEMORY_TAG_NAME = "memory";
-    public static final String HARD_DRIVE_TAG_NAME = "hard_drive";
-    public static final String FLASH_MEMORY_TAG_NAME = "flash_memory";
-    public static final String CARD_TAG_NAME = "card";
 
     ///////////////////////////////////////////////////////////////////
 
     public static void addInformation(final ItemStack stack, final List<ITextComponent> tooltip) {
-        TooltipUtils.addInventoryInformation(stack, tooltip,
-                MEMORY_TAG_NAME,
-                HARD_DRIVE_TAG_NAME,
-                FLASH_MEMORY_TAG_NAME,
-                CARD_TAG_NAME);
+        final ForgeRegistry<DeviceType> registry = RegistryManager.ACTIVE.getRegistry(DeviceType.REGISTRY);
+        if (registry != null) {
+            TooltipUtils.addInventoryInformation(stack, tooltip,
+                    registry.getValues().stream().map(deviceType ->
+                            deviceType.getRegistryName().toString()).toArray(String[]::new));
+        }
     }
 
     ///////////////////////////////////////////////////////////////////
 
     public final DeviceBusElement busElement = new BusElement();
 
-    public final DeviceItemStackHandler memoryItemHandler;
-    public final DeviceItemStackHandler hardDriveItemHandler;
-    public final DeviceItemStackHandler flashMemoryItemHandler;
-    public final DeviceItemStackHandler cardItemHandler;
+    // NB: linked hash map such that order of parameters in constructor is retained.
+    //     This is relevant when assigning default addresses for devices.
+    private final LinkedHashMap<DeviceType, DeviceItemStackHandler> itemHandlers = new LinkedHashMap<>();
 
-    public final IItemHandler itemHandlers;
+    public final IItemHandler combinedItemHandlers;
 
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractVirtualMachineItemStackHandlers(final int memorySlots,
-                                                   final int hardDriveSlots,
-                                                   final int flashMemorySlots,
-                                                   final int cardSlots) {
-        memoryItemHandler = new ItemHandler(memorySlots, this::getDevices, DeviceTypes.MEMORY);
-        hardDriveItemHandler = new ItemHandler(hardDriveSlots, this::getDevices, DeviceTypes.HARD_DRIVE);
-        flashMemoryItemHandler = new ItemHandler(flashMemorySlots, this::getDevices, DeviceTypes.FLASH_MEMORY);
-        cardItemHandler = new ItemHandler(cardSlots, this::getDevices, DeviceTypes.CARD);
+    public AbstractVirtualMachineItemStackHandlers(final GroupDefinition... groups) {
+        for (final GroupDefinition group : groups) {
+            itemHandlers.put(group.deviceType, new ItemHandler(group.count, this::getDevices, group.deviceType));
+        }
 
-        itemHandlers = new CombinedInvWrapper(memoryItemHandler, hardDriveItemHandler, flashMemoryItemHandler, cardItemHandler);
+        combinedItemHandlers = new CombinedInvWrapper(itemHandlers.values().toArray(new IItemHandlerModifiable[0]));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     public Optional<IItemHandler> getItemHandler(final DeviceType deviceType) {
-        if (deviceType == DeviceTypes.MEMORY) {
-            return Optional.of(memoryItemHandler);
-        } else if (deviceType == DeviceTypes.HARD_DRIVE) {
-            return Optional.of(hardDriveItemHandler);
-        } else if (deviceType == DeviceTypes.FLASH_MEMORY) {
-            return Optional.of(flashMemoryItemHandler);
-        } else if (deviceType == DeviceTypes.CARD) {
-            return Optional.of(cardItemHandler);
-        }
-        return Optional.empty();
+        return Optional.ofNullable(itemHandlers.get(deviceType));
     }
 
     @Override
     public boolean isEmpty() {
-        for (int slot = 0; slot < itemHandlers.getSlots(); slot++) {
-            if (!itemHandlers.getStackInSlot(slot).isEmpty()) {
+        for (int slot = 0; slot < combinedItemHandlers.getSlots(); slot++) {
+            if (!combinedItemHandlers.getStackInSlot(slot).isEmpty()) {
                 return false;
             }
         }
@@ -93,22 +95,23 @@ public abstract class AbstractVirtualMachineItemStackHandlers implements Virtual
     public OptionalLong getDefaultDeviceAddress(final VMDevice wrapper) {
         long address = ITEM_DEVICE_BASE_ADDRESS;
 
-        for (int slot = 0; slot < hardDriveItemHandler.getSlots(); slot++) {
-            final Collection<ItemDeviceInfo> devices = hardDriveItemHandler.getBusElement().getDeviceGroup(slot);
-            for (final ItemDeviceInfo info : devices) {
-                if (Objects.equals(info.device, wrapper)) {
-                    return OptionalLong.of(address);
-                }
+        for (final Map.Entry<DeviceType, DeviceItemStackHandler> entry : itemHandlers.entrySet()) {
+            final DeviceType deviceType = entry.getKey();
+            final DeviceItemStackHandler handler = entry.getValue();
+
+            // Ahhh, such special casing, much wow. Honestly I don't expect this
+            // special case to ever be needed for anything other than physical
+            // memory, so it's fine. Prove me wrong.
+            if (deviceType == DeviceTypes.MEMORY) {
+                continue;
             }
 
-            address += ITEM_DEVICE_STRIDE;
-        }
-
-        for (int slot = 0; slot < cardItemHandler.getSlots(); slot++) {
-            final Collection<ItemDeviceInfo> devices = cardItemHandler.getBusElement().getDeviceGroup(slot);
-            for (final ItemDeviceInfo info : devices) {
-                if (Objects.equals(info.device, wrapper)) {
-                    return OptionalLong.of(address);
+            for (int i = 0; i < handler.getSlots(); i++) {
+                final Collection<ItemDeviceInfo> devices = handler.getBusElement().getDeviceGroup(i);
+                for (final ItemDeviceInfo info : devices) {
+                    if (Objects.equals(info.device, wrapper)) {
+                        return OptionalLong.of(address);
+                    }
                 }
             }
 
@@ -120,36 +123,30 @@ public abstract class AbstractVirtualMachineItemStackHandlers implements Virtual
 
     @Override
     public void exportDeviceDataToItemStacks() {
-        memoryItemHandler.exportDeviceDataToItemStacks();
-        hardDriveItemHandler.exportDeviceDataToItemStacks();
-        flashMemoryItemHandler.exportDeviceDataToItemStacks();
-        cardItemHandler.exportDeviceDataToItemStacks();
+        for (final DeviceItemStackHandler handler : itemHandlers.values()) {
+            handler.exportDeviceDataToItemStacks();
+        }
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        final CompoundNBT items = ItemStackUtils.getOrCreateTileEntityInventoryTag(stack);
-        items.put(MEMORY_TAG_NAME, memoryItemHandler.serializeNBT());
-        items.put(HARD_DRIVE_TAG_NAME, hardDriveItemHandler.serializeNBT());
-        items.put(FLASH_MEMORY_TAG_NAME, flashMemoryItemHandler.serializeNBT());
-        items.put(CARD_TAG_NAME, cardItemHandler.serializeNBT());
+        final CompoundNBT tag = ItemStackUtils.getOrCreateTileEntityInventoryTag(stack);
+
+        itemHandlers.forEach((deviceType, handler) ->
+                tag.put(deviceType.getRegistryName().toString(), handler.serializeNBT()));
     }
 
     public CompoundNBT serialize() {
         final CompoundNBT tag = new CompoundNBT();
 
-        tag.put(MEMORY_TAG_NAME, memoryItemHandler.serializeNBT());
-        tag.put(HARD_DRIVE_TAG_NAME, hardDriveItemHandler.serializeNBT());
-        tag.put(FLASH_MEMORY_TAG_NAME, flashMemoryItemHandler.serializeNBT());
-        tag.put(CARD_TAG_NAME, cardItemHandler.serializeNBT());
+        itemHandlers.forEach((deviceType, handler) ->
+                tag.put(deviceType.getRegistryName().toString(), handler.serializeNBT()));
 
         return tag;
     }
 
     public void deserialize(final CompoundNBT tag) {
-        memoryItemHandler.deserializeNBT(tag.getCompound(MEMORY_TAG_NAME));
-        hardDriveItemHandler.deserializeNBT(tag.getCompound(HARD_DRIVE_TAG_NAME));
-        flashMemoryItemHandler.deserializeNBT(tag.getCompound(FLASH_MEMORY_TAG_NAME));
-        cardItemHandler.deserializeNBT(tag.getCompound(CARD_TAG_NAME));
+        itemHandlers.forEach((deviceType, handler) ->
+                handler.deserializeNBT(tag.getCompound(deviceType.getRegistryName().toString())));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -176,12 +173,9 @@ public abstract class AbstractVirtualMachineItemStackHandlers implements Virtual
     private final class BusElement extends AbstractDeviceBusElement {
         @Override
         public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
-            return Optional.of(Arrays.asList(
-                    LazyOptional.of(memoryItemHandler::getBusElement),
-                    LazyOptional.of(hardDriveItemHandler::getBusElement),
-                    LazyOptional.of(flashMemoryItemHandler::getBusElement),
-                    LazyOptional.of(cardItemHandler::getBusElement)
-            ));
+            return Optional.of(itemHandlers.values().stream()
+                    .map(h -> LazyOptional.of(() -> (DeviceBusElement) h.getBusElement()))
+                    .collect(Collectors.toList()));
         }
     }
 }

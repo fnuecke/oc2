@@ -26,6 +26,7 @@ public final class DeviceTypes {
         register("hard_drive");
         register("flash_memory");
         register("card");
+        register("robot_module");
 
         DEVICE_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus());
     }

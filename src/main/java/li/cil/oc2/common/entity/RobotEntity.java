@@ -2,6 +2,7 @@ package li.cil.oc2.common.entity;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
@@ -71,7 +72,7 @@ public final class RobotEntity extends Entity {
     private static final int MEMORY_SLOTS = 4;
     private static final int HARD_DRIVE_SLOTS = 2;
     private static final int FLASH_MEMORY_SLOTS = 1;
-    private static final int CARD_SLOTS = 2;
+    private static final int MODULE_SLOTS = 4;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -483,7 +484,12 @@ public final class RobotEntity extends Entity {
 
     private final class RobotItemStackHandlers extends AbstractVirtualMachineItemStackHandlers {
         public RobotItemStackHandlers() {
-            super(MEMORY_SLOTS, HARD_DRIVE_SLOTS, FLASH_MEMORY_SLOTS, CARD_SLOTS);
+            super(
+                    GroupDefinition.of(DeviceTypes.MEMORY, MEMORY_SLOTS),
+                    GroupDefinition.of(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
+                    GroupDefinition.of(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS),
+                    GroupDefinition.of(DeviceTypes.ROBOT_MODULE, MODULE_SLOTS)
+            );
         }
 
         @Override

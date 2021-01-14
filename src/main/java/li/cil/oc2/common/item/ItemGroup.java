@@ -1,6 +1,7 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.API;
+import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.data.BaseBlockDevices;
 import li.cil.oc2.common.bus.device.data.Firmwares;
@@ -46,18 +47,18 @@ public final class ItemGroup {
             final ItemStack computer = new ItemStack(Items.COMPUTER_ITEM.get());
 
             final CompoundNBT computerItems = ItemStackUtils.getOrCreateTileEntityInventoryTag(computer);
-            computerItems.put(AbstractVirtualMachineItemStackHandlers.MEMORY_TAG_NAME, makeInventoryTag(
+            computerItems.put(DeviceTypes.MEMORY.getRegistryName().toString(), makeInventoryTag(
                     MemoryItem.withCapacity(8 * Constants.MEGABYTE),
                     MemoryItem.withCapacity(8 * Constants.MEGABYTE),
                     MemoryItem.withCapacity(8 * Constants.MEGABYTE)
             ));
-            computerItems.put(AbstractVirtualMachineItemStackHandlers.HARD_DRIVE_TAG_NAME, makeInventoryTag(
+            computerItems.put(DeviceTypes.HARD_DRIVE.getRegistryName().toString(), makeInventoryTag(
                     HardDriveItem.withBase(BaseBlockDevices.BUILDROOT.get())
             ));
-            computerItems.put(AbstractVirtualMachineItemStackHandlers.FLASH_MEMORY_TAG_NAME, makeInventoryTag(
+            computerItems.put(DeviceTypes.FLASH_MEMORY.getRegistryName().toString(), makeInventoryTag(
                     FlashMemoryItem.withFirmware(Firmwares.BUILDROOT.get())
             ));
-            computerItems.put(AbstractVirtualMachineItemStackHandlers.CARD_TAG_NAME, makeInventoryTag(
+            computerItems.put(DeviceTypes.CARD.getRegistryName().toString(), makeInventoryTag(
                     new ItemStack(Items.NETWORK_INTERFACE_CARD_ITEM.get())
             ));
 

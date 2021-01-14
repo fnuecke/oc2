@@ -22,6 +22,9 @@ import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.WorldUtils;
 import li.cil.oc2.common.vm.*;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.SoundType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -32,20 +35,26 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
+import net.minecraft.loot.LootContext;
+import net.minecraft.loot.LootParameters;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.IPacket;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.*;
+import net.minecraft.util.math.shapes.IBooleanFunction;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
@@ -80,6 +89,7 @@ public final class RobotEntity extends Entity {
 
     private final Consumer<ChunkEvent.Unload> chunkUnloadListener = this::handleChunkUnload;
     private final Consumer<WorldEvent.Unload> worldUnloadListener = this::handleWorldUnload;
+    private final BlockPos.Mutable mutablePosition = new BlockPos.Mutable();
 
     private final AnimationState animationState = new AnimationState();
     private final RobotActionProcessor actionProcessor = new RobotActionProcessor();
@@ -141,8 +151,11 @@ public final class RobotEntity extends Entity {
 
     @Override
     public void tick() {
+        final World world = getEntityWorld();
+        final boolean isClient = world.isRemote();
+
         if (firstUpdate) {
-            if (getEntityWorld().isRemote()) {
+            if (isClient) {
                 requestInitialState();
             } else {
                 registerListeners();
@@ -155,11 +168,50 @@ public final class RobotEntity extends Entity {
 
         super.tick();
 
-        if (!getEntityWorld().isRemote()) {
+        if (!isClient) {
             state.tick();
         }
 
         actionProcessor.tick();
+
+        if (!isClient && world instanceof ServerWorld) {
+            final VoxelShape shape = VoxelShapes.create(getBoundingBox());
+            final CubeCoordinateIterator iterator = getBlockPosIterator();
+            while (iterator.hasNext()) {
+                final int x = iterator.getX();
+                final int y = iterator.getY();
+                final int z = iterator.getZ();
+                mutablePosition.setPos(x, y, z);
+                final BlockState blockState = world.getBlockState(mutablePosition);
+                if (blockState.isAir(world, mutablePosition)) {
+                    continue;
+                }
+
+                final VoxelShape blockShape = blockState.getCollisionShape(world, mutablePosition);
+                if (VoxelShapes.compare(shape, blockShape.withOffset(x, y, z), IBooleanFunction.AND)) {
+                    final TileEntity tileEntity = blockState.hasTileEntity() ? world.getTileEntity(mutablePosition) : null;
+                    final LootContext.Builder builder = new LootContext.Builder((ServerWorld) world)
+                            .withRandom(world.rand)
+                            .withParameter(LootParameters.field_237457_g_, Vector3d.copyCentered(mutablePosition))
+                            .withParameter(LootParameters.TOOL, ItemStack.EMPTY)
+                            .withNullableParameter(LootParameters.BLOCK_ENTITY, tileEntity)
+                            .withNullableParameter(LootParameters.THIS_ENTITY, this);
+                    final List<ItemStack> drops = blockState.getDrops(builder);
+                    world.setBlockState(mutablePosition, Blocks.AIR.getDefaultState(), 3);
+                    for (final ItemStack drop : drops) {
+                        Block.spawnAsEntity(world, mutablePosition, drop);
+                    }
+                }
+            }
+        }
+    }
+
+    private CubeCoordinateIterator getBlockPosIterator() {
+        final AxisAlignedBB bounds = getBoundingBox();
+        return new CubeCoordinateIterator(
+                MathHelper.floor(bounds.minX), MathHelper.floor(bounds.minY), MathHelper.floor(bounds.minZ),
+                MathHelper.floor(bounds.maxX), MathHelper.floor(bounds.maxY), MathHelper.floor(bounds.maxZ)
+        );
     }
 
     @Override

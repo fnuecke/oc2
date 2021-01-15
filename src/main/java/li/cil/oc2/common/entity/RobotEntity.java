@@ -97,6 +97,7 @@ public final class RobotEntity extends Entity {
     private final RobotVirtualMachineState state;
     private final RobotItemStackHandlers items = new RobotItemStackHandlers();
     private final RobotBusElement busElement = new RobotBusElement();
+    private long lastPistonMovement;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -129,6 +130,10 @@ public final class RobotEntity extends Entity {
 
     public VirtualMachineItemStackHandlers getItemStackHandlers() {
         return items;
+    }
+
+    public long getLastPistonMovement() {
+        return lastPistonMovement;
     }
 
     public void start() {
@@ -319,7 +324,8 @@ public final class RobotEntity extends Entity {
 
     @Override
     protected Vector3d handlePistonMovement(final Vector3d pos) {
-        return Vector3d.ZERO;
+        lastPistonMovement = getEntityWorld().getGameTime();
+        return super.handlePistonMovement(pos);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -530,6 +536,7 @@ public final class RobotEntity extends Entity {
                         action.initialize(RobotEntity.this);
                     }
                 }
+                RobotActions.performServer(RobotEntity.this, action);
             }
         }
 

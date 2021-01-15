@@ -24,6 +24,13 @@ public final class RobotRotationActionType extends AbstractRobotActionType {
     }
 
     @Override
+    public void performServer(final RobotEntity robot, final AbstractRobotAction currentAction) {
+        if (!(currentAction instanceof RobotRotationAction)) {
+            robot.getDataManager().set(RobotEntity.TARGET_DIRECTION, robot.getHorizontalFacing());
+        }
+    }
+
+    @Override
     public void performClient(final RobotEntity robot) {
         final Direction target = robot.getDataManager().get(RobotEntity.TARGET_DIRECTION);
         if (MathHelper.degreesDifferenceAbs(robot.rotationYaw, target.getHorizontalAngle()) > RobotRotationAction.TARGET_EPSILON) {

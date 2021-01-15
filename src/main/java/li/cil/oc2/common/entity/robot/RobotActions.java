@@ -32,6 +32,12 @@ public final class RobotActions {
         }
     }
 
+    public static void performServer(final RobotEntity robot, final AbstractRobotAction currentAction) {
+        for (final AbstractRobotActionType type : ACTIONS) {
+            type.performServer(robot, currentAction);
+        }
+    }
+
     public static void performClient(final RobotEntity robot) {
         for (final AbstractRobotActionType type : ACTIONS) {
             type.performClient(robot);

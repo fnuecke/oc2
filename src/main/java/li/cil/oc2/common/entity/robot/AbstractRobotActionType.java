@@ -25,6 +25,9 @@ public abstract class AbstractRobotActionType {
     public void initializeData(final RobotEntity robot) {
     }
 
+    public void performServer(final RobotEntity robot, final AbstractRobotAction currentAction) {
+    }
+
     public void performClient(final RobotEntity robot) {
     }
 

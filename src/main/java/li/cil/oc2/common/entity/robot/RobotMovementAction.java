@@ -95,16 +95,9 @@ public final class RobotMovementAction extends AbstractRobotAction {
             throw new IllegalStateException();
         }
 
-        moveTowards(robot, targetPos);
+        validateTarget(robot);
 
-        final boolean didCollide = robot.collidedHorizontally || robot.collidedVertically;
-        if (didCollide && !robot.getEntityWorld().isRemote()) {
-            final BlockPos newStart = target;
-            target = start;
-            start = newStart;
-            targetPos = getTargetPositionInBlock(target);
-            robot.getDataManager().set(RobotEntity.TARGET_POSITION, target);
-        }
+        moveAndResolveCollisions(robot);
 
         if (robot.getPositionVec().squareDistanceTo(targetPos) < TARGET_EPSILON) {
             if (Objects.equals(target, origin)) {
@@ -150,5 +143,45 @@ public final class RobotMovementAction extends AbstractRobotAction {
             target = NBTUtils.getBlockPos(tag, TARGET_TAG_NAME);
             targetPos = getTargetPositionInBlock(target);
         }
+    }
+
+    private void moveAndResolveCollisions(final RobotEntity robot) {
+        moveTowards(robot, targetPos);
+
+        final boolean didCollide = robot.collidedHorizontally || robot.collidedVertically;
+        final long gameTime = robot.getEntityWorld().getGameTime();
+        if (didCollide && !robot.getEntityWorld().isRemote()
+            && robot.getLastPistonMovement() < gameTime - 1) {
+            final BlockPos newStart = target;
+            target = start;
+            start = newStart;
+            targetPos = getTargetPositionInBlock(target);
+            robot.getDataManager().set(RobotEntity.TARGET_POSITION, target);
+        }
+    }
+
+    private void validateTarget(final RobotEntity robot) {
+        final BlockPos currentPosition = robot.getPosition();
+        if (Objects.equals(currentPosition, start) || Objects.equals(currentPosition, target)) {
+            return;
+        }
+
+        // Got pushed out of our original path. Adjust start and target by the least offset.
+        final BlockPos fromStart = currentPosition.subtract(start);
+        final BlockPos fromTarget = currentPosition.subtract(target);
+
+        final int deltaStart = fromStart.getX() + fromStart.getY() + fromStart.getZ();
+        final int deltaTarget = fromTarget.getX() + fromTarget.getY() + fromTarget.getZ();
+
+        if (deltaStart < deltaTarget) {
+            start = currentPosition;
+            target = target.add(fromStart);
+        } else {
+            start = start.add(fromTarget);
+            target = currentPosition;
+        }
+
+        targetPos = getTargetPositionInBlock(target);
+        robot.getDataManager().set(RobotEntity.TARGET_POSITION, target);
     }
 }

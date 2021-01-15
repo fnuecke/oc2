@@ -24,8 +24,8 @@ import static java.util.Objects.requireNonNull;
 import static li.cil.oc2.common.Constants.INVENTORY_TAG_NAME;
 import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
 
-public final class LootTables extends LootTableProvider {
-    public LootTables(final DataGenerator generator) {
+public final class ModLootTableProvider extends LootTableProvider {
+    public ModLootTableProvider(final DataGenerator generator) {
         super(generator);
     }
 

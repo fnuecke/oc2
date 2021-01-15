@@ -13,8 +13,8 @@ import net.minecraftforge.client.model.generators.*;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.fml.RegistryObject;
 
-public class BlockStates extends BlockStateProvider {
-    public BlockStates(final DataGenerator generator, final ExistingFileHelper existingFileHelper) {
+public class ModBlockStateProvider extends BlockStateProvider {
+    public ModBlockStateProvider(final DataGenerator generator, final ExistingFileHelper existingFileHelper) {
         super(generator, API.MOD_ID, existingFileHelper);
     }
 

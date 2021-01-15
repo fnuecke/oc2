@@ -12,8 +12,8 @@ import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.fml.RegistryObject;
 
-public final class ItemModels extends ItemModelProvider {
-    public ItemModels(final DataGenerator generator, final ExistingFileHelper existingFileHelper) {
+public final class ModItemModelProvider extends ItemModelProvider {
+    public ModItemModelProvider(final DataGenerator generator, final ExistingFileHelper existingFileHelper) {
         super(generator, API.MOD_ID, existingFileHelper);
     }
 

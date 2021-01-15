@@ -15,9 +15,11 @@ import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.container.RobotContainer;
 import li.cil.oc2.common.entity.robot.*;
 import li.cil.oc2.common.integration.Wrenches;
+import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.*;
 import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.WorldUtils;
@@ -154,6 +156,19 @@ public final class RobotEntity extends Entity {
         state.stop();
     }
 
+    public void dropSelf() {
+        if (!isAlive()) {
+            return;
+        }
+
+        final ItemStack stack = new ItemStack(Items.ROBOT_ITEM.get());
+        exportToItemStack(stack);
+        entityDropItem(stack);
+
+        remove();
+        WorldUtils.playSound(world, getPosition(), SoundType.METAL, SoundType::getBreakSound);
+    }
+
     @Override
     public void tick() {
         final World world = getEntityWorld();
@@ -199,10 +214,11 @@ public final class RobotEntity extends Entity {
                     final TileEntity tileEntity = blockState.hasTileEntity() ? world.getTileEntity(mutablePosition) : null;
                     final LootContext.Builder builder = new LootContext.Builder((ServerWorld) world)
                             .withRandom(world.rand)
-                            .withParameter(LootParameters.field_237457_g_, Vector3d.copyCentered(mutablePosition))
+                            .withParameter(LootParameters.THIS_ENTITY, this)
+                            .withParameter(LootParameters.field_237457_g_, getPositionVec())
                             .withParameter(LootParameters.TOOL, ItemStack.EMPTY)
-                            .withNullableParameter(LootParameters.BLOCK_ENTITY, tileEntity)
-                            .withNullableParameter(LootParameters.THIS_ENTITY, this);
+                            .withParameter(LootParameters.BLOCK_STATE, blockState)
+                            .withNullableParameter(LootParameters.BLOCK_ENTITY, tileEntity);
                     final List<ItemStack> drops = blockState.getDrops(builder);
                     world.setBlockState(mutablePosition, Blocks.AIR.getDefaultState(), 3);
                     for (final ItemStack drop : drops) {
@@ -213,22 +229,13 @@ public final class RobotEntity extends Entity {
         }
     }
 
-    private CubeCoordinateIterator getBlockPosIterator() {
-        final AxisAlignedBB bounds = getBoundingBox();
-        return new CubeCoordinateIterator(
-                MathHelper.floor(bounds.minX), MathHelper.floor(bounds.minY), MathHelper.floor(bounds.minZ),
-                MathHelper.floor(bounds.maxX), MathHelper.floor(bounds.maxY), MathHelper.floor(bounds.maxZ)
-        );
-    }
-
     @Override
     public ActionResultType processInitialInteract(final PlayerEntity player, final Hand hand) {
         final ItemStack stack = player.getHeldItem(hand);
         if (Wrenches.isWrench(stack)) {
             if (!world.isRemote() && player instanceof ServerPlayerEntity) {
                 if (player.isSneaking()) {
-                    remove();
-                    WorldUtils.playSound(world, getPosition(), SoundType.METAL, SoundType::getBreakSound);
+                    dropSelf();
                 } else {
                     openContainerScreen(player);
                 }
@@ -283,6 +290,17 @@ public final class RobotEntity extends Entity {
     @Override
     public boolean shouldSpawnRunningEffects() {
         return false;
+    }
+
+    public void exportToItemStack(final ItemStack stack) {
+        items.serialize(ItemStackUtils.getOrCreateEntityInventoryTag(stack));
+    }
+
+    public void importFromItemStack(final ItemStack stack) {
+        final CompoundNBT inventoryTag = ItemStackUtils.getEntityInventoryTag(stack);
+        if (inventoryTag != null) {
+            items.deserialize(inventoryTag);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -391,6 +409,14 @@ public final class RobotEntity extends Entity {
                 return new RobotContainer(id, RobotEntity.this, inventory);
             }
         }, b -> b.writeVarInt(getEntityId()));
+    }
+
+    private CubeCoordinateIterator getBlockPosIterator() {
+        final AxisAlignedBB bounds = getBoundingBox();
+        return new CubeCoordinateIterator(
+                MathHelper.floor(bounds.minX), MathHelper.floor(bounds.minY), MathHelper.floor(bounds.minZ),
+                MathHelper.floor(bounds.maxX), MathHelper.floor(bounds.maxY), MathHelper.floor(bounds.maxZ)
+        );
     }
 
     private static float lerpClamped(final float from, final float to, final float delta) {

@@ -20,6 +20,7 @@ import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.ComputerTerminalOutputMessage;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
+import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.block.BlockState;
@@ -219,7 +220,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        items.exportToItemStack(stack);
+        items.serialize(ItemStackUtils.getOrCreateTileEntityInventoryTag(stack));
     }
 
     ///////////////////////////////////////////////////////////////////

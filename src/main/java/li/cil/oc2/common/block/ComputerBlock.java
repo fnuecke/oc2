@@ -8,8 +8,8 @@ import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
+import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.VoxelShapeUtils;
-import li.cil.oc2.common.vm.AbstractVirtualMachineItemStackHandlers;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalBlock;
@@ -76,7 +76,7 @@ public final class ComputerBlock extends HorizontalBlock {
     @Override
     public void addInformation(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
         super.addInformation(stack, world, tooltip, advanced);
-        AbstractVirtualMachineItemStackHandlers.addInformation(stack, tooltip);
+        TooltipUtils.addTileEntityInventoryInformation(stack, tooltip);
     }
 
     @Override

@@ -8,17 +8,12 @@ import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.container.TypedDeviceItemStackHandler;
-import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
-import net.minecraftforge.registries.ForgeRegistry;
-import net.minecraftforge.registries.RegistryManager;
 
 import java.util.*;
 import java.util.function.Function;
@@ -43,17 +38,6 @@ public abstract class AbstractVirtualMachineItemStackHandlers implements Virtual
 
     private static final long ITEM_DEVICE_BASE_ADDRESS = 0x40000000L;
     private static final int ITEM_DEVICE_STRIDE = 0x1000;
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static void addInformation(final ItemStack stack, final List<ITextComponent> tooltip) {
-        final ForgeRegistry<DeviceType> registry = RegistryManager.ACTIVE.getRegistry(DeviceType.REGISTRY);
-        if (registry != null) {
-            TooltipUtils.addInventoryInformation(stack, tooltip,
-                    registry.getValues().stream().map(deviceType ->
-                            deviceType.getRegistryName().toString()).toArray(String[]::new));
-        }
-    }
 
     ///////////////////////////////////////////////////////////////////
 
@@ -128,19 +112,14 @@ public abstract class AbstractVirtualMachineItemStackHandlers implements Virtual
         }
     }
 
-    public void exportToItemStack(final ItemStack stack) {
-        final CompoundNBT tag = ItemStackUtils.getOrCreateTileEntityInventoryTag(stack);
-
+    public void serialize(final CompoundNBT tag) {
         itemHandlers.forEach((deviceType, handler) ->
                 tag.put(deviceType.getRegistryName().toString(), handler.serializeNBT()));
     }
 
     public CompoundNBT serialize() {
         final CompoundNBT tag = new CompoundNBT();
-
-        itemHandlers.forEach((deviceType, handler) ->
-                tag.put(deviceType.getRegistryName().toString(), handler.serializeNBT()));
-
+        serialize(tag);
         return tag;
     }
 

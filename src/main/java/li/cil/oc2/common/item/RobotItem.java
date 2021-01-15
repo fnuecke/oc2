@@ -3,21 +3,34 @@ package li.cil.oc2.common.item;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.entity.robot.RobotActions;
+import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.block.SoundType;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public final class RobotItem extends Item {
     public RobotItem(final Properties properties) {
         super(properties);
+    }
+
+    @Override
+    public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flags) {
+        super.addInformation(stack, world, tooltip, flags);
+        TooltipUtils.addEntityInventoryInformation(stack, tooltip);
     }
 
     @Override
@@ -39,11 +52,13 @@ public final class RobotItem extends Item {
             return super.onItemUse(context);
         }
 
-        RobotActions.initializeData(robot);
-
         if (!world.isRemote()) {
-            WorldUtils.playSound(world, new BlockPos(position), SoundType.METAL, SoundType::getPlaceSound);
+            RobotActions.initializeData(robot);
+            robot.importFromItemStack(context.getItem());
+
             world.addEntity(robot);
+            WorldUtils.playSound(world, new BlockPos(position), SoundType.METAL, SoundType::getPlaceSound);
+
             if (!context.getPlayer().isCreative()) {
                 context.getItem().shrink(1);
             }

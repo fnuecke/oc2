@@ -44,6 +44,8 @@ public final class ItemModels extends ItemModelProvider {
         simple(Items.FLASH_MEMORY_ITEM, "items/flash_memory");
         simple(Items.REDSTONE_INTERFACE_CARD_ITEM, "items/redstone_interface_card");
         simple(Items.NETWORK_INTERFACE_CARD_ITEM, "items/network_interface_card");
+
+        withExistingParent(Constants.ROBOT_ENTITY_NAME, "template_shulker_box");
     }
 
     private <T extends Item> ItemModelBuilder simple(final RegistryObject<T> item, final String texturePath) {

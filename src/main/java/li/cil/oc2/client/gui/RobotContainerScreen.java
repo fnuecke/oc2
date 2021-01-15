@@ -12,7 +12,10 @@ import net.minecraft.util.text.ITextComponent;
 import static java.util.Objects.requireNonNull;
 
 public final class RobotContainerScreen extends ContainerScreen<RobotContainer> {
-    private static final ResourceLocation BACKGROUND = new ResourceLocation(API.MOD_ID, "textures/gui/container/computer.png");
+    private static final ResourceLocation BACKGROUND = new ResourceLocation(API.MOD_ID, "textures/gui/container/robot.png");
+    private static final ResourceLocation SELECTION = new ResourceLocation(API.MOD_ID, "textures/gui/overlay/robot_selection.png");
+
+    private static final int SLOT_SIZE = 18;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -27,6 +30,7 @@ public final class RobotContainerScreen extends ContainerScreen<RobotContainer> 
     public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
         renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
+        renderSelection(matrixStack);
         renderHoveredTooltip(matrixStack, mouseX, mouseY);
     }
 
@@ -37,5 +41,16 @@ public final class RobotContainerScreen extends ContainerScreen<RobotContainer> 
         RenderSystem.color4f(1f, 1f, 1f, 1f);
         requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND);
         blit(matrixStack, guiLeft, guiTop, 0, 0, xSize, ySize);
+    }
+
+    private void renderSelection(final MatrixStack matrixStack) {
+        RenderSystem.color4f(1f, 1f, 1f, 1f);
+        requireNonNull(minecraft).getTextureManager().bindTexture(SELECTION);
+
+        final int selectedSlot = container.getRobot().getSelectedSlot();
+        final int x = 115 + (selectedSlot % 3) * SLOT_SIZE;
+        final int y = 23 + (selectedSlot / 3) * SLOT_SIZE;
+        final float offset = SLOT_SIZE * (int) (15 * (System.currentTimeMillis() % 1000) / 1000f);
+        blit(matrixStack, guiLeft + x, guiTop + y, 0, offset, SLOT_SIZE, SLOT_SIZE, SLOT_SIZE, 270);
     }
 }

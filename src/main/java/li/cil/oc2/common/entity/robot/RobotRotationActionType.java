@@ -2,7 +2,6 @@ package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.entity.RobotEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.MathHelper;
 
@@ -12,11 +11,6 @@ public final class RobotRotationActionType extends AbstractRobotActionType {
     }
 
     ///////////////////////////////////////////////////////////////////
-
-    @Override
-    public void registerData(final EntityDataManager dataManager) {
-        dataManager.register(RobotEntity.TARGET_DIRECTION, Direction.NORTH);
-    }
 
     @Override
     public void initializeData(final RobotEntity robot) {

@@ -15,13 +15,13 @@ import javax.annotation.Nullable;
 
 public final class ComputerContainer extends AbstractContainer {
     @Nullable
-    public static ComputerContainer create(final int id, final PlayerInventory inventory, final PacketBuffer data) {
+    public static ComputerContainer create(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
         final BlockPos pos = data.readBlockPos();
-        final TileEntity tileEntity = inventory.player.getEntityWorld().getTileEntity(pos);
+        final TileEntity tileEntity = playerInventory.player.getEntityWorld().getTileEntity(pos);
         if (!(tileEntity instanceof ComputerTileEntity)) {
             return null;
         }
-        return new ComputerContainer(id, (ComputerTileEntity) tileEntity, inventory);
+        return new ComputerContainer(id, (ComputerTileEntity) tileEntity, playerInventory);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ public final class ComputerContainer extends AbstractContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerContainer(final int id, final ComputerTileEntity computer, final PlayerInventory inventory) {
+    public ComputerContainer(final int id, final ComputerTileEntity computer, final PlayerInventory playerInventory) {
         super(Containers.COMPUTER_CONTAINER.get(), id);
         this.computer = computer;
 
@@ -38,29 +38,29 @@ public final class ComputerContainer extends AbstractContainer {
 
         handlers.getItemHandler(DeviceTypes.FLASH_MEMORY).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {
-                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.FLASH_MEMORY, 0, 64, 78));
+                addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.FLASH_MEMORY, 0, 64, 78));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.MEMORY).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.MEMORY, slot, 64 + slot * SLOT_SIZE, 24));
+                addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.MEMORY, slot, 64 + slot * SLOT_SIZE, 24));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.HARD_DRIVE).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE, slot, 100 + (slot % 2) * SLOT_SIZE, 60 + (slot / 2) * SLOT_SIZE));
+                addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE, slot, 100 + (slot % 2) * SLOT_SIZE, 60 + (slot / 2) * SLOT_SIZE));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.CARD).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.CARD, slot, 38, 24 + slot * SLOT_SIZE));
+                addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.CARD, slot, 38, 24 + slot * SLOT_SIZE));
             }
         });
 
-        createPlayerInventoryAndHotbarSlots(inventory, 8, 115);
+        createPlayerInventoryAndHotbarSlots(playerInventory, 8, 115);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -2,7 +2,6 @@ package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.entity.RobotEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.datasync.EntityDataManager;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -19,12 +18,6 @@ public final class RobotActions {
     public static final AbstractRobotActionType ROTATION = register(RobotRotationActionType::new);
 
     ///////////////////////////////////////////////////////////////////
-
-    public static void registerData(final EntityDataManager dataManager) {
-        for (final AbstractRobotActionType type : ACTIONS) {
-            type.registerData(dataManager);
-        }
-    }
 
     public static void initializeData(final RobotEntity robot) {
         for (final AbstractRobotActionType type : ACTIONS) {

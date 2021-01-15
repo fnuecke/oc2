@@ -7,6 +7,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nullable;
 
@@ -27,7 +29,7 @@ public final class RobotContainer extends AbstractContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotContainer(final int id, final RobotEntity robot, final PlayerInventory inventory) {
+    public RobotContainer(final int id, final RobotEntity robot, final PlayerInventory playerInventory) {
         super(Containers.ROBOT_CONTAINER.get(), id);
         this.robot = robot;
 
@@ -35,32 +37,43 @@ public final class RobotContainer extends AbstractContainer {
 
         handlers.getItemHandler(DeviceTypes.FLASH_MEMORY).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {
-                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.FLASH_MEMORY, 0, 64, 78));
+                addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.FLASH_MEMORY, 0, 34, 78));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.MEMORY).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.MEMORY, slot, 64 + slot * SLOT_SIZE, 24));
+                addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.MEMORY, slot, 34 + slot * SLOT_SIZE, 24));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.HARD_DRIVE).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE, slot, 100 + (slot % 2) * SLOT_SIZE, 60 + (slot / 2) * SLOT_SIZE));
+                addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE, slot, 70 + (slot % 2) * SLOT_SIZE, 60 + (slot / 2) * SLOT_SIZE));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.ROBOT_MODULE).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.ROBOT_MODULE, slot, 38, 24 + slot * SLOT_SIZE));
+                addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.ROBOT_MODULE, slot, 8, 24 + slot * SLOT_SIZE));
             }
         });
 
-        createPlayerInventoryAndHotbarSlots(inventory, 8, 115);
+        final ItemStackHandler inventory = robot.getInventory();
+        for (int slot = 0; slot < inventory.getSlots(); slot++) {
+            final int x = 116 + (slot % 3) * SLOT_SIZE;
+            final int y = 24 + (slot / 3) * SLOT_SIZE;
+            addSlot(new SlotItemHandler(inventory, slot, x, y));
+        }
+
+        createPlayerInventoryAndHotbarSlots(playerInventory, 8, 115);
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    public RobotEntity getRobot() {
+        return robot;
+    }
 
     @Override
     public boolean canInteractWith(final PlayerEntity player) {

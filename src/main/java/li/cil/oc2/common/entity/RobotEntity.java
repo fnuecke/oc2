@@ -12,6 +12,8 @@ import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
+import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.container.FixedSizeItemStackHandler;
 import li.cil.oc2.common.container.RobotContainer;
 import li.cil.oc2.common.entity.robot.*;
 import li.cil.oc2.common.integration.Wrenches;
@@ -54,30 +56,42 @@ import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.ItemStackHandler;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class RobotEntity extends Entity {
     public static final DataParameter<BlockPos> TARGET_POSITION = EntityDataManager.createKey(RobotEntity.class, DataSerializers.BLOCK_POS);
     public static final DataParameter<Direction> TARGET_DIRECTION = EntityDataManager.createKey(RobotEntity.class, DataSerializers.DIRECTION);
+    public static final DataParameter<Byte> SELECTED_SLOT = EntityDataManager.createKey(RobotEntity.class, DataSerializers.BYTE);
 
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String STATE_TAG_NAME = "state";
     private static final String BUS_ELEMENT_TAG_NAME = "bus_element";
     private static final String COMMAND_PROCESSOR_TAG_NAME = "commands";
+    private static final String INVENTORY_TAG_NAME = "inventory";
+    private static final String SELECTED_SLOT_TAG_NAME = "selected_slot";
 
     private static final int MAX_QUEUED_ACTIONS = 16;
     private static final int MAX_QUEUED_RESULTS = 16;
@@ -86,6 +100,7 @@ public final class RobotEntity extends Entity {
     private static final int HARD_DRIVE_SLOTS = 2;
     private static final int FLASH_MEMORY_SLOTS = 1;
     private static final int MODULE_SLOTS = 4;
+    private static final int INVENTORY_SIZE = 12;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -97,7 +112,8 @@ public final class RobotEntity extends Entity {
     private final RobotActionProcessor actionProcessor = new RobotActionProcessor();
     private final Terminal terminal = new Terminal();
     private final RobotVirtualMachineState state;
-    private final RobotItemStackHandlers items = new RobotItemStackHandlers();
+    private final RobotItemStackHandlers deviceItems = new RobotItemStackHandlers();
+    private final ItemStackHandler inventory = new FixedSizeItemStackHandler(INVENTORY_SIZE);
     private final RobotBusElement busElement = new RobotBusElement();
     private long lastPistonMovement;
 
@@ -112,7 +128,7 @@ public final class RobotEntity extends Entity {
         state = new RobotVirtualMachineState(busController, new CommonVirtualMachine(busController));
         state.virtualMachine.rtcMinecraft.setWorld(world);
 
-        items.busElement.addDevice(new ObjectDevice(new RobotDevice(), "robot"));
+        deviceItems.busElement.addDevice(new ObjectDevice(new RobotDevice(), "robot"));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -131,7 +147,43 @@ public final class RobotEntity extends Entity {
     }
 
     public VirtualMachineItemStackHandlers getItemStackHandlers() {
-        return items;
+        return deviceItems;
+    }
+
+    public ItemStackHandler getInventory() {
+        return inventory;
+    }
+
+    public int getSelectedSlot() {
+        return getDataManager().get(SELECTED_SLOT);
+    }
+
+    public void setSelectedSlot(final int value) {
+        getDataManager().set(SELECTED_SLOT, (byte) MathHelper.clamp(value, 0, INVENTORY_SIZE - 1));
+    }
+
+    @NotNull
+    @Override
+    public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> capability, @org.jetbrains.annotations.Nullable final Direction side) {
+        if (capability == Capabilities.ITEM_HANDLER) {
+            return LazyOptional.of(() -> inventory).cast();
+        }
+
+        final LazyOptional<T> optional = super.getCapability(capability, side);
+        if (optional.isPresent()) {
+            return optional;
+        }
+
+        for (final Device device : state.busController.getDevices()) {
+            if (device instanceof ICapabilityProvider) {
+                final LazyOptional<T> value = ((ICapabilityProvider) device).getCapability(capability, side);
+                if (value.isPresent()) {
+                    return value;
+                }
+            }
+        }
+
+        return LazyOptional.empty();
     }
 
     public long getLastPistonMovement() {
@@ -264,8 +316,6 @@ public final class RobotEntity extends Entity {
 
         // Full unload to release out-of-nbt persisted runtime-only data such as ram.
         state.virtualMachine.vmAdapter.unload();
-
-        // TODO drop self as item
     }
 
     @Override
@@ -293,13 +343,16 @@ public final class RobotEntity extends Entity {
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        items.serialize(ItemStackUtils.getOrCreateEntityInventoryTag(stack));
+        final CompoundNBT tag = ItemStackUtils.getOrCreateEntityInventoryTag(stack);
+        deviceItems.serialize(tag);
+        tag.put(INVENTORY_TAG_NAME, inventory.serializeNBT());
     }
 
     public void importFromItemStack(final ItemStack stack) {
-        final CompoundNBT inventoryTag = ItemStackUtils.getEntityInventoryTag(stack);
-        if (inventoryTag != null) {
-            items.deserialize(inventoryTag);
+        final CompoundNBT tag = ItemStackUtils.getEntityInventoryTag(stack);
+        if (tag != null) {
+            deviceItems.deserialize(tag);
+            inventory.deserializeNBT(tag.getCompound(INVENTORY_TAG_NAME));
         }
     }
 
@@ -307,7 +360,10 @@ public final class RobotEntity extends Entity {
 
     @Override
     protected void registerData() {
-        RobotActions.registerData(getDataManager());
+        final EntityDataManager dataManager = getDataManager();
+        dataManager.register(TARGET_POSITION, BlockPos.ZERO);
+        dataManager.register(TARGET_DIRECTION, Direction.NORTH);
+        dataManager.register(SELECTED_SLOT, (byte)0);
     }
 
     @Override
@@ -316,7 +372,9 @@ public final class RobotEntity extends Entity {
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(COMMAND_PROCESSOR_TAG_NAME, actionProcessor.serialize());
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.serialize());
-        tag.put(Constants.INVENTORY_TAG_NAME, items.serialize());
+        tag.put(Constants.INVENTORY_TAG_NAME, deviceItems.serialize());
+        tag.put(INVENTORY_TAG_NAME, inventory.serializeNBT());
+        tag.putByte(SELECTED_SLOT_TAG_NAME, dataManager.get(SELECTED_SLOT));
     }
 
     @Override
@@ -325,10 +383,12 @@ public final class RobotEntity extends Entity {
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
         actionProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
         busElement.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME));
+        inventory.deserializeNBT(tag.getCompound(INVENTORY_TAG_NAME));
 
         if (tag.contains(Constants.INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            items.deserialize(tag.getCompound(Constants.INVENTORY_TAG_NAME));
+            deviceItems.deserialize(tag.getCompound(Constants.INVENTORY_TAG_NAME));
         }
+        setSelectedSlot(tag.getByte(SELECTED_SLOT_TAG_NAME));
     }
 
     @Override
@@ -667,7 +727,7 @@ public final class RobotEntity extends Entity {
 
         @Override
         public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
-            return Optional.of(Collections.singleton(LazyOptional.of(() -> items.busElement)));
+            return Optional.of(Collections.singleton(LazyOptional.of(() -> deviceItems.busElement)));
         }
 
         @Override
@@ -738,7 +798,7 @@ public final class RobotEntity extends Entity {
     private final class RobotVirtualMachineState extends AbstractVirtualMachineState<RobotBusController, CommonVirtualMachine> {
         private RobotVirtualMachineState(final RobotBusController busController, final CommonVirtualMachine virtualMachine) {
             super(busController, virtualMachine);
-            virtualMachine.vmAdapter.setDefaultAddressProvider(items::getDefaultDeviceAddress);
+            virtualMachine.vmAdapter.setDefaultAddressProvider(deviceItems::getDefaultDeviceAddress);
         }
 
         @Override
@@ -817,7 +877,81 @@ public final class RobotEntity extends Entity {
             return null;
         }
 
+        @Callback
+        public int getSelectedSlot() {
+            return RobotEntity.this.getSelectedSlot();
+        }
+
+        @Callback
+        public void setSelectedSlot(@Parameter("slot") final int slot) {
+            RobotEntity.this.setSelectedSlot(slot);
+        }
+
+        @Callback
+        public ItemStack getStackInSlot(@Parameter("slot") final int slot) {
+            return inventory.getStackInSlot(slot);
+        }
+
+        @Callback
+        public void drop(@Parameter("count") final int count, @Parameter("direction") @Nullable Direction direction) {
+            ItemStack stack = inventory.extractItem(getSelectedSlot(), count, false);
+            if (stack.isEmpty()) {
+                return;
+            }
+
+            if (direction == null) {
+                direction = Direction.SOUTH;
+            }
+
+            if (direction.getAxis().isHorizontal()) {
+                final int horizontalIndex = getHorizontalFacing().getHorizontalIndex();
+                for (int i = 0; i < horizontalIndex; i++) {
+                    direction = direction.rotateY();
+                }
+            }
+
+            final Vector3i directionVec = direction.getDirectionVec();
+            final List<IItemHandler> handlers = getItemStackHandlersAt(getPositionVec().add(Vector3d.copy(directionVec)), direction.getOpposite())
+                    .collect(Collectors.toList());
+            for (final IItemHandler handler : handlers) {
+                stack = ItemHandlerHelper.insertItem(handler, stack, false);
+            }
+
+            if (!stack.isEmpty()) {
+                entityDropItem(stack);
+            }
+        }
+
         private RobotDevice() {
         }
+    }
+
+    private Stream<IItemHandler> getItemStackHandlersAt(final Vector3d position, final Direction side) {
+        return Stream.concat(getEntityItemHandlersAt(position, side), getBlockItemHandlersAt(position, side));
+    }
+
+    private Stream<IItemHandler> getEntityItemHandlersAt(final Vector3d position, final Direction side) {
+        final AxisAlignedBB bounds = AxisAlignedBB.fromVector(position.subtract(0.5, 0.5, 0.5));
+        return getEntityWorld().getEntitiesWithinAABBExcludingEntity(this, bounds).stream()
+                .map(e -> e.getCapability(Capabilities.ITEM_HANDLER, side))
+                .filter(LazyOptional::isPresent)
+                .map(c -> c.orElseThrow(AssertionError::new));
+    }
+
+    private Stream<IItemHandler> getBlockItemHandlersAt(final Vector3d position, final Direction side) {
+        // TODO may want use blockpos iterator to get blocks we currently sit in, e.g. if during move, and check for all
+
+        final BlockPos pos = new BlockPos(position);
+        final TileEntity tileEntity = getEntityWorld().getTileEntity(pos);
+        if (tileEntity == null) {
+            return Stream.empty();
+        }
+
+        final LazyOptional<IItemHandler> capability = tileEntity.getCapability(Capabilities.ITEM_HANDLER, side);
+        if (capability.isPresent()) {
+            return Stream.of(capability.orElseThrow(AssertionError::new));
+        }
+
+        return Stream.empty();
     }
 }

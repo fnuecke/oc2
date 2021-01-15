@@ -51,9 +51,9 @@ public final class RobotContainer extends AbstractContainer {
             }
         });
 
-        handlers.getItemHandler(DeviceTypes.CARD).ifPresent(itemHandler -> {
+        handlers.getItemHandler(DeviceTypes.ROBOT_MODULE).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.CARD, slot, 38, 24 + slot * SLOT_SIZE));
+                this.addSlot(new TypedSlotItemHandler(itemHandler, DeviceTypes.ROBOT_MODULE, slot, 38, 24 + slot * SLOT_SIZE));
             }
         });
 

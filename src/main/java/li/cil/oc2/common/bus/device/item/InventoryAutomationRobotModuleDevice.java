@@ -86,7 +86,9 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
             return;
         }
 
-        ItemStack stack = robot.getInventory().extractItem(robot.getSelectedSlot(), count, false);
+        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid intermittent change due to threading.
+
+        ItemStack stack = robot.getInventory().extractItem(selectedSlot, count, false);
         if (stack.isEmpty()) {
             return;
         }
@@ -98,7 +100,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
 
         final boolean droppedSome = stack.getCount() != originalStackSize;
         if (!stack.isEmpty() && droppedSome) {
-            stack = robot.getInventory().insertItem(robot.getSelectedSlot(), stack, false);
+            stack = robot.getInventory().insertItem(selectedSlot, stack, false);
         }
 
         if (!stack.isEmpty()) {
@@ -108,13 +110,15 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
 
     @Callback
     public void dropInto(@Parameter("intoSlot") final int intoSlot,
-                  @Parameter("count") final int count,
-                  @Parameter("direction") @Nullable final Direction direction) {
+                         @Parameter("count") final int count,
+                         @Parameter("direction") @Nullable final Direction direction) {
         if (count <= 0) {
             return;
         }
 
-        ItemStack stack = robot.getInventory().extractItem(robot.getSelectedSlot(), count, false);
+        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid intermittent change due to threading.
+
+        ItemStack stack = robot.getInventory().extractItem(selectedSlot, count, false);
         if (stack.isEmpty()) {
             return;
         }
@@ -129,7 +133,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
 
         final boolean droppedSome = stack.getCount() != originalStackSize;
         if (!stack.isEmpty() && droppedSome) {
-            stack = robot.getInventory().insertItem(robot.getSelectedSlot(), stack, false);
+            stack = robot.getInventory().insertItem(selectedSlot, stack, false);
         }
 
         if (!stack.isEmpty()) {
@@ -145,7 +149,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
         }
 
         final ItemStackHandler inventory = robot.getInventory();
-        final int selectedSlot = robot.getSelectedSlot();
+        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid intermittent change due to threading.
 
         final List<IItemHandler> handlers = getItemStackHandlersInDirection(getAdjustedDirection(direction)).collect(Collectors.toList());
         for (final IItemHandler handler : handlers) {
@@ -184,7 +188,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
         }
 
         final ItemStackHandler inventory = robot.getInventory();
-        final int selectedSlot = robot.getSelectedSlot();
+        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid intermittent change due to threading.
 
         final Optional<IItemHandler> optional = getItemStackHandlersInDirection(getAdjustedDirection(direction)).findFirst();
         if (optional.isPresent()) {

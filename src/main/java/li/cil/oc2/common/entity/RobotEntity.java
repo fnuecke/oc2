@@ -879,17 +879,17 @@ public final class RobotEntity extends Entity implements Robot {
             return null;
         }
 
-        @Callback
+        @Callback(synchronize = false)
         public int getSelectedSlot() {
             return RobotEntity.this.getSelectedSlot();
         }
 
-        @Callback
+        @Callback(synchronize = false)
         public void setSelectedSlot(@Parameter("slot") final int slot) {
             RobotEntity.this.setSelectedSlot(slot);
         }
 
-        @Callback
+        @Callback(synchronize = false)
         public ItemStack getStackInSlot(@Parameter("slot") final int slot) {
             return inventory.getStackInSlot(slot);
         }

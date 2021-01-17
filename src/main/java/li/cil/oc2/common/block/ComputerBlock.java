@@ -76,6 +76,7 @@ public final class ComputerBlock extends HorizontalBlock {
     @Override
     public void addInformation(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
         super.addInformation(stack, world, tooltip, advanced);
+        TooltipUtils.addDescription(stack, tooltip);
         TooltipUtils.addTileEntityInventoryInformation(stack, tooltip);
     }
 

@@ -2,13 +2,17 @@
   "itemGroup.oc2.common": "OpenComputers II",
 
   "block.oc2.computer": "Computer",
+  "block.oc2.computer.desc": "Use a Scrench or compatible wrench to add and remove components.",
   "block.oc2.bus_cable": "Bus Cable",
+  "block.oc2.bus_cable.desc": "Used in combination with Bus Interfaces to connect external devices.",
   "block.oc2.network_connector": "Network Connector",
   "block.oc2.network_hub": "Network Hub",
   "block.oc2.redstone_interface": "Redstone Interface",
 
   "item.oc2.wrench": "Scrench",
+  "item.oc2.wrench.desc": "Used to configure devices and to dismantle them (while sneaking).",
   "item.oc2.bus_interface": "Bus Interface",
+  "item.oc2.bus_interface.desc": "Used to attach Bus Cables to external devices.",
   "item.oc2.network_cable": "Network Cable",
   "item.oc2.memory": "Memory",
   "item.oc2.hard_drive": "Hard Drive",
@@ -16,6 +20,8 @@
   "item.oc2.redstone_interface_card": "Redstone Interface Card",
   "item.oc2.network_interface_card": "Network Interface Card",
   "item.oc2.robot": "Robot",
+  "item.oc2.robot.desc": "Use a Scrench or compatible wrench to add and remove components.",
+  "item.oc2.inventory_automation_module": "Inventory Automation Module",
 
   "entity.oc2.robot": "Robot",
 

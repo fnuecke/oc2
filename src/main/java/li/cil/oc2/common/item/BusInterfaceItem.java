@@ -2,18 +2,33 @@ package li.cil.oc2.common.item;
 
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
+import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public final class BusInterfaceItem extends Item {
     public BusInterfaceItem(final Properties properties) {
         super(properties);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    public void addInformation(final ItemStack stack, @Nullable final World worldIn, final List<ITextComponent> tooltip, final ITooltipFlag flagIn) {
+        super.addInformation(stack, worldIn, tooltip, flagIn);
+        TooltipUtils.addDescription(stack, tooltip);
     }
 
     @Override

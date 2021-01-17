@@ -3,13 +3,11 @@ package li.cil.oc2.common.util;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import li.cil.oc2.api.bus.device.DeviceType;
+import li.cil.oc2.common.Constants;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
-import net.minecraft.util.text.Color;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.*;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
 
@@ -20,6 +18,13 @@ import java.util.List;
 public final class TooltipUtils {
     private static final ThreadLocal<List<ItemStack>> ITEM_STACKS = ThreadLocal.withInitial(ArrayList::new);
     private static final ThreadLocal<IntList> ITEM_STACKS_SIZES = ThreadLocal.withInitial(IntArrayList::new);
+
+    ///////////////////////////////////////////////////////////////////
+
+    public static void addDescription(final ItemStack stack, final List<ITextComponent> tooltip) {
+        final TranslationTextComponent description = new TranslationTextComponent(stack.getTranslationKey() + Constants.DESCRIPTION_SUFFIX);
+        tooltip.add(new StringTextComponent("").modifyStyle(s -> s.setColor(Color.fromTextFormatting(TextFormatting.GRAY))).append(description));
+    }
 
     public static void addTileEntityInventoryInformation(final ItemStack stack, final List<ITextComponent> tooltip) {
         addInventoryInformation(ItemStackUtils.getTileEntityInventoryTag(stack), tooltip);
@@ -61,7 +66,7 @@ public final class TooltipUtils {
 
         for (int i = 0; i < itemStacks.size(); i++) {
             final ItemStack itemStack = itemStacks.get(i);
-            tooltip.add(new StringTextComponent("")
+            tooltip.add(new StringTextComponent("- ")
                     .append(itemStack.getDisplayName())
                     .modifyStyle(style -> style.setColor(Color.fromTextFormatting(TextFormatting.GRAY)))
                     .append(new StringTextComponent(" x")

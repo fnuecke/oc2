@@ -39,6 +39,8 @@ public final class Constants {
     public static final String REDSTONE_INTERFACE_CARD_ITEM_NAME = "redstone_interface_card";
     public static final String NETWORK_INTERFACE_CARD_ITEM_NAME = "network_interface_card";
 
+    public static final String INVENTORY_AUTOMATION_MODULE_ITEM_NAME = "inventory_automation_module";
+
     ///////////////////////////////////////////////////////////////////
 
     public static final String ROBOT_ENTITY_NAME = "robot";

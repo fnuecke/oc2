@@ -6,6 +6,7 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.client.gui.RobotTerminalScreen;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
@@ -56,7 +57,6 @@ import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
@@ -69,8 +69,6 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,10 +76,8 @@ import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public final class RobotEntity extends Entity {
+public final class RobotEntity extends Entity implements Robot {
     public static final DataParameter<BlockPos> TARGET_POSITION = EntityDataManager.createKey(RobotEntity.class, DataSerializers.BLOCK_POS);
     public static final DataParameter<Direction> TARGET_DIRECTION = EntityDataManager.createKey(RobotEntity.class, DataSerializers.DIRECTION);
     public static final DataParameter<Byte> SELECTED_SLOT = EntityDataManager.createKey(RobotEntity.class, DataSerializers.BYTE);
@@ -150,14 +146,17 @@ public final class RobotEntity extends Entity {
         return deviceItems;
     }
 
+    @Override
     public ItemStackHandler getInventory() {
         return inventory;
     }
 
+    @Override
     public int getSelectedSlot() {
         return getDataManager().get(SELECTED_SLOT);
     }
 
+    @Override
     public void setSelectedSlot(final int value) {
         getDataManager().set(SELECTED_SLOT, (byte) MathHelper.clamp(value, 0, INVENTORY_SIZE - 1));
     }
@@ -167,6 +166,9 @@ public final class RobotEntity extends Entity {
     public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> capability, @org.jetbrains.annotations.Nullable final Direction side) {
         if (capability == Capabilities.ITEM_HANDLER) {
             return LazyOptional.of(() -> inventory).cast();
+        }
+        if (capability == Capabilities.ROBOT) {
+            return LazyOptional.of(() -> this).cast();
         }
 
         final LazyOptional<T> optional = super.getCapability(capability, side);
@@ -363,7 +365,7 @@ public final class RobotEntity extends Entity {
         final EntityDataManager dataManager = getDataManager();
         dataManager.register(TARGET_POSITION, BlockPos.ZERO);
         dataManager.register(TARGET_DIRECTION, Direction.NORTH);
-        dataManager.register(SELECTED_SLOT, (byte)0);
+        dataManager.register(SELECTED_SLOT, (byte) 0);
     }
 
     @Override
@@ -892,66 +894,7 @@ public final class RobotEntity extends Entity {
             return inventory.getStackInSlot(slot);
         }
 
-        @Callback
-        public void drop(@Parameter("count") final int count, @Parameter("direction") @Nullable Direction direction) {
-            ItemStack stack = inventory.extractItem(getSelectedSlot(), count, false);
-            if (stack.isEmpty()) {
-                return;
-            }
-
-            if (direction == null) {
-                direction = Direction.SOUTH;
-            }
-
-            if (direction.getAxis().isHorizontal()) {
-                final int horizontalIndex = getHorizontalFacing().getHorizontalIndex();
-                for (int i = 0; i < horizontalIndex; i++) {
-                    direction = direction.rotateY();
-                }
-            }
-
-            final Vector3i directionVec = direction.getDirectionVec();
-            final List<IItemHandler> handlers = getItemStackHandlersAt(getPositionVec().add(Vector3d.copy(directionVec)), direction.getOpposite())
-                    .collect(Collectors.toList());
-            for (final IItemHandler handler : handlers) {
-                stack = ItemHandlerHelper.insertItem(handler, stack, false);
-            }
-
-            if (!stack.isEmpty()) {
-                entityDropItem(stack);
-            }
-        }
-
         private RobotDevice() {
         }
-    }
-
-    private Stream<IItemHandler> getItemStackHandlersAt(final Vector3d position, final Direction side) {
-        return Stream.concat(getEntityItemHandlersAt(position, side), getBlockItemHandlersAt(position, side));
-    }
-
-    private Stream<IItemHandler> getEntityItemHandlersAt(final Vector3d position, final Direction side) {
-        final AxisAlignedBB bounds = AxisAlignedBB.fromVector(position.subtract(0.5, 0.5, 0.5));
-        return getEntityWorld().getEntitiesWithinAABBExcludingEntity(this, bounds).stream()
-                .map(e -> e.getCapability(Capabilities.ITEM_HANDLER, side))
-                .filter(LazyOptional::isPresent)
-                .map(c -> c.orElseThrow(AssertionError::new));
-    }
-
-    private Stream<IItemHandler> getBlockItemHandlersAt(final Vector3d position, final Direction side) {
-        // TODO may want use blockpos iterator to get blocks we currently sit in, e.g. if during move, and check for all
-
-        final BlockPos pos = new BlockPos(position);
-        final TileEntity tileEntity = getEntityWorld().getTileEntity(pos);
-        if (tileEntity == null) {
-            return Stream.empty();
-        }
-
-        final LazyOptional<IItemHandler> capability = tileEntity.getCapability(Capabilities.ITEM_HANDLER, side);
-        if (capability.isPresent()) {
-            return Stream.of(capability.orElseThrow(AssertionError::new));
-        }
-
-        return Stream.empty();
     }
 }

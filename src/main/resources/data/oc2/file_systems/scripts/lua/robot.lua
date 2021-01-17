@@ -106,8 +106,4 @@ M.stack = function(slot)
   return robot:getStackInSlot(slot or M.slot())
 end
 
-M.drop = function(count, direction)
-  robot:drop(count or 1, direction or directions.forward)
-end
-
 return M

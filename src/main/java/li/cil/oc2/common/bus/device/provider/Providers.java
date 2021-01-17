@@ -37,6 +37,8 @@ public final class Providers {
         ITEM_DEVICE_PROVIDERS.register("item_redstone_interface_card", RedstoneInterfaceCardItemDeviceProvider::new);
         ITEM_DEVICE_PROVIDERS.register("item_network_interface_card", NetworkInterfaceCardItemDeviceProvider::new);
 
+        ITEM_DEVICE_PROVIDERS.register("inventory_automation_module", InventoryAutomationRobotModuleDeviceProvider::new);
+
         BLOCK_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());
         ITEM_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());
     }

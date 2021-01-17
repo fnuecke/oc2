@@ -3,6 +3,7 @@ package li.cil.oc2.common.capabilities;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
+import li.cil.oc2.api.capabilities.Robot;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
@@ -29,16 +30,21 @@ public final class Capabilities {
     @CapabilityInject(NetworkInterface.class)
     public static Capability<NetworkInterface> NETWORK_INTERFACE = null;
 
+    @CapabilityInject(Robot.class)
+    public static Capability<Robot> ROBOT = null;
+
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
         register(DeviceBusElement.class);
         register(RedstoneEmitter.class);
         register(NetworkInterface.class);
+        register(Robot.class);
     }
 
     ///////////////////////////////////////////////////////////////////
 
+    @SuppressWarnings("ReturnOfNull") // Allowed for default providers.
     private static <T> void register(final Class<T> type) {
         CapabilityManager.INSTANCE.register(type, new NullStorage<>(), () -> null);
     }

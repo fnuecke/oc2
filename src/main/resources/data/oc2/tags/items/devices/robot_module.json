@@ -1,4 +1,6 @@
 {
   "replace": false,
-  "values": []
+  "values": [
+    "oc2:inventory_automation_module"
+  ]
 }

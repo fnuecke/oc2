@@ -4,9 +4,9 @@ import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.common.bus.device.item.InventoryAutomationRobotModuleDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
+import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
 
 import java.util.Optional;
@@ -23,10 +23,10 @@ public final class InventoryAutomationRobotModuleDeviceProvider extends Abstract
         return Optional.of(DeviceTypes.ROBOT_MODULE);
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
-        return query.getContainerEntity().filter(e -> e instanceof Robot).map(e ->
-                new InventoryAutomationRobotModuleDevice(query.getItemStack(), e));
+        return query.getContainerEntity().flatMap(entity ->
+                entity.getCapability(Capabilities.ROBOT).map(robot ->
+                        new InventoryAutomationRobotModuleDevice(query.getItemStack(), entity, robot)));
     }
 }

@@ -28,14 +28,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot> extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice {
-    private final T robot;
+public final class InventoryAutomationRobotModuleDevice extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice {
+    private final Entity entity;
+    private final Robot robot;
     private final ObjectDevice device;
 
     ///////////////////////////////////////////////////////////////////
 
-    public InventoryAutomationRobotModuleDevice(final ItemStack identity, final T robot) {
+    public InventoryAutomationRobotModuleDevice(final ItemStack identity, final Entity entity, final Robot robot) {
         super(identity);
+        this.entity = entity;
         this.robot = robot;
         this.device = new ObjectDevice(this, "inventory_automation");
     }
@@ -75,7 +77,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
 
         // And if putting it back fails, just drop it. Avoid destroying items.
         if (!remaining.isEmpty()) {
-            robot.entityDropItem(remaining);
+            entity.entityDropItem(remaining);
         }
     }
 
@@ -104,7 +106,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
         }
 
         if (!stack.isEmpty()) {
-            robot.entityDropItem(stack);
+            entity.entityDropItem(stack);
         }
     }
 
@@ -137,7 +139,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
         }
 
         if (!stack.isEmpty()) {
-            robot.entityDropItem(stack);
+            entity.entityDropItem(stack);
         }
     }
 
@@ -169,7 +171,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
 
                 // And if putting it back fails, just drop it. Avoid destroying items.
                 if (!remaining.isEmpty()) {
-                    robot.entityDropItem(remaining);
+                    entity.entityDropItem(remaining);
                 }
             }
 
@@ -207,7 +209,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
 
             // And if putting it back fails, just drop it. Avoid destroying items.
             if (!remaining.isEmpty()) {
-                robot.entityDropItem(remaining);
+                entity.entityDropItem(remaining);
             }
         }
     }
@@ -220,7 +222,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
         }
 
         if (direction.getAxis().isHorizontal()) {
-            final int horizontalIndex = robot.getHorizontalFacing().getHorizontalIndex();
+            final int horizontalIndex = entity.getHorizontalFacing().getHorizontalIndex();
             for (int i = 0; i < horizontalIndex; i++) {
                 direction = direction.rotateY();
             }
@@ -243,7 +245,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
 
     private Stream<IItemHandler> getItemStackHandlersInDirection(final Direction direction) {
         final Vector3i directionVec = direction.getDirectionVec();
-        return getItemStackHandlersAt(robot.getPositionVec().add(Vector3d.copy(directionVec)), direction.getOpposite());
+        return getItemStackHandlersAt(entity.getPositionVec().add(Vector3d.copy(directionVec)), direction.getOpposite());
     }
 
     private Stream<IItemHandler> getItemStackHandlersAt(final Vector3d position, final Direction side) {
@@ -252,7 +254,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
 
     private Stream<IItemHandler> getEntityItemHandlersAt(final Vector3d position, final Direction side) {
         final AxisAlignedBB bounds = AxisAlignedBB.fromVector(position.subtract(0.5, 0.5, 0.5));
-        return robot.getEntityWorld().getEntitiesWithinAABBExcludingEntity(robot, bounds).stream()
+        return entity.getEntityWorld().getEntitiesWithinAABBExcludingEntity(entity, bounds).stream()
                 .map(e -> e.getCapability(Capabilities.ITEM_HANDLER, side))
                 .filter(LazyOptional::isPresent)
                 .map(c -> c.orElseThrow(AssertionError::new));
@@ -262,7 +264,7 @@ public final class InventoryAutomationRobotModuleDevice<T extends Entity & Robot
         // TODO may want use blockpos iterator to get blocks we currently sit in, e.g. if during move, and check for all
 
         final BlockPos pos = new BlockPos(position);
-        final TileEntity tileEntity = robot.getEntityWorld().getTileEntity(pos);
+        final TileEntity tileEntity = entity.getEntityWorld().getTileEntity(pos);
         if (tileEntity == null) {
             return Stream.empty();
         }

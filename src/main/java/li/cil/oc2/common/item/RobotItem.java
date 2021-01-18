@@ -29,8 +29,8 @@ public final class RobotItem extends ModItem {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flags) {
-        super.addInformation(stack, world, tooltip, flags);
+    public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
+        super.addInformation(stack, world, tooltip, flag);
         TooltipUtils.addEntityInventoryInformation(stack, tooltip);
     }
 

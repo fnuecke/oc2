@@ -16,6 +16,7 @@ public final class Containers {
 
     public static final RegistryObject<ContainerType<ComputerContainer>> COMPUTER_CONTAINER = CONTAINERS.register(Constants.COMPUTER_BLOCK_NAME, () -> IForgeContainerType.create(ComputerContainer::create));
     public static final RegistryObject<ContainerType<RobotContainer>> ROBOT_CONTAINER = CONTAINERS.register(Constants.ROBOT_ENTITY_NAME, () -> IForgeContainerType.create(RobotContainer::create));
+    public static final RegistryObject<ContainerType<RobotTerminalContainer>> ROBOT_TERMINAL_CONTAINER = CONTAINERS.register(Constants.ROBOT_ENTITY_NAME + "_terminal", () -> IForgeContainerType.create(RobotTerminalContainer::create));
 
     ///////////////////////////////////////////////////////////////////
 

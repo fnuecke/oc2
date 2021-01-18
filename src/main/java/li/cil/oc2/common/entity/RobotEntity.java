@@ -7,7 +7,6 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
-import li.cil.oc2.client.gui.RobotTerminalScreen;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
@@ -16,6 +15,7 @@ import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.FixedSizeItemStackHandler;
 import li.cil.oc2.common.container.RobotContainer;
+import li.cil.oc2.common.container.RobotTerminalContainer;
 import li.cil.oc2.common.entity.robot.*;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
@@ -31,7 +31,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.SoundType;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -286,19 +285,19 @@ public final class RobotEntity extends Entity implements Robot {
     @Override
     public ActionResultType processInitialInteract(final PlayerEntity player, final Hand hand) {
         final ItemStack stack = player.getHeldItem(hand);
-        if (Wrenches.isWrench(stack)) {
-            if (!world.isRemote() && player instanceof ServerPlayerEntity) {
+        if (!world.isRemote()) {
+            if (Wrenches.isWrench(stack)) {
                 if (player.isSneaking()) {
                     dropSelf();
-                } else {
-                    openContainerScreen(player);
+                } else if (player instanceof ServerPlayerEntity) {
+                    openContainerScreen((ServerPlayerEntity) player);
                 }
-            }
-        } else {
-            if (player.isSneaking()) {
-                start();
-            } else if (world.isRemote()) {
-                openTerminalScreen();
+            } else {
+                if (player.isSneaking()) {
+                    start();
+                } else if (player instanceof ServerPlayerEntity) {
+                    openTerminalScreen((ServerPlayerEntity) player);
+                }
             }
         }
 
@@ -415,11 +414,6 @@ public final class RobotEntity extends Entity implements Robot {
         Network.INSTANCE.sendToServer(new RobotInitializationRequestMessage(this));
     }
 
-    @OnlyIn(Dist.CLIENT)
-    private void openTerminalScreen() {
-        Minecraft.getInstance().displayGuiScreen(new RobotTerminalScreen(this, getName()));
-    }
-
     private void registerListeners() {
         MinecraftForge.EVENT_BUS.addListener(chunkUnloadListener);
         MinecraftForge.EVENT_BUS.addListener(worldUnloadListener);
@@ -459,8 +453,22 @@ public final class RobotEntity extends Entity implements Robot {
         state.busController.dispose();
     }
 
-    private void openContainerScreen(final PlayerEntity player) {
-        NetworkHooks.openGui((ServerPlayerEntity) player, new INamedContainerProvider() {
+    private void openTerminalScreen(final ServerPlayerEntity player) {
+        NetworkHooks.openGui(player, new INamedContainerProvider() {
+            @Override
+            public ITextComponent getDisplayName() {
+                return getName();
+            }
+
+            @Override
+            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
+                return new RobotTerminalContainer(id, RobotEntity.this);
+            }
+        }, b -> b.writeVarInt(getEntityId()));
+    }
+
+    private void openContainerScreen(final ServerPlayerEntity player) {
+        NetworkHooks.openGui(player, new INamedContainerProvider() {
             @Override
             public ITextComponent getDisplayName() {
                 return getName();

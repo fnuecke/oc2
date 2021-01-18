@@ -28,8 +28,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 // Implements a couple of control sequences from here: https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
 @Serialized
 public final class Terminal {
+    public static final int WIDTH = 80, HEIGHT = 24;
+    public static final int CHAR_WIDTH = 8;
+    public static final int CHAR_HEIGHT = 16;
+
     private static final int TAB_WIDTH = 4;
-    private static final int WIDTH = 80, HEIGHT = 24;
 
     private static final int COLOR_BLACK = 0;
     private static final int COLOR_RED = 1;
@@ -39,9 +42,6 @@ public final class Terminal {
     private static final int COLOR_MAGENTA = 5;
     private static final int COLOR_CYAN = 6;
     private static final int COLOR_WHITE = 7;
-
-    private static final int CHAR_WIDTH = 8;
-    private static final int CHAR_HEIGHT = 16;
 
     private static final int COLOR_MASK = 0b111;
     private static final int COLOR_FOREGROUND_SHIFT = 3;

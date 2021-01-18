@@ -47,8 +47,9 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
     public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
         renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-        RobotContainerScreen.renderSelection(matrixStack, getRobot().getSelectedSlot(), guiLeft + SLOTS_X + 4, guiTop + SLOTS_Y + 4, 12);
         terminalWidget.render(matrixStack, getRobot().getState().getBootError());
+        RobotContainerScreen.renderSelection(matrixStack, getRobot().getSelectedSlot(), guiLeft + SLOTS_X + 4, guiTop + SLOTS_Y + 4, 12);
+        renderHoveredTooltip(matrixStack, mouseX, mouseY);
     }
 
     @Override

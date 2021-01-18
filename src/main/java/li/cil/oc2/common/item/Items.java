@@ -5,7 +5,6 @@ import li.cil.oc2.client.renderer.tileentity.RobotItemStackRenderer;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.Blocks;
 import net.minecraft.block.Block;
-import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -51,11 +50,11 @@ public final class Items {
     ///////////////////////////////////////////////////////////////////
 
     private static RegistryObject<Item> register(final String name) {
-        return register(name, Item::new);
+        return register(name, ModItem::new);
     }
 
     private static RegistryObject<Item> register(final String name, final Item.Properties properties) {
-        return register(name, Item::new, properties);
+        return register(name, ModItem::new, properties);
     }
 
     private static <T extends Item> RegistryObject<T> register(final String name, final Function<Item.Properties, T> factory) {
@@ -67,7 +66,7 @@ public final class Items {
     }
 
     private static <T extends Block> RegistryObject<Item> register(final String name, final RegistryObject<T> block) {
-        return register(name, (properties) -> new BlockItem(block.get(), properties));
+        return register(name, (properties) -> new ModBlockItem(block.get(), properties));
     }
 
     private static Item.Properties commonProperties() {

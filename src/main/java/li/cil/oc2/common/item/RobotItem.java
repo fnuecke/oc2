@@ -8,7 +8,6 @@ import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.block.SoundType;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.stats.Stats;
@@ -22,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public final class RobotItem extends Item {
+public final class RobotItem extends ModItem {
     public RobotItem(final Properties properties) {
         super(properties);
     }
@@ -32,7 +31,6 @@ public final class RobotItem extends Item {
     @Override
     public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flags) {
         super.addInformation(stack, world, tooltip, flags);
-        TooltipUtils.addDescription(stack, tooltip);
         TooltipUtils.addEntityInventoryInformation(stack, tooltip);
     }
 

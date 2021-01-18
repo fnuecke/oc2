@@ -11,7 +11,7 @@ import net.minecraft.util.text.StringTextComponent;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractStorageItem extends Item {
+public abstract class AbstractStorageItem extends ModItem {
     private static final String CAPACITY_TAG_NAME = "size";
 
     ///////////////////////////////////////////////////////////////////

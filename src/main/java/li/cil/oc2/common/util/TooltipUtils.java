@@ -21,9 +21,13 @@ public final class TooltipUtils {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void addDescription(final ItemStack stack, final List<ITextComponent> tooltip) {
-        final TranslationTextComponent description = new TranslationTextComponent(stack.getTranslationKey() + Constants.DESCRIPTION_SUFFIX);
-        tooltip.add(new StringTextComponent("").modifyStyle(s -> s.setColor(Color.fromTextFormatting(TextFormatting.GRAY))).append(description));
+    public static void tryAddDescription(final ItemStack stack, final List<ITextComponent> tooltip) {
+        final String translationKey = stack.getTranslationKey() + Constants.DESCRIPTION_SUFFIX;
+        final LanguageMap languagemap = LanguageMap.getInstance();
+        if (languagemap.func_230506_b_(translationKey)) {
+            final TranslationTextComponent description = new TranslationTextComponent(translationKey);
+            tooltip.add(new StringTextComponent("").modifyStyle(s -> s.setColor(Color.fromTextFormatting(TextFormatting.GRAY))).append(description));
+        }
     }
 
     public static void addTileEntityInventoryInformation(final ItemStack stack, final List<ITextComponent> tooltip) {

@@ -19,7 +19,7 @@ import net.minecraft.world.World;
 import java.util.Objects;
 import java.util.WeakHashMap;
 
-public final class NetworkCableItem extends Item {
+public final class NetworkCableItem extends ModItem {
     private static final WeakHashMap<ServerPlayerEntity, BlockPos> LINK_STARTS = new WeakHashMap<>();
 
     ///////////////////////////////////////////////////////////////////

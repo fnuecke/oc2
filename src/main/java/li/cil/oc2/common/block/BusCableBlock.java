@@ -7,13 +7,11 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tileentity.BusCableTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
 import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
@@ -28,7 +26,6 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
@@ -121,12 +118,6 @@ public final class BusCableBlock extends Block {
         }
 
         return false;
-    }
-
-    @Override
-    public void addInformation(final ItemStack stack, @org.jetbrains.annotations.Nullable final IBlockReader worldIn, final List<ITextComponent> tooltip, final ITooltipFlag flagIn) {
-        super.addInformation(stack, worldIn, tooltip, flagIn);
-        TooltipUtils.addDescription(stack, tooltip);
     }
 
     @Override

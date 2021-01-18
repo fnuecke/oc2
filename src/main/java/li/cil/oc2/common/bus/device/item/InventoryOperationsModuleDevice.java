@@ -10,6 +10,7 @@ import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -82,136 +83,100 @@ public final class InventoryAutomationRobotModuleDevice extends IdentityProxy<It
     }
 
     @Callback
-    public void drop(@Parameter("count") final int count,
-                     @Parameter("direction") @Nullable final Direction direction) {
+    public int drop(@Parameter("count") final int count,
+                    @Parameter("direction") @Nullable final Direction direction) {
         if (count <= 0) {
-            return;
+            return 0;
         }
 
-        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid intermittent change due to threading.
+        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
 
         ItemStack stack = robot.getInventory().extractItem(selectedSlot, count, false);
         if (stack.isEmpty()) {
-            return;
+            return 0;
         }
 
         final int originalStackSize = stack.getCount();
         for (final IItemHandler handler : getItemStackHandlersInDirection(getAdjustedDirection(direction)).collect(Collectors.toList())) {
             stack = ItemHandlerHelper.insertItemStacked(handler, stack, false);
+
+            if (stack.isEmpty()) {
+                break;
+            }
         }
 
-        final boolean droppedSome = stack.getCount() != originalStackSize;
-        if (!stack.isEmpty() && droppedSome) {
+        int dropped = originalStackSize - stack.getCount();
+        if (!stack.isEmpty() && dropped > 0) {
             stack = robot.getInventory().insertItem(selectedSlot, stack, false);
         }
 
         if (!stack.isEmpty()) {
+            dropped += stack.getCount();
             entity.entityDropItem(stack);
         }
+
+        return dropped;
     }
 
     @Callback
-    public void dropInto(@Parameter("intoSlot") final int intoSlot,
-                         @Parameter("count") final int count,
-                         @Parameter("direction") @Nullable final Direction direction) {
+    public int dropInto(@Parameter("intoSlot") final int intoSlot,
+                        @Parameter("count") final int count,
+                        @Parameter("direction") @Nullable final Direction direction) {
         if (count <= 0) {
-            return;
+            return 0;
         }
 
-        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid intermittent change due to threading.
+        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
 
         ItemStack stack = robot.getInventory().extractItem(selectedSlot, count, false);
         if (stack.isEmpty()) {
-            return;
+            return 0;
         }
 
         final int originalStackSize = stack.getCount();
         final Optional<IItemHandler> optional = getItemStackHandlersInDirection(getAdjustedDirection(direction)).findFirst();
         if (optional.isPresent()) {
-            final IItemHandler handler = optional.get();
-
-            stack = handler.insertItem(intoSlot, stack, false);
+            stack = optional.get().insertItem(intoSlot, stack, false);
         }
 
-        final boolean droppedSome = stack.getCount() != originalStackSize;
-        if (!stack.isEmpty() && droppedSome) {
+        int dropped = originalStackSize - stack.getCount();
+        if (!stack.isEmpty() && dropped > 0) {
             stack = robot.getInventory().insertItem(selectedSlot, stack, false);
         }
 
         if (!stack.isEmpty()) {
+            dropped += stack.getCount();
             entity.entityDropItem(stack);
         }
+
+        return dropped;
     }
 
     @Callback
-    public void take(@Parameter("count") int count,
-                     @Parameter("direction") @Nullable final Direction direction) {
+    public int take(@Parameter("count") final int count,
+                    @Parameter("direction") @Nullable final Direction direction) {
         if (count <= 0) {
-            return;
+            return 0;
         }
-
-        final ItemStackHandler inventory = robot.getInventory();
-        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid intermittent change due to threading.
 
         final List<IItemHandler> handlers = getItemStackHandlersInDirection(getAdjustedDirection(direction)).collect(Collectors.toList());
-        for (final IItemHandler handler : handlers) {
-            for (int fromSlot = 0; fromSlot < handler.getSlots(); fromSlot++) {
-                // Do simulation run, getting actual amount possible to take.
-                ItemStack extracted = handler.extractItem(fromSlot, count, true);
-                ItemStack remaining = insertStartingAt(inventory, extracted, selectedSlot, true);
-
-                count -= extracted.getCount() - remaining.getCount();
-
-                // Do actual run, take as many as we know we can based on simulation.
-                extracted = handler.extractItem(fromSlot, extracted.getCount() - remaining.getCount(), false);
-                remaining = insertStartingAt(inventory, extracted, selectedSlot, false);
-
-                // But don't trust simulation; if something is remaining after actual run, try to put it back.
-                remaining = handler.insertItem(fromSlot, remaining, false);
-
-                // And if putting it back fails, just drop it. Avoid destroying items.
-                if (!remaining.isEmpty()) {
-                    entity.entityDropItem(remaining);
-                }
-            }
-
-            if (count <= 0) {
-                break;
-            }
+        if (handlers.isEmpty()) {
+            return takeFromWorld(count);
+        } else {
+            return takeFromInventories(count, handlers);
         }
     }
 
     @Callback
-    public void takeFrom(@Parameter("fromSlot") final int fromSlot,
-                         @Parameter("count") final int count,
-                         @Parameter("direction") @Nullable final Direction direction) {
+    public int takeFrom(@Parameter("fromSlot") final int fromSlot,
+                        @Parameter("count") final int count,
+                        @Parameter("direction") @Nullable final Direction direction) {
         if (count <= 0) {
-            return;
+            return 0;
         }
 
-        final ItemStackHandler inventory = robot.getInventory();
-        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid intermittent change due to threading.
-
-        final Optional<IItemHandler> optional = getItemStackHandlersInDirection(getAdjustedDirection(direction)).findFirst();
-        if (optional.isPresent()) {
-            final IItemHandler handler = optional.get();
-
-            // Do simulation run, getting actual amount possible to take.
-            ItemStack extracted = handler.extractItem(fromSlot, count, true);
-            ItemStack remaining = insertStartingAt(inventory, extracted, selectedSlot, true);
-
-            // Do actual run, take as many as we know we can based on simulation.
-            extracted = handler.extractItem(fromSlot, extracted.getCount() - remaining.getCount(), false);
-            remaining = insertStartingAt(inventory, extracted, selectedSlot, false);
-
-            // But don't trust simulation; if something is remaining after actual run, try to put it back.
-            remaining = handler.insertItem(fromSlot, remaining, false);
-
-            // And if putting it back fails, just drop it. Avoid destroying items.
-            if (!remaining.isEmpty()) {
-                entity.entityDropItem(remaining);
-            }
-        }
+        return getItemStackHandlersInDirection(getAdjustedDirection(direction)).findFirst().map(handler ->
+                takeFromInventory(count, handler, fromSlot)).orElse(0);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -275,5 +240,102 @@ public final class InventoryAutomationRobotModuleDevice extends IdentityProxy<It
         }
 
         return Stream.empty();
+    }
+
+    private List<ItemEntity> getItemsInRange() {
+        return entity.getEntityWorld().getEntitiesWithinAABB(ItemEntity.class, entity.getBoundingBox().grow(1));
+    }
+
+    private int takeFromWorld(final int count) {
+        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
+        final ItemStackHandler inventory = robot.getInventory();
+
+        int remaining = count;
+        for (final ItemEntity itemEntity : getItemsInRange()) {
+            // NB: We make a copy of the original so that the setItem at the end sends an update to the client.
+            final ItemStack original = itemEntity.getItem().copy();
+
+            final ItemStack stackToInsert = original.copy();
+            if (stackToInsert.getCount() > remaining) {
+                stackToInsert.setCount(remaining);
+            }
+
+            final ItemStack overflow = insertStartingAt(inventory, stackToInsert, selectedSlot, false);
+            final int taken = stackToInsert.getCount() - overflow.getCount();
+
+            remaining -= taken;
+            original.shrink(taken);
+            itemEntity.setItem(original);
+        }
+
+        return count - remaining;
+    }
+
+    private int takeFromInventories(final int count, final List<IItemHandler> handlers) {
+        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
+        final ItemStackHandler inventory = robot.getInventory();
+
+        int remaining = count;
+        for (final IItemHandler handler : handlers) {
+            for (int fromSlot = 0; fromSlot < handler.getSlots(); fromSlot++) {
+                // Do simulation run, getting actual amount possible to take.
+                ItemStack extracted = handler.extractItem(fromSlot, remaining, true);
+                ItemStack overflow = insertStartingAt(inventory, extracted, selectedSlot, true);
+
+                final int delta = extracted.getCount() - overflow.getCount();
+                if (delta == 0) {
+                    continue;
+                }
+
+                remaining -= delta;
+
+                // Do actual run, take as many as we know we can based on simulation.
+                extracted = handler.extractItem(fromSlot, delta, false);
+                overflow = insertStartingAt(inventory, extracted, selectedSlot, false);
+
+                // But don't trust simulation; if something is remaining after actual run, try to put it back.
+                remaining += overflow.getCount();
+                overflow = handler.insertItem(fromSlot, overflow, false);
+
+                // And if putting it back fails, just drop it. Avoid destroying items.
+                if (!overflow.isEmpty()) {
+                    remaining -= overflow.getCount();
+                    entity.entityDropItem(overflow);
+                }
+            }
+
+            if (remaining <= 0) {
+                break;
+            }
+        }
+
+        return count - remaining;
+    }
+
+    private int takeFromInventory(final int count, final IItemHandler handler, final int slot) {
+        final ItemStackHandler inventory = robot.getInventory();
+        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
+
+        // Do simulation run, getting actual amount possible to take.
+        ItemStack extracted = handler.extractItem(slot, count, true);
+        ItemStack overflow = insertStartingAt(inventory, extracted, selectedSlot, true);
+
+        int taken = extracted.getCount() - overflow.getCount();
+
+        // Do actual run, take as many as we know we can based on simulation.
+        extracted = handler.extractItem(slot, taken, false);
+        overflow = insertStartingAt(inventory, extracted, selectedSlot, false);
+
+        // But don't trust simulation; if something is remaining after actual run, try to put it back.
+        taken -= overflow.getCount();
+        overflow = handler.insertItem(slot, overflow, false);
+
+        // And if putting it back fails, just drop it. Avoid destroying items.
+        if (!overflow.isEmpty()) {
+            // NB: not counting this towards taken count since it did not end up in our inventory.
+            entity.entityDropItem(overflow);
+        }
+
+        return taken;
     }
 }

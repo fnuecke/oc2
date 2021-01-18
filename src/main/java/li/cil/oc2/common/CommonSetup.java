@@ -29,6 +29,7 @@ public final class CommonSetup {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(IMC::handleIMCMessages);
         MinecraftForge.EVENT_BUS.addListener(CommonSetup::handleServerAboutToStart);
         MinecraftForge.EVENT_BUS.addListener(CommonSetup::handleServerStopped);
+        MinecraftForge.EVENT_BUS.addListener(FileSystems::addReloadListenerEvent);
         ServerScheduler.register();
 
         addBuiltinRPCMethodParameterTypeAdapters();
@@ -38,7 +39,6 @@ public final class CommonSetup {
 
     private static void handleServerAboutToStart(final FMLServerAboutToStartEvent event) {
         BlobStorage.setServer(event.getServer());
-        FileSystems.initialize(event.getServer());
     }
 
     private static void handleServerStopped(final FMLServerStoppedEvent event) {

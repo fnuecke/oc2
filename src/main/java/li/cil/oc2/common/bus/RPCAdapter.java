@@ -278,8 +278,8 @@ public final class RPCAdapter implements Steppable {
         // have relatively few methods per object where the overhead of hashing would not
         // be worth it. So we just do a linear search, which also gives us maximal
         // flexibility for free (devices may dynamically change their methods).
+        final List<RPCMethod> fallbacks = new ArrayList<>();
         String error = ERROR_UNKNOWN_METHOD;
-        outer:
         for (final RPCMethod method : device.getMethods()) {
             if (!Objects.equals(method.getName(), methodInvocation.methodName)) {
                 continue;
@@ -287,37 +287,82 @@ public final class RPCAdapter implements Steppable {
 
             final RPCParameter[] parametersSpec = method.getParameters();
             if (methodInvocation.parameters.size() != parametersSpec.length) {
+                if (canTrailingParametersBeImplicitlyNull(methodInvocation.parameters, parametersSpec)) {
+                    fallbacks.add(method);
+                }
+
                 error = ERROR_INVALID_PARAMETER_SIGNATURE;
                 continue; // There may be an overload with matching parameter count.
             }
 
-            final Object[] parameters = new Object[parametersSpec.length];
-            for (int i = 0; i < parametersSpec.length; i++) {
-                final RPCParameter parameterInfo = parametersSpec[i];
-                try {
-                    parameters[i] = gson.fromJson(methodInvocation.parameters.get(i), parameterInfo.getType());
-                } catch (final Throwable e) {
-                    error = ERROR_INVALID_PARAMETER_SIGNATURE;
-                    continue outer; // There may be an overload with matching parameter types.
-                }
+            final Object[] parameters = getParameters(methodInvocation.parameters, parametersSpec);
+            if (parameters == null) {
+                error = ERROR_INVALID_PARAMETER_SIGNATURE;
+                continue; // There may be an overload with matching parameter types.
             }
 
-            if (method.isSynchronized() && !isMainThread) {
-                synchronizedInvocation = methodInvocation;
-                return;
-            }
-
-            try {
-                final Object result = method.invoke(parameters);
-                writeMessage(Message.MESSAGE_TYPE_RESULT, result);
-            } catch (final Throwable e) {
-                writeError(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
-            }
+            invokeMethod(methodInvocation, isMainThread, method, parameters);
 
             return;
         }
 
+        if (fallbacks.size() == 1) {
+            final RPCMethod method = fallbacks.get(0);
+            final Object[] parameters = getParameters(methodInvocation.parameters, method.getParameters());
+            if (parameters != null) {
+                invokeMethod(methodInvocation, isMainThread, method, parameters);
+                return;
+            }
+        }
+
         writeError(error);
+    }
+
+    private void invokeMethod(final MethodInvocation methodInvocation, final boolean isMainThread, final RPCMethod method, final Object[] parameters) {
+        if (method.isSynchronized() && !isMainThread) {
+            synchronizedInvocation = methodInvocation;
+            return;
+        }
+
+        try {
+            final Object result = method.invoke(parameters);
+            writeMessage(Message.MESSAGE_TYPE_RESULT, result);
+        } catch (final Throwable e) {
+            writeError(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+        }
+    }
+
+    @Nullable
+    private Object[] getParameters(final JsonArray parameters, final RPCParameter[] parametersSpec) {
+        final Object[] result = new Object[parametersSpec.length];
+        for (int i = 0; i < parametersSpec.length; i++) {
+            final RPCParameter parameterInfo = parametersSpec[i];
+            if (parameters.size() > i) {
+                try {
+                    result[i] = gson.fromJson(parameters.get(i), parameterInfo.getType());
+                } catch (final Throwable e) {
+                    return null;
+                }
+            } else {
+                result[i] = null;
+            }
+        }
+        return result;
+    }
+
+    private boolean canTrailingParametersBeImplicitlyNull(final JsonArray parameters, final RPCParameter[] parametersSpec) {
+        if (parameters.size() > parametersSpec.length) {
+            return false;
+        }
+
+        for (int i = parameters.size(); i < parametersSpec.length; i++) {
+            final Class<?> type = parametersSpec[i].getType();
+            if (type.isPrimitive()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void writeDeviceList() {

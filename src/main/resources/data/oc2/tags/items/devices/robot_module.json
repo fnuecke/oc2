@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "oc2:inventory_automation_module"
+    "oc2:inventory_operations_module",
+    "oc2:block_operations_module"
   ]
 }

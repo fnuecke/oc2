@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/handheld",
   "textures": {
-    "layer0": "oc2:items/inventory_automation_module"
+    "layer0": "oc2:items/inventory_operations_module"
   }
 }

@@ -29,18 +29,18 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class InventoryAutomationRobotModuleDevice extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice {
+public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice {
     private final Entity entity;
     private final Robot robot;
     private final ObjectDevice device;
 
     ///////////////////////////////////////////////////////////////////
 
-    public InventoryAutomationRobotModuleDevice(final ItemStack identity, final Entity entity, final Robot robot) {
+    public InventoryOperationsModuleDevice(final ItemStack identity, final Entity entity, final Robot robot) {
         super(identity);
         this.entity = entity;
         this.robot = robot;
-        this.device = new ObjectDevice(this, "inventory_automation");
+        this.device = new ObjectDevice(this, "inventory_operations");
     }
 
     ///////////////////////////////////////////////////////////////////

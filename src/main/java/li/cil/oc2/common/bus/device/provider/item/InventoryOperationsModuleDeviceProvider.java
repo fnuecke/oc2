@@ -4,16 +4,16 @@ import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import li.cil.oc2.common.bus.device.item.InventoryAutomationRobotModuleDevice;
+import li.cil.oc2.common.bus.device.item.InventoryOperationsModuleDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
 
 import java.util.Optional;
 
-public final class InventoryAutomationRobotModuleDeviceProvider extends AbstractItemDeviceProvider {
-    public InventoryAutomationRobotModuleDeviceProvider() {
-        super(Items.INVENTORY_AUTOMATION_MODULE);
+public final class InventoryOperationsModuleDeviceProvider extends AbstractItemDeviceProvider {
+    public InventoryOperationsModuleDeviceProvider() {
+        super(Items.INVENTORY_OPERATIONS_MODULE);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -27,6 +27,6 @@ public final class InventoryAutomationRobotModuleDeviceProvider extends Abstract
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
         return query.getContainerEntity().flatMap(entity ->
                 entity.getCapability(Capabilities.ROBOT).map(robot ->
-                        new InventoryAutomationRobotModuleDevice(query.getItemStack(), entity, robot)));
+                        new InventoryOperationsModuleDevice(query.getItemStack(), entity, robot)));
     }
 }

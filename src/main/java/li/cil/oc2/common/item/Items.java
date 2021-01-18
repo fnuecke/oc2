@@ -39,7 +39,8 @@ public final class Items {
     public static final RegistryObject<Item> REDSTONE_INTERFACE_CARD_ITEM = register(Constants.REDSTONE_INTERFACE_CARD_ITEM_NAME);
     public static final RegistryObject<Item> NETWORK_INTERFACE_CARD_ITEM = register(Constants.NETWORK_INTERFACE_CARD_ITEM_NAME);
 
-    public static final RegistryObject<Item> INVENTORY_AUTOMATION_MODULE = register(Constants.INVENTORY_AUTOMATION_MODULE_ITEM_NAME);
+    public static final RegistryObject<Item> INVENTORY_OPERATIONS_MODULE = register(Constants.INVENTORY_OPERATIONS_MODULE_ITEM_NAME);
+    public static final RegistryObject<Item> BLOCK_OPERATIONS_MODULE = register(Constants.BLOCK_OPERATIONS_MODULE_ITEM_NAME);
 
     ///////////////////////////////////////////////////////////////////
 

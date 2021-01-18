@@ -45,7 +45,8 @@ public final class ModItemModelProvider extends ItemModelProvider {
         simple(Items.REDSTONE_INTERFACE_CARD_ITEM, "items/redstone_interface_card");
         simple(Items.NETWORK_INTERFACE_CARD_ITEM, "items/network_interface_card");
 
-        simple(Items.INVENTORY_AUTOMATION_MODULE, "items/inventory_automation_module");
+        simple(Items.INVENTORY_OPERATIONS_MODULE, "items/inventory_operations_module");
+        simple(Items.BLOCK_OPERATIONS_MODULE, "items/block_operations_module");
 
         withExistingParent(Constants.ROBOT_ENTITY_NAME, "template_shulker_box");
     }

@@ -42,7 +42,8 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
                 Items.NETWORK_INTERFACE_CARD_ITEM.get()
         );
         getOrCreateBuilder(DEVICES_ROBOT_MODULE).add(
-                Items.INVENTORY_AUTOMATION_MODULE.get()
+                Items.INVENTORY_OPERATIONS_MODULE.get(),
+                Items.BLOCK_OPERATIONS_MODULE.get()
         );
         getOrCreateBuilder(WRENCHES).add(Items.WRENCH_ITEM.get());
     }

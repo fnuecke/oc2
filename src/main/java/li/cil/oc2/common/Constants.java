@@ -39,7 +39,8 @@ public final class Constants {
     public static final String REDSTONE_INTERFACE_CARD_ITEM_NAME = "redstone_interface_card";
     public static final String NETWORK_INTERFACE_CARD_ITEM_NAME = "network_interface_card";
 
-    public static final String INVENTORY_AUTOMATION_MODULE_ITEM_NAME = "inventory_automation_module";
+    public static final String INVENTORY_OPERATIONS_MODULE_ITEM_NAME = "inventory_operations_module";
+    public static final String BLOCK_OPERATIONS_MODULE_ITEM_NAME = "block_operations_module";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -51,10 +52,12 @@ public final class Constants {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final String CONFIG_MAX_ALLOCATED_MEMORY = "config.oc2.maxAllocatedMemory";
-    public static final String CONFIG_MAX_MEMORY_SIZE = "config.oc2.maxMemorySize";
-    public static final String CONFIG_MAX_HARD_DRIVE_SIZE = "config.oc2.maxHardDriveSize";
-    public static final String CONFIG_MAX_FLASH_MEMORY_SIZE = "config.oc2.maxFlashMemorySize";
+    public static final String CONFIG_MAX_ALLOCATED_MEMORY = "config.oc2.vm.maxAllocatedMemory";
+    public static final String CONFIG_MAX_MEMORY_SIZE = "config.oc2.vm.maxMemorySize";
+    public static final String CONFIG_MAX_HARD_DRIVE_SIZE = "config.oc2.vm.maxHardDriveSize";
+    public static final String CONFIG_MAX_FLASH_MEMORY_SIZE = "config.oc2.vm.maxFlashMemorySize";
+    public static final String CONFIG_BLOCK_OPERATIONS_MODULE_TOOL_LEVEL = "config.oc2.modules.block_operations.toolLevel";
+    public static final String CONFIG_FAKE_PLAYER_UUID = "config.oc2.admin.fakePlayerUUID";
 
     ///////////////////////////////////////////////////////////////////
 

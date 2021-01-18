@@ -10,10 +10,7 @@ jobs:
     strategy:
       matrix:
         # Use these Java versions
-        java: [
-          1.8,  # Minimum supported by Minecraft
-          15    # Latest version
-        ]
+        java: [ 1.8 ]
         # and run on both Linux and Windows
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -34,9 +31,3 @@ jobs:
         restore-keys: ${{ runner.os }}-gradle-
     - name: Build with Gradle
       run: ./gradlew build
-    - name: capture build artifacts
-      if: ${{ runner.os == 'Linux' && matrix.java == '1.8' }}
-      uses: actions/upload-artifact@v2
-      with:
-        name: Artifacts
-        path: build/libs/

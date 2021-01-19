@@ -87,12 +87,12 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT nbt) {
-        if (nbt.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = nbt.getUniqueId(BLOB_HANDLE_TAG_NAME);
+    public void deserializeNBT(final CompoundNBT tag) {
+        if (tag.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
+            blobHandle = tag.getUniqueId(BLOB_HANDLE_TAG_NAME);
         }
-        if (nbt.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
-            address.set(nbt.getLong(ADDRESS_TAG_NAME));
+        if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
+            address.set(tag.getLong(ADDRESS_TAG_NAME));
         }
     }
 

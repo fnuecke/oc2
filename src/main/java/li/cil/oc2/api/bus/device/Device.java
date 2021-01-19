@@ -22,6 +22,6 @@ public interface Device extends INBTSerializable<CompoundNBT> {
     }
 
     @Override
-    default void deserializeNBT(final CompoundNBT nbt) {
+    default void deserializeNBT(final CompoundNBT tag) {
     }
 }

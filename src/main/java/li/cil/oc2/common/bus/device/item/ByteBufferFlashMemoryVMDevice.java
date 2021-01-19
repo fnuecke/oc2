@@ -86,7 +86,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT nbt) {
+    public void deserializeNBT(final CompoundNBT tag) {
 
     }
 

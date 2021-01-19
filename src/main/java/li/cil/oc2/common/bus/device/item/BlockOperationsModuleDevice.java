@@ -8,6 +8,7 @@ import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.common.Config;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.FakePlayerUtils;
@@ -16,12 +17,14 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.*;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.GameType;
 import net.minecraft.world.World;
@@ -34,15 +37,24 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice {
+    private static final String LAST_OPERATION_TAG_NAME = "cooldown";
+
+    private static final int COOLDOWN = Constants.TICK_SECONDS;
+
+    ///////////////////////////////////////////////////////////////////
+
     public enum PlacementDirection {
         FRONT,
         UP,
         DOWN,
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     private final Entity entity;
     private final Robot robot;
     private final ObjectDevice device;
+    private long lastOperation;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -56,6 +68,18 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
     ///////////////////////////////////////////////////////////////////
 
     @Override
+    public CompoundNBT serializeNBT() {
+        final CompoundNBT tag = new CompoundNBT();
+        tag.putLong(LAST_OPERATION_TAG_NAME, lastOperation);
+        return tag;
+    }
+
+    @Override
+    public void deserializeNBT(final CompoundNBT tag) {
+        lastOperation = MathHelper.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.getEntityWorld().getGameTime());
+    }
+
+    @Override
     public List<String> getTypeNames() {
         return device.getTypeNames();
     }
@@ -67,6 +91,12 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
     @Callback
     public boolean excavate(@Parameter("direction") @Nullable final PlacementDirection direction) {
+        if (isOnCooldown()) {
+            return false;
+        }
+
+        beginCooldown();
+
         final World world = entity.getEntityWorld();
         if (!(world instanceof ServerWorld)) {
             return false;
@@ -95,6 +125,12 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
     @Callback
     public boolean place(@Parameter("direction") @Nullable final PlacementDirection direction) {
+        if (isOnCooldown()) {
+            return false;
+        }
+
+        beginCooldown();
+
         final World world = entity.getEntityWorld();
         if (!(world instanceof ServerWorld)) {
             return false;
@@ -140,6 +176,12 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
     @Callback
     public boolean repair() {
+        if (isOnCooldown()) {
+            return false;
+        }
+
+        beginCooldown();
+
         if (identity.getDamage() == 0) {
             return false;
         }
@@ -170,6 +212,14 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    private void beginCooldown() {
+        lastOperation = entity.getEntityWorld().getGameTime();
+    }
+
+    private boolean isOnCooldown() {
+        return entity.getEntityWorld().getGameTime() - lastOperation < COOLDOWN;
+    }
 
     private Direction getAdjustedDirection(@Nullable final PlacementDirection placementDirection) {
         if (placementDirection == PlacementDirection.UP) {

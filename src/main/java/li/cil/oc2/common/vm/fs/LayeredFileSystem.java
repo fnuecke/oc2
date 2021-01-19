@@ -4,14 +4,19 @@ import li.cil.sedna.fs.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public final class LayeredFileSystem implements FileSystem {
     private final ArrayList<FileSystem> fileSystems = new ArrayList<>();
 
+    ///////////////////////////////////////////////////////////////////
+
     public void addLayer(final FileSystem fileSystem) {
-        fileSystems.add(fileSystem);
+        fileSystems.add(0, fileSystem);
     }
 
     public void clear() {
@@ -114,9 +119,19 @@ public final class LayeredFileSystem implements FileSystem {
             throw new IOException();
         }
 
-        for (final FileSystem fileSystem : fileSystems) {
-            if (fileSystem.exists(path)) {
-                return fileSystem.open(path, flags);
+        if (isDirectory(path)) {
+            final ArrayList<FileHandle> fileHandles = new ArrayList<>();
+            for (final FileSystem fileSystem : fileSystems) {
+                if (fileSystem.isDirectory(path)) {
+                    fileHandles.add(fileSystem.open(path, flags));
+                }
+            }
+            return new LayeredDirectoryFileHandle(fileHandles);
+        } else {
+            for (final FileSystem fileSystem : fileSystems) {
+                if (fileSystem.exists(path)) {
+                    return fileSystem.open(path, flags);
+                }
             }
         }
 
@@ -136,5 +151,44 @@ public final class LayeredFileSystem implements FileSystem {
     @Override
     public void rename(final Path oldPath, final Path newPath) throws IOException {
         throw new IOException();
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private static final class LayeredDirectoryFileHandle implements FileHandle {
+        private final ArrayList<DirectoryEntry> entries = new ArrayList<>();
+
+        public LayeredDirectoryFileHandle(final ArrayList<FileHandle> fileHandles) {
+            for (final FileHandle fileHandle : fileHandles) {
+                try {
+                    final List<DirectoryEntry> layer = fileHandle.readdir();
+                    for (final DirectoryEntry entry : layer) {
+                        if (entries.stream().noneMatch(e -> Objects.equals(e.name, entry.name))) {
+                            entries.add(entry);
+                        }
+                    }
+                } catch (final IOException ignored) {
+                }
+            }
+        }
+
+        @Override
+        public int read(final long offset, final ByteBuffer buffer) throws IOException {
+            throw new IOException();
+        }
+
+        @Override
+        public int write(final long offset, final ByteBuffer buffer) throws IOException {
+            throw new IOException();
+        }
+
+        @Override
+        public List<DirectoryEntry> readdir() {
+            return entries;
+        }
+
+        @Override
+        public void close() {
+        }
     }
 }

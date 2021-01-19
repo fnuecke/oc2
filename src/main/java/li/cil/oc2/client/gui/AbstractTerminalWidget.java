@@ -123,18 +123,16 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
             for (final char ch : value.toCharArray()) {
                 terminal.putInput((byte) ch);
             }
-            return true;
-        }
-
-        final byte[] sequence = TerminalInput.getSequence(keyCode, modifiers);
-        if (sequence != null) {
-            for (int i = 0; i < sequence.length; i++) {
-                terminal.putInput(sequence[i]);
+        } else {
+            final byte[] sequence = TerminalInput.getSequence(keyCode, modifiers);
+            if (sequence != null) {
+                for (int i = 0; i < sequence.length; i++) {
+                    terminal.putInput(sequence[i]);
+                }
             }
-            return true;
         }
 
-        return false;
+        return true;
     }
 
     public void init() {

@@ -57,7 +57,13 @@ public final class FileSystems {
                     case "virtio-9p": {
                         final ResourceLocation location = new ResourceLocation(json.getAsJsonPrimitive("location").getAsString());
                         final ResourceFileSystem fileSystem = new ResourceFileSystem(resourceManager, location);
-                        LAYERED_FILE_SYSTEM.addLayer(fileSystem);
+                        final long fileCount = fileSystem.statfs().fileCount;
+                        if (fileCount > 0) {
+                            LOGGER.info("  Adding layer with [{}] file(s).", fileCount);
+                            LAYERED_FILE_SYSTEM.addLayer(fileSystem);
+                        } else {
+                            LOGGER.info("  Skipping empty layer.");
+                        }
                         break;
                     }
                     case "virtio-blk": {

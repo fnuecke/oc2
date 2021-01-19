@@ -29,7 +29,7 @@ public final class CommonSetup {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(IMC::handleIMCMessages);
         MinecraftForge.EVENT_BUS.addListener(CommonSetup::handleServerAboutToStart);
         MinecraftForge.EVENT_BUS.addListener(CommonSetup::handleServerStopped);
-        MinecraftForge.EVENT_BUS.addListener(FileSystems::addReloadListenerEvent);
+        MinecraftForge.EVENT_BUS.addListener(FileSystems::handleAddReloadListenerEvent);
         ServerScheduler.register();
 
         addBuiltinRPCMethodParameterTypeAdapters();

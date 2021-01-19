@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/handheld",
   "textures": {
-    "layer0": "oc2:items/flash_memory"
+    "layer0": "oc2:item/flash_memory"
   }
 }

@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:item/handheld",
   "textures": {
-    "layer0": "oc2:items/hard_drive1"
+    "layer0": "oc2:item/hard_drive1"
   },
   "overrides": [
     {

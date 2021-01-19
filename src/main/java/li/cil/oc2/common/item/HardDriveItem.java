@@ -22,7 +22,7 @@ public final class HardDriveItem extends AbstractStorageItem {
     ///////////////////////////////////////////////////////////////////
 
     public static ItemStack withCapacity(final int capacity) {
-        return withCapacity(new ItemStack(Items.HARD_DRIVE_ITEM.get()), capacity);
+        return withCapacity(new ItemStack(Items.HARD_DRIVE.get()), capacity);
     }
 
     @Nullable
@@ -61,7 +61,7 @@ public final class HardDriveItem extends AbstractStorageItem {
     }
 
     public static ItemStack withBase(final BaseBlockDevice baseBlockDevice) {
-        return withBase(new ItemStack(Items.HARD_DRIVE_ITEM.get()), baseBlockDevice);
+        return withBase(new ItemStack(Items.HARD_DRIVE.get()), baseBlockDevice);
     }
 
     public static boolean isReadonly(final ItemStack stack) {

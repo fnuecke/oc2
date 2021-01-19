@@ -13,9 +13,9 @@ public final class CustomItemModelProperties {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        ItemModelsProperties.registerProperty(Items.MEMORY_ITEM.get(), CustomItemModelProperties.CAPACITY_PROPERTY,
+        ItemModelsProperties.registerProperty(Items.MEMORY.get(), CustomItemModelProperties.CAPACITY_PROPERTY,
                 (stack, world, entity) -> AbstractStorageItem.getCapacity(stack));
-        ItemModelsProperties.registerProperty(Items.HARD_DRIVE_ITEM.get(), CustomItemModelProperties.CAPACITY_PROPERTY,
+        ItemModelsProperties.registerProperty(Items.HARD_DRIVE.get(), CustomItemModelProperties.CAPACITY_PROPERTY,
                 (stack, world, entity) -> HardDriveItem.getBaseBlockDevice(stack) != null ? Integer.MAX_VALUE : AbstractStorageItem.getCapacity(stack));
     }
 }

@@ -20,9 +20,9 @@ public class ModBlockStateProvider extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-        horizontalBlock(Blocks.COMPUTER_BLOCK, Items.COMPUTER_ITEM);
-        horizontalBlock(Blocks.REDSTONE_INTERFACE_BLOCK, Items.REDSTONE_INTERFACE_ITEM);
-        horizontalFaceBlock(Blocks.NETWORK_CONNECTOR_BLOCK, Items.NETWORK_CONNECTOR_ITEM)
+        horizontalBlock(Blocks.COMPUTER, Items.COMPUTER);
+        horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE);
+        horizontalFaceBlock(Blocks.NETWORK_CONNECTOR, Items.NETWORK_CONNECTOR)
                 .transforms()
                 .transform(ModelBuilder.Perspective.GUI)
                 .rotation(30, 315, 0)
@@ -34,7 +34,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 .translation(0, 0, -5)
                 .end()
                 .end();
-        horizontalBlock(Blocks.NETWORK_HUB_BLOCK, Items.NETWORK_HUB_ITEM);
+        horizontalBlock(Blocks.NETWORK_HUB, Items.NETWORK_HUB);
 
         registerCableStates();
     }
@@ -44,7 +44,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
         final ModelFile linkModel = models().getExistingFile(new ResourceLocation(API.MOD_ID, "block/cable_link"));
         final ModelFile plugModel = models().getExistingFile(new ResourceLocation(API.MOD_ID, "block/cable_plug"));
 
-        final MultiPartBlockStateBuilder builder = getMultipartBuilder(Blocks.BUS_CABLE_BLOCK.get());
+        final MultiPartBlockStateBuilder builder = getMultipartBuilder(Blocks.BUS_CABLE.get());
 
         // NB: We use a custom model loader + baked model to replace the base part with straight parts and
         //     insert supports where appropriate.
@@ -78,7 +78,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                     .end();
         });
 
-        itemModels().getBuilder(Items.BUS_CABLE_ITEM.getId().getPath())
+        itemModels().getBuilder(Items.BUS_CABLE.getId().getPath())
                 .parent(baseModel)
                 .transforms()
                 .transform(ModelBuilder.Perspective.GUI)
@@ -107,7 +107,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 .scale(0.75f)
                 .end();
 
-        itemModels().getBuilder(Items.BUS_INTERFACE_ITEM.getId().getPath())
+        itemModels().getBuilder(Items.BUS_INTERFACE.getId().getPath())
                 .parent(plugModel)
                 .transforms()
                 .transform(ModelBuilder.Perspective.GUI)

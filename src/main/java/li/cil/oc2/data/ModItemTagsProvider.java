@@ -32,17 +32,17 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
                 DEVICES_ROBOT_MODULE
         );
         getOrCreateBuilder(DEVICES_MEMORY).add(
-                Items.MEMORY_ITEM.get()
+                Items.MEMORY.get()
         );
         getOrCreateBuilder(DEVICES_HARD_DRIVE).add(
-                Items.HARD_DRIVE_ITEM.get()
+                Items.HARD_DRIVE.get()
         );
         getOrCreateBuilder(DEVICES_FLASH_MEMORY).add(
-                Items.FLASH_MEMORY_ITEM.get()
+                Items.FLASH_MEMORY.get()
         );
         getOrCreateBuilder(DEVICES_CARD).add(
-                Items.REDSTONE_INTERFACE_CARD_ITEM.get(),
-                Items.NETWORK_INTERFACE_CARD_ITEM.get()
+                Items.REDSTONE_INTERFACE_CARD.get(),
+                Items.NETWORK_INTERFACE_CARD.get()
         );
         getOrCreateBuilder(DEVICES_ROBOT_MODULE).add(
                 Items.INVENTORY_OPERATIONS_MODULE.get(),
@@ -76,13 +76,13 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
                 Tags.Items.INGOTS_NETHERITE
         );
 
-        getOrCreateBuilder(WRENCHES).add(Items.WRENCH_ITEM.get());
+        getOrCreateBuilder(WRENCHES).add(Items.WRENCH.get());
 
         getOrCreateBuilder(DEVICE_NEEDS_REBOOT).add(
-                Items.MEMORY_ITEM.get(),
-                Items.HARD_DRIVE_ITEM.get(),
-                Items.FLASH_MEMORY_ITEM.get(),
-                Items.NETWORK_INTERFACE_CARD_ITEM.get()
+                Items.MEMORY.get(),
+                Items.HARD_DRIVE.get(),
+                Items.FLASH_MEMORY.get(),
+                Items.NETWORK_INTERFACE_CARD.get()
         );
     }
 }

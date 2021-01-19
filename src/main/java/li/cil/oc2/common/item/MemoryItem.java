@@ -9,7 +9,7 @@ public final class MemoryItem extends AbstractStorageItem {
     ///////////////////////////////////////////////////////////////////
 
     public static ItemStack withCapacity(final int capacity) {
-        return withCapacity(new ItemStack(Items.MEMORY_ITEM.get()), capacity);
+        return withCapacity(new ItemStack(Items.MEMORY.get()), capacity);
     }
 
     ///////////////////////////////////////////////////////////////////

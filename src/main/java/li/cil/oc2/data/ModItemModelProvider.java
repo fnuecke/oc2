@@ -19,31 +19,31 @@ public final class ModItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        simple(Items.WRENCH_ITEM, "item/wrench");
+        simple(Items.WRENCH, "item/wrench");
 
-        simple(Items.NETWORK_CABLE_ITEM, "item/network_cable");
+        simple(Items.NETWORK_CABLE, "item/network_cable");
 
-        simple(Items.MEMORY_ITEM, "item/memory1")
+        simple(Items.MEMORY, "item/memory1")
                 .override()
                 .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 4 * Constants.MEGABYTE)
-                .model(simple(Items.MEMORY_ITEM, "item/memory2", "2"))
+                .model(simple(Items.MEMORY, "item/memory2", "2"))
                 .end()
                 .override()
                 .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
-                .model(simple(Items.MEMORY_ITEM, "item/memory3", "3"))
+                .model(simple(Items.MEMORY, "item/memory3", "3"))
                 .end();
-        simple(Items.HARD_DRIVE_ITEM, "item/hard_drive1")
+        simple(Items.HARD_DRIVE, "item/hard_drive1")
                 .override()
                 .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 4 * Constants.MEGABYTE)
-                .model(simple(Items.HARD_DRIVE_ITEM, "item/hard_drive2", "2"))
+                .model(simple(Items.HARD_DRIVE, "item/hard_drive2", "2"))
                 .end()
                 .override()
                 .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
-                .model(simple(Items.HARD_DRIVE_ITEM, "item/hard_drive3", "3"))
+                .model(simple(Items.HARD_DRIVE, "item/hard_drive3", "3"))
                 .end();
-        simple(Items.FLASH_MEMORY_ITEM, "item/flash_memory");
-        simple(Items.REDSTONE_INTERFACE_CARD_ITEM, "item/redstone_interface_card");
-        simple(Items.NETWORK_INTERFACE_CARD_ITEM, "item/network_interface_card");
+        simple(Items.FLASH_MEMORY, "item/flash_memory");
+        simple(Items.REDSTONE_INTERFACE_CARD, "item/redstone_interface_card");
+        simple(Items.NETWORK_INTERFACE_CARD, "item/network_interface_card");
 
         simple(Items.INVENTORY_OPERATIONS_MODULE, "item/inventory_operations_module");
         simple(Items.BLOCK_OPERATIONS_MODULE, "item/block_operations_module");

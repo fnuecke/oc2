@@ -182,7 +182,7 @@ public final class ComputerBlock extends HorizontalBlock {
                 computer.getItemStackHandlers().exportDeviceDataToItemStacks();
 
                 if (player.isCreative()) {
-                    final ItemStack stack = new ItemStack(Items.COMPUTER_ITEM.get());
+                    final ItemStack stack = new ItemStack(Items.COMPUTER.get());
                     computer.exportToItemStack(stack);
                     spawnAsEntity(world, pos, stack);
                 }

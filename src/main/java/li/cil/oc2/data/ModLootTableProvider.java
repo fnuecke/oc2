@@ -42,12 +42,12 @@ public final class ModLootTableProvider extends LootTableProvider {
     public static final class ModBlockLootTables extends BlockLootTables {
         @Override
         protected void addTables() {
-            registerDropSelfLootTable(Blocks.BUS_CABLE_BLOCK.get());
-            registerDropSelfLootTable(Blocks.REDSTONE_INTERFACE_BLOCK.get());
-            registerDropSelfLootTable(Blocks.NETWORK_CONNECTOR_BLOCK.get());
-            registerDropSelfLootTable(Blocks.NETWORK_HUB_BLOCK.get());
+            registerDropSelfLootTable(Blocks.BUS_CABLE.get());
+            registerDropSelfLootTable(Blocks.REDSTONE_INTERFACE.get());
+            registerDropSelfLootTable(Blocks.NETWORK_CONNECTOR.get());
+            registerDropSelfLootTable(Blocks.NETWORK_HUB.get());
 
-            registerLootTable(Blocks.COMPUTER_BLOCK.get(), ModBlockLootTables::droppingWithInventory);
+            registerLootTable(Blocks.COMPUTER.get(), ModBlockLootTables::droppingWithInventory);
         }
 
         @Override

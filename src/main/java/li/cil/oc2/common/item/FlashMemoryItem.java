@@ -23,7 +23,7 @@ public final class FlashMemoryItem extends AbstractStorageItem {
     ///////////////////////////////////////////////////////////////////
 
     public static ItemStack withCapacity(final int capacity) {
-        return withCapacity(new ItemStack(Items.FLASH_MEMORY_ITEM.get()), capacity);
+        return withCapacity(new ItemStack(Items.FLASH_MEMORY.get()), capacity);
     }
 
     @Nullable
@@ -62,7 +62,7 @@ public final class FlashMemoryItem extends AbstractStorageItem {
     }
 
     public static ItemStack withFirmware(final Firmware firmware) {
-        return withFirmware(new ItemStack(Items.FLASH_MEMORY_ITEM.get()), firmware);
+        return withFirmware(new ItemStack(Items.FLASH_MEMORY.get()), firmware);
     }
 
     ///////////////////////////////////////////////////////////////////

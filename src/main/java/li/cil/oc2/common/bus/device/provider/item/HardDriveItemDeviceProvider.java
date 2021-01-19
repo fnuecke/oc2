@@ -19,7 +19,7 @@ import java.util.Optional;
 
 public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvider {
     public HardDriveItemDeviceProvider() {
-        super(Items.HARD_DRIVE_ITEM);
+        super(Items.HARD_DRIVE);
     }
 
     ///////////////////////////////////////////////////////////////////

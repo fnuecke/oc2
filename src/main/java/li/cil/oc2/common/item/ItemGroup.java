@@ -6,7 +6,6 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.data.BaseBlockDevices;
 import li.cil.oc2.common.bus.device.data.Firmwares;
 import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.vm.AbstractVirtualMachineItemStackHandlers;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
@@ -19,7 +18,7 @@ public final class ItemGroup {
     public static final net.minecraft.item.ItemGroup COMMON = new net.minecraft.item.ItemGroup(API.MOD_ID + ".common") {
         @Override
         public ItemStack createIcon() {
-            return new ItemStack(Items.COMPUTER_ITEM.get());
+            return new ItemStack(Items.COMPUTER.get());
         }
 
         @Override
@@ -44,7 +43,7 @@ public final class ItemGroup {
         }
 
         private ItemStack getPreconfiguredComputer() {
-            final ItemStack computer = new ItemStack(Items.COMPUTER_ITEM.get());
+            final ItemStack computer = new ItemStack(Items.COMPUTER.get());
 
             final CompoundNBT computerItems = ItemStackUtils.getOrCreateTileEntityInventoryTag(computer);
             computerItems.put(DeviceTypes.MEMORY.getRegistryName().toString(), makeInventoryTag(
@@ -59,7 +58,7 @@ public final class ItemGroup {
                     FlashMemoryItem.withFirmware(Firmwares.BUILDROOT.get())
             ));
             computerItems.put(DeviceTypes.CARD.getRegistryName().toString(), makeInventoryTag(
-                    new ItemStack(Items.NETWORK_INTERFACE_CARD_ITEM.get())
+                    new ItemStack(Items.NETWORK_INTERFACE_CARD.get())
             ));
 
             return computer;

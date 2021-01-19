@@ -165,7 +165,7 @@ public final class BusCableBlock extends Block {
         }
 
         if (plugCount > 0) {
-            drops.add(new ItemStack(Items.BUS_INTERFACE_ITEM.get(), plugCount));
+            drops.add(new ItemStack(Items.BUS_INTERFACE.get(), plugCount));
         }
 
         return drops;
@@ -289,7 +289,7 @@ public final class BusCableBlock extends Block {
         onConnectionTypeChanged(world, pos, side);
 
         if (!player.isCreative() && world.getGameRules().getBoolean(GameRules.DO_TILE_DROPS)) {
-            ItemStackUtils.spawnAsEntity(world, pos, new ItemStack(Items.BUS_INTERFACE_ITEM.get()), side).ifPresent(entity -> {
+            ItemStackUtils.spawnAsEntity(world, pos, new ItemStack(Items.BUS_INTERFACE.get()), side).ifPresent(entity -> {
                 entity.setNoPickupDelay();
                 entity.onCollideWithPlayer(player);
             });

@@ -67,6 +67,6 @@ public final class ComputerContainer extends AbstractContainer {
 
     @Override
     public boolean canInteractWith(final PlayerEntity player) {
-        return isWithinUsableDistance(IWorldPosCallable.of(computer.getWorld(), computer.getPos()), player, Blocks.COMPUTER_BLOCK.get());
+        return isWithinUsableDistance(IWorldPosCallable.of(computer.getWorld(), computer.getPos()), player, Blocks.COMPUTER.get());
     }
 }

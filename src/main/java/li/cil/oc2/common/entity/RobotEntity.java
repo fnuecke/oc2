@@ -214,7 +214,7 @@ public final class RobotEntity extends Entity implements Robot {
             return;
         }
 
-        final ItemStack stack = new ItemStack(Items.ROBOT_ITEM.get());
+        final ItemStack stack = new ItemStack(Items.ROBOT.get());
         exportToItemStack(stack);
         entityDropItem(stack);
 

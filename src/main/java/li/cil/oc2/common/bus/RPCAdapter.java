@@ -440,6 +440,9 @@ public final class RPCAdapter implements Steppable {
         public String methodName;
         public JsonArray parameters;
 
+        public MethodInvocation() { // For deserialization.
+        }
+
         public MethodInvocation(final UUID deviceId, final String methodName, final JsonArray parameters) {
             this.deviceId = deviceId;
             this.methodName = methodName;

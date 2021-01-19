@@ -27,18 +27,21 @@ public final class Main {
         Ceres.initialize();
         Sedna.initialize();
         Serializers.initialize();
+
         Config.initialize();
+
+        ItemTags.initialize();
+        BlockTags.initialize();
         Items.initialize();
         Blocks.initialize();
         TileEntities.initialize();
         Entities.initialize();
         Containers.initialize();
+
         Providers.initialize();
         DeviceTypes.initialize();
         BaseBlockDevices.initialize();
         Firmwares.initialize();
-        BlockTags.initialize();
-        ItemTags.initialize();
 
         FMLJavaModLoadingContext.get().getModEventBus().register(CommonSetup.class);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().register(ClientSetup.class));

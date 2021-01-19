@@ -48,7 +48,8 @@ public final class Constants {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final String DESCRIPTION_SUFFIX = ".desc";
+    public static final String TOOLTIP_DESCRIPTION_SUFFIX = ".desc";
+    public static final String TOOLTIP_DEVICE_NEEDS_REBOOT = "tooltip.oc2.device_needs_reboot";
 
     ///////////////////////////////////////////////////////////////////
 

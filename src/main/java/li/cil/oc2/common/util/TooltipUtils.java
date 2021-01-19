@@ -4,9 +4,12 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.tags.ItemTags;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
+import net.minecraft.tags.ITag;
 import net.minecraft.util.text.*;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
@@ -22,11 +25,24 @@ public final class TooltipUtils {
     ///////////////////////////////////////////////////////////////////
 
     public static void tryAddDescription(final ItemStack stack, final List<ITextComponent> tooltip) {
-        final String translationKey = stack.getTranslationKey() + Constants.DESCRIPTION_SUFFIX;
+        if (stack.isEmpty()) {
+            return;
+        }
+
+        final String translationKey = stack.getTranslationKey() + Constants.TOOLTIP_DESCRIPTION_SUFFIX;
         final LanguageMap languagemap = LanguageMap.getInstance();
         if (languagemap.func_230506_b_(translationKey)) {
             final TranslationTextComponent description = new TranslationTextComponent(translationKey);
             tooltip.add(new StringTextComponent("").modifyStyle(s -> s.setColor(Color.fromTextFormatting(TextFormatting.GRAY))).append(description));
+        }
+
+        // Tooltips get queried very early in Minecraft initialization, meaning tags may not
+        // have been initialized. Trying to directly use our tag would lead to an exception
+        // in that case, so we do the detour through the collection instead.
+        final ITag<Item> tag = net.minecraft.tags.ItemTags.getCollection().get(ItemTags.DEVICE_NEEDS_REBOOT.getName());
+        if (tag != null && tag.contains(stack.getItem())) {
+            tooltip.add(new StringTextComponent("").modifyStyle(s -> s.setColor(Color.fromTextFormatting(TextFormatting.YELLOW)))
+                    .append(new TranslationTextComponent(Constants.TOOLTIP_DEVICE_NEEDS_REBOOT)));
         }
     }
 

@@ -19,8 +19,9 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
     @SuppressWarnings("unchecked")
     @Override
     protected void registerTags() {
-        copy(BlockTags.DEVICES, DEVICES);
         copy(BlockTags.CABLES, CABLES);
+
+        copy(BlockTags.DEVICES, DEVICES);
         getOrCreateBuilder(DEVICES).addTags(
                 DEVICES_MEMORY,
                 DEVICES_HARD_DRIVE,
@@ -45,6 +46,14 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
                 Items.INVENTORY_OPERATIONS_MODULE.get(),
                 Items.BLOCK_OPERATIONS_MODULE.get()
         );
+
         getOrCreateBuilder(WRENCHES).add(Items.WRENCH_ITEM.get());
+
+        getOrCreateBuilder(DEVICE_NEEDS_REBOOT).add(
+                Items.MEMORY_ITEM.get(),
+                Items.HARD_DRIVE_ITEM.get(),
+                Items.FLASH_MEMORY_ITEM.get(),
+                Items.NETWORK_INTERFACE_CARD_ITEM.get()
+        );
     }
 }

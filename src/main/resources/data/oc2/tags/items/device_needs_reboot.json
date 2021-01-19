@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "oc2:memory",
+    "oc2:hard_drive",
+    "oc2:flash_memory",
+    "oc2:network_interface_card"
+  ]
+}

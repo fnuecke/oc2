@@ -55,5 +55,7 @@
 
   "message.oc2.connector.error.full": "Cannot attach more cables.",
   "message.oc2.connector.error.too_far": "Distance between connectors is too large.",
-  "message.oc2.connector.error.obstructed": "No clear line of sight between connectors."
+  "message.oc2.connector.error.obstructed": "No clear line of sight between connectors.",
+
+  "tooltip.oc2.device_needs_reboot": "Requires reboot"
 }

@@ -17,8 +17,14 @@ public final class ItemTags {
 
     public static final Tags.IOptionalNamedTag<Item> WRENCHES = tag("wrenches");
 
+    public static final Tags.IOptionalNamedTag<Item> DEVICE_NEEDS_REBOOT = tag("device_needs_reboot");
+
+    ///////////////////////////////////////////////////////////////////
+
     public static void initialize() {
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private static Tags.IOptionalNamedTag<Item> tag(final String name) {
         return net.minecraft.tags.ItemTags.createOptional(new ResourceLocation(API.MOD_ID, name));

@@ -9,14 +9,13 @@ import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
+import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.FakePlayerUtils;
 import net.minecraft.block.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
@@ -134,6 +133,42 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
         return true;
     }
 
+    @Callback(synchronize = false)
+    public int durability() {
+        return identity.getMaxDamage() - identity.getDamage();
+    }
+
+    @Callback
+    public boolean repair() {
+        if (identity.getDamage() == 0) {
+            return false;
+        }
+
+        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
+        final ItemStackHandler inventory = robot.getInventory();
+
+        final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);
+
+        final ItemTier tier = getRepairItemTier(extracted);
+        if (tier == null) {
+            return false;
+        }
+
+        final int repairValue = tier.getMaxUses();
+        if (repairValue == 0) {
+            return false;
+        }
+
+        // Extra check just to ease my paranoia.
+        if (inventory.extractItem(selectedSlot, 1, false).isEmpty()) {
+            return false;
+        }
+
+        identity.setDamage(identity.getDamage() - repairValue);
+
+        return true;
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     private Direction getAdjustedDirection(@Nullable final PlacementDirection placementDirection) {
@@ -188,6 +223,10 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
+        if (identity.attemptDamageItem(1, world.rand, null)) {
+            return false;
+        }
+
         if (!blockState.removedByPlayer(world, blockPos, player, true, world.getFluidState(blockPos))) {
             return false;
         }
@@ -196,6 +235,30 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
         block.harvestBlock(world, player, blockPos, blockState, tileEntity, ItemStack.EMPTY);
 
         return true;
+    }
+
+    @Nullable
+    private ItemTier getRepairItemTier(final ItemStack stack) {
+        if (stack.isEmpty()) {
+            return null;
+        }
+
+        final Item item = stack.getItem();
+        if (ItemTags.BLOCK_OPERATIONS_MODULE_MATERIAL_NETHERITE.contains(item)) {
+            return ItemTier.NETHERITE;
+        } else if (ItemTags.BLOCK_OPERATIONS_MODULE_MATERIAL_GOLD.contains(item)) {
+            return ItemTier.DIAMOND;
+        } else if (ItemTags.BLOCK_OPERATIONS_MODULE_MATERIAL_DIAMOND.contains(item)) {
+            return ItemTier.GOLD;
+        } else if (ItemTags.BLOCK_OPERATIONS_MODULE_MATERIAL_IRON.contains(item)) {
+            return ItemTier.IRON;
+        } else if (ItemTags.BLOCK_OPERATIONS_MODULE_MATERIAL_STONE.contains(item)) {
+            return ItemTier.STONE;
+        } else if (ItemTags.BLOCK_OPERATIONS_MODULE_MATERIAL_WOOD.contains(item)) {
+            return ItemTier.WOOD;
+        }
+
+        return null;
     }
 
     private ItemStack insertStartingAt(final IItemHandler handler, ItemStack stack, final int startSlot, final boolean simulate) {

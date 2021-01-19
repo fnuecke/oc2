@@ -6,6 +6,8 @@ import li.cil.oc2.common.tags.BlockTags;
 import net.minecraft.data.BlockTagsProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.ItemTagsProvider;
+import net.minecraft.tags.ItemTags;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +47,33 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
         getOrCreateBuilder(DEVICES_ROBOT_MODULE).add(
                 Items.INVENTORY_OPERATIONS_MODULE.get(),
                 Items.BLOCK_OPERATIONS_MODULE.get()
+        );
+
+        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL).addTags(
+                BLOCK_OPERATIONS_MODULE_MATERIAL_WOOD,
+                BLOCK_OPERATIONS_MODULE_MATERIAL_STONE,
+                BLOCK_OPERATIONS_MODULE_MATERIAL_IRON,
+                BLOCK_OPERATIONS_MODULE_MATERIAL_GOLD,
+                BLOCK_OPERATIONS_MODULE_MATERIAL_DIAMOND,
+                BLOCK_OPERATIONS_MODULE_MATERIAL_NETHERITE
+        );
+        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL_WOOD).addTags(
+                ItemTags.PLANKS
+        );
+        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL_STONE).addTags(
+                ItemTags.STONE_TOOL_MATERIALS
+        );
+        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL_IRON).addTags(
+                Tags.Items.INGOTS_IRON
+        );
+        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL_GOLD).addTags(
+                Tags.Items.INGOTS_GOLD
+        );
+        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL_DIAMOND).addTags(
+                Tags.Items.GEMS_DIAMOND
+        );
+        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL_NETHERITE).addTags(
+                Tags.Items.INGOTS_NETHERITE
         );
 
         getOrCreateBuilder(WRENCHES).add(Items.WRENCH_ITEM.get());

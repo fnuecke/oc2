@@ -13,10 +13,16 @@ public final class ItemTags {
     public static final Tags.IOptionalNamedTag<Item> DEVICES_CARD = tag("devices/card");
     public static final Tags.IOptionalNamedTag<Item> DEVICES_ROBOT_MODULE = tag("devices/robot_module");
 
+    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL = tag("block_operations_module_material");
+    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL_WOOD = tag("block_operations_module_material/item_wood");
+    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL_STONE = tag("block_operations_module_material/item_stone");
+    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL_IRON = tag("block_operations_module_material/item_iron");
+    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL_GOLD = tag("block_operations_module_material/item_gold");
+    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL_DIAMOND = tag("block_operations_module_material/diamond");
+    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL_NETHERITE = tag("block_operations_module_material/netherite");
+
     public static final Tags.IOptionalNamedTag<Item> CABLES = tag("cables");
-
     public static final Tags.IOptionalNamedTag<Item> WRENCHES = tag("wrenches");
-
     public static final Tags.IOptionalNamedTag<Item> DEVICE_NEEDS_REBOOT = tag("device_needs_reboot");
 
     ///////////////////////////////////////////////////////////////////

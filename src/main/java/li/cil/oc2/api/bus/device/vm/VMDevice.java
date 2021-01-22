@@ -12,11 +12,9 @@ import li.cil.sedna.api.device.MemoryMappedDevice;
  * implemented through this interface will require explicit driver support
  * in the guest system.
  * <p>
- * To listen to lifecycle events of the VM and the device, implement the
- * {@link VMDeviceLifecycleListener} interface. This is particularly useful
- * for releasing unmanaged resources acquired in {@link #load(VMContext)}.
+ * To listen to lifecycle events of the VM and the device, register to the event
+ * bus provided via {@link VMContext#getEventBus()} in {@link #load(VMContext)}.
  *
- * @see VMDeviceLifecycleListener
  * @see li.cil.oc2.api.bus.device.provider.BlockDeviceProvider
  * @see li.cil.oc2.api.bus.device.provider.ItemDeviceProvider
  */
@@ -36,4 +34,14 @@ public interface VMDevice extends Device {
      * @return {@code true} if the device was loaded successfully; {@code false} otherwise.
      */
     VMDeviceLoadResult load(VMContext context);
+
+    /**
+     * Called when the device is removed from the context it was loaded with.
+     * <p>
+     * This can happen because the VM was stopped or the device was removed from
+     * the device bus that connected it to the VM, for example.
+     * <p>
+     * Intended for releasing resources acquired in {@link #load(VMContext)}.
+     */
+    void unload();
 }

@@ -1,7 +1,11 @@
 package li.cil.oc2.common.bus.device.item;
 
+import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.vm.*;
+import li.cil.oc2.api.bus.device.vm.VMContext;
+import li.cil.oc2.api.bus.device.vm.VMDevice;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.bus.device.util.OptionalInterrupt;
@@ -18,7 +22,8 @@ import java.io.OutputStream;
 import java.util.Optional;
 import java.util.UUID;
 
-public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice {
+@SuppressWarnings("UnstableApiUsage")
+public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice {
     private static final String DEVICE_TAG_NAME = "device";
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String INTERRUPT_TAG_NAME = "interrupt";
@@ -64,21 +69,33 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
             return VMDeviceLoadResult.fail();
         }
 
+        context.getEventBus().register(this);
+
         loadPersistedState();
 
         return VMDeviceLoadResult.success();
     }
 
     @Override
-    public void handleLifecycleEvent(final VMDeviceLifecycleEventType event) {
-        switch (event) {
-            case RESUME_RUNNING:
-                awaitStorageOperation();
-                break;
-            case UNLOAD:
-                unload();
-                break;
-        }
+    public void unload() {
+        // Since we cannot serialize the data in a regular serialize call due to the
+        // actual data being unloaded at that point, but want to permanently persist
+        // it (it's the contents of the block device) we need to serialize it in the
+        // unload, too. Don't need to wait for the job, though.
+        serializeData();
+
+        data = null;
+        jobHandle = null;
+
+        device = null;
+        deviceNbt = null;
+        address.clear();
+        interrupt.clear();
+    }
+
+    @Subscribe
+    public void handleResumingRunningEvent(final VMResumingRunningEvent event) {
+        awaitStorageOperation();
     }
 
     @Override
@@ -177,22 +194,6 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
             jobHandle.await();
             jobHandle = null;
         }
-    }
-
-    private void unload() {
-        // Since we cannot serialize the data in a regular serialize call due to the
-        // actual data being unloaded at that point, but want to permanently persist
-        // it (it's the contents of the block device) we need to serialize it in the
-        // unload, too. Don't need to wait for the job, though.
-        serializeData();
-
-        data = null;
-        jobHandle = null;
-
-        device = null;
-        deviceNbt = null;
-        address.clear();
-        interrupt.clear();
     }
 
     private void serializeData() {

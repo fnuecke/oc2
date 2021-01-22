@@ -1,7 +1,7 @@
 package li.cil.oc2.common.vm;
 
-import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.serialization.NBTSerialization;
@@ -51,7 +51,6 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
     public AbstractVirtualMachineState(final TBusController busController, final TVirtualMachine virtualMachine) {
         this.busController = busController;
         this.virtualMachine = virtualMachine;
-
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -191,6 +190,7 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
                     break;
                 }
 
+
                 // May have a valid runner after load. In which case we just had to wait for
                 // bus setup and devices to load. So we can keep using it.
                 if (runner == null) {
@@ -203,7 +203,7 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
                         // a program that only uses registers. But not supporting that esoteric
                         // use-case loses out against avoiding people getting confused for having
                         // forgotten to add some RAM modules.
-                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_NO_MEMORY));
+                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_INSUFFICIENT_MEMORY));
                         setRunState(RunState.STOPPED);
                         return;
                     } catch (final MemoryAccessException e) {
@@ -239,7 +239,7 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
 
         if (runner != null) {
             tag.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
-            virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.PAUSING);
+            virtualMachine.vmAdapter.postLifecycleEvent(new VMPausingEvent());
             runner.scheduleResumeEvent(); // Allow synchronizing to async device saves.
         } else {
             NBTUtils.putEnum(tag, RUN_STATE_TAG_NAME, runState);

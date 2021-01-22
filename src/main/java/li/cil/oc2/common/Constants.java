@@ -67,7 +67,8 @@ public final class Constants {
     public static final String COMPUTER_SCREEN_POWER_CAPTION = "gui.oc2.computer.power.capt";
     public static final String COMPUTER_SCREEN_POWER_DESCRIPTION = "gui.oc2.computer.power.desc";
     public static final String COMPUTER_BOOT_ERROR_UNKNOWN = "gui.oc2.computer.boot_error.unknown";
-    public static final String COMPUTER_BOOT_ERROR_NO_MEMORY = "gui.oc2.computer.boot_error.no_memory";
+    public static final String COMPUTER_BOOT_ERROR_MISSING_FIRMWARE = "gui.oc2.computer.boot_error.missing_firmware";
+    public static final String COMPUTER_BOOT_ERROR_INSUFFICIENT_MEMORY = "gui.oc2.computer.boot_error.insufficient_memory";
     public static final String COMPUTER_BUS_STATE_INCOMPLETE = "gui.oc2.computer.bus_state.incomplete";
     public static final String COMPUTER_BUS_STATE_TOO_COMPLEX = "gui.oc2.computer.bus_state.too_complex";
     public static final String COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS = "gui.oc2.computer.bus_state.multiple_controllers";

@@ -1,21 +1,26 @@
 package li.cil.oc2.common.vm;
 
+import com.google.common.eventbus.EventBus;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.vm.*;
+import li.cil.oc2.api.bus.device.vm.VMContext;
+import li.cil.oc2.api.bus.device.vm.VMDevice;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.event.VMLifecycleEvent;
 import li.cil.sedna.api.Board;
 
 import java.util.*;
 
+@SuppressWarnings("UnstableApiUsage")
 public final class VirtualMachineDeviceBusAdapter {
     private final Board board;
 
+    private final EventBus eventBus = new EventBus();
     private final ManagedVMContext globalContext;
     private final BitSet claimedInterrupts = new BitSet();
     private final HashMap<VMDevice, ManagedVMContext> deviceContexts = new HashMap<>();
     private final ArrayList<VMDevice> incompleteLoads = new ArrayList<>();
 
-    private final HashSet<VMDeviceLifecycleListener> lifecycleEventListeners = new HashSet<>();
     private DefaultAddressProvider defaultAddressProvider = unused -> OptionalLong.empty();
 
     ///////////////////////////////////////////////////////////////////
@@ -30,8 +35,7 @@ public final class VirtualMachineDeviceBusAdapter {
 
     public VirtualMachineDeviceBusAdapter(final Board board) {
         this.board = board;
-        this.globalContext = new ManagedVMContext(
-                board, claimedInterrupts, reservedInterrupts);
+        this.globalContext = new ManagedVMContext(board, claimedInterrupts, reservedInterrupts, eventBus);
         this.claimedInterrupts.set(0);
     }
 
@@ -50,7 +54,7 @@ public final class VirtualMachineDeviceBusAdapter {
             final VMDevice device = incompleteLoads.get(i);
 
             final ManagedVMContext context = new ManagedVMContext(
-                    board, claimedInterrupts, reservedInterrupts,
+                    board, claimedInterrupts, reservedInterrupts, eventBus,
                     (memoryMappedDevice) -> defaultAddressProvider.getDefaultAddress(device));
 
             deviceContexts.put(device, context);
@@ -75,7 +79,9 @@ public final class VirtualMachineDeviceBusAdapter {
     }
 
     public void unload() {
-        fireLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
+        for (final VMDevice device : deviceContexts.keySet()) {
+            device.unload();
+        }
 
         suspend();
     }
@@ -91,10 +97,8 @@ public final class VirtualMachineDeviceBusAdapter {
         incompleteLoads.addAll(deviceContexts.keySet());
     }
 
-    public void fireLifecycleEvent(final VMDeviceLifecycleEventType event) {
-        for (final VMDeviceLifecycleListener tickListener : lifecycleEventListeners) {
-            tickListener.handleLifecycleEvent(event);
-        }
+    public void postLifecycleEvent(final VMLifecycleEvent event) {
+        eventBus.post(event);
     }
 
     public void addDevices(final Collection<Device> devices) {
@@ -108,10 +112,6 @@ public final class VirtualMachineDeviceBusAdapter {
                 }
 
                 incompleteLoads.add(vmDevice);
-
-                if (vmDevice instanceof VMDeviceLifecycleListener) {
-                    lifecycleEventListeners.add((VMDeviceLifecycleListener) vmDevice);
-                }
             }
         }
     }
@@ -121,18 +121,14 @@ public final class VirtualMachineDeviceBusAdapter {
             if (device instanceof VMDevice) {
                 final VMDevice vmDevice = (VMDevice) device;
 
+                vmDevice.unload();
+
                 final ManagedVMContext context = deviceContexts.remove(vmDevice);
                 if (context != null) {
                     context.invalidate();
                 }
 
                 incompleteLoads.remove(vmDevice);
-
-                if (vmDevice instanceof VMDeviceLifecycleListener) {
-                    final VMDeviceLifecycleListener eventListener = (VMDeviceLifecycleListener) vmDevice;
-                    lifecycleEventListeners.remove(eventListener);
-                    eventListener.handleLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
-                }
             }
         }
     }

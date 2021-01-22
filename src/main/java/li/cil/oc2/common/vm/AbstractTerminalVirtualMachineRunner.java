@@ -2,7 +2,9 @@ package li.cil.oc2.common.vm;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
-import li.cil.oc2.api.bus.device.vm.VMDeviceLifecycleEventType;
+import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
+import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
+import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
 
 import java.nio.ByteBuffer;
 
@@ -73,13 +75,13 @@ public abstract class AbstractTerminalVirtualMachineRunner extends VirtualMachin
     protected void handleBeforeRun() {
         if (!firedInitializationEvent) {
             firedInitializationEvent = true;
-            virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.INITIALIZING);
+            virtualMachine.vmAdapter.postLifecycleEvent(new VMInitializingEvent(0x80000000L));
         }
 
         if (!firedResumeEvent) {
             firedResumeEvent = true;
-            virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.RESUME_RUNNING);
-            virtualMachine.vmAdapter.fireLifecycleEvent(VMDeviceLifecycleEventType.RESUMED_RUNNING);
+            virtualMachine.vmAdapter.postLifecycleEvent(new VMResumingRunningEvent());
+            virtualMachine.vmAdapter.postLifecycleEvent(new VMResumedRunningEvent());
         }
 
         int value;

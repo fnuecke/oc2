@@ -1,6 +1,7 @@
 package li.cil.oc2.api.bus.device.vm;
 
 import li.cil.oc2.api.bus.DeviceBus;
+import li.cil.oc2.api.bus.device.vm.event.VMLifecycleEventBus;
 import li.cil.sedna.api.device.InterruptController;
 import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.memory.MemoryMap;
@@ -81,4 +82,15 @@ public interface VMContext {
      * @return the memory allocator.
      */
     MemoryAllocator getMemoryAllocator();
+
+    /**
+     * Allows registering to VM lifecycle events.
+     * <p>
+     * Registered subscribers will automatically be unsubscribed when the {@link VMDevice}
+     * that registered them is unloaded, e.g. because it is removed from the {@link DeviceBus}
+     * of the VM stopped.
+     *
+     * @return the event bus.
+     */
+    VMLifecycleEventBus getEventBus();
 }

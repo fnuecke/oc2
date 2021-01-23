@@ -50,6 +50,9 @@ public final class Constants {
 
     public static final String TOOLTIP_DESCRIPTION_SUFFIX = ".desc";
     public static final String TOOLTIP_DEVICE_NEEDS_REBOOT = "tooltip.oc2.device_needs_reboot";
+    public static final String TOOLTIP_FLASH_MEMORY_MISSING = "tooltip.oc2.flash_memory_missing";
+    public static final String TOOLTIP_MEMORY_MISSING = "tooltip.oc2.memory_missing";
+    public static final String TOOLTIP_HARD_DRIVE_MISSING = "tooltip.oc2.hard_drive_missing";
 
     ///////////////////////////////////////////////////////////////////
 

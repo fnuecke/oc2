@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
 
 import java.util.Optional;
 
@@ -33,6 +34,24 @@ public final class GuiUtils {
                     DEVICE_INFO_ICON_SIZE,
                     DEVICE_INFO_ICON_SIZE,
                     DEVICE_INFO_ICON_SIZE);
+        });
+    }
+
+    public static <TContainer extends Container> void renderMissingDeviceInfoTooltip(final MatrixStack matrixStack, final ContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final ITextComponent tooltip) {
+        final boolean isCursorHoldingStack = !screen.getMinecraft().player.inventory.getItemStack().isEmpty();
+        if (isCursorHoldingStack) {
+            return;
+        }
+
+        final Slot hoveredSlot = screen.getSlotUnderMouse();
+        if (hoveredSlot != null && hoveredSlot.getHasStack()) {
+            return;
+        }
+
+        findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getContainer(), type).ifPresent(slot -> {
+            if (slot == hoveredSlot) {
+                screen.renderTooltip(matrixStack, tooltip, mouseX, mouseY);
+            }
         });
     }
 

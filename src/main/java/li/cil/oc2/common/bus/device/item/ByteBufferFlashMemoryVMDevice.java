@@ -2,6 +2,7 @@ package li.cil.oc2.common.bus.device.item;
 
 import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
+import li.cil.oc2.api.bus.device.data.FirmwareLoader;
 import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
@@ -21,7 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.OptionalLong;
 
 @SuppressWarnings("UnstableApiUsage")
-public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice {
+public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, FirmwareLoader {
     public static final String DATA_TAG_NAME = "data";
 
     ///////////////////////////////////////////////////////////////

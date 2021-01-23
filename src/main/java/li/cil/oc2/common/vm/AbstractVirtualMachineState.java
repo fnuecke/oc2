@@ -1,5 +1,6 @@
 package li.cil.oc2.common.vm;
 
+import li.cil.oc2.api.bus.device.data.FirmwareLoader;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
 import li.cil.oc2.common.Constants;
@@ -21,8 +22,6 @@ import java.util.Objects;
 
 public abstract class AbstractVirtualMachineState<TBusController extends AbstractDeviceBusController, TVirtualMachine extends VirtualMachine> implements VirtualMachineState {
     private static final Logger LOGGER = LogManager.getLogger();
-
-    ///////////////////////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////////////////////
 
@@ -190,6 +189,11 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
                     break;
                 }
 
+                if (busController.getDevices().stream().noneMatch(device -> device instanceof FirmwareLoader)) {
+                    setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
+                    setRunState(RunState.STOPPED);
+                    break;
+                }
 
                 // May have a valid runner after load. In which case we just had to wait for
                 // bus setup and devices to load. So we can keep using it.
@@ -205,12 +209,12 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
                         // forgotten to add some RAM modules.
                         setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
                         setRunState(RunState.STOPPED);
-                        return;
+                        break;
                     } catch (final MemoryAccessException e) {
                         LOGGER.error(e);
                         setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
                         setRunState(RunState.STOPPED);
-                        return;
+                        break;
                     }
 
                     runner = createRunner();

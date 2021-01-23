@@ -37,7 +37,7 @@
   "config.oc2.admin.fakePlayerUUID": "Fake Player UUID",
 
   "gui.oc2.computer.error.unknown": "Unknown Error",
-  "gui.oc2.computer.error.missing_firmware": "Missing Flash Memory",
+  "gui.oc2.computer.error.missing_firmware": "Missing Firmware",
   "gui.oc2.computer.error.insufficient_memory": "Insufficient Memory",
   "gui.oc2.computer.bus_state.incomplete": "Bus Incomplete",
   "gui.oc2.computer.bus_state.too_complex": "Bus Too Complex",

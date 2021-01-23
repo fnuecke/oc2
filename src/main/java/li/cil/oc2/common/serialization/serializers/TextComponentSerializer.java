@@ -15,6 +15,7 @@ public final class TextComponentSerializer implements Serializer<ITextComponent>
         visitor.putObject("value", String.class, json);
     }
 
+    @Nullable
     @Override
     public ITextComponent deserialize(final DeserializationVisitor visitor, final Class<ITextComponent> type, @Nullable final Object value) throws SerializationException {
         if (!visitor.exists("value")) {

@@ -3,6 +3,8 @@ package li.cil.oc2.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.api.API;
+import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.client.gui.util.GuiUtils;
 import li.cil.oc2.common.container.RobotContainer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
@@ -40,8 +42,15 @@ public final class RobotContainerScreen extends ContainerScreen<RobotContainer> 
     @Override
     public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
         renderBackground(matrixStack);
+
         super.render(matrixStack, mouseX, mouseY, partialTicks);
+
         renderSelection(matrixStack);
+
+        GuiUtils.renderMissingDeviceInfoIcon(matrixStack, this, DeviceTypes.FLASH_MEMORY, GuiUtils.WARN_ICON);
+        GuiUtils.renderMissingDeviceInfoIcon(matrixStack, this, DeviceTypes.MEMORY, GuiUtils.WARN_ICON);
+        GuiUtils.renderMissingDeviceInfoIcon(matrixStack, this, DeviceTypes.HARD_DRIVE, GuiUtils.INFO_ICON);
+
         renderHoveredTooltip(matrixStack, mouseX, mouseY);
     }
 

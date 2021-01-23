@@ -17,6 +17,10 @@ public final class TypedSlotItemHandler extends SlotItemHandler {
         this.deviceType = deviceType;
     }
 
+    public DeviceType getDeviceType() {
+        return deviceType;
+    }
+
     @Nullable
     @Override
     public Pair<ResourceLocation, ResourceLocation> getBackground() {

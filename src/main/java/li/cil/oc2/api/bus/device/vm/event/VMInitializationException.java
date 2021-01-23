@@ -4,7 +4,7 @@ import net.minecraft.util.text.ITextComponent;
 
 import java.util.Optional;
 
-public final class VMInitializationException extends Exception {
+public final class VMInitializationException extends RuntimeException {
     private final ITextComponent message;
 
     public VMInitializationException(final ITextComponent message) {

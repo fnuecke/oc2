@@ -184,7 +184,7 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
                     if (loadResult.getErrorMessage() != null) {
                         setBootError(loadResult.getErrorMessage());
                     } else {
-                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_UNKNOWN));
+                        setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
                     }
                     loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
                     break;
@@ -203,12 +203,12 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
                         // a program that only uses registers. But not supporting that esoteric
                         // use-case loses out against avoiding people getting confused for having
                         // forgotten to add some RAM modules.
-                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_INSUFFICIENT_MEMORY));
+                        setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
                         setRunState(RunState.STOPPED);
                         return;
                     } catch (final MemoryAccessException e) {
                         LOGGER.error(e);
-                        setBootError(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_UNKNOWN));
+                        setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
                         setRunState(RunState.STOPPED);
                         return;
                     }
@@ -222,6 +222,13 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
                 // initialization. This is used by devices to restore data from disk, for example.
                 break;
             case RUNNING:
+                final ITextComponent runtimeError = runner.getRuntimeError();
+                if (runtimeError != null) {
+                    stopRunnerAndReset();
+                    setBootError(runtimeError);
+                    break;
+                }
+
                 if (!virtualMachine.board.isRunning()) {
                     stopRunnerAndReset();
                     break;

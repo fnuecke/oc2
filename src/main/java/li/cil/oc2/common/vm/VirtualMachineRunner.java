@@ -2,7 +2,9 @@ package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
 import li.cil.sedna.riscv.R5Board;
+import net.minecraft.util.text.ITextComponent;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,6 +40,11 @@ public class VirtualMachineRunner implements Runnable {
 
     ///////////////////////////////////////////////////////////////////
 
+    @Nullable
+    public ITextComponent getRuntimeError() {
+        return null;
+    }
+
     public void tick() {
         cycleLimit += getCyclesPerTick();
 
@@ -70,6 +77,10 @@ public class VirtualMachineRunner implements Runnable {
             final int maxSteps = cycleBudget / cyclesPerStep;
 
             handleBeforeRun();
+
+            if (!board.isRunning()) {
+                break;
+            }
 
             for (int i = 0; i < maxSteps; i++) {
                 cycles += cyclesPerStep;

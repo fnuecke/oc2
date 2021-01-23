@@ -2,9 +2,14 @@ package li.cil.oc2.common.vm;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
+import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
 import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
 import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
+import li.cil.oc2.common.Constants;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 
@@ -29,6 +34,7 @@ public abstract class AbstractTerminalVirtualMachineRunner extends VirtualMachin
 
     private boolean firedResumeEvent;
     @Serialized private boolean firedInitializationEvent;
+    @Serialized private ITextComponent runtimeError;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -62,6 +68,12 @@ public abstract class AbstractTerminalVirtualMachineRunner extends VirtualMachin
         firedResumeEvent = false;
     }
 
+    @Nullable
+    @Override
+    public ITextComponent getRuntimeError() {
+        return runtimeError;
+    }
+
     @Override
     public void tick() {
         virtualMachine.rpcAdapter.tick();
@@ -75,7 +87,13 @@ public abstract class AbstractTerminalVirtualMachineRunner extends VirtualMachin
     protected void handleBeforeRun() {
         if (!firedInitializationEvent) {
             firedInitializationEvent = true;
-            virtualMachine.vmAdapter.postLifecycleEvent(new VMInitializingEvent(0x80000000L));
+            try {
+                virtualMachine.vmAdapter.postLifecycleEvent(new VMInitializingEvent(0x80000000L));
+            } catch (final VMInitializationException e) {
+                virtualMachine.board.setRunning(false);
+                runtimeError = e.getErrorMessage().orElse(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
+                return;
+            }
         }
 
         if (!firedResumeEvent) {

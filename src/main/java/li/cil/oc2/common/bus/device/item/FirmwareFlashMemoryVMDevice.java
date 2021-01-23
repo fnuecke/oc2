@@ -43,9 +43,15 @@ public final class FirmwareFlashMemoryVMDevice extends IdentityProxy<ItemStack> 
     }
 
     @Subscribe
-    public void handleInitializingEvent(final VMInitializingEvent event) throws VMInitializationException {
-        if (!firmware.run(memoryMap, event.getProgramStartAddress())) {
-            throw new VMInitializationException(new TranslationTextComponent(Constants.COMPUTER_BOOT_ERROR_INSUFFICIENT_MEMORY));
+    public void handleInitializingEvent(final VMInitializingEvent event) {
+        copyDataToMemory(event.getProgramStartAddress());
+    }
+
+    ///////////////////////////////////////////////////////////////
+
+    private void copyDataToMemory(final long address) {
+        if (!firmware.run(memoryMap, address)) {
+            throw new VMInitializationException(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
         }
     }
 }

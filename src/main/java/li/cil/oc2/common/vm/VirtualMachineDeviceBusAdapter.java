@@ -1,27 +1,37 @@
 package li.cil.oc2.common.vm;
 
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.SubscriberExceptionContext;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
 import li.cil.oc2.api.bus.device.vm.event.VMLifecycleEvent;
 import li.cil.sedna.api.Board;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class VirtualMachineDeviceBusAdapter {
+    private static final Logger LOGGER = LogManager.getLogger();
+
+    ///////////////////////////////////////////////////////////////////
+
     private final Board board;
 
-    private final EventBus eventBus = new EventBus();
+    private final EventBus eventBus = new EventBus(this::handleEventBusException);
+
     private final ManagedVMContext globalContext;
     private final BitSet claimedInterrupts = new BitSet();
     private final HashMap<VMDevice, ManagedVMContext> deviceContexts = new HashMap<>();
     private final ArrayList<VMDevice> incompleteLoads = new ArrayList<>();
 
     private DefaultAddressProvider defaultAddressProvider = unused -> OptionalLong.empty();
+    private VMInitializationException initializationException;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -98,7 +108,15 @@ public final class VirtualMachineDeviceBusAdapter {
     }
 
     public void postLifecycleEvent(final VMLifecycleEvent event) {
+        initializationException = null;
+
         eventBus.post(event);
+
+        final VMInitializationException exception = initializationException;
+        initializationException = null;
+        if (exception != null) {
+            throw exception;
+        }
     }
 
     public void addDevices(final Collection<Device> devices) {
@@ -130,6 +148,16 @@ public final class VirtualMachineDeviceBusAdapter {
 
                 incompleteLoads.remove(vmDevice);
             }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private void handleEventBusException(final Throwable throwable, final SubscriberExceptionContext context) {
+        if (throwable instanceof VMInitializationException) {
+            initializationException = (VMInitializationException) throwable;
+        } else {
+            LOGGER.error(throwable);
         }
     }
 }

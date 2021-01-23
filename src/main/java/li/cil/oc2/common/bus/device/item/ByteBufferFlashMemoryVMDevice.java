@@ -5,7 +5,9 @@ import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.api.memory.MemoryMap;
@@ -13,18 +15,13 @@ import li.cil.sedna.device.flash.FlashMemoryDevice;
 import li.cil.sedna.memory.MemoryMaps;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraft.util.text.TranslationTextComponent;
 
 import java.nio.ByteBuffer;
 import java.util.OptionalLong;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice {
-    private static final Logger LOGGER = LogManager.getLogger();
-
-    ///////////////////////////////////////////////////////////////
-
     public static final String DATA_TAG_NAME = "data";
 
     ///////////////////////////////////////////////////////////////
@@ -147,7 +144,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
         try {
             MemoryMaps.store(memoryMap, startAddress, data);
         } catch (final MemoryAccessException e) {
-            LOGGER.error(e);
+            throw new VMInitializationException(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
         }
     }
 }

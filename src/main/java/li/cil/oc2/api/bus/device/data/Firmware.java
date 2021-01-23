@@ -1,7 +1,6 @@
 package li.cil.oc2.api.bus.device.data;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
 import li.cil.sedna.api.memory.MemoryMap;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
@@ -31,9 +30,12 @@ public interface Firmware extends IForgeRegistryEntry<Firmware> {
      * Runs this firmware.
      * <p>
      * This will usually load machine code into memory at the specified start address.
+     * <p>
+     * Typically only returns {@code false} when there was not enough memory to fit the firmware.
      *
      * @param memory       access to the memory map of the machine.
      * @param startAddress the memory address where execution will commence.
+     * @return {@code true} if the firmware was loaded successfully; {@code false} otherwise.
      */
     boolean run(final MemoryMap memory, final long startAddress);
 

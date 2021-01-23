@@ -88,7 +88,7 @@ public abstract class AbstractTerminalVirtualMachineRunner extends VirtualMachin
         if (!firedInitializationEvent) {
             firedInitializationEvent = true;
             try {
-                virtualMachine.vmAdapter.postLifecycleEvent(new VMInitializingEvent(0x80000000L));
+                virtualMachine.vmAdapter.postLifecycleEvent(new VMInitializingEvent(virtualMachine.board.getDefaultProgramStart()));
             } catch (final VMInitializationException e) {
                 virtualMachine.board.setRunning(false);
                 runtimeError = e.getErrorMessage().orElse(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));

@@ -1,0 +1,65 @@
+{
+  "itemGroup.oc2.common": "开放式电脑 II",
+
+  "block.oc2.computer": "电脑",
+  "block.oc2.computer.desc": "使用螺丝刀扳手或者兼容的扳手来添加或移除组件.",
+  "block.oc2.bus_cable": "总线电缆",
+  "block.oc2.bus_cable.desc": "与总线接口结合使用，以将外部设备连接到电脑.",
+  "block.oc2.network_connector": "网络连接器",
+  "block.oc2.network_hub": "网络集线器",
+  "block.oc2.redstone_interface": "红石接口",
+
+  "item.oc2.wrench": "螺丝刀扳手",
+  "item.oc2.wrench.desc": "用于配置设备和拆卸设备(在潜行时).",
+  "item.oc2.bus_interface": "总线接口",
+  "item.oc2.bus_interface.desc": "用于将总线电缆连接到外部设备.",
+  "item.oc2.network_cable": "网线",
+  "item.oc2.memory": "内存条",
+  "item.oc2.hard_drive": "硬盘",
+  "item.oc2.flash_memory": "闪存",
+  "item.oc2.redstone_interface_card": "红石接口卡",
+  "item.oc2.network_interface_card": "网络接口卡",
+  "item.oc2.robot": "机器人",
+  "item.oc2.robot.desc": "使用螺丝刀扳手或者兼容的扳手来添加或移除组件.",
+  "item.oc2.inventory_operations_module": "物品栏操作模块",
+  "item.oc2.inventory_operations_module.desc": "使机器人能够将物品移入，移入和移出物品栏.",
+  "item.oc2.block_operations_module": "方块操作模块",
+  "item.oc2.block_operations_module.desc": "使机器人能够破坏和放置方块.",
+
+  "entity.oc2.robot": "机器人",
+
+  "config.oc2.vm.maxAllocatedMemory": "最大分配内存",
+  "config.oc2.vm.maxMemorySize:": "最大内存大小",
+  "config.oc2.vm.maxHardDriveSize": "最大硬盘大小",
+  "config.oc2.vm.maxFlashMemorySize:": "最大闪存大小",
+  "config.oc2.computerEnergyPerTick": "电脑每tick使用的能量",
+  "config.oc2.modules.block_operations.toolLevel": "方块操作模块工具级别",
+  "config.oc2.admin.fakePlayerUUID": "假玩家UUID",
+
+  "gui.oc2.computer.error.unknown": "未知错误",
+  "gui.oc2.computer.error.missing_firmware": "缺少固件",
+  "gui.oc2.computer.error.insufficient_memory": "内存不足",
+  "gui.oc2.computer.bus_state.incomplete": "总线不完整",
+  "gui.oc2.computer.bus_state.too_complex": "总线太复杂",
+  "gui.oc2.computer.bus_state.multiple_controllers": "多个总线控制器",
+  "gui.oc2.computer.error.not_enough_energy": "能量不足",
+
+  "gui.oc2.computer.capture_input.capt": "捕获输入",
+  "gui.oc2.computer.capture_input.desc": "当打开时,只要鼠标光标悬停在终端内容上,就会捕获所有输入,包括ESC键.",
+  "gui.oc2.computer.power.capt": "电源",
+  "gui.oc2.computer.power.desc": "开启或关闭这台电脑.",
+
+  "gui.oc2.device_type.memory": "内存",
+  "gui.oc2.device_type.hard_drive": "硬盘",
+  "gui.oc2.device_type.flash_memory": "闪存",
+  "gui.oc2.device_type.card": "卡",
+
+  "message.oc2.connector.error.full": "无法连接更多电缆.",
+  "message.oc2.connector.error.too_far": "连接器之间的距离太大.",
+  "message.oc2.connector.error.obstructed": "有方块阻挡.",
+
+  "tooltip.oc2.device_needs_reboot": "需要重启",
+  "tooltip.oc2.flash_memory_missing": "启动时需要包含固件的闪存。",
+  "tooltip.oc2.memory_missing": "需要一些内存来加载闪存以执行引导.",
+  "tooltip.oc2.hard_drive_missing": "大多数系统都需要一个根文件系统来引导."
+}

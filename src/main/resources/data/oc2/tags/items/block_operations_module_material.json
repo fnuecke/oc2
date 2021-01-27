@@ -1,10 +1,10 @@
 {
   "replace": false,
   "values": [
-    "#oc2:block_operations_module_material/item_wood",
-    "#oc2:block_operations_module_material/item_stone",
-    "#oc2:block_operations_module_material/item_iron",
-    "#oc2:block_operations_module_material/item_gold",
+    "#oc2:block_operations_module_material/wood",
+    "#oc2:block_operations_module_material/stone",
+    "#oc2:block_operations_module_material/iron",
+    "#oc2:block_operations_module_material/gold",
     "#oc2:block_operations_module_material/diamond",
     "#oc2:block_operations_module_material/netherite"
   ]

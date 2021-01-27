@@ -153,7 +153,7 @@ public final class ComputerBlock extends HorizontalBlock {
     public ActionResultType onBlockActivated(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
         final TileEntity tileEntity = world.getTileEntity(pos);
         if (!(tileEntity instanceof ComputerTileEntity)) {
-            throw new IllegalStateException();
+            return super.onBlockActivated(state, world, pos, player, hand, hit);
         }
 
         final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
@@ -170,7 +170,7 @@ public final class ComputerBlock extends HorizontalBlock {
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return world.isRemote() ? ActionResultType.SUCCESS : ActionResultType.CONSUME;
     }
 
     @Override

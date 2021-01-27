@@ -12,7 +12,7 @@ import net.minecraft.util.text.ITextComponent;
 
 import javax.annotation.Nullable;
 
-public class BlockDeviceItem extends AbstractStorageItem {
+public abstract class AbstractBlockDeviceItem extends AbstractStorageItem {
     private static final String DATA_TAG_NAME = "data";
     private static final String READONLY_TAG_NAME = "readonly";
 
@@ -20,7 +20,7 @@ public class BlockDeviceItem extends AbstractStorageItem {
 
     @Nullable
     public static BlockDeviceData getData(final ItemStack stack) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof BlockDeviceItem)) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof AbstractBlockDeviceItem)) {
             return null;
         }
 
@@ -39,7 +39,7 @@ public class BlockDeviceItem extends AbstractStorageItem {
     }
 
     public static ItemStack withData(final ItemStack stack, final BlockDeviceData data) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof BlockDeviceItem)) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof AbstractBlockDeviceItem)) {
             return stack;
         }
 
@@ -54,7 +54,7 @@ public class BlockDeviceItem extends AbstractStorageItem {
     }
 
     public static boolean isReadonly(final ItemStack stack) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof BlockDeviceItem)) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof AbstractBlockDeviceItem)) {
             return false;
         }
 
@@ -67,7 +67,7 @@ public class BlockDeviceItem extends AbstractStorageItem {
     }
 
     public static ItemStack withReadonly(final ItemStack stack, final boolean readonly) {
-        if (!stack.isEmpty() && stack.getItem() instanceof BlockDeviceItem) {
+        if (!stack.isEmpty() && stack.getItem() instanceof AbstractBlockDeviceItem) {
             ItemStackUtils.getOrCreateModDataTag(stack).putBoolean(READONLY_TAG_NAME, readonly);
         }
 
@@ -84,8 +84,12 @@ public class BlockDeviceItem extends AbstractStorageItem {
 
     ///////////////////////////////////////////////////////////////////
 
-    public BlockDeviceItem(final Properties properties, final int defaultCapacity) {
+    protected AbstractBlockDeviceItem(final Properties properties, final int defaultCapacity) {
         super(properties.maxStackSize(1), defaultCapacity);
+    }
+
+    protected AbstractBlockDeviceItem(final int defaultCapacity) {
+        this(createProperties(), defaultCapacity);
     }
 
     ///////////////////////////////////////////////////////////////////

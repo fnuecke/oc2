@@ -1,5 +1,6 @@
 package li.cil.oc2.common.item;
 
+import li.cil.oc2.client.renderer.tileentity.RobotItemStackRenderer;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.entity.robot.RobotActions;
@@ -22,8 +23,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public final class RobotItem extends ModItem {
-    public RobotItem(final Properties properties) {
-        super(properties);
+    public RobotItem() {
+        super(createProperties().setISTER(() -> RobotItemStackRenderer::new));
     }
 
     ///////////////////////////////////////////////////////////////////

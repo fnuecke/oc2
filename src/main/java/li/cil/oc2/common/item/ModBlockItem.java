@@ -13,7 +13,11 @@ import java.util.List;
 
 public class ModBlockItem extends BlockItem {
     public ModBlockItem(final Block block, final Properties properties) {
-        super(block, properties);
+        super(block, properties.group(ItemGroup.COMMON));
+    }
+
+    public ModBlockItem(final Block block) {
+        this(block, createProperties());
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -22,5 +26,11 @@ public class ModBlockItem extends BlockItem {
     public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
         TooltipUtils.tryAddDescription(stack, tooltip);
         this.getBlock().addInformation(stack, world, tooltip, flag);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected static Properties createProperties() {
+        return new Properties();
     }
 }

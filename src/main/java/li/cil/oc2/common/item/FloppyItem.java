@@ -4,14 +4,29 @@ import li.cil.oc2.client.item.CustomItemColors;
 import li.cil.oc2.common.Constants;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.DyeColor;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.NonNullList;
 import net.minecraft.world.World;
 
-public final class FloppyItem extends BlockDeviceItem {
-    public FloppyItem(final Properties properties) {
-        super(properties, 512 * Constants.KILOBYTE);
+public final class FloppyItem extends AbstractBlockDeviceItem {
+    private static final int DEFAULT_CAPACITY = 512 * Constants.KILOBYTE;
+
+    ///////////////////////////////////////////////////////////////////
+
+    public FloppyItem() {
+        super(DEFAULT_CAPACITY);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    public void fillItemGroup(final ItemGroup group, final NonNullList<ItemStack> items) {
+        if (isInGroup(group)) {
+            items.add(withCapacity(512 * Constants.KILOBYTE));
+        }
     }
 
     @Override

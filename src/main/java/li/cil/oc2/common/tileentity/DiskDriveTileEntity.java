@@ -8,7 +8,7 @@ import li.cil.oc2.common.block.DiskDriveBlock;
 import li.cil.oc2.common.bus.device.item.AbstractHardDriveVMDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.TypedItemStackHandler;
-import li.cil.oc2.common.item.BlockDeviceItem;
+import li.cil.oc2.common.item.AbstractBlockDeviceItem;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.DiskDriveFloppyMessage;
 import li.cil.oc2.common.tags.ItemTags;
@@ -230,12 +230,12 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
             //     to have the item return its data via a capability or so, so others don't
             //     have to extend the non-api BlockDeviceItem class.
 
-            final BlockDeviceData data = BlockDeviceItem.getData(stack);
+            final BlockDeviceData data = AbstractBlockDeviceItem.getData(stack);
             if (data != null) {
                 return new FakeReadonlyBlockDevice(data.getBlockDevice());
             }
 
-            final int capacity = BlockDeviceItem.getCapacity(stack);
+            final int capacity = AbstractBlockDeviceItem.getCapacity(stack);
             if (capacity <= 0) {
                 return EMPTY_BLOCK_DEVICE;
             }

@@ -46,9 +46,13 @@ public abstract class AbstractStorageItem extends ModItem {
 
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractStorageItem(final Properties properties, final int defaultCapacity) {
+    protected AbstractStorageItem(final Properties properties, final int defaultCapacity) {
         super(properties);
         this.defaultCapacity = defaultCapacity;
+    }
+
+    protected AbstractStorageItem(final int defaultCapacity) {
+        this(createProperties(), defaultCapacity);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -16,12 +16,6 @@ import net.minecraft.world.World;
 import java.util.Objects;
 
 public final class WrenchItem extends ModItem {
-    public WrenchItem(final Properties properties) {
-        super(properties);
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
     @Override
     public ActionResultType onItemUse(final ItemUseContext context) {
         final World world = context.getWorld();

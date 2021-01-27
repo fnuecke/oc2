@@ -1,7 +1,6 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.client.renderer.tileentity.RobotItemStackRenderer;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.Blocks;
 import net.minecraft.block.Block;
@@ -11,7 +10,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class Items {
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, API.MOD_ID);
@@ -31,17 +30,17 @@ public final class Items {
 
     public static final RegistryObject<Item> BUS_INTERFACE = register(Constants.BUS_INTERFACE_ITEM_NAME, BusInterfaceItem::new);
     public static final RegistryObject<Item> NETWORK_CABLE = register(Constants.NETWORK_CABLE_ITEM_NAME, NetworkCableItem::new);
-    public static final RegistryObject<Item> ROBOT = register(Constants.ROBOT_ENTITY_NAME, RobotItem::new, commonProperties().setISTER(() -> RobotItemStackRenderer::new));
+    public static final RegistryObject<Item> ROBOT = register(Constants.ROBOT_ENTITY_NAME, RobotItem::new);
 
-    public static final RegistryObject<MemoryItem> MEMORY = register(Constants.MEMORY_ITEM_NAME, MemoryItem::new, new Item.Properties());
-    public static final RegistryObject<HardDriveItem> HARD_DRIVE = register(Constants.HARD_DRIVE_ITEM_NAME, HardDriveItem::new, new Item.Properties());
-    public static final RegistryObject<FlashMemoryItem> FLASH_MEMORY = register(Constants.FLASH_MEMORY_ITEM_NAME, FlashMemoryItem::new, new Item.Properties());
+    public static final RegistryObject<MemoryItem> MEMORY = register(Constants.MEMORY_ITEM_NAME, MemoryItem::new);
+    public static final RegistryObject<HardDriveItem> HARD_DRIVE = register(Constants.HARD_DRIVE_ITEM_NAME, HardDriveItem::new);
+    public static final RegistryObject<FlashMemoryItem> FLASH_MEMORY = register(Constants.FLASH_MEMORY_ITEM_NAME, FlashMemoryItem::new);
     public static final RegistryObject<Item> REDSTONE_INTERFACE_CARD = register(Constants.REDSTONE_INTERFACE_CARD_ITEM_NAME);
     public static final RegistryObject<Item> NETWORK_INTERFACE_CARD = register(Constants.NETWORK_INTERFACE_CARD_ITEM_NAME);
     public static final RegistryObject<FloppyItem> FLOPPY = register(Constants.FLOPPY_ITEM_NAME, FloppyItem::new);
 
     public static final RegistryObject<Item> INVENTORY_OPERATIONS_MODULE = register(Constants.INVENTORY_OPERATIONS_MODULE_ITEM_NAME);
-    public static final RegistryObject<Item> BLOCK_OPERATIONS_MODULE = register(Constants.BLOCK_OPERATIONS_MODULE_ITEM_NAME, commonProperties().maxDamage(2500));
+    public static final RegistryObject<Item> BLOCK_OPERATIONS_MODULE = register(Constants.BLOCK_OPERATIONS_MODULE_ITEM_NAME, BlockOperationsModule::new);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -55,23 +54,11 @@ public final class Items {
         return register(name, ModItem::new);
     }
 
-    private static RegistryObject<Item> register(final String name, final Item.Properties properties) {
-        return register(name, ModItem::new, properties);
-    }
-
-    private static <T extends Item> RegistryObject<T> register(final String name, final Function<Item.Properties, T> factory) {
-        return register(name, factory, commonProperties());
-    }
-
-    private static <T extends Item> RegistryObject<T> register(final String name, final Function<Item.Properties, T> factory, final Item.Properties properties) {
-        return ITEMS.register(name, () -> factory.apply(properties));
+    private static <T extends Item> RegistryObject<T> register(final String name, final Supplier<T> factory) {
+        return ITEMS.register(name, factory);
     }
 
     private static <T extends Block> RegistryObject<Item> register(final String name, final RegistryObject<T> block) {
-        return register(name, (properties) -> new ModBlockItem(block.get(), properties));
-    }
-
-    private static Item.Properties commonProperties() {
-        return new Item.Properties().group(ItemGroup.COMMON);
+        return register(name, () -> new ModBlockItem(block.get()));
     }
 }

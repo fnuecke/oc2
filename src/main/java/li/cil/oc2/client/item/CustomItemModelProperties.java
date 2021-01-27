@@ -2,7 +2,7 @@ package li.cil.oc2.client.item;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.item.AbstractStorageItem;
-import li.cil.oc2.common.item.BlockDeviceItem;
+import li.cil.oc2.common.item.AbstractBlockDeviceItem;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.ItemStackUtils;
 import net.minecraft.item.ItemModelsProperties;
@@ -23,7 +23,7 @@ public final class CustomItemModelProperties {
         ItemModelsProperties.registerProperty(Items.MEMORY.get(), CustomItemModelProperties.CAPACITY_PROPERTY,
                 (stack, world, entity) -> AbstractStorageItem.getCapacity(stack));
         ItemModelsProperties.registerProperty(Items.HARD_DRIVE.get(), CustomItemModelProperties.CAPACITY_PROPERTY,
-                (stack, world, entity) -> BlockDeviceItem.getData(stack) != null ? Integer.MAX_VALUE : AbstractStorageItem.getCapacity(stack));
+                (stack, world, entity) -> AbstractBlockDeviceItem.getData(stack) != null ? Integer.MAX_VALUE : AbstractStorageItem.getCapacity(stack));
 
         ItemModelsProperties.registerProperty(Items.FLOPPY.get(), CustomItemModelProperties.COLOR_PROPERTY,
                 (stack, world, entity) -> getColor(stack));

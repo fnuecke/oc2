@@ -12,7 +12,11 @@ import java.util.List;
 
 public class ModItem extends Item {
     public ModItem(final Properties properties) {
-        super(properties);
+        super(properties.group(ItemGroup.COMMON));
+    }
+
+    public ModItem() {
+        this(createProperties());
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -21,5 +25,11 @@ public class ModItem extends Item {
     public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
         super.addInformation(stack, world, tooltip, flag);
         TooltipUtils.tryAddDescription(stack, tooltip);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected static Properties createProperties() {
+        return new Properties();
     }
 }

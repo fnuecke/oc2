@@ -35,6 +35,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 .end()
                 .end();
         horizontalBlock(Blocks.NETWORK_HUB, Items.NETWORK_HUB);
+        horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE);
 
         registerCableStates();
     }

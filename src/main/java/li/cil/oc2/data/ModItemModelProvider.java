@@ -44,6 +44,8 @@ public final class ModItemModelProvider extends ItemModelProvider {
         simple(Items.FLASH_MEMORY, "item/flash_memory");
         simple(Items.REDSTONE_INTERFACE_CARD, "item/redstone_interface_card");
         simple(Items.NETWORK_INTERFACE_CARD, "item/network_interface_card");
+        simple(Items.FLOPPY, "item/floppy_base")
+                .texture("layer1", "item/floppy_tint");
 
         simple(Items.INVENTORY_OPERATIONS_MODULE, "item/inventory_operations_module");
         simple(Items.BLOCK_OPERATIONS_MODULE, "item/block_operations_module");
@@ -57,8 +59,13 @@ public final class ModItemModelProvider extends ItemModelProvider {
 
     private <T extends Item> ItemModelBuilder simple(final RegistryObject<T> item, final String texturePath, final String nameSuffix) {
         return singleTexture(item.getId().getPath() + nameSuffix,
-                new ResourceLocation("item/handheld"),
+                new ResourceLocation("item/generated"),
                 "layer0",
                 new ResourceLocation(API.MOD_ID, texturePath));
+    }
+
+    private <T extends Item> ItemModelBuilder withExistingParent(final RegistryObject<T> item) {
+        return withExistingParent(item.getId().getPath(),
+                new ResourceLocation("item/generated"));
     }
 }

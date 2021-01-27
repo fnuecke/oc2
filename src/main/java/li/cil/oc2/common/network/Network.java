@@ -116,6 +116,12 @@ public final class Network {
                 .decoder(RobotInitializationMessage::new)
                 .consumer(RobotInitializationMessage::handleMessage)
                 .add();
+
+        INSTANCE.messageBuilder(DiskDriveFloppyMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(DiskDriveFloppyMessage::toBytes)
+                .decoder(DiskDriveFloppyMessage::new)
+                .consumer(DiskDriveFloppyMessage::handleMessage)
+                .add();
     }
 
     public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {

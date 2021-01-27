@@ -5,11 +5,13 @@ import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.client.gui.ComputerContainerScreen;
 import li.cil.oc2.client.gui.RobotContainerScreen;
 import li.cil.oc2.client.gui.RobotTerminalScreen;
+import li.cil.oc2.client.item.CustomItemColors;
 import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.BusCableModelLoader;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.client.renderer.entity.RobotEntityRenderer;
 import li.cil.oc2.client.renderer.tileentity.ComputerTileEntityRenderer;
+import li.cil.oc2.client.renderer.tileentity.DiskDriveTileEntityRenderer;
 import li.cil.oc2.client.renderer.tileentity.NetworkConnectorTileEntityRenderer;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.DeviceTypes;
@@ -32,6 +34,7 @@ public final class ClientSetup {
     public static void handleSetupEvent(final FMLClientSetupEvent event) {
         NetworkCableRenderer.initialize();
         CustomItemModelProperties.initialize();
+        CustomItemColors.initialize();
 
         ScreenManager.registerFactory(Containers.COMPUTER_CONTAINER.get(), ComputerContainerScreen::new);
         ScreenManager.registerFactory(Containers.ROBOT_CONTAINER.get(), RobotContainerScreen::new);
@@ -39,6 +42,7 @@ public final class ClientSetup {
 
         ClientRegistry.bindTileEntityRenderer(TileEntities.COMPUTER_TILE_ENTITY.get(), ComputerTileEntityRenderer::new);
         ClientRegistry.bindTileEntityRenderer(TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), NetworkConnectorTileEntityRenderer::new);
+        ClientRegistry.bindTileEntityRenderer(TileEntities.DISK_DRIVE_TILE_ENTITY.get(), DiskDriveTileEntityRenderer::new);
 
         RenderingRegistry.registerEntityRenderingHandler(Entities.ROBOT.get(), RobotEntityRenderer::new);
     }

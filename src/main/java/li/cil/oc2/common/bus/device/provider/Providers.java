@@ -32,6 +32,8 @@ public final class Providers {
         BLOCK_DEVICE_PROVIDERS.register("fluid_handler", FluidHandlerBlockDeviceProvider::new);
         BLOCK_DEVICE_PROVIDERS.register("item_handler", ItemHandlerBlockDeviceProvider::new);
 
+        BLOCK_DEVICE_PROVIDERS.register(Constants.DISK_DRIVE_BLOCK_NAME, DiskDriveDeviceProvider::new);
+
         ITEM_DEVICE_PROVIDERS.register(Constants.MEMORY_ITEM_NAME, MemoryItemDeviceProvider::new);
         ITEM_DEVICE_PROVIDERS.register(Constants.HARD_DRIVE_ITEM_NAME, HardDriveItemDeviceProvider::new);
         ITEM_DEVICE_PROVIDERS.register(Constants.FLASH_MEMORY_ITEM_NAME, FlashMemoryItemDeviceProvider::new);

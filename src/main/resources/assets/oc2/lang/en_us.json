@@ -8,6 +8,8 @@
   "block.oc2.network_connector": "Network Connector",
   "block.oc2.network_hub": "Network Hub",
   "block.oc2.redstone_interface": "Redstone Interface",
+  "block.oc2.disk_drive": "Disk Drive",
+  "block.oc2.disk_drive.desc": "Used to access Floppy Disks.",
 
   "item.oc2.wrench": "Scrench",
   "item.oc2.wrench.desc": "Used to configure devices and to dismantle them (while sneaking).",
@@ -16,6 +18,7 @@
   "item.oc2.network_cable": "Network Cable",
   "item.oc2.memory": "Memory",
   "item.oc2.hard_drive": "Hard Drive",
+  "item.oc2.floppy": "Floppy Disk",
   "item.oc2.flash_memory": "Flash Memory",
   "item.oc2.redstone_interface_card": "Redstone Interface Card",
   "item.oc2.network_interface_card": "Network Interface Card",

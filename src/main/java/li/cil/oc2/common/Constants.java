@@ -24,6 +24,7 @@ public final class Constants {
     public static final String BUS_CABLE_BLOCK_NAME = "bus_cable";
     public static final String NETWORK_CONNECTOR_BLOCK_NAME = "network_connector";
     public static final String NETWORK_HUB_BLOCK_NAME = "network_hub";
+    public static final String DISK_DRIVE_BLOCK_NAME = "disk_drive";
     public static final String REDSTONE_INTERFACE_BLOCK_NAME = "redstone_interface";
 
     ///////////////////////////////////////////////////////////////////
@@ -38,6 +39,7 @@ public final class Constants {
     public static final String HARD_DRIVE_ITEM_NAME = "hard_drive";
     public static final String REDSTONE_INTERFACE_CARD_ITEM_NAME = "redstone_interface_card";
     public static final String NETWORK_INTERFACE_CARD_ITEM_NAME = "network_interface_card";
+    public static final String FLOPPY_ITEM_NAME = "floppy";
 
     public static final String INVENTORY_OPERATIONS_MODULE_ITEM_NAME = "inventory_operations_module";
     public static final String BLOCK_OPERATIONS_MODULE_ITEM_NAME = "block_operations_module";

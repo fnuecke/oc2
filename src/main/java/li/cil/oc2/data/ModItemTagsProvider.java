@@ -29,7 +29,8 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
                 DEVICES_HARD_DRIVE,
                 DEVICES_FLASH_MEMORY,
                 DEVICES_CARD,
-                DEVICES_ROBOT_MODULE
+                DEVICES_ROBOT_MODULE,
+                DEVICES_FLOPPY
         );
         getOrCreateBuilder(DEVICES_MEMORY).add(
                 Items.MEMORY.get()
@@ -47,6 +48,9 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
         getOrCreateBuilder(DEVICES_ROBOT_MODULE).add(
                 Items.INVENTORY_OPERATIONS_MODULE.get(),
                 Items.BLOCK_OPERATIONS_MODULE.get()
+        );
+        getOrCreateBuilder(DEVICES_FLOPPY).add(
+                Items.FLOPPY.get()
         );
 
         getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL).addTags(
@@ -82,7 +86,8 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
                 Items.MEMORY.get(),
                 Items.HARD_DRIVE.get(),
                 Items.FLASH_MEMORY.get(),
-                Items.NETWORK_INTERFACE_CARD.get()
+                Items.NETWORK_INTERFACE_CARD.get(),
+                Items.DISK_DRIVE.get()
         );
     }
 }

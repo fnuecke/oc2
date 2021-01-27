@@ -24,6 +24,7 @@ public final class Config {
     public static int maxMemorySize = 8 * Constants.MEGABYTE;
     public static int maxHardDriveSize = 8 * Constants.MEGABYTE;
     public static int maxFlashMemorySize = 4 * Constants.KILOBYTE;
+    public static int maxFloppySize = 512 * Constants.KILOBYTE;
 
     public static int blockOperationsModuleToolLevel = Items.DIAMOND_PICKAXE.getHarvestLevel(new ItemStack(Items.DIAMOND_PICKAXE), ToolType.PICKAXE, null, null);
 

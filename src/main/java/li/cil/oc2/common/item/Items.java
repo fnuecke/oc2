@@ -23,6 +23,7 @@ public final class Items {
     public static final RegistryObject<Item> NETWORK_CONNECTOR = register(Constants.NETWORK_CONNECTOR_BLOCK_NAME, Blocks.NETWORK_CONNECTOR);
     public static final RegistryObject<Item> NETWORK_HUB = register(Constants.NETWORK_HUB_BLOCK_NAME, Blocks.NETWORK_HUB);
     public static final RegistryObject<Item> REDSTONE_INTERFACE = register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, Blocks.REDSTONE_INTERFACE);
+    public static final RegistryObject<Item> DISK_DRIVE = register(Constants.DISK_DRIVE_BLOCK_NAME, Blocks.DISK_DRIVE);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -37,6 +38,7 @@ public final class Items {
     public static final RegistryObject<FlashMemoryItem> FLASH_MEMORY = register(Constants.FLASH_MEMORY_ITEM_NAME, FlashMemoryItem::new, new Item.Properties());
     public static final RegistryObject<Item> REDSTONE_INTERFACE_CARD = register(Constants.REDSTONE_INTERFACE_CARD_ITEM_NAME);
     public static final RegistryObject<Item> NETWORK_INTERFACE_CARD = register(Constants.NETWORK_INTERFACE_CARD_ITEM_NAME);
+    public static final RegistryObject<FloppyItem> FLOPPY = register(Constants.FLOPPY_ITEM_NAME, FloppyItem::new);
 
     public static final RegistryObject<Item> INVENTORY_OPERATIONS_MODULE = register(Constants.INVENTORY_OPERATIONS_MODULE_ITEM_NAME);
     public static final RegistryObject<Item> BLOCK_OPERATIONS_MODULE = register(Constants.BLOCK_OPERATIONS_MODULE_ITEM_NAME, commonProperties().maxDamage(2500));

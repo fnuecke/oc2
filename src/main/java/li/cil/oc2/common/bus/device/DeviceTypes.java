@@ -27,6 +27,7 @@ public final class DeviceTypes {
         register("flash_memory");
         register("card");
         register("robot_module");
+        register("floppy");
 
         DEVICE_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus());
     }

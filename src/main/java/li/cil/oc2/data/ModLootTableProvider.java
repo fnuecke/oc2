@@ -46,6 +46,7 @@ public final class ModLootTableProvider extends LootTableProvider {
             registerDropSelfLootTable(Blocks.REDSTONE_INTERFACE.get());
             registerDropSelfLootTable(Blocks.NETWORK_CONNECTOR.get());
             registerDropSelfLootTable(Blocks.NETWORK_HUB.get());
+            registerDropSelfLootTable(Blocks.DISK_DRIVE.get());
 
             registerLootTable(Blocks.COMPUTER.get(), ModBlockLootTables::droppingWithInventory);
         }

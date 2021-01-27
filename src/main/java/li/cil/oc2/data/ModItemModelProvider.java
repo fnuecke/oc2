@@ -32,15 +32,8 @@ public final class ModItemModelProvider extends ItemModelProvider {
                 .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
                 .model(simple(Items.MEMORY, "item/memory3", "3"))
                 .end();
-        simple(Items.HARD_DRIVE, "item/hard_drive1")
-                .override()
-                .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 4 * Constants.MEGABYTE)
-                .model(simple(Items.HARD_DRIVE, "item/hard_drive2", "2"))
-                .end()
-                .override()
-                .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
-                .model(simple(Items.HARD_DRIVE, "item/hard_drive3", "3"))
-                .end();
+        simple(Items.HARD_DRIVE, "item/hard_drive_base")
+                .texture("layer1", "item/hard_drive_tint");
         simple(Items.FLASH_MEMORY, "item/flash_memory");
         simple(Items.REDSTONE_INTERFACE_CARD, "item/redstone_interface_card");
         simple(Items.NETWORK_INTERFACE_CARD, "item/network_interface_card");

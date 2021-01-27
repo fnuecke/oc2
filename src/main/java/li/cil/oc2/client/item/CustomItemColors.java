@@ -37,7 +37,8 @@ public final class CustomItemColors {
 
     public static void initialize() {
         final ItemColors itemColors = Minecraft.getInstance().getItemColors();
-        itemColors.register((stack, layer) -> layer == 1 ? getColor(stack) : NO_TINT, Items.FLOPPY.get());
+        itemColors.register((stack, layer) -> layer == 1 ? getColor(stack) : NO_TINT,
+                Items.HARD_DRIVE.get(), Items.FLOPPY.get());
     }
 
     public static int getColorByDye(final DyeColor dye) {
@@ -86,6 +87,10 @@ public final class CustomItemColors {
         } else {
             return GREY;
         }
+    }
+
+    public static ItemStack withColor(final ItemStack stack, final DyeColor color) {
+        return withColor(stack, getColorByDye(color));
     }
 
     public static ItemStack withColor(final ItemStack stack, final int color) {

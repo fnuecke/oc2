@@ -14,7 +14,6 @@ import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.virtio.VirtIOBlockDevice;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 
 import java.io.InputStream;
@@ -23,7 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @SuppressWarnings("UnstableApiUsage")
-public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice {
+public abstract class AbstractHardDriveVMDevice<TBlock extends BlockDevice, TIdentity> extends IdentityProxy<TIdentity> implements VMDevice, ItemDevice {
     private static final String DEVICE_TAG_NAME = "device";
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String INTERRUPT_TAG_NAME = "interrupt";
@@ -32,8 +31,8 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
     ///////////////////////////////////////////////////////////////
 
     private BlobStorage.JobHandle jobHandle;
-    private T data;
-    private VirtIOBlockDevice device;
+    protected TBlock data;
+    protected VirtIOBlockDevice device;
 
     ///////////////////////////////////////////////////////////////
 
@@ -43,11 +42,11 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
     private CompoundNBT deviceNbt;
 
     // Offline persisted data.
-    private UUID blobHandle;
+    protected UUID blobHandle;
 
     ///////////////////////////////////////////////////////////////
 
-    protected AbstractHardDriveVMDevice(final ItemStack identity) {
+    protected AbstractHardDriveVMDevice(final TIdentity identity) {
         super(identity);
     }
 
@@ -55,6 +54,8 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
 
     @Override
     public VMDeviceLoadResult load(final VMContext context) {
+        data = createBlockDevice();
+
         if (!allocateDevice(context)) {
             return VMDeviceLoadResult.fail();
         }
@@ -71,7 +72,11 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
 
         context.getEventBus().register(this);
 
-        loadPersistedState();
+        deserializeData();
+
+        if (deviceNbt != null) {
+            NBTSerialization.deserialize(deviceNbt, device);
+        }
 
         return VMDeviceLoadResult.success();
     }
@@ -157,46 +162,7 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
         }
     }
 
-    ///////////////////////////////////////////////////////////////
-
-    protected abstract int getSize();
-
-    protected abstract T createDevice();
-
-    protected abstract Optional<InputStream> getSerializationStream(T device);
-
-    protected abstract OutputStream getDeserializationStream(T device);
-
-    ///////////////////////////////////////////////////////////////
-
-    private boolean allocateDevice(final VMContext context) {
-        if (!context.getMemoryAllocator().claimMemory(getSize())) {
-            return false;
-        }
-
-        data = createDevice();
-        device = new VirtIOBlockDevice(context.getMemoryMap(), data);
-
-        return true;
-    }
-
-    private void loadPersistedState() {
-        if (blobHandle != null) {
-            jobHandle = BlobStorage.submitLoad(blobHandle, getDeserializationStream(data));
-        }
-        if (deviceNbt != null) {
-            NBTSerialization.deserialize(deviceNbt, device);
-        }
-    }
-
-    private void awaitStorageOperation() {
-        if (jobHandle != null) {
-            jobHandle.await();
-            jobHandle = null;
-        }
-    }
-
-    private void serializeData() {
+    public void serializeData() {
         if (data != null) {
             final Optional<InputStream> optional = getSerializationStream(data);
             optional.ifPresent(stream -> {
@@ -207,6 +173,48 @@ public abstract class AbstractHardDriveVMDevice<T extends BlockDevice> extends I
                 BlobStorage.freeHandle(blobHandle);
                 blobHandle = null;
             }
+        }
+    }
+
+    public void deserializeData() {
+        if (data != null && blobHandle != null) {
+            try {
+                jobHandle = BlobStorage.submitLoad(blobHandle, getDeserializationStream(data));
+            } catch (final UnsupportedOperationException ignored) {
+                // If logic producing the block data implementation changed between saves we
+                // can potentially end up in a state where we now have read only block data
+                // with some previously persisted data. A call to getDeserializationStream
+                // will, indirectly, lead to this exception. So we just ignore it.
+            }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////
+
+    protected abstract int getSize();
+
+    protected abstract TBlock createBlockDevice();
+
+    protected abstract Optional<InputStream> getSerializationStream(TBlock device);
+
+    protected abstract OutputStream getDeserializationStream(TBlock device);
+
+    ///////////////////////////////////////////////////////////////
+
+    private boolean allocateDevice(final VMContext context) {
+        if (!context.getMemoryAllocator().claimMemory(getSize())) {
+            return false;
+        }
+
+        device = new VirtIOBlockDevice(context.getMemoryMap(), data);
+
+        return true;
+    }
+
+    private void awaitStorageOperation() {
+        if (jobHandle != null) {
+            jobHandle.await();
+            jobHandle = null;
         }
     }
 }

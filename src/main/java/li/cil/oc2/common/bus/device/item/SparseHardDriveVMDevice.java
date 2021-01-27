@@ -13,7 +13,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-public final class SparseHardDriveVMDevice extends AbstractHardDriveVMDevice<SparseBlockDevice> {
+public final class SparseHardDriveVMDevice extends AbstractHardDriveVMDevice<SparseBlockDevice, ItemStack> {
     private final BlockDevice base;
     private final boolean readonly;
 
@@ -33,7 +33,7 @@ public final class SparseHardDriveVMDevice extends AbstractHardDriveVMDevice<Spa
     }
 
     @Override
-    protected SparseBlockDevice createDevice() {
+    protected SparseBlockDevice createBlockDevice() {
         return new SparseBlockDevice(base, readonly);
     }
 

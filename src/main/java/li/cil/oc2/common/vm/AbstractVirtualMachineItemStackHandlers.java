@@ -36,8 +36,9 @@ public abstract class AbstractVirtualMachineItemStackHandlers implements Virtual
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final long ITEM_DEVICE_BASE_ADDRESS = 0x40000000L;
+    private static final long ITEM_DEVICE_BASE_ADDRESS = 0x20000000L;
     private static final int ITEM_DEVICE_STRIDE = 0x1000;
+    private static final long OTHER_DEVICE_BASE_ADDRESS = 0x30000000L;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -83,18 +84,18 @@ public abstract class AbstractVirtualMachineItemStackHandlers implements Virtual
             final DeviceType deviceType = entry.getKey();
             final DeviceItemStackHandler handler = entry.getValue();
 
-            // Ahhh, such special casing, much wow. Honestly I don't expect this
-            // special case to ever be needed for anything other than physical
-            // memory, so it's fine. Prove me wrong.
-            if (deviceType == DeviceTypes.MEMORY) {
-                continue;
-            }
-
             for (int i = 0; i < handler.getSlots(); i++) {
                 final Collection<ItemDeviceInfo> devices = handler.getBusElement().getDeviceGroup(i);
                 for (final ItemDeviceInfo info : devices) {
                     if (Objects.equals(info.device, wrapper)) {
-                        return OptionalLong.of(address);
+                        // Ahhh, such special casing, much wow. Honestly I don't expect this
+                        // special case to ever be needed for anything other than physical
+                        // memory, so it's fine. Prove me wrong.
+                        if (deviceType == DeviceTypes.MEMORY) {
+                            return OptionalLong.empty();
+                        } else {
+                            return OptionalLong.of(address);
+                        }
                     }
                 }
             }
@@ -102,7 +103,7 @@ public abstract class AbstractVirtualMachineItemStackHandlers implements Virtual
             address += ITEM_DEVICE_STRIDE;
         }
 
-        return OptionalLong.empty();
+        return OptionalLong.of(OTHER_DEVICE_BASE_ADDRESS);
     }
 
     @Override

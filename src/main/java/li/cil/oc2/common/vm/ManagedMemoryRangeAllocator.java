@@ -56,20 +56,26 @@ public final class ManagedMemoryRangeAllocator implements MemoryRangeAllocator {
             throw new IllegalStateException();
         }
 
-        final OptionalLong address = defaultAddress.apply(device);
-        if (address.isPresent() && board.addDevice(address.getAsLong(), device)) {
+        OptionalLong address = defaultAddress.apply(device);
+        if (address.isPresent()) {
+            if (board.addDevice(address.getAsLong(), device)) {
+                managedDevices.add(device);
+                return address;
+            }
+
+            address = board.getMemoryMap().findFreeRange(address.orElse(0), Long.MAX_VALUE, device.getLength());
+            if (address.isPresent() && board.addDevice(address.getAsLong(), device)) {
+                managedDevices.add(device);
+                return address;
+            }
+        }
+
+        if (board.addDevice(device)) {
             managedDevices.add(device);
-            return OptionalLong.of(address.getAsLong());
+            final Optional<MemoryRange> range = board.getMemoryMap().getMemoryRange(device);
+            return OptionalLong.of(range.orElseThrow(AssertionError::new).address());
         }
 
-        if (!board.addDevice(device)) {
-            return OptionalLong.empty();
-        }
-
-        final Optional<MemoryRange> range = board.getMemoryMap().getMemoryRange(device);
-        assert range.isPresent();
-
-        managedDevices.add(device);
-        return OptionalLong.of(range.get().address());
+        return OptionalLong.empty();
     }
 }

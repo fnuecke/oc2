@@ -13,11 +13,11 @@ import net.minecraftforge.registries.ForgeRegistryEntry;
 import java.util.Optional;
 
 public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<ItemDeviceProvider> implements ItemDeviceProvider {
-    private final RegistryObject<Item> item;
+    private final RegistryObject<? extends Item> item;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractItemDeviceProvider(final RegistryObject<Item> item) {
+    protected AbstractItemDeviceProvider(final RegistryObject<? extends Item> item) {
         this.item = item;
     }
 

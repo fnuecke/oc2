@@ -40,6 +40,10 @@ public abstract class AbstractStorageItem extends ModItem {
         return stack;
     }
 
+    public ItemStack withCapacity(final int capacity) {
+        return withCapacity(new ItemStack(this), capacity);
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     public AbstractStorageItem(final Properties properties, final int defaultCapacity) {

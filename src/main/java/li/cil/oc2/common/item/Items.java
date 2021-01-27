@@ -32,9 +32,9 @@ public final class Items {
     public static final RegistryObject<Item> NETWORK_CABLE = register(Constants.NETWORK_CABLE_ITEM_NAME, NetworkCableItem::new);
     public static final RegistryObject<Item> ROBOT = register(Constants.ROBOT_ENTITY_NAME, RobotItem::new, commonProperties().setISTER(() -> RobotItemStackRenderer::new));
 
-    public static final RegistryObject<Item> MEMORY = register(Constants.MEMORY_ITEM_NAME, MemoryItem::new, new Item.Properties());
-    public static final RegistryObject<Item> HARD_DRIVE = register(Constants.HARD_DRIVE_ITEM_NAME, HardDriveItem::new, new Item.Properties());
-    public static final RegistryObject<Item> FLASH_MEMORY = register(Constants.FLASH_MEMORY_ITEM_NAME, FlashMemoryItem::new, new Item.Properties());
+    public static final RegistryObject<MemoryItem> MEMORY = register(Constants.MEMORY_ITEM_NAME, MemoryItem::new, new Item.Properties());
+    public static final RegistryObject<HardDriveItem> HARD_DRIVE = register(Constants.HARD_DRIVE_ITEM_NAME, HardDriveItem::new, new Item.Properties());
+    public static final RegistryObject<FlashMemoryItem> FLASH_MEMORY = register(Constants.FLASH_MEMORY_ITEM_NAME, FlashMemoryItem::new, new Item.Properties());
     public static final RegistryObject<Item> REDSTONE_INTERFACE_CARD = register(Constants.REDSTONE_INTERFACE_CARD_ITEM_NAME);
     public static final RegistryObject<Item> NETWORK_INTERFACE_CARD = register(Constants.NETWORK_INTERFACE_CARD_ITEM_NAME);
 

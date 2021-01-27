@@ -3,13 +3,13 @@ package li.cil.oc2.common.bus.device.provider.item;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.data.BaseBlockDevice;
+import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.item.HardDriveVMDevice;
 import li.cil.oc2.common.bus.device.item.SparseHardDriveVMDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
-import li.cil.oc2.common.item.HardDriveItem;
+import li.cil.oc2.common.item.BlockDeviceItem;
 import li.cil.oc2.common.item.Items;
 import li.cil.sedna.api.device.BlockDevice;
 import net.minecraft.item.ItemStack;
@@ -28,14 +28,14 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
         final ItemStack stack = query.getItemStack();
 
-        final boolean readonly = HardDriveItem.isReadonly(stack);
-        final BaseBlockDevice baseBlockDevice = HardDriveItem.getBaseBlockDevice(stack);
-        if (baseBlockDevice != null) {
-            final BlockDevice base = baseBlockDevice.get();
+        final boolean readonly = BlockDeviceItem.isReadonly(stack);
+        final BlockDeviceData handler = BlockDeviceItem.getData(stack);
+        if (handler != null) {
+            final BlockDevice base = handler.getBlockDevice();
             return Optional.of(new SparseHardDriveVMDevice(stack, base, readonly));
         }
 
-        final int size = MathHelper.clamp(HardDriveItem.getCapacity(stack), 0, Config.maxHardDriveSize);
+        final int size = MathHelper.clamp(BlockDeviceItem.getCapacity(stack), 0, Config.maxHardDriveSize);
         return Optional.of(new HardDriveVMDevice(stack, size, readonly));
     }
 

@@ -89,7 +89,7 @@ public final class FlashMemoryItem extends AbstractStorageItem {
     protected ITextComponent getDisplayNameSuffix(final ItemStack stack) {
         final Firmware firmware = getFirmware(stack);
         if (firmware != null) {
-            return firmware.getName();
+            return firmware.getDisplayName();
         } else {
             return super.getDisplayNameSuffix(stack);
         }

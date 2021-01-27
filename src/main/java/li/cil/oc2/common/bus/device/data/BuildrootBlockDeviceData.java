@@ -1,6 +1,6 @@
 package li.cil.oc2.common.bus.device.data;
 
-import li.cil.oc2.api.bus.device.data.BaseBlockDevice;
+import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
@@ -12,29 +12,33 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
-public final class BuildrootRootFileSystem extends ForgeRegistryEntry<BaseBlockDevice> implements BaseBlockDevice {
+public final class BuildrootBlockDeviceData extends ForgeRegistryEntry<BlockDeviceData> implements BlockDeviceData {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static final ByteBufferBlockDevice ROOT_FS;
+    ///////////////////////////////////////////////////////////////////
+
+    private static final ByteBufferBlockDevice INSTANCE;
 
     static {
-        ByteBufferBlockDevice rootfs;
+        ByteBufferBlockDevice instance;
         try {
-            rootfs = ByteBufferBlockDevice.createFromStream(Buildroot.getRootFilesystem(), true);
+            instance = ByteBufferBlockDevice.createFromStream(Buildroot.getRootFilesystem(), true);
         } catch (final IOException e) {
             LOGGER.error(e);
-            rootfs = ByteBufferBlockDevice.create(0, true);
+            instance = ByteBufferBlockDevice.create(0, true);
         }
-        ROOT_FS = rootfs;
+        INSTANCE = instance;
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    public BlockDevice getBlockDevice() {
+        return INSTANCE;
     }
 
     @Override
-    public BlockDevice get() {
-        return ROOT_FS;
-    }
-
-    @Override
-    public ITextComponent getName() {
+    public ITextComponent getDisplayName() {
         return new StringTextComponent("Linux");
     }
 }

@@ -45,5 +45,5 @@ public interface Firmware extends IForgeRegistryEntry<Firmware> {
      *
      * @return the display name of this firmware.
      */
-    ITextComponent getName();
+    ITextComponent getDisplayName();
 }

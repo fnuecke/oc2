@@ -23,7 +23,7 @@ public final class BuildrootFirmware extends ForgeRegistryEntry<Firmware> implem
     }
 
     @Override
-    public ITextComponent getName() {
-        return new StringTextComponent("OpenSBI+Linux");
+    public ITextComponent getDisplayName() {
+        return new StringTextComponent("Linux");
     }
 }

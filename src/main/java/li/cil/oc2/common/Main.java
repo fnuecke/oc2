@@ -5,7 +5,7 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.client.ClientSetup;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.bus.device.DeviceTypes;
-import li.cil.oc2.common.bus.device.data.BaseBlockDevices;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
 import li.cil.oc2.common.bus.device.data.Firmwares;
 import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.container.Containers;
@@ -40,7 +40,7 @@ public final class Main {
 
         Providers.initialize();
         DeviceTypes.initialize();
-        BaseBlockDevices.initialize();
+        BlockDeviceDataRegistration.initialize();
         Firmwares.initialize();
 
         FMLJavaModLoadingContext.get().getModEventBus().register(CommonSetup.class);

@@ -8,8 +8,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import javax.annotation.Nullable;
 
 public interface VirtualMachineState {
-    boolean isRunning();
-
     AbstractDeviceBusController.BusState getBusState();
 
     @OnlyIn(Dist.CLIENT)
@@ -26,11 +24,13 @@ public interface VirtualMachineState {
     @OnlyIn(Dist.CLIENT)
     void setBootErrorClient(ITextComponent value);
 
+    boolean isRunning();
+
     void start();
 
     void stop();
 
-    public enum RunState {
+    enum RunState {
         STOPPED,
         LOADING_DEVICES,
         RUNNING,

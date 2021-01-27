@@ -10,9 +10,13 @@ public final class ManagedEventBus implements VMLifecycleEventBus {
     private final EventBus eventBus;
     private final ArrayList<Object> subscribers = new ArrayList<>();
 
+    ///////////////////////////////////////////////////////////////////
+
     public ManagedEventBus(final EventBus eventBus) {
         this.eventBus = eventBus;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     public void invalidate() {
         for (final Object subscriber : subscribers) {

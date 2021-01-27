@@ -2,7 +2,7 @@ package li.cil.oc2.common.bus.device.item;
 
 import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.data.FirmwareLoader;
+import li.cil.oc2.api.bus.device.vm.FirmwareLoader;
 import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;

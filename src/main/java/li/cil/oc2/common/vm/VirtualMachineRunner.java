@@ -18,6 +18,7 @@ public class VirtualMachineRunner implements Runnable {
     private static final ExecutorService VM_RUNNERS = Executors.newCachedThreadPool(r -> {
         final Thread thread = new Thread(r);
         thread.setDaemon(true);
+        thread.setName("VirtualMachine Runner");
         return thread;
     });
 

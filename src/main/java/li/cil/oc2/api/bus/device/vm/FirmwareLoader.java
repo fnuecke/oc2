@@ -1,6 +1,4 @@
-package li.cil.oc2.api.bus.device.data;
-
-import li.cil.oc2.api.bus.device.vm.VMDevice;
+package li.cil.oc2.api.bus.device.vm;
 
 /**
  * This interface serves as a marker for devices that load firmware.

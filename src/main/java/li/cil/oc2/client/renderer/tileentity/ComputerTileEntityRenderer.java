@@ -41,6 +41,8 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         super(dispatcher);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
     public void render(final ComputerTileEntity tileEntity, final float partialTicks, final MatrixStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
         final Direction blockFacing = tileEntity.getBlockState().get(ComputerBlock.HORIZONTAL_FACING);

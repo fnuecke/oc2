@@ -1,6 +1,6 @@
 package li.cil.oc2.common.vm;
 
-import li.cil.oc2.api.bus.device.data.FirmwareLoader;
+import li.cil.oc2.api.bus.device.vm.FirmwareLoader;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
 import li.cil.oc2.common.Constants;

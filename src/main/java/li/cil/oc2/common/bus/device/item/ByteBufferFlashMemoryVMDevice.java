@@ -10,6 +10,7 @@ import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
+import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.device.flash.FlashMemoryDevice;
@@ -19,7 +20,6 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.TranslationTextComponent;
 
 import java.nio.ByteBuffer;
-import java.util.OptionalLong;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, FirmwareLoader {
@@ -36,7 +36,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
 
     // Online persisted data.
     private CompoundNBT deviceNbt;
-    private Long address;
+    private final OptionalAddress address = new OptionalAddress();
 
     ///////////////////////////////////////////////////////////////
 
@@ -53,7 +53,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
             return VMDeviceLoadResult.fail();
         }
 
-        if (!claimAddress(context)) {
+        if (!address.claim(context, device)) {
             return VMDeviceLoadResult.fail();
         }
 
@@ -72,7 +72,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
         data = null;
         device = null;
         deviceNbt = null;
-        address = null;
+        address.clear();
     }
 
     @Subscribe
@@ -108,23 +108,6 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
 
         data = ByteBuffer.allocate(size);
         device = new FlashMemoryDevice(data);
-
-        return true;
-    }
-
-    private boolean claimAddress(final VMContext context) {
-        final OptionalLong claimedAddress;
-        if (this.address != null) {
-            claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(this.address, device);
-        } else {
-            claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(device);
-        }
-
-        if (!claimedAddress.isPresent()) {
-            return false;
-        }
-
-        this.address = claimedAddress.getAsLong();
 
         return true;
     }

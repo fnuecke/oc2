@@ -1,22 +1,15 @@
-package li.cil.oc2.common.vm;
+package li.cil.oc2.common.vm.context.managed;
 
-import com.google.common.eventbus.EventBus;
-import li.cil.oc2.api.bus.device.vm.InterruptAllocator;
-import li.cil.oc2.api.bus.device.vm.MemoryAllocator;
-import li.cil.oc2.api.bus.device.vm.MemoryRangeAllocator;
-import li.cil.oc2.api.bus.device.vm.VMContext;
-import li.cil.oc2.api.bus.device.vm.event.VMLifecycleEventBus;
-import li.cil.sedna.api.Board;
+import li.cil.oc2.api.bus.device.vm.*;
+import li.cil.oc2.common.vm.context.VMContextManagerCollection;
 import li.cil.sedna.api.device.InterruptController;
-import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.memory.MemoryMap;
 
-import java.util.BitSet;
 import java.util.OptionalLong;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
-@SuppressWarnings("UnstableApiUsage")
 public final class ManagedVMContext implements VMContext {
+    private final VMContext parent;
     private final ManagedMemoryMap memoryMap;
     private final ManagedInterruptController interruptController;
     private final ManagedMemoryRangeAllocator memoryRangeAllocator;
@@ -26,18 +19,14 @@ public final class ManagedVMContext implements VMContext {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ManagedVMContext(final Board board, final BitSet claimedInterrupts, final BitSet reservedInterrupts,
-                            final EventBus eventBus, final Function<MemoryMappedDevice, OptionalLong> defaultAddress) {
-        this.memoryRangeAllocator = new ManagedMemoryRangeAllocator(board, defaultAddress);
-        this.interruptAllocator = new ManagedInterruptAllocator(claimedInterrupts, reservedInterrupts, board.getInterruptCount());
-        this.memoryMap = new ManagedMemoryMap(board.getMemoryMap());
-        this.interruptController = new ManagedInterruptController(board.getInterruptController(), interruptAllocator);
+    public ManagedVMContext(final VMContext parent, final VMContextManagerCollection managers, final Supplier<OptionalLong> baseAddressSupplier) {
+        this.parent = parent;
+        this.memoryRangeAllocator = new ManagedMemoryRangeAllocator(parent.getMemoryRangeAllocator(), managers.getMemoryRangeManager(), baseAddressSupplier);
+        this.interruptAllocator = new ManagedInterruptAllocator(parent.getInterruptAllocator(), managers.getInterruptManager());
+        this.memoryMap = new ManagedMemoryMap(parent.getMemoryMap());
+        this.interruptController = new ManagedInterruptController(parent.getInterruptController(), interruptAllocator);
         this.memoryAllocator = new ManagedMemoryAllocator();
-        this.eventBus = new ManagedEventBus(eventBus);
-    }
-
-    public ManagedVMContext(final Board board, final BitSet claimedInterrupts, final BitSet reservedInterrupts, final EventBus eventBus) {
-        this(board, claimedInterrupts, reservedInterrupts, eventBus, (memoryMappedDevice) -> OptionalLong.empty());
+        this.eventBus = new ManagedEventBus(parent.getEventBus(), managers.getEventManager());
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -46,12 +35,14 @@ public final class ManagedVMContext implements VMContext {
         memoryRangeAllocator.freeze();
         interruptAllocator.freeze();
         memoryAllocator.freeze();
+        eventBus.freeze();
     }
 
     public void invalidate() {
+        memoryMap.invalidate();
         memoryRangeAllocator.invalidate();
-        interruptAllocator.invalidate();
         interruptController.invalidate();
+        interruptAllocator.invalidate();
         memoryAllocator.invalidate();
         eventBus.invalidate();
     }
@@ -84,5 +75,10 @@ public final class ManagedVMContext implements VMContext {
     @Override
     public VMLifecycleEventBus getEventBus() {
         return eventBus;
+    }
+
+    @Override
+    public void joinWorkerThread() {
+        parent.joinWorkerThread();
     }
 }

@@ -4,6 +4,6 @@ import li.cil.oc2.api.bus.device.vm.VMDevice;
 
 import java.util.OptionalLong;
 
-public interface DefaultAddressProvider {
-    OptionalLong getDefaultAddress(final VMDevice wrapper);
+public interface BaseAddressProvider {
+    OptionalLong getBaseAddress(final VMDevice wrapper);
 }

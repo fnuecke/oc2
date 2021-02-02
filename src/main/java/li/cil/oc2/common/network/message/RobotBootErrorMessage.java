@@ -16,7 +16,7 @@ public final class RobotBootErrorMessage {
 
     public RobotBootErrorMessage(final RobotEntity robot) {
         this.entityId = robot.getEntityId();
-        this.value = robot.getState().getBootError();
+        this.value = robot.getVirtualMachine().getBootError();
     }
 
     public RobotBootErrorMessage(final PacketBuffer buffer) {
@@ -27,7 +27,7 @@ public final class RobotBootErrorMessage {
 
     public static boolean handleMessage(final RobotBootErrorMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withClientEntity(message.entityId, RobotEntity.class,
-                (robot) -> robot.getState().setBootErrorClient(message.value)));
+                (robot) -> robot.getVirtualMachine().setBootErrorClient(message.value)));
         return true;
     }
 

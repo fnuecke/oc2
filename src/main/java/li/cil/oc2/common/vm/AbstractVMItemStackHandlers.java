@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class AbstractVirtualMachineItemStackHandlers implements VirtualMachineItemStackHandlers {
+public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers {
     public static final class GroupDefinition {
         public final DeviceType deviceType;
         public final int count;
@@ -52,7 +52,7 @@ public abstract class AbstractVirtualMachineItemStackHandlers implements Virtual
 
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractVirtualMachineItemStackHandlers(final GroupDefinition... groups) {
+    public AbstractVMItemStackHandlers(final GroupDefinition... groups) {
         for (final GroupDefinition group : groups) {
             itemHandlers.put(group.deviceType, new ItemHandler(group.count, this::getDevices, group.deviceType));
         }
@@ -77,7 +77,7 @@ public abstract class AbstractVirtualMachineItemStackHandlers implements Virtual
         return true;
     }
 
-    public OptionalLong getDefaultDeviceAddress(final VMDevice wrapper) {
+    public OptionalLong getDeviceAddressBase(final VMDevice wrapper) {
         long address = ITEM_DEVICE_BASE_ADDRESS;
 
         for (final Map.Entry<DeviceType, DeviceItemStackHandler> entry : itemHandlers.entrySet()) {
@@ -146,7 +146,7 @@ public abstract class AbstractVirtualMachineItemStackHandlers implements Virtual
         @Override
         protected void onContentsChanged(final int slot) {
             super.onContentsChanged(slot);
-            AbstractVirtualMachineItemStackHandlers.this.onContentsChanged(this, slot);
+            AbstractVMItemStackHandlers.this.onContentsChanged(this, slot);
         }
     }
 

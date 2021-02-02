@@ -17,7 +17,7 @@ public final class ComputerBusStateMessage {
 
     public ComputerBusStateMessage(final ComputerTileEntity tileEntity) {
         this.pos = tileEntity.getPos();
-        this.value = tileEntity.getState().getBusState();
+        this.value = tileEntity.getVirtualMachine().getBusState();
     }
 
     public ComputerBusStateMessage(final PacketBuffer buffer) {
@@ -28,7 +28,7 @@ public final class ComputerBusStateMessage {
 
     public static boolean handleMessage(final ComputerBusStateMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
-                (tileEntity) -> tileEntity.getState().setBusStateClient(message.value)));
+                (tileEntity) -> tileEntity.getVirtualMachine().setBusStateClient(message.value)));
         return true;
     }
 

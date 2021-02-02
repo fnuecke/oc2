@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public final class RPCAdapter implements Steppable {
+public final class RPCDeviceBusAdapter implements Steppable {
     private static final int DEFAULT_MAX_MESSAGE_SIZE = 4 * Constants.KILOBYTE;
     private static final byte[] MESSAGE_DELIMITER = "\0".getBytes();
 
@@ -38,7 +38,6 @@ public final class RPCAdapter implements Steppable {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final DeviceBusController controller;
     private final SerialDevice serialDevice;
     private final Gson gson;
 
@@ -55,12 +54,11 @@ public final class RPCAdapter implements Steppable {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RPCAdapter(final DeviceBusController controller, final SerialDevice serialDevice) {
-        this(controller, serialDevice, DEFAULT_MAX_MESSAGE_SIZE);
+    public RPCDeviceBusAdapter(final SerialDevice serialDevice) {
+        this(serialDevice, DEFAULT_MAX_MESSAGE_SIZE);
     }
 
-    public RPCAdapter(final DeviceBusController controller, final SerialDevice serialDevice, final int maxMessageSize) {
-        this.controller = controller;
+    public RPCDeviceBusAdapter(final SerialDevice serialDevice, final int maxMessageSize) {
         this.serialDevice = serialDevice;
         this.transmitBuffer = ByteBuffer.allocate(maxMessageSize);
         this.gson = RPCMethodParameterTypeAdapters.beginBuildGson()
@@ -89,7 +87,7 @@ public final class RPCAdapter implements Steppable {
         pauseLock.unlock();
     }
 
-    public void resume(final boolean didDevicesChange) {
+    public void resume(final DeviceBusController controller, final boolean didDevicesChange) {
         isPaused = false;
 
         if (!didDevicesChange) {

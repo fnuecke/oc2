@@ -72,7 +72,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         final float pixelScale = 1 / 16f;
         matrixStack.scale(pixelScale, pixelScale, pixelScale);
 
-        if (tileEntity.getState().isRunning()) {
+        if (tileEntity.getVirtualMachine().isRunning()) {
             renderTerminal(tileEntity, matrixStack, buffer, cameraPosition);
         } else {
             renderStatusText(tileEntity, matrixStack, cameraPosition);
@@ -81,7 +81,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         matrixStack.translate(0, 0, -0.1f);
         final Matrix4f matrix = matrixStack.getLast().getMatrix();
 
-        switch (tileEntity.getState().getBusState()) {
+        switch (tileEntity.getVirtualMachine().getBusState()) {
             case SCAN_PENDING:
             case INCOMPLETE:
                 renderStatus(matrix, buffer);
@@ -93,7 +93,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
                 renderStatus(matrix, buffer, 250);
                 break;
             case READY:
-                switch (tileEntity.getState().getRunState()) {
+                switch (tileEntity.getVirtualMachine().getRunState()) {
                     case STOPPED:
                         break;
                     case LOADING_DEVICES:
@@ -156,7 +156,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
             return;
         }
 
-        final ITextComponent bootError = tileEntity.getState().getBootError();
+        final ITextComponent bootError = tileEntity.getVirtualMachine().getBootError();
         if (bootError == null) {
             return;
         }

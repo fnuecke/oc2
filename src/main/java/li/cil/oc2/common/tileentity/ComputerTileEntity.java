@@ -22,6 +22,7 @@ import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
+import li.cil.oc2.common.util.TerminalUtils;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
@@ -61,9 +62,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     private final Terminal terminal = new Terminal();
     private final TileEntityDeviceBusElement busElement = new ComputerBusElement();
-
-    private final ComputerVirtualMachineState state;
     private final ComputerItemStackHandlers items = new ComputerItemStackHandlers();
+    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new ComputerBusController(busElement), items::getDeviceAddressBase);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -72,20 +72,17 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         // We want to unload devices even on world unload to free global resources.
         setNeedsWorldUnloadEvent();
-
-        final ComputerBusController busController = new ComputerBusController(busElement);
-        state = new ComputerVirtualMachineState(busController, new CommonVirtualMachine(busController));
     }
 
     public Terminal getTerminal() {
         return terminal;
     }
 
-    public VirtualMachineState getState() {
-        return state;
+    public VirtualMachine getVirtualMachine() {
+        return virtualMachine;
     }
 
-    public VirtualMachineItemStackHandlers getItemStackHandlers() {
+    public VMItemStackHandlers getItemStackHandlers() {
         return items;
     }
 
@@ -95,7 +92,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             return;
         }
 
-        state.start();
+        virtualMachine.start();
     }
 
     public void stop() {
@@ -104,11 +101,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             return;
         }
 
-        state.stop();
+        virtualMachine.stop();
     }
 
     public void handleNeighborChanged() {
-        state.busController.scheduleBusScan();
+        virtualMachine.busController.scheduleBusScan();
     }
 
     @Override
@@ -123,7 +120,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         final Direction localSide = HorizontalBlockUtils.toLocal(getBlockState(), side);
-        for (final Device device : state.busController.getDevices()) {
+        for (final Device device : virtualMachine.busController.getDevices()) {
             if (device instanceof ICapabilityProvider) {
                 final LazyOptional<T> value = ((ICapabilityProvider) device).getCapability(capability, localSide);
                 if (value.isPresent()) {
@@ -156,17 +153,17 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             world.notifyNeighborsOfStateChange(getPos(), getBlockState().getBlock());
         }
 
-        state.tick();
+        virtualMachine.tick();
     }
 
     @Override
     public void remove() {
         super.remove();
 
-        // Unload only suspends, but we want to do a full clean-up when we get
-        // destroyed, so stuff inside us can delete out-of-nbt persisted runtime-
-        // only data such as ram.
-        state.virtualMachine.vmAdapter.unload();
+        // super.remove() calls onUnload. This in turn only suspends, but we want to do
+        // a full clean-up when we get destroyed, so stuff inside us can delete out-of-nbt
+        // persisted runtime-only data such as ram.
+        virtualMachine.state.vmAdapter.unload();
     }
 
     @Override
@@ -174,9 +171,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         final CompoundNBT tag = super.getUpdateTag();
 
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
-        tag.putInt(AbstractVirtualMachineState.BUS_STATE_TAG_NAME, state.getBusState().ordinal());
-        tag.putInt(AbstractVirtualMachineState.RUN_STATE_TAG_NAME, state.getRunState().ordinal());
-        tag.putString(AbstractVirtualMachineState.BOOT_ERROR_TAG_NAME, ITextComponent.Serializer.toJson(state.getBootError()));
+        tag.putInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME, virtualMachine.getBusState().ordinal());
+        tag.putInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME, virtualMachine.getRunState().ordinal());
+        tag.putString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME, ITextComponent.Serializer.toJson(virtualMachine.getBootError()));
 
         return tag;
     }
@@ -186,16 +183,16 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         super.handleUpdateTag(blockState, tag);
 
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
-        state.setBusStateClient(AbstractDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachineState.BUS_STATE_TAG_NAME)]);
-        state.setRunStateClient(VirtualMachineState.RunState.values()[tag.getInt(AbstractVirtualMachineState.RUN_STATE_TAG_NAME)]);
-        state.setBootErrorClient(ITextComponent.Serializer.getComponentFromJson(tag.getString(AbstractVirtualMachineState.BOOT_ERROR_TAG_NAME)));
+        virtualMachine.setBusStateClient(AbstractDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME)]);
+        virtualMachine.setRunStateClient(VMRunState.values()[tag.getInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME)]);
+        virtualMachine.setBootErrorClient(ITextComponent.Serializer.getComponentFromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)));
     }
 
     @Override
     public CompoundNBT write(CompoundNBT tag) {
         tag = super.write(tag);
 
-        tag.put(STATE_TAG_NAME, state.serialize());
+        tag.put(STATE_TAG_NAME, virtualMachine.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
         tag.put(Constants.INVENTORY_TAG_NAME, items.serialize());
@@ -207,7 +204,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     public void read(final BlockState blockState, final CompoundNBT tag) {
         super.read(blockState, tag);
 
-        state.deserialize(tag.getCompound(STATE_TAG_NAME));
+        virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
 
         if (tag.contains(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
@@ -243,26 +240,26 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         super.loadServer();
 
         busElement.initialize();
-        state.virtualMachine.rtcMinecraft.setWorld(getWorld());
+        virtualMachine.state.builtinDevices.rtcMinecraft.setWorld(getWorld());
     }
 
     @Override
     protected void unloadServer() {
         super.unloadServer();
 
-        state.joinVirtualMachine();
-        state.virtualMachine.vmAdapter.suspend();
-
-        state.busController.dispose();
+        virtualMachine.unload();
 
         // This is necessary in case some other controller found us before our controller
-        // did its scan, which can happen because the scan can happen with a delay.
+        // did its scan, which can happen because the scan can happen with a delay. In
+        // that case we don't know that controller and disposing our controller won't
+        // notify it, so we also send out a notification through our bus element, which
+        // would be registered with other controllers in that case.
         busElement.scheduleScan();
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private final class ComputerItemStackHandlers extends AbstractVirtualMachineItemStackHandlers {
+    private final class ComputerItemStackHandlers extends AbstractVMItemStackHandlers {
         public ComputerItemStackHandlers() {
             super(
                     GroupDefinition.of(DeviceTypes.MEMORY, MEMORY_SLOTS),
@@ -292,23 +289,22 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         @Override
         protected void onBeforeScan() {
-            state.reload();
-            state.virtualMachine.rpcAdapter.pause();
+            virtualMachine.pauseAndReload();
         }
 
         @Override
         protected void onAfterDeviceScan(final boolean didDevicesChange) {
-            state.virtualMachine.rpcAdapter.resume(didDevicesChange);
+            virtualMachine.resume(didDevicesChange);
         }
 
         @Override
         protected void onDevicesAdded(final Collection<Device> devices) {
-            state.virtualMachine.vmAdapter.addDevices(devices);
+            virtualMachine.state.vmAdapter.addDevices(devices);
         }
 
         @Override
         protected void onDevicesRemoved(final Collection<Device> devices) {
-            state.virtualMachine.vmAdapter.removeDevices(devices);
+            virtualMachine.state.vmAdapter.removeDevices(devices);
         }
     }
 
@@ -332,24 +328,24 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
     }
 
-    private final class ComputerVirtualMachineRunner extends AbstractTerminalVirtualMachineRunner {
-        public ComputerVirtualMachineRunner(final CommonVirtualMachine virtualMachine, final Terminal terminal) {
+    private final class ComputerVMRunner extends AbstractTerminalVMRunner {
+        public ComputerVMRunner(final AbstractVirtualMachine virtualMachine, final Terminal terminal) {
             super(virtualMachine, terminal);
         }
 
         @Override
         protected void sendTerminalUpdateToClient(final ByteBuffer output) {
-            final ComputerTerminalOutputMessage message = new ComputerTerminalOutputMessage(ComputerTileEntity.this, output);
-            Network.sendToClientsTrackingChunk(message, state.chunk);
+            Network.sendToClientsTrackingChunk(new ComputerTerminalOutputMessage(ComputerTileEntity.this, output), virtualMachine.chunk);
         }
     }
 
-    private final class ComputerVirtualMachineState extends AbstractVirtualMachineState<ComputerBusController, CommonVirtualMachine> {
+    private final class ComputerVirtualMachine extends AbstractVirtualMachine {
         private Chunk chunk;
 
-        private ComputerVirtualMachineState(final ComputerBusController busController, final CommonVirtualMachine virtualMachine) {
-            super(busController, virtualMachine);
-            virtualMachine.vmAdapter.setDefaultAddressProvider(items::getDefaultDeviceAddress);
+        private ComputerVirtualMachine(final AbstractDeviceBusController busController, final BaseAddressProvider baseAddressProvider) {
+            super(busController);
+            state.vmAdapter.setBaseAddressProvider(baseAddressProvider);
+            state.board.setStandardOutputDevice(state.builtinDevices.uart);
         }
 
         @Override
@@ -366,8 +362,16 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         @Override
-        protected AbstractTerminalVirtualMachineRunner createRunner() {
-            return new ComputerVirtualMachineRunner(virtualMachine, terminal);
+        public void stopRunnerAndReset() {
+            super.stopRunnerAndReset();
+
+            TerminalUtils.resetTerminal(terminal, output -> Network.sendToClientsTrackingChunk(
+                    new ComputerTerminalOutputMessage(ComputerTileEntity.this, output), virtualMachine.chunk));
+        }
+
+        @Override
+        protected AbstractTerminalVMRunner createRunner() {
+            return new ComputerVMRunner(this, terminal);
         }
 
         @Override
@@ -382,7 +386,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         @Override
-        protected void handleRunStateChanged(final RunState value) {
+        protected void handleRunStateChanged(final VMRunState value) {
             // This method can be called from disposal logic, so if we are disposed quickly enough
             // chunk may not be initialized yet. Avoid resulting NRE in network logic.
             if (chunk != null) {

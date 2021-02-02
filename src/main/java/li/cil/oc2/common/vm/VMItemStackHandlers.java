@@ -5,7 +5,7 @@ import net.minecraftforge.items.IItemHandler;
 
 import java.util.Optional;
 
-public interface VirtualMachineItemStackHandlers {
+public interface VMItemStackHandlers {
     Optional<IItemHandler> getItemHandler(DeviceType deviceType);
 
     boolean isEmpty();

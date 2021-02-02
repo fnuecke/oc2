@@ -25,10 +25,10 @@ public final class OptionalInterrupt {
 
     public boolean claim(final VMContext context) {
         final OptionalInt claimedInterrupt;
-        if (value == null) {
-            claimedInterrupt = context.getInterruptAllocator().claimInterrupt();
+        if (value != null && context.getInterruptAllocator().claimInterrupt(value)) {
+            claimedInterrupt = OptionalInt.of(value);
         } else {
-            claimedInterrupt = context.getInterruptAllocator().claimInterrupt(value);
+            claimedInterrupt = context.getInterruptAllocator().claimInterrupt();
         }
 
         if (claimedInterrupt.isPresent()) {

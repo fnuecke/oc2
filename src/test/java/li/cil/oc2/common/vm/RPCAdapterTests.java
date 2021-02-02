@@ -8,7 +8,7 @@ import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
-import li.cil.oc2.common.bus.RPCAdapter;
+import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,13 +29,13 @@ public class RPCAdapterTests {
 
     private TestSerialDevice serialDevice;
     private DeviceBusController busController;
-    private RPCAdapter rpcAdapter;
+    private RPCDeviceBusAdapter rpcAdapter;
 
     @BeforeEach
     public void setupEach() {
         serialDevice = new TestSerialDevice();
         busController = mock(DeviceBusController.class);
-        rpcAdapter = new RPCAdapter(busController, serialDevice);
+        rpcAdapter = new RPCDeviceBusAdapter(serialDevice);
     }
 
     @Test
@@ -100,7 +100,7 @@ public class RPCAdapterTests {
         when(busController.getDeviceIdentifiers(device)).thenReturn(singleton(deviceId));
 
         // trigger device cache rebuild
-        rpcAdapter.resume(true);
+        rpcAdapter.resume(busController, true);
     }
 
     private JsonElement invokeMethod(final UUID deviceId, final String name, final Object... parameters) {

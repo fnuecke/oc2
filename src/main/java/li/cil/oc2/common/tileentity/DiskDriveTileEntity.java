@@ -1,7 +1,9 @@
 package li.cil.oc2.common.tileentity;
 
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
+import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.DiskDriveBlock;
@@ -186,6 +188,8 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     }
 
     private final class DiskDriveVMDevice extends AbstractHardDriveVMDevice<BlockDevice, TileEntity> {
+        private VMContext context;
+
         public DiskDriveVMDevice() {
             super(DiskDriveTileEntity.this);
         }
@@ -209,6 +213,12 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
         public void removeBlockDevice() {
             updateBlockDevice(new CompoundNBT());
+        }
+
+        @Override
+        public VMDeviceLoadResult load(final VMContext context) {
+            this.context = context;
+            return super.load(context);
         }
 
         @Override
@@ -245,6 +255,10 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
         @Override
         protected Optional<InputStream> getSerializationStream(final BlockDevice device) {
+            if (context != null) {
+                context.joinWorkerThread();
+            }
+
             if (device.isReadonly()) {
                 return Optional.empty();
             } else {
@@ -254,6 +268,10 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
         @Override
         protected OutputStream getDeserializationStream(final BlockDevice device) {
+            if (context != null) {
+                context.joinWorkerThread();
+            }
+
             return device.getOutputStream();
         }
     }

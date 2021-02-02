@@ -2,8 +2,6 @@ package li.cil.oc2.common.util;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
@@ -13,7 +11,6 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.IWorld;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.function.Function;
 
 public final class WorldUtils {
@@ -57,7 +54,7 @@ public final class WorldUtils {
         return block.getClass().getSimpleName();
     }
 
-    public static void playSound(final IWorld world, final BlockPos pos, final SoundType soundType, Function<SoundType, SoundEvent> soundEvent) {
+    public static void playSound(final IWorld world, final BlockPos pos, final SoundType soundType, final Function<SoundType, SoundEvent> soundEvent) {
         playSound(world, pos, soundType, soundEvent.apply(soundType));
     }
 

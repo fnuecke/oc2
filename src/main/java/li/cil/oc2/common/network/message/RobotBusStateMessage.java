@@ -16,7 +16,7 @@ public final class RobotBusStateMessage {
 
     public RobotBusStateMessage(final RobotEntity robot) {
         this.entityId = robot.getEntityId();
-        this.value = robot.getState().getBusState();
+        this.value = robot.getVirtualMachine().getBusState();
     }
 
     public RobotBusStateMessage(final PacketBuffer buffer) {
@@ -27,7 +27,7 @@ public final class RobotBusStateMessage {
 
     public static boolean handleMessage(final RobotBusStateMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withClientEntity(message.entityId, RobotEntity.class,
-                (robot) -> robot.getState().setBusStateClient(message.value)));
+                (robot) -> robot.getVirtualMachine().setBusStateClient(message.value)));
         return true;
     }
 

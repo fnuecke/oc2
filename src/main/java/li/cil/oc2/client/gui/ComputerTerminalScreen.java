@@ -36,7 +36,7 @@ public final class ComputerTerminalScreen extends Screen {
         terminalWidget.renderBackground(matrixStack, mouseX, mouseY);
 
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-        terminalWidget.render(matrixStack, computer.getState().getBootError());
+        terminalWidget.render(matrixStack, computer.getVirtualMachine().getBootError());
     }
 
     @Override
@@ -95,7 +95,7 @@ public final class ComputerTerminalScreen extends Screen {
 
         @Override
         protected boolean isRunning() {
-            return computer.getState().isRunning();
+            return computer.getVirtualMachine().isRunning();
         }
 
         @Override

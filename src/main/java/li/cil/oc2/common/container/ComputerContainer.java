@@ -3,7 +3,7 @@ package li.cil.oc2.common.container;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
-import li.cil.oc2.common.vm.VirtualMachineItemStackHandlers;
+import li.cil.oc2.common.vm.VMItemStackHandlers;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketBuffer;
@@ -34,7 +34,7 @@ public final class ComputerContainer extends AbstractContainer {
         super(Containers.COMPUTER_CONTAINER.get(), id);
         this.computer = computer;
 
-        final VirtualMachineItemStackHandlers handlers = computer.getItemStackHandlers();
+        final VMItemStackHandlers handlers = computer.getItemStackHandlers();
 
         handlers.getItemHandler(DeviceTypes.FLASH_MEMORY).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {

@@ -1,14 +1,18 @@
 package li.cil.oc2.common.vm;
 
+import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.vm.FirmwareLoader;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.AbstractDeviceBusController;
+import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.memory.MemoryAccessException;
+import li.cil.sedna.riscv.R5Board;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -20,12 +24,12 @@ import org.apache.logging.log4j.Logger;
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-public abstract class AbstractVirtualMachineState<TBusController extends AbstractDeviceBusController, TVirtualMachine extends VirtualMachine> implements VirtualMachineState {
+public abstract class AbstractVirtualMachine implements VirtualMachine {
     private static final Logger LOGGER = LogManager.getLogger();
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final String VIRTUAL_MACHINE_TAG_NAME = "virtualMachine";
+    private static final String STATE_TAG_NAME = "state";
     private static final String RUNNER_TAG_NAME = "runner";
 
     public static final String BUS_STATE_TAG_NAME = "busState";
@@ -36,28 +40,54 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
 
     ///////////////////////////////////////////////////////////////////
 
-    public final TBusController busController;
+    public final AbstractDeviceBusController busController;
     private AbstractDeviceBusController.BusState busState = AbstractDeviceBusController.BusState.SCAN_PENDING;
-
-    public final TVirtualMachine virtualMachine;
-    private AbstractTerminalVirtualMachineRunner runner;
-    private RunState runState = RunState.STOPPED;
-    private ITextComponent bootError;
     private int loadDevicesDelay;
+
+    @Serialized
+    public static final class SerializedState {
+        public R5Board board;
+        public GlobalVMContext context;
+        public BuiltinDevices builtinDevices;
+        public RPCDeviceBusAdapter rpcAdapter;
+        public VMDeviceBusAdapter vmAdapter;
+    }
+
+    public SerializedState state = new SerializedState();
+    public AbstractTerminalVMRunner runner;
+    private VMRunState runState = VMRunState.STOPPED;
+    private ITextComponent bootError;
 
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractVirtualMachineState(final TBusController busController, final TVirtualMachine virtualMachine) {
+    public AbstractVirtualMachine(final AbstractDeviceBusController busController) {
         this.busController = busController;
-        this.virtualMachine = virtualMachine;
+
+        state.board = new R5Board();
+        state.context = new GlobalVMContext(state.board, this::joinWorkerThread);
+
+        state.board.getCpu().setFrequency(Constants.CPU_FREQUENCY);
+        state.board.setBootArguments("root=/dev/vda rw");
+
+        state.builtinDevices = new BuiltinDevices(state.context);
+
+        state.rpcAdapter = new RPCDeviceBusAdapter(state.builtinDevices.rpcSerialDevice);
+        state.vmAdapter = new VMDeviceBusAdapter(state.context);
     }
 
     ///////////////////////////////////////////////////////////////////
 
+    public void unload() {
+        joinWorkerThread();
+        state.vmAdapter.suspend();
+        state.context.invalidate();
+        busController.dispose();
+    }
+
     @Override
     public boolean isRunning() {
         return getBusState() == AbstractDeviceBusController.BusState.READY &&
-               getRunState() == RunState.RUNNING;
+               getRunState() == VMRunState.RUNNING;
     }
 
     @Override
@@ -72,13 +102,13 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
     }
 
     @Override
-    public RunState getRunState() {
+    public VMRunState getRunState() {
         return runState;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void setRunStateClient(final RunState value) {
+    public void setRunStateClient(final VMRunState value) {
         runState = value;
     }
 
@@ -112,12 +142,12 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
 
     @Override
     public void start() {
-        if (runState == RunState.RUNNING) {
+        if (runState == VMRunState.RUNNING) {
             return;
         }
 
         setBootError(null);
-        setRunState(RunState.LOADING_DEVICES);
+        setRunState(VMRunState.LOADING_DEVICES);
         loadDevicesDelay = 0;
     }
 
@@ -125,7 +155,7 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
     public void stop() {
         switch (runState) {
             case LOADING_DEVICES:
-                setRunState(RunState.STOPPED);
+                setRunState(VMRunState.STOPPED);
                 break;
             case RUNNING:
                 stopRunnerAndReset();
@@ -133,16 +163,13 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
         }
     }
 
-    public void reload() {
-        if (runState == RunState.RUNNING) {
-            runState = RunState.LOADING_DEVICES;
-        }
-    }
-
-    public void joinVirtualMachine() {
+    @Override
+    public void joinWorkerThread() {
         if (runner != null) {
             try {
+                state.context.postEvent(new VMPausingEvent());
                 runner.join();
+                runner.scheduleResumeEvent();
             } catch (final Throwable e) {
                 LOGGER.error(e);
                 runner = null;
@@ -150,16 +177,30 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
         }
     }
 
-    public void stopRunnerAndReset() {
-        joinVirtualMachine();
-        setRunState(RunState.STOPPED);
+    public void pauseAndReload() {
+        state.rpcAdapter.pause();
 
-        virtualMachine.reset();
-
-        if (runner != null) {
-            runner.resetTerminal();
-            runner = null;
+        // This is typically called when a device bus starts a scan. Since scans
+        // can be delayed we must adjust our run state accordingly, to avoid
+        // running before the scan finishes.
+        if (runState == VMRunState.RUNNING) {
+            runState = VMRunState.LOADING_DEVICES;
         }
+    }
+
+    public void resume(final boolean didDevicesChange) {
+        state.rpcAdapter.resume(busController, didDevicesChange);
+    }
+
+    public void stopRunnerAndReset() {
+        joinWorkerThread();
+        setRunState(VMRunState.STOPPED);
+
+        state.board.reset();
+        state.rpcAdapter.reset();
+        state.vmAdapter.unload();
+
+        runner = null;
     }
 
     public void tick() {
@@ -178,7 +219,7 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
                     break;
                 }
 
-                final VMDeviceLoadResult loadResult = virtualMachine.vmAdapter.load();
+                final VMDeviceLoadResult loadResult = state.vmAdapter.load();
                 if (!loadResult.wasSuccessful()) {
                     if (loadResult.getErrorMessage() != null) {
                         setBootError(loadResult.getErrorMessage());
@@ -191,7 +232,7 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
 
                 if (busController.getDevices().stream().noneMatch(device -> device instanceof FirmwareLoader)) {
                     setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
-                    setRunState(RunState.STOPPED);
+                    setRunState(VMRunState.STOPPED);
                     break;
                 }
 
@@ -199,28 +240,28 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
                 // bus setup and devices to load. So we can keep using it.
                 if (runner == null) {
                     try {
-                        virtualMachine.board.reset();
-                        virtualMachine.board.initialize();
-                        virtualMachine.board.setRunning(true);
+                        state.board.reset();
+                        state.board.initialize();
+                        state.board.setRunning(true);
                     } catch (final IllegalStateException e) {
                         // FDT did not fit into memory. Technically it's possible to run with
                         // a program that only uses registers. But not supporting that esoteric
                         // use-case loses out against avoiding people getting confused for having
                         // forgotten to add some RAM modules.
                         setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
-                        setRunState(RunState.STOPPED);
+                        setRunState(VMRunState.STOPPED);
                         break;
                     } catch (final MemoryAccessException e) {
                         LOGGER.error(e);
                         setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
-                        setRunState(RunState.STOPPED);
+                        setRunState(VMRunState.STOPPED);
                         break;
                     }
 
                     runner = createRunner();
                 }
 
-                setRunState(RunState.RUNNING);
+                setRunState(VMRunState.RUNNING);
 
                 // Only start running next tick. This gives loaded devices one tick to do async
                 // initialization. This is used by devices to restore data from disk, for example.
@@ -233,7 +274,7 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
                     break;
                 }
 
-                if (!virtualMachine.board.isRunning()) {
+                if (!state.board.isRunning()) {
                     stopRunnerAndReset();
                     break;
                 }
@@ -244,51 +285,50 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
     }
 
     public CompoundNBT serialize() {
-        final CompoundNBT tag = new CompoundNBT();
+        joinWorkerThread();
 
-        joinVirtualMachine();
+        final CompoundNBT tag = new CompoundNBT();
 
         if (runner != null) {
             tag.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
-            virtualMachine.vmAdapter.postLifecycleEvent(new VMPausingEvent());
-            runner.scheduleResumeEvent(); // Allow synchronizing to async device saves.
         } else {
             NBTUtils.putEnum(tag, RUN_STATE_TAG_NAME, runState);
         }
-        tag.put(VIRTUAL_MACHINE_TAG_NAME, NBTSerialization.serialize(virtualMachine));
+
+        tag.put(STATE_TAG_NAME, NBTSerialization.serialize(state));
 
         return tag;
     }
 
     public void deserialize(final CompoundNBT tag) {
-        joinVirtualMachine();
+        joinWorkerThread();
 
         if (tag.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             runner = createRunner();
             NBTSerialization.deserialize(tag.getCompound(RUNNER_TAG_NAME), runner);
-            runState = RunState.LOADING_DEVICES;
+            runState = VMRunState.LOADING_DEVICES;
         } else {
-            runState = NBTUtils.getEnum(tag, RUN_STATE_TAG_NAME, RunState.class);
+            runState = NBTUtils.getEnum(tag, RUN_STATE_TAG_NAME, VMRunState.class);
             if (runState == null) {
-                runState = RunState.STOPPED;
-            } else if (runState == RunState.RUNNING) {
-                runState = RunState.LOADING_DEVICES;
+                runState = VMRunState.STOPPED;
+            } else if (runState == VMRunState.RUNNING) {
+                runState = VMRunState.LOADING_DEVICES;
             }
         }
 
-        if (tag.contains(VIRTUAL_MACHINE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            NBTSerialization.deserialize(tag.getCompound(VIRTUAL_MACHINE_TAG_NAME), virtualMachine);
+        if (tag.contains(STATE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            NBTSerialization.deserialize(tag.getCompound(STATE_TAG_NAME), state);
         }
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    protected abstract AbstractTerminalVirtualMachineRunner createRunner();
+    protected abstract AbstractTerminalVMRunner createRunner();
 
     protected void handleBusStateChanged(final AbstractDeviceBusController.BusState value) {
     }
 
-    protected void handleRunStateChanged(final RunState value) {
+    protected void handleRunStateChanged(final VMRunState value) {
     }
 
     protected void handleBootErrorChanged(@Nullable final ITextComponent value) {
@@ -306,7 +346,7 @@ public abstract class AbstractVirtualMachineState<TBusController extends Abstrac
         handleBusStateChanged(busState);
     }
 
-    private void setRunState(final RunState value) {
+    private void setRunState(final VMRunState value) {
         if (value == runState) {
             return;
         }

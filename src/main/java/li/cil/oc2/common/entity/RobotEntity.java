@@ -22,10 +22,7 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.*;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.util.NBTUtils;
-import li.cil.oc2.common.util.WorldUtils;
+import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -106,7 +103,7 @@ public final class RobotEntity extends Entity implements Robot {
     private final AnimationState animationState = new AnimationState();
     private final RobotActionProcessor actionProcessor = new RobotActionProcessor();
     private final Terminal terminal = new Terminal();
-    private final RobotVirtualMachineState state;
+    private final RobotVirtualMachine virtualMachine;
     private final RobotItemStackHandlers deviceItems = new RobotItemStackHandlers();
     private final ItemStackHandler inventory = new FixedSizeItemStackHandler(INVENTORY_SIZE);
     private final RobotBusElement busElement = new RobotBusElement();
@@ -120,8 +117,8 @@ public final class RobotEntity extends Entity implements Robot {
         setNoGravity(true);
 
         final RobotBusController busController = new RobotBusController(busElement);
-        state = new RobotVirtualMachineState(busController, new CommonVirtualMachine(busController));
-        state.virtualMachine.rtcMinecraft.setWorld(world);
+        virtualMachine = new RobotVirtualMachine(busController);
+        virtualMachine.state.builtinDevices.rtcMinecraft.setWorld(world);
 
         deviceItems.busElement.addDevice(new ObjectDevice(new RobotDevice(), "robot"));
     }
@@ -137,11 +134,11 @@ public final class RobotEntity extends Entity implements Robot {
         return terminal;
     }
 
-    public VirtualMachineState getState() {
-        return state;
+    public VirtualMachine getVirtualMachine() {
+        return virtualMachine;
     }
 
-    public VirtualMachineItemStackHandlers getItemStackHandlers() {
+    public VMItemStackHandlers getItemStackHandlers() {
         return deviceItems;
     }
 
@@ -175,7 +172,7 @@ public final class RobotEntity extends Entity implements Robot {
             return optional;
         }
 
-        for (final Device device : state.busController.getDevices()) {
+        for (final Device device : virtualMachine.busController.getDevices()) {
             if (device instanceof ICapabilityProvider) {
                 final LazyOptional<T> value = ((ICapabilityProvider) device).getCapability(capability, side);
                 if (value.isPresent()) {
@@ -197,7 +194,7 @@ public final class RobotEntity extends Entity implements Robot {
             return;
         }
 
-        state.start();
+        virtualMachine.start();
     }
 
     public void stop() {
@@ -206,7 +203,7 @@ public final class RobotEntity extends Entity implements Robot {
             return;
         }
 
-        state.stop();
+        virtualMachine.stop();
     }
 
     public void dropSelf() {
@@ -242,7 +239,7 @@ public final class RobotEntity extends Entity implements Robot {
         super.tick();
 
         if (!isClient) {
-            state.tick();
+            virtualMachine.tick();
         }
 
         actionProcessor.tick();
@@ -316,7 +313,7 @@ public final class RobotEntity extends Entity implements Robot {
         handleUnload();
 
         // Full unload to release out-of-nbt persisted runtime-only data such as ram.
-        state.virtualMachine.vmAdapter.unload();
+        virtualMachine.state.vmAdapter.unload();
     }
 
     @Override
@@ -369,7 +366,7 @@ public final class RobotEntity extends Entity implements Robot {
 
     @Override
     protected void writeAdditional(final CompoundNBT tag) {
-        tag.put(STATE_TAG_NAME, state.serialize());
+        tag.put(STATE_TAG_NAME, virtualMachine.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(COMMAND_PROCESSOR_TAG_NAME, actionProcessor.serialize());
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.serialize());
@@ -380,7 +377,7 @@ public final class RobotEntity extends Entity implements Robot {
 
     @Override
     protected void readAdditional(final CompoundNBT tag) {
-        state.deserialize(tag.getCompound(STATE_TAG_NAME));
+        virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
         actionProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
         busElement.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME));
@@ -448,9 +445,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     private void handleUnload() {
-        state.joinVirtualMachine();
-        state.virtualMachine.vmAdapter.suspend();
-        state.busController.dispose();
+        virtualMachine.unload();
     }
 
     private void openTerminalScreen(final ServerPlayerEntity player) {
@@ -528,7 +523,7 @@ public final class RobotEntity extends Entity implements Robot {
         public float topRenderHover = -(hashCode() & 0xFFFF); // init to "random" to avoid synchronous hovering
 
         public void update(final float deltaTime, final Random random) {
-            if (getState().isRunning() || actionProcessor.hasQueuedActions()) {
+            if (getVirtualMachine().isRunning() || actionProcessor.hasQueuedActions()) {
                 topRenderHover = topRenderHover + deltaTime * HOVER_ANIMATION_SPEED;
                 final float topOffsetY = MathHelper.sin(topRenderHover) / 32f;
 
@@ -696,7 +691,7 @@ public final class RobotEntity extends Entity implements Robot {
                 return false;
             }
 
-            if (!getState().isRunning()) {
+            if (!getVirtualMachine().isRunning()) {
                 return false;
             }
 
@@ -713,7 +708,7 @@ public final class RobotEntity extends Entity implements Robot {
         }
     }
 
-    private final class RobotItemStackHandlers extends AbstractVirtualMachineItemStackHandlers {
+    private final class RobotItemStackHandlers extends AbstractVMItemStackHandlers {
         public RobotItemStackHandlers() {
             super(
                     GroupDefinition.of(DeviceTypes.MEMORY, MEMORY_SLOTS),
@@ -773,52 +768,53 @@ public final class RobotEntity extends Entity implements Robot {
 
         @Override
         protected void onBeforeScan() {
-            state.reload();
-            state.virtualMachine.rpcAdapter.pause();
+            virtualMachine.pauseAndReload();
         }
 
         @Override
         protected void onAfterDeviceScan(final boolean didDevicesChange) {
-            state.virtualMachine.rpcAdapter.resume(didDevicesChange);
+            virtualMachine.resume(didDevicesChange);
         }
 
         @Override
         protected void onDevicesAdded(final Collection<Device> devices) {
-            state.virtualMachine.vmAdapter.addDevices(devices);
+            virtualMachine.state.vmAdapter.addDevices(devices);
         }
 
         @Override
         protected void onDevicesRemoved(final Collection<Device> devices) {
-            state.virtualMachine.vmAdapter.removeDevices(devices);
+            virtualMachine.state.vmAdapter.removeDevices(devices);
         }
     }
 
-    private final class RobotVirtualMachineRunner extends AbstractTerminalVirtualMachineRunner {
-        public RobotVirtualMachineRunner(final CommonVirtualMachine virtualMachine, final Terminal terminal) {
+    private final class RobotVMRunner extends AbstractTerminalVMRunner {
+        public RobotVMRunner(final AbstractVirtualMachine virtualMachine, final Terminal terminal) {
             super(virtualMachine, terminal);
         }
 
         @Override
         protected void sendTerminalUpdateToClient(final ByteBuffer output) {
-            final RobotTerminalOutputMessage message = new RobotTerminalOutputMessage(RobotEntity.this, output);
-            Network.sendToClientsTrackingEntity(message, RobotEntity.this);
+            Network.sendToClientsTrackingEntity(new RobotTerminalOutputMessage(RobotEntity.this, output), RobotEntity.this);
         }
     }
 
-    private final class RobotVirtualMachineState extends AbstractVirtualMachineState<RobotBusController, CommonVirtualMachine> {
-        private RobotVirtualMachineState(final RobotBusController busController, final CommonVirtualMachine virtualMachine) {
-            super(busController, virtualMachine);
-            virtualMachine.vmAdapter.setDefaultAddressProvider(deviceItems::getDefaultDeviceAddress);
+    private final class RobotVirtualMachine extends AbstractVirtualMachine {
+        private RobotVirtualMachine(final RobotBusController busController) {
+            super(busController);
+            state.vmAdapter.setBaseAddressProvider(deviceItems::getDeviceAddressBase);
         }
 
         @Override
-        protected AbstractTerminalVirtualMachineRunner createRunner() {
-            return new RobotVirtualMachineRunner(virtualMachine, terminal);
+        protected AbstractTerminalVMRunner createRunner() {
+            return new RobotVMRunner(this, terminal);
         }
 
         @Override
         public void stopRunnerAndReset() {
             super.stopRunnerAndReset();
+
+            TerminalUtils.resetTerminal(terminal, output -> Network.sendToClientsTrackingEntity(
+                    new RobotTerminalOutputMessage(RobotEntity.this, output), RobotEntity.this));
 
             actionProcessor.clear();
         }
@@ -829,7 +825,7 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         @Override
-        protected void handleRunStateChanged(final RunState value) {
+        protected void handleRunStateChanged(final VMRunState value) {
             Network.sendToClientsTrackingEntity(new RobotRunStateMessage(RobotEntity.this), RobotEntity.this);
         }
 

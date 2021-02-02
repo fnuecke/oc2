@@ -1,11 +1,12 @@
-package li.cil.oc2.common.vm;
+package li.cil.oc2.common.vm.context.managed;
 
 import li.cil.oc2.api.bus.device.vm.MemoryAllocator;
+import li.cil.oc2.common.vm.Allocator;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
-public final class ManagedMemoryAllocator implements MemoryAllocator {
+final class ManagedMemoryAllocator implements MemoryAllocator {
     private final ArrayList<UUID> claimedMemory = new ArrayList<>();
     private boolean isFrozen;
 

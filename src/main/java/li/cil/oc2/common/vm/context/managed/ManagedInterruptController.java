@@ -1,31 +1,33 @@
-package li.cil.oc2.common.vm;
+package li.cil.oc2.common.vm.context.managed;
 
+import li.cil.oc2.common.vm.context.InterruptValidator;
 import li.cil.sedna.api.device.InterruptController;
 
 public final class ManagedInterruptController implements InterruptController {
-    private final InterruptController interruptController;
-    private final ManagedInterruptAllocator allocator;
-    private int raisedInterrupts = 0;
+    private final InterruptController parent;
+    private final InterruptValidator validator;
+    private int raisedInterruptMask;
     private boolean isValid = true;
 
     ///////////////////////////////////////////////////////////////////
 
-    public ManagedInterruptController(final InterruptController interruptController, final ManagedInterruptAllocator allocator) {
-        this.interruptController = interruptController;
-        this.allocator = allocator;
+    public ManagedInterruptController(final InterruptController parent, final InterruptValidator validator) {
+        this.parent = parent;
+        this.validator = validator;
+        raisedInterruptMask = validator.getMaskedInterrupts(parent.getRaisedInterrupts());
     }
 
     ///////////////////////////////////////////////////////////////////
 
     public void invalidate() {
         isValid = false;
-        interruptController.lowerInterrupts(raisedInterrupts);
-        raisedInterrupts = 0;
+        parent.lowerInterrupts(raisedInterruptMask);
+        raisedInterruptMask = 0;
     }
 
     @Override
     public Object getIdentity() {
-        return interruptController.getIdentity();
+        return parent.getIdentity();
     }
 
     @Override
@@ -34,9 +36,9 @@ public final class ManagedInterruptController implements InterruptController {
             throw new IllegalStateException();
         }
 
-        if (allocator.isMaskValid(mask)) {
-            interruptController.raiseInterrupts(mask);
-            raisedInterrupts |= mask;
+        if (validator.isMaskValid(mask)) {
+            parent.raiseInterrupts(mask);
+            raisedInterruptMask |= mask;
         } else {
             throw new IllegalArgumentException("Trying to raise interrupt not allocated by this context.");
         }
@@ -48,9 +50,9 @@ public final class ManagedInterruptController implements InterruptController {
             throw new IllegalStateException();
         }
 
-        if (allocator.isMaskValid(mask)) {
-            interruptController.lowerInterrupts(mask);
-            raisedInterrupts &= ~mask;
+        if (validator.isMaskValid(mask)) {
+            parent.lowerInterrupts(mask);
+            raisedInterruptMask &= ~mask;
         } else {
             throw new IllegalArgumentException("Trying to lower interrupt not allocated by this context.");
         }
@@ -58,6 +60,6 @@ public final class ManagedInterruptController implements InterruptController {
 
     @Override
     public int getRaisedInterrupts() {
-        return raisedInterrupts;
+        return raisedInterruptMask;
     }
 }

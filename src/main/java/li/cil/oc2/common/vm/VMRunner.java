@@ -1,8 +1,16 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
+import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
+import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
+import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
+import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
+import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
+import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.riscv.R5Board;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
@@ -11,7 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class VirtualMachineRunner implements Runnable {
+public class VMRunner implements Runnable {
     private static final int TICKS_PER_SECOND = 20;
     private static final int TIMESLICE_IN_MS = 1000 / TICKS_PER_SECOND;
 
@@ -25,28 +33,42 @@ public class VirtualMachineRunner implements Runnable {
     ///////////////////////////////////////////////////////////////////
 
     private final R5Board board;
+    private final GlobalVMContext context;
+    private final RPCDeviceBusAdapter rpcAdapter;
     private final AtomicInteger timeQuotaInMillis = new AtomicInteger();
     private Future<?> lastSchedule;
 
     ///////////////////////////////////////////////////////////////////
+
+    private boolean firedResumeEvent;
+    @Serialized private boolean firedInitializationEvent;
+    @Serialized private ITextComponent runtimeError;
 
     @Serialized private long cycleLimit;
     @Serialized private long cycles;
 
     ///////////////////////////////////////////////////////////////////
 
-    public VirtualMachineRunner(final R5Board board) {
-        this.board = board;
+    public VMRunner(final AbstractVirtualMachine virtualMachine) {
+        this.board = virtualMachine.state.board;
+        context = virtualMachine.state.context;
+        rpcAdapter = virtualMachine.state.rpcAdapter;
     }
 
     ///////////////////////////////////////////////////////////////////
 
+    public void scheduleResumeEvent() {
+        firedResumeEvent = false;
+    }
+
     @Nullable
     public ITextComponent getRuntimeError() {
-        return null;
+        return runtimeError;
     }
 
     public void tick() {
+        rpcAdapter.tick();
+
         cycleLimit += getCyclesPerTick();
 
         final int timeQuota = timeQuotaInMillis.updateAndGet(x -> Math.min(x + TIMESLICE_IN_MS, TIMESLICE_IN_MS));
@@ -103,9 +125,26 @@ public class VirtualMachineRunner implements Runnable {
     ///////////////////////////////////////////////////////////////////
 
     protected void handleBeforeRun() {
+        if (!firedInitializationEvent) {
+            firedInitializationEvent = true;
+            try {
+                context.postEvent(new VMInitializingEvent(board.getDefaultProgramStart()));
+            } catch (final VMInitializationException e) {
+                board.setRunning(false);
+                runtimeError = e.getErrorMessage().orElse(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
+                return;
+            }
+        }
+
+        if (!firedResumeEvent) {
+            firedResumeEvent = true;
+            context.postEvent(new VMResumingRunningEvent());
+            context.postEvent(new VMResumedRunningEvent());
+        }
     }
 
     protected void step(final int cyclesPerStep) {
+        rpcAdapter.step(cyclesPerStep);
     }
 
     protected void handleAfterRun() {
@@ -114,6 +153,6 @@ public class VirtualMachineRunner implements Runnable {
     ///////////////////////////////////////////////////////////////////
 
     private static int getCyclesPerTick() {
-        return VirtualMachine.CPU_FREQUENCY / TICKS_PER_SECOND;
+        return Constants.CPU_FREQUENCY / TICKS_PER_SECOND;
     }
 }

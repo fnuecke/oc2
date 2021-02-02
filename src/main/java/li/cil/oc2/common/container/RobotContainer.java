@@ -2,7 +2,7 @@ package li.cil.oc2.common.container;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.entity.RobotEntity;
-import li.cil.oc2.common.vm.VirtualMachineItemStackHandlers;
+import li.cil.oc2.common.vm.VMItemStackHandlers;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -33,7 +33,7 @@ public final class RobotContainer extends AbstractContainer {
         super(Containers.ROBOT_CONTAINER.get(), id);
         this.robot = robot;
 
-        final VirtualMachineItemStackHandlers handlers = robot.getItemStackHandlers();
+        final VMItemStackHandlers handlers = robot.getItemStackHandlers();
 
         handlers.getItemHandler(DeviceTypes.FLASH_MEMORY).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {

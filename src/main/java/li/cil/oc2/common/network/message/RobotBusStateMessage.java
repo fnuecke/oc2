@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.bus.AbstractDeviceBusController;
+import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.network.PacketBuffer;
@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 
 public final class RobotBusStateMessage {
     private int entityId;
-    private AbstractDeviceBusController.BusState value;
+    private CommonDeviceBusController.BusState value;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -33,7 +33,7 @@ public final class RobotBusStateMessage {
 
     public void fromBytes(final PacketBuffer buffer) {
         entityId = buffer.readVarInt();
-        value = buffer.readEnumValue(AbstractDeviceBusController.BusState.class);
+        value = buffer.readEnumValue(CommonDeviceBusController.BusState.class);
     }
 
     public static void toBytes(final RobotBusStateMessage message, final PacketBuffer buffer) {

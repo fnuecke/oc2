@@ -12,7 +12,7 @@ import net.minecraft.world.World;
 import java.util.Collection;
 import java.util.HashSet;
 
-public class TileEntityDeviceBusController extends AbstractDeviceBusController {
+public class TileEntityDeviceBusController extends CommonDeviceBusController {
     private final Runnable onBusChunkLoadedStateChanged = this::scheduleBusScan;
     private final HashSet<ChunkPos> trackedChunks = new HashSet<>();
     private final TileEntity tileEntity;
@@ -38,6 +38,8 @@ public class TileEntityDeviceBusController extends AbstractDeviceBusController {
 
     @Override
     protected void onAfterBusScan() {
+        super.onAfterBusScan();
+
         final World world = tileEntity.getWorld();
         if (world == null) {
             return;

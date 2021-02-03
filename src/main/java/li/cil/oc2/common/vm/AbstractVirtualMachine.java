@@ -5,7 +5,7 @@ import li.cil.oc2.api.bus.device.vm.FirmwareLoader;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.AbstractDeviceBusController;
+import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
@@ -40,8 +40,8 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     ///////////////////////////////////////////////////////////////////
 
-    public final AbstractDeviceBusController busController;
-    private AbstractDeviceBusController.BusState busState = AbstractDeviceBusController.BusState.SCAN_PENDING;
+    public final CommonDeviceBusController busController;
+    private CommonDeviceBusController.BusState busState = CommonDeviceBusController.BusState.SCAN_PENDING;
     private int loadDevicesDelay;
 
     @Serialized
@@ -60,8 +60,13 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractVirtualMachine(final AbstractDeviceBusController busController) {
+    public AbstractVirtualMachine(final CommonDeviceBusController busController) {
         this.busController = busController;
+
+        busController.onBeforeScan.add(this::handleBeforeScan);
+        busController.onAfterDeviceScan.add(this::handleAfterDeviceScan);
+        busController.onDevicesAdded.add(this::handleDevicesAdded);
+        busController.onDevicesRemoved.add(this::handleDevicesRemoved);
 
         state.board = new R5Board();
         state.context = new GlobalVMContext(state.board, this::joinWorkerThread);
@@ -86,18 +91,18 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     @Override
     public boolean isRunning() {
-        return getBusState() == AbstractDeviceBusController.BusState.READY &&
+        return getBusState() == CommonDeviceBusController.BusState.READY &&
                getRunState() == VMRunState.RUNNING;
     }
 
     @Override
-    public AbstractDeviceBusController.BusState getBusState() {
+    public CommonDeviceBusController.BusState getBusState() {
         return busState;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void setBusStateClient(final AbstractDeviceBusController.BusState value) {
+    public void setBusStateClient(final CommonDeviceBusController.BusState value) {
         busState = value;
     }
 
@@ -206,7 +211,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     public void tick() {
         busController.scan();
         setBusState(busController.getState());
-        if (busState != AbstractDeviceBusController.BusState.READY) {
+        if (busState != CommonDeviceBusController.BusState.READY) {
             return;
         }
 
@@ -325,7 +330,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     protected abstract AbstractTerminalVMRunner createRunner();
 
-    protected void handleBusStateChanged(final AbstractDeviceBusController.BusState value) {
+    protected void handleBusStateChanged(final CommonDeviceBusController.BusState value) {
     }
 
     protected void handleRunStateChanged(final VMRunState value) {
@@ -336,7 +341,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     ///////////////////////////////////////////////////////////////////
 
-    private void setBusState(final AbstractDeviceBusController.BusState value) {
+    private void setBusState(final CommonDeviceBusController.BusState value) {
         if (value == busState) {
             return;
         }
@@ -364,5 +369,21 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         bootError = value;
 
         handleBootErrorChanged(value);
+    }
+
+    private void handleBeforeScan() {
+        pauseAndReload();
+    }
+
+    private void handleAfterDeviceScan(final CommonDeviceBusController.AfterDeviceScanEvent event) {
+        resume(event.didDevicesChange);
+    }
+
+    private void handleDevicesAdded(final CommonDeviceBusController.DevicesChangedEvent event) {
+        state.vmAdapter.addDevices(event.devices);
+    }
+
+    private void handleDevicesRemoved(final CommonDeviceBusController.DevicesChangedEvent event) {
+        state.vmAdapter.removeDevices(event.devices);
     }
 }

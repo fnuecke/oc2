@@ -1,6 +1,6 @@
 package li.cil.oc2.common.vm;
 
-import li.cil.oc2.common.bus.AbstractDeviceBusController;
+import li.cil.oc2.common.bus.CommonDeviceBusController;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -8,10 +8,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import javax.annotation.Nullable;
 
 public interface VirtualMachine {
-    AbstractDeviceBusController.BusState getBusState();
+    CommonDeviceBusController.BusState getBusState();
 
     @OnlyIn(Dist.CLIENT)
-    void setBusStateClient(AbstractDeviceBusController.BusState value);
+    void setBusStateClient(CommonDeviceBusController.BusState value);
 
     VMRunState getRunState();
 

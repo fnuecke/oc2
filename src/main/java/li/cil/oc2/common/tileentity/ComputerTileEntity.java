@@ -5,7 +5,7 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.ComputerBlock;
-import li.cil.oc2.common.bus.AbstractDeviceBusController;
+import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
@@ -63,7 +63,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private final Terminal terminal = new Terminal();
     private final TileEntityDeviceBusElement busElement = new ComputerBusElement();
     private final ComputerItemStackHandlers items = new ComputerItemStackHandlers();
-    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new ComputerBusController(busElement), items::getDeviceAddressBase);
+    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new TileEntityDeviceBusController(busElement, this), items::getDeviceAddressBase);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -183,7 +183,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         super.handleUpdateTag(blockState, tag);
 
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
-        virtualMachine.setBusStateClient(AbstractDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME)]);
+        virtualMachine.setBusStateClient(CommonDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME)]);
         virtualMachine.setRunStateClient(VMRunState.values()[tag.getInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME)]);
         virtualMachine.setBootErrorClient(ITextComponent.Serializer.getComponentFromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)));
     }
@@ -282,32 +282,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
     }
 
-    private final class ComputerBusController extends TileEntityDeviceBusController {
-        private ComputerBusController(final DeviceBusElement root) {
-            super(root, ComputerTileEntity.this);
-        }
-
-        @Override
-        protected void onBeforeScan() {
-            virtualMachine.pauseAndReload();
-        }
-
-        @Override
-        protected void onAfterDeviceScan(final boolean didDevicesChange) {
-            virtualMachine.resume(didDevicesChange);
-        }
-
-        @Override
-        protected void onDevicesAdded(final Collection<Device> devices) {
-            virtualMachine.state.vmAdapter.addDevices(devices);
-        }
-
-        @Override
-        protected void onDevicesRemoved(final Collection<Device> devices) {
-            virtualMachine.state.vmAdapter.removeDevices(devices);
-        }
-    }
-
     private final class ComputerBusElement extends TileEntityDeviceBusElement {
         public ComputerBusElement() {
             super(ComputerTileEntity.this);
@@ -342,7 +316,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private final class ComputerVirtualMachine extends AbstractVirtualMachine {
         private Chunk chunk;
 
-        private ComputerVirtualMachine(final AbstractDeviceBusController busController, final BaseAddressProvider baseAddressProvider) {
+        private ComputerVirtualMachine(final CommonDeviceBusController busController, final BaseAddressProvider baseAddressProvider) {
             super(busController);
             state.vmAdapter.setBaseAddressProvider(baseAddressProvider);
             state.board.setStandardOutputDevice(state.builtinDevices.uart);
@@ -375,10 +349,10 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         @Override
-        protected void handleBusStateChanged(final AbstractDeviceBusController.BusState value) {
+        protected void handleBusStateChanged(final CommonDeviceBusController.BusState value) {
             Network.sendToClientsTrackingChunk(new ComputerBusStateMessage(ComputerTileEntity.this), chunk);
 
-            if (value == AbstractDeviceBusController.BusState.READY) {
+            if (value == CommonDeviceBusController.BusState.READY) {
                 // Bus just became ready, meaning new devices may be available, meaning new
                 // capabilities may be available, so we need to tell our neighbors.
                 world.notifyNeighborsOfStateChange(getPos(), getBlockState().getBlock());

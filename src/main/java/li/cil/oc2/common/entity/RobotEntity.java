@@ -8,8 +8,8 @@ import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.AbstractDeviceBusController;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
+import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -116,7 +116,7 @@ public final class RobotEntity extends Entity implements Robot {
         this.preventEntitySpawning = true;
         setNoGravity(true);
 
-        final RobotBusController busController = new RobotBusController(busElement);
+        final CommonDeviceBusController busController = new CommonDeviceBusController(busElement);
         virtualMachine = new RobotVirtualMachine(busController);
         virtualMachine.state.builtinDevices.rtcMinecraft.setWorld(world);
 
@@ -761,32 +761,6 @@ public final class RobotEntity extends Entity implements Robot {
         }
     }
 
-    private final class RobotBusController extends AbstractDeviceBusController {
-        public RobotBusController(final DeviceBusElement root) {
-            super(root);
-        }
-
-        @Override
-        protected void onBeforeScan() {
-            virtualMachine.pauseAndReload();
-        }
-
-        @Override
-        protected void onAfterDeviceScan(final boolean didDevicesChange) {
-            virtualMachine.resume(didDevicesChange);
-        }
-
-        @Override
-        protected void onDevicesAdded(final Collection<Device> devices) {
-            virtualMachine.state.vmAdapter.addDevices(devices);
-        }
-
-        @Override
-        protected void onDevicesRemoved(final Collection<Device> devices) {
-            virtualMachine.state.vmAdapter.removeDevices(devices);
-        }
-    }
-
     private final class RobotVMRunner extends AbstractTerminalVMRunner {
         public RobotVMRunner(final AbstractVirtualMachine virtualMachine, final Terminal terminal) {
             super(virtualMachine, terminal);
@@ -799,7 +773,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     private final class RobotVirtualMachine extends AbstractVirtualMachine {
-        private RobotVirtualMachine(final RobotBusController busController) {
+        private RobotVirtualMachine(final CommonDeviceBusController busController) {
             super(busController);
             state.vmAdapter.setBaseAddressProvider(deviceItems::getDeviceAddressBase);
         }
@@ -820,7 +794,7 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         @Override
-        protected void handleBusStateChanged(final AbstractDeviceBusController.BusState value) {
+        protected void handleBusStateChanged(final CommonDeviceBusController.BusState value) {
             Network.sendToClientsTrackingEntity(new RobotBusStateMessage(RobotEntity.this), RobotEntity.this);
         }
 

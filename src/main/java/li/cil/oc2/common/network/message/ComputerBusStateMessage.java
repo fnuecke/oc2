@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.bus.AbstractDeviceBusController;
+import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import net.minecraft.network.PacketBuffer;
@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 
 public final class ComputerBusStateMessage {
     private BlockPos pos;
-    private AbstractDeviceBusController.BusState value;
+    private CommonDeviceBusController.BusState value;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -34,7 +34,7 @@ public final class ComputerBusStateMessage {
 
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
-        value = buffer.readEnumValue(AbstractDeviceBusController.BusState.class);
+        value = buffer.readEnumValue(CommonDeviceBusController.BusState.class);
     }
 
     public static void toBytes(final ComputerBusStateMessage message, final PacketBuffer buffer) {

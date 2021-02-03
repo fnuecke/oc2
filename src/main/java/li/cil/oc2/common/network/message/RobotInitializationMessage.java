@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.bus.AbstractDeviceBusController;
+import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.serialization.NBTSerialization;
@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 
 public final class RobotInitializationMessage {
     private int entityId;
-    private AbstractDeviceBusController.BusState busState;
+    private CommonDeviceBusController.BusState busState;
     private VMRunState runState;
     private ITextComponent bootError;
     private CompoundNBT terminal;
@@ -48,7 +48,7 @@ public final class RobotInitializationMessage {
 
     public void fromBytes(final PacketBuffer buffer) {
         entityId = buffer.readVarInt();
-        busState = buffer.readEnumValue(AbstractDeviceBusController.BusState.class);
+        busState = buffer.readEnumValue(CommonDeviceBusController.BusState.class);
         runState = buffer.readEnumValue(VMRunState.class);
         bootError = buffer.readTextComponent();
         terminal = buffer.readCompoundTag();

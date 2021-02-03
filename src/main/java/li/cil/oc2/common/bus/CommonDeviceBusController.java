@@ -4,13 +4,15 @@ import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.util.Event;
+import li.cil.oc2.common.util.ParameterizedEvent;
 import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.*;
 
 import static java.util.Collections.emptySet;
 
-public abstract class AbstractDeviceBusController implements DeviceBusController {
+public class CommonDeviceBusController implements DeviceBusController {
     public enum BusState {
         SCAN_PENDING,
         INCOMPLETE,
@@ -27,6 +29,12 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
 
     ///////////////////////////////////////////////////////////////////
 
+    public final Event onAfterBusScan = new Event();
+    public final Event onBeforeScan = new Event();
+    public final ParameterizedEvent<AfterDeviceScanEvent> onAfterDeviceScan = new ParameterizedEvent<>();
+    public final ParameterizedEvent<DevicesChangedEvent> onDevicesAdded = new ParameterizedEvent<>();
+    public final ParameterizedEvent<DevicesChangedEvent> onDevicesRemoved = new ParameterizedEvent<>();
+
     private final DeviceBusElement root;
 
     private final Set<DeviceBusElement> elements = new HashSet<>();
@@ -38,7 +46,7 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractDeviceBusController(final DeviceBusElement root) {
+    public CommonDeviceBusController(final DeviceBusElement root) {
         this.root = root;
     }
 
@@ -208,18 +216,23 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
     }
 
     protected void onAfterBusScan() {
+        onAfterBusScan.run();
     }
 
     protected void onBeforeScan() {
+        onBeforeScan.run();
     }
 
     protected void onAfterDeviceScan(final boolean didDevicesChange) {
+        onAfterDeviceScan.accept(new AfterDeviceScanEvent(didDevicesChange));
     }
 
     protected void onDevicesAdded(final Collection<Device> devices) {
+        onDevicesAdded.accept(new DevicesChangedEvent(devices));
     }
 
     protected void onDevicesRemoved(final Collection<Device> devices) {
+        onDevicesRemoved.accept(new DevicesChangedEvent(devices));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -230,5 +243,23 @@ public abstract class AbstractDeviceBusController implements DeviceBusController
         }
 
         elements.clear();
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    public static final class AfterDeviceScanEvent {
+        public final boolean didDevicesChange;
+
+        public AfterDeviceScanEvent(final boolean didDevicesChange) {
+            this.didDevicesChange = didDevicesChange;
+        }
+    }
+
+    public static final class DevicesChangedEvent {
+        public final Collection<Device> devices;
+
+        public DevicesChangedEvent(final Collection<Device> devices) {
+            this.devices = devices;
+        }
     }
 }

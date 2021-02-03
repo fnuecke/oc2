@@ -64,5 +64,11 @@
   "tooltip.oc2.device_needs_reboot": "Requires reboot",
   "tooltip.oc2.flash_memory_missing": "A flash memory containing a firmware is required to boot.",
   "tooltip.oc2.memory_missing": "Some memory is required to load the flash memory for execution to boot.",
-  "tooltip.oc2.hard_drive_missing": "Most systems will require a root file system to boot."
+  "tooltip.oc2.hard_drive_missing": "Most systems will require a root file system to boot.",
+
+  "subtitles.oc2.computer": "Computer Running",
+  "subtitles.oc2.floppy": "Floppy Reads",
+  "subtitles.oc2.floppy_eject": "Floppy Ejects",
+  "subtitles.oc2.floppy_insert": "Floppy Inserts",
+  "subtitles.oc2.hdd": "HDD Seeks"
 }

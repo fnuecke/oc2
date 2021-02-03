@@ -1,7 +1,12 @@
 package li.cil.oc2.common.bus.device.item;
 
+import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.vm.*;
+import li.cil.oc2.api.bus.device.vm.VMContext;
+import li.cil.oc2.api.bus.device.vm.VMDevice;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
+import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
@@ -19,7 +24,8 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
 
-public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice, ICapabilityProvider {
+@SuppressWarnings("UnstableApiUsage")
+public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, ICapabilityProvider {
     private static final String DEVICE_TAG_NAME = "device";
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String INTERRUPT_TAG_NAME = "interrupt";
@@ -69,19 +75,27 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
             NBTSerialization.deserialize(deviceNbt, device);
         }
 
+        context.getEventBus().register(this);
+
         return VMDeviceLoadResult.success();
     }
 
     @Override
-    public void handleLifecycleEvent(final VMDeviceLifecycleEventType event) {
-        switch (event) {
-            case RESUMED_RUNNING:
-                isRunning = true;
-                break;
-            case UNLOAD:
-                unload();
-                break;
-        }
+    public void unload() {
+        device = null;
+        isRunning = false;
+        address.clear();
+        interrupt.clear();
+    }
+
+    @Subscribe
+    public void handlePausingEvent(final VMPausingEvent event) {
+        isRunning = false;
+    }
+
+    @Subscribe
+    public void handleResumingRunningEvent(final VMResumingRunningEvent event) {
+        isRunning = true;
     }
 
     @Override
@@ -115,15 +129,6 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
         if (tag.contains(INTERRUPT_TAG_NAME, NBTTagIds.TAG_INT)) {
             interrupt.set(tag.getInt(INTERRUPT_TAG_NAME));
         }
-    }
-
-    ///////////////////////////////////////////////////////////////
-
-    private void unload() {
-        device = null;
-        isRunning = false;
-        address.clear();
-        interrupt.clear();
     }
 
     ///////////////////////////////////////////////////////////////

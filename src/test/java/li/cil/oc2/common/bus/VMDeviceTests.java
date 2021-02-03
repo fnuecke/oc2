@@ -1,12 +1,17 @@
 package li.cil.oc2.common.bus;
 
-import li.cil.oc2.api.bus.device.vm.*;
-import li.cil.oc2.common.vm.VirtualMachineDeviceBusAdapter;
+import li.cil.oc2.api.bus.device.vm.VMContext;
+import li.cil.oc2.api.bus.device.vm.VMDevice;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.common.vm.VMDeviceBusAdapter;
+import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.Board;
 import li.cil.sedna.api.device.InterruptController;
 import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.memory.MemoryMap;
+import li.cil.sedna.api.memory.MemoryRangeAllocationStrategy;
 import li.cil.sedna.memory.SimpleMemoryMap;
+import li.cil.sedna.riscv.R5MemoryRangeAllocationStrategy;
 import li.cil.sedna.riscv.device.R5PlatformLevelInterruptController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,12 +27,15 @@ import static org.mockito.Mockito.*;
 public final class VMDeviceTests {
     private MemoryMap memoryMap;
     private InterruptController interruptController;
-    private VirtualMachineDeviceBusAdapter adapter;
+    private R5MemoryRangeAllocationStrategy allocationStrategy;
+    private GlobalVMContext context;
+    private VMDeviceBusAdapter adapter;
 
     @BeforeEach
     public void setupEach() {
         memoryMap = new SimpleMemoryMap();
         interruptController = new R5PlatformLevelInterruptController();
+        allocationStrategy = new R5MemoryRangeAllocationStrategy();
 
         final Board board = mock(Board.class);
         when(board.getMemoryMap()).thenReturn(memoryMap);
@@ -35,20 +43,20 @@ public final class VMDeviceTests {
         when(board.getInterruptCount()).thenReturn(16);
         when(board.addDevice(any())).then(invocation -> {
             final MemoryMappedDevice device = invocation.getArgument(0);
-            final OptionalLong address = memoryMap.findFreeRange(0, 0xFFFFFFFF, device.getLength());
-            if (address.isPresent()) {
-                memoryMap.addDevice(address.getAsLong(), device);
-                return true;
-            } else {
-                return false;
+            final OptionalLong address = allocationStrategy.findMemoryRange(device, MemoryRangeAllocationStrategy.getMemoryMapIntersectionProvider(memoryMap));
+            if (address.isPresent() && memoryMap.addDevice(address.getAsLong(), device)) {
+                return address;
             }
+            return OptionalLong.empty();
         });
         doAnswer(invocation -> {
             memoryMap.removeDevice(invocation.getArgument(0));
             return null;
         }).when(board).removeDevice(any());
 
-        adapter = new VirtualMachineDeviceBusAdapter(board);
+        context = new GlobalVMContext(board, () -> {
+        });
+        adapter = new VMDeviceBusAdapter(context);
     }
 
     @Test
@@ -71,31 +79,31 @@ public final class VMDeviceTests {
 
     @Test
     public void removedDevicesHaveUnloadCalled() {
-        final VMDeviceLifecycleListener device = mock(VMDeviceLifecycleListener.class);
+        final VMDevice device = mock(VMDevice.class);
         when(device.load(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
         assertTrue(adapter.load().wasSuccessful());
 
         adapter.removeDevices(Collections.singleton(device));
-        verify(device).handleLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
+        verify(device).unload();
     }
 
     @Test
     public void devicesHaveUnloadCalledOnGlobalUnload() {
-        final VMDeviceLifecycleListener device = mock(VMDeviceLifecycleListener.class);
+        final VMDevice device = mock(VMDevice.class);
         when(device.load(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
         assertTrue(adapter.load().wasSuccessful());
 
         adapter.unload();
-        verify(device).handleLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
+        verify(device).unload();
     }
 
     @Test
     public void devicesHaveLoadCalledAfterGlobalUnload() {
-        final VMDeviceLifecycleListener device = mock(VMDeviceLifecycleListener.class);
+        final VMDevice device = mock(VMDevice.class);
         when(device.load(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
@@ -103,7 +111,7 @@ public final class VMDeviceTests {
         verify(device).load(any());
 
         adapter.unload();
-        verify(device).handleLifecycleEvent(VMDeviceLifecycleEventType.UNLOAD);
+        verify(device).unload();
 
         assertTrue(adapter.load().wasSuccessful());
         verify(device, times(2)).load(any());
@@ -132,13 +140,12 @@ public final class VMDeviceTests {
         final VMDevice device = mock(VMDevice.class);
         when(device.load(any())).thenAnswer(invocation -> {
             final VMContext context = invocation.getArgument(0);
-            final OptionalInt interrupt = context.getInterruptAllocator().claimInterrupt(claimedInterrupt);
-            assertTrue(interrupt.isPresent());
-            assertNotEquals(claimedInterrupt, interrupt.getAsInt());
+            final boolean result = context.getInterruptAllocator().claimInterrupt(claimedInterrupt);
+            assertFalse(result);
             return VMDeviceLoadResult.success();
         });
 
-        adapter.getGlobalContext().getInterruptAllocator().claimInterrupt(claimedInterrupt);
+        context.getInterruptAllocator().claimInterrupt(claimedInterrupt);
 
         adapter.addDevices(Collections.singleton(device));
         assertTrue(adapter.load().wasSuccessful());

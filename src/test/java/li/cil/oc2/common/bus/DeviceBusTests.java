@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 public class DeviceBusTests {
     @Mock
     private Capability<DeviceBusElement> busElementCapability;
-    private AbstractDeviceBusController busController;
+    private CommonDeviceBusController busController;
     private DeviceBusElement busControllerBusElement;
 
     @BeforeAll
@@ -43,13 +43,13 @@ public class DeviceBusTests {
         when(busControllerBusElement.getLocalDevices()).thenReturn(emptyList());
         when(busControllerBusElement.getNeighbors()).thenReturn(Optional.empty());
 
-        busController = new TestBusController();
+        busController = new CommonDeviceBusController(busControllerBusElement);
     }
 
     @Test
     public void scanPendingWhenTileEntityNotLoaded() {
         busController.scan();
-        assertEquals(AbstractDeviceBusController.BusState.INCOMPLETE, busController.getState());
+        assertEquals(CommonDeviceBusController.BusState.INCOMPLETE, busController.getState());
     }
 
     @Test
@@ -57,7 +57,7 @@ public class DeviceBusTests {
         when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.emptyList()));
 
         busController.scan();
-        assertEquals(AbstractDeviceBusController.BusState.READY, busController.getState());
+        assertEquals(CommonDeviceBusController.BusState.READY, busController.getState());
     }
 
     @Test
@@ -68,7 +68,7 @@ public class DeviceBusTests {
         when(busControllerBusElement.getLocalDevices()).thenReturn(singletonList(device));
 
         busController.scan();
-        assertEquals(AbstractDeviceBusController.BusState.READY, busController.getState());
+        assertEquals(CommonDeviceBusController.BusState.READY, busController.getState());
 
         verify(busControllerBusElement).addController(busController);
         assertTrue(busController.getDevices().contains(device));
@@ -88,15 +88,9 @@ public class DeviceBusTests {
         when(busElement2.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busElement1))));
 
         busController.scan();
-        assertEquals(AbstractDeviceBusController.BusState.READY, busController.getState());
+        assertEquals(CommonDeviceBusController.BusState.READY, busController.getState());
 
         verify(busElement1).addController(busController);
         verify(busElement2).addController(busController);
-    }
-
-    private final class TestBusController extends AbstractDeviceBusController {
-        public TestBusController() {
-            super(busControllerBusElement);
-        }
     }
 }

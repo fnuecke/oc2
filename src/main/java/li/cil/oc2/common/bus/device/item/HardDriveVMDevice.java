@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Optional;
 
-public final class HardDriveVMDevice extends AbstractHardDriveVMDevice<ByteBufferBlockDevice> {
+public final class HardDriveVMDevice extends AbstractHardDriveVMDevice<ByteBufferBlockDevice, ItemStack> {
     private final int size;
     private final boolean readonly;
 
@@ -27,7 +27,7 @@ public final class HardDriveVMDevice extends AbstractHardDriveVMDevice<ByteBuffe
     }
 
     @Override
-    protected ByteBufferBlockDevice createDevice() {
+    protected ByteBufferBlockDevice createBlockDevice() {
         return ByteBufferBlockDevice.create(size, readonly);
     }
 

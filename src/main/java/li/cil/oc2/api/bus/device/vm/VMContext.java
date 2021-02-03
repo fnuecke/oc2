@@ -81,4 +81,28 @@ public interface VMContext {
      * @return the memory allocator.
      */
     MemoryAllocator getMemoryAllocator();
+
+    /**
+     * Allows registering to VM lifecycle events.
+     * <p>
+     * Registered subscribers will automatically be unsubscribed when the {@link VMDevice}
+     * that registered them is unloaded, e.g. because it is removed from the {@link DeviceBus}
+     * of the VM stopped.
+     *
+     * @return the event bus.
+     */
+    VMLifecycleEventBus getEventBus();
+
+    /**
+     * Waits for the executor thread of the virtual machine to finish running.
+     * <p>
+     * Events subscribers can only be registered inside {@link VMDevice#load(VMContext)}.
+     * Trying to register subscribers after that method has returned will result in an
+     * exception.
+     * <p>
+     * Note that this may trigger a {@link li.cil.oc2.api.bus.device.vm.event.VMPausingEvent}
+     * if the virtual machine has not been paused before. Calling this on a paused virtual
+     * machine is a no-op.
+     */
+    void joinWorkerThread();
 }

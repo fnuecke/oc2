@@ -37,7 +37,7 @@ public final class BlobStorage {
     private static final HashMultimap<UUID, Future<Void>> WRITE_HANDLES = HashMultimap.create();
     private static final HashMultimap<UUID, Future<Void>> READ_HANDLES = HashMultimap.create();
     private static final ExecutorService WORKERS = Executors.newCachedThreadPool(r -> {
-        final Thread thread = new Thread(r, "OC2 BlobStorage Thread");
+        final Thread thread = new Thread(r, "Blob Storage I/O");
         thread.setDaemon(false);
         return thread;
     });

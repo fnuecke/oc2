@@ -30,11 +30,14 @@ public interface Firmware extends IForgeRegistryEntry<Firmware> {
      * Runs this firmware.
      * <p>
      * This will usually load machine code into memory at the specified start address.
+     * <p>
+     * Typically only returns {@code false} when there was not enough memory to fit the firmware.
      *
      * @param memory       access to the memory map of the machine.
      * @param startAddress the memory address where execution will commence.
+     * @return {@code true} if the firmware was loaded successfully; {@code false} otherwise.
      */
-    void run(final MemoryMap memory, final long startAddress);
+    boolean run(final MemoryMap memory, final long startAddress);
 
     /**
      * The display name of this firmware. May be shown in the tooltip of item devices
@@ -42,5 +45,5 @@ public interface Firmware extends IForgeRegistryEntry<Firmware> {
      *
      * @return the display name of this firmware.
      */
-    ITextComponent getName();
+    ITextComponent getDisplayName();
 }

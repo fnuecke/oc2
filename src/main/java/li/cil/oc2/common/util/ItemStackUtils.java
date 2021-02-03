@@ -13,8 +13,8 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.Random;
 
-import static li.cil.oc2.common.Constants.BLOCK_ENTITY_INVENTORY_TAG_NAME;
 import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
+import static li.cil.oc2.common.Constants.INVENTORY_TAG_NAME;
 
 public final class ItemStackUtils {
     private static final String MOD_TAG_NAME = API.MOD_ID;
@@ -37,6 +37,22 @@ public final class ItemStackUtils {
     }
 
     @Nullable
+    public static CompoundNBT getInventoryTag(@Nullable final CompoundNBT tag) {
+        return tag != null && tag.contains(INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)
+                ? tag.getCompound(INVENTORY_TAG_NAME) : null;
+    }
+
+    public static CompoundNBT getOrCreateInventoryTag(final CompoundNBT tag) {
+        if (tag.contains(INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+            return tag.getCompound(INVENTORY_TAG_NAME);
+        }
+
+        final CompoundNBT inventoryTag = new CompoundNBT();
+        tag.put(INVENTORY_TAG_NAME, inventoryTag);
+        return inventoryTag;
+    }
+
+    @Nullable
     public static CompoundNBT getTileEntityTag(final ItemStack stack) {
         return stack.getChildTag(BLOCK_ENTITY_TAG_NAME_IN_ITEM);
     }
@@ -47,22 +63,22 @@ public final class ItemStackUtils {
 
     @Nullable
     public static CompoundNBT getTileEntityInventoryTag(final ItemStack stack) {
-        final CompoundNBT tag = getTileEntityTag(stack);
-        return tag != null && tag.contains(BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)
-                ? tag.getCompound(BLOCK_ENTITY_INVENTORY_TAG_NAME) : null;
+        return getInventoryTag(getTileEntityTag(stack));
     }
 
     @Nullable
     public static CompoundNBT getOrCreateTileEntityInventoryTag(final ItemStack stack) {
-        final CompoundNBT tag = getOrCreateTileEntityTag(stack);
-        if (tag.contains(BLOCK_ENTITY_INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            return tag.getCompound(BLOCK_ENTITY_INVENTORY_TAG_NAME);
-        }
+        return getOrCreateInventoryTag(getOrCreateTileEntityTag(stack));
+    }
 
-        final CompoundNBT inventoryNbt = new CompoundNBT();
-        tag.put(BLOCK_ENTITY_INVENTORY_TAG_NAME, inventoryNbt);
+    @Nullable
+    public static CompoundNBT getEntityInventoryTag(final ItemStack stack) {
+        return getInventoryTag(getModDataTag(stack));
+    }
 
-        return inventoryNbt;
+    @Nullable
+    public static CompoundNBT getOrCreateEntityInventoryTag(final ItemStack stack) {
+        return getOrCreateInventoryTag(getOrCreateModDataTag(stack));
     }
 
     public static Optional<ItemEntity> spawnAsEntity(final World world, final BlockPos pos, final ItemStack stack) {

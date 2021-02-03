@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public final class NetworkInterfaceCardItemDeviceProvider extends AbstractItemDeviceProvider {
     public NetworkInterfaceCardItemDeviceProvider() {
-        super(Items.NETWORK_INTERFACE_CARD_ITEM);
+        super(Items.NETWORK_INTERFACE_CARD);
     }
 
     ///////////////////////////////////////////////////////////////////

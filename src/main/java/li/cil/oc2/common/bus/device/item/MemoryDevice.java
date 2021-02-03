@@ -1,7 +1,11 @@
 package li.cil.oc2.common.bus.device.item;
 
+import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.vm.*;
+import li.cil.oc2.api.bus.device.vm.VMContext;
+import li.cil.oc2.api.bus.device.vm.VMDevice;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
@@ -18,7 +22,8 @@ import net.minecraft.util.math.MathHelper;
 
 import java.util.UUID;
 
-public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice {
+@SuppressWarnings("UnstableApiUsage")
+public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice {
     private static final String BLOB_HANDLE_TAG_NAME = "blob";
     private static final String ADDRESS_TAG_NAME = "address";
 
@@ -54,19 +59,25 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
         loadPersistedState();
 
+        context.getEventBus().register(this);
+
         return VMDeviceLoadResult.success();
     }
 
     @Override
-    public void handleLifecycleEvent(final VMDeviceLifecycleEventType event) {
-        switch (event) {
-            case RESUME_RUNNING:
-                awaitStorageOperation();
-                break;
-            case UNLOAD:
-                unload();
-                break;
-        }
+    public void unload() {
+        // Memory is volatile, so free up our persisted blob when device is unloaded.
+        BlobStorage.freeHandle(blobHandle);
+        blobHandle = null;
+        jobHandle = null;
+
+        device = null;
+        address.clear();
+    }
+
+    @Subscribe
+    public void handleResumingRunningEvent(final VMResumingRunningEvent event) {
+        awaitStorageOperation();
     }
 
     @Override
@@ -87,12 +98,12 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT nbt) {
-        if (nbt.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = nbt.getUniqueId(BLOB_HANDLE_TAG_NAME);
+    public void deserializeNBT(final CompoundNBT tag) {
+        if (tag.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
+            blobHandle = tag.getUniqueId(BLOB_HANDLE_TAG_NAME);
         }
-        if (nbt.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
-            address.set(nbt.getLong(ADDRESS_TAG_NAME));
+        if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
+            address.set(tag.getLong(ADDRESS_TAG_NAME));
         }
     }
 
@@ -119,15 +130,5 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
             jobHandle.await();
             jobHandle = null;
         }
-    }
-
-    private void unload() {
-        // Memory is volatile, so free up our persisted blob when device is unloaded.
-        BlobStorage.freeHandle(blobHandle);
-        blobHandle = null;
-        jobHandle = null;
-
-        device = null;
-        address.clear();
     }
 }

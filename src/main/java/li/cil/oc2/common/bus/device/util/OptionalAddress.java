@@ -26,10 +26,10 @@ public final class OptionalAddress {
 
     public boolean claim(final VMContext context, final MemoryMappedDevice device) {
         final OptionalLong claimedAddress;
-        if (value == null) {
-            claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(device);
+        if (value != null && context.getMemoryRangeAllocator().claimMemoryRange(value, device)) {
+            claimedAddress = OptionalLong.of(value);
         } else {
-            claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(value, device);
+            claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(device);
         }
 
         if (claimedAddress.isPresent()) {

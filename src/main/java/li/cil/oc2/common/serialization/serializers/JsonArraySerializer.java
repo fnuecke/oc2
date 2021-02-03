@@ -16,6 +16,7 @@ public final class JsonArraySerializer implements Serializer<JsonArray> {
         visitor.putObject("value", String.class, jsonArray.toString());
     }
 
+    @Nullable
     @Override
     public JsonArray deserialize(final DeserializationVisitor visitor, final Class<JsonArray> type, @Nullable final Object value) throws SerializationException {
         JsonArray array = (JsonArray) value;

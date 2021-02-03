@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.bus.AbstractDeviceBusController;
+import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import net.minecraft.network.PacketBuffer;
@@ -11,13 +11,13 @@ import java.util.function.Supplier;
 
 public final class ComputerBusStateMessage {
     private BlockPos pos;
-    private AbstractDeviceBusController.BusState busState;
+    private CommonDeviceBusController.BusState value;
 
     ///////////////////////////////////////////////////////////////////
 
     public ComputerBusStateMessage(final ComputerTileEntity tileEntity) {
         this.pos = tileEntity.getPos();
-        this.busState = tileEntity.getBusState();
+        this.value = tileEntity.getVirtualMachine().getBusState();
     }
 
     public ComputerBusStateMessage(final PacketBuffer buffer) {
@@ -28,17 +28,17 @@ public final class ComputerBusStateMessage {
 
     public static boolean handleMessage(final ComputerBusStateMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
-                (tileEntity) -> tileEntity.setBusStateClient(message.busState)));
+                (tileEntity) -> tileEntity.getVirtualMachine().setBusStateClient(message.value)));
         return true;
     }
 
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
-        busState = buffer.readEnumValue(AbstractDeviceBusController.BusState.class);
+        value = buffer.readEnumValue(CommonDeviceBusController.BusState.class);
     }
 
     public static void toBytes(final ComputerBusStateMessage message, final PacketBuffer buffer) {
         buffer.writeBlockPos(message.pos);
-        buffer.writeEnumValue(message.busState);
+        buffer.writeEnumValue(message.value);
     }
 }

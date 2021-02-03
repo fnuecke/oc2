@@ -6,7 +6,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.server.management.PlayerInteractionManager;
 import net.minecraft.util.ActionResultType;
@@ -16,11 +15,7 @@ import net.minecraft.world.World;
 
 import java.util.Objects;
 
-public final class WrenchItem extends Item {
-    public WrenchItem(final Properties properties) {
-        super(properties);
-    }
-
+public final class WrenchItem extends ModItem {
     @Override
     public ActionResultType onItemUse(final ItemUseContext context) {
         final World world = context.getWorld();

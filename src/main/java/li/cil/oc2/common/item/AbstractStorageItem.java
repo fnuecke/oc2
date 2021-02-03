@@ -11,7 +11,7 @@ import net.minecraft.util.text.StringTextComponent;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractStorageItem extends Item {
+public abstract class AbstractStorageItem extends ModItem {
     private static final String CAPACITY_TAG_NAME = "size";
 
     ///////////////////////////////////////////////////////////////////
@@ -40,11 +40,19 @@ public abstract class AbstractStorageItem extends Item {
         return stack;
     }
 
+    public ItemStack withCapacity(final int capacity) {
+        return withCapacity(new ItemStack(this), capacity);
+    }
+
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractStorageItem(final Properties properties, final int defaultCapacity) {
+    protected AbstractStorageItem(final Properties properties, final int defaultCapacity) {
         super(properties);
         this.defaultCapacity = defaultCapacity;
+    }
+
+    protected AbstractStorageItem(final int defaultCapacity) {
+        this(createProperties(), defaultCapacity);
     }
 
     ///////////////////////////////////////////////////////////////////

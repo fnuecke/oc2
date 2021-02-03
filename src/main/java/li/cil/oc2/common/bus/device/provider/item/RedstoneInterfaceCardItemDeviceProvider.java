@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public final class RedstoneInterfaceCardItemDeviceProvider extends AbstractItemDeviceProvider {
     public RedstoneInterfaceCardItemDeviceProvider() {
-        super(Items.REDSTONE_INTERFACE_CARD_ITEM);
+        super(Items.REDSTONE_INTERFACE_CARD);
     }
 
     ///////////////////////////////////////////////////////////////////

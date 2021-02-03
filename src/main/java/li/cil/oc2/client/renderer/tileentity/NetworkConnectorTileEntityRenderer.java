@@ -14,6 +14,8 @@ public final class NetworkConnectorTileEntityRenderer extends TileEntityRenderer
         super(dispatcher);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
     public void render(final NetworkConnectorTileEntity connector, final float partialTicks, final MatrixStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
         // We do cable rendering as a fall-back in the TESR when Fabulous rendering is enabled.

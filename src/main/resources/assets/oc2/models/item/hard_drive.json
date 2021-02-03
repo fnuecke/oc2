@@ -1,20 +1,7 @@
 {
-  "parent": "minecraft:item/handheld",
+  "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "oc2:items/hard_drive1"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "oc2:capacity": 4194304.0
-      },
-      "model": "oc2:item/hard_drive2"
-    },
-    {
-      "predicate": {
-        "oc2:capacity": 8388608.0
-      },
-      "model": "oc2:item/hard_drive3"
-    }
-  ]
+    "layer0": "oc2:item/hard_drive_base",
+    "layer1": "oc2:item/hard_drive_tint"
+  }
 }

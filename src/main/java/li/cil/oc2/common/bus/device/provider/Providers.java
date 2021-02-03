@@ -3,6 +3,7 @@ package li.cil.oc2.common.bus.device.provider;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.provider.block.*;
 import li.cil.oc2.common.bus.device.provider.item.*;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -31,11 +32,16 @@ public final class Providers {
         BLOCK_DEVICE_PROVIDERS.register("fluid_handler", FluidHandlerBlockDeviceProvider::new);
         BLOCK_DEVICE_PROVIDERS.register("item_handler", ItemHandlerBlockDeviceProvider::new);
 
-        ITEM_DEVICE_PROVIDERS.register("item_memory", MemoryItemDeviceProvider::new);
-        ITEM_DEVICE_PROVIDERS.register("item_hard_drive", HardDriveItemDeviceProvider::new);
-        ITEM_DEVICE_PROVIDERS.register("item_flash_memory", FlashMemoryItemDeviceProvider::new);
-        ITEM_DEVICE_PROVIDERS.register("item_redstone_interface_card", RedstoneInterfaceCardItemDeviceProvider::new);
-        ITEM_DEVICE_PROVIDERS.register("item_network_interface_card", NetworkInterfaceCardItemDeviceProvider::new);
+        BLOCK_DEVICE_PROVIDERS.register(Constants.DISK_DRIVE_BLOCK_NAME, DiskDriveDeviceProvider::new);
+
+        ITEM_DEVICE_PROVIDERS.register(Constants.MEMORY_ITEM_NAME, MemoryItemDeviceProvider::new);
+        ITEM_DEVICE_PROVIDERS.register(Constants.HARD_DRIVE_ITEM_NAME, HardDriveItemDeviceProvider::new);
+        ITEM_DEVICE_PROVIDERS.register(Constants.FLASH_MEMORY_ITEM_NAME, FlashMemoryItemDeviceProvider::new);
+        ITEM_DEVICE_PROVIDERS.register(Constants.REDSTONE_INTERFACE_CARD_ITEM_NAME, RedstoneInterfaceCardItemDeviceProvider::new);
+        ITEM_DEVICE_PROVIDERS.register(Constants.NETWORK_INTERFACE_CARD_ITEM_NAME, NetworkInterfaceCardItemDeviceProvider::new);
+
+        ITEM_DEVICE_PROVIDERS.register(Constants.INVENTORY_OPERATIONS_MODULE_ITEM_NAME, InventoryOperationsModuleDeviceProvider::new);
+        ITEM_DEVICE_PROVIDERS.register(Constants.BLOCK_OPERATIONS_MODULE_ITEM_NAME, BlockOperationsModuleDeviceProvider::new);
 
         BLOCK_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());
         ITEM_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());

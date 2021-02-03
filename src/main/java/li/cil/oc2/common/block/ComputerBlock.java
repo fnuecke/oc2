@@ -1,13 +1,18 @@
 package li.cil.oc2.common.block;
 
+import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
-import li.cil.oc2.client.gui.TerminalScreen;
+import li.cil.oc2.client.gui.ComputerTerminalScreen;
+import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
+import li.cil.oc2.common.bus.device.data.Firmwares;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ComputerContainer;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
+import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.VoxelShapeUtils;
 import net.minecraft.block.Block;
@@ -23,12 +28,15 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.BlockItemUseContext;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -45,6 +53,8 @@ import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.util.List;
+
+import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
 
 public final class ComputerBlock extends HorizontalBlock {
     // We bake the "screen" indent on the front into the collision shape to prevent stuff being
@@ -72,15 +82,18 @@ public final class ComputerBlock extends HorizontalBlock {
 
     ///////////////////////////////////////////////////////////////////
 
+    @Override
+    public void fillItemGroup(final ItemGroup group, final NonNullList<ItemStack> items) {
+        super.fillItemGroup(group, items);
+
+        items.add(getPreconfiguredComputer());
+    }
+
     @OnlyIn(Dist.CLIENT)
     @Override
     public void addInformation(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
         super.addInformation(stack, world, tooltip, advanced);
-        TooltipUtils.addInventoryInformation(stack, tooltip,
-                ComputerTileEntity.MEMORY_TAG_NAME,
-                ComputerTileEntity.HARD_DRIVE_TAG_NAME,
-                ComputerTileEntity.FLASH_MEMORY_TAG_NAME,
-                ComputerTileEntity.CARD_TAG_NAME);
+        TooltipUtils.addTileEntityInventoryInformation(stack, tooltip);
     }
 
     @Override
@@ -157,7 +170,7 @@ public final class ComputerBlock extends HorizontalBlock {
     public ActionResultType onBlockActivated(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
         final TileEntity tileEntity = world.getTileEntity(pos);
         if (!(tileEntity instanceof ComputerTileEntity)) {
-            throw new IllegalStateException();
+            return super.onBlockActivated(state, world, pos, player, hand, hit);
         }
 
         final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
@@ -174,7 +187,7 @@ public final class ComputerBlock extends HorizontalBlock {
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return world.isRemote() ? ActionResultType.SUCCESS : ActionResultType.CONSUME;
     }
 
     @Override
@@ -182,11 +195,11 @@ public final class ComputerBlock extends HorizontalBlock {
         final TileEntity tileEntity = world.getTileEntity(pos);
         if (!world.isRemote() && tileEntity instanceof ComputerTileEntity) {
             final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
-            if (!computer.isEmpty()) {
-                computer.exportDeviceDataToItemStacks();
+            if (!computer.getItemStackHandlers().isEmpty()) {
+                computer.getItemStackHandlers().exportDeviceDataToItemStacks();
 
                 if (player.isCreative()) {
-                    final ItemStack stack = new ItemStack(Items.COMPUTER_ITEM.get());
+                    final ItemStack stack = new ItemStack(Items.COMPUTER.get());
                     computer.exportToItemStack(stack);
                     spawnAsEntity(world, pos, stack);
                 }
@@ -213,7 +226,7 @@ public final class ComputerBlock extends HorizontalBlock {
 
     @OnlyIn(Dist.CLIENT)
     private void openTerminalScreen(final ComputerTileEntity computer) {
-        Minecraft.getInstance().displayGuiScreen(new TerminalScreen(computer, getTranslatedName()));
+        Minecraft.getInstance().displayGuiScreen(new ComputerTerminalScreen(computer, getTranslatedName()));
     }
 
     private void openContainerScreen(final ComputerTileEntity tileEntity, final PlayerEntity player) {
@@ -228,5 +241,27 @@ public final class ComputerBlock extends HorizontalBlock {
                 return new ComputerContainer(id, tileEntity, inventory);
             }
         }, tileEntity.getPos());
+    }
+
+    private ItemStack getPreconfiguredComputer() {
+        final ItemStack computer = new ItemStack(Items.COMPUTER.get());
+
+        final CompoundNBT computerItems = ItemStackUtils.getOrCreateTileEntityInventoryTag(computer);
+        computerItems.put(DeviceTypes.MEMORY.getRegistryName().toString(), makeInventoryTag(
+                Items.MEMORY.get().withCapacity(8 * Constants.MEGABYTE),
+                Items.MEMORY.get().withCapacity(8 * Constants.MEGABYTE),
+                Items.MEMORY.get().withCapacity(8 * Constants.MEGABYTE)
+        ));
+        computerItems.put(DeviceTypes.HARD_DRIVE.getRegistryName().toString(), makeInventoryTag(
+                Items.HARD_DRIVE.get().withData(BlockDeviceDataRegistration.BUILDROOT.get())
+        ));
+        computerItems.put(DeviceTypes.FLASH_MEMORY.getRegistryName().toString(), makeInventoryTag(
+                Items.FLASH_MEMORY.get().withFirmware(Firmwares.BUILDROOT.get())
+        ));
+        computerItems.put(DeviceTypes.CARD.getRegistryName().toString(), makeInventoryTag(
+                new ItemStack(Items.NETWORK_INTERFACE_CARD.get())
+        ));
+
+        return computer;
     }
 }

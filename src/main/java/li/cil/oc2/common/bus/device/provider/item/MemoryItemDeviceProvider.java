@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
     public MemoryItemDeviceProvider() {
-        super(Items.MEMORY_ITEM);
+        super(Items.MEMORY);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -29,7 +29,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements RPCDevice, DocumentedDevice, ItemDevice, ICapabilityProvider {
-
     private static final String OUTPUT_TAG_NAME = "output";
 
     private static final String GET_REDSTONE_INPUT = "getRedstoneInput";
@@ -73,14 +72,14 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
 
     @Override
     public CompoundNBT serializeNBT() {
-        final CompoundNBT nbt = new CompoundNBT();
-        nbt.putByteArray(OUTPUT_TAG_NAME, output);
-        return nbt;
+        final CompoundNBT tag = new CompoundNBT();
+        tag.putByteArray(OUTPUT_TAG_NAME, output);
+        return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT nbt) {
-        final byte[] serializedOutput = nbt.getByteArray(OUTPUT_TAG_NAME);
+    public void deserializeNBT(final CompoundNBT tag) {
+        final byte[] serializedOutput = tag.getByteArray(OUTPUT_TAG_NAME);
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
     }
 

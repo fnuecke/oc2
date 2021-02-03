@@ -54,7 +54,7 @@ public final class WorldUtils {
         return block.getClass().getSimpleName();
     }
 
-    public static void playSound(final IWorld world, final BlockPos pos, final SoundType soundType, Function<SoundType, SoundEvent> soundEvent) {
+    public static void playSound(final IWorld world, final BlockPos pos, final SoundType soundType, final Function<SoundType, SoundEvent> soundEvent) {
         playSound(world, pos, soundType, soundEvent.apply(soundType));
     }
 

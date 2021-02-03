@@ -2,6 +2,8 @@ package li.cil.oc2.common.util;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
@@ -25,6 +27,40 @@ public final class NBTUtils {
         } catch (final IndexOutOfBoundsException ignored) {
             return null;
         }
+    }
+
+    public static void putBlockPos(final CompoundNBT tag, final String key, final BlockPos value) {
+        final CompoundNBT valueTag = new CompoundNBT();
+        valueTag.putInt("x", value.getX());
+        valueTag.putInt("y", value.getY());
+        valueTag.putInt("z", value.getZ());
+        tag.put(key, valueTag);
+    }
+
+    public static BlockPos getBlockPos(final CompoundNBT tag, final String key) {
+        final CompoundNBT valueTag = tag.getCompound(key);
+        return new BlockPos(
+                valueTag.getInt("x"),
+                valueTag.getInt("y"),
+                valueTag.getInt("z")
+        );
+    }
+
+    public static void putVector3d(final CompoundNBT tag, final String key, final Vector3d value) {
+        final CompoundNBT valueTag = new CompoundNBT();
+        valueTag.putDouble("x", value.getX());
+        valueTag.putDouble("y", value.getY());
+        valueTag.putDouble("z", value.getZ());
+        tag.put(key, valueTag);
+    }
+
+    public static Vector3d getVector3d(final CompoundNBT tag, final String key) {
+        final CompoundNBT valueTag = tag.getCompound(key);
+        return new Vector3d(
+                valueTag.getDouble("x"),
+                valueTag.getDouble("y"),
+                valueTag.getDouble("z")
+        );
     }
 
     public static CompoundNBT makeInventoryTag(final ItemStack... items) {

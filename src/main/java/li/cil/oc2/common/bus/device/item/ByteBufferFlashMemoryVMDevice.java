@@ -1,25 +1,28 @@
 package li.cil.oc2.common.bus.device.item;
 
+import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.vm.*;
+import li.cil.oc2.api.bus.device.vm.FirmwareLoader;
+import li.cil.oc2.api.bus.device.vm.VMContext;
+import li.cil.oc2.api.bus.device.vm.VMDevice;
+import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
+import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
+import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.device.flash.FlashMemoryDevice;
 import li.cil.sedna.memory.MemoryMaps;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraft.util.text.TranslationTextComponent;
 
 import java.nio.ByteBuffer;
-import java.util.OptionalLong;
 
-public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack> implements VMDevice, VMDeviceLifecycleListener, ItemDevice {
-    private static final Logger LOGGER = LogManager.getLogger();
-
-    ///////////////////////////////////////////////////////////////
-
+@SuppressWarnings("UnstableApiUsage")
+public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, FirmwareLoader {
     public static final String DATA_TAG_NAME = "data";
 
     ///////////////////////////////////////////////////////////////
@@ -33,7 +36,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
 
     // Online persisted data.
     private CompoundNBT deviceNbt;
-    private Long address;
+    private final OptionalAddress address = new OptionalAddress();
 
     ///////////////////////////////////////////////////////////////
 
@@ -50,7 +53,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
             return VMDeviceLoadResult.fail();
         }
 
-        if (!claimAddress(context)) {
+        if (!address.claim(context, device)) {
             return VMDeviceLoadResult.fail();
         }
 
@@ -58,36 +61,42 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
 
         memoryMap = context.getMemoryMap();
 
+        context.getEventBus().register(this);
+
         return VMDeviceLoadResult.success();
     }
 
     @Override
-    public void handleLifecycleEvent(final VMDeviceLifecycleEventType event) {
-        switch (event) {
-            case INITIALIZING:
-                // TODO Have start address passed with event?
-                copyDataToMemory(0x80000000L);
-                break;
-            case UNLOAD:
-                unload();
-                break;
-        }
+    public void unload() {
+        memoryMap = null;
+        data = null;
+        device = null;
+        deviceNbt = null;
+        address.clear();
+    }
+
+    @Subscribe
+    public void handleInitializingEvent(final VMInitializingEvent event) {
+        copyDataToMemory(event.getProgramStartAddress());
     }
 
     @Override
     public CompoundNBT serializeNBT() {
-        final CompoundNBT nbt = new CompoundNBT();
+        final CompoundNBT tag = new CompoundNBT();
 
         if (device != null) {
-            nbt.putByteArray(DATA_TAG_NAME, device.getData().array());
+            tag.putByteArray(DATA_TAG_NAME, device.getData().array());
         }
 
-        return nbt;
+        return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT nbt) {
-
+    public void deserializeNBT(final CompoundNBT tag) {
+        final byte[] data = tag.getByteArray(DATA_TAG_NAME);
+        final ByteBuffer bufferData = device.getData();
+        bufferData.clear();
+        bufferData.put(data, 0, Math.min(bufferData.limit(), data.length));
     }
 
     ///////////////////////////////////////////////////////////////
@@ -99,23 +108,6 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
 
         data = ByteBuffer.allocate(size);
         device = new FlashMemoryDevice(data);
-
-        return true;
-    }
-
-    private boolean claimAddress(final VMContext context) {
-        final OptionalLong claimedAddress;
-        if (this.address != null) {
-            claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(this.address, device);
-        } else {
-            claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(device);
-        }
-
-        if (!claimedAddress.isPresent()) {
-            return false;
-        }
-
-        this.address = claimedAddress.getAsLong();
 
         return true;
     }
@@ -136,15 +128,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
         try {
             MemoryMaps.store(memoryMap, startAddress, data);
         } catch (final MemoryAccessException e) {
-            LOGGER.error(e);
+            throw new VMInitializationException(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
         }
-    }
-
-    private void unload() {
-        memoryMap = null;
-        data = null;
-        device = null;
-        deviceNbt = null;
-        address = null;
     }
 }

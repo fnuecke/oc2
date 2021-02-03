@@ -139,7 +139,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             final World world = getWorld();
             if (world != null) {
                 final Vector3d middle = Vector3d.copyCentered(getPos().add(pos)).scale(0.5f);
-                ItemStackUtils.spawnAsEntity(world, middle, new ItemStack(Items.NETWORK_CABLE_ITEM.get()));
+                ItemStackUtils.spawnAsEntity(world, middle, new ItemStack(Items.NETWORK_CABLE.get()));
             }
         }
 

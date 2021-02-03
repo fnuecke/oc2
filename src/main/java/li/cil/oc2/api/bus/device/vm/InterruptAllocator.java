@@ -13,14 +13,14 @@ import java.util.OptionalInt;
  */
 public interface InterruptAllocator {
     /**
-     * Tries to reserve an interrupt with the specified index. The returned interrupt
-     * may differ from the one provided, if the interrupt has already been claimed by
-     * some other device. In this case, the result will be same as calling {@link #claimInterrupt()}.
+     * Tries to reserve an interrupt with the specified index. This may fail if the
+     * interrupt has already been claimed. Use {@link #claimInterrupt()} to obtain
+     * a free interrupt.
      *
      * @param interrupt the interrupt to claim.
-     * @return the interrupt that was claimed, if any.
+     * @return {@code true} if the interrupt could be claimed; {@code false} otherwise.
      */
-    OptionalInt claimInterrupt(int interrupt);
+    boolean claimInterrupt(int interrupt);
 
     /**
      * Tries to claim the next free interrupt. If no more interrupts are available,

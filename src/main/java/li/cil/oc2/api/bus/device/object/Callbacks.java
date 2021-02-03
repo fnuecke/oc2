@@ -90,9 +90,11 @@ public final class Callbacks {
     ///////////////////////////////////////////////////////////////////
 
     private static List<Method> getMethods(final Class<?> type) {
-        return METHOD_BY_TYPE.computeIfAbsent(type, c -> Arrays.stream(c.getMethods())
-                .filter(m -> m.isAnnotationPresent(Callback.class))
-                .collect(Collectors.toList()));
+        synchronized (METHOD_BY_TYPE) {
+            return METHOD_BY_TYPE.computeIfAbsent(type, c -> Arrays.stream(c.getMethods())
+                    .filter(m -> m.isAnnotationPresent(Callback.class))
+                    .collect(Collectors.toList()));
+        }
     }
 
     private static final class ObjectRPCMethod extends AbstractRPCMethod {

@@ -26,6 +26,7 @@ public final class ResourceFileSystem implements FileSystem {
     private final IResourceManager resourceManager;
     private final Node root;
     private final Object2LongArrayMap<Node> sizes = new Object2LongArrayMap<>();
+    private final int fileCount;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -50,13 +51,17 @@ public final class ResourceFileSystem implements FileSystem {
         }
 
         root.buildEntries();
+
+        fileCount = root.getFileCount();
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     public FileSystemStats statfs() {
-        return new FileSystemStats();
+        final FileSystemStats stats = new FileSystemStats();
+        stats.fileCount = fileCount;
+        return stats;
     }
 
     @Override
@@ -316,6 +321,14 @@ public final class ResourceFileSystem implements FileSystem {
 
             this.isExecutable = isExecutable;
             this.isDirectory = isDirectory;
+        }
+
+        public int getFileCount() {
+            if (isDirectory) {
+                return children.values().stream().mapToInt(Node::getFileCount).reduce(Integer::sum).orElse(0);
+            } else {
+                return 1;
+            }
         }
 
         public void insert(final List<String> path, final ResourceLocation location) {

@@ -1,13 +1,13 @@
 package li.cil.oc2.common.serialization.serializers;
 
 import com.google.gson.*;
-import li.cil.oc2.common.bus.RPCAdapter;
+import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 
 import java.lang.reflect.Type;
 
-public final class RPCDeviceWithIdentifierJsonSerializer implements JsonSerializer<RPCAdapter.RPCDeviceWithIdentifier> {
+public final class RPCDeviceWithIdentifierJsonSerializer implements JsonSerializer<RPCDeviceBusAdapter.RPCDeviceWithIdentifier> {
     @Override
-    public JsonElement serialize(final RPCAdapter.RPCDeviceWithIdentifier src, final Type typeOfSrc, final JsonSerializationContext context) {
+    public JsonElement serialize(final RPCDeviceBusAdapter.RPCDeviceWithIdentifier src, final Type typeOfSrc, final JsonSerializationContext context) {
         if (src == null) {
             return JsonNull.INSTANCE;
         }

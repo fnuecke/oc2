@@ -15,21 +15,23 @@ import java.util.OptionalLong;
 public interface MemoryRangeAllocator {
     /**
      * Tries to add a {@link MemoryMappedDevice} to the memory map at the specified
-     * address. The returned address may differ from the address provided, if the
-     * device cannot fit into the memory map at the specified address. In this case,
-     * the result will be the same as calling {@link #claimMemoryRange(MemoryMappedDevice)}.
+     * address. This may fail if some other device is already mapped to part of the
+     * range. Use {@link #claimMemoryRange(MemoryMappedDevice)} to claim an unused
+     * memory range.
      *
      * @param address the address to add the specified device at.
      * @param device  the device to add at the specified address.
-     * @return the address the device was added at, if any.
+     * @return {@code true} if the memory range could be claimed; {@code false} otherwise.
      */
-    OptionalLong claimMemoryRange(long address, MemoryMappedDevice device);
+    boolean claimMemoryRange(long address, MemoryMappedDevice device);
 
     /**
      * Tries to add a {@link MemoryMappedDevice} to the memory map at an address
-     * determined by the virtual machine. This may take into account the type of
-     * device being added. Typically, {@link li.cil.sedna.api.device.PhysicalMemory}
-     * devices will be allocated in a different memory region than regular devices.
+     * determined by the virtual machine.
+     * <p>
+     * This may take into account the type of device being added. For example,
+     * {@link li.cil.sedna.api.device.PhysicalMemory} devices will typically be
+     * allocated in a different memory region than regular devices.
      * <p>
      * If the device could not fit into the memory map at all, this will return
      * {@link OptionalLong#empty()}.

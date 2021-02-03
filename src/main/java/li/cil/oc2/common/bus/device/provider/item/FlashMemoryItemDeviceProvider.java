@@ -18,7 +18,7 @@ import java.util.Optional;
 
 public final class FlashMemoryItemDeviceProvider extends AbstractItemDeviceProvider {
     public FlashMemoryItemDeviceProvider() {
-        super(Items.FLASH_MEMORY_ITEM);
+        super(Items.FLASH_MEMORY);
     }
 
     ///////////////////////////////////////////////////////////////////

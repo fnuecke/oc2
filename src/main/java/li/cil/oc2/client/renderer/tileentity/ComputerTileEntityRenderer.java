@@ -27,9 +27,9 @@ import net.minecraft.util.text.Style;
 import java.util.List;
 
 public final class ComputerTileEntityRenderer extends TileEntityRenderer<ComputerTileEntity> {
-    public static final ResourceLocation OVERLAY_POWER_LOCATION = new ResourceLocation(API.MOD_ID, "blocks/computer/computer_overlay_power");
-    public static final ResourceLocation OVERLAY_STATUS_LOCATION = new ResourceLocation(API.MOD_ID, "blocks/computer/computer_overlay_status");
-    public static final ResourceLocation OVERLAY_TERMINAL_LOCATION = new ResourceLocation(API.MOD_ID, "blocks/computer/computer_overlay_terminal");
+    public static final ResourceLocation OVERLAY_POWER_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_power");
+    public static final ResourceLocation OVERLAY_STATUS_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_status");
+    public static final ResourceLocation OVERLAY_TERMINAL_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_terminal");
 
     private static final RenderMaterial TEXTURE_POWER = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_POWER_LOCATION);
     private static final RenderMaterial TEXTURE_STATUS = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_STATUS_LOCATION);
@@ -40,6 +40,8 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
     public ComputerTileEntityRenderer(final TileEntityRendererDispatcher dispatcher) {
         super(dispatcher);
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     public void render(final ComputerTileEntity tileEntity, final float partialTicks, final MatrixStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
@@ -70,7 +72,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         final float pixelScale = 1 / 16f;
         matrixStack.scale(pixelScale, pixelScale, pixelScale);
 
-        if (tileEntity.isRunning()) {
+        if (tileEntity.getVirtualMachine().isRunning()) {
             renderTerminal(tileEntity, matrixStack, buffer, cameraPosition);
         } else {
             renderStatusText(tileEntity, matrixStack, cameraPosition);
@@ -79,7 +81,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         matrixStack.translate(0, 0, -0.1f);
         final Matrix4f matrix = matrixStack.getLast().getMatrix();
 
-        switch (tileEntity.getBusState()) {
+        switch (tileEntity.getVirtualMachine().getBusState()) {
             case SCAN_PENDING:
             case INCOMPLETE:
                 renderStatus(matrix, buffer);
@@ -91,7 +93,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
                 renderStatus(matrix, buffer, 250);
                 break;
             case READY:
-                switch (tileEntity.getRunState()) {
+                switch (tileEntity.getVirtualMachine().getRunState()) {
                     case STOPPED:
                         break;
                     case LOADING_DEVICES:
@@ -154,7 +156,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
             return;
         }
 
-        final ITextComponent bootError = tileEntity.getBootError();
+        final ITextComponent bootError = tileEntity.getVirtualMachine().getBootError();
         if (bootError == null) {
             return;
         }

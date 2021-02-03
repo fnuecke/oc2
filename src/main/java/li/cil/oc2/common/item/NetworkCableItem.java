@@ -5,7 +5,6 @@ import li.cil.oc2.common.tileentity.NetworkConnectorTileEntity;
 import li.cil.oc2.common.tileentity.NetworkConnectorTileEntity.ConnectionResult;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.tileentity.TileEntity;
@@ -19,14 +18,8 @@ import net.minecraft.world.World;
 import java.util.Objects;
 import java.util.WeakHashMap;
 
-public final class NetworkCableItem extends Item {
+public final class NetworkCableItem extends ModItem {
     private static final WeakHashMap<ServerPlayerEntity, BlockPos> LINK_STARTS = new WeakHashMap<>();
-
-    ///////////////////////////////////////////////////////////////////
-
-    public NetworkCableItem(final Properties properties) {
-        super(properties);
-    }
 
     ///////////////////////////////////////////////////////////////////
 

@@ -7,26 +7,23 @@ import li.cil.sedna.memory.MemoryMaps;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.registries.ForgeRegistryEntry;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
 public final class BuildrootFirmware extends ForgeRegistryEntry<Firmware> implements Firmware {
-    private static final Logger LOGGER = LogManager.getLogger();
-
     @Override
-    public void run(final MemoryMap memory, final long startAddress) {
+    public boolean run(final MemoryMap memory, final long startAddress) {
         try {
             MemoryMaps.store(memory, startAddress, Buildroot.getFirmware());
             MemoryMaps.store(memory, startAddress + 0x200000, Buildroot.getLinuxImage());
+            return true;
         } catch (final IOException e) {
-            LOGGER.error(e);
+            return false;
         }
     }
 
     @Override
-    public ITextComponent getName() {
-        return new StringTextComponent("OpenSBI+Linux");
+    public ITextComponent getDisplayName() {
+        return new StringTextComponent("Linux");
     }
 }

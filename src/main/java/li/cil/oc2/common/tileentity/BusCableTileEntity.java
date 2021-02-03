@@ -51,7 +51,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     @Override
     public void read(final BlockState state, final CompoundNBT tag) {
         super.read(state, tag);
-        if (tag.contains(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+        if (tag.contains(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_LIST)) {
             busElement.deserializeNBT(tag.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
         }
     }

@@ -2,6 +2,7 @@ package li.cil.oc2.common.network;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.network.message.*;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fml.network.NetworkDirection;
@@ -26,16 +27,16 @@ public final class Network {
     ///////////////////////////////////////////////////////////////////
 
     public static void setup() {
-        INSTANCE.messageBuilder(TerminalBlockOutputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(TerminalBlockOutputMessage::toBytes)
-                .decoder(TerminalBlockOutputMessage::new)
-                .consumer(TerminalBlockOutputMessage::handleMessage)
+        INSTANCE.messageBuilder(ComputerTerminalOutputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ComputerTerminalOutputMessage::toBytes)
+                .decoder(ComputerTerminalOutputMessage::new)
+                .consumer(ComputerTerminalOutputMessage::handleMessage)
                 .add();
 
-        INSTANCE.messageBuilder(TerminalBlockInputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
-                .encoder(TerminalBlockInputMessage::toBytes)
-                .decoder(TerminalBlockInputMessage::new)
-                .consumer(TerminalBlockInputMessage::handleMessage)
+        INSTANCE.messageBuilder(ComputerTerminalInputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ComputerTerminalInputMessage::toBytes)
+                .decoder(ComputerTerminalInputMessage::new)
+                .consumer(ComputerTerminalInputMessage::handleMessage)
                 .add();
 
         INSTANCE.messageBuilder(ComputerRunStateMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
@@ -67,10 +68,68 @@ public final class Network {
                 .decoder(NetworkConnectorConnectionsMessage::new)
                 .consumer(NetworkConnectorConnectionsMessage::handleMessage)
                 .add();
+
+        INSTANCE.messageBuilder(RobotTerminalOutputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(RobotTerminalOutputMessage::toBytes)
+                .decoder(RobotTerminalOutputMessage::new)
+                .consumer(RobotTerminalOutputMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(RobotTerminalInputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(RobotTerminalInputMessage::toBytes)
+                .decoder(RobotTerminalInputMessage::new)
+                .consumer(RobotTerminalInputMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(RobotRunStateMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(RobotRunStateMessage::toBytes)
+                .decoder(RobotRunStateMessage::new)
+                .consumer(RobotRunStateMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(RobotBusStateMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(RobotBusStateMessage::toBytes)
+                .decoder(RobotBusStateMessage::new)
+                .consumer(RobotBusStateMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(RobotBootErrorMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(RobotBootErrorMessage::toBytes)
+                .decoder(RobotBootErrorMessage::new)
+                .consumer(RobotBootErrorMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(RobotPowerMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(RobotPowerMessage::toBytes)
+                .decoder(RobotPowerMessage::new)
+                .consumer(RobotPowerMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(RobotInitializationRequestMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(RobotInitializationRequestMessage::toBytes)
+                .decoder(RobotInitializationRequestMessage::new)
+                .consumer(RobotInitializationRequestMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(RobotInitializationMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(RobotInitializationMessage::toBytes)
+                .decoder(RobotInitializationMessage::new)
+                .consumer(RobotInitializationMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(DiskDriveFloppyMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(DiskDriveFloppyMessage::toBytes)
+                .decoder(DiskDriveFloppyMessage::new)
+                .consumer(DiskDriveFloppyMessage::handleMessage)
+                .add();
     }
 
     public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {
         Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
+    }
+
+    public static <T> void sendToClientsTrackingEntity(final T message, final Entity entity) {
+        Network.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), message);
     }
 
     ///////////////////////////////////////////////////////////////////

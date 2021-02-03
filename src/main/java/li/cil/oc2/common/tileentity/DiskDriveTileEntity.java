@@ -7,7 +7,7 @@ import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.DiskDriveBlock;
-import li.cil.oc2.common.bus.device.item.AbstractHardDriveVMDevice;
+import li.cil.oc2.common.bus.device.item.AbstractBlockDeviceVMDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.TypedItemStackHandler;
 import li.cil.oc2.common.item.AbstractBlockDeviceItem;
@@ -15,6 +15,9 @@ import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.DiskDriveFloppyMessage;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.ItemStackUtils;
+import li.cil.oc2.common.util.LocationSupplierUtils;
+import li.cil.oc2.common.util.SoundEvents;
+import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.block.BlockState;
@@ -32,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.Duration;
 import java.util.Optional;
 
 public final class DiskDriveTileEntity extends AbstractTileEntity {
@@ -45,11 +49,21 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
     private final DiskDriveItemStackHandler itemHandler = new DiskDriveItemStackHandler();
     private final DiskDriveVMDevice device = new DiskDriveVMDevice();
+    private final ThrottledSoundEmitter accessSoundEmitter;
+    private final ThrottledSoundEmitter insertSoundEmitter;
+    private final ThrottledSoundEmitter ejectSoundEmitter;
 
     ///////////////////////////////////////////////////////////////////
 
     public DiskDriveTileEntity() {
         super(TileEntities.DISK_DRIVE_TILE_ENTITY.get());
+
+        this.accessSoundEmitter = new ThrottledSoundEmitter(LocationSupplierUtils.of(this),
+                SoundEvents.FLOPPY_ACCESS.get()).withMinInterval(Duration.ofSeconds(1));
+        this.insertSoundEmitter = new ThrottledSoundEmitter(LocationSupplierUtils.of(this),
+                SoundEvents.FLOPPY_INSERT.get()).withMinInterval(Duration.ofMillis(100));
+        this.ejectSoundEmitter = new ThrottledSoundEmitter(LocationSupplierUtils.of(this),
+                SoundEvents.FLOPPY_EJECT.get()).withMinInterval(Duration.ofMillis(100));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -65,13 +79,20 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
         eject();
 
+        if (!stack.isEmpty()) {
+            insertSoundEmitter.play();
+        }
+
         return itemHandler.insertItem(0, stack, false);
     }
 
     public void eject() {
         final ItemStack stack = itemHandler.extractItem(0, 1, false);
-        final Direction facing = getBlockState().get(DiskDriveBlock.HORIZONTAL_FACING);
-        ItemStackUtils.spawnAsEntity(getWorld(), getPos().offset(facing), stack, facing);
+        if (!stack.isEmpty()) {
+            final Direction facing = getBlockState().get(DiskDriveBlock.HORIZONTAL_FACING);
+            ItemStackUtils.spawnAsEntity(getWorld(), getPos().offset(facing), stack, facing);
+            ejectSoundEmitter.play();
+        }
     }
 
     public ItemStack getFloppy() {
@@ -187,7 +208,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         }
     }
 
-    private final class DiskDriveVMDevice extends AbstractHardDriveVMDevice<BlockDevice, TileEntity> {
+    private final class DiskDriveVMDevice extends AbstractBlockDeviceVMDevice<BlockDevice, TileEntity> {
         private VMContext context;
 
         public DiskDriveVMDevice() {
@@ -273,6 +294,11 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
             }
 
             return device.getOutputStream();
+        }
+
+        @Override
+        protected void handleDataAccess() {
+            accessSoundEmitter.play();
         }
     }
 

@@ -11,18 +11,20 @@ import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.bus.device.util.OptionalInterrupt;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.util.Event;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.virtio.VirtIOBlockDevice;
 import net.minecraft.nbt.CompoundNBT;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Optional;
 import java.util.UUID;
 
 @SuppressWarnings("UnstableApiUsage")
-public abstract class AbstractHardDriveVMDevice<TBlock extends BlockDevice, TIdentity> extends IdentityProxy<TIdentity> implements VMDevice, ItemDevice {
+public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TIdentity> extends IdentityProxy<TIdentity> implements VMDevice, ItemDevice {
     private static final String DEVICE_TAG_NAME = "device";
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String INTERRUPT_TAG_NAME = "interrupt";
@@ -46,7 +48,7 @@ public abstract class AbstractHardDriveVMDevice<TBlock extends BlockDevice, TIde
 
     ///////////////////////////////////////////////////////////////
 
-    protected AbstractHardDriveVMDevice(final TIdentity identity) {
+    protected AbstractBlockDeviceVMDevice(final TIdentity identity) {
         super(identity);
     }
 
@@ -199,6 +201,9 @@ public abstract class AbstractHardDriveVMDevice<TBlock extends BlockDevice, TIde
 
     protected abstract OutputStream getDeserializationStream(TBlock device);
 
+    protected void handleDataAccess() {
+    }
+
     ///////////////////////////////////////////////////////////////
 
     private boolean allocateDevice(final VMContext context) {
@@ -206,7 +211,9 @@ public abstract class AbstractHardDriveVMDevice<TBlock extends BlockDevice, TIde
             return false;
         }
 
-        device = new VirtIOBlockDevice(context.getMemoryMap(), data);
+        final ListenableBlockDevice listenableData = new ListenableBlockDevice(data);
+        listenableData.onAccess.add(this::handleDataAccess);
+        device = new VirtIOBlockDevice(context.getMemoryMap(), listenableData);
 
         return true;
     }
@@ -215,6 +222,158 @@ public abstract class AbstractHardDriveVMDevice<TBlock extends BlockDevice, TIde
         if (jobHandle != null) {
             jobHandle.await();
             jobHandle = null;
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////
+
+    private static final class ListenableBlockDevice implements BlockDevice {
+        private final BlockDevice inner;
+
+        public final Event onAccess = new Event();
+
+        private ListenableBlockDevice(final BlockDevice inner) {
+            this.inner = inner;
+        }
+
+        @Override
+        public boolean isReadonly() {
+            return inner.isReadonly();
+        }
+
+        @Override
+        public long getCapacity() {
+            return inner.getCapacity();
+        }
+
+        @Override
+        public InputStream getInputStream(final long offset) {
+            final ListenableInputStream stream = new ListenableInputStream(inner.getInputStream(offset));
+            stream.onAccess.add(onAccess);
+            return stream;
+        }
+
+        @Override
+        public OutputStream getOutputStream(final long offset) {
+            final ListenableOutputStream stream = new ListenableOutputStream(inner.getOutputStream(offset));
+            stream.onAccess.add(onAccess);
+            return stream;
+        }
+
+        @Override
+        public void flush() {
+            inner.flush();
+        }
+
+        @Override
+        public void close() throws IOException {
+            inner.close();
+        }
+    }
+
+    private static final class ListenableInputStream extends InputStream {
+        private final InputStream inner;
+
+        public final Event onAccess = new Event();
+
+        private ListenableInputStream(final InputStream inner) {
+            this.inner = inner;
+        }
+
+        @Override
+        public int read() throws IOException {
+            onAccess();
+            return inner.read();
+        }
+
+        @Override
+        public int read(final byte[] b) throws IOException {
+            onAccess();
+            return inner.read(b);
+        }
+
+        @Override
+        public int read(final byte[] b, final int off, final int len) throws IOException {
+            onAccess();
+            return inner.read(b, off, len);
+        }
+
+        @Override
+        public long skip(final long n) throws IOException {
+            onAccess();
+            return inner.skip(n);
+        }
+
+        @Override
+        public int available() throws IOException {
+            return inner.available();
+        }
+
+        @Override
+        public void close() throws IOException {
+            inner.close();
+        }
+
+        @Override
+        public synchronized void mark(final int limit) {
+            inner.mark(limit);
+        }
+
+        @Override
+        public synchronized void reset() throws IOException {
+            onAccess();
+            inner.reset();
+        }
+
+        @Override
+        public boolean markSupported() {
+            return inner.markSupported();
+        }
+
+        private void onAccess() {
+            onAccess.run();
+        }
+    }
+
+    private static final class ListenableOutputStream extends OutputStream {
+        private final OutputStream inner;
+
+        public final Event onAccess = new Event();
+
+        private ListenableOutputStream(final OutputStream inner) {
+            this.inner = inner;
+        }
+
+        @Override
+        public void write(final int b) throws IOException {
+            onAccess();
+            inner.write(b);
+        }
+
+        @Override
+        public void write(final byte[] b) throws IOException {
+            onAccess();
+            inner.write(b);
+        }
+
+        @Override
+        public void write(final byte[] b, final int off, final int len) throws IOException {
+            onAccess();
+            inner.write(b, off, len);
+        }
+
+        @Override
+        public void flush() throws IOException {
+            inner.flush();
+        }
+
+        @Override
+        public void close() throws IOException {
+            inner.close();
+        }
+
+        private void onAccess() {
+            onAccess.run();
         }
     }
 }

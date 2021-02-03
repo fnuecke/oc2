@@ -11,6 +11,7 @@ import li.cil.oc2.common.bus.device.item.SparseHardDriveVMDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.item.AbstractBlockDeviceItem;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.util.LocationSupplierUtils;
 import li.cil.sedna.api.device.BlockDevice;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
@@ -32,11 +33,11 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
         final BlockDeviceData handler = AbstractBlockDeviceItem.getData(stack);
         if (handler != null) {
             final BlockDevice base = handler.getBlockDevice();
-            return Optional.of(new SparseHardDriveVMDevice(stack, base, readonly));
+            return Optional.of(new SparseHardDriveVMDevice(stack, base, readonly, LocationSupplierUtils.of(query)));
         }
 
         final int size = MathHelper.clamp(AbstractBlockDeviceItem.getCapacity(stack), 0, Config.maxHardDriveSize);
-        return Optional.of(new HardDriveVMDevice(stack, size, readonly));
+        return Optional.of(new HardDriveVMDevice(stack, size, readonly, LocationSupplierUtils.of(query)));
     }
 
     @Override

@@ -1,0 +1,88 @@
+package li.cil.oc2.common.util;
+
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvent;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.IWorld;
+
+import java.time.Duration;
+import java.util.Optional;
+import java.util.Random;
+import java.util.function.Supplier;
+
+public final class ThrottledSoundEmitter {
+    private final Supplier<Optional<Location>> location;
+    private final SoundEvent sound;
+    private long minInterval;
+    private SoundCategory category;
+    private float volume = 0.95f;
+    private float volumeVariance = 0.05f;
+    private float pitch = 0.9f;
+    private float pitchVariance = 0.1f;
+
+    private long lastEmittedTime;
+
+    ///////////////////////////////////////////////////////////////////
+
+    public ThrottledSoundEmitter(final Supplier<Optional<Location>> location, final SoundEvent sound) {
+        this.location = location;
+        this.sound = sound;
+        this.category = SoundCategory.BLOCKS;
+        this.minInterval = 500;
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    public void play() {
+        final long now = System.currentTimeMillis();
+        if (now - lastEmittedTime > minInterval) {
+            lastEmittedTime = now;
+            this.location.get().ifPresent(location -> {
+                final IWorld world = location.world;
+                final float volume = sampleVolume(world.getRandom());
+                final float pitch = samplePitch(world.getRandom());
+                WorldUtils.playSound(world, location.pos, sound, category, volume, pitch);
+            });
+        }
+    }
+
+    public ThrottledSoundEmitter withMinInterval(final Duration minInterval) {
+        this.minInterval = minInterval.toMillis();
+        return this;
+    }
+
+    public ThrottledSoundEmitter withCategory(final SoundCategory category) {
+        this.category = category;
+        return this;
+    }
+
+    public ThrottledSoundEmitter withVolume(final float volume) {
+        this.volume = volume;
+        return this;
+    }
+
+    public ThrottledSoundEmitter withVolumeVariance(final float volumeVariance) {
+        this.volumeVariance = volumeVariance;
+        return this;
+    }
+
+    public ThrottledSoundEmitter withPitch(final float pitch) {
+        this.pitch = pitch;
+        return this;
+    }
+
+    public ThrottledSoundEmitter withPitchVariance(final float pitchVariance) {
+        this.pitchVariance = pitchVariance;
+        return this;
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private float sampleVolume(final Random random) {
+        return MathHelper.clamp(volume + volumeVariance * (random.nextFloat() - 0.5f), 0, 1);
+    }
+
+    private float samplePitch(final Random random) {
+        return MathHelper.clamp(pitch + pitchVariance * (random.nextFloat() - 0.5f), 0, 1);
+    }
+}

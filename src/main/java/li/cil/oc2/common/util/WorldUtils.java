@@ -59,6 +59,10 @@ public final class WorldUtils {
     }
 
     public static void playSound(final IWorld world, final BlockPos pos, final SoundType soundType, final SoundEvent soundEvent) {
-        world.playSound(null, pos, soundEvent, SoundCategory.BLOCKS, (soundType.getVolume() + 1f) / 2f, soundType.getPitch() * 0.8f);
+        playSound(world, pos, soundEvent, SoundCategory.BLOCKS, (soundType.getVolume() + 1f) / 2f, soundType.getPitch() * 0.8f);
+    }
+
+    public static void playSound(final IWorld world, final BlockPos pos, final SoundEvent soundEvent, final SoundCategory soundCategory, final float volume, final float pitch) {
+        world.playSound(null, pos, soundEvent, soundCategory, volume, pitch);
     }
 }

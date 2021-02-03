@@ -15,6 +15,7 @@ import li.cil.oc2.common.serialization.serializers.Serializers;
 import li.cil.oc2.common.tags.BlockTags;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.tileentity.TileEntities;
+import li.cil.oc2.common.util.SoundEvents;
 import li.cil.sedna.Sedna;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
@@ -37,6 +38,7 @@ public final class Main {
         TileEntities.initialize();
         Entities.initialize();
         Containers.initialize();
+        SoundEvents.initialize();
 
         Providers.initialize();
         DeviceTypes.initialize();

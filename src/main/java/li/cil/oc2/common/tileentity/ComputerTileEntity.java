@@ -3,6 +3,7 @@ package li.cil.oc2.common.tileentity;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.client.audio.LoopingSoundManager;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
@@ -19,10 +20,7 @@ import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.ComputerTerminalOutputMessage;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.util.HorizontalBlockUtils;
-import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.util.TerminalUtils;
+import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
@@ -52,6 +50,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final int HARD_DRIVE_SLOTS = 4;
     private static final int FLASH_MEMORY_SLOTS = 1;
     private static final int CARD_SLOTS = 4;
+
+    private static final int MAX_RUNNING_SOUND_DELAY = Constants.TICK_SECONDS * 2;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -320,6 +320,19 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             super(busController);
             state.vmAdapter.setBaseAddressProvider(baseAddressProvider);
             state.board.setStandardOutputDevice(state.builtinDevices.uart);
+        }
+
+        @Override
+        public void setRunStateClient(final VMRunState value) {
+            super.setRunStateClient(value);
+
+            if (value == VMRunState.RUNNING) {
+                if (!LoopingSoundManager.isPlaying(ComputerTileEntity.this)) {
+                    LoopingSoundManager.play(ComputerTileEntity.this, SoundEvents.COMPUTER_RUNNING.get(), getWorld().getRandom().nextInt(MAX_RUNNING_SOUND_DELAY));
+                }
+            } else {
+                LoopingSoundManager.stop(ComputerTileEntity.this);
+            }
         }
 
         @Override

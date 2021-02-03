@@ -5,7 +5,8 @@
     "sounds": [
       {
         "name": "oc2:computer_running",
-        "stream": true
+        "stream": true,
+        "volume": 0.25
       }
     ]
   },

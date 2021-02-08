@@ -10,6 +10,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class Items {
@@ -18,7 +19,8 @@ public final class Items {
     ///////////////////////////////////////////////////////////////////
 
     public static final RegistryObject<Item> COMPUTER = register(Constants.COMPUTER_BLOCK_NAME, Blocks.COMPUTER);
-    public static final RegistryObject<Item> BUS_CABLE = register(Constants.BUS_CABLE_BLOCK_NAME, Blocks.BUS_CABLE);
+    public static final RegistryObject<Item> BUS_CABLE = register(Constants.BUS_CABLE_BLOCK_NAME, Blocks.BUS_CABLE, BusCableItem::new);
+    public static final RegistryObject<BusInterfaceItem> BUS_INTERFACE = register(Constants.BUS_INTERFACE_ITEM_NAME, Blocks.BUS_CABLE, BusInterfaceItem::new);
     public static final RegistryObject<Item> NETWORK_CONNECTOR = register(Constants.NETWORK_CONNECTOR_BLOCK_NAME, Blocks.NETWORK_CONNECTOR);
     public static final RegistryObject<Item> NETWORK_HUB = register(Constants.NETWORK_HUB_BLOCK_NAME, Blocks.NETWORK_HUB);
     public static final RegistryObject<Item> REDSTONE_INTERFACE = register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, Blocks.REDSTONE_INTERFACE);
@@ -28,8 +30,7 @@ public final class Items {
 
     public static final RegistryObject<Item> WRENCH = register(Constants.WRENCH_ITEM_NAME, WrenchItem::new);
 
-    public static final RegistryObject<Item> BUS_INTERFACE = register(Constants.BUS_INTERFACE_ITEM_NAME, BusInterfaceItem::new);
-    public static final RegistryObject<Item> NETWORK_CABLE = register(Constants.NETWORK_CABLE_ITEM_NAME, NetworkCableItem::new);
+    public static final RegistryObject<NetworkCableItem> NETWORK_CABLE = register(Constants.NETWORK_CABLE_ITEM_NAME, NetworkCableItem::new);
     public static final RegistryObject<Item> ROBOT = register(Constants.ROBOT_ENTITY_NAME, RobotItem::new);
 
     public static final RegistryObject<MemoryItem> MEMORY = register(Constants.MEMORY_ITEM_NAME, MemoryItem::new);
@@ -59,6 +60,10 @@ public final class Items {
     }
 
     private static <T extends Block> RegistryObject<Item> register(final String name, final RegistryObject<T> block) {
-        return register(name, () -> new ModBlockItem(block.get()));
+        return register(name, block, ModBlockItem::new);
+    }
+
+    private static <TBlock extends Block, TItem extends Item> RegistryObject<TItem> register(final String name, final RegistryObject<TBlock> block, final Function<TBlock, TItem> factory) {
+        return register(name, () -> factory.apply(block.get()));
     }
 }

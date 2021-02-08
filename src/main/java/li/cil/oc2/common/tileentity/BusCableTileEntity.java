@@ -36,9 +36,16 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         requestModelDataUpdate();
     }
 
-    public void handleConnectionTypeChanged(final Direction side) {
-        invalidateCapability(Capabilities.DEVICE_BUS_ELEMENT, side);
-        handleNeighborChanged(getPos().offset(side));
+    public void handleConnectivityChanged(@Nullable final Direction side) {
+        if (side == null) {
+            busElement.scheduleScan();
+
+            // TODO Remove if https://github.com/MinecraftForge/MinecraftForge/pull/7595 gets merged.
+            requestModelDataUpdate();
+        } else {
+            invalidateCapability(Capabilities.DEVICE_BUS_ELEMENT, side);
+            handleNeighborChanged(getPos().offset(side));
+        }
     }
 
     @Override
@@ -102,14 +109,14 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         @Override
         public boolean canScanContinueTowards(@Nullable final Direction direction) {
             final BusCableBlock.ConnectionType connectionType = BusCableBlock.getConnectionType(getBlockState(), direction);
-            return connectionType == BusCableBlock.ConnectionType.LINK ||
-                   connectionType == BusCableBlock.ConnectionType.PLUG;
+            return connectionType == BusCableBlock.ConnectionType.CABLE ||
+                   connectionType == BusCableBlock.ConnectionType.INTERFACE;
         }
 
         @Override
         public boolean canDetectDevicesTowards(@Nullable final Direction direction) {
             final BusCableBlock.ConnectionType connectionType = BusCableBlock.getConnectionType(getBlockState(), direction);
-            return connectionType == BusCableBlock.ConnectionType.PLUG;
+            return connectionType == BusCableBlock.ConnectionType.INTERFACE;
         }
     }
 }

@@ -8,6 +8,7 @@ import net.minecraftforge.common.Tags;
 public final class BlockTags {
     public static final Tags.IOptionalNamedTag<Block> DEVICES = tag("devices");
     public static final Tags.IOptionalNamedTag<Block> CABLES = tag("cables");
+    public static final Tags.IOptionalNamedTag<Block> WRENCH_BREAKABLE = tag("wrench_breakable");
 
     ///////////////////////////////////////////////////////////////////
 

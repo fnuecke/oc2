@@ -2,7 +2,6 @@ package li.cil.oc2.common.item;
 
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
-import li.cil.oc2.common.block.BusCableBlock.ConnectionType;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.block.Block;
@@ -13,16 +12,12 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
-import net.minecraft.state.EnumProperty;
 import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
-public final class BusInterfaceItem extends ModBlockItem {
-    public BusInterfaceItem(final Block block) {
+public final class BusCableItem extends ModBlockItem {
+    public BusCableItem(final Block block) {
         super(block);
     }
 
@@ -30,41 +25,26 @@ public final class BusInterfaceItem extends ModBlockItem {
 
     @Override
     public ActionResultType onItemUse(final ItemUseContext context) {
-        final Vector3d localHitPos = context.getHitVec().subtract(Vector3d.copyCentered(context.getPos()));
-        final Direction side = Direction.getFacingFromVector(localHitPos.x, localHitPos.y, localHitPos.z);
-        final ActionResultType result = tryAddToBlock(context, side);
+        final ActionResultType result = tryAddToBlock(context);
         return result.isSuccessOrConsume() ? result : super.onItemUse(context);
     }
 
     @Override
     public ActionResultType tryPlace(final BlockItemUseContext context) {
-        final ActionResultType result = tryAddToBlock(context, context.getFace().getOpposite());
+        final ActionResultType result = tryAddToBlock(context);
         return result.isSuccessOrConsume() ? result : super.tryPlace(context);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    @Nullable
-    @Override
-    protected BlockState getStateForPlacement(final BlockItemUseContext context) {
-        final BlockState state = super.getStateForPlacement(context);
-        final EnumProperty<ConnectionType> connectionTypeProperty =
-                BusCableBlock.FACING_TO_CONNECTION_MAP.get(context.getFace().getOpposite());
-        return state
-                .with(BusCableBlock.HAS_CABLE, false)
-                .with(connectionTypeProperty, ConnectionType.INTERFACE);
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    private ActionResultType tryAddToBlock(final ItemUseContext context, final Direction side) {
+    private ActionResultType tryAddToBlock(final ItemUseContext context) {
         final BusCableBlock busCableBlock = Blocks.BUS_CABLE.get();
 
         final World world = context.getWorld();
         final BlockPos pos = context.getPos();
         final BlockState state = world.getBlockState(pos);
 
-        if (state.getBlock() == busCableBlock && busCableBlock.addInterface(world, pos, state, side)) {
+        if (state.getBlock() == busCableBlock && busCableBlock.addCable(world, pos, state)) {
             final PlayerEntity player = context.getPlayer();
             final ItemStack stack = context.getItem();
 

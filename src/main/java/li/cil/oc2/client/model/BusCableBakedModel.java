@@ -35,7 +35,7 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
 
     @Override
     public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, final Random rand, final IModelData extraData) {
-        if (state == null) {
+        if (state == null || !state.get(BusCableBlock.HAS_CABLE)) {
             return proxy.getQuads(null, side, rand, extraData);
         }
 
@@ -96,7 +96,7 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
         for (final Direction direction : Constants.DIRECTIONS) {
             if (isNeighborInDirectionSolid(world, pos, direction)) {
                 final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(direction);
-                if (state.hasProperty(property) && state.get(property) == BusCableBlock.ConnectionType.PLUG) {
+                if (state.hasProperty(property) && state.get(property) == BusCableBlock.ConnectionType.INTERFACE) {
                     return tileData; // Plug is already supporting us, bail.
                 }
 
@@ -126,7 +126,7 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
         for (final Direction direction : Constants.DIRECTIONS) {
             final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(direction);
             if (axis.test(direction)) {
-                if (state.get(property) != BusCableBlock.ConnectionType.LINK) {
+                if (state.get(property) != BusCableBlock.ConnectionType.CABLE) {
                     return false;
                 }
             } else {

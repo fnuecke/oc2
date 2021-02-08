@@ -106,11 +106,15 @@ public final class ItemStackUtils {
         return Optional.of(entity);
     }
 
-    public static Optional<ItemEntity> spawnAsEntity(final World world, final BlockPos pos, final ItemStack stack, final Direction direction) {
+    public static Optional<ItemEntity> spawnAsEntity(final World world, final BlockPos pos, final ItemStack stack, @Nullable final Direction direction) {
         return spawnAsEntity(world, Vector3d.copyCentered(pos), stack, direction);
     }
 
-    public static Optional<ItemEntity> spawnAsEntity(final World world, final Vector3d pos, final ItemStack stack, final Direction direction) {
+    public static Optional<ItemEntity> spawnAsEntity(final World world, final Vector3d pos, final ItemStack stack, @Nullable final Direction direction) {
+        if (direction == null) {
+            return spawnAsEntity(world, pos, stack);
+        }
+
         if (world.isRemote() || stack.isEmpty()) {
             return Optional.empty();
         }

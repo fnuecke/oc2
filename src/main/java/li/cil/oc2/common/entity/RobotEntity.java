@@ -61,6 +61,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.common.util.Constants.BlockFlags;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -270,7 +271,7 @@ public final class RobotEntity extends Entity implements Robot {
                             .withParameter(LootParameters.BLOCK_STATE, blockState)
                             .withNullableParameter(LootParameters.BLOCK_ENTITY, tileEntity);
                     final List<ItemStack> drops = blockState.getDrops(builder);
-                    world.setBlockState(mutablePosition, Blocks.AIR.getDefaultState(), 3);
+                    world.setBlockState(mutablePosition, Blocks.AIR.getDefaultState());
                     for (final ItemStack drop : drops) {
                         Block.spawnAsEntity(world, mutablePosition, drop);
                     }

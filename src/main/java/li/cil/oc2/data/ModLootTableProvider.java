@@ -42,7 +42,6 @@ public final class ModLootTableProvider extends LootTableProvider {
     public static final class ModBlockLootTables extends BlockLootTables {
         @Override
         protected void addTables() {
-            registerDropSelfLootTable(Blocks.BUS_CABLE.get());
             registerDropSelfLootTable(Blocks.REDSTONE_INTERFACE.get());
             registerDropSelfLootTable(Blocks.NETWORK_CONNECTOR.get());
             registerDropSelfLootTable(Blocks.NETWORK_HUB.get());
@@ -55,6 +54,7 @@ public final class ModLootTableProvider extends LootTableProvider {
         protected Iterable<Block> getKnownBlocks() {
             return StreamSupport.stream(super.getKnownBlocks().spliterator(), false)
                     .filter(block -> requireNonNull(block.getRegistryName()).getNamespace().equals(API.MOD_ID))
+                    .filter(block -> block != Blocks.BUS_CABLE.get()) // All bus drops depend on block state.
                     .collect(Collectors.toList());
         }
 

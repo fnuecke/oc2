@@ -7,8 +7,7 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.Nullable;
 
 import static li.cil.oc2.common.block.Blocks.*;
-import static li.cil.oc2.common.tags.BlockTags.CABLES;
-import static li.cil.oc2.common.tags.BlockTags.DEVICES;
+import static li.cil.oc2.common.tags.BlockTags.*;
 
 public final class ModBlockTagsProvider extends BlockTagsProvider {
     public ModBlockTagsProvider(final DataGenerator generatorIn, @Nullable final ExistingFileHelper existingFileHelper) {
@@ -22,6 +21,16 @@ public final class ModBlockTagsProvider extends BlockTagsProvider {
                 REDSTONE_INTERFACE.get(),
                 DISK_DRIVE.get()
         );
-        getOrCreateBuilder(CABLES).add(BUS_CABLE.get());
+        getOrCreateBuilder(CABLES).add(
+                BUS_CABLE.get()
+        );
+        getOrCreateBuilder(WRENCH_BREAKABLE).add(
+                COMPUTER.get(),
+                BUS_CABLE.get(),
+                NETWORK_CONNECTOR.get(),
+                NETWORK_HUB.get(),
+                REDSTONE_INTERFACE.get(),
+                DISK_DRIVE.get()
+        );
     }
 }

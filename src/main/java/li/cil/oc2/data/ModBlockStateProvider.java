@@ -49,7 +49,12 @@ public class ModBlockStateProvider extends BlockStateProvider {
 
         // NB: We use a custom model loader + baked model to replace the base part with straight parts and
         //     insert supports where appropriate.
-        builder.part().modelFile(baseModel).addModel().end();
+
+        builder.part()
+                .modelFile(baseModel)
+                .addModel()
+                .condition(BusCableBlock.HAS_CABLE, true)
+                .end();
 
         BusCableBlock.FACING_TO_CONNECTION_MAP.forEach((direction, connectionType) -> {
             final int rotationY = (int) direction.getHorizontalAngle();
@@ -67,7 +72,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                     .rotationY(rotationY)
                     .rotationX(rotationX)
                     .addModel()
-                    .condition(connectionType, BusCableBlock.ConnectionType.LINK)
+                    .condition(connectionType, BusCableBlock.ConnectionType.CABLE)
                     .end();
 
             builder.part()
@@ -75,7 +80,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                     .rotationY(rotationY)
                     .rotationX(rotationX)
                     .addModel()
-                    .condition(connectionType, BusCableBlock.ConnectionType.PLUG)
+                    .condition(connectionType, BusCableBlock.ConnectionType.INTERFACE)
                     .end();
         });
 

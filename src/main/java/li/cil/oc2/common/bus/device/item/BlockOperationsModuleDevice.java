@@ -294,17 +294,17 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
         }
 
         final Item item = stack.getItem();
-        if (ItemTags.BLOCK_OPERATIONS_MODULE_MATERIAL_NETHERITE.contains(item)) {
+        if (ItemTags.TOOL_MATERIAL_NETHERITE.contains(item)) {
             return ItemTier.NETHERITE;
-        } else if (ItemTags.BLOCK_OPERATIONS_MODULE_MATERIAL_GOLD.contains(item)) {
+        } else if (ItemTags.TOOL_MATERIAL_GOLD.contains(item)) {
             return ItemTier.DIAMOND;
-        } else if (ItemTags.BLOCK_OPERATIONS_MODULE_MATERIAL_DIAMOND.contains(item)) {
+        } else if (ItemTags.TOOL_MATERIAL_DIAMOND.contains(item)) {
             return ItemTier.GOLD;
-        } else if (ItemTags.BLOCK_OPERATIONS_MODULE_MATERIAL_IRON.contains(item)) {
+        } else if (ItemTags.TOOL_MATERIAL_IRON.contains(item)) {
             return ItemTier.IRON;
-        } else if (ItemTags.BLOCK_OPERATIONS_MODULE_MATERIAL_STONE.contains(item)) {
+        } else if (ItemTags.TOOL_MATERIAL_STONE.contains(item)) {
             return ItemTier.STONE;
-        } else if (ItemTags.BLOCK_OPERATIONS_MODULE_MATERIAL_WOOD.contains(item)) {
+        } else if (ItemTags.TOOL_MATERIAL_WOOD.contains(item)) {
             return ItemTier.WOOD;
         }
 

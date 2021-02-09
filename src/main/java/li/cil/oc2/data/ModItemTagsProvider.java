@@ -53,30 +53,30 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
                 Items.FLOPPY.get()
         );
 
-        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL).addTags(
-                BLOCK_OPERATIONS_MODULE_MATERIAL_WOOD,
-                BLOCK_OPERATIONS_MODULE_MATERIAL_STONE,
-                BLOCK_OPERATIONS_MODULE_MATERIAL_IRON,
-                BLOCK_OPERATIONS_MODULE_MATERIAL_GOLD,
-                BLOCK_OPERATIONS_MODULE_MATERIAL_DIAMOND,
-                BLOCK_OPERATIONS_MODULE_MATERIAL_NETHERITE
+        getOrCreateBuilder(TOOL_MATERIALS).addTags(
+                TOOL_MATERIAL_WOOD,
+                TOOL_MATERIAL_STONE,
+                TOOL_MATERIAL_IRON,
+                TOOL_MATERIAL_GOLD,
+                TOOL_MATERIAL_DIAMOND,
+                TOOL_MATERIAL_NETHERITE
         );
-        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL_WOOD).addTags(
+        getOrCreateBuilder(TOOL_MATERIAL_WOOD).addTags(
                 ItemTags.PLANKS
         );
-        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL_STONE).addTags(
+        getOrCreateBuilder(TOOL_MATERIAL_STONE).addTags(
                 ItemTags.STONE_TOOL_MATERIALS
         );
-        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL_IRON).addTags(
+        getOrCreateBuilder(TOOL_MATERIAL_IRON).addTags(
                 Tags.Items.INGOTS_IRON
         );
-        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL_GOLD).addTags(
+        getOrCreateBuilder(TOOL_MATERIAL_GOLD).addTags(
                 Tags.Items.INGOTS_GOLD
         );
-        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL_DIAMOND).addTags(
+        getOrCreateBuilder(TOOL_MATERIAL_DIAMOND).addTags(
                 Tags.Items.GEMS_DIAMOND
         );
-        getOrCreateBuilder(BLOCK_OPERATIONS_MODULE_MATERIAL_NETHERITE).addTags(
+        getOrCreateBuilder(TOOL_MATERIAL_NETHERITE).addTags(
                 Tags.Items.INGOTS_NETHERITE
         );
 

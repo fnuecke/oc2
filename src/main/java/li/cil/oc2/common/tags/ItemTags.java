@@ -14,13 +14,13 @@ public final class ItemTags {
     public static final Tags.IOptionalNamedTag<Item> DEVICES_ROBOT_MODULE = tag("devices/robot_module");
     public static final Tags.IOptionalNamedTag<Item> DEVICES_FLOPPY = tag("devices/floppy");
 
-    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL = tag("block_operations_module_material");
-    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL_WOOD = tag("block_operations_module_material/wood");
-    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL_STONE = tag("block_operations_module_material/stone");
-    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL_IRON = tag("block_operations_module_material/iron");
-    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL_GOLD = tag("block_operations_module_material/gold");
-    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL_DIAMOND = tag("block_operations_module_material/diamond");
-    public static final Tags.IOptionalNamedTag<Item> BLOCK_OPERATIONS_MODULE_MATERIAL_NETHERITE = tag("block_operations_module_material/netherite");
+    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIALS = tag("tool_materials");
+    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIAL_WOOD = tag("tool_materials/wood");
+    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIAL_STONE = tag("tool_materials/stone");
+    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIAL_IRON = tag("tool_materials/iron");
+    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIAL_GOLD = tag("tool_materials/gold");
+    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIAL_DIAMOND = tag("tool_materials/diamond");
+    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIAL_NETHERITE = tag("tool_materials/netherite");
 
     public static final Tags.IOptionalNamedTag<Item> CABLES = tag("cables");
     public static final Tags.IOptionalNamedTag<Item> WRENCHES = tag("wrenches");

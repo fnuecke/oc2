@@ -26,7 +26,7 @@ public final class Network {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void setup() {
+    public static void initialize() {
         INSTANCE.messageBuilder(ComputerTerminalOutputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(ComputerTerminalOutputMessage::toBytes)
                 .decoder(ComputerTerminalOutputMessage::new)

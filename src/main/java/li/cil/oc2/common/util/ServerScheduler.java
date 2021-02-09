@@ -21,7 +21,7 @@ public final class ServerScheduler {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void register() {
+    public static void initialize() {
         MinecraftForge.EVENT_BUS.register(EventHandler.class);
     }
 

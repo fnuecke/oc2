@@ -6,6 +6,7 @@ import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
 import net.minecraft.util.Util;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -24,7 +25,15 @@ public final class IMC {
         return map;
     });
 
-    public static void handleIMCMessages(final InterModProcessEvent event) {
+    ///////////////////////////////////////////////////////////////////
+
+    public static void initialize() {
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(IMC::handleIMCMessages);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private static void handleIMCMessages(final InterModProcessEvent event) {
         event.getIMCStream().forEach(message -> {
             final Consumer<InterModComms.IMCMessage> method = METHODS.get(message.getMethod());
             if (method != null) {

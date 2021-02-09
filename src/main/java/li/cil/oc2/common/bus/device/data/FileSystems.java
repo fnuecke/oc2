@@ -2,7 +2,6 @@ package li.cil.oc2.common.bus.device.data;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import li.cil.oc2.api.API;
 import li.cil.oc2.common.vm.fs.LayeredFileSystem;
 import li.cil.oc2.common.vm.fs.ResourceFileSystem;
 import li.cil.sedna.fs.FileSystem;
@@ -11,6 +10,7 @@ import net.minecraft.resources.IFutureReloadListener;
 import net.minecraft.resources.IResource;
 import net.minecraft.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,6 +26,10 @@ public final class FileSystems {
 
     ///////////////////////////////////////////////////////////////////
 
+    public static void initialize() {
+        MinecraftForge.EVENT_BUS.addListener(FileSystems::handleAddReloadListenerEvent);
+    }
+
     public static FileSystem getLayeredFileSystem() {
         return LAYERED_FILE_SYSTEM;
     }
@@ -34,11 +38,11 @@ public final class FileSystems {
         LAYERED_FILE_SYSTEM.clear();
     }
 
-    public static void handleAddReloadListenerEvent(final AddReloadListenerEvent event) {
-        event.addListener(FileSystemsReloadListener.INSTANCE);
-    }
-
     ///////////////////////////////////////////////////////////////////
+
+    private static void handleAddReloadListenerEvent(final AddReloadListenerEvent event) {
+        event.addListener(ReloadListener.INSTANCE);
+    }
 
     private static void reload(final IResourceManager resourceManager) {
         reset();
@@ -83,13 +87,8 @@ public final class FileSystems {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final class FileSystemsReloadListener implements IFutureReloadListener {
-        public static final FileSystemsReloadListener INSTANCE = new FileSystemsReloadListener();
-
-        @Override
-        public String getSimpleName() {
-            return API.MOD_ID + ":file_system";
-        }
+    private static final class ReloadListener implements IFutureReloadListener {
+        public static final ReloadListener INSTANCE = new ReloadListener();
 
         @Override
         public CompletableFuture<Void> reload(final IFutureReloadListener.IStage stage, final IResourceManager resourceManager, final IProfiler preparationsProfiler, final IProfiler reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {

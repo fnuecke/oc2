@@ -81,7 +81,6 @@ public final class Callbacks {
     public static boolean hasMethods(final Object object) {
         if (object instanceof Class<?>) {
             return !getMethods((Class<?>) object).isEmpty();
-
         } else {
             return !getMethods(object.getClass()).isEmpty();
         }

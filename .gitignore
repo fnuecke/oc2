@@ -21,11 +21,11 @@ build
 eclipse
 run
 logs
+/assets/
 
 # Files from Forge MDK
 forge*changelog.txt
 /src/generated/
 
 #vscode
-
 .vscode

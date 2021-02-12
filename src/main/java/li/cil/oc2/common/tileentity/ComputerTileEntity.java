@@ -319,7 +319,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         private ComputerVirtualMachine(final CommonDeviceBusController busController, final BaseAddressProvider baseAddressProvider) {
             super(busController);
             state.vmAdapter.setBaseAddressProvider(baseAddressProvider);
-            state.board.setStandardOutputDevice(state.builtinDevices.uart);
         }
 
         @Override

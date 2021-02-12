@@ -70,14 +70,13 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
         state.board = new R5Board();
         state.context = new GlobalVMContext(state.board, this::joinWorkerThread);
+        state.builtinDevices = new BuiltinDevices(state.context);
+        state.rpcAdapter = new RPCDeviceBusAdapter(state.builtinDevices.rpcSerialDevice);
+        state.vmAdapter = new VMDeviceBusAdapter(state.context);
 
         state.board.getCpu().setFrequency(Constants.CPU_FREQUENCY);
         state.board.setBootArguments("root=/dev/vda rw");
-
-        state.builtinDevices = new BuiltinDevices(state.context);
-
-        state.rpcAdapter = new RPCDeviceBusAdapter(state.builtinDevices.rpcSerialDevice);
-        state.vmAdapter = new VMDeviceBusAdapter(state.context);
+        state.board.setStandardOutputDevice(state.builtinDevices.uart);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -216,75 +215,11 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
 
         switch (runState) {
-            case STOPPED:
-                break;
             case LOADING_DEVICES:
-                if (loadDevicesDelay > 0) {
-                    loadDevicesDelay--;
-                    break;
-                }
-
-                final VMDeviceLoadResult loadResult = state.vmAdapter.load();
-                if (!loadResult.wasSuccessful()) {
-                    if (loadResult.getErrorMessage() != null) {
-                        setBootError(loadResult.getErrorMessage());
-                    } else {
-                        setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
-                    }
-                    loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
-                    break;
-                }
-
-                if (busController.getDevices().stream().noneMatch(device -> device instanceof FirmwareLoader)) {
-                    setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
-                    setRunState(VMRunState.STOPPED);
-                    break;
-                }
-
-                // May have a valid runner after load. In which case we just had to wait for
-                // bus setup and devices to load. So we can keep using it.
-                if (runner == null) {
-                    try {
-                        state.board.reset();
-                        state.board.initialize();
-                        state.board.setRunning(true);
-                    } catch (final IllegalStateException e) {
-                        // FDT did not fit into memory. Technically it's possible to run with
-                        // a program that only uses registers. But not supporting that esoteric
-                        // use-case loses out against avoiding people getting confused for having
-                        // forgotten to add some RAM modules.
-                        setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
-                        setRunState(VMRunState.STOPPED);
-                        break;
-                    } catch (final MemoryAccessException e) {
-                        LOGGER.error(e);
-                        setBootError(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
-                        setRunState(VMRunState.STOPPED);
-                        break;
-                    }
-
-                    runner = createRunner();
-                }
-
-                setRunState(VMRunState.RUNNING);
-
-                // Only start running next tick. This gives loaded devices one tick to do async
-                // initialization. This is used by devices to restore data from disk, for example.
+                load();
                 break;
             case RUNNING:
-                final ITextComponent runtimeError = runner.getRuntimeError();
-                if (runtimeError != null) {
-                    stopRunnerAndReset();
-                    setBootError(runtimeError);
-                    break;
-                }
-
-                if (!state.board.isRunning()) {
-                    stopRunnerAndReset();
-                    break;
-                }
-
-                runner.tick();
+                run();
                 break;
         }
     }
@@ -337,6 +272,83 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     }
 
     protected void handleBootErrorChanged(@Nullable final ITextComponent value) {
+    }
+
+    protected void load() {
+        if (loadDevicesDelay > 0) {
+            loadDevicesDelay--;
+            return;
+        }
+
+        final VMDeviceLoadResult loadResult = state.vmAdapter.load();
+        if (!loadResult.wasSuccessful()) {
+            if (loadResult.getErrorMessage() != null) {
+                error(loadResult.getErrorMessage(), false);
+            } else {
+                error(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN), false);
+            }
+            loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
+            return;
+        }
+
+        if (busController.getDevices().stream().noneMatch(device -> device instanceof FirmwareLoader)) {
+            error(new TranslationTextComponent(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
+            return;
+        }
+
+        // May have a valid runner after load. In which case we just had to wait for
+        // bus setup and devices to load. So we can keep using it.
+        if (runner == null) {
+            try {
+                state.board.reset();
+                state.board.initialize();
+                state.board.setRunning(true);
+            } catch (final IllegalStateException e) {
+                // FDT did not fit into memory. Technically it's possible to run with
+                // a program that only uses registers. But not supporting that esoteric
+                // use-case loses out against avoiding people getting confused for having
+                // forgotten to add some RAM modules.
+                error(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
+                return;
+            } catch (final MemoryAccessException e) {
+                LOGGER.error(e);
+                error(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
+                return;
+            }
+
+            runner = createRunner();
+        }
+
+        setRunState(VMRunState.RUNNING);
+
+        // Only start running next tick. This gives loaded devices one tick to do async
+        // initialization. This is used by devices to restore data from disk, for example.
+    }
+
+    protected void run() {
+        final ITextComponent runtimeError = runner.getRuntimeError();
+        if (runtimeError != null) {
+            error(runtimeError);
+            return;
+        }
+
+        if (!state.board.isRunning()) {
+            stopRunnerAndReset();
+            return;
+        }
+
+        runner.tick();
+    }
+
+    protected void error(@Nullable final ITextComponent message) {
+        error(message, true);
+    }
+
+    protected void error(@Nullable final ITextComponent message, final boolean reset) {
+        if (reset) {
+            stopRunnerAndReset();
+        }
+        setBootError(message);
     }
 
     ///////////////////////////////////////////////////////////////////

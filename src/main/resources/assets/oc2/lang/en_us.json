@@ -10,6 +10,8 @@
   "block.oc2.redstone_interface": "Redstone Interface",
   "block.oc2.disk_drive": "Disk Drive",
   "block.oc2.disk_drive.desc": "Used to access Floppy Disks.",
+  "block.oc2.charger": "Charger",
+  "block.oc2.charger.desc": "Charges entities and items in containers on top of it.",
 
   "item.oc2.wrench": "Scrench",
   "item.oc2.wrench.desc": "Used to configure devices and to dismantle them (while sneaking).",
@@ -35,9 +37,14 @@
   "config.oc2.vm.maxMemorySize:": "Maximum memory device size",
   "config.oc2.vm.maxHardDriveSize": "Maximum hard drive device size",
   "config.oc2.vm.maxFlashMemorySize:": "Maximum flash memory device size",
-  "config.oc2.computerEnergyPerTick": "Energy/tick used by computers",
   "config.oc2.modules.block_operations.toolLevel": "Block operations module tool level",
   "config.oc2.admin.fakePlayerUUID": "Fake Player UUID",
+  "config.oc2.computerEnergyPerTick": "Energy/tick used by computers",
+  "config.oc2.computerEnergyStorage": "Computer energy storage",
+  "config.oc2.robotEnergyPerTick": "Energy/tick used by robots",
+  "config.oc2.robotEnergyStorage": "Robot energy storage",
+  "config.oc2.chargerEnergyPerTick": "Energy/tick transferred by chargers",
+  "config.oc2.chargerEnergyStorage": "Charge energy storage",
 
   "gui.oc2.computer.error.unknown": "Unknown Error",
   "gui.oc2.computer.error.missing_firmware": "Missing Firmware",
@@ -65,6 +72,7 @@
   "tooltip.oc2.flash_memory_missing": "A flash memory containing a firmware is required to boot.",
   "tooltip.oc2.memory_missing": "Some memory is required to load the flash memory for execution to boot.",
   "tooltip.oc2.hard_drive_missing": "Most systems will require a root file system to boot.",
+  "tooltip.oc2.energy": "Energy: %s",
 
   "subtitles.oc2.computer": "Computer fans running",
   "subtitles.oc2.floppy": "Floppy access",

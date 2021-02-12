@@ -82,19 +82,19 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     @Override
     public CompoundNBT serializeNBT() {
-        final CompoundNBT nbt = new CompoundNBT();
+        final CompoundNBT tag = new CompoundNBT();
 
         if (device != null) {
             blobHandle = BlobStorage.validateHandle(blobHandle);
-            nbt.putUniqueId(BLOB_HANDLE_TAG_NAME, blobHandle);
+            tag.putUniqueId(BLOB_HANDLE_TAG_NAME, blobHandle);
 
             jobHandle = BlobStorage.submitSave(blobHandle, new PhysicalMemoryInputStream(device));
         }
         if (address.isPresent()) {
-            nbt.putLong(ADDRESS_TAG_NAME, address.getAsLong());
+            tag.putLong(ADDRESS_TAG_NAME, address.getAsLong());
         }
 
-        return nbt;
+        return tag;
     }
 
     @Override

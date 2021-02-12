@@ -49,31 +49,31 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
 
     @Override
     public ListNBT serializeNBT() {
-        final ListNBT nbt = new ListNBT();
+        final ListNBT listTag = new ListNBT();
         for (int i = 0; i < groupCount; i++) {
             serializeDevices(i);
 
-            final CompoundNBT sideNbt = new CompoundNBT();
+            final CompoundNBT sideTag = new CompoundNBT();
 
-            sideNbt.putUniqueId(GROUP_ID_TAG_NAME, groupIds[i]);
-            sideNbt.put(GROUP_DATA_TAG_NAME, groupData[i]);
+            sideTag.putUniqueId(GROUP_ID_TAG_NAME, groupIds[i]);
+            sideTag.put(GROUP_DATA_TAG_NAME, groupData[i]);
 
-            nbt.add(sideNbt);
+            listTag.add(sideTag);
         }
-        return nbt;
+        return listTag;
     }
 
     @Override
     public void deserializeNBT(final ListNBT nbt) {
         final int count = Math.min(groupCount, nbt.size());
         for (int i = 0; i < count; i++) {
-            final CompoundNBT sideNbt = nbt.getCompound(i);
+            final CompoundNBT sideTag = nbt.getCompound(i);
 
-            if (sideNbt.hasUniqueId(GROUP_ID_TAG_NAME)) {
-                groupIds[i] = sideNbt.getUniqueId(GROUP_ID_TAG_NAME);
+            if (sideTag.hasUniqueId(GROUP_ID_TAG_NAME)) {
+                groupIds[i] = sideTag.getUniqueId(GROUP_ID_TAG_NAME);
             }
-            if (sideNbt.contains(GROUP_DATA_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-                groupData[i] = sideNbt.getCompound(GROUP_DATA_TAG_NAME);
+            if (sideTag.contains(GROUP_DATA_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
+                groupData[i] = sideTag.getCompound(GROUP_DATA_TAG_NAME);
             }
         }
     }
@@ -110,14 +110,14 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         oldDevices.removeAll(removedDevices);
         oldDevices.addAll(newDevices);
 
-        final CompoundNBT devicesNbt = groupData[index];
+        final CompoundNBT devicesTag = groupData[index];
         for (final TDeviceInfo deviceInfo : removedDevices) {
-            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(devicesNbt::remove);
+            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(devicesTag::remove);
         }
         for (final TDeviceInfo deviceInfo : addedDevices) {
             ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(key -> {
-                if (devicesNbt.contains(key, NBTTagIds.TAG_COMPOUND)) {
-                    deviceInfo.device.deserializeNBT(devicesNbt.getCompound(key));
+                if (devicesTag.contains(key, NBTTagIds.TAG_COMPOUND)) {
+                    deviceInfo.device.deserializeNBT(devicesTag.getCompound(key));
                 }
             });
         }
@@ -128,16 +128,16 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
     ///////////////////////////////////////////////////////////////////
 
     private void serializeDevices(final int index) {
-        final CompoundNBT devicesNbt = new CompoundNBT();
+        final CompoundNBT devicesTag = new CompoundNBT();
         for (final TDeviceInfo deviceInfo : groups.get(index)) {
             ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(key -> {
-                final CompoundNBT deviceNbt = deviceInfo.device.serializeNBT();
-                if (!deviceNbt.isEmpty()) {
-                    devicesNbt.put(key, deviceNbt);
+                final CompoundNBT deviceTag = deviceInfo.device.serializeNBT();
+                if (!deviceTag.isEmpty()) {
+                    devicesTag.put(key, deviceTag);
                 }
             });
         }
 
-        groupData[index] = devicesNbt;
+        groupData[index] = devicesTag;
     }
 }

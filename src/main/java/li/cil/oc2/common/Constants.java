@@ -1,5 +1,6 @@
 package li.cil.oc2.common;
 
+import li.cil.oc2.api.API;
 import net.minecraft.util.Direction;
 
 public final class Constants {
@@ -18,7 +19,9 @@ public final class Constants {
     ///////////////////////////////////////////////////////////////////
 
     public static final String BLOCK_ENTITY_TAG_NAME_IN_ITEM = "BlockEntityTag";
-    public static final String INVENTORY_TAG_NAME = "items";
+    public static final String MOD_TAG_NAME = API.MOD_ID;
+    public static final String ITEMS_TAG_NAME = "items";
+    public static final String ENERGY_TAG_NAME = "energy";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -28,6 +31,7 @@ public final class Constants {
     public static final String NETWORK_HUB_BLOCK_NAME = "network_hub";
     public static final String DISK_DRIVE_BLOCK_NAME = "disk_drive";
     public static final String REDSTONE_INTERFACE_BLOCK_NAME = "redstone_interface";
+    public static final String CHARGER_BLOCK_NAME = "charger";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -57,6 +61,7 @@ public final class Constants {
     public static final String TOOLTIP_FLASH_MEMORY_MISSING = "tooltip.oc2.flash_memory_missing";
     public static final String TOOLTIP_MEMORY_MISSING = "tooltip.oc2.memory_missing";
     public static final String TOOLTIP_HARD_DRIVE_MISSING = "tooltip.oc2.hard_drive_missing";
+    public static final String TOOLTIP_ENERGY = "tooltip.oc2.energy";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -66,6 +71,12 @@ public final class Constants {
     public static final String CONFIG_MAX_FLASH_MEMORY_SIZE = "config.oc2.vm.maxFlashMemorySize";
     public static final String CONFIG_BLOCK_OPERATIONS_MODULE_TOOL_LEVEL = "config.oc2.modules.block_operations.toolLevel";
     public static final String CONFIG_FAKE_PLAYER_UUID = "config.oc2.admin.fakePlayerUUID";
+    public static final String CONFIG_COMPUTER_ENERGY_PER_TICK = "config.oc2.computerEnergyPerTick";
+    public static final String CONFIG_COMPUTER_ENERGY_STORAGE = "config.oc2.computerEnergyStorage";
+    public static final String CONFIG_ROBOT_ENERGY_PER_TICK = "config.oc2.robotEnergyPerTick";
+    public static final String CONFIG_ROBOT_ENERGY_STORAGE = "config.oc2.robotEnergyStorage";
+    public static final String CONFIG_CHARGER_ENERGY_PER_TICK = "config.oc2.chargerEnergyPerTick";
+    public static final String CONFIG_CHARGER_ENERGY_STORAGE = "config.oc2.chargerEnergyStorage";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -79,6 +90,7 @@ public final class Constants {
     public static final String COMPUTER_BUS_STATE_INCOMPLETE = "gui.oc2.computer.bus_state.incomplete";
     public static final String COMPUTER_BUS_STATE_TOO_COMPLEX = "gui.oc2.computer.bus_state.too_complex";
     public static final String COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS = "gui.oc2.computer.bus_state.multiple_controllers";
+    public static final String COMPUTER_ERROR_NOT_ENOUGH_ENERGY = "gui.oc2.computer.error.not_enough_energy";
 
     ///////////////////////////////////////////////////////////////////
 

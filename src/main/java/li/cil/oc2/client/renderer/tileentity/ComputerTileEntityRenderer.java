@@ -203,22 +203,25 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         renderQuad(matrix, TEXTURE_POWER.getBuffer(buffer, CustomRenderType::getUnlitBlock));
     }
 
-    private static void renderQuad(final Matrix4f matrix, final IVertexBuilder buffer) {
+    private static void renderQuad(final Matrix4f matrix, final IVertexBuilder builder) {
         // NB: We may get a SpriteAwareVertexBuilder here. Sadly, its chaining is broken,
         //     because methods may return the underlying vertex builder, so e.g. calling
         //     buffer.pos(...).tex(...) will not actually call SpriteAwareVertexBuilder.tex(...)
         //     but SpriteAwareVertexBuilder.vertexBuilder.tex(...), skipping the UV remapping.
-        buffer.pos(matrix, 0, 0, 0);
-        buffer.tex(0, 0);
-        buffer.endVertex();
-        buffer.pos(matrix, 0, 16, 0);
-        buffer.tex(0, 1);
-        buffer.endVertex();
-        buffer.pos(matrix, 16, 16, 0);
-        buffer.tex(1, 1);
-        buffer.endVertex();
-        buffer.pos(matrix, 16, 0, 0);
-        buffer.tex(1, 0);
-        buffer.endVertex();
+        builder.pos(matrix, 0, 0, 0);
+        builder.tex(0, 0);
+        builder.endVertex();
+
+        builder.pos(matrix, 0, 16, 0);
+        builder.tex(0, 1);
+        builder.endVertex();
+
+        builder.pos(matrix, 16, 16, 0);
+        builder.tex(1, 1);
+        builder.endVertex();
+
+        builder.pos(matrix, 16, 0, 0);
+        builder.tex(1, 0);
+        builder.endVertex();
     }
 }

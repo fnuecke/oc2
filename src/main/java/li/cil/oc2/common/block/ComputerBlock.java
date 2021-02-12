@@ -12,7 +12,7 @@ import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
-import li.cil.oc2.common.util.ItemStackUtils;
+import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.VoxelShapeUtils;
 import net.minecraft.block.Block;
@@ -54,6 +54,8 @@ import net.minecraftforge.fml.network.NetworkHooks;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
+import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
 
 public final class ComputerBlock extends HorizontalBlock {
@@ -94,6 +96,7 @@ public final class ComputerBlock extends HorizontalBlock {
     public void addInformation(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
         super.addInformation(stack, world, tooltip, advanced);
         TooltipUtils.addTileEntityInventoryInformation(stack, tooltip);
+        TooltipUtils.addTileEntityEnergyInformation(stack, tooltip);
     }
 
     @Override
@@ -246,19 +249,19 @@ public final class ComputerBlock extends HorizontalBlock {
     private ItemStack getPreconfiguredComputer() {
         final ItemStack computer = new ItemStack(Items.COMPUTER.get());
 
-        final CompoundNBT computerItems = ItemStackUtils.getOrCreateTileEntityInventoryTag(computer);
-        computerItems.put(DeviceTypes.MEMORY.getRegistryName().toString(), makeInventoryTag(
+        final CompoundNBT itemsTag = NBTUtils.getOrCreateChildTag(computer.getOrCreateTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME);
+        itemsTag.put(DeviceTypes.MEMORY.getRegistryName().toString(), makeInventoryTag(
                 Items.MEMORY.get().withCapacity(8 * Constants.MEGABYTE),
                 Items.MEMORY.get().withCapacity(8 * Constants.MEGABYTE),
                 Items.MEMORY.get().withCapacity(8 * Constants.MEGABYTE)
         ));
-        computerItems.put(DeviceTypes.HARD_DRIVE.getRegistryName().toString(), makeInventoryTag(
+        itemsTag.put(DeviceTypes.HARD_DRIVE.getRegistryName().toString(), makeInventoryTag(
                 Items.HARD_DRIVE.get().withData(BlockDeviceDataRegistration.BUILDROOT.get())
         ));
-        computerItems.put(DeviceTypes.FLASH_MEMORY.getRegistryName().toString(), makeInventoryTag(
+        itemsTag.put(DeviceTypes.FLASH_MEMORY.getRegistryName().toString(), makeInventoryTag(
                 Items.FLASH_MEMORY.get().withFirmware(Firmwares.BUILDROOT.get())
         ));
-        computerItems.put(DeviceTypes.CARD.getRegistryName().toString(), makeInventoryTag(
+        itemsTag.put(DeviceTypes.CARD.getRegistryName().toString(), makeInventoryTag(
                 new ItemStack(Items.NETWORK_INTERFACE_CARD.get())
         ));
 

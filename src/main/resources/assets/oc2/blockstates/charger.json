@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "oc2:block/charger"
+    },
+    "facing=south": {
+      "model": "oc2:block/charger",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "oc2:block/charger",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "oc2:block/charger",
+      "y": 90
+    }
+  }
+}

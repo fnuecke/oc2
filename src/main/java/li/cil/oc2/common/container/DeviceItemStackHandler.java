@@ -42,15 +42,15 @@ public class DeviceItemStackHandler extends FixedSizeItemStackHandler {
 
     @Override
     public CompoundNBT serializeNBT() {
-        final CompoundNBT nbt = super.serializeNBT();
-        nbt.put(BUS_ELEMENT_TAG_NAME, busElement.serializeNBT());
-        return nbt;
+        final CompoundNBT tag = super.serializeNBT();
+        tag.put(BUS_ELEMENT_TAG_NAME, busElement.serializeNBT());
+        return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT nbt) {
-        super.deserializeNBT(nbt);
-        busElement.deserializeNBT(nbt.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
+    public void deserializeNBT(final CompoundNBT tag) {
+        super.deserializeNBT(tag);
+        busElement.deserializeNBT(tag.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
         for (int slot = 0; slot < getSlots(); slot++) {
             busElement.updateDevices(slot, getStackInSlot(slot));
         }

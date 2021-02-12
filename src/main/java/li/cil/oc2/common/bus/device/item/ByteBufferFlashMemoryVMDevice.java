@@ -35,7 +35,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
     ///////////////////////////////////////////////////////////////
 
     // Online persisted data.
-    private CompoundNBT deviceNbt;
+    private CompoundNBT deviceTag;
     private final OptionalAddress address = new OptionalAddress();
 
     ///////////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
         memoryMap = null;
         data = null;
         device = null;
-        deviceNbt = null;
+        deviceTag = null;
         address.clear();
     }
 
@@ -113,10 +113,10 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
     }
 
     private void loadPersistedState() {
-        if (deviceNbt != null) {
+        if (deviceTag != null) {
             data.clear();
 
-            final byte[] persistedData = deviceNbt.getByteArray(DATA_TAG_NAME);
+            final byte[] persistedData = deviceTag.getByteArray(DATA_TAG_NAME);
             data.put(persistedData, 0, Math.min(persistedData.length, data.capacity()));
         }
     }

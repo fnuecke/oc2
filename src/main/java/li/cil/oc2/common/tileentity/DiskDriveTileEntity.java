@@ -112,21 +112,21 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     @Override
     public CompoundNBT getUpdateTag() {
         final CompoundNBT tag = super.getUpdateTag();
-        tag.put(Constants.INVENTORY_TAG_NAME, itemHandler.serializeNBT());
+        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
         return tag;
     }
 
     @Override
     public void handleUpdateTag(final BlockState state, final CompoundNBT tag) {
         super.handleUpdateTag(state, tag);
-        itemHandler.deserializeNBT(tag.getCompound(Constants.INVENTORY_TAG_NAME));
+        itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
     }
 
     @Override
     public CompoundNBT write(CompoundNBT tag) {
         tag = super.write(tag);
 
-        tag.put(Constants.INVENTORY_TAG_NAME, itemHandler.serializeNBT());
+        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
 
         return tag;
     }
@@ -135,7 +135,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     public void read(final BlockState state, final CompoundNBT tag) {
         super.read(state, tag);
 
-        itemHandler.deserializeNBT(tag.getCompound(Constants.INVENTORY_TAG_NAME));
+        itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
     }
 
     ///////////////////////////////////////////////////////////////////

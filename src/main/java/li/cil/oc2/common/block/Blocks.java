@@ -19,6 +19,7 @@ public final class Blocks {
     public static final RegistryObject<NetworkHubBlock> NETWORK_HUB = BLOCKS.register(Constants.NETWORK_HUB_BLOCK_NAME, NetworkHubBlock::new);
     public static final RegistryObject<RedstoneInterfaceBlock> REDSTONE_INTERFACE = BLOCKS.register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, RedstoneInterfaceBlock::new);
     public static final RegistryObject<DiskDriveBlock> DISK_DRIVE = BLOCKS.register(Constants.DISK_DRIVE_BLOCK_NAME, DiskDriveBlock::new);
+    public static final RegistryObject<ChargerBlock> CHARGER = BLOCKS.register(Constants.CHARGER_BLOCK_NAME, ChargerBlock::new);
 
     ///////////////////////////////////////////////////////////////////
 

@@ -4,6 +4,7 @@ import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.audio.LoopingSoundManager;
+import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
@@ -14,6 +15,7 @@ import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
+import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBootErrorMessage;
 import li.cil.oc2.common.network.message.ComputerBusStateMessage;
@@ -28,6 +30,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.capabilities.Capability;
@@ -40,6 +43,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+
+import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
+import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 
 public final class ComputerTileEntity extends AbstractTileEntity implements ITickableTileEntity {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
@@ -62,8 +68,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     private final Terminal terminal = new Terminal();
     private final TileEntityDeviceBusElement busElement = new ComputerBusElement();
-    private final ComputerItemStackHandlers items = new ComputerItemStackHandlers();
-    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new TileEntityDeviceBusController(busElement, this), items::getDeviceAddressBase);
+    private final ComputerItemStackHandlers deviceItems = new ComputerItemStackHandlers();
+    private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
+    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new TileEntityDeviceBusController(busElement, this), deviceItems::getDeviceAddressBase);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -83,7 +90,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     public VMItemStackHandlers getItemStackHandlers() {
-        return items;
+        return deviceItems;
     }
 
     public void start() {
@@ -195,7 +202,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         tag.put(STATE_TAG_NAME, virtualMachine.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
-        tag.put(Constants.INVENTORY_TAG_NAME, items.serialize());
+        tag.put(Constants.ITEMS_TAG_NAME, deviceItems.serialize());
+        tag.put(Constants.ENERGY_TAG_NAME, energy.serializeNBT());
 
         return tag;
     }
@@ -211,21 +219,24 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             NBTSerialization.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME), busElement);
         }
 
-        if (tag.contains(Constants.INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            items.deserialize(tag.getCompound(Constants.INVENTORY_TAG_NAME));
-        }
+        deviceItems.deserialize(tag.getCompound(Constants.ITEMS_TAG_NAME));
+        energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        items.serialize(ItemStackUtils.getOrCreateTileEntityInventoryTag(stack));
+        deviceItems.serialize(NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        collector.offer(Capabilities.ITEM_HANDLER, items.combinedItemHandlers);
+        collector.offer(Capabilities.ITEM_HANDLER, deviceItems.combinedItemHandlers);
         collector.offer(Capabilities.DEVICE_BUS_ELEMENT, busElement);
+
+        if (Config.computersUseEnergy()) {
+            collector.offer(Capabilities.ENERGY_STORAGE, energy);
+        }
     }
 
     @Override
@@ -291,7 +302,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
             return super.getNeighbors().map(neighbors -> {
                 final ArrayList<LazyOptional<DeviceBusElement>> list = new ArrayList<>(neighbors);
-                list.add(LazyOptional.of(() -> items.busElement));
+                list.add(LazyOptional.of(() -> deviceItems.busElement));
                 return list;
             });
         }
@@ -345,6 +356,33 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             }
 
             super.tick();
+        }
+
+        @Override
+        protected void load() {
+            if (Config.computersUseEnergy()) {
+                // Don't even start running if we couldn't keep running.
+                if (energy.getEnergyStored() < Config.computerEnergyPerTick) {
+                    error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
+                    return;
+                }
+            }
+
+            super.load();
+        }
+
+        @Override
+        protected void run() {
+            if (Config.computersUseEnergy()) {
+                if (energy.getEnergyStored() >= Config.computerEnergyPerTick) {
+                    energy.extractEnergy(Config.computerEnergyPerTick, false);
+                } else {
+                    error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
+                    return;
+                }
+            }
+
+            super.run();
         }
 
         @Override

@@ -21,8 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.util.Objects.requireNonNull;
-import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
-import static li.cil.oc2.common.Constants.INVENTORY_TAG_NAME;
+import static li.cil.oc2.common.Constants.*;
 
 public final class ModLootTableProvider extends LootTableProvider {
     public ModLootTableProvider(final DataGenerator generator) {
@@ -46,6 +45,7 @@ public final class ModLootTableProvider extends LootTableProvider {
             registerDropSelfLootTable(Blocks.NETWORK_CONNECTOR.get());
             registerDropSelfLootTable(Blocks.NETWORK_HUB.get());
             registerDropSelfLootTable(Blocks.DISK_DRIVE.get());
+            registerDropSelfLootTable(Blocks.CHARGER.get());
 
             registerLootTable(Blocks.COMPUTER.get(), ModBlockLootTables::droppingWithInventory);
         }
@@ -64,8 +64,11 @@ public final class ModLootTableProvider extends LootTableProvider {
                             .rolls(ConstantRange.of(1))
                             .addEntry(ItemLootEntry.builder(block)
                                     .acceptFunction(CopyNbt.builder(CopyNbt.Source.BLOCK_ENTITY)
-                                            .addOperation(INVENTORY_TAG_NAME,
-                                                    concat(BLOCK_ENTITY_TAG_NAME_IN_ITEM, INVENTORY_TAG_NAME),
+                                            .addOperation(ITEMS_TAG_NAME,
+                                                    concat(BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME),
+                                                    CopyNbt.Action.REPLACE)
+                                            .addOperation(ENERGY_TAG_NAME,
+                                                    concat(BLOCK_ENTITY_TAG_NAME_IN_ITEM, ENERGY_TAG_NAME),
                                                     CopyNbt.Action.REPLACE)
                                     )
                             )

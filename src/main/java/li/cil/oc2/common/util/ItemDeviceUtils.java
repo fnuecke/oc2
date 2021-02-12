@@ -13,24 +13,11 @@ public final class ItemDeviceUtils {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static Optional<CompoundNBT> getItemDeviceData(final ItemStack stack) {
-        if (stack.isEmpty()) {
-            return Optional.empty();
-        }
-
-        final CompoundNBT nbt = ItemStackUtils.getModDataTag(stack);
-        if (nbt == null) {
-            return Optional.empty();
-        }
-
-        return Optional.of(nbt.getCompound(ITEM_DEVICE_DATA_TAG_NAME));
+    public static CompoundNBT getItemDeviceData(final ItemStack stack) {
+        return ItemStackUtils.getModDataTag(stack).getCompound(ITEM_DEVICE_DATA_TAG_NAME);
     }
 
     public static void setItemDeviceData(final ItemStack stack, final CompoundNBT data) {
-        if (data.isEmpty()) {
-            return;
-        }
-
         ItemStackUtils.getOrCreateModDataTag(stack).put(ITEM_DEVICE_DATA_TAG_NAME, data);
     }
 

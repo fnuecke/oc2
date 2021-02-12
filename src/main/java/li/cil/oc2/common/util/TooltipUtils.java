@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.tags.ItemTags;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -14,9 +15,10 @@ import net.minecraft.util.text.*;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+
+import static li.cil.oc2.common.Constants.*;
 
 public final class TooltipUtils {
     private static final ThreadLocal<List<ItemStack>> ITEM_STACKS = ThreadLocal.withInitial(ArrayList::new);
@@ -47,40 +49,28 @@ public final class TooltipUtils {
     }
 
     public static void addTileEntityInventoryInformation(final ItemStack stack, final List<ITextComponent> tooltip) {
-        addInventoryInformation(ItemStackUtils.getTileEntityInventoryTag(stack), tooltip);
-    }
-
-    public static void addTileEntityInventoryInformation(final ItemStack stack, final List<ITextComponent> tooltip, final String... subInventoryNames) {
-        addInventoryInformation(ItemStackUtils.getTileEntityInventoryTag(stack), tooltip, subInventoryNames);
+        addInventoryInformation(NBTUtils.getChildTag(stack.getTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME), tooltip);
     }
 
     public static void addEntityInventoryInformation(final ItemStack stack, final List<ITextComponent> tooltip) {
-        addInventoryInformation(ItemStackUtils.getEntityInventoryTag(stack), tooltip);
+        addInventoryInformation(NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ITEMS_TAG_NAME), tooltip);
     }
 
-    public static void addEntityInventoryInformation(final ItemStack stack, final List<ITextComponent> tooltip, final String... subInventoryNames) {
-        addInventoryInformation(ItemStackUtils.getEntityInventoryTag(stack), tooltip, subInventoryNames);
+    public static void addInventoryInformation(final CompoundNBT itemsTag, final List<ITextComponent> tooltip) {
+        addInventoryInformation(itemsTag, tooltip, getDeviceTypeNames());
     }
 
-    public static void addInventoryInformation(@Nullable final CompoundNBT inventoryTag, final List<ITextComponent> tooltip) {
-        addInventoryInformation(inventoryTag, tooltip, getDeviceTypeNames());
-    }
-
-    public static void addInventoryInformation(@Nullable final CompoundNBT inventoryTag, final List<ITextComponent> tooltip, final String... subInventoryNames) {
-        if (inventoryTag == null) {
-            return;
-        }
-
+    public static void addInventoryInformation(final CompoundNBT itemsTag, final List<ITextComponent> tooltip, final String... subInventoryNames) {
         final List<ItemStack> itemStacks = ITEM_STACKS.get();
         itemStacks.clear();
         final IntList itemStackSizes = ITEM_STACKS_SIZES.get();
         itemStackSizes.clear();
 
-        collectItemStacks(inventoryTag, itemStacks, itemStackSizes);
+        collectItemStacks(itemsTag, itemStacks, itemStackSizes);
 
         for (final String subInventoryName : subInventoryNames) {
-            if (inventoryTag.contains(subInventoryName, NBTTagIds.TAG_COMPOUND)) {
-                collectItemStacks(inventoryTag.getCompound(subInventoryName), itemStacks, itemStackSizes);
+            if (itemsTag.contains(subInventoryName, NBTTagIds.TAG_COMPOUND)) {
+                collectItemStacks(itemsTag.getCompound(subInventoryName), itemStacks, itemStackSizes);
             }
         }
 
@@ -96,6 +86,30 @@ public final class TooltipUtils {
         }
     }
 
+    public static void addTileEntityEnergyInformation(final ItemStack stack, final List<ITextComponent> tooltip) {
+        addEnergyInformation(NBTUtils.getChildTag(stack.getTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ENERGY_TAG_NAME), tooltip);
+    }
+
+    public static void addEntityEnergyInformation(final ItemStack stack, final List<ITextComponent> tooltip) {
+        addEnergyInformation(NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ENERGY_TAG_NAME), tooltip);
+    }
+
+    public static void addEnergyInformation(final CompoundNBT energyTag, final List<ITextComponent> tooltip) {
+        final int stored = energyTag.getInt(FixedEnergyStorage.STORED_TAG_NAME);
+        if (stored == 0) {
+            return;
+        }
+
+        final int capacity = energyTag.getInt(FixedEnergyStorage.CAPACITY_TAG_NAME);
+        if (capacity > 0) {
+            tooltip.add(new TranslationTextComponent(Constants.TOOLTIP_ENERGY, stored + "/" + capacity));
+        } else {
+            tooltip.add(new TranslationTextComponent(Constants.TOOLTIP_ENERGY, stored));
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
     private static String[] getDeviceTypeNames() {
         final ForgeRegistry<DeviceType> registry = RegistryManager.ACTIVE.getRegistry(DeviceType.REGISTRY);
         if (registry != null) {
@@ -106,11 +120,11 @@ public final class TooltipUtils {
         }
     }
 
-    private static void collectItemStacks(final CompoundNBT nbt, final List<ItemStack> stacks, final IntList stackSizes) {
-        final ListNBT itemsNbt = nbt.getList("Items", NBTTagIds.TAG_COMPOUND);
-        for (int i = 0; i < itemsNbt.size(); i++) {
-            final CompoundNBT itemNbt = itemsNbt.getCompound(i);
-            final ItemStack itemStack = ItemStack.read(itemNbt);
+    private static void collectItemStacks(final CompoundNBT tag, final List<ItemStack> stacks, final IntList stackSizes) {
+        final ListNBT itemsTag = tag.getList("Items", NBTTagIds.TAG_COMPOUND);
+        for (int i = 0; i < itemsTag.size(); i++) {
+            final CompoundNBT itemTag = itemsTag.getCompound(i);
+            final ItemStack itemStack = ItemStack.read(itemTag);
 
             boolean didMerge = false;
             for (int j = 0; j < stacks.size(); j++) {

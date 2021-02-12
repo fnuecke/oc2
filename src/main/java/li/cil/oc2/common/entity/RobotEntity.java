@@ -7,6 +7,7 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
+import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
@@ -16,13 +17,17 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.FixedSizeItemStackHandler;
 import li.cil.oc2.common.container.RobotContainer;
 import li.cil.oc2.common.container.RobotTerminalContainer;
+import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.entity.robot.*;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.*;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.util.*;
+import li.cil.oc2.common.util.NBTTagIds;
+import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.TerminalUtils;
+import li.cil.oc2.common.util.WorldUtils;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -54,6 +59,7 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
@@ -61,7 +67,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.Constants.BlockFlags;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -73,6 +78,8 @@ import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Consumer;
+
+import static li.cil.oc2.common.Constants.*;
 
 public final class RobotEntity extends Entity implements Robot {
     public static final DataParameter<BlockPos> TARGET_POSITION = EntityDataManager.createKey(RobotEntity.class, DataSerializers.BLOCK_POS);
@@ -105,9 +112,10 @@ public final class RobotEntity extends Entity implements Robot {
     private final RobotActionProcessor actionProcessor = new RobotActionProcessor();
     private final Terminal terminal = new Terminal();
     private final RobotVirtualMachine virtualMachine;
-    private final RobotItemStackHandlers deviceItems = new RobotItemStackHandlers();
-    private final ItemStackHandler inventory = new FixedSizeItemStackHandler(INVENTORY_SIZE);
     private final RobotBusElement busElement = new RobotBusElement();
+    private final RobotItemStackHandlers deviceItems = new RobotItemStackHandlers();
+    private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.robotEnergyStorage);
+    private final ItemStackHandler inventory = new FixedSizeItemStackHandler(INVENTORY_SIZE);
     private long lastPistonMovement;
 
     ///////////////////////////////////////////////////////////////////
@@ -163,6 +171,9 @@ public final class RobotEntity extends Entity implements Robot {
     public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> capability, @org.jetbrains.annotations.Nullable final Direction side) {
         if (capability == Capabilities.ITEM_HANDLER) {
             return LazyOptional.of(() -> inventory).cast();
+        }
+        if (capability == Capabilities.ENERGY_STORAGE && Config.robotsUseEnergy()) {
+            return LazyOptional.of(() -> energy).cast();
         }
         if (capability == Capabilities.ROBOT) {
             return LazyOptional.of(() -> this).cast();
@@ -342,17 +353,20 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        final CompoundNBT tag = ItemStackUtils.getOrCreateEntityInventoryTag(stack);
-        deviceItems.serialize(tag);
-        tag.put(INVENTORY_TAG_NAME, inventory.serializeNBT());
+        final CompoundNBT itemsTag = NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME, Constants.ITEMS_TAG_NAME);
+        deviceItems.serialize(itemsTag); // Puts one tag per device type, as expected by TooltipUtils.
+        itemsTag.put(INVENTORY_TAG_NAME, inventory.serializeNBT()); // Won't show up in tooltip.
+
+        NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME)
+                .put(ENERGY_TAG_NAME, energy.serializeNBT());
     }
 
     public void importFromItemStack(final ItemStack stack) {
-        final CompoundNBT tag = ItemStackUtils.getEntityInventoryTag(stack);
-        if (tag != null) {
-            deviceItems.deserialize(tag);
-            inventory.deserializeNBT(tag.getCompound(INVENTORY_TAG_NAME));
-        }
+        final CompoundNBT itemsTag = NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ITEMS_TAG_NAME);
+        deviceItems.deserialize(itemsTag);
+        inventory.deserializeNBT(itemsTag.getCompound(INVENTORY_TAG_NAME));
+
+        energy.deserializeNBT(NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ENERGY_TAG_NAME));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -371,7 +385,8 @@ public final class RobotEntity extends Entity implements Robot {
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(COMMAND_PROCESSOR_TAG_NAME, actionProcessor.serialize());
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.serialize());
-        tag.put(Constants.INVENTORY_TAG_NAME, deviceItems.serialize());
+        tag.put(Constants.ITEMS_TAG_NAME, deviceItems.serialize());
+        tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
         tag.put(INVENTORY_TAG_NAME, inventory.serializeNBT());
         tag.putByte(SELECTED_SLOT_TAG_NAME, dataManager.get(SELECTED_SLOT));
     }
@@ -382,11 +397,9 @@ public final class RobotEntity extends Entity implements Robot {
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
         actionProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
         busElement.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME));
+        deviceItems.deserialize(tag.getCompound(Constants.ITEMS_TAG_NAME));
+        energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
         inventory.deserializeNBT(tag.getCompound(INVENTORY_TAG_NAME));
-
-        if (tag.contains(Constants.INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            deviceItems.deserialize(tag.getCompound(Constants.INVENTORY_TAG_NAME));
-        }
         setSelectedSlot(tag.getByte(SELECTED_SLOT_TAG_NAME));
     }
 
@@ -780,8 +793,30 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         @Override
-        protected AbstractTerminalVMRunner createRunner() {
-            return new RobotVMRunner(this, terminal);
+        protected void load() {
+            if (Config.robotsUseEnergy()) {
+                // Don't even start running if we couldn't keep running.
+                if (energy.getEnergyStored() < Config.robotEnergyPerTick) {
+                    error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
+                    return;
+                }
+            }
+
+            super.load();
+        }
+
+        @Override
+        protected void run() {
+            if (Config.robotsUseEnergy()) {
+                if (energy.getEnergyStored() >= Config.robotEnergyPerTick) {
+                    energy.extractEnergy(Config.robotEnergyPerTick, false);
+                } else {
+                    error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
+                    return;
+                }
+            }
+
+            super.run();
         }
 
         @Override
@@ -792,6 +827,11 @@ public final class RobotEntity extends Entity implements Robot {
                     new RobotTerminalOutputMessage(RobotEntity.this, output), RobotEntity.this));
 
             actionProcessor.clear();
+        }
+
+        @Override
+        protected AbstractTerminalVMRunner createRunner() {
+            return new RobotVMRunner(this, terminal);
         }
 
         @Override

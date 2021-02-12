@@ -41,7 +41,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     // Online persisted data.
     private final OptionalAddress address = new OptionalAddress();
     private final OptionalInterrupt interrupt = new OptionalInterrupt();
-    private CompoundNBT deviceNbt;
+    private CompoundNBT deviceTag;
 
     // Offline persisted data.
     protected UUID blobHandle;
@@ -76,8 +76,8 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
 
         deserializeData();
 
-        if (deviceNbt != null) {
-            NBTSerialization.deserialize(deviceNbt, device);
+        if (deviceTag != null) {
+            NBTSerialization.deserialize(deviceTag, device);
         }
 
         return VMDeviceLoadResult.success();
@@ -95,7 +95,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
         jobHandle = null;
 
         device = null;
-        deviceNbt = null;
+        deviceTag = null;
         address.clear();
         interrupt.clear();
     }
@@ -128,10 +128,10 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
 
         serializeData();
         if (device != null) {
-            deviceNbt = NBTSerialization.serialize(device);
+            deviceTag = NBTSerialization.serialize(device);
         }
-        if (deviceNbt != null) {
-            tag.put(DEVICE_TAG_NAME, deviceNbt);
+        if (deviceTag != null) {
+            tag.put(DEVICE_TAG_NAME, deviceTag);
         }
         if (address.isPresent()) {
             tag.putLong(ADDRESS_TAG_NAME, address.getAsLong());
@@ -154,7 +154,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
         }
 
         if (tag.contains(DEVICE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            deviceNbt = tag.getCompound(DEVICE_TAG_NAME);
+            deviceTag = tag.getCompound(DEVICE_TAG_NAME);
         }
         if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
             address.set(tag.getLong(ADDRESS_TAG_NAME));

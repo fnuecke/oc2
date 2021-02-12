@@ -10,6 +10,7 @@ import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.BusCableModelLoader;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.client.renderer.entity.RobotEntityRenderer;
+import li.cil.oc2.client.renderer.tileentity.ChargerTileEntityRenderer;
 import li.cil.oc2.client.renderer.tileentity.ComputerTileEntityRenderer;
 import li.cil.oc2.client.renderer.tileentity.DiskDriveTileEntityRenderer;
 import li.cil.oc2.client.renderer.tileentity.NetworkConnectorTileEntityRenderer;
@@ -43,6 +44,7 @@ public final class ClientSetup {
         ClientRegistry.bindTileEntityRenderer(TileEntities.COMPUTER_TILE_ENTITY.get(), ComputerTileEntityRenderer::new);
         ClientRegistry.bindTileEntityRenderer(TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), NetworkConnectorTileEntityRenderer::new);
         ClientRegistry.bindTileEntityRenderer(TileEntities.DISK_DRIVE_TILE_ENTITY.get(), DiskDriveTileEntityRenderer::new);
+        ClientRegistry.bindTileEntityRenderer(TileEntities.CHARGER_TILE_ENTITY.get(), ChargerTileEntityRenderer::new);
 
         RenderingRegistry.registerEntityRenderingHandler(Entities.ROBOT.get(), RobotEntityRenderer::new);
     }
@@ -65,5 +67,7 @@ public final class ClientSetup {
         event.addSprite(ComputerTileEntityRenderer.OVERLAY_POWER_LOCATION);
         event.addSprite(ComputerTileEntityRenderer.OVERLAY_STATUS_LOCATION);
         event.addSprite(ComputerTileEntityRenderer.OVERLAY_TERMINAL_LOCATION);
+
+        event.addSprite(ChargerTileEntityRenderer.EFFECT_LOCATION);
     }
 }

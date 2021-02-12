@@ -38,7 +38,7 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
 
     private final OptionalAddress address = new OptionalAddress();
     private final OptionalInterrupt interrupt = new OptionalInterrupt();
-    private CompoundNBT deviceNbt;
+    private CompoundNBT deviceTag;
 
     ///////////////////////////////////////////////////////////////
 
@@ -71,8 +71,8 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
             return VMDeviceLoadResult.fail();
         }
 
-        if (deviceNbt != null) {
-            NBTSerialization.deserialize(deviceNbt, device);
+        if (deviceTag != null) {
+            NBTSerialization.deserialize(deviceTag, device);
         }
 
         context.getEventBus().register(this);
@@ -103,10 +103,10 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
         final CompoundNBT tag = new CompoundNBT();
 
         if (device != null) {
-            deviceNbt = NBTSerialization.serialize(device);
+            deviceTag = NBTSerialization.serialize(device);
         }
-        if (deviceNbt != null) {
-            tag.put(DEVICE_TAG_NAME, deviceNbt);
+        if (deviceTag != null) {
+            tag.put(DEVICE_TAG_NAME, deviceTag);
         }
         if (address.isPresent()) {
             tag.putLong(ADDRESS_TAG_NAME, address.getAsLong());
@@ -121,7 +121,7 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
     @Override
     public void deserializeNBT(final CompoundNBT tag) {
         if (tag.contains(DEVICE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            deviceNbt = tag.getCompound(DEVICE_TAG_NAME);
+            deviceTag = tag.getCompound(DEVICE_TAG_NAME);
         }
         if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
             address.set(tag.getLong(ADDRESS_TAG_NAME));

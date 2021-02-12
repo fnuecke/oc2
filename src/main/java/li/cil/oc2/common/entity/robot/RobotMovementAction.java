@@ -7,6 +7,7 @@ import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import net.minecraft.entity.MoverType;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
@@ -116,13 +117,13 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
         NBTUtils.putEnum(tag, DIRECTION_TAG_NAME, direction);
         if (origin != null) {
-            NBTUtils.putBlockPos(tag, ORIGIN_TAG_NAME, origin);
+            tag.put(ORIGIN_TAG_NAME, NBTUtil.writeBlockPos(origin));
         }
         if (start != null) {
-            NBTUtils.putBlockPos(tag, START_TAG_NAME, start);
+            tag.put(START_TAG_NAME, NBTUtil.writeBlockPos(start));
         }
         if (target != null) {
-            NBTUtils.putBlockPos(tag, TARGET_TAG_NAME, target);
+            tag.put(TARGET_TAG_NAME, NBTUtil.writeBlockPos(target));
         }
 
         return tag;
@@ -134,13 +135,13 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
         direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, MovementDirection.class);
         if (tag.contains(ORIGIN_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            origin = NBTUtils.getBlockPos(tag, ORIGIN_TAG_NAME);
+            origin = NBTUtil.readBlockPos(tag.getCompound(ORIGIN_TAG_NAME));
         }
         if (tag.contains(START_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            start = NBTUtils.getBlockPos(tag, START_TAG_NAME);
+            start = NBTUtil.readBlockPos(tag.getCompound(START_TAG_NAME));
         }
         if (tag.contains(TARGET_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            target = NBTUtils.getBlockPos(tag, TARGET_TAG_NAME);
+            target = NBTUtil.readBlockPos(tag.getCompound(TARGET_TAG_NAME));
             targetPos = getTargetPositionInBlock(target);
         }
     }

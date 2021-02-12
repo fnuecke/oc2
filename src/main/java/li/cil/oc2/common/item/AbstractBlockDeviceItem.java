@@ -3,11 +3,10 @@ package li.cil.oc2.common.item;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
 import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.ResourceLocationException;
+import net.minecraft.util.StringUtils;
 import net.minecraft.util.text.ITextComponent;
 
 import javax.annotation.Nullable;
@@ -24,12 +23,10 @@ public abstract class AbstractBlockDeviceItem extends AbstractStorageItem {
             return null;
         }
 
-        final CompoundNBT modNbt = ItemStackUtils.getModDataTag(stack);
-        if (modNbt == null || !modNbt.contains(DATA_TAG_NAME, NBTTagIds.TAG_STRING)) {
+        final String registryName = ItemStackUtils.getModDataTag(stack).getString(DATA_TAG_NAME);
+        if (StringUtils.isNullOrEmpty(registryName)) {
             return null;
         }
-
-        final String registryName = modNbt.getString(DATA_TAG_NAME);
 
         try {
             return BlockDeviceDataRegistration.REGISTRY.get().getValue(new ResourceLocation(registryName));
@@ -58,12 +55,7 @@ public abstract class AbstractBlockDeviceItem extends AbstractStorageItem {
             return false;
         }
 
-        final CompoundNBT modNbt = ItemStackUtils.getModDataTag(stack);
-        if (modNbt == null) {
-            return false;
-        }
-
-        return modNbt.getBoolean(READONLY_TAG_NAME);
+        return ItemStackUtils.getModDataTag(stack).getBoolean(READONLY_TAG_NAME);
     }
 
     public static ItemStack withReadonly(final ItemStack stack, final boolean readonly) {

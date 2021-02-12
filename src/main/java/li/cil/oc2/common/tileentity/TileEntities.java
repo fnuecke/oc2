@@ -24,6 +24,7 @@ public final class TileEntities {
     public static final RegistryObject<TileEntityType<NetworkConnectorTileEntity>> NETWORK_CONNECTOR_TILE_ENTITY = register(Constants.NETWORK_CONNECTOR_BLOCK_NAME, Blocks.NETWORK_CONNECTOR, NetworkConnectorTileEntity::new);
     public static final RegistryObject<TileEntityType<NetworkHubTileEntity>> NETWORK_HUB_TILE_ENTITY = register(Constants.NETWORK_HUB_BLOCK_NAME, Blocks.NETWORK_HUB, NetworkHubTileEntity::new);
     public static final RegistryObject<TileEntityType<DiskDriveTileEntity>> DISK_DRIVE_TILE_ENTITY = register(Constants.DISK_DRIVE_BLOCK_NAME, Blocks.DISK_DRIVE, DiskDriveTileEntity::new);
+    public static final RegistryObject<TileEntityType<ChargerTileEntity>> CHARGER_TILE_ENTITY = register(Constants.CHARGER_BLOCK_NAME, Blocks.CHARGER, ChargerTileEntity::new);
 
     ///////////////////////////////////////////////////////////////////
 

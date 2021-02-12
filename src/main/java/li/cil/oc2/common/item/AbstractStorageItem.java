@@ -26,13 +26,12 @@ public abstract class AbstractStorageItem extends ModItem {
             return 0;
         }
 
-        final CompoundNBT modNbt = ItemStackUtils.getModDataTag(stack);
-        if (modNbt == null || !modNbt.contains(CAPACITY_TAG_NAME, NBTTagIds.TAG_INT)) {
-            final AbstractStorageItem storageItem = (AbstractStorageItem) item;
-            return storageItem.defaultCapacity;
+        final CompoundNBT tag = ItemStackUtils.getModDataTag(stack);
+        if (!tag.contains(CAPACITY_TAG_NAME, NBTTagIds.TAG_INT)) {
+            return ((AbstractStorageItem) item).defaultCapacity;
         }
 
-        return modNbt.getInt(CAPACITY_TAG_NAME);
+        return tag.getInt(CAPACITY_TAG_NAME);
     }
 
     public static ItemStack withCapacity(final ItemStack stack, final int capacity) {

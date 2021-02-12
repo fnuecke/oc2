@@ -7,60 +7,60 @@ import net.minecraft.nbt.*;
 import javax.annotation.Nullable;
 
 public final class NBTToJsonConverter {
-    public static JsonElement convert(@Nullable final INBT nbt) {
-        if (nbt == null) {
+    public static JsonElement convert(@Nullable final INBT tag) {
+        if (tag == null) {
             return JsonNull.INSTANCE;
         }
 
-        switch (nbt.getId()) {
+        switch (tag.getId()) {
             case NBTTagIds.TAG_BYTE: {
-                return new JsonPrimitive(((ByteNBT) nbt).getByte());
+                return new JsonPrimitive(((ByteNBT) tag).getByte());
             }
             case NBTTagIds.TAG_SHORT: {
-                return new JsonPrimitive(((ShortNBT) nbt).getShort());
+                return new JsonPrimitive(((ShortNBT) tag).getShort());
             }
             case NBTTagIds.TAG_INT: {
-                return new JsonPrimitive(((IntNBT) nbt).getInt());
+                return new JsonPrimitive(((IntNBT) tag).getInt());
             }
             case NBTTagIds.TAG_LONG: {
-                return new JsonPrimitive(((LongNBT) nbt).getLong());
+                return new JsonPrimitive(((LongNBT) tag).getLong());
             }
             case NBTTagIds.TAG_FLOAT: {
-                return new JsonPrimitive(((FloatNBT) nbt).getFloat());
+                return new JsonPrimitive(((FloatNBT) tag).getFloat());
             }
             case NBTTagIds.TAG_DOUBLE: {
-                return new JsonPrimitive(((DoubleNBT) nbt).getDouble());
+                return new JsonPrimitive(((DoubleNBT) tag).getDouble());
             }
             case NBTTagIds.TAG_BYTE_ARRAY: {
                 final JsonArray json = new JsonArray();
-                final byte[] array = ((ByteArrayNBT) nbt).getByteArray();
+                final byte[] array = ((ByteArrayNBT) tag).getByteArray();
                 for (int i = 0; i < array.length; i++) {
                     json.add(array[i]);
                 }
                 return json;
             }
             case NBTTagIds.TAG_STRING: {
-                return new JsonPrimitive(nbt.getString());
+                return new JsonPrimitive(tag.getString());
             }
             case NBTTagIds.TAG_LIST: {
                 final JsonArray json = new JsonArray();
-                final ListNBT list = (ListNBT) nbt;
-                for (final INBT item : list) {
+                final ListNBT listTag = (ListNBT) tag;
+                for (final INBT item : listTag) {
                     json.add(convert(item));
                 }
                 return json;
             }
             case NBTTagIds.TAG_COMPOUND: {
                 final JsonObject json = new JsonObject();
-                final CompoundNBT compound = (CompoundNBT) nbt;
-                for (final String key : compound.keySet()) {
-                    json.add(key, convert(compound.get(key)));
+                final CompoundNBT compoundTag = (CompoundNBT) tag;
+                for (final String key : compoundTag.keySet()) {
+                    json.add(key, convert(compoundTag.get(key)));
                 }
                 return json;
             }
             case NBTTagIds.TAG_INT_ARRAY: {
                 final JsonArray json = new JsonArray();
-                final int[] array = ((IntArrayNBT) nbt).getIntArray();
+                final int[] array = ((IntArrayNBT) tag).getIntArray();
                 for (int i = 0; i < array.length; i++) {
                     json.add(array[i]);
                 }
@@ -68,7 +68,7 @@ public final class NBTToJsonConverter {
             }
             case NBTTagIds.TAG_LONG_ARRAY: {
                 final JsonArray json = new JsonArray();
-                final long[] array = ((LongArrayNBT) nbt).getAsLongArray();
+                final long[] array = ((LongArrayNBT) tag).getAsLongArray();
                 for (int i = 0; i < array.length; i++) {
                     json.add(array[i]);
                 }

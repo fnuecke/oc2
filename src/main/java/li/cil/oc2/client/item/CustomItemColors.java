@@ -82,7 +82,7 @@ public final class CustomItemColors {
 
     public static int getColor(final ItemStack stack) {
         final CompoundNBT tag = ItemStackUtils.getModDataTag(stack);
-        if (tag != null && tag.contains(COLOR_TAG_NAME, NBTTagIds.TAG_INT)) {
+        if (tag.contains(COLOR_TAG_NAME, NBTTagIds.TAG_INT)) {
             return tag.getInt(COLOR_TAG_NAME);
         } else {
             return GREY;

@@ -15,6 +15,11 @@
                   "source": "items",
                   "target": "BlockEntityTag.items",
                   "op": "replace"
+                },
+                {
+                  "source": "energy",
+                  "target": "BlockEntityTag.energy",
+                  "op": "replace"
                 }
               ]
             }

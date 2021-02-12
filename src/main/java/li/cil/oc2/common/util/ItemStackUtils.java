@@ -1,6 +1,5 @@
 package li.cil.oc2.common.util;
 
-import li.cil.oc2.api.API;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -13,72 +12,15 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.Random;
 
-import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
-import static li.cil.oc2.common.Constants.INVENTORY_TAG_NAME;
+import static li.cil.oc2.common.Constants.MOD_TAG_NAME;
 
 public final class ItemStackUtils {
-    private static final String MOD_TAG_NAME = API.MOD_ID;
-
-    @Nullable
     public static CompoundNBT getModDataTag(final ItemStack stack) {
-        if (stack.isEmpty()) {
-            return null;
-        }
-
-        return stack.getChildTag(MOD_TAG_NAME);
+        return NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME);
     }
 
     public static CompoundNBT getOrCreateModDataTag(final ItemStack stack) {
-        if (stack.isEmpty()) {
-            throw new IllegalArgumentException();
-        }
-
-        return stack.getOrCreateChildTag(MOD_TAG_NAME);
-    }
-
-    @Nullable
-    public static CompoundNBT getInventoryTag(@Nullable final CompoundNBT tag) {
-        return tag != null && tag.contains(INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)
-                ? tag.getCompound(INVENTORY_TAG_NAME) : null;
-    }
-
-    public static CompoundNBT getOrCreateInventoryTag(final CompoundNBT tag) {
-        if (tag.contains(INVENTORY_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            return tag.getCompound(INVENTORY_TAG_NAME);
-        }
-
-        final CompoundNBT inventoryTag = new CompoundNBT();
-        tag.put(INVENTORY_TAG_NAME, inventoryTag);
-        return inventoryTag;
-    }
-
-    @Nullable
-    public static CompoundNBT getTileEntityTag(final ItemStack stack) {
-        return stack.getChildTag(BLOCK_ENTITY_TAG_NAME_IN_ITEM);
-    }
-
-    public static CompoundNBT getOrCreateTileEntityTag(final ItemStack stack) {
-        return stack.getOrCreateChildTag(BLOCK_ENTITY_TAG_NAME_IN_ITEM);
-    }
-
-    @Nullable
-    public static CompoundNBT getTileEntityInventoryTag(final ItemStack stack) {
-        return getInventoryTag(getTileEntityTag(stack));
-    }
-
-    @Nullable
-    public static CompoundNBT getOrCreateTileEntityInventoryTag(final ItemStack stack) {
-        return getOrCreateInventoryTag(getOrCreateTileEntityTag(stack));
-    }
-
-    @Nullable
-    public static CompoundNBT getEntityInventoryTag(final ItemStack stack) {
-        return getInventoryTag(getModDataTag(stack));
-    }
-
-    @Nullable
-    public static CompoundNBT getOrCreateEntityInventoryTag(final ItemStack stack) {
-        return getOrCreateInventoryTag(getOrCreateModDataTag(stack));
+        return NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME);
     }
 
     public static Optional<ItemEntity> spawnAsEntity(final World world, final BlockPos pos, final ItemStack stack) {

@@ -25,6 +25,7 @@ public final class Items {
     public static final RegistryObject<Item> NETWORK_HUB = register(Constants.NETWORK_HUB_BLOCK_NAME, Blocks.NETWORK_HUB);
     public static final RegistryObject<Item> REDSTONE_INTERFACE = register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, Blocks.REDSTONE_INTERFACE);
     public static final RegistryObject<Item> DISK_DRIVE = register(Constants.DISK_DRIVE_BLOCK_NAME, Blocks.DISK_DRIVE);
+    public static final RegistryObject<Item> CHARGER = register(Constants.CHARGER_BLOCK_NAME, Blocks.CHARGER, ChargerItem::new);
 
     ///////////////////////////////////////////////////////////////////
 

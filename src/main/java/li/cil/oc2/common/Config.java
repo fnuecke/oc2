@@ -26,6 +26,13 @@ public final class Config {
     public static int maxFlashMemorySize = 4 * Constants.KILOBYTE;
     public static int maxFloppySize = 512 * Constants.KILOBYTE;
 
+    public static int computerEnergyPerTick = 20;
+    public static int computerEnergyStorage = 4000;
+    public static int robotEnergyPerTick = 10;
+    public static int robotEnergyStorage = 600000;
+    public static int chargerEnergyPerTick = 2500;
+    public static int chargerEnergyStorage = 50000;
+
     public static int blockOperationsModuleToolLevel = Items.DIAMOND_PICKAXE.getHarvestLevel(new ItemStack(Items.DIAMOND_PICKAXE), ToolType.PICKAXE, null, null);
 
     public static UUID fakePlayerUUID = UUID.fromString("e39dd9a7-514f-4a2d-aa5e-b6030621416d");
@@ -44,6 +51,18 @@ public final class Config {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, COMMON_SPEC);
     }
 
+    public static boolean computersUseEnergy() {
+        return computerEnergyPerTick > 0 && computerEnergyStorage > 0;
+    }
+
+    public static boolean robotsUseEnergy() {
+        return robotEnergyPerTick > 0 && robotEnergyStorage > 0;
+    }
+
+    public static boolean chargerUseEnergy() {
+        return chargerEnergyPerTick > 0 && chargerEnergyStorage > 0;
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     @SubscribeEvent
@@ -54,6 +73,15 @@ public final class Config {
             maxHardDriveSize = COMMON_INSTANCE.maxHardDriveSize.get();
             maxFlashMemorySize = COMMON_INSTANCE.maxFlashMemorySize.get();
 
+            computerEnergyPerTick = COMMON_INSTANCE.computerEnergyPerTick.get();
+            computerEnergyStorage = COMMON_INSTANCE.computerEnergyStorage.get();
+            robotEnergyPerTick = COMMON_INSTANCE.robotEnergyPerTick.get();
+            robotEnergyStorage = COMMON_INSTANCE.robotEnergyStorage.get();
+            chargerEnergyPerTick = COMMON_INSTANCE.chargerEnergyPerTick.get();
+            chargerEnergyStorage = COMMON_INSTANCE.chargerEnergyStorage.get();
+
+            blockOperationsModuleToolLevel = COMMON_INSTANCE.blockOperationsModuleToolLevel.get();
+
             fakePlayerUUID = UUID.fromString(COMMON_INSTANCE.fakePlayerUUID.get());
         }
     }
@@ -61,14 +89,21 @@ public final class Config {
     ///////////////////////////////////////////////////////////////////
 
     private static final class CommonSettings {
-        public ForgeConfigSpec.LongValue maxAllocatedMemory;
-        public ForgeConfigSpec.IntValue maxMemorySize;
-        public ForgeConfigSpec.IntValue maxHardDriveSize;
-        public ForgeConfigSpec.IntValue maxFlashMemorySize;
+        public final ForgeConfigSpec.LongValue maxAllocatedMemory;
+        public final ForgeConfigSpec.IntValue maxMemorySize;
+        public final ForgeConfigSpec.IntValue maxHardDriveSize;
+        public final ForgeConfigSpec.IntValue maxFlashMemorySize;
 
-        public ForgeConfigSpec.IntValue blockOperationsModuleToolLevel;
+        public final ForgeConfigSpec.IntValue computerEnergyPerTick;
+        public final ForgeConfigSpec.IntValue computerEnergyStorage;
+        public final ForgeConfigSpec.IntValue robotEnergyPerTick;
+        public final ForgeConfigSpec.IntValue robotEnergyStorage;
+        public final ForgeConfigSpec.IntValue chargerEnergyPerTick;
+        public final ForgeConfigSpec.IntValue chargerEnergyStorage;
 
-        public ForgeConfigSpec.ConfigValue<String> fakePlayerUUID;
+        public final ForgeConfigSpec.IntValue blockOperationsModuleToolLevel;
+
+        public final ForgeConfigSpec.ConfigValue<String> fakePlayerUUID;
 
         public CommonSettings(final ForgeConfigSpec.Builder builder) {
             builder.push("vm");
@@ -92,6 +127,40 @@ public final class Config {
                     .translation(Constants.CONFIG_MAX_FLASH_MEMORY_SIZE)
                     .comment("The maximum size of a single flash memory device.")
                     .defineInRange("maxFlashMemorySize", Config.maxFlashMemorySize, 0, 128 * Constants.MEGABYTE);
+
+            builder.pop();
+
+            builder.push("energy");
+
+            computerEnergyPerTick = builder
+                    .translation(Constants.CONFIG_COMPUTER_ENERGY_PER_TICK)
+                    .comment("The amount of energy (Forge Energy/RF) a computer draws per tick. Set to zero to disable.")
+                    .defineInRange("computerEnergyPerTick", Config.computerEnergyPerTick, 0, Integer.MAX_VALUE);
+
+            computerEnergyStorage = builder
+                    .translation(Constants.CONFIG_COMPUTER_ENERGY_STORAGE)
+                    .comment("The amount of energy (Forge Energy/RF) a computer can store internally.")
+                    .defineInRange("computerEnergyStorage", Config.computerEnergyStorage, 0, Integer.MAX_VALUE);
+
+            robotEnergyPerTick = builder
+                    .translation(Constants.CONFIG_ROBOT_ENERGY_PER_TICK)
+                    .comment("The amount of energy (Forge Energy/RF) a robot draws per tick. Set to zero to disable.")
+                    .defineInRange("robotEnergyPerTick", Config.robotEnergyPerTick, 0, Integer.MAX_VALUE);
+
+            robotEnergyStorage = builder
+                    .translation(Constants.CONFIG_ROBOT_ENERGY_STORAGE)
+                    .comment("The amount of energy (Forge Energy/RF) a robot can store internally.")
+                    .defineInRange("robotEnergyStorage", Config.robotEnergyStorage, 0, Integer.MAX_VALUE);
+
+            chargerEnergyPerTick = builder
+                    .translation(Constants.CONFIG_CHARGER_ENERGY_PER_TICK)
+                    .comment("The maximum amount of energy (Forge Energy/RF) a charger transfers per tick. Set to zero to disable.")
+                    .defineInRange("chargerEnergyPerTick", Config.chargerEnergyPerTick, 0, Integer.MAX_VALUE);
+
+            chargerEnergyStorage = builder
+                    .translation(Constants.CONFIG_CHARGER_ENERGY_STORAGE)
+                    .comment("The amount of energy (Forge Energy/RF) a charger can store internally.")
+                    .defineInRange("chargerEnergyStorage", Config.chargerEnergyStorage, 0, Integer.MAX_VALUE);
 
             builder.pop();
 

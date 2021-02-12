@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.ResourceLocationException;
+import net.minecraft.util.StringUtils;
 import net.minecraft.util.text.ITextComponent;
 
 import javax.annotation.Nullable;
@@ -30,12 +31,10 @@ public final class FlashMemoryItem extends AbstractStorageItem {
             return null;
         }
 
-        final CompoundNBT modNbt = ItemStackUtils.getModDataTag(stack);
-        if (modNbt == null || !modNbt.contains(FIRMWARE_TAG_NAME, NBTTagIds.TAG_STRING)) {
+        final String registryName = ItemStackUtils.getModDataTag(stack).getString(FIRMWARE_TAG_NAME);
+        if (StringUtils.isNullOrEmpty(registryName)) {
             return null;
         }
-
-        final String registryName = modNbt.getString(FIRMWARE_TAG_NAME);
 
         try {
             return Firmwares.REGISTRY.get().getValue(new ResourceLocation(registryName));

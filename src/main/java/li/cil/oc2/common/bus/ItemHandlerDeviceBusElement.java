@@ -40,32 +40,35 @@ public class ItemHandlerDeviceBusElement extends AbstractGroupingItemDeviceBusEl
             return;
         }
 
-        final CompoundNBT exportedNbt = new CompoundNBT();
+        final CompoundNBT exportedTag = new CompoundNBT();
         for (final ItemDeviceInfo info : groups.get(slot)) {
             ItemDeviceUtils.getItemDeviceDataKey(info.provider).ifPresent(key -> {
-                final CompoundNBT deviceNbt = new CompoundNBT();
-                info.device.exportToItemStack(deviceNbt);
-                if (!deviceNbt.isEmpty()) {
-                    exportedNbt.put(key, deviceNbt);
+                final CompoundNBT deviceTag = new CompoundNBT();
+                info.device.exportToItemStack(deviceTag);
+                if (!deviceTag.isEmpty()) {
+                    exportedTag.put(key, deviceTag);
                 }
             });
         }
 
-        ItemDeviceUtils.setItemDeviceData(stack, exportedNbt);
+        if (!exportedTag.isEmpty()) {
+            ItemDeviceUtils.setItemDeviceData(stack, exportedTag);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////
 
     private void importDeviceDataFromItemStack(final ItemStack stack, final HashSet<ItemDeviceInfo> devices) {
-        ItemDeviceUtils.getItemDeviceData(stack).ifPresent(exportedNbt -> {
+        final CompoundNBT exportedTag = ItemDeviceUtils.getItemDeviceData(stack);
+        if (!exportedTag.isEmpty()) {
             for (final ItemDeviceInfo info : devices) {
                 ItemDeviceUtils.getItemDeviceDataKey(info.provider).ifPresent(key -> {
-                    if (exportedNbt.contains(key, NBTTagIds.TAG_COMPOUND)) {
-                        info.device.importFromItemStack(exportedNbt.getCompound(key));
+                    if (exportedTag.contains(key, NBTTagIds.TAG_COMPOUND)) {
+                        info.device.importFromItemStack(exportedTag.getCompound(key));
                     }
                 });
             }
-        });
+        }
     }
 
     private void insertItemNameDevice(final ItemStack stack, final HashSet<ItemDeviceInfo> devices) {

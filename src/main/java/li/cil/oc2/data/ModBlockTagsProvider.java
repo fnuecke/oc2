@@ -30,7 +30,8 @@ public final class ModBlockTagsProvider extends BlockTagsProvider {
                 NETWORK_CONNECTOR.get(),
                 NETWORK_HUB.get(),
                 REDSTONE_INTERFACE.get(),
-                DISK_DRIVE.get()
+                DISK_DRIVE.get(),
+                CHARGER.get()
         );
     }
 }

@@ -40,7 +40,7 @@ public final class RobotItem extends ModItem {
     public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
         super.addInformation(stack, world, tooltip, flag);
         TooltipUtils.addEntityInventoryInformation(stack, tooltip);
-        TooltipUtils.addEntityEnergyInformation(stack, tooltip);
+        TooltipUtils.addEntityEnergyInformation(stack, tooltip, Config.robotEnergyStorage);
     }
 
     @Nullable

@@ -86,21 +86,23 @@ public final class TooltipUtils {
         }
     }
 
-    public static void addTileEntityEnergyInformation(final ItemStack stack, final List<ITextComponent> tooltip) {
-        addEnergyInformation(NBTUtils.getChildTag(stack.getTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ENERGY_TAG_NAME), tooltip);
+    public static void addEntityEnergyInformation(final ItemStack stack, final List<ITextComponent> tooltip, final int defaultCapacity) {
+        addEnergyInformation(NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ENERGY_TAG_NAME), tooltip, defaultCapacity);
     }
 
-    public static void addEntityEnergyInformation(final ItemStack stack, final List<ITextComponent> tooltip) {
-        addEnergyInformation(NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ENERGY_TAG_NAME), tooltip);
-    }
-
-    public static void addEnergyInformation(final CompoundNBT energyTag, final List<ITextComponent> tooltip) {
+    public static void addEnergyInformation(final CompoundNBT energyTag, final List<ITextComponent> tooltip, final int defaultCapacity) {
         final int stored = energyTag.getInt(FixedEnergyStorage.STORED_TAG_NAME);
         if (stored == 0) {
             return;
         }
 
-        final int capacity = energyTag.getInt(FixedEnergyStorage.CAPACITY_TAG_NAME);
+        final int capacity;
+        if (energyTag.contains(FixedEnergyStorage.CAPACITY_TAG_NAME, NBTTagIds.TAG_INT)) {
+            capacity = energyTag.getInt(FixedEnergyStorage.CAPACITY_TAG_NAME);
+        } else {
+            capacity = defaultCapacity;
+        }
+
         if (capacity > 0) {
             tooltip.add(new TranslationTextComponent(Constants.TOOLTIP_ENERGY, stored + "/" + capacity));
         } else {

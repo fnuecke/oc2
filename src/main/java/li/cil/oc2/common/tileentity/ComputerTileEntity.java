@@ -203,7 +203,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
         tag.put(Constants.ITEMS_TAG_NAME, deviceItems.serialize());
-        tag.put(Constants.ENERGY_TAG_NAME, energy.serializeNBT());
 
         return tag;
     }
@@ -220,7 +219,6 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         deviceItems.deserialize(tag.getCompound(Constants.ITEMS_TAG_NAME));
-        energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
     }
 
     public void exportToItemStack(final ItemStack stack) {

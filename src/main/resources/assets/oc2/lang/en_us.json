@@ -35,22 +35,6 @@
 
   "entity.oc2.robot": "Robot",
 
-  "config.oc2.vm.maxAllocatedMemory": "Maximum allocated memory",
-  "config.oc2.vm.maxMemorySize:": "Maximum memory device size",
-  "config.oc2.vm.maxHardDriveSize": "Maximum hard drive device size",
-  "config.oc2.vm.maxFlashMemorySize:": "Maximum flash memory device size",
-  "config.oc2.modules.block_operations.toolLevel": "Block operations module tool level",
-  "config.oc2.admin.fakePlayerUUID": "Fake Player UUID",
-  "config.oc2.busCableComplexity": "Bus Cable complexity",
-  "config.oc2.busInterfaceComplexity": "Bus Interface complexity",
-  "config.oc2.complexityEnergyPerTick": "Complexity energy/tick",
-  "config.oc2.computerEnergyPerTick": "Computer energy/tick",
-  "config.oc2.computerEnergyStorage": "Computer energy storage",
-  "config.oc2.robotEnergyPerTick": "Robot energy/tick",
-  "config.oc2.robotEnergyStorage": "Robot energy storage",
-  "config.oc2.chargerEnergyPerTick": "Charger energy/tick",
-  "config.oc2.chargerEnergyStorage": "Charger energy storage",
-
   "gui.oc2.computer.error.unknown": "Unknown Error",
   "gui.oc2.computer.error.missing_firmware": "Missing Firmware",
   "gui.oc2.computer.error.insufficient_memory": "Insufficient Memory",

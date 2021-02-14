@@ -92,6 +92,14 @@ public final class Config {
             chargerEnergyPerTick = COMMON_INSTANCE.chargerEnergyPerTick.get();
             chargerEnergyStorage = COMMON_INSTANCE.chargerEnergyStorage.get();
 
+            memoryEnergyPerMegabytePerTick = COMMON_INSTANCE.memoryEnergyPerMegabytePerTick.get();
+            hardDriveEnergyPerMegabytePerTick = COMMON_INSTANCE.hardDriveEnergyPerMegabytePerTick.get();
+            networkInterfaceEnergyPerTick = COMMON_INSTANCE.networkInterfaceEnergyPerTick.get();
+            redstoneInterfaceCardEnergyPerTick = COMMON_INSTANCE.redstoneInterfaceCardEnergyPerTick.get();
+            blockOperationsModuleEnergyPerTick = COMMON_INSTANCE.blockOperationsModuleEnergyPerTick.get();
+            inventoryOperationsModuleEnergyPerTick = COMMON_INSTANCE.inventoryOperationsModuleEnergyPerTick.get();
+
+
             blockOperationsModuleToolLevel = COMMON_INSTANCE.blockOperationsModuleToolLevel.get();
 
             fakePlayerUUID = UUID.fromString(COMMON_INSTANCE.fakePlayerUUID.get());
@@ -115,95 +123,65 @@ public final class Config {
         public final ForgeConfigSpec.IntValue chargerEnergyPerTick;
         public final ForgeConfigSpec.IntValue chargerEnergyStorage;
 
+        public final ForgeConfigSpec.DoubleValue memoryEnergyPerMegabytePerTick;
+        public final ForgeConfigSpec.DoubleValue hardDriveEnergyPerMegabytePerTick;
+        public final ForgeConfigSpec.IntValue networkInterfaceEnergyPerTick;
+        public final ForgeConfigSpec.IntValue redstoneInterfaceCardEnergyPerTick;
+        public final ForgeConfigSpec.IntValue blockOperationsModuleEnergyPerTick;
+        public final ForgeConfigSpec.IntValue inventoryOperationsModuleEnergyPerTick;
+
         public final ForgeConfigSpec.IntValue blockOperationsModuleToolLevel;
 
         public final ForgeConfigSpec.ConfigValue<String> fakePlayerUUID;
 
         public CommonSettings(final ForgeConfigSpec.Builder builder) {
             builder.push("vm");
-
-            maxAllocatedMemory = builder
-                    .translation(Constants.CONFIG_MAX_ALLOCATED_MEMORY)
-                    .comment("The maximum amount of memory that may be allocated to run virtual machines.")
-                    .defineInRange("maxAllocatedMemory", Config.maxAllocatedMemory, 0L, 64L * Constants.GIGABYTE);
-
-            maxMemorySize = builder
-                    .translation(Constants.CONFIG_MAX_MEMORY_SIZE)
-                    .comment("The maximum size of a single memory device.")
-                    .defineInRange("maxMemorySize", Config.maxMemorySize, 0, 256 * Constants.MEGABYTE);
-
-            maxHardDriveSize = builder
-                    .translation(Constants.CONFIG_MAX_HARD_DRIVE_SIZE)
-                    .comment("The maximum size of a single hard drive device.")
-                    .defineInRange("maxHardDriveSize", Config.maxHardDriveSize, 0, 512 * Constants.MEGABYTE);
-
-            maxFlashMemorySize = builder
-                    .translation(Constants.CONFIG_MAX_FLASH_MEMORY_SIZE)
-                    .comment("The maximum size of a single flash memory device.")
-                    .defineInRange("maxFlashMemorySize", Config.maxFlashMemorySize, 0, 128 * Constants.MEGABYTE);
-
+            {
+                maxAllocatedMemory = builder.defineInRange("maxAllocatedMemory", Config.maxAllocatedMemory, 0L, 64L * Constants.GIGABYTE);
+                maxMemorySize = builder.defineInRange("maxMemorySize", Config.maxMemorySize, 0, 256 * Constants.MEGABYTE);
+                maxHardDriveSize = builder.defineInRange("maxHardDriveSize", Config.maxHardDriveSize, 0, 512 * Constants.MEGABYTE);
+                maxFlashMemorySize = builder.defineInRange("maxFlashMemorySize", Config.maxFlashMemorySize, 0, 128 * Constants.MEGABYTE);
+            }
             builder.pop();
 
             builder.push("energy");
+            {
+                builder.push("blocks");
+                {
+                    busCableEnergyPerTick = builder.defineInRange("busCableEnergyPerTick", Config.busCableEnergyPerTick, 0, Integer.MAX_VALUE);
+                    busInterfaceEnergyPerTick = builder.defineInRange("busInterfaceEnergyPerTick", Config.busInterfaceEnergyPerTick, 0, Integer.MAX_VALUE);
+                    computerEnergyPerTick = builder.defineInRange("computerEnergyPerTick", Config.computerEnergyPerTick, 0, Integer.MAX_VALUE);
+                    computerEnergyStorage = builder.defineInRange("computerEnergyStorage", Config.computerEnergyStorage, 0, Integer.MAX_VALUE);
+                    robotEnergyPerTick = builder.defineInRange("robotEnergyPerTick", Config.robotEnergyPerTick, 0, Integer.MAX_VALUE);
+                    robotEnergyStorage = builder.defineInRange("robotEnergyStorage", Config.robotEnergyStorage, 0, Integer.MAX_VALUE);
+                    chargerEnergyPerTick = builder.defineInRange("chargerEnergyPerTick", Config.chargerEnergyPerTick, 0, Integer.MAX_VALUE);
+                    chargerEnergyStorage = builder.defineInRange("chargerEnergyStorage", Config.chargerEnergyStorage, 0, Integer.MAX_VALUE);
+                }
+                builder.pop();
 
-            busCableEnergyPerTick = builder
-                    .translation(Constants.CONFIG_BUS_CABLE_COMPLEXITY)
-                    .comment("The amount of energy (Forge Energy/RF) a single bus cable consumes per tick.")
-                    .defineInRange("busCableEnergyPerTick", Config.busCableEnergyPerTick, 0, Double.MAX_VALUE);
-
-            busInterfaceEnergyPerTick = builder
-                    .translation(Constants.CONFIG_BUS_INTERFACE_COMPLEXITY)
-                    .comment("The amount of energy (Forge Energy/RF) a single bus interface consumes per tick.")
-                    .defineInRange("busInterfaceEnergyPerTick", Config.busInterfaceEnergyPerTick, 0, Double.MAX_VALUE);
-
-            computerEnergyPerTick = builder
-                    .translation(Constants.CONFIG_COMPUTER_ENERGY_PER_TICK)
-                    .comment("The amount of energy (Forge Energy/RF) a computer consumes per tick. Set to zero to disable.")
-                    .defineInRange("computerEnergyPerTick", Config.computerEnergyPerTick, 0, Integer.MAX_VALUE);
-
-            computerEnergyStorage = builder
-                    .translation(Constants.CONFIG_COMPUTER_ENERGY_STORAGE)
-                    .comment("The amount of energy (Forge Energy/RF) a computer can store internally.")
-                    .defineInRange("computerEnergyStorage", Config.computerEnergyStorage, 0, Integer.MAX_VALUE);
-
-            robotEnergyPerTick = builder
-                    .translation(Constants.CONFIG_ROBOT_ENERGY_PER_TICK)
-                    .comment("The amount of energy (Forge Energy/RF) a robot consumes per tick. Set to zero to disable.")
-                    .defineInRange("robotEnergyPerTick", Config.robotEnergyPerTick, 0, Integer.MAX_VALUE);
-
-            robotEnergyStorage = builder
-                    .translation(Constants.CONFIG_ROBOT_ENERGY_STORAGE)
-                    .comment("The amount of energy (Forge Energy/RF) a robot can store internally.")
-                    .defineInRange("robotEnergyStorage", Config.robotEnergyStorage, 0, Integer.MAX_VALUE);
-
-            chargerEnergyPerTick = builder
-                    .translation(Constants.CONFIG_CHARGER_ENERGY_PER_TICK)
-                    .comment("The maximum amount of energy (Forge Energy/RF) a charger transfers per tick. Set to zero to disable.")
-                    .defineInRange("chargerEnergyPerTick", Config.chargerEnergyPerTick, 0, Integer.MAX_VALUE);
-
-            chargerEnergyStorage = builder
-                    .translation(Constants.CONFIG_CHARGER_ENERGY_STORAGE)
-                    .comment("The amount of energy (Forge Energy/RF) a charger can store internally.")
-                    .defineInRange("chargerEnergyStorage", Config.chargerEnergyStorage, 0, Integer.MAX_VALUE);
-
+                builder.push("items");
+                {
+                    memoryEnergyPerMegabytePerTick = builder.defineInRange("memoryEnergyPerMegabytePerTick", Config.memoryEnergyPerMegabytePerTick, 0, Integer.MAX_VALUE);
+                    hardDriveEnergyPerMegabytePerTick = builder.defineInRange("hardDriveEnergyPerMegabytePerTick", Config.hardDriveEnergyPerMegabytePerTick, 0, Integer.MAX_VALUE);
+                    networkInterfaceEnergyPerTick = builder.defineInRange("networkInterfaceEnergyPerTick", Config.networkInterfaceEnergyPerTick, 0, Integer.MAX_VALUE);
+                    redstoneInterfaceCardEnergyPerTick = builder.defineInRange("redstoneInterfaceCardEnergyPerTick", Config.redstoneInterfaceCardEnergyPerTick, 0, Integer.MAX_VALUE);
+                    blockOperationsModuleEnergyPerTick = builder.defineInRange("blockOperationsModuleEnergyPerTick", Config.blockOperationsModuleEnergyPerTick, 0, Integer.MAX_VALUE);
+                    inventoryOperationsModuleEnergyPerTick = builder.defineInRange("inventoryOperationsModuleEnergyPerTick", Config.inventoryOperationsModuleEnergyPerTick, 0, Integer.MAX_VALUE);
+                }
+                builder.pop();
+            }
             builder.pop();
 
             builder.push("gameplay");
-
-            blockOperationsModuleToolLevel = builder
-                    .translation(Constants.CONFIG_BLOCK_OPERATIONS_MODULE_TOOL_LEVEL)
-                    .comment("Tool level the block operations module operates at.")
-                    .defineInRange("modules.block_operations.toolLevel", Config.blockOperationsModuleToolLevel, 0, Integer.MAX_VALUE);
-
+            {
+                blockOperationsModuleToolLevel = builder.defineInRange("modules.blockOperations.toolLevel", Config.blockOperationsModuleToolLevel, 0, Integer.MAX_VALUE);
+            }
             builder.pop();
 
             builder.push("admin");
-
-            fakePlayerUUID = builder
-                    .translation(Constants.CONFIG_FAKE_PLAYER_UUID)
-                    .comment("The UUID used for the ForgeFakePlayer used by robots.")
-                    .define("fakePlayerUUID", Config.fakePlayerUUID.toString());
-
+            {
+                fakePlayerUUID = builder.define("fakePlayerUUID", Config.fakePlayerUUID.toString());
+            }
             builder.pop();
         }
     }

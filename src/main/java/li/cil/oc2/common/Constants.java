@@ -67,24 +67,6 @@ public final class Constants {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final String CONFIG_MAX_ALLOCATED_MEMORY = "config.oc2.vm.maxAllocatedMemory";
-    public static final String CONFIG_MAX_MEMORY_SIZE = "config.oc2.vm.maxMemorySize";
-    public static final String CONFIG_MAX_HARD_DRIVE_SIZE = "config.oc2.vm.maxHardDriveSize";
-    public static final String CONFIG_MAX_FLASH_MEMORY_SIZE = "config.oc2.vm.maxFlashMemorySize";
-    public static final String CONFIG_BLOCK_OPERATIONS_MODULE_TOOL_LEVEL = "config.oc2.modules.block_operations.toolLevel";
-    public static final String CONFIG_FAKE_PLAYER_UUID = "config.oc2.admin.fakePlayerUUID";
-    public static final String CONFIG_BUS_CABLE_COMPLEXITY = "config.oc2.busCableComplexity";
-    public static final String CONFIG_BUS_INTERFACE_COMPLEXITY = "config.oc2.busInterfaceComplexity";
-    public static final String CONFIG_BUS_COMPLEXITY_ENERGY_PER_TICK = "config.oc2.complexityEnergyPerTick";
-    public static final String CONFIG_COMPUTER_ENERGY_PER_TICK = "config.oc2.computerEnergyPerTick";
-    public static final String CONFIG_COMPUTER_ENERGY_STORAGE = "config.oc2.computerEnergyStorage";
-    public static final String CONFIG_ROBOT_ENERGY_PER_TICK = "config.oc2.robotEnergyPerTick";
-    public static final String CONFIG_ROBOT_ENERGY_STORAGE = "config.oc2.robotEnergyStorage";
-    public static final String CONFIG_CHARGER_ENERGY_PER_TICK = "config.oc2.chargerEnergyPerTick";
-    public static final String CONFIG_CHARGER_ENERGY_STORAGE = "config.oc2.chargerEnergyStorage";
-
-    ///////////////////////////////////////////////////////////////////
-
     public static final String COMPUTER_SCREEN_CAPTURE_INPUT_CAPTION = "gui.oc2.computer.capture_input.capt";
     public static final String COMPUTER_SCREEN_CAPTURE_INPUT_DESCRIPTION = "gui.oc2.computer.capture_input.desc";
     public static final String COMPUTER_SCREEN_POWER_CAPTION = "gui.oc2.computer.power.capt";

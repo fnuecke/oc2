@@ -8,8 +8,8 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 public final class EnergyStorageItemStack implements IEnergyStorage, ICapabilityProvider {
     private final LazyOptional<IEnergyStorage> optional = LazyOptional.of(() -> this);
@@ -61,9 +61,12 @@ public final class EnergyStorageItemStack implements IEnergyStorage, ICapability
         return true;
     }
 
-    @NotNull
     @Override
-    public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> capability, @Nullable final Direction side) {
-        return Capabilities.ENERGY_STORAGE.orEmpty(capability, optional);
+    public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
+        if (Capabilities.ENERGY_STORAGE != null && capability != null) {
+            return Capabilities.ENERGY_STORAGE.orEmpty(capability, optional);
+        } else {
+            return LazyOptional.empty();
+        }
     }
 }

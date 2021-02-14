@@ -1,13 +1,12 @@
 package li.cil.oc2.common.container;
 
+import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.bus.ItemHandlerDeviceBusElement;
-import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.NonNullList;
 
-import java.util.List;
 import java.util.function.Function;
 
 public class DeviceItemStackHandler extends FixedSizeItemStackHandler {
@@ -19,13 +18,13 @@ public class DeviceItemStackHandler extends FixedSizeItemStackHandler {
 
     ///////////////////////////////////////////////////////////////////
 
-    public DeviceItemStackHandler(final int size, final Function<ItemStack, List<ItemDeviceInfo>> deviceLookup) {
-        this(NonNullList.withSize(size, ItemStack.EMPTY), deviceLookup);
+    public DeviceItemStackHandler(final int size, final Function<ItemStack, ItemDeviceQuery> queryFactory) {
+        this(NonNullList.withSize(size, ItemStack.EMPTY), queryFactory);
     }
 
-    public DeviceItemStackHandler(final NonNullList<ItemStack> stacks, final Function<ItemStack, List<ItemDeviceInfo>> deviceLookup) {
+    public DeviceItemStackHandler(final NonNullList<ItemStack> stacks, final Function<ItemStack, ItemDeviceQuery> queryFactory) {
         super(stacks);
-        this.busElement = new ItemHandlerDeviceBusElement(getSlots(), deviceLookup);
+        this.busElement = new ItemHandlerDeviceBusElement(getSlots(), queryFactory);
     }
 
     ///////////////////////////////////////////////////////////////////

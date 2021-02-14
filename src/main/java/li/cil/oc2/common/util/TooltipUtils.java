@@ -3,8 +3,10 @@ package li.cil.oc2.common.util;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import li.cil.oc2.api.bus.device.DeviceType;
+import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.energy.FixedEnergyStorage;
+import li.cil.oc2.common.bus.device.util.Devices;
+import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.tags.ItemTags;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -15,12 +17,17 @@ import net.minecraft.util.text.*;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import static li.cil.oc2.common.Constants.*;
 
 public final class TooltipUtils {
+    private static final IFormattableTextComponent DEVICE_NEEDS_REBOOT =
+            new TranslationTextComponent(Constants.TOOLTIP_DEVICE_NEEDS_REBOOT)
+                    .modifyStyle(s -> s.setColor(Color.fromTextFormatting(TextFormatting.YELLOW)));
+
     private static final ThreadLocal<List<ItemStack>> ITEM_STACKS = ThreadLocal.withInitial(ArrayList::new);
     private static final ThreadLocal<IntList> ITEM_STACKS_SIZES = ThreadLocal.withInitial(IntArrayList::new);
 
@@ -35,7 +42,7 @@ public final class TooltipUtils {
         final LanguageMap languagemap = LanguageMap.getInstance();
         if (languagemap.func_230506_b_(translationKey)) {
             final TranslationTextComponent description = new TranslationTextComponent(translationKey);
-            tooltip.add(new StringTextComponent("").modifyStyle(s -> s.setColor(Color.fromTextFormatting(TextFormatting.GRAY))).append(description));
+            tooltip.add(withColor(description, TextFormatting.GRAY));
         }
 
         // Tooltips get queried very early in Minecraft initialization, meaning tags may not
@@ -43,8 +50,14 @@ public final class TooltipUtils {
         // in that case, so we do the detour through the collection instead.
         final ITag<Item> tag = net.minecraft.tags.ItemTags.getCollection().get(ItemTags.DEVICE_NEEDS_REBOOT.getName());
         if (tag != null && tag.contains(stack.getItem())) {
-            tooltip.add(new StringTextComponent("").modifyStyle(s -> s.setColor(Color.fromTextFormatting(TextFormatting.YELLOW)))
-                    .append(new TranslationTextComponent(Constants.TOOLTIP_DEVICE_NEEDS_REBOOT)));
+            tooltip.add(DEVICE_NEEDS_REBOOT);
+        }
+
+        final ItemDeviceQuery query = Devices.makeQuery(stack);
+        final int energyConsumption = Devices.getEnergyConsumption(query);
+        if (energyConsumption > 0) {
+            final IFormattableTextComponent energy = withColor(String.valueOf(energyConsumption), TextFormatting.GREEN);
+            tooltip.add(withColor(new TranslationTextComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, energy), TextFormatting.GRAY));
         }
     }
 
@@ -86,28 +99,29 @@ public final class TooltipUtils {
         }
     }
 
-    public static void addEntityEnergyInformation(final ItemStack stack, final List<ITextComponent> tooltip, final int defaultCapacity) {
-        addEnergyInformation(NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ENERGY_TAG_NAME), tooltip, defaultCapacity);
+    public static void addEntityEnergyInformation(final ItemStack stack, final List<ITextComponent> tooltip) {
+        stack.getCapability(Capabilities.ENERGY_STORAGE).ifPresent(energy -> {
+            if (energy.getEnergyStored() == 0) {
+                return;
+            }
+
+            final IFormattableTextComponent value = withColor(energy.getEnergyStored() + "/" + energy.getMaxEnergyStored(), TextFormatting.GREEN);
+            tooltip.add(withColor(new TranslationTextComponent(Constants.TOOLTIP_ENERGY, value), TextFormatting.GRAY));
+        });
     }
 
-    public static void addEnergyInformation(final CompoundNBT energyTag, final List<ITextComponent> tooltip, final int defaultCapacity) {
-        final int stored = energyTag.getInt(FixedEnergyStorage.STORED_TAG_NAME);
-        if (stored == 0) {
-            return;
+    public static void addEnergyConsumption(final double value, final List<ITextComponent> tooltip) {
+        if (value > 0) {
+            tooltip.add(withColor(new TranslationTextComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(new DecimalFormat("#.##").format(value), TextFormatting.GREEN)), TextFormatting.GRAY));
         }
+    }
 
-        final int capacity;
-        if (energyTag.contains(FixedEnergyStorage.CAPACITY_TAG_NAME, NBTTagIds.TAG_INT)) {
-            capacity = energyTag.getInt(FixedEnergyStorage.CAPACITY_TAG_NAME);
-        } else {
-            capacity = defaultCapacity;
-        }
+    public static IFormattableTextComponent withColor(final String value, final TextFormatting formatting) {
+        return withColor(new StringTextComponent(value), formatting);
+    }
 
-        if (capacity > 0) {
-            tooltip.add(new TranslationTextComponent(Constants.TOOLTIP_ENERGY, stored + "/" + capacity));
-        } else {
-            tooltip.add(new TranslationTextComponent(Constants.TOOLTIP_ENERGY, stored));
-        }
+    public static IFormattableTextComponent withColor(final IFormattableTextComponent text, final TextFormatting formatting) {
+        return text.modifyStyle(s -> s.setColor(Color.fromTextFormatting(formatting)));
     }
 
     ///////////////////////////////////////////////////////////////////

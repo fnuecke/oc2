@@ -37,12 +37,21 @@ public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<Item
         return matches(query) ? getItemDeviceType(query) : Optional.empty();
     }
 
+    @Override
+    public final int getEnergyConsumption(final ItemDeviceQuery query) {
+        return matches(query) ? getItemDeviceEnergyConsumption(query) : 0;
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     protected abstract Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query);
 
     protected Optional<DeviceType> getItemDeviceType(final ItemDeviceQuery query) {
         return Optional.of(DeviceTypes.CARD);
+    }
+
+    protected int getItemDeviceEnergyConsumption(final ItemDeviceQuery query) {
+        return 0;
     }
 
     ///////////////////////////////////////////////////////////////////

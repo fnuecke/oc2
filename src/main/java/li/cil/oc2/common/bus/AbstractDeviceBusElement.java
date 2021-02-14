@@ -1,5 +1,7 @@
 package li.cil.oc2.common.bus;
 
+import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
@@ -9,11 +11,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AbstractDeviceBusElement implements DeviceBusElement {
-    protected final HashSet<Device> devices = new HashSet<>();
+    protected final Object2IntArrayMap<Device> devices = new Object2IntArrayMap<>();
     protected final HashSet<DeviceBusController> controllers = new HashSet<>();
 
     ///////////////////////////////////////////////////////////////////
 
+    public void addDevice(final Device device) {
+        devices.put(device, 0);
+        scanDevices();
+    }
+
+    @Override
     public void addController(final DeviceBusController controller) {
         controllers.add(controller);
     }
@@ -35,7 +43,7 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
 
     @Override
     public Collection<Device> getLocalDevices() {
-        return devices;
+        return devices.keySet();
     }
 
     @Override
@@ -44,15 +52,12 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     }
 
     @Override
-    public void addDevice(final Device device) {
-        devices.add(device);
-        scanDevices();
-    }
-
-    @Override
-    public void removeDevice(final Device device) {
-        devices.remove(device);
-        scanDevices();
+    public double getEnergyConsumption() {
+        long accumulator = 0;
+        for (final Object2IntMap.Entry<Device> entry : devices.object2IntEntrySet()) {
+            accumulator += entry.getIntValue();
+        }
+        return accumulator;
     }
 
     @Override

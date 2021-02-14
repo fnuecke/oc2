@@ -1,6 +1,6 @@
 package li.cil.oc2.common.bus;
 
-import li.cil.oc2.api.bus.device.vm.VMContext;
+import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.vm.VMDeviceBusAdapter;

@@ -15,8 +15,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
-import javax.annotation.Nullable;
-
 public final class NetworkHubBlock extends HorizontalBlock {
     public NetworkHubBlock() {
         super(Properties
@@ -38,7 +36,6 @@ public final class NetworkHubBlock extends HorizontalBlock {
         return true;
     }
 
-    @Nullable
     @Override
     public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
         return TileEntities.NETWORK_HUB_TILE_ENTITY.get().create();

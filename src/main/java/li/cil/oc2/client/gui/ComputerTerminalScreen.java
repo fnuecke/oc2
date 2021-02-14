@@ -1,42 +1,50 @@
 package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import li.cil.oc2.common.container.ComputerTerminalContainer;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerPowerMessage;
 import li.cil.oc2.common.network.message.ComputerTerminalInputMessage;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.vm.Terminal;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.client.util.InputMappings;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.text.ITextComponent;
 
 import java.nio.ByteBuffer;
 
-public final class ComputerTerminalScreen extends Screen {
-    private final ComputerTileEntity computer;
+public final class ComputerTerminalScreen extends ContainerScreen<ComputerTerminalContainer> {
     private final ComputerTerminalWidget terminalWidget;
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerTerminalScreen(final ComputerTileEntity computer, final ITextComponent title) {
-        super(title);
-        this.computer = computer;
-        this.terminalWidget = new ComputerTerminalWidget(computer.getTerminal());
+    public ComputerTerminalScreen(final ComputerTerminalContainer container, final PlayerInventory playerInventory, final ITextComponent title) {
+        super(container, playerInventory, title);
+        this.terminalWidget = new ComputerTerminalWidget(container.getComputer().getTerminal());
+        xSize = AbstractTerminalWidget.WIDTH;
+        ySize = AbstractTerminalWidget.HEIGHT;
     }
 
     ///////////////////////////////////////////////////////////////////
 
 
     @Override
-    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground(matrixStack);
+    protected void drawGuiContainerBackgroundLayer(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
         terminalWidget.renderBackground(matrixStack, mouseX, mouseY);
+    }
 
+    @Override
+    protected void drawGuiContainerForegroundLayer(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
+    }
+
+    @Override
+    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
+        terminalWidget.setEnergyInfo(container.getEnergy(), container.getEnergyCapacity(), container.getEnergyConsumption());
+
+        renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-        terminalWidget.render(matrixStack, computer.getVirtualMachine().getBootError());
+        terminalWidget.render(matrixStack, mouseX, mouseY, container.getComputer().getVirtualMachine().getBootError());
     }
 
     @Override
@@ -44,16 +52,6 @@ public final class ComputerTerminalScreen extends Screen {
         super.tick();
 
         terminalWidget.tick();
-
-        final ClientPlayerEntity player = getMinecraft().player;
-        if (!player.isAlive() || !canInteractWith(player)) {
-            closeScreen();
-        }
-    }
-
-    @Override
-    public boolean isPauseScreen() {
-        return false;
     }
 
     @Override
@@ -64,8 +62,18 @@ public final class ComputerTerminalScreen extends Screen {
 
     @Override
     public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
-        return terminalWidget.keyPressed(keyCode, scanCode, modifiers) ||
-               super.keyPressed(keyCode, scanCode, modifiers);
+        if (terminalWidget.keyPressed(keyCode, scanCode, modifiers)) {
+            return true;
+        }
+
+        // Don't close with inventory binding since we usually want to use that as terminal input
+        // even without input capture enabled.
+        final InputMappings.Input input = InputMappings.getInputByCode(keyCode, scanCode);
+        if (this.minecraft.gameSettings.keyBindInventory.isActiveAndMatches(input)) {
+            return true;
+        }
+
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
@@ -82,12 +90,6 @@ public final class ComputerTerminalScreen extends Screen {
 
     ///////////////////////////////////////////////////////////////////
 
-    private boolean canInteractWith(final PlayerEntity player) {
-        return Vector3d.copyCentered(computer.getPos()).isWithinDistanceOf(player.getPositionVec(), 8);
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
     private final class ComputerTerminalWidget extends AbstractTerminalWidget {
         public ComputerTerminalWidget(final Terminal terminal) {
             super(ComputerTerminalScreen.this, terminal);
@@ -95,7 +97,7 @@ public final class ComputerTerminalScreen extends Screen {
 
         @Override
         protected boolean isRunning() {
-            return computer.getVirtualMachine().isRunning();
+            return container.getComputer().getVirtualMachine().isRunning();
         }
 
         @Override
@@ -105,12 +107,12 @@ public final class ComputerTerminalScreen extends Screen {
 
         @Override
         protected void sendPowerStateToServer(final boolean value) {
-            Network.INSTANCE.sendToServer(new ComputerPowerMessage(computer, value));
+            Network.INSTANCE.sendToServer(new ComputerPowerMessage(container.getComputer(), value));
         }
 
         @Override
         protected void sendTerminalInputToServer(final ByteBuffer input) {
-            Network.INSTANCE.sendToServer(new ComputerTerminalInputMessage(computer, input));
+            Network.INSTANCE.sendToServer(new ComputerTerminalInputMessage(container.getComputer(), input));
         }
     }
 }

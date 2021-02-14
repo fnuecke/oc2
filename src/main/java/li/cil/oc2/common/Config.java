@@ -26,12 +26,21 @@ public final class Config {
     public static int maxFlashMemorySize = 4 * Constants.KILOBYTE;
     public static int maxFloppySize = 512 * Constants.KILOBYTE;
 
-    public static int computerEnergyPerTick = 20;
-    public static int computerEnergyStorage = 4000;
-    public static int robotEnergyPerTick = 10;
-    public static int robotEnergyStorage = 600000;
+    public static double busCableEnergyPerTick = 0.1;
+    public static double busInterfaceEnergyPerTick = 0.5;
+    public static int computerEnergyPerTick = 10;
+    public static int computerEnergyStorage = 2000;
+    public static int robotEnergyPerTick = 5;
+    public static int robotEnergyStorage = 750000;
     public static int chargerEnergyPerTick = 2500;
-    public static int chargerEnergyStorage = 50000;
+    public static int chargerEnergyStorage = 10000;
+
+    public static double memoryEnergyPerMegabytePerTick = 0.5;
+    public static double hardDriveEnergyPerMegabytePerTick = 1;
+    public static int networkInterfaceEnergyPerTick = 1;
+    public static int redstoneInterfaceCardEnergyPerTick = 1;
+    public static int blockOperationsModuleEnergyPerTick = 2;
+    public static int inventoryOperationsModuleEnergyPerTick = 1;
 
     public static int blockOperationsModuleToolLevel = Items.DIAMOND_PICKAXE.getHarvestLevel(new ItemStack(Items.DIAMOND_PICKAXE), ToolType.PICKAXE, null, null);
 
@@ -73,6 +82,9 @@ public final class Config {
             maxHardDriveSize = COMMON_INSTANCE.maxHardDriveSize.get();
             maxFlashMemorySize = COMMON_INSTANCE.maxFlashMemorySize.get();
 
+            busCableEnergyPerTick = COMMON_INSTANCE.busCableEnergyPerTick.get();
+            busInterfaceEnergyPerTick = COMMON_INSTANCE.busInterfaceEnergyPerTick.get();
+
             computerEnergyPerTick = COMMON_INSTANCE.computerEnergyPerTick.get();
             computerEnergyStorage = COMMON_INSTANCE.computerEnergyStorage.get();
             robotEnergyPerTick = COMMON_INSTANCE.robotEnergyPerTick.get();
@@ -94,6 +106,8 @@ public final class Config {
         public final ForgeConfigSpec.IntValue maxHardDriveSize;
         public final ForgeConfigSpec.IntValue maxFlashMemorySize;
 
+        public final ForgeConfigSpec.DoubleValue busCableEnergyPerTick;
+        public final ForgeConfigSpec.DoubleValue busInterfaceEnergyPerTick;
         public final ForgeConfigSpec.IntValue computerEnergyPerTick;
         public final ForgeConfigSpec.IntValue computerEnergyStorage;
         public final ForgeConfigSpec.IntValue robotEnergyPerTick;
@@ -132,9 +146,19 @@ public final class Config {
 
             builder.push("energy");
 
+            busCableEnergyPerTick = builder
+                    .translation(Constants.CONFIG_BUS_CABLE_COMPLEXITY)
+                    .comment("The amount of energy (Forge Energy/RF) a single bus cable consumes per tick.")
+                    .defineInRange("busCableEnergyPerTick", Config.busCableEnergyPerTick, 0, Double.MAX_VALUE);
+
+            busInterfaceEnergyPerTick = builder
+                    .translation(Constants.CONFIG_BUS_INTERFACE_COMPLEXITY)
+                    .comment("The amount of energy (Forge Energy/RF) a single bus interface consumes per tick.")
+                    .defineInRange("busInterfaceEnergyPerTick", Config.busInterfaceEnergyPerTick, 0, Double.MAX_VALUE);
+
             computerEnergyPerTick = builder
                     .translation(Constants.CONFIG_COMPUTER_ENERGY_PER_TICK)
-                    .comment("The amount of energy (Forge Energy/RF) a computer draws per tick. Set to zero to disable.")
+                    .comment("The amount of energy (Forge Energy/RF) a computer consumes per tick. Set to zero to disable.")
                     .defineInRange("computerEnergyPerTick", Config.computerEnergyPerTick, 0, Integer.MAX_VALUE);
 
             computerEnergyStorage = builder
@@ -144,7 +168,7 @@ public final class Config {
 
             robotEnergyPerTick = builder
                     .translation(Constants.CONFIG_ROBOT_ENERGY_PER_TICK)
-                    .comment("The amount of energy (Forge Energy/RF) a robot draws per tick. Set to zero to disable.")
+                    .comment("The amount of energy (Forge Energy/RF) a robot consumes per tick. Set to zero to disable.")
                     .defineInRange("robotEnergyPerTick", Config.robotEnergyPerTick, 0, Integer.MAX_VALUE);
 
             robotEnergyStorage = builder

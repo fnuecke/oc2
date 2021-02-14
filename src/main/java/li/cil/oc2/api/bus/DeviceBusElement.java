@@ -30,10 +30,6 @@ public interface DeviceBusElement extends DeviceBus {
      * <p>
      * When {@link #scheduleScan()} is called, {@link DeviceBusController#scheduleBusScan()}
      * <em>must</em> be called for each registered controller.
-     * <p>
-     * When either {@link #addDevice(Device)} or {@link #removeDevice(Device)} are called,
-     * {@link DeviceBusController#scanDevices()} <em>should</em> be called for each registered
-     * controller.
      *
      * @param controller the controller to add.
      */
@@ -98,4 +94,22 @@ public interface DeviceBusElement extends DeviceBus {
      * @return the stable id for the specified device.
      */
     Optional<UUID> getDeviceIdentifier(Device device);
+
+    /**
+     * Returns the energy consumption of this bus element.
+     * <p>
+     * Energy cost of a single bus element may vary depending on its configuration. For example,
+     * bus cables will also take into account the number of installed bus interfaces. Internal
+     * bus elements used to connect item devices will take into account the energy consumption of
+     * any connected item devices.
+     * <p>
+     * Block devices that require a running amount of energy should use regular means of having
+     * energy injected into them. The device bus is not intended nor communicated as something
+     * that transfers power.
+     *
+     * @return the complexity of this bus element.
+     */
+    default double getEnergyConsumption() {
+        return 0;
+    }
 }

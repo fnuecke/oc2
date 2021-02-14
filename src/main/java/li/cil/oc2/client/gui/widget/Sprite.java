@@ -24,4 +24,10 @@ public final class Sprite extends AbstractGui {
         Minecraft.getInstance().getTextureManager().bindTexture(image);
         blit(stack, x, y, u0, v0, width, height, textureSize, textureSize);
     }
+
+    public void drawFillY(final MatrixStack stack, final int x, final int y, final float value) {
+        Minecraft.getInstance().getTextureManager().bindTexture(image);
+        final int h = (int) (this.height * value);
+        blit(stack, x, y + (height - h), u0, v0 + (height - h), width, h, textureSize, textureSize);
+    }
 }

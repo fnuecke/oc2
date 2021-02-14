@@ -1,7 +1,9 @@
 package li.cil.oc2.common.bus;
 
+import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
+import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.NBTTagIds;
@@ -11,22 +13,22 @@ import net.minecraft.util.ResourceLocation;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.function.Function;
 
 public class ItemHandlerDeviceBusElement extends AbstractGroupingItemDeviceBusElement {
-    private final Function<ItemStack, List<ItemDeviceInfo>> deviceLookup;
+    private final Function<ItemStack, ItemDeviceQuery> queryFactory;
 
-    public ItemHandlerDeviceBusElement(final int slotCount, final Function<ItemStack, List<ItemDeviceInfo>> deviceLookup) {
+    public ItemHandlerDeviceBusElement(final int slotCount, final Function<ItemStack, ItemDeviceQuery> queryFactory) {
         super(slotCount);
-        this.deviceLookup = deviceLookup;
+        this.queryFactory = queryFactory;
     }
 
     ///////////////////////////////////////////////////////////////////
 
     public void updateDevices(final int slot, final ItemStack stack) {
         if (!stack.isEmpty()) {
-            final HashSet<ItemDeviceInfo> newDevices = new HashSet<>(deviceLookup.apply(stack));
+            final ItemDeviceQuery query = queryFactory.apply(stack);
+            final HashSet<ItemDeviceInfo> newDevices = new HashSet<>(Devices.getDevices(query));
             insertItemNameDevice(stack, newDevices);
             importDeviceDataFromItemStack(stack, newDevices);
             setDevicesForGroup(slot, newDevices);
@@ -75,7 +77,7 @@ public class ItemHandlerDeviceBusElement extends AbstractGroupingItemDeviceBusEl
         if (devices.stream().anyMatch(info -> info.device instanceof RPCDevice)) {
             final ResourceLocation registryName = stack.getItem().getRegistryName();
             if (registryName != null) {
-                devices.add(new ItemDeviceInfo(null, new TypeNameRPCDevice(registryName.toString())));
+                devices.add(new ItemDeviceInfo(null, new TypeNameRPCDevice(registryName.toString()), 0));
             }
         }
     }

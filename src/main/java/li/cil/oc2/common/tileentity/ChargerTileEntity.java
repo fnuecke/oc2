@@ -16,9 +16,10 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandler;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
-public final class ChargerTileEntity extends TileEntity implements ITickableTileEntity {
+public final class ChargerTileEntity extends AbstractTileEntity implements ITickableTileEntity {
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.chargerEnergyStorage);
 
     ///////////////////////////////////////////////////////////////////
@@ -49,6 +50,13 @@ public final class ChargerTileEntity extends TileEntity implements ITickableTile
         super.read(state, tag);
 
         energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
+        collector.offer(Capabilities.ENERGY_STORAGE, energy);
     }
 
     ///////////////////////////////////////////////////////////////////

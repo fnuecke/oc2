@@ -19,6 +19,10 @@ public abstract class AbstractDeviceInfo<TProvider extends IForgeRegistryEntry<T
 
     ///////////////////////////////////////////////////////////////////
 
+    public int getEnergyConsumption() {
+        return 0;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;

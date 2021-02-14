@@ -1,6 +1,7 @@
 package li.cil.oc2.common.tileentity;
 
 import li.cil.oc2.client.model.BusCableBakedModel;
+import li.cil.oc2.common.Config;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -117,6 +118,13 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         public boolean canDetectDevicesTowards(@Nullable final Direction direction) {
             final BusCableBlock.ConnectionType connectionType = BusCableBlock.getConnectionType(getBlockState(), direction);
             return connectionType == BusCableBlock.ConnectionType.INTERFACE;
+        }
+
+        @Override
+        public double getEnergyConsumption() {
+            return super.getEnergyConsumption()
+                   + Config.busCableEnergyPerTick
+                   + BusCableBlock.getInterfaceCount(getBlockState()) * Config.busInterfaceEnergyPerTick;
         }
     }
 }

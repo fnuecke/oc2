@@ -3,6 +3,7 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
@@ -93,7 +94,8 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
 
         final HashSet<BlockDeviceInfo> newDevices = new HashSet<>();
         if (canDetectDevicesTowards(direction)) {
-            for (final LazyOptional<BlockDeviceInfo> deviceInfo : Devices.getDevices(world, pos, direction)) {
+            final BlockDeviceQuery query = Devices.makeQuery(world, pos, direction);
+            for (final LazyOptional<BlockDeviceInfo> deviceInfo : Devices.getDevices(query)) {
                 deviceInfo.ifPresent(newDevices::add);
                 deviceInfo.addListener(unused -> handleNeighborChanged(pos));
             }

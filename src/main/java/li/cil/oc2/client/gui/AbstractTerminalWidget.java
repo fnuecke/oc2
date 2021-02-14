@@ -15,11 +15,18 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.ITextProperties;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.fml.client.gui.GuiUtils;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.List;
+
+import static li.cil.oc2.common.util.TooltipUtils.withColor;
 
 public abstract class AbstractTerminalWidget extends AbstractGui {
     public static final ResourceLocation BACKGROUND_LOCATION = new ResourceLocation(API.MOD_ID, "textures/gui/screen/terminal.png");
@@ -27,16 +34,23 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
     public static final int TEXTURE_SIZE = 512;
 
     private static final Sprite BACKGROUND = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 336, 208, 0, 0);
-    private static final Sprite CONTROLS_BACKGROUND = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 19, 34, 80, 250);
-    private static final Sprite TERMINAL_FOCUSED = new Sprite(TERMINAL_FOCUSED_LOCATION, TEXTURE_SIZE, 336, 208, 0, 0);
+
+    private static final Sprite CONTROLS_BACKGROUND = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 19, 34, 50, 250);
+
+    private static final Sprite POWER_BASE = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 15, 255);
+    private static final Sprite POWER_PRESSED = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 29, 255);
+    private static final Sprite POWER_ACTIVE = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 1, 255);
 
     private static final Sprite CAPTURE_INPUT_BASE = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 15, 241);
     private static final Sprite CAPTURE_INPUT_PRESSED = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 29, 241);
     private static final Sprite CAPTURE_INPUT_ACTIVE = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 1, 241);
 
-    private static final Sprite POWER_BASE = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 15, 255);
-    private static final Sprite POWER_PRESSED = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 29, 255);
-    private static final Sprite POWER_ACTIVE = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 1, 255);
+    private static final Sprite ENERGY_BACKGROUND = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 19, 34, 80, 250);
+
+    private static final Sprite ENERGY_BASE = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 26, 110, 250);
+    private static final Sprite ENERGY_BAR = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 26, 125, 250);
+
+    private static final Sprite TERMINAL_FOCUSED = new Sprite(TERMINAL_FOCUSED_LOCATION, TEXTURE_SIZE, 336, 208, 0, 0);
 
     public static final int TERMINAL_WIDTH = Terminal.WIDTH * Terminal.CHAR_WIDTH / 2;
     public static final int TERMINAL_HEIGHT = Terminal.HEIGHT * Terminal.CHAR_HEIGHT / 2;
@@ -49,6 +63,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
     public static final int HEIGHT = TERMINAL_HEIGHT + MARGIN_SIZE * 2;
 
     private static final int CONTROLS_TOP = 8;
+    private static final int ENERGY_TOP = CONTROLS_TOP + CONTROLS_BACKGROUND.height + 4;
 
     private static boolean isInputCaptureEnabled;
 
@@ -59,6 +74,8 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
     private int windowLeft, windowTop;
     private boolean isMouseOverTerminal;
 
+    private int currentEnergy, maxEnergy, energyConsumption;
+
     ///////////////////////////////////////////////////////////////////
 
     protected AbstractTerminalWidget(final Screen parent, final Terminal terminal) {
@@ -66,13 +83,27 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         this.terminal = terminal;
     }
 
+    public void setEnergyInfo(final int current, final int capacity, final int consumption) {
+        this.currentEnergy = current;
+        this.maxEnergy = capacity;
+        this.energyConsumption = consumption;
+    }
+
     public void renderBackground(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
-        isMouseOverTerminal = isOverTerminal(mouseX, mouseY);
+        isMouseOverTerminal = isMouseOverTerminal(mouseX, mouseY);
 
         RenderSystem.color4f(1f, 1f, 1f, 1f);
         getClient().getTextureManager().bindTexture(BACKGROUND_LOCATION);
 
         CONTROLS_BACKGROUND.draw(matrixStack, windowLeft - CONTROLS_BACKGROUND.width, windowTop + CONTROLS_TOP);
+
+        if (maxEnergy > 0) {
+            final int x = windowLeft - ENERGY_BACKGROUND.width;
+            final int y = windowTop + ENERGY_TOP;
+            ENERGY_BACKGROUND.draw(matrixStack, x, y);
+            ENERGY_BASE.draw(matrixStack, x + 4, y + 4);
+        }
+
         BACKGROUND.draw(matrixStack, windowLeft, windowTop);
 
         if (shouldCaptureInput()) {
@@ -80,7 +111,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         }
     }
 
-    public void render(final MatrixStack matrixStack, @Nullable final ITextComponent error) {
+    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, @Nullable final ITextComponent error) {
         if (isRunning()) {
             final MatrixStack stack = new MatrixStack();
             stack.translate(windowLeft + TERMINAL_X, windowTop + TERMINAL_Y, getClient().getItemRenderer().zLevel);
@@ -97,6 +128,18 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
                         windowLeft + TERMINAL_X + textOffsetX,
                         windowTop + TERMINAL_Y + textOffsetY,
                         0xEE3322);
+            }
+        }
+
+        if (maxEnergy > 0) {
+            ENERGY_BAR.drawFillY(matrixStack, windowLeft - ENERGY_BACKGROUND.width + 4, windowTop + ENERGY_TOP + 4, currentEnergy / (float) maxEnergy);
+
+            if (isMouseOver(mouseX, mouseY, -ENERGY_BACKGROUND.width + 4, ENERGY_TOP + 4, ENERGY_BAR.width, ENERGY_BAR.height)) {
+                final List<? extends ITextProperties> tooltip = Arrays.asList(
+                        new TranslationTextComponent(Constants.TOOLTIP_ENERGY, withColor(currentEnergy + "/" + maxEnergy, TextFormatting.GREEN)),
+                        new TranslationTextComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(String.valueOf(energyConsumption), TextFormatting.GREEN))
+                );
+                GuiUtils.drawHoveringText(matrixStack, tooltip, mouseX, mouseY, parent.width, parent.height, 200, getClient().fontRenderer);
             }
         }
     }
@@ -209,12 +252,18 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         return isMouseOverTerminal && isInputCaptureEnabled && isRunning();
     }
 
-    private boolean isOverTerminal(final int mouseX, final int mouseY) {
+    private boolean isMouseOverTerminal(final int mouseX, final int mouseY) {
+        return isMouseOver(mouseX, mouseY,
+                AbstractTerminalWidget.TERMINAL_X, AbstractTerminalWidget.TERMINAL_Y,
+                AbstractTerminalWidget.TERMINAL_WIDTH, AbstractTerminalWidget.TERMINAL_HEIGHT);
+    }
+
+    private boolean isMouseOver(final int mouseX, final int mouseY, final int x, final int y, final int width, final int height) {
         final int localMouseX = mouseX - windowLeft;
         final int localMouseY = mouseY - windowTop;
-        return localMouseX >= AbstractTerminalWidget.TERMINAL_X &&
-               localMouseX < AbstractTerminalWidget.TERMINAL_X + AbstractTerminalWidget.TERMINAL_WIDTH &&
-               localMouseY >= AbstractTerminalWidget.TERMINAL_Y &&
-               localMouseY < AbstractTerminalWidget.TERMINAL_Y + AbstractTerminalWidget.TERMINAL_HEIGHT;
+        return localMouseX >= x &&
+               localMouseX < x + width &&
+               localMouseY >= y &&
+               localMouseY < y + height;
     }
 }

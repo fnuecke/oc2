@@ -1,6 +1,5 @@
 package li.cil.oc2.api.bus.device.provider;
 
-import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
@@ -43,12 +42,25 @@ public interface ItemDeviceProvider extends IForgeRegistryEntry<ItemDeviceProvid
     /**
      * Get a device for the specified query.
      *
-     * @param query the query describing the object to get a {@link Device} for.
+     * @param query the query describing the object to get an {@link ItemDevice} for.
      * @return a device for the specified query, if available.
      */
     Optional<ItemDevice> getDevice(ItemDeviceQuery query);
 
     default Optional<DeviceType> getDeviceType(final ItemDeviceQuery query) {
         return Optional.of(DeviceTypes.CARD);
+    }
+
+    /**
+     * The amount of energy the device that would be returned by {@link #getDevice(ItemDeviceQuery)}
+     * will consume per tick while the VM using it is running.
+     * <p>
+     * Return <code>0</code> if no device would be provided.
+     *
+     * @param query the query describing the object to get an {@link ItemDevice} for.
+     * @return the amount of energy consumed by the device each tick.
+     */
+    default int getEnergyConsumption(final ItemDeviceQuery query) {
+        return 0;
     }
 }

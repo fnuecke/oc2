@@ -14,7 +14,8 @@ import net.minecraft.network.play.ServerPlayNetHandler;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 public final class FakePlayerUtils {
     private static final String FAKE_PLAYER_NAME = "[" + API.MOD_ID + "]";

@@ -2,12 +2,11 @@ package li.cil.oc2.common.block;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
-import li.cil.oc2.client.gui.ComputerTerminalScreen;
+import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
 import li.cil.oc2.common.bus.device.data.Firmwares;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.container.ComputerContainer;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
@@ -20,13 +19,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
@@ -43,13 +38,11 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -95,6 +88,7 @@ public final class ComputerBlock extends HorizontalBlock {
     @Override
     public void addInformation(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
         super.addInformation(stack, world, tooltip, advanced);
+        TooltipUtils.addEnergyConsumption(Config.computerEnergyPerTick, tooltip);
         TooltipUtils.addTileEntityInventoryInformation(stack, tooltip);
     }
 
@@ -103,7 +97,6 @@ public final class ComputerBlock extends HorizontalBlock {
         return true;
     }
 
-    @Nullable
     @Override
     public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
         return TileEntities.COMPUTER_TILE_ENTITY.get().create();
@@ -177,15 +170,17 @@ public final class ComputerBlock extends HorizontalBlock {
 
         final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
         final ItemStack heldItem = player.getHeldItem(hand);
-        if (Wrenches.isWrench(heldItem)) {
-            if (!world.isRemote() && player instanceof ServerPlayerEntity) {
-                openContainerScreen(computer, player);
-            }
-        } else {
-            if (player.isSneaking()) {
-                computer.start();
-            } else if (world.isRemote()) {
-                openTerminalScreen(computer);
+        if (!world.isRemote()) {
+            if (Wrenches.isWrench(heldItem)) {
+                if (player instanceof ServerPlayerEntity) {
+                    computer.openContainerScreen((ServerPlayerEntity) player);
+                }
+            } else {
+                if (player.isSneaking()) {
+                    computer.start();
+                } else if (player instanceof ServerPlayerEntity) {
+                    computer.openTerminalScreen((ServerPlayerEntity) player);
+                }
             }
         }
 
@@ -225,25 +220,6 @@ public final class ComputerBlock extends HorizontalBlock {
     }
 
     ///////////////////////////////////////////////////////////////////
-
-    @OnlyIn(Dist.CLIENT)
-    private void openTerminalScreen(final ComputerTileEntity computer) {
-        Minecraft.getInstance().displayGuiScreen(new ComputerTerminalScreen(computer, getTranslatedName()));
-    }
-
-    private void openContainerScreen(final ComputerTileEntity tileEntity, final PlayerEntity player) {
-        NetworkHooks.openGui((ServerPlayerEntity) player, new INamedContainerProvider() {
-            @Override
-            public ITextComponent getDisplayName() {
-                return new TranslationTextComponent(getTranslationKey());
-            }
-
-            @Override
-            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
-                return new ComputerContainer(id, tileEntity, inventory);
-            }
-        }, tileEntity.getPos());
-    }
 
     private ItemStack getPreconfiguredComputer() {
         final ItemStack computer = new ItemStack(Items.COMPUTER.get());

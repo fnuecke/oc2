@@ -22,8 +22,8 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static li.cil.oc2.common.Constants.ENERGY_TAG_NAME;
@@ -39,8 +39,9 @@ public final class RobotItem extends ModItem {
     @Override
     public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
         super.addInformation(stack, world, tooltip, flag);
+        TooltipUtils.addEnergyConsumption(Config.robotEnergyPerTick, tooltip);
+        TooltipUtils.addEntityEnergyInformation(stack, tooltip);
         TooltipUtils.addEntityInventoryInformation(stack, tooltip);
-        TooltipUtils.addEntityEnergyInformation(stack, tooltip, Config.robotEnergyStorage);
     }
 
     @Nullable

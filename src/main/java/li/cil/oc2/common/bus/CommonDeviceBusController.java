@@ -36,6 +36,7 @@ public class CommonDeviceBusController implements DeviceBusController {
     public final ParameterizedEvent<DevicesChangedEvent> onDevicesRemoved = new ParameterizedEvent<>();
 
     private final DeviceBusElement root;
+    private final int baseEnergyConsumption;
 
     private final Set<DeviceBusElement> elements = new HashSet<>();
     private final HashSet<Device> devices = new HashSet<>();
@@ -44,10 +45,13 @@ public class CommonDeviceBusController implements DeviceBusController {
     private BusState state = BusState.SCAN_PENDING;
     private int scanDelay;
 
+    private int energyConsumption;
+
     ///////////////////////////////////////////////////////////////////
 
-    public CommonDeviceBusController(final DeviceBusElement root) {
+    public CommonDeviceBusController(final DeviceBusElement root, final int baseEnergyConsumption) {
         this.root = root;
+        this.baseEnergyConsumption = baseEnergyConsumption;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -65,6 +69,10 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     public BusState getState() {
         return state;
+    }
+
+    public int getEnergyConsumption() {
+        return energyConsumption;
     }
 
     @Override
@@ -206,6 +214,8 @@ public class CommonDeviceBusController implements DeviceBusController {
 
         scanDevices();
 
+        updateEnergyConsumption();
+
         state = BusState.READY;
     }
 
@@ -243,6 +253,19 @@ public class CommonDeviceBusController implements DeviceBusController {
         }
 
         elements.clear();
+    }
+
+    private void updateEnergyConsumption() {
+        double accumulator = baseEnergyConsumption;
+        for (final DeviceBusElement element : elements) {
+            accumulator += Math.max(0, element.getEnergyConsumption());
+        }
+
+        if (accumulator > Integer.MAX_VALUE) {
+            energyConsumption = Integer.MAX_VALUE;
+        } else {
+            energyConsumption = (int) accumulator;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////

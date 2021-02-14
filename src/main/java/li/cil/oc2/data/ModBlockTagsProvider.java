@@ -4,7 +4,8 @@ import li.cil.oc2.api.API;
 import net.minecraft.data.BlockTagsProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.data.ExistingFileHelper;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 import static li.cil.oc2.common.block.Blocks.*;
 import static li.cil.oc2.common.tags.BlockTags.*;

@@ -3,6 +3,8 @@ package li.cil.oc2.common.tileentity;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
+import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.client.audio.LoopingSoundManager;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
@@ -12,8 +14,9 @@ import li.cil.oc2.common.bus.TileEntityDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
-import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.container.ComputerContainer;
+import li.cil.oc2.common.container.ComputerTerminalContainer;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.network.Network;
@@ -25,10 +28,16 @@ import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.IIntArray;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
@@ -36,12 +45,12 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
@@ -70,7 +79,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private final TileEntityDeviceBusElement busElement = new ComputerBusElement();
     private final ComputerItemStackHandlers deviceItems = new ComputerItemStackHandlers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
-    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new TileEntityDeviceBusController(busElement, this), deviceItems::getDeviceAddressBase);
+    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new TileEntityDeviceBusController(busElement, Config.computerEnergyPerTick, this), deviceItems::getDeviceAddressBase);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -109,6 +118,57 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         virtualMachine.stop();
+    }
+
+    public void openTerminalScreen(final ServerPlayerEntity player) {
+        NetworkHooks.openGui(player, new INamedContainerProvider() {
+            @Override
+            public ITextComponent getDisplayName() {
+                return new TranslationTextComponent(getBlockState().getBlock().getTranslationKey());
+            }
+
+            @Override
+            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
+                return new ComputerTerminalContainer(id, ComputerTileEntity.this, new IIntArray() {
+                    @Override
+                    public int get(final int index) {
+                        switch (index) {
+                            case 0:
+                                return energy.getEnergyStored();
+                            case 1:
+                                return energy.getMaxEnergyStored();
+                            case 2:
+                                return virtualMachine.busController.getEnergyConsumption();
+                            default:
+                                return 0;
+                        }
+                    }
+
+                    @Override
+                    public void set(final int index, final int value) {
+                    }
+
+                    @Override
+                    public int size() {
+                        return 3;
+                    }
+                });
+            }
+        }, getPos());
+    }
+
+    public void openContainerScreen(final ServerPlayerEntity player) {
+        NetworkHooks.openGui(player, new INamedContainerProvider() {
+            @Override
+            public ITextComponent getDisplayName() {
+                return new TranslationTextComponent(getBlockState().getBlock().getTranslationKey());
+            }
+
+            @Override
+            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
+                return new ComputerContainer(id, ComputerTileEntity.this, inventory);
+            }
+        }, getPos());
     }
 
     public void handleNeighborChanged() {
@@ -150,7 +210,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         // adjacent cable. Because that would just be weird.
         if (!hasAddedOwnDevices) {
             hasAddedOwnDevices = true;
-            for (final LazyOptional<BlockDeviceInfo> optional : Devices.getDevices(this, (Direction) null)) {
+            final BlockDeviceQuery query = Devices.makeQuery(this, (Direction) null);
+            for (final LazyOptional<BlockDeviceInfo> optional : Devices.getDevices(query)) {
                 optional.ifPresent(info -> busElement.addDevice(info.device));
             }
         }
@@ -279,8 +340,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         @Override
-        protected List<ItemDeviceInfo> getDevices(final ItemStack stack) {
-            return Devices.getDevices(ComputerTileEntity.this, stack);
+        protected ItemDeviceQuery getDeviceQuery(final ItemStack stack) {
+            return Devices.makeQuery(ComputerTileEntity.this, stack);
         }
 
         @Override
@@ -357,30 +418,17 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         @Override
-        protected void load() {
-            if (Config.computersUseEnergy()) {
-                // Don't even start running if we couldn't keep running.
-                if (energy.getEnergyStored() < Config.computerEnergyPerTick) {
-                    error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
-                    return;
-                }
+        protected boolean consumeEnergy(final int amount, final boolean simulate) {
+            if (!Config.computersUseEnergy()) {
+                return true;
             }
 
-            super.load();
-        }
-
-        @Override
-        protected void run() {
-            if (Config.computersUseEnergy()) {
-                if (energy.getEnergyStored() >= Config.computerEnergyPerTick) {
-                    energy.extractEnergy(Config.computerEnergyPerTick, false);
-                } else {
-                    error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
-                    return;
-                }
+            if (amount > energy.getEnergyStored()) {
+                return false;
             }
 
-            super.run();
+            energy.extractEnergy(amount, simulate);
+            return true;
         }
 
         @Override

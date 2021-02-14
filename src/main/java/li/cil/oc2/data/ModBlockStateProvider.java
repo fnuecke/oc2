@@ -3,6 +3,7 @@ package li.cil.oc2.data;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
+import li.cil.oc2.common.block.CreativeEnergyBlock;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.block.Block;
 import net.minecraft.data.DataGenerator;
@@ -37,6 +38,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
         horizontalBlock(Blocks.NETWORK_HUB, Items.NETWORK_HUB);
         horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE);
         horizontalBlock(Blocks.CHARGER, Items.CHARGER);
+        simpleBlock(Blocks.CREATIVE_ENERGY, Items.CREATIVE_ENERGY);
 
         registerCableStates();
     }
@@ -156,5 +158,10 @@ public class ModBlockStateProvider extends BlockStateProvider {
     private <T extends Block> ItemModelBuilder horizontalFaceBlock(final RegistryObject<T> block, final RegistryObject<Item> item) {
         horizontalFaceBlock(block.get(), models().getBuilder(block.getId().getPath()));
         return itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
+    }
+
+    private void simpleBlock(final RegistryObject<CreativeEnergyBlock> block, final RegistryObject<Item> item) {
+        simpleBlock(block.get());
+        itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }
 }

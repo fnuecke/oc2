@@ -7,8 +7,10 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class ModBlockItem extends BlockItem {
@@ -22,10 +24,11 @@ public class ModBlockItem extends BlockItem {
 
     ///////////////////////////////////////////////////////////////////
 
+    @OnlyIn(Dist.CLIENT)
     @Override
     public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
         TooltipUtils.tryAddDescription(stack, tooltip);
-        this.getBlock().addInformation(stack, world, tooltip, flag);
+        super.addInformation(stack, world, tooltip, flag);
     }
 
     ///////////////////////////////////////////////////////////////////

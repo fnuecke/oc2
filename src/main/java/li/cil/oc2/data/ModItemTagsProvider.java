@@ -9,7 +9,8 @@ import net.minecraft.data.ItemTagsProvider;
 import net.minecraft.tags.ItemTags;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.ExistingFileHelper;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 import static li.cil.oc2.common.tags.ItemTags.*;
 

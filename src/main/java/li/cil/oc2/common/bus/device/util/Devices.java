@@ -20,39 +20,32 @@ import net.minecraftforge.registries.IForgeRegistry;
 import javax.annotation.Nullable;
 import java.util.*;
 
+import static java.util.Objects.requireNonNull;
+
 public final class Devices {
-    public static List<LazyOptional<BlockDeviceInfo>> getDevices(final TileEntity tileEntity, @Nullable final Direction side) {
-        final World world = tileEntity.getWorld();
+    public static BlockDeviceQuery makeQuery(final TileEntity tileEntity, @Nullable final Direction side) {
+        final World world = requireNonNull(tileEntity.getWorld());
         final BlockPos pos = tileEntity.getPos();
-
-        if (world == null) throw new IllegalArgumentException();
-
-        return getDevices(world, pos, side);
+        return new BlockQuery(world, pos, side);
     }
 
-    public static List<LazyOptional<BlockDeviceInfo>> getDevices(final World world, final BlockPos pos, @Nullable final Direction side) {
-        return getDevices(new BlockQuery(world, pos, side));
+    public static BlockDeviceQuery makeQuery(final World world, final BlockPos pos, @Nullable final Direction side) {
+        return new BlockQuery(world, pos, side);
     }
 
-    public static List<ItemDeviceInfo> getDevices(final ItemStack stack) {
-        return getDevices(new ItemQuery(stack));
+    public static ItemDeviceQuery makeQuery(final ItemStack stack) {
+        return new ItemQuery(stack);
     }
 
-    public static List<ItemDeviceInfo> getDevices(final TileEntity tileEntity, final ItemStack stack) {
-        return getDevices(new ItemQuery(tileEntity, stack));
+    public static ItemDeviceQuery makeQuery(final TileEntity tileEntity, final ItemStack stack) {
+        return new ItemQuery(tileEntity, stack);
     }
 
-    public static List<ItemDeviceInfo> getDevices(final Entity entity, final ItemStack stack) {
-        return getDevices(new ItemQuery(entity, stack));
+    public static ItemDeviceQuery makeQuery(final Entity entity, final ItemStack stack) {
+        return new ItemQuery(entity, stack);
     }
 
-    public static Collection<DeviceType> getDeviceTypes(final ItemStack stack) {
-        return getDeviceTypes(new ItemQuery(stack));
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    private static List<LazyOptional<BlockDeviceInfo>> getDevices(final BlockQuery query) {
+    public static List<LazyOptional<BlockDeviceInfo>> getDevices(final BlockDeviceQuery query) {
         final IForgeRegistry<BlockDeviceProvider> registry = Providers.BLOCK_DEVICE_PROVIDER_REGISTRY.get();
         final ArrayList<LazyOptional<BlockDeviceInfo>> devices = new ArrayList<>();
         for (final BlockDeviceProvider provider : registry.getValues()) {
@@ -66,17 +59,17 @@ public final class Devices {
         return devices;
     }
 
-    private static List<ItemDeviceInfo> getDevices(final ItemQuery query) {
+    public static List<ItemDeviceInfo> getDevices(final ItemDeviceQuery query) {
         final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
         final ArrayList<ItemDeviceInfo> devices = new ArrayList<>();
         for (final ItemDeviceProvider provider : registry.getValues()) {
             final Optional<ItemDevice> device = provider.getDevice(query);
-            device.ifPresent(d -> devices.add(new ItemDeviceInfo(provider, d)));
+            device.ifPresent(d -> devices.add(new ItemDeviceInfo(provider, d, provider.getEnergyConsumption(query))));
         }
         return devices;
     }
 
-    private static Collection<DeviceType> getDeviceTypes(final ItemQuery query) {
+    public static Collection<DeviceType> getDeviceTypes(final ItemDeviceQuery query) {
         final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
         final HashSet<DeviceType> deviceTypes = new HashSet<>();
         for (final ItemDeviceProvider provider : registry.getValues()) {
@@ -84,6 +77,19 @@ public final class Devices {
             device.ifPresent(deviceTypes::add);
         }
         return deviceTypes;
+    }
+
+    public static int getEnergyConsumption(final ItemDeviceQuery query) {
+        final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
+        long accumulator = 0;
+        for (final ItemDeviceProvider provider : registry.getValues()) {
+            accumulator += Math.max(0, provider.getEnergyConsumption(query));
+        }
+        if (accumulator > Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        } else {
+            return (int) accumulator;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////

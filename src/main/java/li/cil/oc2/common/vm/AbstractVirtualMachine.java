@@ -265,6 +265,8 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     protected abstract AbstractTerminalVMRunner createRunner();
 
+    protected abstract boolean consumeEnergy(final int amount, final boolean simulate);
+
     protected void handleBusStateChanged(final CommonDeviceBusController.BusState value) {
     }
 
@@ -274,9 +276,28 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     protected void handleBootErrorChanged(@Nullable final ITextComponent value) {
     }
 
-    protected void load() {
+    protected void error(@Nullable final ITextComponent message) {
+        error(message, true);
+    }
+
+    protected void error(@Nullable final ITextComponent message, final boolean reset) {
+        if (reset) {
+            stopRunnerAndReset();
+        }
+        setBootError(message);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private void load() {
         if (loadDevicesDelay > 0) {
             loadDevicesDelay--;
+            return;
+        }
+
+        if (!consumeEnergy(busController.getEnergyConsumption(), true)) {
+            // Don't even start running if we couldn't keep running.
+            error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
             return;
         }
 
@@ -325,7 +346,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         // initialization. This is used by devices to restore data from disk, for example.
     }
 
-    protected void run() {
+    private void run() {
         final ITextComponent runtimeError = runner.getRuntimeError();
         if (runtimeError != null) {
             error(runtimeError);
@@ -337,21 +358,13 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
             return;
         }
 
+        if (!consumeEnergy(busController.getEnergyConsumption(), false)) {
+            error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
+            return;
+        }
+
         runner.tick();
     }
-
-    protected void error(@Nullable final ITextComponent message) {
-        error(message, true);
-    }
-
-    protected void error(@Nullable final ITextComponent message, final boolean reset) {
-        if (reset) {
-            stopRunnerAndReset();
-        }
-        setBootError(message);
-    }
-
-    ///////////////////////////////////////////////////////////////////
 
     private void setBusState(final CommonDeviceBusController.BusState value) {
         if (value == busState) {

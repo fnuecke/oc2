@@ -3,7 +3,6 @@ package li.cil.oc2.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import li.cil.oc2.client.gui.widget.Sprite;
 import li.cil.oc2.common.container.RobotTerminalContainer;
-import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.RobotPowerMessage;
 import li.cil.oc2.common.network.message.RobotTerminalInputMessage;
@@ -40,15 +39,17 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(final MatrixStack matrixStack, final int x, final int y) {
+    protected void drawGuiContainerForegroundLayer(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
     }
 
     @Override
     public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
+        terminalWidget.setEnergyInfo(container.getEnergy(), container.getEnergyCapacity(), container.getEnergyConsumption());
+
         renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-        terminalWidget.render(matrixStack, getRobot().getVirtualMachine().getBootError());
-        RobotContainerScreen.renderSelection(matrixStack, getRobot().getSelectedSlot(), guiLeft + SLOTS_X + 4, guiTop + SLOTS_Y + 4, 12);
+        terminalWidget.render(matrixStack, mouseX, mouseY, container.getRobot().getVirtualMachine().getBootError());
+        RobotContainerScreen.renderSelection(matrixStack, container.getRobot().getSelectedSlot(), guiLeft + SLOTS_X + 4, guiTop + SLOTS_Y + 4, 12);
         renderHoveredTooltip(matrixStack, mouseX, mouseY);
     }
 
@@ -95,12 +96,6 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
 
     ///////////////////////////////////////////////////////////////////
 
-    private RobotEntity getRobot() {
-        return container.getRobot();
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
     private final class RobotTerminalWidget extends AbstractTerminalWidget {
         public RobotTerminalWidget(final Terminal terminal) {
             super(RobotTerminalScreen.this, terminal);
@@ -108,7 +103,7 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
 
         @Override
         protected boolean isRunning() {
-            return getRobot().getVirtualMachine().isRunning();
+            return container.getRobot().getVirtualMachine().isRunning();
         }
 
         @Override
@@ -118,12 +113,12 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
 
         @Override
         protected void sendPowerStateToServer(final boolean value) {
-            Network.INSTANCE.sendToServer(new RobotPowerMessage(getRobot(), value));
+            Network.INSTANCE.sendToServer(new RobotPowerMessage(container.getRobot(), value));
         }
 
         @Override
         protected void sendTerminalInputToServer(final ByteBuffer input) {
-            Network.INSTANCE.sendToServer(new RobotTerminalInputMessage(getRobot(), input));
+            Network.INSTANCE.sendToServer(new RobotTerminalInputMessage(container.getRobot(), input));
         }
     }
 }

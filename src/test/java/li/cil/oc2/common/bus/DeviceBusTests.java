@@ -43,7 +43,7 @@ public class DeviceBusTests {
         when(busControllerBusElement.getLocalDevices()).thenReturn(emptyList());
         when(busControllerBusElement.getNeighbors()).thenReturn(Optional.empty());
 
-        busController = new CommonDeviceBusController(busControllerBusElement);
+        busController = new CommonDeviceBusController(busControllerBusElement, 0);
     }
 
     @Test

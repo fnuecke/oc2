@@ -10,7 +10,6 @@ import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeRegistryEntry<TProvider>, TDeviceInfo extends AbstractDeviceInfo<TProvider, ?>> extends AbstractDeviceBusElement implements INBTSerializable<ListNBT> {
     private static final String GROUP_ID_TAG_NAME = "groupId";
@@ -101,11 +100,15 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
 
         final HashSet<TDeviceInfo> removedDevices = new HashSet<>(oldDevices);
         removedDevices.removeAll(newDevices);
-        devices.removeAll(removedDevices.stream().map(info -> info.device).collect(Collectors.toList()));
+        for (final TDeviceInfo info : removedDevices) {
+            devices.removeInt(info.device);
+        }
 
         final HashSet<TDeviceInfo> addedDevices = new HashSet<>(newDevices);
         addedDevices.removeAll(oldDevices);
-        devices.addAll(addedDevices.stream().map(info -> info.device).collect(Collectors.toList()));
+        for (final TDeviceInfo info : addedDevices) {
+            devices.put(info.device, info.getEnergyConsumption());
+        }
 
         oldDevices.removeAll(removedDevices);
         oldDevices.addAll(newDevices);

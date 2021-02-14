@@ -4,9 +4,12 @@ import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
+import li.cil.oc2.common.Config;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.item.MemoryDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.item.MemoryItem;
 
 import java.util.Optional;
 
@@ -25,5 +28,11 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
     @Override
     protected Optional<DeviceType> getItemDeviceType(final ItemDeviceQuery query) {
         return Optional.of(DeviceTypes.MEMORY);
+    }
+
+    @Override
+    protected int getItemDeviceEnergyConsumption(final ItemDeviceQuery query) {
+        final int capacity = MemoryItem.getCapacity(query.getItemStack());
+        return Math.max(1, (int) Math.round(capacity * Config.memoryEnergyPerMegabytePerTick / Constants.MEGABYTE));
     }
 }

@@ -6,10 +6,12 @@ import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Config;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.item.HardDriveVMDevice;
 import li.cil.oc2.common.bus.device.item.SparseHardDriveVMDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.item.AbstractBlockDeviceItem;
+import li.cil.oc2.common.item.HardDriveItem;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.LocationSupplierUtils;
 import li.cil.sedna.api.device.BlockDevice;
@@ -43,5 +45,17 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
     @Override
     protected Optional<DeviceType> getItemDeviceType(final ItemDeviceQuery query) {
         return Optional.of(DeviceTypes.HARD_DRIVE);
+    }
+
+    @Override
+    protected int getItemDeviceEnergyConsumption(final ItemDeviceQuery query) {
+        final BlockDeviceData data = HardDriveItem.getData(query.getItemStack());
+        final long capacity;
+        if (data != null) {
+            capacity = data.getBlockDevice().getCapacity();
+        } else {
+            capacity = HardDriveItem.getCapacity(query.getItemStack());
+        }
+        return Math.max(1, (int) Math.round(capacity * Config.hardDriveEnergyPerMegabytePerTick / Constants.MEGABYTE));
     }
 }

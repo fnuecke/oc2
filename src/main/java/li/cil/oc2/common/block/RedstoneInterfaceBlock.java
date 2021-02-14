@@ -15,8 +15,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
 
-import javax.annotation.Nullable;
-
 public final class RedstoneInterfaceBlock extends HorizontalBlock {
     public RedstoneInterfaceBlock() {
         super(Properties
@@ -38,7 +36,6 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
         return true;
     }
 
-    @Nullable
     @Override
     public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
         return TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get().create();

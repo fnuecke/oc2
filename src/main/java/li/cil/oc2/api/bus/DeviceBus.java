@@ -11,29 +11,6 @@ import java.util.Collection;
  */
 public interface DeviceBus {
     /**
-     * Adds a device to this device bus.
-     * <p>
-     * Adding a device to the bus does <em>not</em> transfer ownership. In particular,
-     * the bus will not handle persisting devices that have been added to it. Also,
-     * the bus does not persist the list of devices. Instead, all devices that have
-     * been added to the bus must be added again after a load. It is the responsibility
-     * of {@link DeviceBusElement}s to detect and add devices to the bus.
-     *
-     * @param device the device to add to the bus.
-     */
-    void addDevice(Device device);
-
-    /**
-     * Removes a device from this device bus.
-     * <p>
-     * If the device has not been added with {@link #addDevice(Device)} before calling
-     * this method, this method is a no-op.
-     *
-     * @param device the device to remove from the bus.
-     */
-    void removeDevice(Device device);
-
-    /**
      * The list of all devices currently registered with this device bus.
      *
      * @return the list of all devices that are currently on this bus.

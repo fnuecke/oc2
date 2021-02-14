@@ -21,8 +21,6 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
-import javax.annotation.Nullable;
-
 public final class DiskDriveBlock extends HorizontalBlock {
     public DiskDriveBlock() {
         super(Properties
@@ -44,7 +42,6 @@ public final class DiskDriveBlock extends HorizontalBlock {
         return true;
     }
 
-    @Nullable
     @Override
     public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
         return TileEntities.DISK_DRIVE_TILE_ENTITY.get().create();

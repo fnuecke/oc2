@@ -6,13 +6,13 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
-import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.FixedSizeItemStackHandler;
 import li.cil.oc2.common.container.RobotContainer;
@@ -50,16 +50,13 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
+import net.minecraft.util.*;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
@@ -72,7 +69,6 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.items.ItemStackHandler;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -125,7 +121,7 @@ public final class RobotEntity extends Entity implements Robot {
         this.preventEntitySpawning = true;
         setNoGravity(true);
 
-        final CommonDeviceBusController busController = new CommonDeviceBusController(busElement);
+        final CommonDeviceBusController busController = new CommonDeviceBusController(busElement, Config.robotEnergyPerTick);
         virtualMachine = new RobotVirtualMachine(busController);
         virtualMachine.state.builtinDevices.rtcMinecraft.setWorld(world);
 
@@ -166,9 +162,8 @@ public final class RobotEntity extends Entity implements Robot {
         getDataManager().set(SELECTED_SLOT, (byte) MathHelper.clamp(value, 0, INVENTORY_SIZE - 1));
     }
 
-    @NotNull
     @Override
-    public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> capability, @org.jetbrains.annotations.Nullable final Direction side) {
+    public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
         if (capability == Capabilities.ITEM_HANDLER) {
             return LazyOptional.of(() -> inventory).cast();
         }
@@ -471,7 +466,30 @@ public final class RobotEntity extends Entity implements Robot {
 
             @Override
             public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
-                return new RobotTerminalContainer(id, RobotEntity.this);
+                return new RobotTerminalContainer(id, RobotEntity.this, new IIntArray() {
+                    @Override
+                    public int get(final int index) {
+                        switch (index) {
+                            case 0:
+                                return energy.getEnergyStored();
+                            case 1:
+                                return energy.getMaxEnergyStored();
+                            case 2:
+                                return virtualMachine.busController.getEnergyConsumption();
+                            default:
+                                return 0;
+                        }
+                    }
+
+                    @Override
+                    public void set(final int index, final int value) {
+                    }
+
+                    @Override
+                    public int size() {
+                        return 3;
+                    }
+                });
             }
         }, b -> b.writeVarInt(getEntityId()));
     }
@@ -733,8 +751,8 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         @Override
-        protected List<ItemDeviceInfo> getDevices(final ItemStack stack) {
-            return Devices.getDevices(RobotEntity.this, stack);
+        protected ItemDeviceQuery getDeviceQuery(final ItemStack stack) {
+            return Devices.makeQuery(RobotEntity.this, stack);
         }
     }
 
@@ -793,30 +811,17 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         @Override
-        protected void load() {
-            if (Config.robotsUseEnergy()) {
-                // Don't even start running if we couldn't keep running.
-                if (energy.getEnergyStored() < Config.robotEnergyPerTick) {
-                    error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
-                    return;
-                }
+        protected boolean consumeEnergy(final int amount, final boolean simulate) {
+            if (!Config.robotsUseEnergy()) {
+                return true;
             }
 
-            super.load();
-        }
-
-        @Override
-        protected void run() {
-            if (Config.robotsUseEnergy()) {
-                if (energy.getEnergyStored() >= Config.robotEnergyPerTick) {
-                    energy.extractEnergy(Config.robotEnergyPerTick, false);
-                } else {
-                    error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
-                    return;
-                }
+            if (amount > energy.getEnergyStored()) {
+                return false;
             }
 
-            super.run();
+            energy.extractEnergy(amount, simulate);
+            return true;
         }
 
         @Override

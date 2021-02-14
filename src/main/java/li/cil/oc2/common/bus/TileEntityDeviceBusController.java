@@ -19,8 +19,8 @@ public class TileEntityDeviceBusController extends CommonDeviceBusController {
 
     ///////////////////////////////////////////////////////////////////
 
-    public TileEntityDeviceBusController(final DeviceBusElement root, final TileEntity tileEntity) {
-        super(root);
+    public TileEntityDeviceBusController(final DeviceBusElement root, final int baseEnergyConsumption, final TileEntity tileEntity) {
+        super(root, baseEnergyConsumption);
         this.tileEntity = tileEntity;
     }
 

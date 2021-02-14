@@ -3,6 +3,7 @@ package li.cil.oc2.common.vm;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
@@ -42,7 +43,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     ///////////////////////////////////////////////////////////////////
 
-    public final DeviceBusElement busElement = new BusElement();
+    public final AbstractDeviceBusElement busElement = new BusElement();
 
     // NB: linked hash map such that order of parameters in constructor is retained.
     //     This is relevant when assigning default addresses for devices.
@@ -54,7 +55,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     public AbstractVMItemStackHandlers(final GroupDefinition... groups) {
         for (final GroupDefinition group : groups) {
-            itemHandlers.put(group.deviceType, new ItemHandler(group.count, this::getDevices, group.deviceType));
+            itemHandlers.put(group.deviceType, new ItemHandler(group.count, this::getDeviceQuery, group.deviceType));
         }
 
         combinedItemHandlers = new CombinedInvWrapper(itemHandlers.values().toArray(new IItemHandlerModifiable[0]));
@@ -131,7 +132,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     ///////////////////////////////////////////////////////////////////
 
-    protected abstract List<ItemDeviceInfo> getDevices(final ItemStack stack);
+    protected abstract ItemDeviceQuery getDeviceQuery(final ItemStack stack);
 
     protected void onContentsChanged(final DeviceItemStackHandler itemHandler, final int slot) {
     }
@@ -139,8 +140,8 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
     ///////////////////////////////////////////////////////////////////
 
     private final class ItemHandler extends TypedDeviceItemStackHandler {
-        public ItemHandler(final int size, final Function<ItemStack, List<ItemDeviceInfo>> deviceLookup, final DeviceType deviceType) {
-            super(size, deviceLookup, deviceType);
+        public ItemHandler(final int size, final Function<ItemStack, ItemDeviceQuery> queryFactory, final DeviceType deviceType) {
+            super(size, queryFactory, deviceType);
         }
 
         @Override

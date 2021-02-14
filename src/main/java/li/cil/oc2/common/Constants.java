@@ -32,6 +32,7 @@ public final class Constants {
     public static final String DISK_DRIVE_BLOCK_NAME = "disk_drive";
     public static final String REDSTONE_INTERFACE_BLOCK_NAME = "redstone_interface";
     public static final String CHARGER_BLOCK_NAME = "charger";
+    public static final String CREATIVE_ENERGY_BLOCK_NAME = "creative_energy";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -62,6 +63,7 @@ public final class Constants {
     public static final String TOOLTIP_MEMORY_MISSING = "tooltip.oc2.memory_missing";
     public static final String TOOLTIP_HARD_DRIVE_MISSING = "tooltip.oc2.hard_drive_missing";
     public static final String TOOLTIP_ENERGY = "tooltip.oc2.energy";
+    public static final String TOOLTIP_ENERGY_CONSUMPTION = "tooltip.oc2.energyConsumption";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -71,6 +73,9 @@ public final class Constants {
     public static final String CONFIG_MAX_FLASH_MEMORY_SIZE = "config.oc2.vm.maxFlashMemorySize";
     public static final String CONFIG_BLOCK_OPERATIONS_MODULE_TOOL_LEVEL = "config.oc2.modules.block_operations.toolLevel";
     public static final String CONFIG_FAKE_PLAYER_UUID = "config.oc2.admin.fakePlayerUUID";
+    public static final String CONFIG_BUS_CABLE_COMPLEXITY = "config.oc2.busCableComplexity";
+    public static final String CONFIG_BUS_INTERFACE_COMPLEXITY = "config.oc2.busInterfaceComplexity";
+    public static final String CONFIG_BUS_COMPLEXITY_ENERGY_PER_TICK = "config.oc2.complexityEnergyPerTick";
     public static final String CONFIG_COMPUTER_ENERGY_PER_TICK = "config.oc2.computerEnergyPerTick";
     public static final String CONFIG_COMPUTER_ENERGY_STORAGE = "config.oc2.computerEnergyStorage";
     public static final String CONFIG_ROBOT_ENERGY_PER_TICK = "config.oc2.robotEnergyPerTick";

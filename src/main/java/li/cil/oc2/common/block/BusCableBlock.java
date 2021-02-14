@@ -89,6 +89,16 @@ public final class BusCableBlock extends Block {
         }
     }
 
+    public static int getInterfaceCount(final BlockState state) {
+        int partCount = 0;
+        for (final EnumProperty<ConnectionType> connectionType : FACING_TO_CONNECTION_MAP.values()) {
+            if (state.get(connectionType) == ConnectionType.INTERFACE) {
+                partCount++;
+            }
+        }
+        return partCount;
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     private final VoxelShape[] shapes;
@@ -143,7 +153,6 @@ public final class BusCableBlock extends Block {
         return true;
     }
 
-    @Nullable
     @Override
     public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
         return TileEntities.BUS_CABLE_TILE_ENTITY.get().create();
@@ -257,10 +266,9 @@ public final class BusCableBlock extends Block {
     }
 
     private static int getPartCount(final BlockState state) {
-        int partCount = 0;
-        if (state.get(HAS_CABLE)) partCount++;
-        for (final EnumProperty<ConnectionType> connectionType : FACING_TO_CONNECTION_MAP.values()) {
-            if (state.get(connectionType) == ConnectionType.INTERFACE) partCount++;
+        int partCount = getInterfaceCount(state);
+        if (state.get(HAS_CABLE)) {
+            partCount++;
         }
         return partCount;
     }

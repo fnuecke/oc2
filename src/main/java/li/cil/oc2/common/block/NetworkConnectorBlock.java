@@ -17,7 +17,6 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 
 public final class NetworkConnectorBlock extends HorizontalFaceBlock {
@@ -51,7 +50,6 @@ public final class NetworkConnectorBlock extends HorizontalFaceBlock {
         return true;
     }
 
-    @Nullable
     @Override
     public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
         return TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get().create();

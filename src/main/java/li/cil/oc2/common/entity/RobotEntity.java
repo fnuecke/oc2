@@ -869,6 +869,16 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         @Callback(synchronize = false)
+        public int getCurrentEnergy() {
+            return energy.getEnergyStored();
+        }
+
+        @Callback(synchronize = false)
+        public int getMaxEnergy() {
+            return energy.getMaxEnergyStored();
+        }
+
+        @Callback(synchronize = false)
         public int getLastActionId() {
             return actionProcessor.lastActionId;
         }

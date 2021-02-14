@@ -1,7 +1,7 @@
 package li.cil.oc2.common.vm.context.global;
 
 import li.cil.ceres.api.Serialized;
-import li.cil.oc2.api.bus.device.vm.*;
+import li.cil.oc2.api.bus.device.vm.context.*;
 import li.cil.oc2.common.vm.context.EventManager;
 import li.cil.oc2.common.vm.context.InterruptManager;
 import li.cil.oc2.common.vm.context.MemoryRangeManager;

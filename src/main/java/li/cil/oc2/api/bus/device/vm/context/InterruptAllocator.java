@@ -1,4 +1,6 @@
-package li.cil.oc2.api.bus.device.vm;
+package li.cil.oc2.api.bus.device.vm.context;
+
+import li.cil.oc2.api.bus.device.vm.VMDevice;
 
 import java.util.Optional;
 import java.util.OptionalInt;

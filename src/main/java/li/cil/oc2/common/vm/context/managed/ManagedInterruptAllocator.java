@@ -1,6 +1,6 @@
 package li.cil.oc2.common.vm.context.managed;
 
-import li.cil.oc2.api.bus.device.vm.InterruptAllocator;
+import li.cil.oc2.api.bus.device.vm.context.InterruptAllocator;
 import li.cil.oc2.common.vm.context.InterruptManager;
 import li.cil.oc2.common.vm.context.InterruptValidator;
 

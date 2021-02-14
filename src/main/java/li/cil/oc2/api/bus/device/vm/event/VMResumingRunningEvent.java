@@ -1,7 +1,7 @@
 package li.cil.oc2.api.bus.device.vm.event;
 
-import li.cil.oc2.api.bus.device.vm.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
+import li.cil.oc2.api.bus.device.vm.context.VMContext;
 
 /**
  * Fired when the VM resumes running.

@@ -2,7 +2,7 @@ package li.cil.oc2.common.vm.context.global;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
-import li.cil.oc2.api.bus.device.vm.VMLifecycleEventBus;
+import li.cil.oc2.api.bus.device.vm.context.VMLifecycleEventBus;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
 import li.cil.oc2.common.vm.context.EventManager;
 import org.apache.logging.log4j.LogManager;

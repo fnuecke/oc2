@@ -1,4 +1,4 @@
-package li.cil.oc2.api.bus.device.vm;
+package li.cil.oc2.api.bus.device.vm.context;
 
 /**
  * Allows registering for {@link li.cil.oc2.api.bus.device.vm.event.VMLifecycleEvent}s.

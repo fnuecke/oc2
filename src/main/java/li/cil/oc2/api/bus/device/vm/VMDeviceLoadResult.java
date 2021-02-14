@@ -1,5 +1,6 @@
 package li.cil.oc2.api.bus.device.vm;
 
+import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import net.minecraft.util.text.ITextComponent;
 
 import javax.annotation.Nullable;

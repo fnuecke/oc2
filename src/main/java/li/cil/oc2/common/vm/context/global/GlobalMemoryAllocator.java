@@ -1,6 +1,6 @@
 package li.cil.oc2.common.vm.context.global;
 
-import li.cil.oc2.api.bus.device.vm.MemoryAllocator;
+import li.cil.oc2.api.bus.device.vm.context.MemoryAllocator;
 import li.cil.oc2.common.vm.Allocator;
 
 import java.util.ArrayList;

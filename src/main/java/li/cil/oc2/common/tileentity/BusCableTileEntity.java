@@ -63,17 +63,11 @@ public final class BusCableTileEntity extends AbstractTileEntity {
 
     public void handleNeighborChanged(final BlockPos pos) {
         busElement.handleNeighborChanged(pos);
-
-        // TODO Remove if https://github.com/MinecraftForge/MinecraftForge/pull/7595 gets merged.
-        requestModelDataUpdate();
     }
 
     public void handleConnectivityChanged(@Nullable final Direction side) {
         if (side == null) {
             busElement.scheduleScan();
-
-            // TODO Remove if https://github.com/MinecraftForge/MinecraftForge/pull/7595 gets merged.
-            requestModelDataUpdate();
         } else {
             // Whenever they type changes we can clear it. Technically only needed
             // for the interface->none transition, but all others are no-ops, so
@@ -139,16 +133,6 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         super.loadServer();
 
         busElement.initialize();
-    }
-
-    // TODO Remove if https://github.com/MinecraftForge/MinecraftForge/pull/7595 gets merged.
-    @Override
-    public IModelData getModelData() {
-        final World world = getWorld();
-        if (world != null) {
-            return BusCableBakedModel.getBusCableSupportSideData(world, getPos(), getBlockState(), super.getModelData());
-        }
-        return super.getModelData();
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -88,10 +88,6 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
 
     @Override
     public IModelData getModelData(final IBlockDisplayReader world, final BlockPos pos, final BlockState state, final IModelData tileData) {
-        return getBusCableSupportSideData(world, pos, state, tileData);
-    }
-
-    public static IModelData getBusCableSupportSideData(final IBlockDisplayReader world, final BlockPos pos, final BlockState state, final IModelData tileData) {
         Direction supportSide = null;
         for (final Direction direction : Constants.DIRECTIONS) {
             if (isNeighborInDirectionSolid(world, pos, direction)) {

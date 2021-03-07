@@ -128,6 +128,14 @@ public final class RPCDeviceBusAdapter implements Steppable {
         final HashMap<RPCDeviceList, ArrayList<UUID>> identifiersByDevice = new HashMap<>();
         devicesByIdentifier.forEach((identifier, devices) -> {
             final RPCDeviceList device = new RPCDeviceList(devices);
+
+            // If there are no methods we have either no devices at all, or all synthetic
+            // devices, i.e. devices that only contribute type names, but have no methods
+            // to call. We do not expose these to avoid cluttering the device list.
+            if (device.getMethods().isEmpty()) {
+                return;
+            }
+
             identifiersByDevice
                     .computeIfAbsent(device, unused -> new ArrayList<>())
                     .add(identifier);

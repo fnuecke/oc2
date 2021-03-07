@@ -9,6 +9,7 @@ import li.cil.oc2.client.gui.RobotTerminalScreen;
 import li.cil.oc2.client.item.CustomItemColors;
 import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.BusCableModelLoader;
+import li.cil.oc2.client.renderer.BusInterfaceNameRenderer;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.client.renderer.entity.RobotEntityRenderer;
 import li.cil.oc2.client.renderer.tileentity.ChargerTileEntityRenderer;
@@ -35,6 +36,7 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void handleSetupEvent(final FMLClientSetupEvent event) {
         NetworkCableRenderer.initialize();
+        BusInterfaceNameRenderer.initialize();
         CustomItemModelProperties.initialize();
         CustomItemColors.initialize();
 

@@ -122,6 +122,18 @@ public final class Network {
                 .decoder(DiskDriveFloppyMessage::new)
                 .consumer(DiskDriveFloppyMessage::handleMessage)
                 .add();
+
+        INSTANCE.messageBuilder(BusInterfaceNameMessage.ToClient.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(BusInterfaceNameMessage::toBytes)
+                .decoder(BusInterfaceNameMessage.ToClient::new)
+                .consumer(BusInterfaceNameMessage::handleMessageClient)
+                .add();
+
+        INSTANCE.messageBuilder(BusInterfaceNameMessage.ToServer.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(BusInterfaceNameMessage::toBytes)
+                .decoder(BusInterfaceNameMessage.ToServer::new)
+                .consumer(BusInterfaceNameMessage::handleMessageServer)
+                .add();
     }
 
     public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {

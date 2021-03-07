@@ -64,6 +64,8 @@ public final class Constants {
     public static final String TOOLTIP_HARD_DRIVE_MISSING = "tooltip.oc2.hard_drive_missing";
     public static final String TOOLTIP_ENERGY = "tooltip.oc2.energy";
     public static final String TOOLTIP_ENERGY_CONSUMPTION = "tooltip.oc2.energyConsumption";
+    public static final String TOOLTIP_CONFIRM = "tooltip.oc2.confirm";
+    public static final String TOOLTIP_CANCEL = "tooltip.oc2.cancel";
 
     ///////////////////////////////////////////////////////////////////
 

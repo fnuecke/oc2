@@ -1,6 +1,7 @@
 package li.cil.oc2.api.bus;
 
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IWorld;
 
 /**
  * Implementing this interface allows providing positional information to the {@link DeviceBusController}.
@@ -10,7 +11,12 @@ import net.minecraft.util.math.BlockPos;
  * to implement logic in bus element implementations to trigger such scans themselves.
  */
 public interface BlockDeviceBusElement extends DeviceBusElement {
-    // TODO Do we want to support multi-dimensional buses? (have a getWorld)
+    /**
+     * The world the bus lives in.
+     *
+     * @return the world the bus lives in.
+     */
+    IWorld getWorld();
 
     /**
      * The position of this bus element.

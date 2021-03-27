@@ -15,6 +15,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 
@@ -37,6 +38,11 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    @Override
+    public IWorld getWorld() {
+        return tileEntity.getWorld();
+    }
 
     @Override
     public BlockPos getPosition() {

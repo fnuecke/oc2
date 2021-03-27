@@ -7,14 +7,17 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 
 public class TileEntityDeviceBusController extends CommonDeviceBusController {
     private final Runnable onBusChunkLoadedStateChanged = this::scheduleBusScan;
-    private final HashSet<ChunkPos> trackedChunks = new HashSet<>();
+    private final HashSet<TrackedChunk> trackedChunks = new HashSet<>();
     private final TileEntity tileEntity;
 
     ///////////////////////////////////////////////////////////////////
@@ -45,29 +48,31 @@ public class TileEntityDeviceBusController extends CommonDeviceBusController {
             return;
         }
 
-        final HashSet<ChunkPos> newTrackedChunks = new HashSet<>();
+        final HashSet<TrackedChunk> newTrackedChunks = new HashSet<>();
         for (final DeviceBusElement element : getElements()) {
             if (element instanceof BlockDeviceBusElement) {
-                final BlockPos position = ((BlockDeviceBusElement) element).getPosition();
-                newTrackedChunks.add(new ChunkPos(position));
-                newTrackedChunks.add(new ChunkPos(position.offset(Direction.NORTH)));
-                newTrackedChunks.add(new ChunkPos(position.offset(Direction.EAST)));
-                newTrackedChunks.add(new ChunkPos(position.offset(Direction.SOUTH)));
-                newTrackedChunks.add(new ChunkPos(position.offset(Direction.WEST)));
+                final BlockDeviceBusElement blockElement = (BlockDeviceBusElement) element;
+                final IWorld elementWorld = blockElement.getWorld();
+                final BlockPos elementPosition = blockElement.getPosition();
+                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition));
+                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.offset(Direction.NORTH)));
+                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.offset(Direction.EAST)));
+                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.offset(Direction.SOUTH)));
+                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.offset(Direction.WEST)));
             }
         }
 
         // Do not track the chunk the controller itself is in -- this is unneeded because
         // we expect the controller to be disposed if its chunk is unloaded.
-        newTrackedChunks.remove(new ChunkPos(tileEntity.getPos()));
+        newTrackedChunks.remove(new TrackedChunk(world, tileEntity.getPos()));
 
-        final HashSet<ChunkPos> removedChunks = new HashSet<>(trackedChunks);
+        final HashSet<TrackedChunk> removedChunks = new HashSet<>(trackedChunks);
         removedChunks.removeAll(newTrackedChunks);
         removeListeners(removedChunks);
 
-        final HashSet<ChunkPos> addedChunks = new HashSet<>(newTrackedChunks);
+        final HashSet<TrackedChunk> addedChunks = new HashSet<>(newTrackedChunks);
         newTrackedChunks.removeAll(trackedChunks);
-        addListeners(world, addedChunks);
+        addListeners(addedChunks);
 
         trackedChunks.removeAll(removedChunks);
         trackedChunks.addAll(newTrackedChunks);
@@ -75,18 +80,44 @@ public class TileEntityDeviceBusController extends CommonDeviceBusController {
 
     ///////////////////////////////////////////////////////////////////
 
-    private void addListeners(final World world, final Collection<ChunkPos> chunks) {
-        for (final ChunkPos chunkPos : chunks) {
-            ServerScheduler.scheduleOnLoad(world, chunkPos, onBusChunkLoadedStateChanged);
-            ServerScheduler.scheduleOnUnload(world, chunkPos, onBusChunkLoadedStateChanged);
+    private void addListeners(final Collection<TrackedChunk> trackedChunks) {
+        for (final TrackedChunk trackedChunk : trackedChunks) {
+            final IWorld world = trackedChunk.world.get();
+            ServerScheduler.scheduleOnLoad(world, trackedChunk.position, onBusChunkLoadedStateChanged);
+            ServerScheduler.scheduleOnUnload(world, trackedChunk.position, onBusChunkLoadedStateChanged);
         }
     }
 
-    private void removeListeners(final Collection<ChunkPos> chunks) {
-        final World world = tileEntity.getWorld();
-        for (final ChunkPos chunkPos : chunks) {
-            ServerScheduler.cancelOnLoad(world, chunkPos, onBusChunkLoadedStateChanged);
-            ServerScheduler.cancelOnUnload(world, chunkPos, onBusChunkLoadedStateChanged);
+    private void removeListeners(final Collection<TrackedChunk> trackedChunks) {
+        for (final TrackedChunk trackedChunk : trackedChunks) {
+            final IWorld world = trackedChunk.world.get();
+            if (world != null) {
+                ServerScheduler.cancelOnLoad(world, trackedChunk.position, onBusChunkLoadedStateChanged);
+                ServerScheduler.cancelOnUnload(world, trackedChunk.position, onBusChunkLoadedStateChanged);
+            }
+        }
+    }
+
+    private static final class TrackedChunk {
+        public final WeakReference<IWorld> world;
+        public final ChunkPos position;
+
+        private TrackedChunk(final IWorld world, final BlockPos position) {
+            this.world = new WeakReference<>(world);
+            this.position = new ChunkPos(position);
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            final TrackedChunk that = (TrackedChunk) o;
+            return world.equals(that.world) && position.equals(that.position);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(world, position);
         }
     }
 }

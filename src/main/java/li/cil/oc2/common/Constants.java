@@ -51,6 +51,13 @@ public final class Constants {
     public static final String INVENTORY_OPERATIONS_MODULE_ITEM_NAME = "inventory_operations_module";
     public static final String BLOCK_OPERATIONS_MODULE_ITEM_NAME = "block_operations_module";
 
+    public static final String CONTROL_UNIT_ITEM_NAME = "control_unit";
+    public static final String ARITHMETIC_LOGIC_UNIT_ITEM_NAME = "arithmetic_logic_unit";
+    public static final String MICROCHIP_ITEM_NAME = "microchip";
+    public static final String DISK_PLATTER_ITEM_NAME = "disk_platter";
+    public static final String TRANSISTOR_ITEM_NAME = "transistor";
+    public static final String PCB_ITEM_NAME = "pcb";
+
     ///////////////////////////////////////////////////////////////////
 
     public static final String ROBOT_ENTITY_NAME = "robot";

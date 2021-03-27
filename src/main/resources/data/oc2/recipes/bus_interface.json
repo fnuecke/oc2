@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "N  ",
+    "NC ",
+    "N  "
+  ],
+  "key": {
+    "N": {
+      "item": "minecraft:gold_nugget"
+    },
+    "C": {
+      "item": "oc2:bus_cable"
+    }
+  },
+  "result": {
+    "item": "oc2:bus_interface"
+  }
+}

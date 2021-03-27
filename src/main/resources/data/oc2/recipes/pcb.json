@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:gold_nugget"
+    },
+    [
+      {
+        "item": "minecraft:slime_ball"
+      },
+      {
+        "item": "minecraft:honey_bottle"
+      }
+    ],
+    [
+      {
+        "item": "minecraft:kelp"
+      },
+      {
+        "item": "minecraft:green_dye"
+      }
+    ]
+  ],
+  "result": {
+    "item": "oc2:pcb"
+  }
+}

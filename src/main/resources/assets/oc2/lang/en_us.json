@@ -33,6 +33,13 @@
   "item.oc2.block_operations_module": "Block Operations Module",
   "item.oc2.block_operations_module.desc": "Enables robots to break and place blocks.",
 
+  "item.oc2.control_unit": "Control Unit (CU)",
+  "item.oc2.arithmetic_logic_unit": "Arithmetic Logic Unit (ALU)",
+  "item.oc2.microchip": "Microchip",
+  "item.oc2.disk_platter": "Disk Platter",
+  "item.oc2.transistor": "Transistor",
+  "item.oc2.pcb": "Printed Circuit Board (PCB)",
+
   "entity.oc2.robot": "Robot",
 
   "gui.oc2.computer.error.unknown": "Unknown Error",

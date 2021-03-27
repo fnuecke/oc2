@@ -21,6 +21,7 @@ public final class DataGenerators {
             final BlockTagsProvider blockTagProvider = new ModBlockTagsProvider(generator, existingFileHelper);
             generator.addProvider(blockTagProvider);
             generator.addProvider(new ModItemTagsProvider(generator, blockTagProvider, existingFileHelper));
+            generator.addProvider(new CraftingRecipes(generator));
         }
     }
 }

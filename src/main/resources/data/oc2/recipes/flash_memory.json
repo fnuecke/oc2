@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GCG",
+    "PCP",
+    "GRG"
+  ],
+  "key": {
+    "C": {
+      "item": "oc2:microchip"
+    },
+    "G": {
+      "item": "minecraft:gold_nugget"
+    },
+    "R": {
+      "item": "minecraft:redstone_torch"
+    },
+    "P":{
+      "item": "minecraft:paper"
+    }
+  },
+  "result": {
+    "item": "oc2:flash_memory"
+  }
+}

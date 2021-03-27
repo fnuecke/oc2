@@ -226,8 +226,6 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
     }
 
     private Stream<IItemHandler> getBlockItemHandlersAt(final Vector3d position, final Direction side) {
-        // TODO may want use blockpos iterator to get blocks we currently sit in, e.g. if during move, and check for all
-
         final BlockPos pos = new BlockPos(position);
         final TileEntity tileEntity = entity.getEntityWorld().getTileEntity(pos);
         if (tileEntity == null) {

@@ -62,10 +62,6 @@ public final class DiskDriveBlock extends HorizontalBlock {
         final DiskDriveTileEntity diskDrive = (DiskDriveTileEntity) tileEntity;
         final ItemStack stack = player.getHeldItem(hand);
 
-        if (ItemTags.WRENCHES.contains(stack.getItem())) {
-            // TODO add container UI that opens when interacting with scrench?
-        }
-
         if (player.isSneaking()) {
             diskDrive.eject();
         } else {

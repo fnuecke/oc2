@@ -1,20 +1,22 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "   ",
-    "NWN",
-    "NWN"
+    "IGI",
+    "ITI"
   ],
   "key": {
-    "N": {
-        "item": "minecraft:gold_nugget"
+    "I": {
+      "tag": "forge:ingots/iron"
     },
-    "W": {
-      "item": "oc2:network_cable"
+    "G": {
+      "tag": "forge:glass"
+    },
+    "T": {
+      "item": "oc2:transistor"
     }
   },
   "result": {
     "item": "oc2:network_connector",
-    "count": 2
+    "count": 4
   }
 }

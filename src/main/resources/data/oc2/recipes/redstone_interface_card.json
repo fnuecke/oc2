@@ -1,25 +1,21 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "POG",
-    "PC ",
-    "PI "
+    "IRT",
+    " B "
   ],
   "key": {
     "I": {
-      "item": "minecraft:gold_nugget"
+      "tag": "forge:ingots/iron"
     },
-    "P": {
-      "item": "minecraft:iron_nugget"
+    "B": {
+      "item": "oc2:circuit_board"
     },
-    "C": {
-      "item": "oc2:pcb"
+    "T": {
+      "item": "oc2:transistor"
     },
-    "O": {
-      "item": "oc2:microchip"
-    },
-    "G": {
-      "item": "minecraft:redstone_torch"
+    "R": {
+      "tag": "forge:dusts/redstone"
     }
   },
   "result": {

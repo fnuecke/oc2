@@ -1,25 +1,28 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "IRI",
-    "XTX",
-    "IRI"
+    "IBI",
+    "XSX",
+    "IDI"
   ],
   "key": {
     "I": {
       "tag": "forge:ingots/iron"
     },
-    "R": {
-      "tag": "forge:dusts/redstone"
+    "B": {
+      "tag": "minecraft:buttons"
     },
-    "T": {
-      "item": "oc2:transistor"
+    "S": {
+      "item": "minecraft:stick"
     },
     "X": {
       "item": "oc2:bus_interface"
+    },
+    "D": {
+      "item": "minecraft:dispenser"
     }
   },
   "result": {
-    "item": "oc2:redstone_interface"
+    "item": "oc2:disk_drive"
   }
 }

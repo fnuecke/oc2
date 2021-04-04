@@ -43,6 +43,9 @@ public final class ModItemModelProvider extends ItemModelProvider {
         simple(Items.INVENTORY_OPERATIONS_MODULE, "item/inventory_operations_module");
         simple(Items.BLOCK_OPERATIONS_MODULE, "item/block_operations_module");
 
+        simple(Items.TRANSISTOR, "item/transistor");
+        simple(Items.CIRCUIT_BOARD, "item/circuit_board");
+
         withExistingParent(Constants.ROBOT_ENTITY_NAME, "template_shulker_box");
     }
 

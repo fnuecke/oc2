@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "oc2:items/arithmetic_logic_unit"
-  }
-}

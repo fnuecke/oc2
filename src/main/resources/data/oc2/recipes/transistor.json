@@ -1,19 +1,19 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "III",
-    "GPG",
-    " R "
+    " G ",
+    "RPR",
+    "III"
   ],
   "key": {
     "I": {
-      "item": "minecraft:iron_ingot"
+      "tag": "forge:ingots/iron"
     },
     "G": {
-      "item": "minecraft:gold_nugget"
+      "tag": "forge:ingots/gold"
     },
     "R": {
-      "item": "minecraft:redstone"
+      "tag": "forge:dusts/redstone"
     },
     "P": {
       "item": "minecraft:paper"
@@ -21,6 +21,6 @@
   },
   "result": {
     "item": "oc2:transistor",
-    "count": 4
+    "count": 8
   }
 }

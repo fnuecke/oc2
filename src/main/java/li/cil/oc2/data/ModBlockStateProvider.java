@@ -33,6 +33,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 .transform(ModelBuilder.Perspective.FIXED)
                 .rotation(270, 0, 0)
                 .translation(0, 0, -5)
+                .scale(1, 1, 1)
                 .end()
                 .end();
         horizontalBlock(Blocks.NETWORK_HUB, Items.NETWORK_HUB);
@@ -47,6 +48,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
         final ModelFile baseModel = models().getExistingFile(new ResourceLocation(API.MOD_ID, "block/cable_base"));
         final ModelFile linkModel = models().getExistingFile(new ResourceLocation(API.MOD_ID, "block/cable_link"));
         final ModelFile plugModel = models().getExistingFile(new ResourceLocation(API.MOD_ID, "block/cable_plug"));
+        final ModelFile straightModel = models().getExistingFile(new ResourceLocation(API.MOD_ID, "block/cable_straight"));
 
         final MultiPartBlockStateBuilder builder = getMultipartBuilder(Blocks.BUS_CABLE.get());
 
@@ -88,7 +90,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
         });
 
         itemModels().getBuilder(Items.BUS_CABLE.getId().getPath())
-                .parent(baseModel)
+                .parent(straightModel)
                 .transforms()
                 .transform(ModelBuilder.Perspective.GUI)
                 .rotation(30, 225, 0)

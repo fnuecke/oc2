@@ -1,16 +1,22 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "GGG",
-    "GCG",
-    "GGG"
+    "ICI",
+    "XRX",
+    "ICI"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:gold_nugget"
+    "I": {
+      "tag": "forge:ingots/iron"
     },
     "C": {
-      "item": "oc2:network_interface_card"
+      "item": "oc2:network_connector"
+    },
+    "R": {
+      "item": "minecraft:repeater"
+    },
+    "X": {
+      "item": "oc2:bus_interface"
     }
   },
   "result": {

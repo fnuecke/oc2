@@ -2,15 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "I I",
-    " C ",
+    " T ",
     " I "
   ],
   "key": {
     "I": {
-      "item": "minecraft:iron_ingot"
+      "tag": "forge:ingots/iron"
     },
-    "C": {
-      "item": "oc2:microchip"
+    "T": {
+      "item": "oc2:transistor"
     }
   },
   "result": {

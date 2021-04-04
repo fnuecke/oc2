@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "oc2:network_cable"
+    ]
+  },
+  "criteria": {
+    "has_transistor": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "oc2:transistor"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "oc2:network_cable"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_transistor",
+      "has_the_recipe"
+    ]
+  ]
+}

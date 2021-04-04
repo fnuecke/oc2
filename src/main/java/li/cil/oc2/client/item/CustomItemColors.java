@@ -1,13 +1,12 @@
 package li.cil.oc2.client.item;
 
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.color.ItemColors;
 import net.minecraft.item.DyeColor;
+import net.minecraft.item.IDyeableArmorItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
 
 public final class CustomItemColors {
     public static final int BLACK = 0xFF404040;
@@ -30,7 +29,6 @@ public final class CustomItemColors {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final String COLOR_TAG_NAME = "color";
     private static final int NO_TINT = 0xFFFFFFFF;
 
     ///////////////////////////////////////////////////////////////////
@@ -81,12 +79,14 @@ public final class CustomItemColors {
     }
 
     public static int getColor(final ItemStack stack) {
-        final CompoundNBT tag = ItemStackUtils.getModDataTag(stack);
-        if (tag.contains(COLOR_TAG_NAME, NBTTagIds.TAG_INT)) {
-            return tag.getInt(COLOR_TAG_NAME);
-        } else {
-            return GREY;
+        final Item item = stack.getItem();
+        if (item instanceof IDyeableArmorItem) {
+            final IDyeableArmorItem coloredItem = (IDyeableArmorItem) item;
+            if (coloredItem.hasColor(stack)) {
+                return coloredItem.getColor(stack);
+            }
         }
+        return GREY;
     }
 
     public static ItemStack withColor(final ItemStack stack, final DyeColor color) {
@@ -94,7 +94,11 @@ public final class CustomItemColors {
     }
 
     public static ItemStack withColor(final ItemStack stack, final int color) {
-        ItemStackUtils.getOrCreateModDataTag(stack).putInt(COLOR_TAG_NAME, color);
+        final Item item = stack.getItem();
+        if (item instanceof IDyeableArmorItem) {
+            final IDyeableArmorItem coloredItem = (IDyeableArmorItem) item;
+            coloredItem.setColor(stack, color);
+        }
         return stack;
     }
 }

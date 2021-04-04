@@ -3,13 +3,14 @@ package li.cil.oc2.common.item;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
 import net.minecraft.item.DyeColor;
+import net.minecraft.item.IDyeableArmorItem;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 
 import static li.cil.oc2.client.item.CustomItemColors.withColor;
 
-public final class HardDriveItem extends AbstractBlockDeviceItem {
+public final class HardDriveItem extends AbstractBlockDeviceItem implements IDyeableArmorItem {
     private static final int DEFAULT_CAPACITY = 2 * Constants.MEGABYTE;
 
     ///////////////////////////////////////////////////////////////////

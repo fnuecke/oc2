@@ -11,7 +11,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.world.World;
 
-public final class FloppyItem extends AbstractBlockDeviceItem {
+public final class FloppyItem extends AbstractBlockDeviceItem implements IDyeableArmorItem {
     private static final int DEFAULT_CAPACITY = 512 * Constants.KILOBYTE;
 
     ///////////////////////////////////////////////////////////////////

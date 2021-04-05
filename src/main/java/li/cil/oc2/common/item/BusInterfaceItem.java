@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Map;
 
 public final class BusInterfaceItem extends ModBlockItem {
-    public BusInterfaceItem(final Block block) {
-        super(block);
+    public BusInterfaceItem() {
+        super(Blocks.BUS_CABLE.get());
     }
 
     ///////////////////////////////////////////////////////////////////

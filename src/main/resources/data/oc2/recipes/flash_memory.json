@@ -1,22 +1,21 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "GCG",
-    "PCP",
-    "GRG"
+    "ITI",
+    "RBR"
   ],
   "key": {
-    "C": {
-      "item": "oc2:microchip"
+    "I": {
+      "tag": "forge:ingots/iron"
     },
-    "G": {
-      "item": "minecraft:gold_nugget"
+    "T": {
+      "item": "oc2:transistor"
     },
     "R": {
-      "item": "minecraft:redstone_torch"
+      "tag": "forge:dusts/redstone"
     },
-    "P":{
-      "item": "minecraft:paper"
+    "B": {
+      "item": "oc2:circuit_board"
     }
   },
   "result": {

@@ -3,9 +3,6 @@ package li.cil.oc2.common.block;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
-import li.cil.oc2.common.bus.device.data.Firmwares;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
@@ -226,15 +223,15 @@ public final class ComputerBlock extends HorizontalBlock {
 
         final CompoundNBT itemsTag = NBTUtils.getOrCreateChildTag(computer.getOrCreateTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME);
         itemsTag.put(DeviceTypes.MEMORY.getRegistryName().toString(), makeInventoryTag(
-                Items.MEMORY.get().withCapacity(8 * Constants.MEGABYTE),
-                Items.MEMORY.get().withCapacity(8 * Constants.MEGABYTE),
-                Items.MEMORY.get().withCapacity(8 * Constants.MEGABYTE)
+                new ItemStack(Items.MEMORY_LARGE.get()),
+                new ItemStack(Items.MEMORY_LARGE.get()),
+                new ItemStack(Items.MEMORY_LARGE.get())
         ));
         itemsTag.put(DeviceTypes.HARD_DRIVE.getRegistryName().toString(), makeInventoryTag(
-                Items.HARD_DRIVE.get().withData(BlockDeviceDataRegistration.BUILDROOT.get())
+                new ItemStack(Items.HARD_DRIVE_CUSTOM.get())
         ));
         itemsTag.put(DeviceTypes.FLASH_MEMORY.getRegistryName().toString(), makeInventoryTag(
-                Items.FLASH_MEMORY.get().withFirmware(Firmwares.BUILDROOT.get())
+                new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
         ));
         itemsTag.put(DeviceTypes.CARD.getRegistryName().toString(), makeInventoryTag(
                 new ItemStack(Items.NETWORK_INTERFACE_CARD.get())

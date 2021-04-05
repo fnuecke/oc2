@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "IBI",
-    "XSX",
+    "XTX",
     "IDI"
   ],
   "key": {
@@ -12,8 +12,8 @@
     "B": {
       "tag": "minecraft:buttons"
     },
-    "S": {
-      "item": "minecraft:stick"
+    "T": {
+      "item": "oc2:transistor"
     },
     "X": {
       "item": "oc2:bus_interface"

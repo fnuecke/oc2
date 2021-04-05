@@ -1,7 +1,6 @@
 package li.cil.oc2.common.entity;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.Constants;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
@@ -17,7 +16,7 @@ public final class Entities {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final RegistryObject<EntityType<RobotEntity>> ROBOT = register(Constants.ROBOT_ENTITY_NAME, RobotEntity::new, EntityClassification.MISC, b -> b.size(14f / 16f, 14f / 16f).immuneToFire().disableSummoning());
+    public static final RegistryObject<EntityType<RobotEntity>> ROBOT = register("robot", RobotEntity::new, EntityClassification.MISC, b -> b.size(14f / 16f, 14f / 16f).immuneToFire().disableSummoning());
 
     ///////////////////////////////////////////////////////////////////
 

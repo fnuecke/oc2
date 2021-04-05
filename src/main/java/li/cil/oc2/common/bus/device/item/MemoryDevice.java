@@ -6,10 +6,8 @@ import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
-import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
-import li.cil.oc2.common.item.MemoryItem;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.PhysicalMemory;
@@ -18,7 +16,6 @@ import li.cil.sedna.memory.PhysicalMemoryInputStream;
 import li.cil.sedna.memory.PhysicalMemoryOutputStream;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.MathHelper;
 
 import java.util.UUID;
 
@@ -40,9 +37,9 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     ///////////////////////////////////////////////////////////////
 
-    public MemoryDevice(final ItemStack identity) {
+    public MemoryDevice(final ItemStack identity, final int capacity) {
         super(identity);
-        size = MathHelper.clamp(MemoryItem.getCapacity(identity), 0, Config.maxMemorySize);
+        size = capacity;
     }
 
     ///////////////////////////////////////////////////////////////////

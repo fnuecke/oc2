@@ -6,12 +6,12 @@
     ]
   },
   "criteria": {
-    "has_gold": {
+    "has_transistor": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
-            "item": "minecraft:gold_ingot"
+            "item": "oc2:transistor"
           }
         ]
       }
@@ -25,7 +25,7 @@
   },
   "requirements": [
     [
-      "has_gold",
+      "has_transistor",
       "has_the_recipe"
     ]
   ]

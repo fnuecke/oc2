@@ -11,18 +11,27 @@ import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<ItemDeviceProvider> implements ItemDeviceProvider {
-    private final RegistryObject<? extends Item> item;
+    private final Predicate<Item> predicate;
 
     ///////////////////////////////////////////////////////////////////
 
+    private AbstractItemDeviceProvider(final Predicate<Item> predicate) {
+        this.predicate = predicate;
+    }
+
     protected AbstractItemDeviceProvider(final RegistryObject<? extends Item> item) {
-        this.item = item;
+        this(i -> i == item.get());
+    }
+
+    protected AbstractItemDeviceProvider(final Class<? extends Item> type) {
+        this(type::isInstance);
     }
 
     protected AbstractItemDeviceProvider() {
-        this.item = null;
+        this.predicate = i -> true;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -58,6 +67,6 @@ public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<Item
 
     private boolean matches(final ItemDeviceQuery query) {
         final ItemStack stack = query.getItemStack();
-        return !stack.isEmpty() && (item == null || stack.getItem() == item.get());
+        return !stack.isEmpty() && predicate.test(stack.getItem());
     }
 }

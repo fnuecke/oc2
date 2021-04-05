@@ -1,6 +1,5 @@
 package li.cil.oc2.common.tileentity;
 
-import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
@@ -10,7 +9,7 @@ import li.cil.oc2.common.block.DiskDriveBlock;
 import li.cil.oc2.common.bus.device.item.AbstractBlockDeviceVMDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.TypedItemStackHandler;
-import li.cil.oc2.common.item.AbstractBlockDeviceItem;
+import li.cil.oc2.common.item.FloppyItem;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.DiskDriveFloppyMessage;
 import li.cil.oc2.common.tags.ItemTags;
@@ -25,6 +24,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -250,28 +250,17 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         @Override
         protected BlockDevice createBlockDevice() {
             final ItemStack stack = itemHandler.getStackInSlotRaw(0);
-            if (stack.isEmpty()) {
+            if (stack.isEmpty() || !(stack.getItem() instanceof FloppyItem)) {
                 return EMPTY_BLOCK_DEVICE;
             }
 
-            // NB: I don't see any reason why people would want to add custom floppy items,
-            //     since the existing ones can be customized by registering block device data
-            //     with the BlockDeviceData registry and then just create our floppy item with
-            //     the associated tag. If there should turn out to be a use case, we'll need
-            //     to have the item return its data via a capability or so, so others don't
-            //     have to extend the non-api BlockDeviceItem class.
-
-            final BlockDeviceData data = AbstractBlockDeviceItem.getData(stack);
-            if (data != null) {
-                return new FakeReadonlyBlockDevice(data.getBlockDevice());
-            }
-
-            final int capacity = AbstractBlockDeviceItem.getCapacity(stack);
+            final FloppyItem item = (FloppyItem) stack.getItem();
+            final int capacity = MathHelper.clamp(item.getCapacity(stack), 0, Config.maxFloppySize);
             if (capacity <= 0) {
                 return EMPTY_BLOCK_DEVICE;
             }
 
-            return ByteBufferBlockDevice.create(Math.min(capacity, Config.maxFloppySize), false);
+            return ByteBufferBlockDevice.create(capacity, false);
         }
 
         @Override
@@ -299,38 +288,6 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         @Override
         protected void handleDataAccess() {
             accessSoundEmitter.play();
-        }
-    }
-
-    // We cannot change the read-only flag of the underlying VirtIO device after
-    // initial setup (config change does not trigger feature renegotiation). So
-    // we have to always pretend to be writable and just error when something
-    // tries to write to a read-only file system.
-    private static final class FakeReadonlyBlockDevice implements BlockDevice {
-        private final BlockDevice device;
-
-        private FakeReadonlyBlockDevice(final BlockDevice device) {
-            this.device = device;
-        }
-
-        @Override
-        public boolean isReadonly() {
-            return false;
-        }
-
-        @Override
-        public long getCapacity() {
-            return device.getCapacity();
-        }
-
-        @Override
-        public InputStream getInputStream(final long offset) {
-            return device.getInputStream(offset);
-        }
-
-        @Override
-        public OutputStream getOutputStream(final long offset) {
-            throw new UnsupportedOperationException();
         }
     }
 }

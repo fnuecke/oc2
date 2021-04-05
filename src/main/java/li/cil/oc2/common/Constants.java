@@ -25,41 +25,6 @@ public final class Constants {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final String COMPUTER_BLOCK_NAME = "computer";
-    public static final String BUS_CABLE_BLOCK_NAME = "bus_cable";
-    public static final String NETWORK_CONNECTOR_BLOCK_NAME = "network_connector";
-    public static final String NETWORK_HUB_BLOCK_NAME = "network_hub";
-    public static final String DISK_DRIVE_BLOCK_NAME = "disk_drive";
-    public static final String REDSTONE_INTERFACE_BLOCK_NAME = "redstone_interface";
-    public static final String CHARGER_BLOCK_NAME = "charger";
-    public static final String CREATIVE_ENERGY_BLOCK_NAME = "creative_energy";
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static final String WRENCH_ITEM_NAME = "wrench";
-
-    public static final String BUS_INTERFACE_ITEM_NAME = "bus_interface";
-    public static final String NETWORK_CABLE_ITEM_NAME = "network_cable";
-
-    public static final String FLASH_MEMORY_ITEM_NAME = "flash_memory";
-    public static final String MEMORY_ITEM_NAME = "memory";
-    public static final String HARD_DRIVE_ITEM_NAME = "hard_drive";
-    public static final String REDSTONE_INTERFACE_CARD_ITEM_NAME = "redstone_interface_card";
-    public static final String NETWORK_INTERFACE_CARD_ITEM_NAME = "network_interface_card";
-    public static final String FLOPPY_ITEM_NAME = "floppy";
-
-    public static final String INVENTORY_OPERATIONS_MODULE_ITEM_NAME = "inventory_operations_module";
-    public static final String BLOCK_OPERATIONS_MODULE_ITEM_NAME = "block_operations_module";
-
-    public static final String TRANSISTOR_ITEM_NAME = "transistor";
-    public static final String CIRCUIT_BOARD_ITEM_NAME = "circuit_board";
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static final String ROBOT_ENTITY_NAME = "robot";
-
-    ///////////////////////////////////////////////////////////////////
-
     public static final String TOOLTIP_DESCRIPTION_SUFFIX = ".desc";
     public static final String TOOLTIP_DEVICE_NEEDS_REBOOT = "tooltip.oc2.device_needs_reboot";
     public static final String TOOLTIP_FLASH_MEMORY_MISSING = "tooltip.oc2.flash_memory_missing";

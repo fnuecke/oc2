@@ -1,7 +1,6 @@
 package li.cil.oc2.common.tileentity;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.Blocks;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
@@ -18,14 +17,14 @@ public final class TileEntities {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final RegistryObject<TileEntityType<RedstoneInterfaceTileEntity>> REDSTONE_INTERFACE_TILE_ENTITY = register(Constants.REDSTONE_INTERFACE_BLOCK_NAME, Blocks.REDSTONE_INTERFACE, RedstoneInterfaceTileEntity::new);
-    public static final RegistryObject<TileEntityType<BusCableTileEntity>> BUS_CABLE_TILE_ENTITY = register(Constants.BUS_CABLE_BLOCK_NAME, Blocks.BUS_CABLE, BusCableTileEntity::new);
-    public static final RegistryObject<TileEntityType<ComputerTileEntity>> COMPUTER_TILE_ENTITY = register(Constants.COMPUTER_BLOCK_NAME, Blocks.COMPUTER, ComputerTileEntity::new);
-    public static final RegistryObject<TileEntityType<NetworkConnectorTileEntity>> NETWORK_CONNECTOR_TILE_ENTITY = register(Constants.NETWORK_CONNECTOR_BLOCK_NAME, Blocks.NETWORK_CONNECTOR, NetworkConnectorTileEntity::new);
-    public static final RegistryObject<TileEntityType<NetworkHubTileEntity>> NETWORK_HUB_TILE_ENTITY = register(Constants.NETWORK_HUB_BLOCK_NAME, Blocks.NETWORK_HUB, NetworkHubTileEntity::new);
-    public static final RegistryObject<TileEntityType<DiskDriveTileEntity>> DISK_DRIVE_TILE_ENTITY = register(Constants.DISK_DRIVE_BLOCK_NAME, Blocks.DISK_DRIVE, DiskDriveTileEntity::new);
-    public static final RegistryObject<TileEntityType<ChargerTileEntity>> CHARGER_TILE_ENTITY = register(Constants.CHARGER_BLOCK_NAME, Blocks.CHARGER, ChargerTileEntity::new);
-    public static final RegistryObject<TileEntityType<CreativeEnergyTileEntity>> CREATIVE_ENERGY_TILE_ENTITY = register(Constants.CREATIVE_ENERGY_BLOCK_NAME, Blocks.CREATIVE_ENERGY, CreativeEnergyTileEntity::new);
+    public static final RegistryObject<TileEntityType<RedstoneInterfaceTileEntity>> REDSTONE_INTERFACE_TILE_ENTITY = register(Blocks.REDSTONE_INTERFACE, RedstoneInterfaceTileEntity::new);
+    public static final RegistryObject<TileEntityType<BusCableTileEntity>> BUS_CABLE_TILE_ENTITY = register(Blocks.BUS_CABLE, BusCableTileEntity::new);
+    public static final RegistryObject<TileEntityType<ComputerTileEntity>> COMPUTER_TILE_ENTITY = register(Blocks.COMPUTER, ComputerTileEntity::new);
+    public static final RegistryObject<TileEntityType<NetworkConnectorTileEntity>> NETWORK_CONNECTOR_TILE_ENTITY = register(Blocks.NETWORK_CONNECTOR, NetworkConnectorTileEntity::new);
+    public static final RegistryObject<TileEntityType<NetworkHubTileEntity>> NETWORK_HUB_TILE_ENTITY = register(Blocks.NETWORK_HUB, NetworkHubTileEntity::new);
+    public static final RegistryObject<TileEntityType<DiskDriveTileEntity>> DISK_DRIVE_TILE_ENTITY = register(Blocks.DISK_DRIVE, DiskDriveTileEntity::new);
+    public static final RegistryObject<TileEntityType<ChargerTileEntity>> CHARGER_TILE_ENTITY = register(Blocks.CHARGER, ChargerTileEntity::new);
+    public static final RegistryObject<TileEntityType<CreativeEnergyTileEntity>> CREATIVE_ENERGY_TILE_ENTITY = register(Blocks.CREATIVE_ENERGY, CreativeEnergyTileEntity::new);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -36,7 +35,7 @@ public final class TileEntities {
     ///////////////////////////////////////////////////////////////////
 
     @SuppressWarnings("ConstantConditions") // .build(null) is fine
-    private static <B extends Block, T extends TileEntity> RegistryObject<TileEntityType<T>> register(final String name, final RegistryObject<B> block, final Supplier<T> factory) {
-        return TILES.register(name, () -> TileEntityType.Builder.create(factory, block.get()).build(null));
+    private static <B extends Block, T extends TileEntity> RegistryObject<TileEntityType<T>> register(final RegistryObject<B> block, final Supplier<T> factory) {
+        return TILES.register(block.getId().getPath(), () -> TileEntityType.Builder.create(factory, block.get()).build(null));
     }
 }

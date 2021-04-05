@@ -1,8 +1,7 @@
 package li.cil.oc2.data;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.client.item.CustomItemModelProperties;
-import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.item.Item;
@@ -23,18 +22,20 @@ public final class ModItemModelProvider extends ItemModelProvider {
 
         simple(Items.NETWORK_CABLE, "item/network_cable");
 
-        simple(Items.MEMORY, "item/memory1")
-                .override()
-                .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 4 * Constants.MEGABYTE)
-                .model(simple(Items.MEMORY, "item/memory2", "2"))
-                .end()
-                .override()
-                .predicate(CustomItemModelProperties.CAPACITY_PROPERTY, 8 * Constants.MEGABYTE)
-                .model(simple(Items.MEMORY, "item/memory3", "3"))
-                .end();
-        simple(Items.HARD_DRIVE, "item/hard_drive_base")
+        simple(Items.MEMORY_SMALL, "item/memory_small");
+        simple(Items.MEMORY_MEDIUM, "item/memory_medium");
+        simple(Items.MEMORY_LARGE, "item/memory_large");
+        simple(Items.HARD_DRIVE_SMALL, "item/hard_drive_base")
+                .texture("layer1", "item/hard_drive_tint");
+        simple(Items.HARD_DRIVE_MEDIUM, "item/hard_drive_base")
+                .texture("layer1", "item/hard_drive_tint");
+        simple(Items.HARD_DRIVE_LARGE, "item/hard_drive_base")
+                .texture("layer1", "item/hard_drive_tint");
+        simple(Items.HARD_DRIVE_CUSTOM, "item/hard_drive_base")
                 .texture("layer1", "item/hard_drive_tint");
         simple(Items.FLASH_MEMORY, "item/flash_memory");
+        simple(Items.FLASH_MEMORY_CUSTOM, "item/flash_memory");
+
         simple(Items.REDSTONE_INTERFACE_CARD, "item/redstone_interface_card");
         simple(Items.NETWORK_INTERFACE_CARD, "item/network_interface_card");
         simple(Items.FLOPPY, "item/floppy_base")
@@ -46,7 +47,7 @@ public final class ModItemModelProvider extends ItemModelProvider {
         simple(Items.TRANSISTOR, "item/transistor");
         simple(Items.CIRCUIT_BOARD, "item/circuit_board");
 
-        withExistingParent(Constants.ROBOT_ENTITY_NAME, "template_shulker_box");
+        withExistingParent(Entities.ROBOT.getId().getPath(), "template_shulker_box");
     }
 
     private <T extends Item> ItemModelBuilder simple(final RegistryObject<T> item, final String texturePath) {

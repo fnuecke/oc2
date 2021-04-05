@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "ICI",
-    "XRX",
+    "XTX",
     "ICI"
   ],
   "key": {
@@ -12,11 +12,11 @@
     "C": {
       "item": "oc2:network_connector"
     },
-    "R": {
-      "item": "minecraft:repeater"
-    },
     "X": {
       "item": "oc2:bus_interface"
+    },
+    "T": {
+      "item": "oc2:transistor"
     }
   },
   "result": {

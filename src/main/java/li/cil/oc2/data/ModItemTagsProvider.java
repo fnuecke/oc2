@@ -34,13 +34,19 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
                 DEVICES_FLOPPY
         );
         getOrCreateBuilder(DEVICES_MEMORY).add(
-                Items.MEMORY.get()
+                Items.MEMORY_SMALL.get(),
+                Items.MEMORY_MEDIUM.get(),
+                Items.MEMORY_LARGE.get()
         );
         getOrCreateBuilder(DEVICES_HARD_DRIVE).add(
-                Items.HARD_DRIVE.get()
+                Items.HARD_DRIVE_SMALL.get(),
+                Items.HARD_DRIVE_MEDIUM.get(),
+                Items.HARD_DRIVE_LARGE.get(),
+                Items.HARD_DRIVE_CUSTOM.get()
         );
         getOrCreateBuilder(DEVICES_FLASH_MEMORY).add(
-                Items.FLASH_MEMORY.get()
+                Items.FLASH_MEMORY.get(),
+                Items.FLASH_MEMORY_CUSTOM.get()
         );
         getOrCreateBuilder(DEVICES_CARD).add(
                 Items.REDSTONE_INTERFACE_CARD.get(),
@@ -84,9 +90,15 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
         getOrCreateBuilder(WRENCHES).add(Items.WRENCH.get());
 
         getOrCreateBuilder(DEVICE_NEEDS_REBOOT).add(
-                Items.MEMORY.get(),
-                Items.HARD_DRIVE.get(),
+                Items.MEMORY_SMALL.get(),
+                Items.MEMORY_MEDIUM.get(),
+                Items.MEMORY_LARGE.get(),
+                Items.HARD_DRIVE_SMALL.get(),
+                Items.HARD_DRIVE_MEDIUM.get(),
+                Items.HARD_DRIVE_LARGE.get(),
+                Items.HARD_DRIVE_CUSTOM.get(),
                 Items.FLASH_MEMORY.get(),
+                Items.FLASH_MEMORY_CUSTOM.get(),
                 Items.NETWORK_INTERFACE_CARD.get(),
                 Items.DISK_DRIVE.get()
         );

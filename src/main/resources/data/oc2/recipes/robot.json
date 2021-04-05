@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ICI",
+    "PTP",
+    "IBI"
+  ],
+  "key": {
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "C": {
+      "tag": "forge:chests/wooden"
+    },
+    "P": {
+      "item": "minecraft:piston"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    },
+    "B": {
+      "item": "oc2:circuit_board"
+    }
+  },
+  "result": {
+    "item": "oc2:robot"
+  }
+}

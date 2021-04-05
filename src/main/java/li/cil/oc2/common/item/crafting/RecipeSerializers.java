@@ -10,8 +10,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 public final class RecipeSerializers {
     private static final DeferredRegister<IRecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, API.MOD_ID);
 
-    public static final RegistryObject<ShapedNbtRecipe.Serializer> SHAPED = RECIPE_SERIALIZERS.register("shaped", ShapedNbtRecipe.Serializer::new);
-    public static final RegistryObject<ShapelessNbtRecipe.Serializer> SHAPELESS = RECIPE_SERIALIZERS.register("shapeless", ShapelessNbtRecipe.Serializer::new);
+    public static final RegistryObject<WrenchRecipe.Serializer> WRENCH = RECIPE_SERIALIZERS.register("wrench", WrenchRecipe.Serializer::new);
 
     public static void initialize() {
         RECIPE_SERIALIZERS.register(FMLJavaModLoadingContext.get().getModEventBus());

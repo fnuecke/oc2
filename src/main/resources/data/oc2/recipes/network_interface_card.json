@@ -1,21 +1,21 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "IRT",
+    "IGT",
     " B "
   ],
   "key": {
     "I": {
       "tag": "forge:ingots/iron"
     },
-    "B": {
-      "item": "oc2:circuit_board"
+    "G": {
+      "tag": "forge:glass"
     },
     "T": {
       "item": "oc2:transistor"
     },
-    "R": {
-      "item": "minecraft:repeater"
+    "B": {
+      "item": "oc2:circuit_board"
     }
   },
   "result": {

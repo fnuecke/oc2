@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "oc2:flash_memory"
+    "oc2:flash_memory",
+    "oc2:flash_memory_custom"
   ]
 }

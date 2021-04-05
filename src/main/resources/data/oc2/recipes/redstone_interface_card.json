@@ -15,7 +15,7 @@
       "item": "oc2:transistor"
     },
     "R": {
-      "tag": "forge:dusts/redstone"
+      "item": "minecraft:redstone_torch"
     }
   },
   "result": {

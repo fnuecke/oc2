@@ -1,22 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " G ",
-    "RPR",
+    "RCR",
     "III"
   ],
   "key": {
     "I": {
       "tag": "forge:ingots/iron"
     },
-    "G": {
-      "tag": "forge:ingots/gold"
-    },
     "R": {
       "tag": "forge:dusts/redstone"
     },
-    "P": {
-      "item": "minecraft:paper"
+    "C": {
+      "item": "minecraft:comparator"
     }
   },
   "result": {

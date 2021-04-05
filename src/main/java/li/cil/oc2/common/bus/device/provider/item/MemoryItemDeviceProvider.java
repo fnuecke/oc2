@@ -8,21 +8,25 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.item.MemoryDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
-import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.MemoryItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.MathHelper;
 
 import java.util.Optional;
 
 public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
     public MemoryItemDeviceProvider() {
-        super(Items.MEMORY);
+        super(MemoryItem.class);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
-        return Optional.of(new MemoryDevice(query.getItemStack()));
+        final ItemStack stack = query.getItemStack();
+        final MemoryItem item = (MemoryItem) stack.getItem();
+        final int capacity = MathHelper.clamp(item.getCapacity(stack), 0, Config.maxMemorySize);
+        return Optional.of(new MemoryDevice(query.getItemStack(), capacity));
     }
 
     @Override
@@ -32,7 +36,9 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
 
     @Override
     protected int getItemDeviceEnergyConsumption(final ItemDeviceQuery query) {
-        final int capacity = MemoryItem.getCapacity(query.getItemStack());
+        final ItemStack stack = query.getItemStack();
+        final MemoryItem item = (MemoryItem) stack.getItem();
+        final int capacity = MathHelper.clamp(item.getCapacity(stack), 0, Config.maxMemorySize);
         return Math.max(1, (int) Math.round(capacity * Config.memoryEnergyPerMegabytePerTick / Constants.MEGABYTE));
     }
 }

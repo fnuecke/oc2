@@ -6,12 +6,12 @@
     ]
   },
   "criteria": {
-    "has_transistor": {
+    "has_network_connector": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
-            "item": "oc2:transistor"
+            "item": "oc2:network_connector"
           }
         ]
       }
@@ -25,7 +25,7 @@
   },
   "requirements": [
     [
-      "has_transistor",
+      "has_network_connector",
       "has_the_recipe"
     ]
   ]

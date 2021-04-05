@@ -10,7 +10,7 @@
       "tag": "forge:ingots/iron"
     },
     "C": {
-      "tag": "forge:chests"
+      "tag": "forge:chests/wooden"
     },
     "X": {
       "item": "oc2:bus_interface"

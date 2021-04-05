@@ -6,22 +6,12 @@
     ]
   },
   "criteria": {
-    "has_board": {
+    "has_computer": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
-            "item": "oc2:circuit_board"
-          }
-        ]
-      }
-    },
-    "has_transistor": {
-      "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [
-          {
-            "item": "oc2:transistor"
+            "item": "oc2:computer"
           }
         ]
       }
@@ -35,8 +25,7 @@
   },
   "requirements": [
     [
-      "has_board",
-      "has_transistor",
+      "has_computer",
       "has_the_recipe"
     ]
   ]

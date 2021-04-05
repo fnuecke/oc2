@@ -1,6 +1,5 @@
 package li.cil.oc2.common.tileentity;
 
-import li.cil.oc2.client.model.BusCableBakedModel;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.BusCableBlock;
@@ -19,7 +18,6 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.client.model.data.IModelData;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;

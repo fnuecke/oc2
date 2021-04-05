@@ -1,6 +1,5 @@
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.tileentity.DiskDriveTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
 import net.minecraft.block.Block;

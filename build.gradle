@@ -1,11 +1,10 @@
 buildscript {
     repositories {
         maven { url = 'https://files.minecraftforge.net/maven' }
-        jcenter()
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
     }
 }
 
@@ -18,18 +17,18 @@ apply plugin: 'net.minecraftforge.gradle'
 
 def getGitRef() {
     try {
-        def stdout = new ByteArrayOutputStream()
+        final def stdout = new ByteArrayOutputStream()
         exec {
             commandLine 'git', 'rev-parse', '--short', 'HEAD'
             standardOutput = stdout
         }
         return stdout.toString().trim()
-    } catch (Throwable ignored) {
+    } catch (final Throwable ignored) {
         return "unknown"
     }
 }
 
-String semver = "${version_major}.${version_minor}.${version_patch}"
+final def semver = "${version_major}.${version_minor}.${version_patch}"
 
 String build_number = System.getenv("PROMOTED_NUMBER");
 if (build_number == null)
@@ -41,8 +40,7 @@ version = "${semver}+${build_number}"
 group = mod_group
 archivesBaseName = "${mod_name.replace(' ', '-')}-MC${minecraft_version}-Forge"
 
-sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
-compileJava.sourceCompatibility = compileJava.targetCompatibility = JavaVersion.VERSION_1_8
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
 repositories {
     mavenCentral()

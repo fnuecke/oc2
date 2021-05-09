@@ -15,7 +15,7 @@ import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.container.ComputerContainer;
+import li.cil.oc2.common.container.ComputerInventoryContainer;
 import li.cil.oc2.common.container.ComputerTerminalContainer;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
@@ -129,7 +129,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
             @Override
             public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
-                return new ComputerTerminalContainer(id, ComputerTileEntity.this, new IIntArray() {
+                return new ComputerTerminalContainer(id, player, ComputerTileEntity.this, new IIntArray() {
                     @Override
                     public int get(final int index) {
                         switch (index) {
@@ -166,7 +166,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
             @Override
             public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
-                return new ComputerContainer(id, ComputerTileEntity.this, inventory);
+                return new ComputerInventoryContainer(id, ComputerTileEntity.this, inventory);
             }
         }, getPos());
     }

@@ -25,7 +25,7 @@ public final class ComputerTerminalContainer extends AbstractContainer {
         if (!(tileEntity instanceof ComputerTileEntity)) {
             return null;
         }
-        return new ComputerTerminalContainer(id, (ComputerTileEntity) tileEntity, new IntArray(3));
+        return new ComputerTerminalContainer(id, playerInventory.player, (ComputerTileEntity) tileEntity, new IntArray(3));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ public final class ComputerTerminalContainer extends AbstractContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerTerminalContainer(final int id, final ComputerTileEntity computer, final IIntArray energyInfo) {
+    public ComputerTerminalContainer(final int id, final PlayerEntity player, final ComputerTileEntity computer, final IIntArray energyInfo) {
         super(Containers.COMPUTER_TERMINAL_CONTAINER.get(), id);
         this.computer = computer;
         this.energyInfo = energyInfo;
@@ -65,5 +65,12 @@ public final class ComputerTerminalContainer extends AbstractContainer {
     @Override
     public boolean canInteractWith(final PlayerEntity player) {
         return isWithinUsableDistance(IWorldPosCallable.of(computer.getWorld(), computer.getPos()), player, Blocks.COMPUTER.get());
+    }
+
+    @Override
+    public void onContainerClosed(final PlayerEntity player) {
+        super.onContainerClosed(player);
+
+        this.computer.removeTerminalUser(player);
     }
 }

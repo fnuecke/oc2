@@ -135,6 +135,13 @@ minecraft {
     }
 }
 
+task copyGeneratedResources(type: Copy) {
+    from "src/generated"
+    into "src/main"
+    exclude "resources/.cache"
+    exclude "resources/assets/oc2/models/block"
+}
+
 jar {
     finalizedBy 'reobfJar'
 

@@ -9,18 +9,20 @@ import java.util.function.Function;
 
 public class TypedDeviceItemStackHandler extends DeviceItemStackHandler {
     private final DeviceType deviceType;
+    private final Function<ItemStack, ItemDeviceQuery> queryFactory;
 
     ///////////////////////////////////////////////////////////////////
 
     public TypedDeviceItemStackHandler(final int size, final Function<ItemStack, ItemDeviceQuery> queryFactory, final DeviceType deviceType) {
         super(size, queryFactory);
         this.deviceType = deviceType;
+        this.queryFactory = queryFactory;
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     public boolean isItemValid(final int slot, final ItemStack stack) {
-        return super.isItemValid(slot, stack) && Devices.getDeviceTypes(Devices.makeQuery(stack)).contains(deviceType);
+        return super.isItemValid(slot, stack) && Devices.getDeviceTypes(queryFactory.apply(stack)).contains(deviceType);
     }
 }

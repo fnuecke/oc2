@@ -35,11 +35,12 @@ public final class ModItemModelProvider extends ItemModelProvider {
                 .texture("layer1", "item/hard_drive_tint");
         simple(Items.FLASH_MEMORY, "item/flash_memory");
         simple(Items.FLASH_MEMORY_CUSTOM, "item/flash_memory");
+        simple(Items.FLOPPY, "item/floppy_base")
+                .texture("layer1", "item/floppy_tint");
 
         simple(Items.REDSTONE_INTERFACE_CARD, "item/redstone_interface_card");
         simple(Items.NETWORK_INTERFACE_CARD, "item/network_interface_card");
-        simple(Items.FLOPPY, "item/floppy_base")
-                .texture("layer1", "item/floppy_tint");
+        simple(Items.CLOUD_INTERFACE_CARD, "item/cloud_interface_card");
 
         simple(Items.INVENTORY_OPERATIONS_MODULE, "item/inventory_operations_module");
         simple(Items.BLOCK_OPERATIONS_MODULE, "item/block_operations_module");

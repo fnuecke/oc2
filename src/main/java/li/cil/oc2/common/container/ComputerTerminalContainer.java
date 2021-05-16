@@ -40,6 +40,8 @@ public final class ComputerTerminalContainer extends AbstractContainer {
         this.computer = computer;
         this.energyInfo = energyInfo;
 
+        this.computer.addTerminalUser(player);
+
         assertIntArraySize(energyInfo, ENERGY_INFO_SIZE);
         trackIntArray(energyInfo);
     }

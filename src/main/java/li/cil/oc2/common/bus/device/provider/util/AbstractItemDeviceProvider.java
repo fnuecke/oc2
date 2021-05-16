@@ -53,6 +53,11 @@ public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<Item
 
     ///////////////////////////////////////////////////////////////////
 
+    protected boolean matches(final ItemDeviceQuery query) {
+        final ItemStack stack = query.getItemStack();
+        return !stack.isEmpty() && predicate.test(stack.getItem());
+    }
+
     protected abstract Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query);
 
     protected Optional<DeviceType> getItemDeviceType(final ItemDeviceQuery query) {
@@ -61,12 +66,5 @@ public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<Item
 
     protected int getItemDeviceEnergyConsumption(final ItemDeviceQuery query) {
         return 0;
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    private boolean matches(final ItemDeviceQuery query) {
-        final ItemStack stack = query.getItemStack();
-        return !stack.isEmpty() && predicate.test(stack.getItem());
     }
 }

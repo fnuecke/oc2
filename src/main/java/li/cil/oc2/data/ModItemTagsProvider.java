@@ -48,16 +48,17 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
                 Items.FLASH_MEMORY.get(),
                 Items.FLASH_MEMORY_CUSTOM.get()
         );
+        getOrCreateBuilder(DEVICES_FLOPPY).add(
+                Items.FLOPPY.get()
+        );
         getOrCreateBuilder(DEVICES_CARD).add(
                 Items.REDSTONE_INTERFACE_CARD.get(),
-                Items.NETWORK_INTERFACE_CARD.get()
+                Items.NETWORK_INTERFACE_CARD.get(),
+                Items.CLOUD_INTERFACE_CARD.get()
         );
         getOrCreateBuilder(DEVICES_ROBOT_MODULE).add(
                 Items.INVENTORY_OPERATIONS_MODULE.get(),
                 Items.BLOCK_OPERATIONS_MODULE.get()
-        );
-        getOrCreateBuilder(DEVICES_FLOPPY).add(
-                Items.FLOPPY.get()
         );
 
         getOrCreateBuilder(TOOL_MATERIALS).addTags(

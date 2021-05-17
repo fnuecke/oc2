@@ -59,10 +59,12 @@ public final class Items {
     public static final RegistryObject<FlashMemoryWithExternalDataItem> FLASH_MEMORY_CUSTOM = register("flash_memory_custom", () ->
             new FlashMemoryWithExternalDataItem(Firmwares.BUILDROOT.getId()));
 
-    public static final RegistryObject<Item> REDSTONE_INTERFACE_CARD = register("redstone_interface_card");
-    public static final RegistryObject<Item> NETWORK_INTERFACE_CARD = register("network_interface_card");
     public static final RegistryObject<FloppyItem> FLOPPY = register("floppy", () ->
             new FloppyItem(512 * Constants.KILOBYTE));
+
+    public static final RegistryObject<Item> REDSTONE_INTERFACE_CARD = register("redstone_interface_card");
+    public static final RegistryObject<Item> NETWORK_INTERFACE_CARD = register("network_interface_card");
+    public static final RegistryObject<Item> CLOUD_INTERFACE_CARD = register("cloud_interface_card");
 
     public static final RegistryObject<Item> INVENTORY_OPERATIONS_MODULE = register("inventory_operations_module");
     public static final RegistryObject<Item> BLOCK_OPERATIONS_MODULE = register("block_operations_module", BlockOperationsModule::new);

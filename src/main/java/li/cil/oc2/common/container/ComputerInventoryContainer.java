@@ -13,15 +13,15 @@ import net.minecraft.util.math.BlockPos;
 
 import javax.annotation.Nullable;
 
-public final class ComputerContainer extends AbstractContainer {
+public final class ComputerInventoryContainer extends AbstractContainer {
     @Nullable
-    public static ComputerContainer create(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
+    public static ComputerInventoryContainer create(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
         final BlockPos pos = data.readBlockPos();
         final TileEntity tileEntity = playerInventory.player.getEntityWorld().getTileEntity(pos);
         if (!(tileEntity instanceof ComputerTileEntity)) {
             return null;
         }
-        return new ComputerContainer(id, (ComputerTileEntity) tileEntity, playerInventory);
+        return new ComputerInventoryContainer(id, (ComputerTileEntity) tileEntity, playerInventory);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ public final class ComputerContainer extends AbstractContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerContainer(final int id, final ComputerTileEntity computer, final PlayerInventory playerInventory) {
+    public ComputerInventoryContainer(final int id, final ComputerTileEntity computer, final PlayerInventory playerInventory) {
         super(Containers.COMPUTER_CONTAINER.get(), id);
         this.computer = computer;
 

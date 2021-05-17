@@ -6,7 +6,7 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.gui.util.GuiUtils;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.container.ComputerContainer;
+import li.cil.oc2.common.container.ComputerInventoryContainer;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
@@ -15,12 +15,12 @@ import net.minecraft.util.text.TranslationTextComponent;
 
 import static java.util.Objects.requireNonNull;
 
-public final class ComputerContainerScreen extends ContainerScreen<ComputerContainer> {
+public final class ComputerInventoryScreen extends ContainerScreen<ComputerInventoryContainer> {
     private static final ResourceLocation BACKGROUND = new ResourceLocation(API.MOD_ID, "textures/gui/container/computer.png");
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerContainerScreen(final ComputerContainer container, final PlayerInventory inventory, final ITextComponent title) {
+    public ComputerInventoryScreen(final ComputerInventoryContainer container, final PlayerInventory inventory, final ITextComponent title) {
         super(container, inventory, title);
         xSize = 176;
         ySize = 197;

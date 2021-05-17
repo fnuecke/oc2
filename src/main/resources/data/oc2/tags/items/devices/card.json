@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "oc2:redstone_interface_card",
-    "oc2:network_interface_card"
+    "oc2:network_interface_card",
+    "oc2:cloud_interface_card"
   ]
 }

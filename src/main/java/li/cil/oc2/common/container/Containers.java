@@ -13,7 +13,7 @@ public final class Containers {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final RegistryObject<ContainerType<ComputerContainer>> COMPUTER_CONTAINER = CONTAINERS.register("computer", () -> IForgeContainerType.create(ComputerContainer::create));
+    public static final RegistryObject<ContainerType<ComputerInventoryContainer>> COMPUTER_CONTAINER = CONTAINERS.register("computer", () -> IForgeContainerType.create(ComputerInventoryContainer::create));
     public static final RegistryObject<ContainerType<ComputerTerminalContainer>> COMPUTER_TERMINAL_CONTAINER = CONTAINERS.register("computer_terminal", () -> IForgeContainerType.create(ComputerTerminalContainer::create));
     public static final RegistryObject<ContainerType<RobotContainer>> ROBOT_CONTAINER = CONTAINERS.register("robot", () -> IForgeContainerType.create(RobotContainer::create));
     public static final RegistryObject<ContainerType<RobotTerminalContainer>> ROBOT_TERMINAL_CONTAINER = CONTAINERS.register("robot_terminal", () -> IForgeContainerType.create(RobotTerminalContainer::create));

@@ -37,8 +37,9 @@ public final class Config {
 
     public static double memoryEnergyPerMegabytePerTick = 0.5;
     public static double hardDriveEnergyPerMegabytePerTick = 1;
-    public static int networkInterfaceEnergyPerTick = 1;
     public static int redstoneInterfaceCardEnergyPerTick = 1;
+    public static int networkInterfaceEnergyPerTick = 1;
+    public static int cloudInterfaceCardEnergyPerTick = 1;
     public static int blockOperationsModuleEnergyPerTick = 2;
     public static int inventoryOperationsModuleEnergyPerTick = 1;
 
@@ -94,8 +95,9 @@ public final class Config {
 
             memoryEnergyPerMegabytePerTick = COMMON_INSTANCE.memoryEnergyPerMegabytePerTick.get();
             hardDriveEnergyPerMegabytePerTick = COMMON_INSTANCE.hardDriveEnergyPerMegabytePerTick.get();
-            networkInterfaceEnergyPerTick = COMMON_INSTANCE.networkInterfaceEnergyPerTick.get();
             redstoneInterfaceCardEnergyPerTick = COMMON_INSTANCE.redstoneInterfaceCardEnergyPerTick.get();
+            networkInterfaceEnergyPerTick = COMMON_INSTANCE.networkInterfaceEnergyPerTick.get();
+            cloudInterfaceCardEnergyPerTick = COMMON_INSTANCE.cloudInterfaceCardEnergyPerTick.get();
             blockOperationsModuleEnergyPerTick = COMMON_INSTANCE.blockOperationsModuleEnergyPerTick.get();
             inventoryOperationsModuleEnergyPerTick = COMMON_INSTANCE.inventoryOperationsModuleEnergyPerTick.get();
 
@@ -125,8 +127,9 @@ public final class Config {
 
         public final ForgeConfigSpec.DoubleValue memoryEnergyPerMegabytePerTick;
         public final ForgeConfigSpec.DoubleValue hardDriveEnergyPerMegabytePerTick;
-        public final ForgeConfigSpec.IntValue networkInterfaceEnergyPerTick;
         public final ForgeConfigSpec.IntValue redstoneInterfaceCardEnergyPerTick;
+        public final ForgeConfigSpec.IntValue networkInterfaceEnergyPerTick;
+        public final ForgeConfigSpec.IntValue cloudInterfaceCardEnergyPerTick;
         public final ForgeConfigSpec.IntValue blockOperationsModuleEnergyPerTick;
         public final ForgeConfigSpec.IntValue inventoryOperationsModuleEnergyPerTick;
 
@@ -163,8 +166,9 @@ public final class Config {
                 {
                     memoryEnergyPerMegabytePerTick = builder.defineInRange("memoryEnergyPerMegabytePerTick", Config.memoryEnergyPerMegabytePerTick, 0, Integer.MAX_VALUE);
                     hardDriveEnergyPerMegabytePerTick = builder.defineInRange("hardDriveEnergyPerMegabytePerTick", Config.hardDriveEnergyPerMegabytePerTick, 0, Integer.MAX_VALUE);
-                    networkInterfaceEnergyPerTick = builder.defineInRange("networkInterfaceEnergyPerTick", Config.networkInterfaceEnergyPerTick, 0, Integer.MAX_VALUE);
                     redstoneInterfaceCardEnergyPerTick = builder.defineInRange("redstoneInterfaceCardEnergyPerTick", Config.redstoneInterfaceCardEnergyPerTick, 0, Integer.MAX_VALUE);
+                    networkInterfaceEnergyPerTick = builder.defineInRange("networkInterfaceEnergyPerTick", Config.networkInterfaceEnergyPerTick, 0, Integer.MAX_VALUE);
+                    cloudInterfaceCardEnergyPerTick = builder.defineInRange("cloudInterfaceCardEnergyPerTick", Config.cloudInterfaceCardEnergyPerTick, 0, Integer.MAX_VALUE);
                     blockOperationsModuleEnergyPerTick = builder.defineInRange("blockOperationsModuleEnergyPerTick", Config.blockOperationsModuleEnergyPerTick, 0, Integer.MAX_VALUE);
                     inventoryOperationsModuleEnergyPerTick = builder.defineInRange("inventoryOperationsModuleEnergyPerTick", Config.inventoryOperationsModuleEnergyPerTick, 0, Integer.MAX_VALUE);
                 }

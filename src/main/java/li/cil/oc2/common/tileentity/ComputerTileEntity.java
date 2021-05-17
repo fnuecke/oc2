@@ -5,6 +5,7 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
+import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.client.audio.LoopingSoundManager;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
@@ -15,7 +16,7 @@ import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.container.ComputerContainer;
+import li.cil.oc2.common.container.ComputerInventoryContainer;
 import li.cil.oc2.common.container.ComputerTerminalContainer;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
@@ -49,14 +50,12 @@ import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
 
 import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
 import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 
-public final class ComputerTileEntity extends AbstractTileEntity implements ITickableTileEntity {
+public final class ComputerTileEntity extends AbstractTileEntity implements ITickableTileEntity, TerminalUserProvider {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String STATE_TAG_NAME = "state";
@@ -80,6 +79,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private final ComputerItemStackHandlers deviceItems = new ComputerItemStackHandlers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
     private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new TileEntityDeviceBusController(busElement, Config.computerEnergyPerTick, this), deviceItems::getDeviceAddressBase);
+    private final Set<PlayerEntity> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
 
     ///////////////////////////////////////////////////////////////////
 
@@ -129,7 +129,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
             @Override
             public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
-                return new ComputerTerminalContainer(id, ComputerTileEntity.this, new IIntArray() {
+                return new ComputerTerminalContainer(id, player, ComputerTileEntity.this, new IIntArray() {
                     @Override
                     public int get(final int index) {
                         switch (index) {
@@ -166,9 +166,22 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
             @Override
             public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
-                return new ComputerContainer(id, ComputerTileEntity.this, inventory);
+                return new ComputerInventoryContainer(id, ComputerTileEntity.this, inventory);
             }
         }, getPos());
+    }
+
+    public void addTerminalUser(final PlayerEntity player) {
+        terminalUsers.add(player);
+    }
+
+    public void removeTerminalUser(final PlayerEntity player) {
+        terminalUsers.remove(player);
+    }
+
+    @Override
+    public Iterable<PlayerEntity> getTerminalUsers() {
+        return terminalUsers;
     }
 
     public void handleNeighborChanged() {
@@ -292,6 +305,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         collector.offer(Capabilities.ITEM_HANDLER, deviceItems.combinedItemHandlers);
         collector.offer(Capabilities.DEVICE_BUS_ELEMENT, busElement);
+        collector.offer(Capabilities.TERMINAL_USER_PROVIDER, this);
 
         if (Config.computersUseEnergy()) {
             collector.offer(Capabilities.ENERGY_STORAGE, energy);

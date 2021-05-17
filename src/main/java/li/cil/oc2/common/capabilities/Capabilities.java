@@ -4,6 +4,7 @@ import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.api.capabilities.Robot;
+import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
@@ -30,6 +31,9 @@ public final class Capabilities {
     @CapabilityInject(NetworkInterface.class)
     public static Capability<NetworkInterface> NETWORK_INTERFACE = null;
 
+    @CapabilityInject(TerminalUserProvider.class)
+    public static Capability<TerminalUserProvider> TERMINAL_USER_PROVIDER = null;
+
     @CapabilityInject(Robot.class)
     public static Capability<Robot> ROBOT = null;
 
@@ -39,6 +43,7 @@ public final class Capabilities {
         register(DeviceBusElement.class);
         register(RedstoneEmitter.class);
         register(NetworkInterface.class);
+        register(TerminalUserProvider.class);
         register(Robot.class);
     }
 

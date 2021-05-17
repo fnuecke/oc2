@@ -28,7 +28,6 @@ public final class ComputerTerminalScreen extends ContainerScreen<ComputerTermin
 
     ///////////////////////////////////////////////////////////////////
 
-
     @Override
     protected void drawGuiContainerBackgroundLayer(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
         terminalWidget.renderBackground(matrixStack, mouseX, mouseY);

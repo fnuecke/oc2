@@ -4,7 +4,7 @@ import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.bus.device.item.CloudInterfaceCardItemDevice;
+import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
@@ -12,9 +12,9 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.Optional;
 
-public final class CloudInterfaceCardItemDeviceProvider extends AbstractItemDeviceProvider {
-    public CloudInterfaceCardItemDeviceProvider() {
-        super(Items.CLOUD_INTERFACE_CARD);
+public final class FileImportExportCardItemDeviceProvider extends AbstractItemDeviceProvider {
+    public FileImportExportCardItemDeviceProvider() {
+        super(Items.FILE_IMPORT_EXPORT_CARD);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -27,12 +27,12 @@ public final class CloudInterfaceCardItemDeviceProvider extends AbstractItemDevi
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
         return getTerminalUserProvider(query).map(provider ->
-                new CloudInterfaceCardItemDevice(query.getItemStack(), provider));
+                new FileImportExportCardItemDevice(query.getItemStack(), provider));
     }
 
     @Override
     protected int getItemDeviceEnergyConsumption(final ItemDeviceQuery query) {
-        return Config.cloudInterfaceCardEnergyPerTick;
+        return Config.fileImportExportCardEnergyPerTick;
     }
 
     ///////////////////////////////////////////////////////////////////

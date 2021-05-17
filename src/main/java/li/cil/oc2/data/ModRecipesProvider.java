@@ -244,10 +244,10 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .shapedRecipe(Items.REDSTONE_INTERFACE_CARD.get())
                 .patternLine("IRT")
                 .patternLine(" B ")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .key('T', Items.TRANSISTOR.get())
                 .key('R', net.minecraft.item.Items.REDSTONE_TORCH)
+                .key('I', Tags.Items.INGOTS_IRON)
+                .key('T', Items.TRANSISTOR.get())
+                .key('B', Items.CIRCUIT_BOARD.get())
                 .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
                 .build(consumer);
 
@@ -255,8 +255,19 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .shapedRecipe(Items.NETWORK_INTERFACE_CARD.get())
                 .patternLine("IGT")
                 .patternLine(" B ")
-                .key('I', Tags.Items.INGOTS_IRON)
                 .key('G', Tags.Items.GLASS)
+                .key('I', Tags.Items.INGOTS_IRON)
+                .key('T', Items.TRANSISTOR.get())
+                .key('B', Items.CIRCUIT_BOARD.get())
+                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .build(consumer);
+
+        ShapedRecipeBuilder
+                .shapedRecipe(Items.FILE_IMPORT_EXPORT_CARD.get())
+                .patternLine("IET")
+                .patternLine(" B ")
+                .key('E', net.minecraft.item.Items.PAPER)
+                .key('I', Tags.Items.INGOTS_IRON)
                 .key('T', Items.TRANSISTOR.get())
                 .key('B', Items.CIRCUIT_BOARD.get())
                 .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))

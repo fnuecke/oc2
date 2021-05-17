@@ -54,7 +54,7 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
         getOrCreateBuilder(DEVICES_CARD).add(
                 Items.REDSTONE_INTERFACE_CARD.get(),
                 Items.NETWORK_INTERFACE_CARD.get(),
-                Items.CLOUD_INTERFACE_CARD.get()
+                Items.FILE_IMPORT_EXPORT_CARD.get()
         );
         getOrCreateBuilder(DEVICES_ROBOT_MODULE).add(
                 Items.INVENTORY_OPERATIONS_MODULE.get(),

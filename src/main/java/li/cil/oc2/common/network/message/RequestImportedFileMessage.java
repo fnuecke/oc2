@@ -1,12 +1,11 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.client.gui.FileChooserScreen;
-import li.cil.oc2.common.bus.device.item.CloudInterfaceCardItemDevice;
+import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.network.Network;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.Color;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
 import org.apache.logging.log4j.LogManager;
@@ -43,7 +42,7 @@ public final class RequestImportedFileMessage {
             public void onFileSelected(final Path path) {
                 try {
                     final byte[] data = Files.readAllBytes(path);
-                    if (data.length > CloudInterfaceCardItemDevice.MAX_TRANSFERRED_FILE_SIZE) {
+                    if (data.length > FileImportExportCardItemDevice.MAX_TRANSFERRED_FILE_SIZE) {
                         Network.INSTANCE.sendToServer(new ClientCanceledImportFileMessage(message.id));
                         Minecraft.getInstance().player.sendStatusMessage(FILE_TOO_LARGE_TEXT
                                 .modifyStyle(s -> s.setColor(Color.fromInt(0xFFA0A0))), false);

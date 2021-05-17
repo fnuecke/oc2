@@ -1,10 +1,10 @@
 #!/usr/bin/lua
 
 local devices = require("devices")
-local cloud = devices:find("cloud")
+local device = devices:find("file_import_export")
 
-if not cloud then
-    print("A cloud interface card is required for this functionality.")
+if not device then
+    print("A File Import/Export Card is required for this functionality.")
     return
 end
 
@@ -15,23 +15,23 @@ end
 
 local file = assert(io.open(arg[1], "rb"))
 
-cloud:reset()
+device:reset()
 
 io.write("Exporting")
 
-cloud:beginExportFile(arg[1])
+device:beginExportFile(arg[1])
 
 while true do
     local str = file:read(512)
     if not str then break end
     if #str > 0 then
         local bytes = {string.byte(str, 1, -1)}
-        cloud:writeExportFile(bytes)
+        device:writeExportFile(bytes)
         io.write(".")
     end
 end
 io.write("\n")
 
-cloud:finishExportFile()
+device:finishExportFile()
 
 assert(file:close())

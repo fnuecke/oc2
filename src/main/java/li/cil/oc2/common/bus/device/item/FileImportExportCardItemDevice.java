@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-public final class CloudInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements RPCDevice, DocumentedDevice, ItemDevice {
+public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStack> implements RPCDevice, DocumentedDevice, ItemDevice {
     public static final int MAX_TRANSFERRED_FILE_SIZE = 512 * 1024;
 
     private static final String BEGIN_EXPORT_FILE = "beginExportFile";
@@ -70,9 +70,9 @@ public final class CloudInterfaceCardItemDevice extends IdentityProxy<ItemStack>
 
     private static final class ImportFileRequest {
         public final Set<ServerPlayerEntity> PendingPlayers = Collections.newSetFromMap(new WeakHashMap<>());
-        public final WeakReference<CloudInterfaceCardItemDevice> Device;
+        public final WeakReference<FileImportExportCardItemDevice> Device;
 
-        private ImportFileRequest(final CloudInterfaceCardItemDevice device) {
+        private ImportFileRequest(final FileImportExportCardItemDevice device) {
             Device = new WeakReference<>(device);
         }
     }
@@ -91,10 +91,10 @@ public final class CloudInterfaceCardItemDevice extends IdentityProxy<ItemStack>
 
     ///////////////////////////////////////////////////////////////////
 
-    public CloudInterfaceCardItemDevice(final ItemStack identity, final TerminalUserProvider userProvider) {
+    public FileImportExportCardItemDevice(final ItemStack identity, final TerminalUserProvider userProvider) {
         super(identity);
         this.userProvider = userProvider;
-        this.device = new ObjectDevice(this, "cloud");
+        this.device = new ObjectDevice(this, "file_import_export");
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -102,7 +102,7 @@ public final class CloudInterfaceCardItemDevice extends IdentityProxy<ItemStack>
     public static void setImportedFile(final int id, final byte[] data) {
         final ImportFileRequest request = importingDevices.remove(id);
         if (request != null) {
-            final CloudInterfaceCardItemDevice device = request.Device.get();
+            final FileImportExportCardItemDevice device = request.Device.get();
             if (device != null) {
                 device.importedFile = new ImportedFile(data);
                 final ServerCanceledImportFileMessage message = new ServerCanceledImportFileMessage(id);
@@ -119,7 +119,7 @@ public final class CloudInterfaceCardItemDevice extends IdentityProxy<ItemStack>
             request.PendingPlayers.remove(player);
             if (request.PendingPlayers.isEmpty()) {
                 importingDevices.remove(id);
-                final CloudInterfaceCardItemDevice device = request.Device.get();
+                final FileImportExportCardItemDevice device = request.Device.get();
                 if (device != null) {
                     device.state = State.IMPORT_CANCELED;
                 }

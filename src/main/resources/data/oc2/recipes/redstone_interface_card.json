@@ -5,17 +5,17 @@
     " B "
   ],
   "key": {
+    "R": {
+      "item": "minecraft:redstone_torch"
+    },
     "I": {
       "tag": "forge:ingots/iron"
-    },
-    "B": {
-      "item": "oc2:circuit_board"
     },
     "T": {
       "item": "oc2:transistor"
     },
-    "R": {
-      "item": "minecraft:redstone_torch"
+    "B": {
+      "item": "oc2:circuit_board"
     }
   },
   "result": {

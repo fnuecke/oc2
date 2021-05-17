@@ -40,7 +40,7 @@ public final class ModItemModelProvider extends ItemModelProvider {
 
         simple(Items.REDSTONE_INTERFACE_CARD, "item/redstone_interface_card");
         simple(Items.NETWORK_INTERFACE_CARD, "item/network_interface_card");
-        simple(Items.CLOUD_INTERFACE_CARD, "item/cloud_interface_card");
+        simple(Items.FILE_IMPORT_EXPORT_CARD, "item/file_import_export_card");
 
         simple(Items.INVENTORY_OPERATIONS_MODULE, "item/inventory_operations_module");
         simple(Items.BLOCK_OPERATIONS_MODULE, "item/block_operations_module");

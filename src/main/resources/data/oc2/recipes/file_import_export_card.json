@@ -1,12 +1,12 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "IGT",
+    "IET",
     " B "
   ],
   "key": {
-    "G": {
-      "tag": "forge:glass"
+    "E": {
+      "item": "minecraft:paper"
     },
     "I": {
       "tag": "forge:ingots/iron"
@@ -19,6 +19,6 @@
     }
   },
   "result": {
-    "item": "oc2:network_interface_card"
+    "item": "oc2:file_import_export_card"
   }
 }

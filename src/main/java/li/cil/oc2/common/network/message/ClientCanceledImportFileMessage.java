@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.bus.device.item.CloudInterfaceCardItemDevice;
+import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -22,7 +22,7 @@ public final class ClientCanceledImportFileMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static boolean handleMessage(final ClientCanceledImportFileMessage message, final Supplier<NetworkEvent.Context> context) {
-        CloudInterfaceCardItemDevice.cancelImport(context.get().getSender(), message.id);
+        FileImportExportCardItemDevice.cancelImport(context.get().getSender(), message.id);
         return true;
     }
 

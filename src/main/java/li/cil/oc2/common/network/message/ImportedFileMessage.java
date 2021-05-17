@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.bus.device.item.CloudInterfaceCardItemDevice;
+import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -24,7 +24,7 @@ public final class ImportedFileMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static boolean handleMessage(final ImportedFileMessage message, final Supplier<NetworkEvent.Context> context) {
-        CloudInterfaceCardItemDevice.setImportedFile(message.id, message.data);
+        FileImportExportCardItemDevice.setImportedFile(message.id, message.data);
         return true;
     }
 

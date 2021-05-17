@@ -136,6 +136,7 @@ minecraft {
 }
 
 task copyGeneratedResources(type: Copy) {
+    dependsOn { runData }
     from "src/generated"
     into "src/main"
     exclude "resources/.cache"

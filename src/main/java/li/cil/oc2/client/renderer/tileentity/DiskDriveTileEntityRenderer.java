@@ -30,9 +30,11 @@ public final class DiskDriveTileEntityRenderer extends TileEntityRenderer<DiskDr
 
         matrixStack.push();
 
-        matrixStack.translate(0.2375f, 10.5f / 16f, 0.5f);
+        matrixStack.translate(0.5f, 0.5f, 0.5f);
         matrixStack.rotate(Vector3f.YN.rotationDegrees(blockFacing.getHorizontalAngle()));
+        matrixStack.translate(0.0f, 0.0f, 0.5f);
         matrixStack.rotate(Vector3f.XN.rotationDegrees(90));
+        matrixStack.translate(0.0f, 0.2375f, 2.5f / 16f);
         matrixStack.scale(0.55f, 0.55f, 0.55f);
 
         itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED, neighborLight, overlay, matrixStack, buffer);

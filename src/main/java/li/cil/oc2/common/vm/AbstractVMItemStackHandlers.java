@@ -99,9 +99,9 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
                         }
                     }
                 }
-            }
 
-            address += ITEM_DEVICE_STRIDE;
+                address += ITEM_DEVICE_STRIDE;
+            }
         }
 
         return OptionalLong.of(OTHER_DEVICE_BASE_ADDRESS);

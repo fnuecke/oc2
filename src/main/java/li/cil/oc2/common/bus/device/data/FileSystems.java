@@ -2,9 +2,11 @@ package li.cil.oc2.common.bus.device.data;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import li.cil.oc2.common.vm.fs.LayeredFileSystem;
-import li.cil.oc2.common.vm.fs.ResourceFileSystem;
 import li.cil.sedna.fs.FileSystem;
+import li.cil.sedna.fs.ZipStreamFileSystem;
 import net.minecraft.profiler.IProfiler;
 import net.minecraft.resources.IFutureReloadListener;
 import net.minecraft.resources.IResource;
@@ -15,8 +17,11 @@ import net.minecraftforge.event.AddReloadListenerEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -49,7 +54,10 @@ public final class FileSystems {
 
         LOGGER.info("Searching for datapack filesystems...");
         final Collection<ResourceLocation> fileSystemDescriptorLocations = resourceManager
-                .getAllResourceLocations("file_systems", s -> s.endsWith(".fs.json"));
+                .getAllResourceLocations("file_systems", s -> s.endsWith(".json"));
+
+        final ArrayList<ZipStreamFileSystem> fileSystems = new ArrayList<>();
+        final Object2IntArrayMap<ZipStreamFileSystem> fileSystemOrder = new Object2IntArrayMap<>();
 
         for (final ResourceLocation fileSystemDescriptorLocation : fileSystemDescriptorLocations) {
             LOGGER.info("Found [{}]", fileSystemDescriptorLocation);
@@ -58,19 +66,31 @@ public final class FileSystems {
                 final JsonObject json = new JsonParser().parse(new InputStreamReader(fileSystemDescriptor.getInputStream())).getAsJsonObject();
                 final String type = json.getAsJsonPrimitive("type").getAsString();
                 switch (type) {
-                    case "virtio-9p": {
+                    case "layer": {
                         final ResourceLocation location = new ResourceLocation(json.getAsJsonPrimitive("location").getAsString());
-                        final ResourceFileSystem fileSystem = new ResourceFileSystem(resourceManager, location);
+
+                        final ZipStreamFileSystem fileSystem;
+                        try (final InputStream stream = resourceManager.getResource(location).getInputStream()) {
+                            fileSystem = new ZipStreamFileSystem(stream);
+                        }
+
                         final long fileCount = fileSystem.statfs().fileCount;
                         if (fileCount > 0) {
                             LOGGER.info("  Adding layer with [{}] file(s).", fileCount);
-                            LAYERED_FILE_SYSTEM.addLayer(fileSystem);
+                            fileSystems.add(fileSystem);
                         } else {
                             LOGGER.info("  Skipping empty layer.");
                         }
+
+                        if (json.has("order")) {
+                            final JsonPrimitive order = json.getAsJsonPrimitive("order");
+                            fileSystemOrder.put(fileSystem, order.getAsInt());
+                        } else {
+                            fileSystemOrder.put(fileSystem, 0);
+                        }
                         break;
                     }
-                    case "virtio-blk": {
+                    case "block": {
                         LOGGER.error("Not yet implemented.");
                         break;
                     }
@@ -83,6 +103,9 @@ public final class FileSystems {
                 LOGGER.error(e);
             }
         }
+
+        fileSystems.sort(Comparator.comparingInt(fileSystemOrder::getInt));
+        fileSystems.forEach(LAYERED_FILE_SYSTEM::addLayer);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -214,6 +214,11 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
             return;
         }
 
+        if (state.board.isRestarting()) {
+            stop();
+            start();
+        }
+
         switch (runState) {
             case LOADING_DEVICES:
                 load();

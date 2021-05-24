@@ -53,18 +53,18 @@ dependencies {
 
     compileOnly 'org.jetbrains:annotations:16.0.2'
 
-    implementation 'li.cil.oc2:oc2-sedna:0.0.1+265'
+    implementation 'li.cil.oc2:oc2-sedna:0.0.1+267'
 
     // These three will be provided by oc2-sedna in standalone.
-    implementation 'li.cil.ceres:ceres:0.0.2+19'
-    implementation 'li.cil.sedna:sedna:0.0.1+95'
-    implementation 'li.cil.sedna:sedna-buildroot:0.0.1+10'
+    implementation 'li.cil.ceres:ceres:0.0.2+20'
+    implementation 'li.cil.sedna:sedna:0.0.1+99'
+    implementation 'li.cil.sedna:sedna-buildroot:0.0.1+12'
 
     compileOnly fg.deobf("mezz.jei:jei-${jei_minecraft_version}:${jei_version}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${jei_minecraft_version}:${jei_version}")
 
-    testImplementation 'li.cil.ceres:ceres:0.0.2+19'
-    testImplementation 'li.cil.sedna:sedna:0.0.1+88'
+    testImplementation 'li.cil.ceres:ceres:0.0.2+20'
+    testImplementation 'li.cil.sedna:sedna:0.0.1+99'
 
     testImplementation "org.mockito:mockito-core:2.+"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'

@@ -49,7 +49,7 @@ public final class BuiltinDevices {
         uart.getInterrupt().set(UART_INTERRUPT, context.getInterruptController());
         context.getMemoryRangeAllocator().claimMemoryRange(uart);
 
-        vfs = new VirtIOFileSystemDevice(context.getMemoryMap(), "data", FileSystems.getLayeredFileSystem());
+        vfs = new VirtIOFileSystemDevice(context.getMemoryMap(), "builtin", FileSystems.getLayeredFileSystem());
         if (!context.getInterruptAllocator().claimInterrupt(VFS_INTERRUPT)) throw new IllegalStateException();
         vfs.getInterrupt().set(VFS_INTERRUPT, context.getInterruptController());
         context.getMemoryRangeAllocator().claimMemoryRange(vfs);

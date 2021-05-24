@@ -53,7 +53,7 @@ dependencies {
 
     compileOnly 'org.jetbrains:annotations:16.0.2'
 
-    implementation 'li.cil.oc2:oc2-sedna:0.0.1+263'
+    implementation 'li.cil.oc2:oc2-sedna:0.0.1+265'
 
     // These three will be provided by oc2-sedna in standalone.
     implementation 'li.cil.ceres:ceres:0.0.2+19'
@@ -71,7 +71,14 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 }
 
+task packageScripts(type: Zip) {
+    archiveFileName = "scripts.zip"
+    destinationDirectory = file("$buildDir/resources/main/data/oc2/file_systems")
+    from "src/main/scripts"
+}
+
 processResources {
+    dependsOn { packageScripts }
     from(sourceSets.main.resources.srcDirs) {
         include 'META-INF/mods.toml'
 
@@ -124,7 +131,6 @@ minecraft {
             property 'forge.logging.console.level', 'info'
 
             args '--mod', 'oc2', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources')
-            forceExit false
 
             mods {
                 oc2 {

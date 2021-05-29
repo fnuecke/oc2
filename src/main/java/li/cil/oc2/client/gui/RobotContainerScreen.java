@@ -36,9 +36,9 @@ public final class RobotContainerScreen extends ContainerScreen<RobotContainer> 
 
     public RobotContainerScreen(final RobotContainer container, final PlayerInventory playerInventory, final ITextComponent title) {
         super(container, playerInventory, title);
-        width = 176;
-        height = 197;
-        inventoryLabelY = height - 94;
+        imageWidth = 176;
+        imageHeight = 197;
+        inventoryLabelY = imageHeight - 94;
     }
 
     @Override
@@ -66,7 +66,7 @@ public final class RobotContainerScreen extends ContainerScreen<RobotContainer> 
     protected void renderBg(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
         RenderSystem.color4f(1f, 1f, 1f, 1f);
         getMinecraft().getTextureManager().bind(BACKGROUND);
-        blit(matrixStack, leftPos, topPos, 0, 0, width, height);
+        blit(matrixStack, leftPos, topPos, 0, 0, imageWidth, imageHeight);
     }
 
     ///////////////////////////////////////////////////////////////////

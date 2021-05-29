@@ -22,8 +22,8 @@ public final class ComputerTerminalScreen extends ContainerScreen<ComputerTermin
     public ComputerTerminalScreen(final ComputerTerminalContainer container, final PlayerInventory playerInventory, final ITextComponent title) {
         super(container, playerInventory, title);
         this.terminalWidget = new ComputerTerminalWidget(container.getComputer().getTerminal());
-        width = AbstractTerminalWidget.WIDTH;
-        height = AbstractTerminalWidget.HEIGHT;
+        imageWidth = AbstractTerminalWidget.WIDTH;
+        imageHeight = AbstractTerminalWidget.HEIGHT;
     }
 
     ///////////////////////////////////////////////////////////////////

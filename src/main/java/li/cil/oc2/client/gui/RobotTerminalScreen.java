@@ -28,8 +28,8 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
     public RobotTerminalScreen(final RobotTerminalContainer container, final PlayerInventory playerInventory, final ITextComponent title) {
         super(container, playerInventory, title);
         this.terminalWidget = new RobotTerminalWidget(container.getRobot().getTerminal());
-        width = AbstractTerminalWidget.WIDTH;
-        height = AbstractTerminalWidget.HEIGHT;
+        imageWidth = AbstractTerminalWidget.WIDTH;
+        imageHeight = AbstractTerminalWidget.HEIGHT;
     }
 
     @Override

@@ -223,7 +223,7 @@ public final class RobotEntity extends Entity implements Robot {
 
         final ItemStack stack = new ItemStack(Items.ROBOT.get());
         exportToItemStack(stack);
-        exportToItemStack(stack);
+        spawnAtLocation(stack);
 
         remove();
         WorldUtils.playSound(level, blockPosition(), SoundType.METAL, SoundType::getBreakSound);

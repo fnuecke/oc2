@@ -16,16 +16,16 @@ public final class ModBlockTagsProvider extends BlockTagsProvider {
     }
 
     @Override
-    protected void registerTags() {
-        getOrCreateBuilder(DEVICES).add(
+    protected void addTags() {
+        tag(DEVICES).add(
                 COMPUTER.get(),
                 REDSTONE_INTERFACE.get(),
                 DISK_DRIVE.get()
         );
-        getOrCreateBuilder(CABLES).add(
+        tag(CABLES).add(
                 BUS_CABLE.get()
         );
-        getOrCreateBuilder(WRENCH_BREAKABLE).add(
+        tag(WRENCH_BREAKABLE).add(
                 COMPUTER.get(),
                 BUS_CABLE.get(),
                 NETWORK_CONNECTOR.get(),

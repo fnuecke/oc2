@@ -17,7 +17,7 @@ public interface BlockDeviceQuery {
      *
      * @return the world containing the block.
      */
-    World getWorld();
+    World getLevel();
 
     /**
      * The position of the block this query is performed for.

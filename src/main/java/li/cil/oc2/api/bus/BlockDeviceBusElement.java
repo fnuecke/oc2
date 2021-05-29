@@ -16,7 +16,7 @@ public interface BlockDeviceBusElement extends DeviceBusElement {
      *
      * @return the world the bus lives in.
      */
-    IWorld getWorld();
+    IWorld getLevel();
 
     /**
      * The position of this bus element.

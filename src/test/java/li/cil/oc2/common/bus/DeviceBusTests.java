@@ -31,7 +31,7 @@ public class DeviceBusTests {
     public static void setup() {
         // Gotta go through regular MC bootstrapping first because otherwise class
         // load order may lead to errors because static fields reference each other.
-        Bootstrap.register();
+        Bootstrap.bootStrap();
     }
 
     @BeforeEach

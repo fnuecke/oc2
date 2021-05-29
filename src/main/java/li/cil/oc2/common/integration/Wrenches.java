@@ -13,11 +13,11 @@ public final class Wrenches {
     }
 
     public static boolean isWrench(final Item item) {
-        return item.isIn(ItemTags.WRENCHES);
+        return item.is(ItemTags.WRENCHES);
     }
 
     public static boolean isHoldingWrench(final Entity entity) {
-        for (final ItemStack stack : entity.getHeldEquipment()) {
+        for (final ItemStack stack : entity.getHandSlots()) {
             if (isWrench(stack.getItem())) {
                 return true;
             }

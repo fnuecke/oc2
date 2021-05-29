@@ -14,9 +14,9 @@ public final class ChargerItem extends ModBlockItem {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fillItemGroup(final ItemGroup group, final NonNullList<ItemStack> items) {
+    public void fillItemCategory(final ItemGroup group, final NonNullList<ItemStack> items) {
         if (Config.chargerUseEnergy()) {
-            super.fillItemGroup(group, items);
+            super.fillItemCategory(group, items);
         }
     }
 }

@@ -26,7 +26,7 @@ import static li.cil.oc2.common.Constants.*;
 public final class TooltipUtils {
     private static final IFormattableTextComponent DEVICE_NEEDS_REBOOT =
             new TranslationTextComponent(Constants.TOOLTIP_DEVICE_NEEDS_REBOOT)
-                    .modifyStyle(s -> s.setColor(Color.fromTextFormatting(TextFormatting.YELLOW)));
+                    .withStyle(s -> s.withColor(Color.fromLegacyFormat(TextFormatting.YELLOW)));
 
     private static final ThreadLocal<List<ItemStack>> ITEM_STACKS = ThreadLocal.withInitial(ArrayList::new);
     private static final ThreadLocal<IntList> ITEM_STACKS_SIZES = ThreadLocal.withInitial(IntArrayList::new);
@@ -38,9 +38,9 @@ public final class TooltipUtils {
             return;
         }
 
-        final String translationKey = stack.getTranslationKey() + Constants.TOOLTIP_DESCRIPTION_SUFFIX;
+        final String translationKey = stack.getDescriptionId() + Constants.TOOLTIP_DESCRIPTION_SUFFIX;
         final LanguageMap languagemap = LanguageMap.getInstance();
-        if (languagemap.func_230506_b_(translationKey)) {
+        if (languagemap.has(translationKey)) {
             final TranslationTextComponent description = new TranslationTextComponent(translationKey);
             tooltip.add(withColor(description, TextFormatting.GRAY));
         }
@@ -48,7 +48,7 @@ public final class TooltipUtils {
         // Tooltips get queried very early in Minecraft initialization, meaning tags may not
         // have been initialized. Trying to directly use our tag would lead to an exception
         // in that case, so we do the detour through the collection instead.
-        final ITag<Item> tag = net.minecraft.tags.ItemTags.getCollection().get(ItemTags.DEVICE_NEEDS_REBOOT.getName());
+        final ITag<Item> tag = net.minecraft.tags.ItemTags.getAllTags().getTag(ItemTags.DEVICE_NEEDS_REBOOT.getName());
         if (tag != null && tag.contains(stack.getItem())) {
             tooltip.add(DEVICE_NEEDS_REBOOT);
         }
@@ -91,10 +91,10 @@ public final class TooltipUtils {
             final ItemStack itemStack = itemStacks.get(i);
             tooltip.add(new StringTextComponent("- ")
                     .append(itemStack.getDisplayName())
-                    .modifyStyle(style -> style.setColor(Color.fromTextFormatting(TextFormatting.GRAY)))
+                    .withStyle(style -> style.withColor(Color.fromLegacyFormat(TextFormatting.GRAY)))
                     .append(new StringTextComponent(" x")
-                            .appendString(String.valueOf(itemStackSizes.getInt(i)))
-                            .modifyStyle(style -> style.setColor(Color.fromTextFormatting(TextFormatting.DARK_GRAY))))
+                            .append(String.valueOf(itemStackSizes.getInt(i)))
+                            .withStyle(style -> style.withColor(Color.fromLegacyFormat(TextFormatting.DARK_GRAY))))
             );
         }
     }
@@ -121,7 +121,7 @@ public final class TooltipUtils {
     }
 
     public static IFormattableTextComponent withColor(final IFormattableTextComponent text, final TextFormatting formatting) {
-        return text.modifyStyle(s -> s.setColor(Color.fromTextFormatting(formatting)));
+        return text.withStyle(s -> s.withColor(Color.fromLegacyFormat(formatting)));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -140,13 +140,13 @@ public final class TooltipUtils {
         final ListNBT itemsTag = tag.getList("Items", NBTTagIds.TAG_COMPOUND);
         for (int i = 0; i < itemsTag.size(); i++) {
             final CompoundNBT itemTag = itemsTag.getCompound(i);
-            final ItemStack itemStack = ItemStack.read(itemTag);
+            final ItemStack itemStack = ItemStack.of(itemTag);
 
             boolean didMerge = false;
             for (int j = 0; j < stacks.size(); j++) {
                 final ItemStack existingStack = stacks.get(j);
-                if (ItemStack.areItemsEqual(existingStack, itemStack) &&
-                    ItemStack.areItemStackTagsEqual(existingStack, itemStack)) {
+                if (ItemStack.matches(existingStack, itemStack) &&
+                    ItemStack.matches(existingStack, itemStack)) {
                     final int existingCount = stackSizes.getInt(j);
                     stackSizes.set(j, existingCount + itemStack.getCount());
                     didMerge = true;

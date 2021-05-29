@@ -22,7 +22,7 @@ public final class MessageUtils {
         }
 
         final ServerWorld world = player.getLevel();
-        final TileEntity tileEntity = WorldUtils.getTileEntityIfChunkExists(world, pos);
+        final TileEntity tileEntity = WorldUtils.getBlockEntityIfChunkExists(world, pos);
         if (type.isInstance(tileEntity)) {
             callback.accept((T) tileEntity);
         }

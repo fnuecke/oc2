@@ -83,7 +83,7 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
         if (device != null) {
             blobHandle = BlobStorage.validateHandle(blobHandle);
-            tag.putUniqueId(BLOB_HANDLE_TAG_NAME, blobHandle);
+            tag.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
 
             jobHandle = BlobStorage.submitSave(blobHandle, new PhysicalMemoryInputStream(device));
         }
@@ -96,8 +96,8 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     @Override
     public void deserializeNBT(final CompoundNBT tag) {
-        if (tag.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = tag.getUniqueId(BLOB_HANDLE_TAG_NAME);
+        if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
+            blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
         }
         if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
             address.set(tag.getLong(ADDRESS_TAG_NAME));

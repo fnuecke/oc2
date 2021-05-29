@@ -14,7 +14,7 @@ import net.minecraftforge.common.util.LazyOptional;
 public final class BlockStateDeviceProvider extends AbstractBlockDeviceProvider {
     @Override
     public LazyOptional<Device> getDevice(final BlockDeviceQuery query) {
-        final World world = query.getWorld();
+        final World world = query.getLevel();
         final BlockPos position = query.getQueryPosition();
 
         final BlockState blockState = world.getBlockState(position);

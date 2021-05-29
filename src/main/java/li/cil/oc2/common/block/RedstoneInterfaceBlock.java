@@ -18,17 +18,17 @@ import net.minecraft.world.IWorldReader;
 public final class RedstoneInterfaceBlock extends HorizontalBlock {
     public RedstoneInterfaceBlock() {
         super(Properties
-                .create(Material.IRON)
+                .of(Material.METAL)
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(1.5f, 6.0f));
-        setDefaultState(getStateContainer().getBaseState().with(HORIZONTAL_FACING, Direction.NORTH));
+                .strength(1.5f, 6.0f));
+        registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
+        return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override
@@ -43,14 +43,14 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
 
     @SuppressWarnings("deprecation")
     @Override
-    public boolean canProvidePower(final BlockState state) {
+    public boolean isSignalSource(final BlockState state) {
         return true;
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getWeakPower(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
-        final TileEntity tileEntity = world.getTileEntity(pos);
+    public int getSignal(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
+        final TileEntity tileEntity = world.getBlockEntity(pos);
         if (tileEntity instanceof RedstoneInterfaceTileEntity) {
             final RedstoneInterfaceTileEntity redstoneInterface = (RedstoneInterfaceTileEntity) tileEntity;
             // Redstone requests info for faces with external perspective. We treat
@@ -58,7 +58,7 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
             return redstoneInterface.getOutputForDirection(side.getOpposite());
         }
 
-        return super.getWeakPower(state, world, pos, side);
+        return super.getSignal(state, world, pos, side);
     }
 
     @Override
@@ -68,15 +68,15 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getStrongPower(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
-        return getWeakPower(state, world, pos, side);
+    public int getDirectSignal(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
+        return getSignal(state, world, pos, side);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
-        builder.add(HORIZONTAL_FACING);
+    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(FACING);
     }
 }

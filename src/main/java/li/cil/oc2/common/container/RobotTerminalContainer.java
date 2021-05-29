@@ -21,7 +21,7 @@ public final class RobotTerminalContainer extends AbstractContainer {
     @Nullable
     public static RobotTerminalContainer create(final int id, final PlayerInventory inventory, final PacketBuffer data) {
         final int entityId = data.readVarInt();
-        final Entity entity = inventory.player.getEntityWorld().getEntityByID(entityId);
+        final Entity entity = inventory.player.getCommandSenderWorld().getEntity(entityId);
         if (!(entity instanceof RobotEntity)) {
             return null;
         }
@@ -40,8 +40,8 @@ public final class RobotTerminalContainer extends AbstractContainer {
         this.robot = robot;
         this.energyInfo = energyInfo;
 
-        assertIntArraySize(energyInfo, ENERGY_INFO_SIZE);
-        trackIntArray(energyInfo);
+        checkContainerDataCount(energyInfo, ENERGY_INFO_SIZE);
+        addDataSlots(energyInfo);
 
         final ItemStackHandler inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
@@ -69,7 +69,7 @@ public final class RobotTerminalContainer extends AbstractContainer {
     }
 
     @Override
-    public boolean canInteractWith(final PlayerEntity player) {
-        return robot.isEntityInRange(player, 8);
+    public boolean stillValid(final PlayerEntity player) {
+        return robot.closerThan(player, 8);
     }
 }

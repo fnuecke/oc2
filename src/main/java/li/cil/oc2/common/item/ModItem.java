@@ -14,7 +14,7 @@ import java.util.List;
 
 public class ModItem extends Item {
     public ModItem(final Properties properties) {
-        super(properties.group(ItemGroup.COMMON));
+        super(properties.tab(ItemGroup.COMMON));
     }
 
     public ModItem() {
@@ -25,8 +25,8 @@ public class ModItem extends Item {
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
-        super.addInformation(stack, world, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
+        super.appendHoverText(stack, world, tooltip, flag);
         TooltipUtils.tryAddDescription(stack, tooltip);
     }
 

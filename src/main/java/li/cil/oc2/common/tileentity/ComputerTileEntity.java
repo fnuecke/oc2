@@ -103,8 +103,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     public void start() {
-        final World world = getWorld();
-        if (world == null || world.isRemote()) {
+        if (level == null || level.isClientSide) {
             return;
         }
 
@@ -112,8 +111,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     public void stop() {
-        final World world = getWorld();
-        if (world == null || world.isRemote()) {
+        if (level == null || level.isClientSide) {
             return;
         }
 
@@ -124,7 +122,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         NetworkHooks.openGui(player, new INamedContainerProvider() {
             @Override
             public ITextComponent getDisplayName() {
-                return new TranslationTextComponent(getBlockState().getBlock().getTranslationKey());
+                return new TranslationTextComponent(getBlockState().getBlock().getDescriptionId());
             }
 
             @Override
@@ -149,26 +147,26 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                     }
 
                     @Override
-                    public int size() {
+                    public int getCount() {
                         return 3;
                     }
                 });
             }
-        }, getPos());
+        }, getBlockPos());
     }
 
     public void openContainerScreen(final ServerPlayerEntity player) {
         NetworkHooks.openGui(player, new INamedContainerProvider() {
             @Override
             public ITextComponent getDisplayName() {
-                return new TranslationTextComponent(getBlockState().getBlock().getTranslationKey());
+                return new TranslationTextComponent(getBlockState().getBlock().getDescriptionId());
             }
 
             @Override
             public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
                 return new ComputerInventoryContainer(id, ComputerTileEntity.this, inventory);
             }
-        }, getPos());
+        }, getBlockPos());
     }
 
     public void addTerminalUser(final PlayerEntity player) {
@@ -214,8 +212,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     @Override
     public void tick() {
-        final World world = getWorld();
-        if (world == null || world.isRemote()) {
+        if (level == null || level.isClientSide) {
             return;
         }
 
@@ -231,15 +228,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         if (isNeighborUpdateScheduled) {
             isNeighborUpdateScheduled = false;
-            world.notifyNeighborsOfStateChange(getPos(), getBlockState().getBlock());
+            level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
         }
 
         virtualMachine.tick();
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
 
         // super.remove() calls onUnload. This in turn only suspends, but we want to do
         // a full clean-up when we get destroyed, so stuff inside us can delete out-of-nbt
@@ -266,12 +263,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
         virtualMachine.setBusStateClient(CommonDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME)]);
         virtualMachine.setRunStateClient(VMRunState.values()[tag.getInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME)]);
-        virtualMachine.setBootErrorClient(ITextComponent.Serializer.getComponentFromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)));
+        virtualMachine.setBootErrorClient(ITextComponent.Serializer.fromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)));
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
-        tag = super.write(tag);
+    public CompoundNBT save(final CompoundNBT tag) {
+        super.save(tag);
 
         tag.put(STATE_TAG_NAME, virtualMachine.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
@@ -282,8 +279,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     @Override
-    public void read(final BlockState blockState, final CompoundNBT tag) {
-        super.read(blockState, tag);
+    public void load(final BlockState blockState, final CompoundNBT tag) {
+        super.load(blockState, tag);
 
         virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
@@ -324,7 +321,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         super.loadServer();
 
         busElement.initialize();
-        virtualMachine.state.builtinDevices.rtcMinecraft.setWorld(getWorld());
+        virtualMachine.state.builtinDevices.rtcMinecraft.setWorld(level);
     }
 
     @Override
@@ -361,7 +358,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         @Override
         protected void onContentsChanged(final DeviceItemStackHandler itemStackHandler, final int slot) {
             super.onContentsChanged(itemStackHandler, slot);
-            markDirty();
+            setChanged();
             isNeighborUpdateScheduled = true;
         }
     }
@@ -382,7 +379,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
         @Override
         public boolean canScanContinueTowards(@Nullable final Direction direction) {
-            return getBlockState().get(ComputerBlock.HORIZONTAL_FACING) != direction;
+            return getBlockState().getValue(ComputerBlock.FACING) != direction;
         }
     }
 
@@ -411,7 +408,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
             if (value == VMRunState.RUNNING) {
                 if (!LoopingSoundManager.isPlaying(ComputerTileEntity.this)) {
-                    LoopingSoundManager.play(ComputerTileEntity.this, SoundEvents.COMPUTER_RUNNING.get(), getWorld().getRandom().nextInt(MAX_RUNNING_SOUND_DELAY));
+                    LoopingSoundManager.play(ComputerTileEntity.this, SoundEvents.COMPUTER_RUNNING.get(), level.getRandom().nextInt(MAX_RUNNING_SOUND_DELAY));
                 }
             } else {
                 LoopingSoundManager.stop(ComputerTileEntity.this);
@@ -421,11 +418,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         @Override
         public void tick() {
             if (chunk == null) {
-                chunk = world.getChunkAt(getPos());
+                chunk = level.getChunkAt(getBlockPos());
             }
 
             if (isRunning()) {
-                chunk.markDirty();
+                chunk.markUnsaved();
             }
 
             super.tick();
@@ -465,7 +462,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             if (value == CommonDeviceBusController.BusState.READY) {
                 // Bus just became ready, meaning new devices may be available, meaning new
                 // capabilities may be available, so we need to tell our neighbors.
-                world.notifyNeighborsOfStateChange(getPos(), getBlockState().getBlock());
+                level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
             }
         }
 

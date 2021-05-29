@@ -41,15 +41,15 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        compound = super.write(compound);
+    public CompoundNBT save(CompoundNBT compound) {
+        compound = super.save(compound);
         compound.putByteArray(OUTPUT_TAG_NAME, output);
         return compound;
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT compound) {
-        super.read(state, compound);
+    public void load(final BlockState state, final CompoundNBT compound) {
+        super.load(state, compound);
         final byte[] serializedOutput = compound.getByteArray(OUTPUT_TAG_NAME);
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
     }
@@ -58,49 +58,49 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
         final Direction localDirection = HorizontalBlockUtils.toLocal(getBlockState(), direction);
         assert localDirection != null;
 
-        return output[localDirection.getIndex()];
+        return output[localDirection.get3DDataValue()];
     }
 
     @Callback(name = GET_REDSTONE_INPUT)
-    public int getRedstoneInput(@Parameter(SIDE) final Direction side) {
-        final World world = getWorld();
+    public int setSignal(@Parameter(SIDE) final Direction side) {
+        final World world = getLevel();
         if (world == null) {
             return 0;
         }
 
-        final BlockPos pos = getPos();
+        final BlockPos pos = getBlockPos();
         final Direction direction = HorizontalBlockUtils.toGlobal(getBlockState(), side);
         assert direction != null;
 
-        final BlockPos neighborPos = pos.offset(direction);
+        final BlockPos neighborPos = pos.relative(direction);
         final ChunkPos chunkPos = new ChunkPos(neighborPos.getX(), neighborPos.getZ());
-        if (!world.chunkExists(chunkPos.x, chunkPos.z)) {
+        if (!world.hasChunk(chunkPos.x, chunkPos.z)) {
             return 0;
         }
 
-        return world.getRedstonePower(neighborPos, direction);
+        return world.getSignal(neighborPos, direction);
     }
 
     @Callback(name = GET_REDSTONE_OUTPUT, synchronize = false)
-    public int getRedstoneOutput(@Parameter(SIDE) final Direction side) {
-        return output[side.getIndex()];
+    public int getSignal(@Parameter(SIDE) final Direction side) {
+        return output[side.get3DDataValue()];
     }
 
     @Callback(name = SET_REDSTONE_OUTPUT)
-    public void setRedstoneOutput(@Parameter(SIDE) final Direction side, @Parameter(VALUE) final int value) {
+    public void getSignal(@Parameter(SIDE) final Direction side, @Parameter(VALUE) final int value) {
         final byte clampedValue = (byte) MathHelper.clamp(value, 0, 15);
-        if (clampedValue == output[side.getIndex()]) {
+        if (clampedValue == output[side.get3DDataValue()]) {
             return;
         }
 
-        output[side.getIndex()] = clampedValue;
+        output[side.get3DDataValue()] = clampedValue;
 
         final Direction direction = HorizontalBlockUtils.toGlobal(getBlockState(), side);
         if (direction != null) {
             notifyNeighbor(direction);
         }
 
-        markDirty();
+        setChanged();
     }
 
     @Override
@@ -137,12 +137,12 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
     ///////////////////////////////////////////////////////////////////
 
     private void notifyNeighbor(final Direction direction) {
-        final World world = getWorld();
+        final World world = getLevel();
         if (world == null) {
             return;
         }
 
-        world.notifyNeighborsOfStateChange(getPos(), getBlockState().getBlock());
-        world.notifyNeighborsOfStateChange(getPos().offset(direction), getBlockState().getBlock());
+        world.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
+        world.updateNeighborsAt(getBlockPos().relative(direction), getBlockState().getBlock());
     }
 }

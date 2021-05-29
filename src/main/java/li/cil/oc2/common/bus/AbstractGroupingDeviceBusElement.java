@@ -54,7 +54,7 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
 
             final CompoundNBT sideTag = new CompoundNBT();
 
-            sideTag.putUniqueId(GROUP_ID_TAG_NAME, groupIds[i]);
+            sideTag.putUUID(GROUP_ID_TAG_NAME, groupIds[i]);
             sideTag.put(GROUP_DATA_TAG_NAME, groupData[i]);
 
             listTag.add(sideTag);
@@ -68,8 +68,8 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         for (int i = 0; i < count; i++) {
             final CompoundNBT sideTag = nbt.getCompound(i);
 
-            if (sideTag.hasUniqueId(GROUP_ID_TAG_NAME)) {
-                groupIds[i] = sideTag.getUniqueId(GROUP_ID_TAG_NAME);
+            if (sideTag.hasUUID(GROUP_ID_TAG_NAME)) {
+                groupIds[i] = sideTag.getUUID(GROUP_ID_TAG_NAME);
             }
             if (sideTag.contains(GROUP_DATA_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
                 groupData[i] = sideTag.getCompound(GROUP_DATA_TAG_NAME);

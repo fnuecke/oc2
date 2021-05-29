@@ -39,39 +39,39 @@ public final class BusInterfaceItem extends ModBlockItem {
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void addInformation(final ItemStack stack, final @Nullable World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
-        super.addInformation(stack, world, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, final @Nullable World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
+        super.appendHoverText(stack, world, tooltip, flag);
         TooltipUtils.addEnergyConsumption(Config.busInterfaceEnergyPerTick, tooltip);
     }
 
     @Override
-    public ActionResultType onItemUse(final ItemUseContext context) {
-        final Vector3d localHitPos = context.getHitVec().subtract(Vector3d.copyCentered(context.getPos()));
-        final Direction side = Direction.getFacingFromVector(localHitPos.x, localHitPos.y, localHitPos.z);
+    public ActionResultType useOn(final ItemUseContext context) {
+        final Vector3d localHitPos = context.getClickLocation().subtract(Vector3d.atCenterOf(context.getClickedPos()));
+        final Direction side = Direction.getNearest(localHitPos.x, localHitPos.y, localHitPos.z);
         final ActionResultType result = tryAddToBlock(context, side);
-        return result.isSuccessOrConsume() ? result : super.onItemUse(context);
+        return result.consumesAction() ? result : super.useOn(context);
     }
 
     @Override
-    public ActionResultType tryPlace(final BlockItemUseContext context) {
-        final ActionResultType result = tryAddToBlock(context, context.getFace().getOpposite());
-        return result.isSuccessOrConsume() ? result : super.tryPlace(context);
+    public ActionResultType place(final BlockItemUseContext context) {
+        final ActionResultType result = tryAddToBlock(context, context.getClickedFace().getOpposite());
+        return result.consumesAction() ? result : super.place(context);
     }
 
     @Override
-    public String getTranslationKey() {
-        return getDefaultTranslationKey();
+    public String getDescriptionId() {
+        return getOrCreateDescriptionId();
     }
 
     @Override
-    public void fillItemGroup(final ItemGroup group, final NonNullList<ItemStack> items) {
-        if (isInGroup(group)) {
+    public void fillItemCategory(final ItemGroup group, final NonNullList<ItemStack> items) {
+        if (allowdedIn(group)) {
             items.add(new ItemStack(this));
         }
     }
 
     @Override
-    public void addToBlockToItemMap(final Map<Block, Item> map, final Item item) {
+    public void registerBlocks(final Map<Block, Item> map, final Item item) {
     }
 
     @Override
@@ -82,13 +82,13 @@ public final class BusInterfaceItem extends ModBlockItem {
 
     @Nullable
     @Override
-    protected BlockState getStateForPlacement(final BlockItemUseContext context) {
-        final BlockState state = super.getStateForPlacement(context);
+    protected BlockState getPlacementState(final BlockItemUseContext context) {
+        final BlockState state = super.getPlacementState(context);
         final EnumProperty<ConnectionType> connectionTypeProperty =
-                BusCableBlock.FACING_TO_CONNECTION_MAP.get(context.getFace().getOpposite());
+                BusCableBlock.FACING_TO_CONNECTION_MAP.get(context.getClickedFace().getOpposite());
         return state
-                .with(BusCableBlock.HAS_CABLE, false)
-                .with(connectionTypeProperty, ConnectionType.INTERFACE);
+                .setValue(BusCableBlock.HAS_CABLE, false)
+                .setValue(connectionTypeProperty, ConnectionType.INTERFACE);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -96,13 +96,13 @@ public final class BusInterfaceItem extends ModBlockItem {
     private ActionResultType tryAddToBlock(final ItemUseContext context, final Direction side) {
         final BusCableBlock busCableBlock = Blocks.BUS_CABLE.get();
 
-        final World world = context.getWorld();
-        final BlockPos pos = context.getPos();
+        final World world = context.getLevel();
+        final BlockPos pos = context.getClickedPos();
         final BlockState state = world.getBlockState(pos);
 
         if (state.getBlock() == busCableBlock && busCableBlock.addInterface(world, pos, state, side)) {
             final PlayerEntity player = context.getPlayer();
-            final ItemStack stack = context.getItem();
+            final ItemStack stack = context.getItemInHand();
 
             if (player instanceof ServerPlayerEntity) {
                 CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayerEntity) player, pos, stack);
@@ -110,11 +110,11 @@ public final class BusInterfaceItem extends ModBlockItem {
 
             WorldUtils.playSound(world, pos, state.getSoundType(world, pos, player), SoundType::getPlaceSound);
 
-            if (player == null || !player.abilities.isCreativeMode) {
+            if (player == null || !player.abilities.instabuild) {
                 stack.shrink(1);
             }
 
-            return ActionResultType.func_233537_a_(world.isRemote);
+            return ActionResultType.sidedSuccess(world.isClientSide);
         }
 
         return ActionResultType.PASS;

@@ -41,21 +41,21 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     ///////////////////////////////////////////////////////////////////
 
     public String getInterfaceName(final Direction side) {
-        final String interfaceName = interfaceNames[side.getIndex()];
+        final String interfaceName = interfaceNames[side.get3DDataValue()];
         return interfaceName == null ? "" : interfaceName;
     }
 
     public void setInterfaceName(final Direction side, final String name) {
         final String validatedName = validateName(name);
-        if (Objects.equals(validatedName, interfaceNames[side.getIndex()])) {
+        if (Objects.equals(validatedName, interfaceNames[side.get3DDataValue()])) {
             return;
         }
 
-        interfaceNames[side.getIndex()] = validatedName;
-        if (!getWorld().isRemote()) {
-            final BusInterfaceNameMessage message = new BusInterfaceNameMessage.ToClient(this, side, interfaceNames[side.getIndex()]);
-            Network.sendToClientsTrackingChunk(message, getWorld().getChunkAt(getPos()));
-            handleNeighborChanged(getPos().offset(side));
+        interfaceNames[side.get3DDataValue()] = validatedName;
+        if (!level.isClientSide) {
+            final BusInterfaceNameMessage message = new BusInterfaceNameMessage.ToClient(this, side, interfaceNames[side.get3DDataValue()]);
+            Network.sendToClientsTrackingChunk(message, level.getChunkAt(getBlockPos()));
+            handleNeighborChanged(getBlockPos().relative(side));
         }
     }
 
@@ -73,13 +73,13 @@ public final class BusCableTileEntity extends AbstractTileEntity {
             setInterfaceName(side, "");
 
             invalidateCapability(Capabilities.DEVICE_BUS_ELEMENT, side);
-            handleNeighborChanged(getPos().offset(side));
+            handleNeighborChanged(getBlockPos().relative(side));
         }
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
 
         // Bus element will usually be discovered via bus scan, not via capability request, so
         // automatic invalidation via capability will *not* necessarily schedule a scan on the
@@ -102,8 +102,8 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
-        tag = super.write(tag);
+    public CompoundNBT save(CompoundNBT tag) {
+        tag = super.save(tag);
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.serializeNBT());
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
 
@@ -111,8 +111,8 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT tag) {
-        super.read(state, tag);
+    public void load(final BlockState state, final CompoundNBT tag) {
+        super.load(state, tag);
         busElement.deserializeNBT(tag.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
     }
@@ -138,7 +138,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     private ListNBT serializeInterfaceNames() {
         final ListNBT tag = new ListNBT();
         for (int i = 0; i < Constants.BLOCK_FACE_COUNT; i++) {
-            tag.add(StringNBT.valueOf(getInterfaceName(Direction.byIndex(i))));
+            tag.add(StringNBT.valueOf(getInterfaceName(Direction.from3DDataValue(i))));
         }
         return tag;
     }
@@ -178,7 +178,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         @Override
         protected void collectSyntheticDevices(final World world, final BlockPos pos, final Direction direction, final HashSet<BlockDeviceInfo> devices) {
             super.collectSyntheticDevices(world, pos, direction, devices);
-            final String interfaceName = interfaceNames[direction.getIndex()];
+            final String interfaceName = interfaceNames[direction.get3DDataValue()];
             if (!StringUtils.isNullOrEmpty(interfaceName)) {
                 devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)));
             }

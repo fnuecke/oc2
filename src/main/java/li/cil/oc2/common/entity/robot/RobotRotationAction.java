@@ -40,7 +40,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
     ///////////////////////////////////////////////////////////////////
 
     public static void rotateTowards(final RobotEntity robot, final Direction targetRotation) {
-        robot.rotationYaw = MathHelper.approachDegrees(robot.rotationYaw, targetRotation.getHorizontalAngle(), ROTATION_SPEED);
+        robot.yRot = MathHelper.approachDegrees(robot.yRot, targetRotation.toYRot(), ROTATION_SPEED);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -48,18 +48,18 @@ public final class RobotRotationAction extends AbstractRobotAction {
     @Override
     public void initialize(final RobotEntity robot) {
         if (target == null) {
-            target = robot.getHorizontalFacing();
+            target = robot.getDirection();
             switch (direction) {
                 case LEFT:
-                    target = target.rotateYCCW();
+                    target = target.getCounterClockWise();
                     break;
                 case RIGHT:
-                    target = target.rotateY();
+                    target = target.getClockWise();
                     break;
             }
         }
 
-        robot.getDataManager().set(RobotEntity.TARGET_DIRECTION, target);
+        robot.getEntityData().set(RobotEntity.TARGET_DIRECTION, target);
     }
 
     @Override
@@ -70,7 +70,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
 
         rotateTowards(robot, target);
 
-        if (MathHelper.degreesDifferenceAbs(robot.rotationYaw, target.getHorizontalAngle()) < TARGET_EPSILON) {
+        if (MathHelper.degreesDifferenceAbs(robot.yRot, target.toYRot()) < TARGET_EPSILON) {
             return RobotActionResult.SUCCESS;
         }
 

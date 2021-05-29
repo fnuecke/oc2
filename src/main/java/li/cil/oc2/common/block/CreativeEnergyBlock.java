@@ -11,9 +11,9 @@ import net.minecraft.world.IBlockReader;
 public final class CreativeEnergyBlock extends Block {
     public CreativeEnergyBlock() {
         super(Properties
-                .create(Material.IRON)
+                .of(Material.METAL)
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(-1, 3600000)
+                .strength(-1, 3600000)
                 .noDrops());
     }
 

@@ -14,20 +14,20 @@ public final class RobotRotationActionType extends AbstractRobotActionType {
 
     @Override
     public void initializeData(final RobotEntity robot) {
-        robot.getDataManager().set(RobotEntity.TARGET_DIRECTION, robot.getHorizontalFacing());
+        robot.getEntityData().set(RobotEntity.TARGET_DIRECTION, robot.getDirection());
     }
 
     @Override
     public void performServer(final RobotEntity robot, final AbstractRobotAction currentAction) {
         if (!(currentAction instanceof RobotRotationAction)) {
-            robot.getDataManager().set(RobotEntity.TARGET_DIRECTION, robot.getHorizontalFacing());
+            robot.getEntityData().set(RobotEntity.TARGET_DIRECTION, robot.getDirection());
         }
     }
 
     @Override
     public void performClient(final RobotEntity robot) {
-        final Direction target = robot.getDataManager().get(RobotEntity.TARGET_DIRECTION);
-        if (MathHelper.degreesDifferenceAbs(robot.rotationYaw, target.getHorizontalAngle()) > RobotRotationAction.TARGET_EPSILON) {
+        final Direction target = robot.getEntityData().get(RobotEntity.TARGET_DIRECTION);
+        if (MathHelper.degreesDifferenceAbs(robot.yRot, target.toYRot()) > RobotRotationAction.TARGET_EPSILON) {
             RobotRotationAction.rotateTowards(robot, target);
         }
     }

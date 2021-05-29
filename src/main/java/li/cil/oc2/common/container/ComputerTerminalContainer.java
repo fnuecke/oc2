@@ -21,7 +21,7 @@ public final class ComputerTerminalContainer extends AbstractContainer {
     @Nullable
     public static ComputerTerminalContainer create(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
         final BlockPos pos = data.readBlockPos();
-        final TileEntity tileEntity = playerInventory.player.getEntityWorld().getTileEntity(pos);
+        final TileEntity tileEntity = playerInventory.player.getCommandSenderWorld().getBlockEntity(pos);
         if (!(tileEntity instanceof ComputerTileEntity)) {
             return null;
         }
@@ -42,8 +42,8 @@ public final class ComputerTerminalContainer extends AbstractContainer {
 
         this.computer.addTerminalUser(player);
 
-        assertIntArraySize(energyInfo, ENERGY_INFO_SIZE);
-        trackIntArray(energyInfo);
+        checkContainerDataCount(energyInfo, ENERGY_INFO_SIZE);
+        addDataSlots(energyInfo);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -65,13 +65,13 @@ public final class ComputerTerminalContainer extends AbstractContainer {
     }
 
     @Override
-    public boolean canInteractWith(final PlayerEntity player) {
-        return isWithinUsableDistance(IWorldPosCallable.of(computer.getWorld(), computer.getPos()), player, Blocks.COMPUTER.get());
+    public boolean stillValid(final PlayerEntity player) {
+        return stillValid(IWorldPosCallable.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER.get());
     }
 
     @Override
-    public void onContainerClosed(final PlayerEntity player) {
-        super.onContainerClosed(player);
+    public void removed(final PlayerEntity player) {
+        super.removed(player);
 
         this.computer.removeTerminalUser(player);
     }

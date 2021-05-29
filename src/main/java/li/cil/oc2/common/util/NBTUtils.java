@@ -56,6 +56,6 @@ public final class NBTUtils {
     }
 
     public static CompoundNBT makeInventoryTag(final ItemStack... items) {
-        return new ItemStackHandler(NonNullList.from(ItemStack.EMPTY, items)).serializeNBT();
+        return new ItemStackHandler(NonNullList.of(ItemStack.EMPTY, items)).serializeNBT();
     }
 }

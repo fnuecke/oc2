@@ -54,7 +54,7 @@ public final class FileSystems {
 
         LOGGER.info("Searching for datapack filesystems...");
         final Collection<ResourceLocation> fileSystemDescriptorLocations = resourceManager
-                .getAllResourceLocations("file_systems", s -> s.endsWith(".json"));
+                .listResources("file_systems", s -> s.endsWith(".json"));
 
         final ArrayList<ZipStreamFileSystem> fileSystems = new ArrayList<>();
         final Object2IntArrayMap<ZipStreamFileSystem> fileSystemOrder = new Object2IntArrayMap<>();
@@ -117,7 +117,7 @@ public final class FileSystems {
         public CompletableFuture<Void> reload(final IFutureReloadListener.IStage stage, final IResourceManager resourceManager, final IProfiler preparationsProfiler, final IProfiler reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
             return CompletableFuture
                     .runAsync(() -> FileSystems.reload(resourceManager), backgroundExecutor)
-                    .thenCompose(stage::markCompleteAwaitingOthers);
+                    .thenCompose(stage::wait);
         }
     }
 }

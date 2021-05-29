@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 
 public final class FlashMemoryItem extends AbstractStorageItem {
     public FlashMemoryItem(final int defaultCapacity) {
-        super(createProperties().maxStackSize(1), defaultCapacity);
+        super(createProperties().stacksTo(1), defaultCapacity);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ public final class FlashMemoryItem extends AbstractStorageItem {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected String getDefaultTranslationKey() {
+    protected String getOrCreateDescriptionId() {
         return "item.oc2.flash_memory";
     }
 }

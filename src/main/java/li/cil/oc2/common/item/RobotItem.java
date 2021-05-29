@@ -67,7 +67,7 @@ public final class RobotItem extends ModItem {
         }
 
         final RobotEntity robot = Entities.ROBOT.get().create(context.getLevel());
-        robot.moveTo(position.x, position.y - robot.getEyeHeight() * 0.5f, position.z,
+        robot.moveTo(position.x, position.y - robot.getBbHeight() * 0.5f, position.z,
                 Direction.fromYRot(context.getRotation()).getOpposite().toYRot(), 0);
         if (!world.noCollision(robot)) {
             return super.useOn(context);

@@ -366,9 +366,9 @@ public final class RobotEntity extends Entity implements Robot {
     @Override
     protected void defineSynchedData() {
         final EntityDataManager dataManager = getEntityData();
-        dataManager.set(TARGET_POSITION, BlockPos.ZERO);
-        dataManager.set(TARGET_DIRECTION, Direction.NORTH);
-        dataManager.set(SELECTED_SLOT, (byte) 0);
+        dataManager.define(TARGET_POSITION, BlockPos.ZERO);
+        dataManager.define(TARGET_DIRECTION, Direction.NORTH);
+        dataManager.define(SELECTED_SLOT, (byte) 0);
     }
 
     @Override

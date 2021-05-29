@@ -39,6 +39,11 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
     }
 
     @Override
+    protected void renderLabels(final MatrixStack p_230451_1_, final int p_230451_2_, final int p_230451_3_) {
+
+    }
+
+    @Override
     public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
         terminalWidget.setEnergyInfo(menu.getEnergy(), menu.getEnergyCapacity(), menu.getEnergyConsumption());
 

@@ -17,7 +17,7 @@ public final class DiskDriveFloppyMessage {
     ///////////////////////////////////////////////////////////////////
 
     public DiskDriveFloppyMessage(final DiskDriveTileEntity diskDrive) {
-        this.pos = diskDrive.getPos();
+        this.pos = diskDrive.getBlockPos();
         this.data = diskDrive.getFloppy().serializeNBT();
     }
 
@@ -29,17 +29,17 @@ public final class DiskDriveFloppyMessage {
 
     public static boolean handleMessage(final DiskDriveFloppyMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, DiskDriveTileEntity.class,
-                (diskDrive) -> diskDrive.setFloppyClient(ItemStack.read(message.data))));
+                (diskDrive) -> diskDrive.setFloppyClient(ItemStack.of(message.data))));
         return true;
     }
 
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
-        data = buffer.readCompoundTag();
+        data = buffer.readNbt();
     }
 
     public static void toBytes(final DiskDriveFloppyMessage message, final PacketBuffer buffer) {
         buffer.writeBlockPos(message.pos);
-        buffer.writeCompoundTag(message.data);
+        buffer.writeNbt(message.data);
     }
 }

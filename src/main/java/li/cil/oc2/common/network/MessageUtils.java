@@ -21,7 +21,7 @@ public final class MessageUtils {
             return;
         }
 
-        final ServerWorld world = player.getServerWorld();
+        final ServerWorld world = player.getLevel();
         final TileEntity tileEntity = WorldUtils.getTileEntityIfChunkExists(world, pos);
         if (type.isInstance(tileEntity)) {
             callback.accept((T) tileEntity);
@@ -35,8 +35,8 @@ public final class MessageUtils {
             return;
         }
 
-        final ServerWorld world = player.getServerWorld();
-        final Entity entity = world.getEntityByID(id);
+        final ServerWorld world = player.getLevel();
+        final Entity entity = world.getEntity(id);
         if (type.isInstance(entity)) {
             callback.accept((T) entity);
         }
@@ -44,12 +44,12 @@ public final class MessageUtils {
 
     @SuppressWarnings("unchecked")
     public static <T extends TileEntity> void withClientTileEntityAt(final BlockPos pos, final Class<T> type, final Consumer<T> callback) {
-        final ClientWorld world = Minecraft.getInstance().world;
+        final ClientWorld world = Minecraft.getInstance().level;
         if (world == null) {
             return;
         }
 
-        final TileEntity tileEntity = world.getTileEntity(pos);
+        final TileEntity tileEntity = world.getBlockEntity(pos);
         if (type.isInstance(tileEntity)) {
             callback.accept((T) tileEntity);
         }
@@ -57,12 +57,12 @@ public final class MessageUtils {
 
     @SuppressWarnings("unchecked")
     public static <T extends Entity> void withClientEntity(final int id, final Class<T> type, final Consumer<T> callback) {
-        final ClientWorld world = Minecraft.getInstance().world;
+        final ClientWorld world = Minecraft.getInstance().level;
         if (world == null) {
             return;
         }
 
-        final Entity entity = world.getEntityByID(id);
+        final Entity entity = world.getEntity(id);
         if (type.isInstance(entity)) {
             callback.accept((T) entity);
         }

@@ -16,7 +16,7 @@ public final class ComputerBootErrorMessage {
     ///////////////////////////////////////////////////////////////////
 
     public ComputerBootErrorMessage(final ComputerTileEntity tileEntity) {
-        this.pos = tileEntity.getPos();
+        this.pos = tileEntity.getBlockPos();
         this.value = tileEntity.getVirtualMachine().getBootError();
     }
 
@@ -34,11 +34,11 @@ public final class ComputerBootErrorMessage {
 
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
-        value = buffer.readTextComponent();
+        value = buffer.readComponent();
     }
 
     public static void toBytes(final ComputerBootErrorMessage message, final PacketBuffer buffer) {
         buffer.writeBlockPos(message.pos);
-        buffer.writeTextComponent(message.value);
+        buffer.writeComponent(message.value);
     }
 }

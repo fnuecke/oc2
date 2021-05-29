@@ -15,7 +15,7 @@ public final class RobotPowerMessage {
     ///////////////////////////////////////////////////////////////////
 
     public RobotPowerMessage(final RobotEntity robot, final boolean power) {
-        this.entityId = robot.getEntityId();
+        this.entityId = robot.getId();
         this.power = power;
     }
 
@@ -29,7 +29,7 @@ public final class RobotPowerMessage {
         context.get().enqueueWork(() -> MessageUtils.withServerEntity(context, message.entityId, RobotEntity.class,
                 (robot) -> {
                     final ServerPlayerEntity player = context.get().getSender();
-                    if (player != null && robot.isEntityInRange(player, 8)) {
+                    if (player != null && robot.closerThan(player, 8)) {
                         if (message.power) {
                             robot.start();
                         } else {

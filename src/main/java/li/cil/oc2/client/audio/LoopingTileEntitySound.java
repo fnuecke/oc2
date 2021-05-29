@@ -23,12 +23,12 @@ public final class LoopingTileEntitySound extends TickableSound {
         this.tileEntity = tileEntity;
         this.volume = 0;
 
-        final Vector3d position = Vector3d.copyCentered(tileEntity.getPos());
+        final Vector3d position = Vector3d.atCenterOf(tileEntity.getBlockPos());
         x = position.x;
         y = position.y;
         z = position.z;
 
-        repeat = true;
+        looping = true;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -36,9 +36,9 @@ public final class LoopingTileEntitySound extends TickableSound {
     @Override
     public void tick() {
         volume = MathHelper.clamp(volume + FADE_IN_DURATION / Constants.TICK_SECONDS, 0, 1);
-        final ChunkPos chunkPos = new ChunkPos(tileEntity.getPos());
-        if (tileEntity.isRemoved() || !tileEntity.getWorld().chunkExists(chunkPos.x, chunkPos.z)) {
-            finishPlaying();
+        final ChunkPos chunkPos = new ChunkPos(tileEntity.getBlockPos());
+        if (tileEntity.isRemoved() || !tileEntity.getLevel().hasChunk(chunkPos.x, chunkPos.z)) {
+            stop();
         }
     }
 }

@@ -17,18 +17,18 @@ public final class LoopingSoundManager {
 
         final LoopingTileEntitySound instance = new LoopingTileEntitySound(tileEntity, sound);
         TILE_ENTITY_SOUNDS.put(tileEntity, instance);
-        Minecraft.getInstance().getSoundHandler().playDelayed(instance, delay);
+        Minecraft.getInstance().getSoundManager().playDelayed(instance, delay);
     }
 
     public static void stop(final TileEntity tileEntity) {
         final ITickableSound instance = TILE_ENTITY_SOUNDS.remove(tileEntity);
         if (instance != null) {
-            Minecraft.getInstance().getSoundHandler().stop(instance);
+            Minecraft.getInstance().getSoundManager().stop(instance);
         }
     }
 
     public static boolean isPlaying(final TileEntity tileEntity) {
         final ITickableSound instance = TILE_ENTITY_SOUNDS.get(tileEntity);
-        return instance != null && !instance.isDonePlaying();
+        return instance != null && !instance.isStopped();
     }
 }

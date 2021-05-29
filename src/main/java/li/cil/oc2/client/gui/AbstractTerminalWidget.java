@@ -93,7 +93,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         isMouseOverTerminal = isMouseOverTerminal(mouseX, mouseY);
 
         RenderSystem.color4f(1f, 1f, 1f, 1f);
-        getClient().getTextureManager().bindTexture(BACKGROUND_LOCATION);
+        getClient().getTextureManager().bind(BACKGROUND_LOCATION);
 
         CONTROLS_BACKGROUND.draw(matrixStack, windowLeft - CONTROLS_BACKGROUND.width, windowTop + CONTROLS_TOP);
 
@@ -114,16 +114,16 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
     public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, @Nullable final ITextComponent error) {
         if (isRunning()) {
             final MatrixStack stack = new MatrixStack();
-            stack.translate(windowLeft + TERMINAL_X, windowTop + TERMINAL_Y, getClient().getItemRenderer().zLevel);
+            stack.translate(windowLeft + TERMINAL_X, windowTop + TERMINAL_Y, getClient().getItemRenderer().blitOffset);
             stack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
             terminal.render(stack);
         } else {
-            final FontRenderer font = getClient().fontRenderer;
+            final FontRenderer font = getClient().font;
             if (error != null) {
-                final int textWidth = font.getStringPropertyWidth(error);
+                final int textWidth = font.width(error);
                 final int textOffsetX = (TERMINAL_WIDTH - textWidth) / 2;
-                final int textOffsetY = (TERMINAL_HEIGHT - font.FONT_HEIGHT) / 2;
-                font.func_243246_a(matrixStack,
+                final int textOffsetY = (TERMINAL_HEIGHT - font.lineHeight) / 2;
+                font.drawShadow(matrixStack,
                         error,
                         windowLeft + TERMINAL_X + textOffsetX,
                         windowTop + TERMINAL_Y + textOffsetY,
@@ -139,7 +139,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
                         new TranslationTextComponent(Constants.TOOLTIP_ENERGY, withColor(currentEnergy + "/" + maxEnergy, TextFormatting.GREEN)),
                         new TranslationTextComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(String.valueOf(energyConsumption), TextFormatting.GREEN))
                 );
-                GuiUtils.drawHoveringText(matrixStack, tooltip, mouseX, mouseY, parent.width, parent.height, 200, getClient().fontRenderer);
+                GuiUtils.drawHoveringText(matrixStack, tooltip, mouseX, mouseY, parent.width, parent.height, 200, getClient().font);
             }
         }
     }
@@ -162,7 +162,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         }
 
         if ((modifiers & GLFW.GLFW_MOD_CONTROL) != 0 && keyCode == GLFW.GLFW_KEY_V) {
-            final String value = getClient().keyboardListener.getClipboardString();
+            final String value = getClient().keyboardHandler.getClipboard();
             for (final char ch : value.toCharArray()) {
                 terminal.putInput((byte) ch);
             }
@@ -182,7 +182,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         this.windowLeft = (parent.width - WIDTH) / 2;
         this.windowTop = (parent.height - HEIGHT) / 2;
 
-        getClient().keyboardListener.enableRepeatEvents(true);
+        getClient().keyboardHandler.setSendRepeatsToGui(true);
 
         addButton(new ToggleImageButton(
                 parent, windowLeft - CONTROLS_BACKGROUND.width + 4, windowTop + CONTROLS_TOP + 4,
@@ -228,7 +228,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
     }
 
     public void onClose() {
-        getClient().keyboardListener.enableRepeatEvents(false);
+        getClient().keyboardHandler.setSendRepeatsToGui(false);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -22,9 +22,9 @@ public final class ComputerInventoryScreen extends ContainerScreen<ComputerInven
 
     public ComputerInventoryScreen(final ComputerInventoryContainer container, final PlayerInventory inventory, final ITextComponent title) {
         super(container, inventory, title);
-        xSize = 176;
-        ySize = 197;
-        playerInventoryTitleY = ySize - 94;
+        width = 176;
+        height = 197;
+        inventoryLabelY = width - 94;
     }
 
     @Override
@@ -41,15 +41,15 @@ public final class ComputerInventoryScreen extends ContainerScreen<ComputerInven
         GuiUtils.renderMissingDeviceInfoTooltip(matrixStack, this, mouseX, mouseY, DeviceTypes.MEMORY, new TranslationTextComponent(Constants.TOOLTIP_MEMORY_MISSING));
         GuiUtils.renderMissingDeviceInfoTooltip(matrixStack, this, mouseX, mouseY, DeviceTypes.HARD_DRIVE, new TranslationTextComponent(Constants.TOOLTIP_HARD_DRIVE_MISSING));
 
-        renderHoveredTooltip(matrixStack, mouseX, mouseY);
+        renderTooltip(matrixStack, mouseX, mouseY);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
+    protected void renderBg(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
         RenderSystem.color4f(1f, 1f, 1f, 1f);
-        requireNonNull(minecraft).getTextureManager().bindTexture(BACKGROUND);
-        blit(matrixStack, guiLeft, guiTop, 0, 0, xSize, ySize);
+        requireNonNull(minecraft).getTextureManager().bind(BACKGROUND);
+        blit(matrixStack, leftPos, topPos, 0, 0, width, height);
     }
 }

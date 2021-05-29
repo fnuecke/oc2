@@ -38,10 +38,10 @@ public final class ClientSetup {
         CustomItemModelProperties.initialize();
         CustomItemColors.initialize();
 
-        ScreenManager.registerFactory(Containers.COMPUTER_CONTAINER.get(), ComputerInventoryScreen::new);
-        ScreenManager.registerFactory(Containers.COMPUTER_TERMINAL_CONTAINER.get(), ComputerTerminalScreen::new);
-        ScreenManager.registerFactory(Containers.ROBOT_CONTAINER.get(), RobotContainerScreen::new);
-        ScreenManager.registerFactory(Containers.ROBOT_TERMINAL_CONTAINER.get(), RobotTerminalScreen::new);
+        ScreenManager.register(Containers.COMPUTER_CONTAINER.get(), ComputerInventoryScreen::new);
+        ScreenManager.register(Containers.COMPUTER_TERMINAL_CONTAINER.get(), ComputerTerminalScreen::new);
+        ScreenManager.register(Containers.ROBOT_CONTAINER.get(), RobotContainerScreen::new);
+        ScreenManager.register(Containers.ROBOT_TERMINAL_CONTAINER.get(), RobotTerminalScreen::new);
 
         ClientRegistry.bindTileEntityRenderer(TileEntities.COMPUTER_TILE_ENTITY.get(), ComputerTileEntityRenderer::new);
         ClientRegistry.bindTileEntityRenderer(TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), NetworkConnectorTileEntityRenderer::new);
@@ -58,7 +58,7 @@ public final class ClientSetup {
 
     @SubscribeEvent
     public static void handleTextureStitchEvent(final TextureStitchEvent.Pre event) {
-        if (event.getMap().getTextureLocation() != PlayerContainer.LOCATION_BLOCKS_TEXTURE) {
+        if (event.getMap().location() != PlayerContainer.BLOCK_ATLAS) {
             return;
         }
 

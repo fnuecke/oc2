@@ -35,7 +35,7 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
 
     @Override
     public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, final Random rand, final IModelData extraData) {
-        if (state == null || !state.get(BusCableBlock.HAS_CABLE)) {
+        if (state == null || !state.getValue(BusCableBlock.HAS_CABLE)) {
             return proxy.getQuads(null, side, rand, extraData);
         }
 
@@ -50,15 +50,15 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
 
         final BusCableSupportSide supportSide = extraData.getData(BusCableSupportSide.BUS_CABLE_SUPPORT_PROPERTY);
         if (supportSide != null) {
-            quads.addAll(supportModelByFace[supportSide.get().getIndex()].getQuads(state, side, rand, extraData));
+            quads.addAll(supportModelByFace[supportSide.get().get3DDataValue()].getQuads(state, side, rand, extraData));
         }
 
         return quads;
     }
 
     @Override
-    public boolean isAmbientOcclusion() {
-        return proxy.isAmbientOcclusion();
+    public boolean useAmbientOcclusion() {
+        return proxy.useAmbientOcclusion();
     }
 
     @Override
@@ -66,19 +66,20 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
         return proxy.isGui3d();
     }
 
+
     @Override
-    public boolean isSideLit() {
-        return proxy.isSideLit();
+    public boolean usesBlockLight() {
+        return proxy.usesBlockLight();
     }
 
     @Override
-    public boolean isBuiltInRenderer() {
-        return proxy.isBuiltInRenderer();
+    public boolean isCustomRenderer() {
+        return proxy.isCustomRenderer();
     }
 
     @Override
-    public TextureAtlasSprite getParticleTexture() {
-        return proxy.getParticleTexture();
+    public TextureAtlasSprite getParticleIcon() {
+        return proxy.getParticleIcon();
     }
 
     @Override
@@ -92,7 +93,7 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
         for (final Direction direction : Constants.DIRECTIONS) {
             if (isNeighborInDirectionSolid(world, pos, direction)) {
                 final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(direction);
-                if (state.hasProperty(property) && state.get(property) == BusCableBlock.ConnectionType.INTERFACE) {
+                if (state.hasProperty(property) && state.getValue(property) == BusCableBlock.ConnectionType.INTERFACE) {
                     return tileData; // Plug is already supporting us, bail.
                 }
 
@@ -114,19 +115,19 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
     ///////////////////////////////////////////////////////////////////
 
     private static boolean isNeighborInDirectionSolid(final IBlockDisplayReader world, final BlockPos pos, final Direction direction) {
-        final BlockPos neighborPos = pos.offset(direction);
-        return world.getBlockState(neighborPos).isSolidSide(world, neighborPos, direction.getOpposite());
+        final BlockPos neighborPos = pos.relative(direction);
+        return world.getBlockState(neighborPos).isFaceSturdy(world, neighborPos, direction.getOpposite());
     }
 
     private static boolean isStraightAlongAxis(final BlockState state, final Direction.Axis axis) {
         for (final Direction direction : Constants.DIRECTIONS) {
             final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(direction);
             if (axis.test(direction)) {
-                if (state.get(property) != BusCableBlock.ConnectionType.CABLE) {
+                if (state.getValue(property) != BusCableBlock.ConnectionType.CABLE) {
                     return false;
                 }
             } else {
-                if (state.get(property) != BusCableBlock.ConnectionType.NONE) {
+                if (state.getValue(property) != BusCableBlock.ConnectionType.NONE) {
                     return false;
                 }
             }

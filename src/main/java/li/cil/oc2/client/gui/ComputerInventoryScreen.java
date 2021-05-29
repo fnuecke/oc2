@@ -24,7 +24,7 @@ public final class ComputerInventoryScreen extends ContainerScreen<ComputerInven
         super(container, inventory, title);
         width = 176;
         height = 197;
-        inventoryLabelY = width - 94;
+        inventoryLabelY = height - 94;
     }
 
     @Override

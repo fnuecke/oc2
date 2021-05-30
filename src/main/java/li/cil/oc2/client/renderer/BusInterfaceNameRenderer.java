@@ -7,7 +7,7 @@ import li.cil.oc2.common.tileentity.BusCableBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
@@ -18,6 +18,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -34,8 +36,8 @@ public enum BusInterfaceNameRenderer {
     @SubscribeEvent
     public void handleRenderLastEvent(final RenderWorldLastEvent event) {
         final Minecraft mc = Minecraft.getInstance();
-        final PlayerEntity player = mc.player;
-        final World world = player.getCommandSenderWorld();
+        final Player player = mc.player;
+        final Level world = player.getCommandSenderWorld();
 
         if (!Wrenches.isHoldingWrench(player)) {
             return;
@@ -84,7 +86,7 @@ public enum BusInterfaceNameRenderer {
         final Matrix4f matrix = stack.last().pose();
 
         final FontRenderer fontrenderer = renderManager.getFont();
-        final IRenderTypeBuffer.Impl buffer = IRenderTypeBuffer.immediate(Tessellator.getInstance().getBuilder());
+        final MultiBufferSource.Impl buffer = MultiBufferSource.immediate(Tessellator.getInstance().getBuilder());
 
         final float horizontalTextOffset = -fontrenderer.width(name) * 0.5f;
         final float backgroundOpacity = Minecraft.getInstance().options.getBackgroundOpacity(0.25F);

@@ -3,13 +3,19 @@ package li.cil.oc2.common.tileentity;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.Optional;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public final class NetworkHubBlockEntity extends AbstractBlockEntity implements NetworkInterface {
     private static final int TTL_COST = 1;
@@ -63,7 +69,7 @@ public final class NetworkHubBlockEntity extends AbstractBlockEntity implements 
 
         areAdjacentInterfacesDirty = false;
 
-        final World world = getLevel();
+        final Level world = getLevel();
         if (world == null || world.isClientSide) {
             return;
         }

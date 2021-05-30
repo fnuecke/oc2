@@ -6,14 +6,14 @@ import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.HorizontalDirectionalBlockUtils;
-import net.minecraft.block.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.tileentity.BlockEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.Collection;
 
@@ -63,7 +63,7 @@ public final class RedstoneInterfaceBlockEntity extends BlockEntity implements N
 
     @Callback(name = GET_REDSTONE_INPUT)
     public int setSignal(@Parameter(SIDE) final Direction side) {
-        final World world = getLevel();
+        final Level world = getLevel();
         if (world == null) {
             return 0;
         }
@@ -88,7 +88,7 @@ public final class RedstoneInterfaceBlockEntity extends BlockEntity implements N
 
     @Callback(name = SET_REDSTONE_OUTPUT)
     public void getSignal(@Parameter(SIDE) final Direction side, @Parameter(VALUE) final int value) {
-        final byte clampedValue = (byte) MathHelper.clamp(value, 0, 15);
+        final byte clampedValue = (byte) Mth.clamp(value, 0, 15);
         if (clampedValue == output[side.get3DDataValue()]) {
             return;
         }
@@ -137,7 +137,7 @@ public final class RedstoneInterfaceBlockEntity extends BlockEntity implements N
     ///////////////////////////////////////////////////////////////////
 
     private void notifyNeighbor(final Direction direction) {
-        final World world = getLevel();
+        final Level world = getLevel();
         if (world == null) {
             return;
         }

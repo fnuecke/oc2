@@ -11,30 +11,31 @@ import li.cil.oc2.common.network.message.NetworkConnectorConnectionsMessage;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.ServerScheduler;
-import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.tileentity.ITickableBlockEntity;
-import net.minecraft.tileentity.BlockEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.*;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.TickableBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.Optional;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
-public final class NetworkConnectorBlockEntity extends AbstractBlockEntity implements ITickableBlockEntity {
+public final class NetworkConnectorBlockEntity extends AbstractBlockEntity implements TickableBlockEntity {
     public enum ConnectionResult {
         SUCCESS,
         FAILURE,
@@ -81,7 +82,7 @@ public final class NetworkConnectorBlockEntity extends AbstractBlockEntity imple
             return ConnectionResult.FAILURE;
         }
 
-        final World world = connectorA.level;
+        final Level world = connectorA.level;
         if (world == null || world.isClientSide) {
             return ConnectionResult.FAILURE;
         }
@@ -137,7 +138,7 @@ public final class NetworkConnectorBlockEntity extends AbstractBlockEntity imple
 
         if (ownedCables.remove(pos)) {
             if (level != null) {
-                final Vector3d middle = Vector3d.atCenterOf(getBlockPos().offset(pos)).scale(0.5f);
+                final Vec3 middle = Vec3.atCenterOf(getBlockPos().offset(pos)).scale(0.5f);
                 ItemStackUtils.spawnAsEntity(level, middle, new ItemStack(Items.NETWORK_CABLE.get()));
             }
         }
@@ -201,7 +202,7 @@ public final class NetworkConnectorBlockEntity extends AbstractBlockEntity imple
 
         final ListTag connections = new ListTag();
         for (final BlockPos position : connectorPositions) {
-            final CompoundTag connectionTag = NBTUtil.writeBlockPos(position);
+            final CompoundTag connectionTag = NbtUtils.writeBlockPos(position);
             connections.add(connectionTag);
         }
         tag.put(CONNECTIONS_TAG_NAME, connections);
@@ -216,7 +217,7 @@ public final class NetworkConnectorBlockEntity extends AbstractBlockEntity imple
         final ListTag connections = tag.getList(CONNECTIONS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
         for (int i = 0; i < Math.min(connections.size(), MAX_CONNECTION_COUNT); i++) {
             final CompoundTag connectionTag = connections.getCompound(i);
-            final BlockPos position = NBTUtil.readBlockPos(connectionTag);
+            final BlockPos position = NbtUtils.readBlockPos(connectionTag);
             connectorPositions.add(position);
             dirtyConnectors.add(position);
         }
@@ -228,7 +229,7 @@ public final class NetworkConnectorBlockEntity extends AbstractBlockEntity imple
 
         final ListTag connections = new ListTag();
         for (final BlockPos position : connectorPositions) {
-            final CompoundTag connectionTag = NBTUtil.writeBlockPos(position);
+            final CompoundTag connectionTag = NbtUtils.writeBlockPos(position);
             if (ownedCables.contains(position)) {
                 connectionTag.putBoolean(IS_OWNER_TAG_NAME, true);
             }
@@ -246,7 +247,7 @@ public final class NetworkConnectorBlockEntity extends AbstractBlockEntity imple
         final ListTag connections = tag.getList(CONNECTIONS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
         for (int i = 0; i < Math.min(connections.size(), MAX_CONNECTION_COUNT); i++) {
             final CompoundTag connectionTag = connections.getCompound(i);
-            final BlockPos position = NBTUtil.readBlockPos(connectionTag);
+            final BlockPos position = NbtUtils.readBlockPos(connectionTag);
             connectorPositions.add(position);
             dirtyConnectors.add(position);
             if (connectionTag.getBoolean(IS_OWNER_TAG_NAME)) {
@@ -292,9 +293,9 @@ public final class NetworkConnectorBlockEntity extends AbstractBlockEntity imple
     }
 
     @Override
-    public AxisAlignedBB getRenderBoundingBox() {
+    public AABB getRenderBoundingBox() {
         if (Minecraft.useShaderTransparency()) {
-            return new AxisAlignedBB(
+            return new AABB(
                 getBlockPos().offset(-MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE),
                 getBlockPos().offset(1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE)
             );
@@ -385,38 +386,38 @@ public final class NetworkConnectorBlockEntity extends AbstractBlockEntity imple
         connectors.put(connectedPosition, connector);
     }
 
-    private static boolean isObstructed(final World world, final BlockPos a, final BlockPos b) {
-        final Vector3d va = Vector3d.atCenterOf(a);
-        final Vector3d vb = Vector3d.atCenterOf(b);
-        final Vector3d ab = vb.subtract(va).normalize().scale(0.5);
+    private static boolean isObstructed(final Level world, final BlockPos a, final BlockPos b) {
+        final Vec3 va = Vec3.atCenterOf(a);
+        final Vec3 vb = Vec3.atCenterOf(b);
+        final Vec3 ab = vb.subtract(va).normalize().scale(0.5);
 
         // Because of floating point inaccuracies the raytrace is not necessarily
         // symmetric. In particular when grazing corners perfectly, e.g. two connectors
         // attached to the same block at a 90 degree angle. So we check both ways.
-        final BlockRayTraceResult hitAB = world.clip(new RayTraceContext(
+        final BlockHitResult hitAB = world.clip(new ClipContext(
                 va.add(ab),
                 vb.subtract(ab),
-                RayTraceContext.BlockMode.COLLIDER,
-                RayTraceContext.FluidMode.NONE,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
                 null
         ));
-        final BlockRayTraceResult hitBA = world.clip(new RayTraceContext(
+        final BlockHitResult hitBA = world.clip(new ClipContext(
                 vb.subtract(ab),
                 va.add(ab),
-                RayTraceContext.BlockMode.COLLIDER,
-                RayTraceContext.FluidMode.NONE,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
                 null
         ));
 
-        return hitAB.getType() != RayTraceResult.Type.MISS ||
-               hitBA.getType() != RayTraceResult.Type.MISS;
+        return hitAB.getType() != HitResult.Type.MISS ||
+               hitBA.getType() != HitResult.Type.MISS;
     }
 
     private void onConnectedPositionsChanged() {
 
         if (level != null && !level.isClientSide) {
             final NetworkConnectorConnectionsMessage message = new NetworkConnectorConnectionsMessage(this);
-            final Chunk chunk = level.getChunkAt(getBlockPos());
+            final LevelChunk chunk = level.getChunkAt(getBlockPos());
             Network.sendToClientsTrackingChunk(message, chunk);
         }
     }

@@ -1,28 +1,28 @@
 package li.cil.oc2.client.renderer.tileentity;
 
-import com.mojang.blaze3d.matrix.PoseStack;
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Quaternion;
+import com.mojang.math.Vector3f;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.CustomRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.tileentity.ComputerBlockEntity;
 import li.cil.oc2.common.vm.Terminal;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.model.RenderMaterial;
-import net.minecraft.client.renderer.tileentity.BlockEntityRenderer;
-import net.minecraft.client.renderer.tileentity.BlockEntityRendererDispatcher;
-import net.minecraft.inventory.container.PlayerContainer;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Quaternion;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.Style;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
@@ -31,27 +31,27 @@ public final class ComputerBlockEntityRenderer extends BlockEntityRenderer<Compu
     public static final ResourceLocation OVERLAY_STATUS_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_status");
     public static final ResourceLocation OVERLAY_TERMINAL_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_terminal");
 
-    private static final RenderMaterial TEXTURE_POWER = new RenderMaterial(PlayerContainer.BLOCK_ATLAS, OVERLAY_POWER_LOCATION);
-    private static final RenderMaterial TEXTURE_STATUS = new RenderMaterial(PlayerContainer.BLOCK_ATLAS, OVERLAY_STATUS_LOCATION);
-    private static final RenderMaterial TEXTURE_TERMINAL = new RenderMaterial(PlayerContainer.BLOCK_ATLAS, OVERLAY_TERMINAL_LOCATION);
+    private static final Material TEXTURE_POWER = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_POWER_LOCATION);
+    private static final Material TEXTURE_STATUS = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_STATUS_LOCATION);
+    private static final Material TEXTURE_TERMINAL = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_TERMINAL_LOCATION);
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerBlockEntityRenderer(final BlockEntityRendererDispatcher dispatcher) {
+    public ComputerBlockEntityRenderer(final BlockEntityRenderDispatcher dispatcher) {
         super(dispatcher);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void render(final ComputerBlockEntity tileEntity, final float partialTicks, final PoseStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
+    public void render(final ComputerBlockEntity tileEntity, final float partialTicks, final PoseStack matrixStack, final MultiBufferSource buffer, final int light, final int overlay) {
         final Direction blockFacing = tileEntity.getBlockState().getValue(ComputerBlock.FACING);
-        final Vector3d cameraPosition = renderer.camera.getEntity().getEyePosition(partialTicks);
+        final Vec3 cameraPosition = renderer.camera.getEntity().getEyePosition(partialTicks);
 
         // If viewer is not in front of the block we can skip all of the rest, it cannot be visible.
         // We check against the center of the block instead of the actual relevant face for simplicity.
-        final Vector3d relativeCameraPosition = cameraPosition.subtract(Vector3d.atCenterOf(tileEntity.getBlockPos()));
-        final double projectedCameraPosition = relativeCameraPosition.dot(Vector3d.atLowerCornerOf(blockFacing.getNormal()));
+        final Vec3 relativeCameraPosition = cameraPosition.subtract(Vec3.atCenterOf(tileEntity.getBlockPos()));
+        final double projectedCameraPosition = relativeCameraPosition.dot(Vec3.atLowerCornerOf(blockFacing.getNormal()));
         if (projectedCameraPosition <= 0) {
             return;
         }
@@ -111,9 +111,9 @@ public final class ComputerBlockEntityRenderer extends BlockEntityRenderer<Compu
 
     ///////////////////////////////////////////////////////////////////
 
-    private void renderTerminal(final ComputerBlockEntity tileEntity, final PoseStack stack, final IRenderTypeBuffer buffer, final Vector3d cameraPosition) {
+    private void renderTerminal(final ComputerBlockEntity tileEntity, final PoseStack stack, final MultiBufferSource buffer, final Vec3 cameraPosition) {
         // Render terminal content if close enough.
-        if (Vector3d.atCenterOf(tileEntity.getBlockPos()).closerThan(cameraPosition, 6f)) {
+        if (Vec3.atCenterOf(tileEntity.getBlockPos()).closerThan(cameraPosition, 6f)) {
             stack.pushPose();
             stack.translate(2, 2, -0.9f);
 
@@ -151,12 +151,12 @@ public final class ComputerBlockEntityRenderer extends BlockEntityRenderer<Compu
         }
     }
 
-    private void renderStatusText(final ComputerBlockEntity tileEntity, final PoseStack stack, final Vector3d cameraPosition) {
-        if (!Vector3d.atCenterOf(tileEntity.getBlockPos()).closerThan(cameraPosition, 12f)) {
+    private void renderStatusText(final ComputerBlockEntity tileEntity, final PoseStack stack, final Vec3 cameraPosition) {
+        if (!Vec3.atCenterOf(tileEntity.getBlockPos()).closerThan(cameraPosition, 12f)) {
             return;
         }
 
-        final ITextComponent bootError = tileEntity.getVirtualMachine().getBootError();
+        final Component bootError = tileEntity.getVirtualMachine().getBootError();
         if (bootError == null) {
             return;
         }
@@ -169,14 +169,14 @@ public final class ComputerBlockEntityRenderer extends BlockEntityRenderer<Compu
         stack.popPose();
     }
 
-    private void drawText(final PoseStack stack, final ITextComponent text) {
+    private void drawText(final PoseStack stack, final Component text) {
         final int maxWidth = 100;
 
         stack.pushPose();
         stack.scale(10f / maxWidth, 10f / maxWidth, 10f / maxWidth);
 
-        final FontRenderer fontRenderer = renderer.font;
-        final List<ITextProperties> wrappedText = fontRenderer.getSplitter().splitLines(text, maxWidth, Style.EMPTY);
+        final Font fontRenderer = renderer.getFont();
+        final List<FormattedText> wrappedText = fontRenderer.getSplitter().splitLines(text, maxWidth, Style.EMPTY);
         if (wrappedText.size() == 1) {
             final int textWidth = fontRenderer.width(text);
             fontRenderer.draw(stack, text, (maxWidth - textWidth) * 0.5f, 0, 0xEE3322);
@@ -189,21 +189,21 @@ public final class ComputerBlockEntityRenderer extends BlockEntityRenderer<Compu
         stack.popPose();
     }
 
-    private void renderStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer) {
+    private void renderStatus(final Matrix4f matrix, final MultiBufferSource buffer) {
         renderStatus(matrix, buffer, 0);
     }
 
-    private void renderStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer, final int frequency) {
+    private void renderStatus(final Matrix4f matrix, final MultiBufferSource buffer, final int frequency) {
         if (frequency <= 0 || (((System.currentTimeMillis() + hashCode()) / frequency) % 2) == 1) {
             renderQuad(matrix, TEXTURE_STATUS.buffer(buffer, CustomRenderType::getUnlitBlock));
         }
     }
 
-    private void renderPower(final Matrix4f matrix, final IRenderTypeBuffer buffer) {
+    private void renderPower(final Matrix4f matrix, final MultiBufferSource buffer) {
         renderQuad(matrix, TEXTURE_POWER.buffer(buffer, CustomRenderType::getUnlitBlock));
     }
 
-    private static void renderQuad(final Matrix4f matrix, final IVertexBuilder builder) {
+    private static void renderQuad(final Matrix4f matrix, final VertexConsumer builder) {
         // NB: We may get a SpriteAwareVertexBuilder here. Sadly, its chaining is broken,
         //     because methods may return the underlying vertex builder, so e.g. calling
         //     buffer.pos(...).tex(...) will not actually call SpriteAwareVertexBuilder.tex(...)

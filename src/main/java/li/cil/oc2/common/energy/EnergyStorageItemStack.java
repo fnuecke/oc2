@@ -1,15 +1,16 @@
 package li.cil.oc2.common.energy;
 
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.util.NBTUtils;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Direction;
+import li.cil.oc2.common.util.NBTUtils
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.Optional;
 import net.minecraftforge.energy.IEnergyStorage;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 public final class EnergyStorageItemStack implements IEnergyStorage, ICapabilityProvider {
     private final Optional<IEnergyStorage> optional = Optional.of(() -> this);

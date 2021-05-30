@@ -48,7 +48,7 @@ public class DeviceContainerHelper extends FixedSizeContainerHelper {
 
     @Override
     public void deserializeTag(final CompoundTag tag) {
-        super.deserializeNBT(tag);
+        super.deserializeTag(tag);
         busElement.deserializeNBT(tag.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
         for (int slot = 0; slot < getSlots(); slot++) {
             busElement.updateDevices(slot, getStackInSlot(slot));

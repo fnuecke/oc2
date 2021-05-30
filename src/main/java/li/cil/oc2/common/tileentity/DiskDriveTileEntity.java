@@ -20,16 +20,22 @@ import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.block.BlockState;
+import net.minecraft.core.Direction;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
+import net.minecraft.util.math.Mth;
 import net.minecraft.world.World;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -112,21 +118,21 @@ public final class DiskDriveBlockEntity extends AbstractBlockEntity {
     @Override
     public CompoundTag getUpdateTag() {
         final CompoundTag tag = super.getUpdateTag();
-        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
+        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeTag());
         return tag;
     }
 
     @Override
     public void handleUpdateTag(final BlockState state, final CompoundTag tag) {
         super.handleUpdateTag(state, tag);
-        itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
+        itemHandler.deserializeTag(tag.getCompound(Constants.ITEMS_TAG_NAME));
     }
 
     @Override
     public CompoundTag save(CompoundTag tag) {
         tag = super.save(tag);
 
-        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
+        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeTag());
 
         return tag;
     }
@@ -135,7 +141,7 @@ public final class DiskDriveBlockEntity extends AbstractBlockEntity {
     public void load(final BlockState state, final CompoundTag tag) {
         super.load(state, tag);
 
-        itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
+        itemHandler.deserializeTag(tag.getCompound(Constants.ITEMS_TAG_NAME));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -253,7 +259,7 @@ public final class DiskDriveBlockEntity extends AbstractBlockEntity {
             }
 
             final FloppyItem item = (FloppyItem) stack.getItem();
-            final int capacity = MathHelper.clamp(item.getCapacity(stack), 0, Config.maxFloppySize);
+            final int capacity = Mth.clamp(item.getCapacity(stack), 0, Config.maxFloppySize);
             if (capacity <= 0) {
                 return EMPTY_BLOCK_DEVICE;
             }

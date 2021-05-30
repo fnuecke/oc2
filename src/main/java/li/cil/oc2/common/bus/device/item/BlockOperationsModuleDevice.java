@@ -24,8 +24,8 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.Mth;
+import net.minecraft.util.math.vector.Vec3;
 import net.minecraft.world.GameType;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
@@ -76,7 +76,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
     @Override
     public void deserializeNBT(final CompoundTag tag) {
-        lastOperation = MathHelper.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.getCommandSenderWorld().getGameTime());
+        lastOperation = Mth.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.getCommandSenderWorld().getGameTime());
     }
 
     @Override
@@ -147,7 +147,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
         final BlockPos blockPos = entity.blockPosition().relative(getAdjustedDirection(direction));
         final Direction side = getAdjustedDirection(direction).getOpposite();
         final BlockRayTraceResult hit = new BlockRayTraceResult(
-                Vector3d.atCenterOf(blockPos).add(Vector3d.atCenterOf(side.getNormal()).scale(0.5)),
+                Vec3.atCenterOf(blockPos).add(Vec3.atCenterOf(side.getNormal()).scale(0.5)),
                 side,
                 blockPos,
                 false);

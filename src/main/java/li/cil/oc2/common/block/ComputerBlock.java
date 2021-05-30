@@ -5,43 +5,38 @@ import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.integration.Wrenches;
+import li.cil.oc2.common.item.ItemGroup;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tileentity.ComputerBlockEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
 import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.VoxelShapeUtils;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalDirectionalBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
+import net.java.games.input.Component;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.BlockEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.LevelReader;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
@@ -51,7 +46,7 @@ import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
 public final class ComputerBlock extends HorizontalDirectionalBlock {
     // We bake the "screen" indent on the front into the collision shape to prevent stuff being
     // placeable on that side, such as network connectors, torches, etc.
-    private static final VoxelShape NEG_Z_SHAPE = VoxelShapes.or(
+    private static final VoxelShape NEG_Z_SHAPE = Shapes.or(
             Block.box(0, 0, 1, 16, 16, 16), // main body
             Block.box(0, 15, 0, 16, 16, 1), // across top
             Block.box(0, 0, 0, 16, 6, 1), // across bottom
@@ -83,7 +78,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock {
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void appendHoverText(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
+    public void appendHoverText(final ItemStack stack, @Nullable final BlockGetter world, final List<Component> tooltip, final TooltipFlag advanced) {
         super.appendHoverText(stack, world, tooltip, advanced);
         TooltipUtils.addEnergyConsumption(Config.computerEnergyPerTick, tooltip);
         TooltipUtils.addBlockEntityInventoryInformation(stack, tooltip);
@@ -107,7 +102,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock {
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getSignal(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
+    public int getSignal(final BlockState state, final BlockGetter world, final BlockPos pos, final Direction side) {
         final BlockEntity tileEntity = world.getBlockEntity(pos);
         if (tileEntity != null) {
             // Redstone requests info for faces with external perspective. Capabilities treat
@@ -159,7 +154,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock {
 
     @SuppressWarnings("deprecation")
     @Override
-    public ActionResultType use(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
+    public InteractionResult use(final BlockState state, final Level world, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
         final BlockEntity tileEntity = world.getBlockEntity(pos);
         if (!(tileEntity instanceof ComputerBlockEntity)) {
             return super.use(state, world, pos, player, hand, hit);
@@ -169,23 +164,23 @@ public final class ComputerBlock extends HorizontalDirectionalBlock {
         final ItemStack heldItem = player.getItemInHand(hand);
         if (!world.isClientSide) {
             if (Wrenches.isWrench(heldItem)) {
-                if (player instanceof ServerPlayerEntity) {
-                    computer.openContainerScreen((ServerPlayerEntity) player);
+                if (player instanceof ServerPlayer) {
+                    computer.openContainerScreen((ServerPlayer) player);
                 }
             } else {
                 if (player.isShiftKeyDown()) {
                     computer.start();
-                } else if (player instanceof ServerPlayerEntity) {
-                    computer.openTerminalScreen((ServerPlayerEntity) player);
+                } else if (player instanceof ServerPlayer) {
+                    computer.openTerminalScreen((ServerPlayer) player);
                 }
             }
         }
 
-        return world.isClientSide ? ActionResultType.SUCCESS : ActionResultType.CONSUME;
+        return world.isClientSide ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
     }
 
     @Override
-    public void playerWillDestroy(final World world, final BlockPos pos, final BlockState state, final PlayerEntity player) {
+    public void playerWillDestroy(final Level world, final BlockPos pos, final BlockState state, final Player player) {
         final BlockEntity tileEntity = world.getBlockEntity(pos);
         if (!world.isClientSide && tileEntity instanceof ComputerBlockEntity) {
             final ComputerBlockEntity computer = (ComputerBlockEntity) tileEntity;

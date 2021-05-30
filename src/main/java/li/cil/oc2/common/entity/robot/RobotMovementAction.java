@@ -10,7 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -33,7 +33,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
     @Nullable private BlockPos origin;
     @Nullable private BlockPos start;
     @Nullable private BlockPos target;
-    @Nullable private Vector3d targetPos;
+    @Nullable private Vec3 targetPos;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -49,12 +49,12 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static Vector3d getTargetPositionInBlock(final BlockPos position) {
-        return Vector3d.atBottomCenterOf(position).add(0, 0.5f * (1 - Entities.ROBOT.get().getHeight()), 0);
+    public static Vec3 getTargetPositionInBlock(final BlockPos position) {
+        return Vec3.atBottomCenterOf(position).add(0, 0.5f * (1 - Entities.ROBOT.get().getHeight()), 0);
     }
 
-    public static void moveTowards(final RobotEntity robot, final Vector3d targetPosition) {
-        Vector3d delta = targetPosition.subtract(robot.position());
+    public static void moveTowards(final RobotEntity robot, final Vec3 targetPosition) {
+        Vec3 delta = targetPosition.subtract(robot.position());
         if (delta.lengthSqr() > MOVEMENT_SPEED * MOVEMENT_SPEED) {
             delta = delta.normalize().scale(MOVEMENT_SPEED);
         }

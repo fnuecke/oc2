@@ -36,7 +36,7 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.tileentity.ITickableBlockEntity;
+import net.minecraft.tileentity.TickableBlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IIntArray;
 import net.minecraft.util.text.ITextComponent;
@@ -47,6 +47,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.Optional;
 import net.minecraftforge.fml.network.NetworkHooks;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -55,7 +56,7 @@ import java.util.*;
 import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
 import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 
-public final class ComputerBlockEntity extends AbstractBlockEntity implements ITickableBlockEntity, TerminalUserProvider {
+public final class ComputerBlockEntity extends AbstractBlockEntity implements TickableBlockEntity, TerminalUserProvider {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String STATE_TAG_NAME = "state";
@@ -369,7 +370,7 @@ public final class ComputerBlockEntity extends AbstractBlockEntity implements IT
         }
 
         @Override
-        public Optional<Collection<Optional<DeviceBusElement>>> getNeighbors() {
+        public Optional<Collection<@Nullable DeviceBusElement>> getNeighbors() {
             return super.getNeighbors().map(neighbors -> {
                 final ArrayList<Optional<DeviceBusElement>> list = new ArrayList<>(neighbors);
                 list.add(Optional.of(() -> deviceItems.busElement));

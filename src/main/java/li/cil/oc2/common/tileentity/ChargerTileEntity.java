@@ -4,22 +4,17 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.tileentity.ITickableBlockEntity;
-import net.minecraft.tileentity.BlockEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.items.IItemHandler;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.TickableBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-public final class ChargerBlockEntity extends AbstractBlockEntity implements ITickableBlockEntity {
+public final class ChargerBlockEntity extends AbstractBlockEntity implements TickableBlockEntity {
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.chargerEnergyStorage);
 
     ///////////////////////////////////////////////////////////////////
@@ -77,7 +72,7 @@ public final class ChargerBlockEntity extends AbstractBlockEntity implements ITi
             return;
         }
 
-        final List<Entity> entities = getLevel().getEntities((Entity) null, new AxisAlignedBB(getBlockPos().above()), null);
+        final List<Entity> entities = getLevel().getEntities((Entity) null, new AABB(getBlockPos().above()), null);
         for (final Entity entity : entities) {
             chargeCapabilityProvider(entity);
         }

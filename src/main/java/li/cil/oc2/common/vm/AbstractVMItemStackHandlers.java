@@ -9,11 +9,8 @@ import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.container.DeviceContainerHelper;
 import li.cil.oc2.common.container.TypedDeviceContainerHelper;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.util.Optional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
@@ -118,7 +115,7 @@ public abstract class AbstractVMContainerHelpers implements VMContainerHelpers {
 
     public void serialize(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
-                tag.put(deviceType.getRegistryName().toString(), handler.serializeNBT()));
+                tag.put(deviceType.getRegistryName().toString(), handler.serializeTag()));
     }
 
     public CompoundTag serialize() {
@@ -129,7 +126,7 @@ public abstract class AbstractVMContainerHelpers implements VMContainerHelpers {
 
     public void deserialize(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
-                handler.deserializeNBT(tag.getCompound(deviceType.getRegistryName().toString())));
+                handler.deserializeTag(tag.getCompound(deviceType.getRegistryName().toString())));
     }
 
     ///////////////////////////////////////////////////////////////////

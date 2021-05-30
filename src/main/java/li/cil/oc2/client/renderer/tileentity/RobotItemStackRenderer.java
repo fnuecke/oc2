@@ -3,7 +3,7 @@ package li.cil.oc2.client.renderer.tileentity;
 import com.mojang.blaze3d.matrix.PoseStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import li.cil.oc2.client.renderer.entity.model.RobotModel;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.tileentity.ItemStackBlockEntityRenderer;
@@ -15,7 +15,7 @@ public final class RobotItemStackRenderer extends ItemStackBlockEntityRenderer {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void renderByItem(final ItemStack stack, final ItemCameraTransforms.TransformType transformType, final PoseStack matrixStack, final IRenderTypeBuffer buffer, final int combinedLight, final int combinedOverlay) {
+    public void renderByItem(final ItemStack stack, final ItemCameraTransforms.TransformType transformType, final PoseStack matrixStack, final MultiBufferSource buffer, final int combinedLight, final int combinedOverlay) {
         matrixStack.pushPose();
 
         matrixStack.translate(0.5, 0, 0.5);

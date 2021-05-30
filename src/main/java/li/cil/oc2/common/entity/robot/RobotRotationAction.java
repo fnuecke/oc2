@@ -6,7 +6,7 @@ import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Mth;
 
 import javax.annotation.Nullable;
 
@@ -40,7 +40,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
     ///////////////////////////////////////////////////////////////////
 
     public static void rotateTowards(final RobotEntity robot, final Direction targetRotation) {
-        robot.yRot = MathHelper.approachDegrees(robot.yRot, targetRotation.toYRot(), ROTATION_SPEED);
+        robot.yRot = Mth.approachDegrees(robot.yRot, targetRotation.toYRot(), ROTATION_SPEED);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -70,7 +70,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
 
         rotateTowards(robot, target);
 
-        if (MathHelper.degreesDifferenceAbs(robot.yRot, target.toYRot()) < TARGET_EPSILON) {
+        if (Mth.degreesDifferenceAbs(robot.yRot, target.toYRot()) < TARGET_EPSILON) {
             return RobotActionResult.SUCCESS;
         }
 

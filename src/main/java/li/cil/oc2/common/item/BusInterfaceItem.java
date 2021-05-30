@@ -20,7 +20,7 @@ import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vec3;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -46,7 +46,7 @@ public final class BusInterfaceItem extends ModBlockItem {
 
     @Override
     public ActionResultType useOn(final ItemUseContext context) {
-        final Vector3d localHitPos = context.getClickLocation().subtract(Vector3d.atCenterOf(context.getClickedPos()));
+        final Vec3 localHitPos = context.getClickLocation().subtract(Vec3.atCenterOf(context.getClickedPos()));
         final Direction side = Direction.getNearest(localHitPos.x, localHitPos.y, localHitPos.z);
         final ActionResultType result = tryAddToBlock(context, side);
         return result.consumesAction() ? result : super.useOn(context);

@@ -18,7 +18,7 @@ import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Mth;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -120,7 +120,7 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
 
     @Callback(name = SET_REDSTONE_OUTPUT)
     public void setRedstoneOutput(@Parameter(SIDE) final Direction side, @Parameter(VALUE) final int value) {
-        final byte clampedValue = (byte) MathHelper.clamp(value, 0, 15);
+        final byte clampedValue = (byte) Mth.clamp(value, 0, 15);
         if (clampedValue == output[side.get3DDataValue()]) {
             return;
         }

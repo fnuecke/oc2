@@ -3,12 +3,11 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.util.ServerScheduler;
-import net.minecraft.tileentity.BlockEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.Level;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.lang.ref.WeakReference;
 import java.util.Collection;
@@ -43,7 +42,7 @@ public class BlockEntityDeviceBusController extends CommonDeviceBusController {
     protected void onAfterBusScan() {
         super.onAfterBusScan();
 
-        final World world = tileEntity.getLevel();
+        final Level world = tileEntity.getLevel();
         if (world == null) {
             return;
         }

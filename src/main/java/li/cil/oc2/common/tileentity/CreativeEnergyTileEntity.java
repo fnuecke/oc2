@@ -1,13 +1,13 @@
 package li.cil.oc2.common.tileentity;
 
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.tileentity.ITickableBlockEntity;
-import net.minecraft.tileentity.BlockEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.TickableBlockEntity;
 
-public final class CreativeEnergyBlockEntity extends BlockEntity implements ITickableBlockEntity {
+public final class CreativeEnergyBlockEntity extends BlockEntity implements TickableBlockEntity {
     private final Direction[] SIDES = Direction.values();
 
     ///////////////////////////////////////////////////////////////////

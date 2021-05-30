@@ -5,7 +5,7 @@ import li.cil.oc2.common.tileentity.BusCableBlockEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vec3;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -38,7 +38,7 @@ public abstract class BusInterfaceNameMessage {
     public static boolean handleMessageServer(final BusInterfaceNameMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withServerBlockEntityAt(context, message.pos, BusCableBlockEntity.class,
                 (tileEntity) -> {
-                    final Vector3d busCableCenter = Vector3d.atCenterOf(tileEntity.getBlockPos());
+                    final Vec3 busCableCenter = Vec3.atCenterOf(tileEntity.getBlockPos());
                     if (context.get().getSender().distanceToSqr(busCableCenter) <= 8 * 8) {
                         tileEntity.setInterfaceName(message.side, message.value);
                     }

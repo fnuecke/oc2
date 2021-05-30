@@ -5,6 +5,7 @@ import li.cil.oc2.common.network.message.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -166,7 +167,7 @@ public final class Network {
                 .add();
     }
 
-    public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {
+    public static <T> void sendToClientsTrackingChunk(final T message, final LevelChunk chunk) {
         Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
     }
 

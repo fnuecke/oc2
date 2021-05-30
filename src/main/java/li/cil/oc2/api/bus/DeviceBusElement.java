@@ -59,7 +59,7 @@ public interface DeviceBusElement extends DeviceBus {
      *
      * @return the adjacent bus elements, if possible.
      */
-    Optional<Collection<@Nullable DeviceBusElement>> getNeighbors();
+    Optional<Collection<Optional<DeviceBusElement>>> getNeighbors();
 
     /**
      * Returns the list of devices connected specifically by this element.

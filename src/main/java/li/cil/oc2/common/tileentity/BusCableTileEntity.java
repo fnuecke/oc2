@@ -15,6 +15,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.util.StringUtil;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -174,10 +176,10 @@ public final class BusCableBlockEntity extends AbstractBlockEntity {
         }
 
         @Override
-        protected void collectSyntheticDevices(final World world, final BlockPos pos, final Direction direction, final HashSet<BlockDeviceInfo> devices) {
+        protected void collectSyntheticDevices(final Level world, final BlockPos pos, final Direction direction, final HashSet<BlockDeviceInfo> devices) {
             super.collectSyntheticDevices(world, pos, direction, devices);
             final String interfaceName = interfaceNames[direction.get3DDataValue()];
-            if (!StringUtils.isNullOrEmpty(interfaceName)) {
+            if (!StringUtil.isNullOrEmpty(interfaceName)) {
                 devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)));
             }
         }

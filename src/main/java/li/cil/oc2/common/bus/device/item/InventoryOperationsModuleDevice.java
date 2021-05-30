@@ -14,9 +14,9 @@ import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.AABB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vec3;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraftforge.common.util.Optional;
 import net.minecraftforge.items.IItemHandler;
@@ -210,22 +210,22 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
 
     private Stream<IItemHandler> getContainerHelpersInDirection(final Direction direction) {
         final Vector3i directionVec = direction.getNormal();
-        return getContainerHelpersAt(entity.position().add(Vector3d.atCenterOf(directionVec)), direction.getOpposite());
+        return getContainerHelpersAt(entity.position().add(Vec3.atCenterOf(directionVec)), direction.getOpposite());
     }
 
-    private Stream<IItemHandler> getContainerHelpersAt(final Vector3d position, final Direction side) {
+    private Stream<IItemHandler> getContainerHelpersAt(final Vec3 position, final Direction side) {
         return Stream.concat(getEntityItemHandlersAt(position, side), getBlockItemHandlersAt(position, side));
     }
 
-    private Stream<IItemHandler> getEntityItemHandlersAt(final Vector3d position, final Direction side) {
-        final AxisAlignedBB bounds = AxisAlignedBB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
+    private Stream<IItemHandler> getEntityItemHandlersAt(final Vec3 position, final Direction side) {
+        final AABB bounds = AABB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
         return entity.getCommandSenderWorld().getEntities(entity, bounds).stream()
                 .map(e -> e.getCapability(Capabilities.ITEM_HANDLER, side))
                 .filter(Optional::isPresent)
                 .map(c -> c.orElseThrow(AssertionError::new));
     }
 
-    private Stream<IItemHandler> getBlockItemHandlersAt(final Vector3d position, final Direction side) {
+    private Stream<IItemHandler> getBlockItemHandlersAt(final Vec3 position, final Direction side) {
         final BlockPos pos = new BlockPos(position);
         final BlockEntity tileEntity = entity.getCommandSenderWorld().getBlockEntity(pos);
         if (tileEntity == null) {

@@ -21,7 +21,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vec3;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;

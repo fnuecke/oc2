@@ -18,7 +18,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vec3;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -59,11 +59,11 @@ public final class RobotItem extends ModItem {
         final World world = context.getLevel();
         final BlockPos pos = context.getClickedPos();
 
-        final Vector3d position;
+        final Vec3 position;
         if (world.getBlockState(pos).canBeReplaced(new BlockItemUseContext(context))) {
-            position = Vector3d.atCenterOf(pos);
+            position = Vec3.atCenterOf(pos);
         } else {
-            position = Vector3d.atCenterOf(pos.relative(context.getClickedFace()));
+            position = Vec3.atCenterOf(pos.relative(context.getClickedFace()));
         }
 
         final RobotEntity robot = Entities.ROBOT.get().create(context.getLevel());

@@ -1,6 +1,6 @@
 package li.cil.oc2.common.entity;
 
-import com.mojang.math.Vector3d;
+import com.mojang.math.Vec3;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
@@ -424,7 +424,7 @@ public final class RobotEntity extends Entity implements Robot {
 
 
     @Override
-    protected Vector3d limitPistonMovement(final Vector3d pos) {
+    protected Vec3 limitPistonMovement(final Vec3 pos) {
         lastPistonMovement = getCommandSenderWorld().getGameTime();
         return super.limitPistonMovement(pos);
     }

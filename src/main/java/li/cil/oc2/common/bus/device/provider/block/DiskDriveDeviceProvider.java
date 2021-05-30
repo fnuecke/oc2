@@ -2,25 +2,25 @@ package li.cil.oc2.common.bus.device.provider.block;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import li.cil.oc2.common.bus.device.provider.util.AbstractTileEntityDeviceProvider;
-import li.cil.oc2.common.tileentity.DiskDriveTileEntity;
+import li.cil.oc2.common.bus.device.provider.util.AbstractBlockEntityDeviceProvider;
+import li.cil.oc2.common.tileentity.DiskDriveBlockEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
-import net.minecraft.block.HorizontalBlock;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraft.block.HorizontalDirectionalBlock;
+import net.minecraftforge.common.util.Optional;
 
-public final class DiskDriveDeviceProvider extends AbstractTileEntityDeviceProvider<DiskDriveTileEntity> {
+public final class DiskDriveDeviceProvider extends AbstractBlockEntityDeviceProvider<DiskDriveBlockEntity> {
     public DiskDriveDeviceProvider() {
         super(TileEntities.DISK_DRIVE_TILE_ENTITY.get());
     }
 
     @Override
-    protected LazyOptional<Device> getBlockDevice(final BlockDeviceQuery query, final DiskDriveTileEntity tileEntity) {
+    protected Optional<Device> getBlockDevice(final BlockDeviceQuery query, final DiskDriveBlockEntity tileEntity) {
         // We only allow connecting to exactly one face of the disk drive to ensure only one
         // bus (and thus, one VM) will access the device at any single time.
-        if (query.getQuerySide() != tileEntity.getBlockState().getValue(HorizontalBlock.FACING)) {
-            return LazyOptional.empty();
+        if (query.getQuerySide() != tileEntity.getBlockState().getValue(HorizontalDirectionalBlock.FACING)) {
+            return Optional.empty();
         }
 
-        return LazyOptional.of(tileEntity::getDevice);
+        return Optional.of(tileEntity::getDevice);
     }
 }

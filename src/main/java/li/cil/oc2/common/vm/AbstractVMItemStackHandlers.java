@@ -7,11 +7,13 @@ import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
-import li.cil.oc2.common.container.DeviceItemStackHandler;
-import li.cil.oc2.common.container.TypedDeviceItemStackHandler;
+import li.cil.oc2.common.container.DeviceContainerHelper;
+import li.cil.oc2.common.container.TypedDeviceContainerHelper;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.common.util.Optional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
@@ -20,7 +22,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers {
+public abstract class AbstractVMContainerHelpers implements VMContainerHelpers {
     public static final class GroupDefinition {
         public final DeviceType deviceType;
         public final int count;
@@ -47,13 +49,13 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     // NB: linked hash map such that order of parameters in constructor is retained.
     //     This is relevant when assigning default addresses for devices.
-    private final LinkedHashMap<DeviceType, DeviceItemStackHandler> itemHandlers = new LinkedHashMap<>();
+    private final LinkedHashMap<DeviceType, DeviceContainerHelper> itemHandlers = new LinkedHashMap<>();
 
     public final IItemHandler combinedItemHandlers;
 
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractVMItemStackHandlers(final GroupDefinition... groups) {
+    public AbstractVMContainerHelpers(final GroupDefinition... groups) {
         for (final GroupDefinition group : groups) {
             itemHandlers.put(group.deviceType, new ItemHandler(group.count, this::getDeviceQuery, group.deviceType));
         }
@@ -81,9 +83,9 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
     public OptionalLong getDeviceAddressBase(final VMDevice wrapper) {
         long address = ITEM_DEVICE_BASE_ADDRESS;
 
-        for (final Map.Entry<DeviceType, DeviceItemStackHandler> entry : itemHandlers.entrySet()) {
+        for (final Map.Entry<DeviceType, DeviceContainerHelper> entry : itemHandlers.entrySet()) {
             final DeviceType deviceType = entry.getKey();
-            final DeviceItemStackHandler handler = entry.getValue();
+            final DeviceContainerHelper handler = entry.getValue();
 
             for (int i = 0; i < handler.getSlots(); i++) {
                 final Collection<ItemDeviceInfo> devices = handler.getBusElement().getDeviceGroup(i);
@@ -109,23 +111,23 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     @Override
     public void exportDeviceDataToItemStacks() {
-        for (final DeviceItemStackHandler handler : itemHandlers.values()) {
+        for (final DeviceContainerHelper handler : itemHandlers.values()) {
             handler.exportDeviceDataToItemStacks();
         }
     }
 
-    public void serialize(final CompoundNBT tag) {
+    public void serialize(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
                 tag.put(deviceType.getRegistryName().toString(), handler.serializeNBT()));
     }
 
-    public CompoundNBT serialize() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serialize() {
+        final CompoundTag tag = new CompoundTag();
         serialize(tag);
         return tag;
     }
 
-    public void deserialize(final CompoundNBT tag) {
+    public void deserialize(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
                 handler.deserializeNBT(tag.getCompound(deviceType.getRegistryName().toString())));
     }
@@ -134,12 +136,12 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     protected abstract ItemDeviceQuery getDeviceQuery(final ItemStack stack);
 
-    protected void onContentsChanged(final DeviceItemStackHandler itemHandler, final int slot) {
+    protected void onContentsChanged(final DeviceContainerHelper itemHandler, final int slot) {
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private final class ItemHandler extends TypedDeviceItemStackHandler {
+    private final class ItemHandler extends TypedDeviceContainerHelper {
         public ItemHandler(final int size, final Function<ItemStack, ItemDeviceQuery> queryFactory, final DeviceType deviceType) {
             super(size, queryFactory, deviceType);
         }
@@ -147,15 +149,15 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         @Override
         protected void onContentsChanged(final int slot) {
             super.onContentsChanged(slot);
-            AbstractVMItemStackHandlers.this.onContentsChanged(this, slot);
+            AbstractVMContainerHelpers.this.onContentsChanged(this, slot);
         }
     }
 
     private final class BusElement extends AbstractDeviceBusElement {
         @Override
-        public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
+        public Optional<Collection<Optional<DeviceBusElement>>> getNeighbors() {
             return Optional.of(itemHandlers.values().stream()
-                    .map(h -> LazyOptional.of(() -> (DeviceBusElement) h.getBusElement()))
+                    .map(h -> Optional.of(() -> (DeviceBusElement) h.getBusElement()))
                     .collect(Collectors.toList()));
         }
     }

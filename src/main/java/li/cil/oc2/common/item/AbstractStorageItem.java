@@ -4,7 +4,7 @@ import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.TextFormatUtils;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
@@ -29,7 +29,7 @@ public abstract class AbstractStorageItem extends ModItem {
     ///////////////////////////////////////////////////////////////////
 
     public int getCapacity(final ItemStack stack) {
-        final CompoundNBT tag = ItemStackUtils.getModDataTag(stack);
+        final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
         if (!tag.contains(CAPACITY_TAG_NAME, NBTTagIds.TAG_INT)) {
             return defaultCapacity;
         }

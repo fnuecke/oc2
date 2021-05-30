@@ -6,7 +6,7 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.Event;
 import li.cil.oc2.common.util.ParameterizedEvent;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.util.Optional;
 
 import java.util.*;
 
@@ -150,7 +150,7 @@ public class CommonDeviceBusController implements DeviceBusController {
 
         final HashSet<DeviceBusElement> closed = new HashSet<>();
         final Stack<DeviceBusElement> open = new Stack<>();
-        final ArrayList<LazyOptional<DeviceBusElement>> optionals = new ArrayList<>();
+        final ArrayList<Optional<DeviceBusElement>> optionals = new ArrayList<>();
 
         closed.add(root);
         open.add(root);
@@ -158,7 +158,7 @@ public class CommonDeviceBusController implements DeviceBusController {
         while (!open.isEmpty()) {
             final DeviceBusElement element = open.pop();
 
-            final Optional<Collection<LazyOptional<DeviceBusElement>>> elementNeighbors = element.getNeighbors();
+            final Optional<Collection<Optional<DeviceBusElement>>> elementNeighbors = element.getNeighbors();
             if (!elementNeighbors.isPresent()) {
                 scanDelay = INCOMPLETE_RETRY_INTERVAL;
                 state = BusState.INCOMPLETE;
@@ -166,7 +166,7 @@ public class CommonDeviceBusController implements DeviceBusController {
             }
 
             elementNeighbors.ifPresent(neighbors -> {
-                for (final LazyOptional<DeviceBusElement> neighbor : neighbors) {
+                for (final Optional<DeviceBusElement> neighbor : neighbors) {
                     neighbor.ifPresent(neighborElement -> {
                         if (closed.add(neighborElement)) {
                             open.add(neighborElement);
@@ -205,7 +205,7 @@ public class CommonDeviceBusController implements DeviceBusController {
         }
 
         // Rescan if any bus element gets invalidated.
-        for (final LazyOptional<DeviceBusElement> optional : optionals) {
+        for (final Optional<DeviceBusElement> optional : optionals) {
             assert optional.isPresent();
             optional.addListener(unused -> scheduleBusScan());
         }

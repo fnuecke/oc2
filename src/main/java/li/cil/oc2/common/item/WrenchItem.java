@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.world.LevelReader;
 import net.minecraft.world.World;
 
 public final class WrenchItem extends ModItem {
@@ -37,7 +37,7 @@ public final class WrenchItem extends ModItem {
     }
 
     @Override
-    public boolean doesSneakBypassUse(final ItemStack stack, final IWorldReader world, final BlockPos pos, final PlayerEntity player) {
+    public boolean doesSneakBypassUse(final ItemStack stack, final LevelReader world, final BlockPos pos, final PlayerEntity player) {
         return true;
     }
 }

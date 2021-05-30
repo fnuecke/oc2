@@ -8,7 +8,7 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.DiskDriveBlock;
 import li.cil.oc2.common.bus.device.item.AbstractBlockDeviceVMDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.container.TypedItemStackHandler;
+import li.cil.oc2.common.container.TypedContainerHelper;
 import li.cil.oc2.common.item.FloppyItem;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.DiskDriveFloppyMessage;
@@ -21,8 +21,8 @@ import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -38,7 +38,7 @@ import java.io.OutputStream;
 import java.time.Duration;
 import java.util.Optional;
 
-public final class DiskDriveTileEntity extends AbstractTileEntity {
+public final class DiskDriveBlockEntity extends AbstractBlockEntity {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final String DATA_TAG_NAME = "data";
@@ -47,7 +47,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final DiskDriveItemStackHandler itemHandler = new DiskDriveItemStackHandler();
+    private final DiskDriveContainerHelper itemHandler = new DiskDriveContainerHelper();
     private final DiskDriveVMDevice device = new DiskDriveVMDevice();
     private final ThrottledSoundEmitter accessSoundEmitter;
     private final ThrottledSoundEmitter insertSoundEmitter;
@@ -55,7 +55,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    public DiskDriveTileEntity() {
+    public DiskDriveBlockEntity() {
         super(TileEntities.DISK_DRIVE_TILE_ENTITY.get());
 
         this.accessSoundEmitter = new ThrottledSoundEmitter(LocationSupplierUtils.of(this),
@@ -110,20 +110,20 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public CompoundNBT getUpdateTag() {
-        final CompoundNBT tag = super.getUpdateTag();
+    public CompoundTag getUpdateTag() {
+        final CompoundTag tag = super.getUpdateTag();
         tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
         return tag;
     }
 
     @Override
-    public void handleUpdateTag(final BlockState state, final CompoundNBT tag) {
+    public void handleUpdateTag(final BlockState state, final CompoundTag tag) {
         super.handleUpdateTag(state, tag);
         itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT tag) {
+    public CompoundTag save(CompoundTag tag) {
         tag = super.save(tag);
 
         tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
@@ -132,7 +132,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public void load(final BlockState state, final CompoundNBT tag) {
+    public void load(final BlockState state, final CompoundTag tag) {
         super.load(state, tag);
 
         itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
@@ -140,8 +140,8 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final class DiskDriveItemStackHandler extends TypedItemStackHandler {
-        public DiskDriveItemStackHandler() {
+    private final class DiskDriveContainerHelper extends TypedContainerHelper {
+        public DiskDriveContainerHelper() {
             super(1, ItemTags.DEVICES_FLOPPY);
         }
 
@@ -182,11 +182,11 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
             if (stack.isEmpty()) {
                 device.removeBlockDevice();
             } else {
-                final CompoundNBT tag = ItemStackUtils.getOrCreateModDataTag(stack).getCompound(DATA_TAG_NAME);
+                final CompoundTag tag = ItemStackUtils.getOrCreateModDataTag(stack).getCompound(DATA_TAG_NAME);
                 device.updateBlockDevice(tag);
             }
 
-            Network.sendToClientsTrackingChunk(new DiskDriveFloppyMessage(DiskDriveTileEntity.this), level.getChunkAt(getBlockPos()));
+            Network.sendToClientsTrackingChunk(new DiskDriveFloppyMessage(DiskDriveBlockEntity.this), level.getChunkAt(getBlockPos()));
         }
 
         private void exportDeviceDataToItemStack(final ItemStack stack) {
@@ -200,20 +200,20 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
             device.serializeData();
 
-            final CompoundNBT tag = new CompoundNBT();
+            final CompoundTag tag = new CompoundTag();
             device.exportToItemStack(tag);
             ItemStackUtils.getOrCreateModDataTag(stack).put(DATA_TAG_NAME, tag);
         }
     }
 
-    private final class DiskDriveVMDevice extends AbstractBlockDeviceVMDevice<BlockDevice, TileEntity> {
+    private final class DiskDriveVMDevice extends AbstractBlockDeviceVMDevice<BlockDevice, BlockEntity> {
         private VMContext context;
 
         public DiskDriveVMDevice() {
-            super(DiskDriveTileEntity.this);
+            super(DiskDriveBlockEntity.this);
         }
 
-        public void updateBlockDevice(final CompoundNBT tag) {
+        public void updateBlockDevice(final CompoundTag tag) {
             blobHandle = null;
             importFromItemStack(tag);
 
@@ -231,7 +231,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         }
 
         public void removeBlockDevice() {
-            updateBlockDevice(new CompoundNBT());
+            updateBlockDevice(new CompoundTag());
         }
 
         @Override

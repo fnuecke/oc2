@@ -5,10 +5,10 @@ import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.util.HorizontalBlockUtils;
+import li.cil.oc2.common.util.HorizontalDirectionalBlockUtils;
 import net.minecraft.block.BlockState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -19,7 +19,7 @@ import java.util.Collection;
 
 import static java.util.Collections.singletonList;
 
-public final class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevice, DocumentedDevice {
+public final class RedstoneInterfaceBlockEntity extends BlockEntity implements NamedDevice, DocumentedDevice {
     private static final String OUTPUT_TAG_NAME = "output";
 
     private static final String GET_REDSTONE_INPUT = "getRedstoneInput";
@@ -34,28 +34,28 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
 
     ///////////////////////////////////////////////////////////////////
 
-    public RedstoneInterfaceTileEntity() {
+    public RedstoneInterfaceBlockEntity() {
         super(TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get());
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public CompoundNBT save(CompoundNBT compound) {
+    public CompoundTag save(CompoundTag compound) {
         compound = super.save(compound);
         compound.putByteArray(OUTPUT_TAG_NAME, output);
         return compound;
     }
 
     @Override
-    public void load(final BlockState state, final CompoundNBT compound) {
+    public void load(final BlockState state, final CompoundTag compound) {
         super.load(state, compound);
         final byte[] serializedOutput = compound.getByteArray(OUTPUT_TAG_NAME);
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
     }
 
     public int getOutputForDirection(final Direction direction) {
-        final Direction localDirection = HorizontalBlockUtils.toLocal(getBlockState(), direction);
+        final Direction localDirection = HorizontalDirectionalBlockUtils.toLocal(getBlockState(), direction);
         assert localDirection != null;
 
         return output[localDirection.get3DDataValue()];
@@ -69,7 +69,7 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
         }
 
         final BlockPos pos = getBlockPos();
-        final Direction direction = HorizontalBlockUtils.toGlobal(getBlockState(), side);
+        final Direction direction = HorizontalDirectionalBlockUtils.toGlobal(getBlockState(), side);
         assert direction != null;
 
         final BlockPos neighborPos = pos.relative(direction);
@@ -95,7 +95,7 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
 
         output[side.get3DDataValue()] = clampedValue;
 
-        final Direction direction = HorizontalBlockUtils.toGlobal(getBlockState(), side);
+        final Direction direction = HorizontalDirectionalBlockUtils.toGlobal(getBlockState(), side);
         if (direction != null) {
             notifyNeighbor(direction);
         }

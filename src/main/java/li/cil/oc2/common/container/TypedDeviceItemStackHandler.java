@@ -4,16 +4,17 @@ import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.bus.device.util.Devices;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Function;
 
-public class TypedDeviceItemStackHandler extends DeviceItemStackHandler {
+public class TypedDeviceContainerHelper extends DeviceContainerHelper {
     private final DeviceType deviceType;
     private final Function<ItemStack, ItemDeviceQuery> queryFactory;
 
     ///////////////////////////////////////////////////////////////////
 
-    public TypedDeviceItemStackHandler(final int size, final Function<ItemStack, ItemDeviceQuery> queryFactory, final DeviceType deviceType) {
+    public TypedDeviceContainerHelper(final int size, final Function<ItemStack, ItemDeviceQuery> queryFactory, final DeviceType deviceType) {
         super(size, queryFactory);
         this.deviceType = deviceType;
         this.queryFactory = queryFactory;

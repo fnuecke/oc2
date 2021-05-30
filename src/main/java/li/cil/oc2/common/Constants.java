@@ -1,7 +1,7 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.api.API;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 
 public final class Constants {
     public static final int KILOBYTE = 1024;

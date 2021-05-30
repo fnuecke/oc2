@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import net.minecraft.client.resources.JsonReloadListener;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.profiler.IProfiler;
 import net.minecraft.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
@@ -29,10 +29,10 @@ public final class RPCItemStackTagFilters {
     }
 
     @Nullable
-    public static CompoundNBT getFilteredTag(final ItemStack stack, final CompoundNBT tag) {
-        final CompoundNBT result = new CompoundNBT();
+    public static CompoundTag getFilteredTag(final ItemStack stack, final CompoundTag tag) {
+        final CompoundTag result = new CompoundTag();
         for (final RPCItemStackTagFilter filter : FILTERS) {
-            final CompoundNBT filtered = filter.apply(stack, tag);
+            final CompoundTag filtered = filter.apply(stack, tag);
             if (filtered != null) {
                 result.merge(filtered);
             }

@@ -1,5 +1,6 @@
 package li.cil.oc2.common.entity;
 
+import com.mojang.math.Vector3d;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
@@ -14,7 +15,7 @@ import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.container.FixedSizeItemStackHandler;
+import li.cil.oc2.common.container.FixedSizeContainerHelper;
 import li.cil.oc2.common.container.RobotContainer;
 import li.cil.oc2.common.container.RobotTerminalContainer;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
@@ -33,6 +34,9 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.SoundType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Cursor3D;
+import net.minecraft.core.Direction;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -43,35 +47,49 @@ import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.LootContext;
 import net.minecraft.loot.LootParameters;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.network.IPacket;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.IIntArray;
-import net.minecraft.util.math.*;
-import net.minecraft.util.math.shapes.IBooleanFunction;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.*;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.util.Optional;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
-import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.items.ContainerHelper;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -81,9 +99,9 @@ import java.util.function.Consumer;
 import static li.cil.oc2.common.Constants.*;
 
 public final class RobotEntity extends Entity implements Robot {
-    public static final DataParameter<BlockPos> TARGET_POSITION = EntityDataManager.defineId(RobotEntity.class, DataSerializers.BLOCK_POS);
-    public static final DataParameter<Direction> TARGET_DIRECTION = EntityDataManager.defineId(RobotEntity.class, DataSerializers.DIRECTION);
-    public static final DataParameter<Byte> SELECTED_SLOT = EntityDataManager.defineId(RobotEntity.class, DataSerializers.BYTE);
+    public static final EntityDataAccessor<BlockPos> TARGET_POSITION = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.BLOCK_POS);
+    public static final EntityDataAccessor<Direction> TARGET_DIRECTION = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.DIRECTION);
+    public static final EntityDataAccessor<Byte> SELECTED_SLOT = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.BYTE);
 
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String STATE_TAG_NAME = "state";
@@ -105,21 +123,21 @@ public final class RobotEntity extends Entity implements Robot {
 
     private final Consumer<ChunkEvent.Unload> chunkUnloadListener = this::handleChunkUnload;
     private final Consumer<WorldEvent.Unload> worldUnloadListener = this::handleWorldUnload;
-    private final BlockPos.Mutable mutablePosition = new BlockPos.Mutable();
+    private final BlockPos.MutableBlockPos mutablePosition = new BlockPos.MutableBlockPos();
 
     private final AnimationState animationState = new AnimationState();
     private final RobotActionProcessor actionProcessor = new RobotActionProcessor();
     private final Terminal terminal = new Terminal();
     private final RobotVirtualMachine virtualMachine;
     private final RobotBusElement busElement = new RobotBusElement();
-    private final RobotItemStackHandlers deviceItems = new RobotItemStackHandlers();
+    private final RobotContainerHelpers deviceItems = new RobotContainerHelpers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.robotEnergyStorage);
-    private final ItemStackHandler inventory = new FixedSizeItemStackHandler(INVENTORY_SIZE);
+    private final FixedSizeContainerHelper inventory = new FixedSizeContainerHelper(INVENTORY_SIZE);
     private long lastPistonMovement;
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotEntity(final EntityType<?> type, final World world) {
+    public RobotEntity(final EntityType<?> type, final Level world) {
         super(type, world);
         this.blocksBuilding = true;
         setNoGravity(true);
@@ -146,12 +164,12 @@ public final class RobotEntity extends Entity implements Robot {
         return virtualMachine;
     }
 
-    public VMItemStackHandlers getItemStackHandlers() {
+    public VMContainerHelpers getContainerHelpers() {
         return deviceItems;
     }
 
     @Override
-    public ItemStackHandler getInventory() {
+    public ContainerHelper getInventory() {
         return inventory;
     }
 
@@ -162,36 +180,36 @@ public final class RobotEntity extends Entity implements Robot {
 
     @Override
     public void setSelectedSlot(final int value) {
-        getEntityData().set(SELECTED_SLOT, (byte) MathHelper.clamp(value, 0, INVENTORY_SIZE - 1));
+        getEntityData().set(SELECTED_SLOT, (byte) Mth.clamp(value, 0, INVENTORY_SIZE - 1));
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
+    public <T> Optional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
         if (capability == Capabilities.ITEM_HANDLER) {
-            return LazyOptional.of(() -> inventory).cast();
+            return Optional.of(() -> inventory).cast();
         }
         if (capability == Capabilities.ENERGY_STORAGE && Config.robotsUseEnergy()) {
-            return LazyOptional.of(() -> energy).cast();
+            return Optional.of(() -> energy).cast();
         }
         if (capability == Capabilities.ROBOT) {
-            return LazyOptional.of(() -> this).cast();
+            return Optional.of(() -> this).cast();
         }
 
-        final LazyOptional<T> optional = super.getCapability(capability, side);
+        final Optional<T> optional = super.getCapability(capability, side);
         if (optional.isPresent()) {
             return optional;
         }
 
         for (final Device device : virtualMachine.busController.getDevices()) {
             if (device instanceof ICapabilityProvider) {
-                final LazyOptional<T> value = ((ICapabilityProvider) device).getCapability(capability, side);
+                final Optional<T> value = ((ICapabilityProvider) device).getCapability(capability, side);
                 if (value.isPresent()) {
                     return value;
                 }
             }
         }
 
-        return LazyOptional.empty();
+        return Optional.empty();
     }
 
     public long getLastPistonMovement() {
@@ -199,7 +217,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     public void start() {
-        final World world = getCommandSenderWorld();
+        final Level world = getCommandSenderWorld();
         if (world.isClientSide) {
             return;
         }
@@ -208,7 +226,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     public void stop() {
-        final World world = getCommandSenderWorld();
+        final Level world = getCommandSenderWorld();
         if (world.isClientSide) {
             return;
         }
@@ -253,9 +271,9 @@ public final class RobotEntity extends Entity implements Robot {
 
         actionProcessor.tick();
 
-        if (!isClient && level instanceof ServerWorld) {
-            final VoxelShape shape = VoxelShapes.create(getBoundingBox());
-            final CubeCoordinateIterator iterator = getBlockPosIterator();
+        if (!isClient && level instanceof ServerLevel) {
+            final VoxelShape shape = Shapes.create(getBoundingBox());
+            final Cursor3D iterator = getBlockPosIterator();
             while (iterator.advance()) {
                 final int x = iterator.nextX();
                 final int y = iterator.nextY();
@@ -269,15 +287,15 @@ public final class RobotEntity extends Entity implements Robot {
                 }
 
                 final VoxelShape blockShape = blockState.getCollisionShape(level, mutablePosition);
-                if (VoxelShapes.joinIsNotEmpty(shape, blockShape.move(x, y, z), IBooleanFunction.AND)) {
-                    final TileEntity tileEntity = blockState.hasTileEntity() ? level.getBlockEntity(mutablePosition) : null;
-                    final LootContext.Builder builder = new LootContext.Builder((ServerWorld) level)
+                if (Shapes.joinIsNotEmpty(shape, blockShape.move(x, y, z), BooleanOp.AND)) {
+                    final BlockEntity tileEntity = blockState.hasBlockEntity() ? level.getBlockEntity(mutablePosition) : null;
+                    final LootContext.Builder builder = new LootContext.Builder((ServerLevel) level)
                             .withRandom(level.random)
-                            .withParameter(LootParameters.THIS_ENTITY, this)
-                            .withParameter(LootParameters.ORIGIN, position())
-                            .withParameter(LootParameters.TOOL, ItemStack.EMPTY)
-                            .withParameter(LootParameters.BLOCK_STATE, blockState)
-                            .withOptionalParameter(LootParameters.BLOCK_ENTITY, tileEntity);
+                            .withParameter(LootContextParams.THIS_ENTITY, this)
+                            .withParameter(LootContextParams.ORIGIN, position())
+                            .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
+                            .withParameter(LootContextParams.BLOCK_STATE, blockState)
+                            .withOptionalParameter(LootContextParams.BLOCK_ENTITY, tileEntity);
                     final List<ItemStack> drops = blockState.getDrops(builder);
                     level.setBlockAndUpdate(mutablePosition, Blocks.AIR.defaultBlockState());
                     for (final ItemStack drop : drops) {
@@ -289,29 +307,29 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     @Override
-    public ActionResultType interact(final PlayerEntity player, final Hand hand) {
+    public InteractionResult interact(final Player player, final InteractionHand hand) {
         final ItemStack stack = player.getItemInHand(hand);
         if (!level.isClientSide) {
             if (Wrenches.isWrench(stack)) {
                 if (player.isShiftKeyDown()) {
                     dropSelf();
-                } else if (player instanceof ServerPlayerEntity) {
-                    openContainerScreen((ServerPlayerEntity) player);
+                } else if (player instanceof ServerPlayer) {
+                    openContainerScreen((ServerPlayer) player);
                 }
             } else {
                 if (player.isShiftKeyDown()) {
                     start();
-                } else if (player instanceof ServerPlayerEntity) {
-                    openTerminalScreen((ServerPlayerEntity) player);
+                } else if (player instanceof ServerPlayer) {
+                    openTerminalScreen((ServerPlayer) player);
                 }
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public IPacket<?> getAddEntityPacket()  {
+    public Packet<?> getAddEntityPacket()  {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 
@@ -345,7 +363,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        final CompoundNBT itemsTag = NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME, Constants.ITEMS_TAG_NAME);
+        final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME, Constants.ITEMS_TAG_NAME);
         deviceItems.serialize(itemsTag); // Puts one tag per device type, as expected by TooltipUtils.
         itemsTag.put(INVENTORY_TAG_NAME, inventory.serializeNBT()); // Won't show up in tooltip.
 
@@ -354,7 +372,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     public void importFromItemStack(final ItemStack stack) {
-        final CompoundNBT itemsTag = NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ITEMS_TAG_NAME);
+        final CompoundTag itemsTag = NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ITEMS_TAG_NAME);
         deviceItems.deserialize(itemsTag);
         inventory.deserializeNBT(itemsTag.getCompound(INVENTORY_TAG_NAME));
 
@@ -365,14 +383,14 @@ public final class RobotEntity extends Entity implements Robot {
 
     @Override
     protected void defineSynchedData() {
-        final EntityDataManager dataManager = getEntityData();
+        final SynchedEntityData dataManager = getEntityData();
         dataManager.define(TARGET_POSITION, BlockPos.ZERO);
         dataManager.define(TARGET_DIRECTION, Direction.NORTH);
         dataManager.define(SELECTED_SLOT, (byte) 0);
     }
 
     @Override
-    protected void addAdditionalSaveData(final CompoundNBT tag) {
+    protected void addAdditionalSaveData(final CompoundTag tag) {
         tag.put(STATE_TAG_NAME, virtualMachine.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(COMMAND_PROCESSOR_TAG_NAME, actionProcessor.serialize());
@@ -384,7 +402,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     @Override
-    protected void readAdditionalSaveData(final CompoundNBT tag) {
+    protected void readAdditionalSaveData(final CompoundTag tag) {
         virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
         actionProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
@@ -455,15 +473,15 @@ public final class RobotEntity extends Entity implements Robot {
         virtualMachine.unload();
     }
 
-    private void openTerminalScreen(final ServerPlayerEntity player) {
-        NetworkHooks.openGui(player, new INamedContainerProvider() {
+    private void openTerminalScreen(final ServerPlayer player) {
+        NetworkHooks.openGui(player, new MenuProvider() {
             @Override
-            public ITextComponent getDisplayName() {
+            public Component getDisplayName() {
                 return getName();
             }
 
             @Override
-            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
+            public Container createMenu(final int id, final Inventory inventory, final Player player) {
                 return new RobotTerminalContainer(id, RobotEntity.this, new IIntArray() {
                     @Override
                     public int get(final int index) {
@@ -490,25 +508,25 @@ public final class RobotEntity extends Entity implements Robot {
         }, b -> b.writeVarInt(getId()));
     }
 
-    private void openContainerScreen(final ServerPlayerEntity player) {
-        NetworkHooks.openGui(player, new INamedContainerProvider() {
+    private void openContainerScreen(final ServerPlayer player) {
+        NetworkHooks.openGui(player, new MenuProvider() {
             @Override
-            public ITextComponent getDisplayName() {
+            public Component getDisplayName() {
                 return getName();
             }
 
             @Override
-            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
+            public AbstractContainerMenu createMenu(final int id, final Inventory inventory, final Player player) {
                 return new RobotContainer(id, RobotEntity.this, inventory);
             }
         }, b -> b.writeVarInt(getId()));
     }
 
-    private CubeCoordinateIterator getBlockPosIterator() {
-        final AxisAlignedBB bounds = getBoundingBox();
-        return new CubeCoordinateIterator(
-                MathHelper.floor(bounds.minX), MathHelper.floor(bounds.minY), MathHelper.floor(bounds.minZ),
-                MathHelper.floor(bounds.maxX), MathHelper.floor(bounds.maxY), MathHelper.floor(bounds.maxZ)
+    private Cursor3D getBlockPosIterator() {
+        final AABB bounds = getBoundingBox();
+        return new Cursor3D(
+                Mth.floor(bounds.minX), Mth.floor(bounds.minY), Mth.floor(bounds.minZ),
+                Mth.floor(bounds.maxX), Mth.floor(bounds.maxY), Mth.floor(bounds.maxZ)
         );
     }
 
@@ -553,7 +571,7 @@ public final class RobotEntity extends Entity implements Robot {
         public void update(final float deltaTime, final Random random) {
             if (getVirtualMachine().isRunning() || actionProcessor.hasQueuedActions()) {
                 topRenderHover = topRenderHover + deltaTime * HOVER_ANIMATION_SPEED;
-                final float topOffsetY = MathHelper.sin(topRenderHover) / 32f;
+                final float topOffsetY = Mth.sin(topRenderHover) / 32f;
 
                 topRenderOffsetY = lerpClamped(topRenderOffsetY, topOffsetY, deltaTime * TRANSLATION_SPEED);
                 baseRenderOffsetY = lerpClamped(baseRenderOffsetY, topOffsetY, deltaTime * TRANSLATION_SPEED);
@@ -584,12 +602,12 @@ public final class RobotEntity extends Entity implements Robot {
             this.result = result;
         }
 
-        public RobotActionProcessorResult(final CompoundNBT tag) {
+        public RobotActionProcessorResult(final CompoundTag tag) {
             deserialize(tag);
         }
 
-        public CompoundNBT serialize() {
-            final CompoundNBT tag = new CompoundNBT();
+        public CompoundTag serialize() {
+            final CompoundTag tag = new CompoundTag();
 
             tag.putInt(ACTION_ID_TAG_NAME, actionId);
             NBTUtils.putEnum(tag, RESULT_TAG_NAME, result);
@@ -597,7 +615,7 @@ public final class RobotEntity extends Entity implements Robot {
             return tag;
         }
 
-        public void deserialize(final CompoundNBT tag) {
+        public void deserialize(final CompoundTag tag) {
             actionId = tag.getInt(ACTION_ID_TAG_NAME);
             result = NBTUtils.getEnum(tag, RESULT_TAG_NAME, RobotActionResult.class);
         }
@@ -665,10 +683,10 @@ public final class RobotEntity extends Entity implements Robot {
             lastActionId = 0;
         }
 
-        public CompoundNBT serialize() {
-            final CompoundNBT tag = new CompoundNBT();
+        public CompoundTag serialize() {
+            final CompoundTag tag = new CompoundTag();
 
-            final ListNBT queueTag = new ListNBT();
+            final ListTag queueTag = new ListTag();
             for (final AbstractRobotAction action : queue) {
                 queueTag.add(RobotActions.serialize(action));
             }
@@ -678,7 +696,7 @@ public final class RobotEntity extends Entity implements Robot {
                 tag.put(ACTION_TAG_NAME, RobotActions.serialize(action));
             }
 
-            final ListNBT resultsTag = new ListNBT();
+            final ListTag resultsTag = new ListTag();
             for (final RobotActionProcessorResult result : results) {
                 resultsTag.add(result.serialize());
             }
@@ -689,11 +707,11 @@ public final class RobotEntity extends Entity implements Robot {
             return tag;
         }
 
-        public void deserialize(final CompoundNBT tag) {
+        public void deserialize(final ListTag tag) {
             queue.clear();
             results.clear();
 
-            final ListNBT queueTag = tag.getList(QUEUE_TAG_NAME, NBTTagIds.TAG_COMPOUND);
+            final ListTag queueTag = tag.getList(QUEUE_TAG_NAME, NBTTagIds.TAG_COMPOUND);
             for (int i = 0; i < Math.min(queueTag.size(), MAX_QUEUED_ACTIONS - 1); i++) {
                 final AbstractRobotAction action = RobotActions.deserialize(queueTag.getCompound(i));
                 if (action != null) {
@@ -703,7 +721,7 @@ public final class RobotEntity extends Entity implements Robot {
 
             action = RobotActions.deserialize(tag.getCompound(ACTION_TAG_NAME));
 
-            final ListNBT resultsTag = tag.getList(RESULTS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
+            final ListTag resultsTag = tag.getList(RESULTS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
             for (int i = 0; i < Math.min(resultsTag.size(), MAX_QUEUED_RESULTS); i++) {
                 final RobotActionProcessorResult result = new RobotActionProcessorResult(resultsTag.getCompound(i));
                 if (result.actionId != 0) {
@@ -736,8 +754,8 @@ public final class RobotEntity extends Entity implements Robot {
         }
     }
 
-    private final class RobotItemStackHandlers extends AbstractVMItemStackHandlers {
-        public RobotItemStackHandlers() {
+    private final class RobotContainerHelpers extends AbstractVMContainerHelpers {
+        public RobotContainerHelpers() {
             super(
                     GroupDefinition.of(DeviceTypes.MEMORY, MEMORY_SLOTS),
                     GroupDefinition.of(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
@@ -759,8 +777,8 @@ public final class RobotEntity extends Entity implements Robot {
         private UUID deviceId = UUID.randomUUID();
 
         @Override
-        public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
-            return Optional.of(Collections.singleton(LazyOptional.of(() -> deviceItems.busElement)));
+        public Optional<Collection<Optional<DeviceBusElement>>> getNeighbors() {
+            return Optional.of(Collections.singleton(Optional.of(() -> deviceItems.busElement)));
         }
 
         @Override
@@ -776,13 +794,13 @@ public final class RobotEntity extends Entity implements Robot {
             return super.getDeviceIdentifier(device);
         }
 
-        public CompoundNBT serialize() {
-            final CompoundNBT tag = new CompoundNBT();
+        public CompoundTag serialize() {
+            final CompoundTag tag = new CompoundTag();
             tag.putUUID(DEVICE_ID_TAG_NAME, deviceId);
             return tag;
         }
 
-        public void deserialize(final CompoundNBT tag) {
+        public void deserialize(final CompoundTag tag) {
             if (tag.hasUUID(DEVICE_ID_TAG_NAME)) {
                 deviceId = tag.getUUID(DEVICE_ID_TAG_NAME);
             }

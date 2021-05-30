@@ -1,7 +1,7 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.tileentity.ComputerBlockEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
@@ -15,7 +15,7 @@ public final class ComputerBootErrorMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerBootErrorMessage(final ComputerTileEntity tileEntity) {
+    public ComputerBootErrorMessage(final ComputerBlockEntity tileEntity) {
         this.pos = tileEntity.getBlockPos();
         this.value = tileEntity.getVirtualMachine().getBootError();
     }
@@ -27,7 +27,7 @@ public final class ComputerBootErrorMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static boolean handleMessage(final ComputerBootErrorMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
+        context.get().enqueueWork(() -> MessageUtils.withClientBlockEntityAt(message.pos, ComputerBlockEntity.class,
                 (tileEntity) -> tileEntity.getVirtualMachine().setBootErrorClient(message.value)));
         return true;
     }

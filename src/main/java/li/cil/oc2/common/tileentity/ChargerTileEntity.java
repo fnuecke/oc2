@@ -7,9 +7,9 @@ import li.cil.oc2.common.energy.FixedEnergyStorage;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.tileentity.ITickableBlockEntity;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -19,12 +19,12 @@ import net.minecraftforge.items.IItemHandler;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public final class ChargerTileEntity extends AbstractTileEntity implements ITickableTileEntity {
+public final class ChargerBlockEntity extends AbstractBlockEntity implements ITickableBlockEntity {
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.chargerEnergyStorage);
 
     ///////////////////////////////////////////////////////////////////
 
-    ChargerTileEntity() {
+    ChargerBlockEntity() {
         super(TileEntities.CHARGER_TILE_ENTITY.get());
     }
 
@@ -37,7 +37,7 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT tag) {
+    public CompoundTag save(CompoundTag tag) {
         tag = super.save(tag);
 
         tag.put(Constants.ENERGY_TAG_NAME, energy.serializeNBT());
@@ -46,7 +46,7 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
     }
 
     @Override
-    public void load(final BlockState state, final CompoundNBT tag) {
+    public void load(final BlockState state, final CompoundTag tag) {
         super.load(state, tag);
 
         energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
@@ -66,7 +66,7 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
             return;
         }
 
-        final TileEntity tileEntity = getLevel().getBlockEntity(getBlockPos().above());
+        final BlockEntity tileEntity = getLevel().getBlockEntity(getBlockPos().above());
         if (tileEntity != null) {
             chargeCapabilityProvider(tileEntity);
         }

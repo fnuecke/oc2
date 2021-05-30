@@ -1,7 +1,7 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.tileentity.ComputerBlockEntity;
 import li.cil.oc2.common.vm.VMRunState;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
@@ -15,7 +15,7 @@ public final class ComputerRunStateMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerRunStateMessage(final ComputerTileEntity tileEntity) {
+    public ComputerRunStateMessage(final ComputerBlockEntity tileEntity) {
         this.pos = tileEntity.getBlockPos();
         this.value = tileEntity.getVirtualMachine().getRunState();
     }
@@ -27,7 +27,7 @@ public final class ComputerRunStateMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static boolean handleMessage(final ComputerRunStateMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
+        context.get().enqueueWork(() -> MessageUtils.withClientBlockEntityAt(message.pos, ComputerBlockEntity.class,
                 (tileEntity) -> tileEntity.getVirtualMachine().setRunStateClient(message.value)));
         return true;
     }

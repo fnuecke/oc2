@@ -3,15 +3,15 @@ package li.cil.oc2.common.tileentity;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.util.Optional;
 
 import javax.annotation.Nullable;
 
-public final class NetworkHubTileEntity extends AbstractTileEntity implements NetworkInterface {
+public final class NetworkHubBlockEntity extends AbstractBlockEntity implements NetworkInterface {
     private static final int TTL_COST = 1;
 
     ///////////////////////////////////////////////////////////////////
@@ -21,7 +21,7 @@ public final class NetworkHubTileEntity extends AbstractTileEntity implements Ne
 
     ///////////////////////////////////////////////////////////////////
 
-    public NetworkHubTileEntity() {
+    public NetworkHubBlockEntity() {
         super(TileEntities.NETWORK_HUB_TILE_ENTITY.get());
     }
 
@@ -72,9 +72,9 @@ public final class NetworkHubTileEntity extends AbstractTileEntity implements Ne
         for (final Direction side : Constants.DIRECTIONS) {
             adjacentInterfaces[side.get3DDataValue()] = null;
 
-            final TileEntity neighborTileEntity = world.getBlockEntity(pos.relative(side));
-            if (neighborTileEntity != null) {
-                final LazyOptional<NetworkInterface> capability = neighborTileEntity.getCapability(Capabilities.NETWORK_INTERFACE, side.getOpposite());
+            final BlockEntity neighborBlockEntity = world.getBlockEntity(pos.relative(side));
+            if (neighborBlockEntity != null) {
+                final Optional<NetworkInterface> capability = neighborBlockEntity.getCapability(Capabilities.NETWORK_INTERFACE, side.getOpposite());
                 capability.ifPresent(adjacentInterface -> {
                     adjacentInterfaces[side.get3DDataValue()] = adjacentInterface;
                     capability.addListener(unused -> handleNeighborChanged());

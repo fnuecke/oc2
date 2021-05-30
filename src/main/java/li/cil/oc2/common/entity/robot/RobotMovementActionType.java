@@ -1,7 +1,7 @@
 package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.entity.RobotEntity;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.math.vector.Vector3d;
 
 public final class RobotMovementActionType extends AbstractRobotActionType {
@@ -32,7 +32,7 @@ public final class RobotMovementActionType extends AbstractRobotActionType {
     }
 
     @Override
-    public AbstractRobotAction deserialize(final CompoundNBT tag) {
+    public AbstractRobotAction deserialize(final CompoundTag tag) {
         return new RobotMovementAction(tag);
     }
 }

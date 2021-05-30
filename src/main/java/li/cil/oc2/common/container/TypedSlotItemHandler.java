@@ -2,12 +2,9 @@ package li.cil.oc2.common.container;
 
 import com.mojang.datafixers.util.Pair;
 import li.cil.oc2.api.bus.device.DeviceType;
-import net.minecraft.inventory.container.PlayerContainer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
-
-import javax.annotation.Nullable;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.InventoryMenu;
+import org.jetbrains.annotations.Nullable;
 
 public final class TypedSlotItemHandler extends SlotItemHandler {
     private final DeviceType deviceType;
@@ -27,7 +24,7 @@ public final class TypedSlotItemHandler extends SlotItemHandler {
         if (hasItem()) {
             return super.getNoItemIcon();
         } else {
-            return Pair.of(PlayerContainer.BLOCK_ATLAS, deviceType.getBackgroundIcon());
+            return Pair.of(InventoryMenu.BLOCK_ATLAS, deviceType.getBackgroundIcon());
         }
     }
 }

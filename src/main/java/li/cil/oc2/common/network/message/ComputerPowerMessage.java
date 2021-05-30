@@ -1,7 +1,7 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.tileentity.ComputerBlockEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
@@ -15,7 +15,7 @@ public final class ComputerPowerMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerPowerMessage(final ComputerTileEntity computer, final boolean power) {
+    public ComputerPowerMessage(final ComputerBlockEntity computer, final boolean power) {
         this.pos = computer.getBlockPos();
         this.power = power;
     }
@@ -27,7 +27,7 @@ public final class ComputerPowerMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static boolean handleMessage(final ComputerPowerMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withServerTileEntityAt(context, message.pos, ComputerTileEntity.class,
+        context.get().enqueueWork(() -> MessageUtils.withServerBlockEntityAt(context, message.pos, ComputerBlockEntity.class,
                 (computer) -> {
                     final ServerPlayerEntity player = context.get().getSender();
                     if (player != null && computer.getBlockPos().closerThan(player.position(), 8)) {

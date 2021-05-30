@@ -1,9 +1,9 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.DiskDriveTileEntity;
+import li.cil.oc2.common.tileentity.DiskDriveBlockEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -12,11 +12,11 @@ import java.util.function.Supplier;
 
 public final class DiskDriveFloppyMessage {
     private BlockPos pos;
-    private CompoundNBT data;
+    private CompoundTag data;
 
     ///////////////////////////////////////////////////////////////////
 
-    public DiskDriveFloppyMessage(final DiskDriveTileEntity diskDrive) {
+    public DiskDriveFloppyMessage(final DiskDriveBlockEntity diskDrive) {
         this.pos = diskDrive.getBlockPos();
         this.data = diskDrive.getFloppy().serializeNBT();
     }
@@ -28,7 +28,7 @@ public final class DiskDriveFloppyMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static boolean handleMessage(final DiskDriveFloppyMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, DiskDriveTileEntity.class,
+        context.get().enqueueWork(() -> MessageUtils.withClientBlockEntityAt(message.pos, DiskDriveBlockEntity.class,
                 (diskDrive) -> diskDrive.setFloppyClient(ItemStack.of(message.data))));
         return true;
     }

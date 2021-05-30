@@ -11,10 +11,10 @@ import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.util.HorizontalBlockUtils;
+import li.cil.oc2.common.util.HorizontalDirectionalBlockUtils;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -22,7 +22,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,14 +39,14 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
 
     ///////////////////////////////////////////////////////////////////
 
-    private final TileEntity tileEntity;
+    private final BlockEntity tileEntity;
     private final ObjectDevice device;
     private final RedstoneEmitter[] capabilities;
     private final byte[] output = new byte[Constants.BLOCK_FACE_COUNT];
 
     ///////////////////////////////////////////////////////////////////
 
-    public RedstoneInterfaceCardItemDevice(final ItemStack identity, final TileEntity tileEntity) {
+    public RedstoneInterfaceCardItemDevice(final ItemStack identity, final BlockEntity tileEntity) {
         super(identity);
         this.tileEntity = tileEntity;
         this.device = new ObjectDevice(this, "redstone");
@@ -62,23 +62,23 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
 
     @Nonnull
     @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull final Capability<T> capability, @Nullable final Direction side) {
+    public <T> Optional<T> getCapability(@Nonnull final Capability<T> capability, @Nullable final Direction side) {
         if (capability == Capabilities.REDSTONE_EMITTER && side != null) {
-            return LazyOptional.of(() -> capabilities[side.get3DDataValue()]).cast();
+            return Optional.of(() -> capabilities[side.get3DDataValue()]).cast();
         }
 
-        return LazyOptional.empty();
+        return Optional.empty();
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        final CompoundTag tag = new CompoundTag();
         tag.putByteArray(OUTPUT_TAG_NAME, output);
         return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT tag) {
+    public void deserializeNBT(final CompoundTag tag) {
         final byte[] serializedOutput = tag.getByteArray(OUTPUT_TAG_NAME);
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
     }
@@ -101,7 +101,7 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
         }
 
         final BlockPos pos = tileEntity.getBlockPos();
-        final Direction direction = HorizontalBlockUtils.toGlobal(tileEntity.getBlockState(), side);
+        final Direction direction = HorizontalDirectionalBlockUtils.toGlobal(tileEntity.getBlockState(), side);
         assert direction != null;
 
         final BlockPos neighborPos = pos.relative(direction);
@@ -127,7 +127,7 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
 
         output[side.get3DDataValue()] = clampedValue;
 
-        final Direction direction = HorizontalBlockUtils.toGlobal(tileEntity.getBlockState(), side);
+        final Direction direction = HorizontalDirectionalBlockUtils.toGlobal(tileEntity.getBlockState(), side);
         if (direction != null) {
             notifyNeighbor(direction);
         }

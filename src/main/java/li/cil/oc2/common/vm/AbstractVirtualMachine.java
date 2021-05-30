@@ -13,7 +13,7 @@ import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.riscv.R5Board;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
@@ -229,10 +229,10 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
     }
 
-    public CompoundNBT serialize() {
+    public CompoundTag serialize() {
         joinWorkerThread();
 
-        final CompoundNBT tag = new CompoundNBT();
+        final CompoundTag tag = new CompoundTag();
 
         if (runner != null) {
             tag.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
@@ -245,7 +245,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         return tag;
     }
 
-    public void deserialize(final CompoundNBT tag) {
+    public void deserialize(final CompoundTag tag) {
         joinWorkerThread();
 
         if (tag.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {

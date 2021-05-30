@@ -3,13 +3,13 @@ package li.cil.oc2.common.container;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.bus.ItemHandlerDeviceBusElement;
 import li.cil.oc2.common.util.NBTTagIds;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.NonNullList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Function;
 
-public class DeviceItemStackHandler extends FixedSizeItemStackHandler {
+public class DeviceContainerHelper extends FixedSizeContainerHelper {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
 
     ///////////////////////////////////////////////////////////////////
@@ -18,11 +18,11 @@ public class DeviceItemStackHandler extends FixedSizeItemStackHandler {
 
     ///////////////////////////////////////////////////////////////////
 
-    public DeviceItemStackHandler(final int size, final Function<ItemStack, ItemDeviceQuery> queryFactory) {
+    public DeviceContainerHelper(final int size, final Function<ItemStack, ItemDeviceQuery> queryFactory) {
         this(NonNullList.withSize(size, ItemStack.EMPTY), queryFactory);
     }
 
-    public DeviceItemStackHandler(final NonNullList<ItemStack> stacks, final Function<ItemStack, ItemDeviceQuery> queryFactory) {
+    public DeviceContainerHelper(final NonNullList<ItemStack> stacks, final Function<ItemStack, ItemDeviceQuery> queryFactory) {
         super(stacks);
         this.busElement = new ItemHandlerDeviceBusElement(getSlots(), queryFactory);
     }
@@ -40,14 +40,14 @@ public class DeviceItemStackHandler extends FixedSizeItemStackHandler {
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT tag = super.serializeNBT();
+    public CompoundTag serializeTag() {
+        final CompoundTag tag = super.serializeTag();
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.serializeNBT());
         return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT tag) {
+    public void deserializeTag(final CompoundTag tag) {
         super.deserializeNBT(tag);
         busElement.deserializeNBT(tag.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
         for (int slot = 0; slot < getSlots(); slot++) {

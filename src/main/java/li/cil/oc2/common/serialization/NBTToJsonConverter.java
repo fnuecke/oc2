@@ -44,7 +44,7 @@ public final class NBTToJsonConverter {
             }
             case NBTTagIds.TAG_LIST: {
                 final JsonArray json = new JsonArray();
-                final ListNBT listTag = (ListNBT) tag;
+                final ListTag listTag = (ListTag) tag;
                 for (final INBT item : listTag) {
                     json.add(convert(item));
                 }
@@ -52,7 +52,7 @@ public final class NBTToJsonConverter {
             }
             case NBTTagIds.TAG_COMPOUND: {
                 final JsonObject json = new JsonObject();
-                final CompoundNBT compoundTag = (CompoundNBT) tag;
+                final CompoundTag compoundTag = (CompoundTag) tag;
                 for (final String key : compoundTag.getAllKeys()) {
                     json.add(key, convert(compoundTag.get(key)));
                 }

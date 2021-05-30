@@ -17,8 +17,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.*;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
@@ -31,7 +31,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.items.ContainerHelper;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -68,14 +68,14 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        final CompoundTag tag = new CompoundTag();
         tag.putLong(LAST_OPERATION_TAG_NAME, lastOperation);
         return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT tag) {
+    public void deserializeNBT(final CompoundTag tag) {
         lastOperation = MathHelper.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.getCommandSenderWorld().getGameTime());
     }
 
@@ -103,7 +103,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
         }
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
 
         final List<ItemEntity> oldItems = getItemsInRange();
 
@@ -137,7 +137,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
         }
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
 
         final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);
         if (extracted.isEmpty() || !(extracted.getItem() instanceof BlockItem)) {
@@ -187,7 +187,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
         }
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
 
         final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);
 
@@ -253,7 +253,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        final TileEntity tileEntity = world.getBlockEntity(blockPos);
+        final BlockEntity tileEntity = world.getBlockEntity(blockPos);
         final Block block = blockState.getBlock();
         final boolean isCommandBlock = block instanceof CommandBlockBlock || block instanceof StructureBlock || block instanceof JigsawBlock;
         if (isCommandBlock && !player.canUseGameMasterBlocks()) {

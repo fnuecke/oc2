@@ -4,7 +4,7 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.MathHelper;
 
@@ -32,7 +32,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
         this.direction = direction;
     }
 
-    RobotRotationAction(final CompoundNBT tag) {
+    RobotRotationAction(final CompoundTag tag) {
         super(RobotActions.ROTATION);
         deserialize(tag);
     }
@@ -78,8 +78,8 @@ public final class RobotRotationAction extends AbstractRobotAction {
     }
 
     @Override
-    public CompoundNBT serialize() {
-        final CompoundNBT tag = super.serialize();
+    public CompoundTag serialize() {
+        final CompoundTag tag = super.serialize();
 
         NBTUtils.putEnum(tag, DIRECTION_TAG_NAME, direction);
         if (target != null) {
@@ -90,7 +90,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
     }
 
     @Override
-    public void deserialize(final CompoundNBT tag) {
+    public void deserialize(final CompoundTag tag) {
         super.deserialize(tag);
 
         direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, RotationDirection.class);

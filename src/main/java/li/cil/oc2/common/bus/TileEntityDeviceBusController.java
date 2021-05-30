@@ -3,11 +3,11 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.util.ServerScheduler;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.IWorld;
+import net.minecraft.world.Level;
 import net.minecraft.world.World;
 
 import java.lang.ref.WeakReference;
@@ -15,14 +15,14 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 
-public class TileEntityDeviceBusController extends CommonDeviceBusController {
+public class BlockEntityDeviceBusController extends CommonDeviceBusController {
     private final Runnable onBusChunkLoadedStateChanged = this::scheduleBusScan;
     private final HashSet<TrackedChunk> trackedChunks = new HashSet<>();
-    private final TileEntity tileEntity;
+    private final BlockEntity tileEntity;
 
     ///////////////////////////////////////////////////////////////////
 
-    public TileEntityDeviceBusController(final DeviceBusElement root, final int baseEnergyConsumption, final TileEntity tileEntity) {
+    public BlockEntityDeviceBusController(final DeviceBusElement root, final int baseEnergyConsumption, final BlockEntity tileEntity) {
         super(root, baseEnergyConsumption);
         this.tileEntity = tileEntity;
     }
@@ -52,7 +52,7 @@ public class TileEntityDeviceBusController extends CommonDeviceBusController {
         for (final DeviceBusElement element : getElements()) {
             if (element instanceof BlockDeviceBusElement) {
                 final BlockDeviceBusElement blockElement = (BlockDeviceBusElement) element;
-                final IWorld elementWorld = blockElement.getLevel();
+                final Level elementWorld = blockElement.getLevel();
                 final BlockPos elementPosition = blockElement.getPosition();
                 newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition));
                 newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.relative(Direction.NORTH)));
@@ -82,7 +82,7 @@ public class TileEntityDeviceBusController extends CommonDeviceBusController {
 
     private void addListeners(final Collection<TrackedChunk> trackedChunks) {
         for (final TrackedChunk trackedChunk : trackedChunks) {
-            final IWorld world = trackedChunk.world.get();
+            final Level world = trackedChunk.world.get();
             ServerScheduler.scheduleOnLoad(world, trackedChunk.position, onBusChunkLoadedStateChanged);
             ServerScheduler.scheduleOnUnload(world, trackedChunk.position, onBusChunkLoadedStateChanged);
         }
@@ -90,7 +90,7 @@ public class TileEntityDeviceBusController extends CommonDeviceBusController {
 
     private void removeListeners(final Collection<TrackedChunk> trackedChunks) {
         for (final TrackedChunk trackedChunk : trackedChunks) {
-            final IWorld world = trackedChunk.world.get();
+            final Level world = trackedChunk.world.get();
             if (world != null) {
                 ServerScheduler.cancelOnLoad(world, trackedChunk.position, onBusChunkLoadedStateChanged);
                 ServerScheduler.cancelOnUnload(world, trackedChunk.position, onBusChunkLoadedStateChanged);
@@ -99,10 +99,10 @@ public class TileEntityDeviceBusController extends CommonDeviceBusController {
     }
 
     private static final class TrackedChunk {
-        public final WeakReference<IWorld> world;
+        public final WeakReference<Level> world;
         public final ChunkPos position;
 
-        private TrackedChunk(final IWorld world, final BlockPos position) {
+        private TrackedChunk(final Level world, final BlockPos position) {
             this.world = new WeakReference<>(world);
             this.position = new ChunkPos(position);
         }

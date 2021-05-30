@@ -1,25 +1,16 @@
 package li.cil.oc2.common.vm;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
+import com.mojang.math.Matrix4f;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.API;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldVertexBufferUploader;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.state.properties.NoteBlockInstrument;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
-
-import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
@@ -111,7 +102,7 @@ public final class Terminal {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void render(final MatrixStack stack) {
+    public void render(final PoseStack stack) {
         if (hasPendingBell) {
             hasPendingBell = false;
             final Minecraft client = Minecraft.getInstance();
@@ -540,7 +531,7 @@ public final class Terminal {
 
         ///////////////////////////////////////////////////////////////
 
-        public void render(final AtomicInteger dirty, final MatrixStack stack) {
+        public void render(final AtomicInteger dirty, final PoseStack stack) {
             validateLineCache(dirty, stack);
             renderBuffer();
 
@@ -555,18 +546,18 @@ public final class Terminal {
             GlStateManager._depthMask(false);
             Minecraft.getInstance().getTextureManager().bind(LOCATION_FONT_TEXTURE);
 
-            final BufferBuilder buffer = Tessellator.getInstance().getBuilder();
+            final BufferBuilder buffer = Tesselator.getInstance().getBuilder();
             for (final Object line : lines) {
-                buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX);
+                buffer.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
                 buffer.restoreState((BufferBuilder.State) line);
                 buffer.end();
-                WorldVertexBufferUploader.end(buffer);
+                BufferUploader.end(buffer);
             }
 
             GlStateManager._depthMask(true);
         }
 
-        private void validateLineCache(final AtomicInteger dirty, final MatrixStack stack) {
+        private void validateLineCache(final AtomicInteger dirty, final PoseStack stack) {
             if (!Objects.equals(lastMatrix, stack.last().pose())) {
                 lastMatrix = stack.last().pose();
                 dirty.set(-1);
@@ -576,7 +567,7 @@ public final class Terminal {
                 return;
             }
 
-            final BufferBuilder buffer = Tessellator.getInstance().getBuilder();
+            final BufferBuilder buffer = Tesselator.getInstance().getBuilder();
 
             final int mask = dirty.getAndSet(0);
             for (int row = 0; row < lines.length; row++) {
@@ -588,7 +579,7 @@ public final class Terminal {
                 stack.translate(0, row * CHAR_HEIGHT, 0);
                 final Matrix4f matrix = stack.last().pose();
 
-                buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX);
+                buffer.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
 
                 renderBackground(matrix, buffer, row);
                 renderForeground(matrix, buffer, row);
@@ -709,7 +700,7 @@ public final class Terminal {
             }
         }
 
-        private void renderCursor(final MatrixStack stack) {
+        private void renderCursor(final PoseStack stack) {
             if (terminal.x < 0 || terminal.x >= WIDTH || terminal.y < 0 || terminal.y >= HEIGHT) {
                 return;
             }
@@ -721,8 +712,8 @@ public final class Terminal {
             stack.translate(terminal.x * CHAR_WIDTH, terminal.y * CHAR_HEIGHT, 0);
 
             final Matrix4f matrix = stack.last().pose();
-            final BufferBuilder buffer = Tessellator.getInstance().getBuilder();
-            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+            final BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+            buffer.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION_COLOR);
 
             final int foreground = COLORS[COLOR_WHITE];
             final float r = ((foreground >> 16) & 0xFF) / 255f;
@@ -735,7 +726,7 @@ public final class Terminal {
             buffer.vertex(matrix, 0, 0, 0).color(r, g, b, 1).endVertex();
 
             buffer.end();
-            WorldVertexBufferUploader.end(buffer);
+            BufferUploader.end(buffer);
 
             stack.popPose();
 

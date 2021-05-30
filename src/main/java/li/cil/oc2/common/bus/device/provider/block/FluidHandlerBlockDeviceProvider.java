@@ -4,15 +4,15 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import li.cil.oc2.common.bus.device.provider.util.AbstractTileEntityCapabilityDeviceProvider;
+import li.cil.oc2.common.bus.device.provider.util.AbstractBlockEntityCapabilityDeviceProvider;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraft.tileentity.BlockEntity;
+import net.minecraftforge.common.util.Optional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-public final class FluidHandlerBlockDeviceProvider extends AbstractTileEntityCapabilityDeviceProvider<IFluidHandler, TileEntity> {
+public final class FluidHandlerBlockDeviceProvider extends AbstractBlockEntityCapabilityDeviceProvider<IFluidHandler, BlockEntity> {
     public FluidHandlerBlockDeviceProvider() {
         super(() -> Capabilities.FLUID_HANDLER);
     }
@@ -20,8 +20,8 @@ public final class FluidHandlerBlockDeviceProvider extends AbstractTileEntityCap
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected LazyOptional<Device> getBlockDevice(final BlockDeviceQuery query, final IFluidHandler value) {
-        return LazyOptional.of(() -> new ObjectDevice(new FluidHandlerDevice(value), "fluid_handler"));
+    protected Optional<Device> getBlockDevice(final BlockDeviceQuery query, final IFluidHandler value) {
+        return Optional.of(() -> new ObjectDevice(new FluidHandlerDevice(value), "fluid_handler"));
     }
 
     ///////////////////////////////////////////////////////////////////

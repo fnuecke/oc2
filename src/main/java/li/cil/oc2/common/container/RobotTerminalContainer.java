@@ -8,7 +8,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.IIntArray;
 import net.minecraft.util.IntArray;
-import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.items.ContainerHelper;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nullable;
@@ -43,7 +43,7 @@ public final class RobotTerminalContainer extends AbstractContainer {
         checkContainerDataCount(energyInfo, ENERGY_INFO_SIZE);
         addDataSlots(energyInfo);
 
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             final int x = (AbstractTerminalWidget.WIDTH - inventory.getSlots() * SLOT_SIZE) / 2 + 1 + slot * SLOT_SIZE;
             addSlot(new SlotItemHandler(inventory, slot, x, AbstractTerminalWidget.HEIGHT + 4));

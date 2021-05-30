@@ -12,16 +12,16 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3i;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.util.Optional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.items.ContainerHelper;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -63,7 +63,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
             return;
         }
 
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
 
         // Do simulation run, validating slot indices and getting actual amount possible to move.
         ItemStack extracted = inventory.extractItem(fromSlot, count, true);
@@ -97,7 +97,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
         }
 
         final int originalStackSize = stack.getCount();
-        for (final IItemHandler handler : getItemStackHandlersInDirection(getAdjustedDirection(direction)).collect(Collectors.toList())) {
+        for (final IItemHandler handler : getContainerHelpersInDirection(getAdjustedDirection(direction)).collect(Collectors.toList())) {
             stack = ItemHandlerHelper.insertItemStacked(handler, stack, false);
 
             if (stack.isEmpty()) {
@@ -134,7 +134,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
         }
 
         final int originalStackSize = stack.getCount();
-        final Optional<IItemHandler> optional = getItemStackHandlersInDirection(getAdjustedDirection(direction)).findFirst();
+        final Optional<IItemHandler> optional = getContainerHelpersInDirection(getAdjustedDirection(direction)).findFirst();
         if (optional.isPresent()) {
             stack = optional.get().insertItem(intoSlot, stack, false);
         }
@@ -159,7 +159,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
             return 0;
         }
 
-        final List<IItemHandler> handlers = getItemStackHandlersInDirection(getAdjustedDirection(direction)).collect(Collectors.toList());
+        final List<IItemHandler> handlers = getContainerHelpersInDirection(getAdjustedDirection(direction)).collect(Collectors.toList());
         if (handlers.isEmpty()) {
             return takeFromWorld(count);
         } else {
@@ -175,7 +175,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
             return 0;
         }
 
-        return getItemStackHandlersInDirection(getAdjustedDirection(direction)).findFirst().map(handler ->
+        return getContainerHelpersInDirection(getAdjustedDirection(direction)).findFirst().map(handler ->
                 takeFromInventory(count, handler, fromSlot)).orElse(0);
     }
 
@@ -208,12 +208,12 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
         return stack;
     }
 
-    private Stream<IItemHandler> getItemStackHandlersInDirection(final Direction direction) {
+    private Stream<IItemHandler> getContainerHelpersInDirection(final Direction direction) {
         final Vector3i directionVec = direction.getNormal();
-        return getItemStackHandlersAt(entity.position().add(Vector3d.atCenterOf(directionVec)), direction.getOpposite());
+        return getContainerHelpersAt(entity.position().add(Vector3d.atCenterOf(directionVec)), direction.getOpposite());
     }
 
-    private Stream<IItemHandler> getItemStackHandlersAt(final Vector3d position, final Direction side) {
+    private Stream<IItemHandler> getContainerHelpersAt(final Vector3d position, final Direction side) {
         return Stream.concat(getEntityItemHandlersAt(position, side), getBlockItemHandlersAt(position, side));
     }
 
@@ -221,18 +221,18 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
         final AxisAlignedBB bounds = AxisAlignedBB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
         return entity.getCommandSenderWorld().getEntities(entity, bounds).stream()
                 .map(e -> e.getCapability(Capabilities.ITEM_HANDLER, side))
-                .filter(LazyOptional::isPresent)
+                .filter(Optional::isPresent)
                 .map(c -> c.orElseThrow(AssertionError::new));
     }
 
     private Stream<IItemHandler> getBlockItemHandlersAt(final Vector3d position, final Direction side) {
         final BlockPos pos = new BlockPos(position);
-        final TileEntity tileEntity = entity.getCommandSenderWorld().getBlockEntity(pos);
+        final BlockEntity tileEntity = entity.getCommandSenderWorld().getBlockEntity(pos);
         if (tileEntity == null) {
             return Stream.empty();
         }
 
-        final LazyOptional<IItemHandler> capability = tileEntity.getCapability(Capabilities.ITEM_HANDLER, side);
+        final Optional<IItemHandler> capability = tileEntity.getCapability(Capabilities.ITEM_HANDLER, side);
         if (capability.isPresent()) {
             return Stream.of(capability.orElseThrow(AssertionError::new));
         }
@@ -246,7 +246,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
 
     private int takeFromWorld(final int count) {
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
 
         int remaining = count;
         for (final ItemEntity itemEntity : getItemsInRange()) {
@@ -271,7 +271,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
 
     private int takeFromInventories(final int count, final List<IItemHandler> handlers) {
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
 
         int remaining = count;
         for (final IItemHandler handler : handlers) {
@@ -311,7 +311,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
     }
 
     private int takeFromInventory(final int count, final IItemHandler handler, final int slot) {
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
 
         // Do simulation run, getting actual amount possible to take.

@@ -1,13 +1,13 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.block.Blocks;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.tileentity.ComputerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.IIntArray;
-import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.util.LevelPosCallable;
 import net.minecraft.util.IntArray;
 import net.minecraft.util.math.BlockPos;
 
@@ -21,21 +21,21 @@ public final class ComputerTerminalContainer extends AbstractContainer {
     @Nullable
     public static ComputerTerminalContainer create(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
         final BlockPos pos = data.readBlockPos();
-        final TileEntity tileEntity = playerInventory.player.getCommandSenderWorld().getBlockEntity(pos);
-        if (!(tileEntity instanceof ComputerTileEntity)) {
+        final BlockEntity tileEntity = playerInventory.player.getCommandSenderWorld().getBlockEntity(pos);
+        if (!(tileEntity instanceof ComputerBlockEntity)) {
             return null;
         }
-        return new ComputerTerminalContainer(id, playerInventory.player, (ComputerTileEntity) tileEntity, new IntArray(3));
+        return new ComputerTerminalContainer(id, playerInventory.player, (ComputerBlockEntity) tileEntity, new IntArray(3));
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private final ComputerTileEntity computer;
+    private final ComputerBlockEntity computer;
     private final IIntArray energyInfo;
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerTerminalContainer(final int id, final PlayerEntity player, final ComputerTileEntity computer, final IIntArray energyInfo) {
+    public ComputerTerminalContainer(final int id, final PlayerEntity player, final ComputerBlockEntity computer, final IIntArray energyInfo) {
         super(Containers.COMPUTER_TERMINAL_CONTAINER.get(), id);
         this.computer = computer;
         this.energyInfo = energyInfo;
@@ -48,7 +48,7 @@ public final class ComputerTerminalContainer extends AbstractContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerTileEntity getComputer() {
+    public ComputerBlockEntity getComputer() {
         return computer;
     }
 
@@ -66,7 +66,7 @@ public final class ComputerTerminalContainer extends AbstractContainer {
 
     @Override
     public boolean stillValid(final PlayerEntity player) {
-        return stillValid(IWorldPosCallable.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER.get());
+        return stillValid(LevelPosCallable.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER.get());
     }
 
     @Override

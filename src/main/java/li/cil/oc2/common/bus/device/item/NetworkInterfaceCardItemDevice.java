@@ -16,11 +16,11 @@ import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.device.virtio.VirtIONetworkDevice;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.util.Optional;
 
 import javax.annotation.Nullable;
 
@@ -38,7 +38,7 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
 
     private final OptionalAddress address = new OptionalAddress();
     private final OptionalInterrupt interrupt = new OptionalInterrupt();
-    private CompoundNBT deviceTag;
+    private CompoundTag deviceTag;
 
     ///////////////////////////////////////////////////////////////
 
@@ -49,12 +49,12 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
     ///////////////////////////////////////////////////////////////
 
     @Override
-    public <T> LazyOptional<T> getCapability(final Capability<T> cap, @Nullable final Direction side) {
+    public <T> Optional<T> getCapability(final Capability<T> cap, @Nullable final Direction side) {
         if (cap == Capabilities.NETWORK_INTERFACE && side != null) {
-            return LazyOptional.of(() -> networkInterface).cast();
+            return Optional.of(() -> networkInterface).cast();
         }
 
-        return LazyOptional.empty();
+        return Optional.empty();
     }
 
     @Override
@@ -99,8 +99,8 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        final CompoundTag tag = new CompoundTag();
 
         if (device != null) {
             deviceTag = NBTSerialization.serialize(device);
@@ -119,7 +119,7 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT tag) {
+    public void deserializeNBT(final CompoundTag tag) {
         if (tag.contains(DEVICE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             deviceTag = tag.getCompound(DEVICE_TAG_NAME);
         }

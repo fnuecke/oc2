@@ -2,43 +2,46 @@ package li.cil.oc2.common.bus.device.provider.util;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.tileentity.BlockEntity;
+import net.minecraft.tileentity.BlockEntityType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.util.Optional;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
-public abstract class AbstractTileEntityCapabilityDeviceProvider<TCapability, TTileEntity extends TileEntity> extends AbstractTileEntityDeviceProvider<TTileEntity> {
+public abstract class AbstractBlockEntityCapabilityDeviceProvider<TCapability, TBlockEntity extends BlockEntity> extends AbstractBlockEntityDeviceProvider<TBlockEntity> {
     private final Supplier<Capability<TCapability>> capabilitySupplier;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractTileEntityCapabilityDeviceProvider(final TileEntityType<TTileEntity> tileEntityType, final Supplier<Capability<TCapability>> capabilitySupplier) {
+    protected AbstractBlockEntityCapabilityDeviceProvider(final BlockEntityType<TBlockEntity> tileEntityType, final Supplier<Capability<TCapability>> capabilitySupplier) {
         super(tileEntityType);
         this.capabilitySupplier = capabilitySupplier;
     }
 
-    protected AbstractTileEntityCapabilityDeviceProvider(final Supplier<Capability<TCapability>> capabilitySupplier) {
+    protected AbstractBlockEntityCapabilityDeviceProvider(final Supplier<Capability<TCapability>> capabilitySupplier) {
         this.capabilitySupplier = capabilitySupplier;
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected final LazyOptional<Device> getBlockDevice(final BlockDeviceQuery blockQuery, final TileEntity tileEntity) {
+    protected final Optional<Device> getBlockDevice(final BlockDeviceQuery blockQuery, final BlockEntity tileEntity) {
         final Capability<TCapability> capability = capabilitySupplier.get();
         if (capability == null) throw new IllegalStateException();
-        final LazyOptional<TCapability> optional = tileEntity.getCapability(capability, blockQuery.getQuerySide());
+        final Optional<TCapability> optional = tileEntity.getCapability(capability, blockQuery.getQuerySide());
         if (!optional.isPresent()) {
-            return LazyOptional.empty();
+            return Optional.empty();
         }
 
         final TCapability value = optional.orElseThrow(AssertionError::new);
-        final LazyOptional<Device> device = getBlockDevice(blockQuery, value);
+        final Optional<Device> device = getBlockDevice(blockQuery, value);
         optional.addListener(ignored -> device.invalidate());
         return device;
     }
 
-    protected abstract LazyOptional<Device> getBlockDevice(final BlockDeviceQuery query, final TCapability value);
+    protected abstract Optional<Device> getBlockDevice(final BlockDeviceQuery query, final TCapability value);
 }

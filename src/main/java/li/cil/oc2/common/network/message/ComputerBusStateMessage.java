@@ -2,7 +2,7 @@ package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.tileentity.ComputerBlockEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -15,7 +15,7 @@ public final class ComputerBusStateMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerBusStateMessage(final ComputerTileEntity tileEntity) {
+    public ComputerBusStateMessage(final ComputerBlockEntity tileEntity) {
         this.pos = tileEntity.getBlockPos();
         this.value = tileEntity.getVirtualMachine().getBusState();
     }
@@ -27,7 +27,7 @@ public final class ComputerBusStateMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static boolean handleMessage(final ComputerBusStateMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
+        context.get().enqueueWork(() -> MessageUtils.withClientBlockEntityAt(message.pos, ComputerBlockEntity.class,
                 (tileEntity) -> tileEntity.getVirtualMachine().setBusStateClient(message.value)));
         return true;
     }

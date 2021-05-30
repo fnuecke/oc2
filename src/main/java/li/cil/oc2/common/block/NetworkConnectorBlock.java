@@ -1,6 +1,6 @@
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.common.tileentity.NetworkConnectorTileEntity;
+import li.cil.oc2.common.tileentity.NetworkConnectorBlockEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -9,7 +9,7 @@ import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.AttachFace;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -46,12 +46,12 @@ public final class NetworkConnectorBlock extends HorizontalFaceBlock {
     }
 
     @Override
-    public boolean hasTileEntity(final BlockState state) {
+    public boolean hasBlockEntity(final BlockState state) {
         return true;
     }
 
     @Override
-    public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
+    public BlockEntity createBlockEntity(final BlockState state, final IBlockReader world) {
         return TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get().create();
     }
 
@@ -59,9 +59,9 @@ public final class NetworkConnectorBlock extends HorizontalFaceBlock {
     @Override
     public void neighborChanged(final BlockState state, final World world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
         if (Objects.equals(changedBlockPos, pos.relative(getFacing(state).getOpposite()))) {
-            final TileEntity tileEntity = world.getBlockEntity(pos);
-            if (tileEntity instanceof NetworkConnectorTileEntity) {
-                final NetworkConnectorTileEntity connector = (NetworkConnectorTileEntity) tileEntity;
+            final BlockEntity tileEntity = world.getBlockEntity(pos);
+            if (tileEntity instanceof NetworkConnectorBlockEntity) {
+                final NetworkConnectorBlockEntity connector = (NetworkConnectorBlockEntity) tileEntity;
                 connector.setLocalInterfaceChanged();
             }
         }

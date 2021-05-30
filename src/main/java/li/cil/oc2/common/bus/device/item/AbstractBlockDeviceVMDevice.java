@@ -15,7 +15,7 @@ import li.cil.oc2.common.util.Event;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.virtio.VirtIOBlockDevice;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,7 +41,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     // Online persisted data.
     private final OptionalAddress address = new OptionalAddress();
     private final OptionalInterrupt interrupt = new OptionalInterrupt();
-    private CompoundNBT deviceTag;
+    private CompoundTag deviceTag;
 
     // Offline persisted data.
     protected UUID blobHandle;
@@ -106,7 +106,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     }
 
     @Override
-    public void exportToItemStack(final CompoundNBT nbt) {
+    public void exportToItemStack(final CompoundTag nbt) {
         if (blobHandle == null && data != null) {
             getSerializationStream(data).ifPresent(stream -> blobHandle = BlobStorage.validateHandle(blobHandle));
         }
@@ -116,15 +116,15 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     }
 
     @Override
-    public void importFromItemStack(final CompoundNBT nbt) {
+    public void importFromItemStack(final CompoundTag nbt) {
         if (nbt.hasUUID(BLOB_HANDLE_TAG_NAME)) {
             blobHandle = nbt.getUUID(BLOB_HANDLE_TAG_NAME);
         }
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        final CompoundTag tag = new CompoundTag();
 
         serializeData();
         if (device != null) {
@@ -148,7 +148,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT tag) {
+    public void deserializeNBT(final CompoundTag tag) {
         if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
             blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
         }

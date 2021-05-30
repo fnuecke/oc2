@@ -5,39 +5,47 @@ import li.cil.oc2.client.gui.BusInterfaceScreen;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.tileentity.BusCableTileEntity;
+import li.cil.oc2.common.tileentity.BusCableBlockEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.WorldUtils;
+import net.minecraft.Util;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.LootContext;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.*;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.world.GameRules;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.Constants.BlockFlags;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -46,7 +54,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class BusCableBlock extends Block {
-    public enum ConnectionType implements IStringSerializable {
+    public enum ConnectionType implements StringRepresentable {
         NONE,
         CABLE,
         INTERFACE;
@@ -103,8 +111,8 @@ public final class BusCableBlock extends Block {
         return partCount;
     }
 
-    public static Direction getHitSide(final BlockPos pos, final BlockRayTraceResult hit) {
-        final Vector3d localHitPos = hit.getLocation().subtract(Vector3d.atCenterOf(pos));
+    public static Direction getHitSide(final BlockPos pos, final BlockHitResult hit) {
+        final Vec3 localHitPos = hit.getLocation().subtract(Vec3.atCenterOf(pos));
         return Direction.getNearest(localHitPos.x, localHitPos.y, localHitPos.z);
     }
 
@@ -132,7 +140,7 @@ public final class BusCableBlock extends Block {
 
     ///////////////////////////////////////////////////////////////////
 
-    public boolean addInterface(final World world, final BlockPos pos, final BlockState state, final Direction side) {
+    public boolean addInterface(final Level world, final BlockPos pos, final BlockState state, final Direction side) {
         final EnumProperty<BusCableBlock.ConnectionType> property = FACING_TO_CONNECTION_MAP.get(side);
         if (state.getValue(property) != ConnectionType.NONE) {
             return false;
@@ -145,7 +153,7 @@ public final class BusCableBlock extends Block {
         return true;
     }
 
-    public boolean addCable(final World world, final BlockPos pos, final BlockState state) {
+    public boolean addCable(final Level world, final BlockPos pos, final BlockState state) {
         if (state.getValue(HAS_CABLE)) {
             return false;
         }
@@ -158,28 +166,28 @@ public final class BusCableBlock extends Block {
     }
 
     @Override
-    public boolean hasTileEntity(final BlockState state) {
+    public boolean hasBlockEntity(final BlockState state) {
         return true;
     }
 
     @Override
-    public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
+    public BlockEntity createBlockEntity(final BlockState state, final BlockGetter world) {
         return TileEntities.BUS_CABLE_TILE_ENTITY.get().create();
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public void neighborChanged(final BlockState state, final World world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
-        final TileEntity tileEntity = world.getBlockEntity(pos);
-        if (tileEntity instanceof BusCableTileEntity) {
-            final BusCableTileEntity busCable = (BusCableTileEntity) tileEntity;
+    public void neighborChanged(final BlockState state, final Level world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
+        final BlockEntity tileEntity = world.getBlockEntity(pos);
+        if (tileEntity instanceof BusCableBlockEntity) {
+            final BusCableBlockEntity busCable = (BusCableBlockEntity) tileEntity;
             busCable.handleNeighborChanged(changedBlockPos);
         }
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public ActionResultType use(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
+    public InteractionResult use(final BlockState state, final Level world, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
         if (Wrenches.isWrench(player.getItemInHand(hand))) {
             if (player.isShiftKeyDown()) {
                 // NB: leave wrenching logic up to wrench when the to-be-removed interface is the last
@@ -187,17 +195,17 @@ public final class BusCableBlock extends Block {
                 //     to duplicate the logic needed for that.
                 if (getPartCount(state) > 1)
                     if (tryRemovePlug(state, world, pos, player, hit) || tryRemoveCable(state, world, pos, player)) {
-                        return ActionResultType.sidedSuccess(world.isClientSide);
+                        return InteractionResult.sidedSuccess(world.isClientSide);
                     }
             } else {
-                final TileEntity tileEntity = world.getBlockEntity(pos);
-                if (tileEntity instanceof BusCableTileEntity) {
-                    final BusCableTileEntity busCableTileEntity = (BusCableTileEntity) tileEntity;
+                final BlockEntity tileEntity = world.getBlockEntity(pos);
+                if (tileEntity instanceof BusCableBlockEntity) {
+                    final BusCableBlockEntity busCableBlockEntity = (BusCableBlockEntity) tileEntity;
 
                     final Direction side = getHitSide(pos, hit);
                     if (getConnectionType(state, side) == ConnectionType.INTERFACE) {
-                        openBusInterfaceScreen(busCableTileEntity, side);
-                        return ActionResultType.sidedSuccess(world.isClientSide);
+                        openBusInterfaceScreen(busCableBlockEntity, side);
+                        return InteractionResult.sidedSuccess(world.isClientSide);
                     }
                 }
             }
@@ -231,10 +239,10 @@ public final class BusCableBlock extends Block {
     }
 
     @Override
-    public BlockState getStateForPlacement(final BlockItemUseContext context) {
+    public BlockState getStateForPlacement(final BlockPlaceContext context) {
         BlockState state = defaultBlockState();
 
-        final World world = context.getLevel();
+        final Level world = context.getLevel();
         final BlockPos position = context.getClickedPos();
         for (final Map.Entry<Direction, EnumProperty<ConnectionType>> entry : FACING_TO_CONNECTION_MAP.entrySet()) {
             final Direction facing = entry.getKey();
@@ -250,7 +258,7 @@ public final class BusCableBlock extends Block {
 
     @SuppressWarnings("deprecation")
     @Override
-    public BlockState updateShape(BlockState state, final Direction facing, final BlockState facingState, final IWorld world, final BlockPos currentPos, final BlockPos facingPos) {
+    public BlockState updateShape(BlockState state, final Direction facing, final BlockState facingState, final Level world, final BlockPos currentPos, final BlockPos facingPos) {
         if (state.getValue(FACING_TO_CONNECTION_MAP.get(facing)) == ConnectionType.INTERFACE) {
             return state;
         }
@@ -268,14 +276,14 @@ public final class BusCableBlock extends Block {
 
     @SuppressWarnings("deprecation")
     @Override
-    public VoxelShape getShape(final BlockState state, final IBlockReader world, final BlockPos pos, final ISelectionContext context) {
+    public VoxelShape getShape(final BlockState state, final BlockGetter world, final BlockPos pos, final CollisionContext context) {
         return shapes[getShapeIndex(state)];
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         FACING_TO_CONNECTION_MAP.values().forEach(builder::add);
         builder.add(HAS_CABLE);
@@ -297,7 +305,7 @@ public final class BusCableBlock extends Block {
         return partCount;
     }
 
-    private static boolean tryRemovePlug(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final BlockRayTraceResult hit) {
+    private static boolean tryRemovePlug(final BlockState state, final Level world, final BlockPos pos, final Player player, final BlockHitResult hit) {
         final Direction side = getHitSide(pos, hit);
         final EnumProperty<ConnectionType> property = FACING_TO_CONNECTION_MAP.get(side);
 
@@ -317,7 +325,7 @@ public final class BusCableBlock extends Block {
         return true;
     }
 
-    private static boolean tryRemoveCable(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player) {
+    private static boolean tryRemoveCable(final BlockState state, final Level world, final BlockPos pos, final Player player) {
         if (!state.getValue(HAS_CABLE)) {
             return false;
         }
@@ -329,7 +337,7 @@ public final class BusCableBlock extends Block {
         return true;
     }
 
-    private static void handlePartRemoved(final BlockState state, final World world, final BlockPos pos, @Nullable final Direction side, final PlayerEntity player, final ItemStack drop) {
+    private static void handlePartRemoved(final BlockState state, final Level world, final BlockPos pos, @Nullable final Direction side, final Player player, final ItemStack drop) {
         onConnectionTypeChanged(world, pos, side);
 
         if (!player.isCreative() && world.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) {
@@ -342,16 +350,16 @@ public final class BusCableBlock extends Block {
         WorldUtils.playSound(world, pos, state.getSoundType(), SoundType::getBreakSound);
     }
 
-    private static void onConnectionTypeChanged(final IWorld world, final BlockPos pos, @Nullable final Direction face) {
-        final TileEntity tileEntity = world.getBlockEntity(pos);
-        if (tileEntity instanceof BusCableTileEntity) {
-            final BusCableTileEntity busCable = (BusCableTileEntity) tileEntity;
+    private static void onConnectionTypeChanged(final Level world, final BlockPos pos, @Nullable final Direction face) {
+        final BlockEntity tileEntity = world.getBlockEntity(pos);
+        if (tileEntity instanceof BusCableBlockEntity) {
+            final BusCableBlockEntity busCable = (BusCableBlockEntity) tileEntity;
             busCable.handleConnectivityChanged(face);
         }
     }
 
     @OnlyIn(Dist.CLIENT)
-    private static void openBusInterfaceScreen(final BusCableTileEntity tileEntity, final Direction side) {
+    private static void openBusInterfaceScreen(final BusCableBlockEntity tileEntity, final Direction side) {
         final BusInterfaceScreen screen = new BusInterfaceScreen(tileEntity, side);
         Minecraft.getInstance().setScreen(screen);
     }
@@ -373,24 +381,24 @@ public final class BusCableBlock extends Block {
 
         final int configurations = 1 << (6 + 6 + 1);
         final VoxelShape[] result = new VoxelShape[configurations];
-        Arrays.fill(result, VoxelShapes.empty());
+        Arrays.fill(result, Shapes.empty());
 
         for (int i = 0; i < result.length; i++) {
             final int mask = i >> 1;
             for (int sideIndex = 0; sideIndex < Constants.BLOCK_FACE_COUNT; sideIndex++) {
                 final int cableBit = 1 << sideIndex;
                 if ((mask & cableBit) != 0) {
-                    result[i] = VoxelShapes.or(result[i], cableShapes[sideIndex]);
+                    result[i] = Shapes.or(result[i], cableShapes[sideIndex]);
                 }
 
                 final int interfaceBit = cableBit << 6;
                 if ((mask & interfaceBit) != 0) {
-                    result[i] = VoxelShapes.or(result[i], interfaceShapes[sideIndex]);
+                    result[i] = Shapes.or(result[i], interfaceShapes[sideIndex]);
                 }
             }
 
             if ((i & 1) != 0) {
-                result[i] = VoxelShapes.or(result[i], ownCableBounds);
+                result[i] = Shapes.or(result[i], ownCableBounds);
             }
         }
 
@@ -406,21 +414,21 @@ public final class BusCableBlock extends Block {
         final Direction yDirection = zDirection.getAxis() == Direction.Axis.Y ? Direction.NORTH : Direction.UP;
         final Direction xDirection = zDirection.getAxis() == Direction.Axis.Y ? Direction.WEST : zDirection.getClockWise();
 
-        final Vector3i min = new Vector3i(8, 8, 8)
+        final Vec3i min = new Vec3i(8, 8, 8)
                 .relative(xDirection, -xSize / 2)
                 .relative(yDirection, -ySize / 2)
                 .relative(zDirection, 8 - zSize);
-        final Vector3i max = new Vector3i(8, 8, 8)
+        final Vec3i max = new Vec3i(8, 8, 8)
                 .relative(xDirection, xSize / 2)
                 .relative(yDirection, ySize / 2)
                 .relative(zDirection, 8);
 
-        final AxisAlignedBB bounds = new AxisAlignedBB(
-                Vector3d.atLowerCornerOf(min).scale(1 / 16.0),
-                Vector3d.atLowerCornerOf(max).scale(1 / 16.0)
+        final AABB bounds = new AABB(
+                Vec3.atLowerCornerOf(min).scale(1 / 16.0),
+                Vec3.atLowerCornerOf(max).scale(1 / 16.0)
         );
 
-        return VoxelShapes.create(bounds);
+        return Shapes.create(bounds);
     }
 
     private static VoxelShape getInterfaceShape(final Direction zDirection) {
@@ -431,21 +439,21 @@ public final class BusCableBlock extends Block {
         final Direction yDirection = zDirection.getAxis() == Direction.Axis.Y ? Direction.NORTH : Direction.UP;
         final Direction xDirection = zDirection.getAxis() == Direction.Axis.Y ? Direction.WEST : zDirection.getClockWise();
 
-        final Vector3i min = new Vector3i(8, 8, 8)
+        final Vec3i min = new Vec3i(8, 8, 8)
                 .relative(xDirection, -xSize / 2)
                 .relative(yDirection, -ySize / 2)
                 .relative(zDirection, 8 - zSize);
-        final Vector3i max = new Vector3i(8, 8, 8)
+        final Vec3i max = new Vec3i(8, 8, 8)
                 .relative(xDirection, xSize / 2)
                 .relative(yDirection, ySize / 2)
                 .relative(zDirection, 8);
 
-        final AxisAlignedBB bounds = new AxisAlignedBB(
-                Vector3d.atLowerCornerOf(min).scale(1 / 16.0),
-                Vector3d.atLowerCornerOf(max).scale(1 / 16.0)
+        final AABB bounds = new AABB(
+                Vec3.atLowerCornerOf(min).scale(1 / 16.0),
+                Vec3.atLowerCornerOf(max).scale(1 / 16.0)
         );
 
-        return VoxelShapes.or(getCableShape(zDirection), VoxelShapes.create(bounds));
+        return Shapes.or(getCableShape(zDirection), Shapes.create(bounds));
     }
 
     private static int getShapeIndex(final BlockState state) {

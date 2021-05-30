@@ -1,7 +1,7 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.BusCableTileEntity;
+import li.cil.oc2.common.tileentity.BusCableBlockEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
@@ -17,7 +17,7 @@ public abstract class BusInterfaceNameMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    protected BusInterfaceNameMessage(final BusCableTileEntity tileEntity, final Direction side, final String value) {
+    protected BusInterfaceNameMessage(final BusCableBlockEntity tileEntity, final Direction side, final String value) {
         this.pos = tileEntity.getBlockPos();
         this.side = side;
         this.value = value;
@@ -30,13 +30,13 @@ public abstract class BusInterfaceNameMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static boolean handleMessageClient(final BusInterfaceNameMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, BusCableTileEntity.class,
+        context.get().enqueueWork(() -> MessageUtils.withClientBlockEntityAt(message.pos, BusCableBlockEntity.class,
                 (tileEntity) -> tileEntity.setInterfaceName(message.side, message.value)));
         return true;
     }
 
     public static boolean handleMessageServer(final BusInterfaceNameMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withServerTileEntityAt(context, message.pos, BusCableTileEntity.class,
+        context.get().enqueueWork(() -> MessageUtils.withServerBlockEntityAt(context, message.pos, BusCableBlockEntity.class,
                 (tileEntity) -> {
                     final Vector3d busCableCenter = Vector3d.atCenterOf(tileEntity.getBlockPos());
                     if (context.get().getSender().distanceToSqr(busCableCenter) <= 8 * 8) {
@@ -61,7 +61,7 @@ public abstract class BusInterfaceNameMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static final class ToClient extends BusInterfaceNameMessage {
-        public ToClient(final BusCableTileEntity tileEntity, final Direction side, final String value) {
+        public ToClient(final BusCableBlockEntity tileEntity, final Direction side, final String value) {
             super(tileEntity, side, value);
         }
 
@@ -71,7 +71,7 @@ public abstract class BusInterfaceNameMessage {
     }
 
     public static final class ToServer extends BusInterfaceNameMessage {
-        public ToServer(final BusCableTileEntity tileEntity, final Direction side, final String value) {
+        public ToServer(final BusCableBlockEntity tileEntity, final Direction side, final String value) {
             super(tileEntity, side, value);
         }
 

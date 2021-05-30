@@ -5,7 +5,7 @@ import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.vm.VMRunState;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -17,7 +17,7 @@ public final class RobotInitializationMessage {
     private CommonDeviceBusController.BusState busState;
     private VMRunState runState;
     private ITextComponent bootError;
-    private CompoundNBT terminal;
+    private CompoundTag terminal;
 
     ///////////////////////////////////////////////////////////////////
 

@@ -2,13 +2,13 @@ package li.cil.oc2.common.container;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.block.Blocks;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
-import li.cil.oc2.common.vm.VMItemStackHandlers;
+import li.cil.oc2.common.tileentity.ComputerBlockEntity;
+import li.cil.oc2.common.vm.VMContainerHelpers;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.tileentity.BlockEntity;
+import net.minecraft.util.LevelPosCallable;
 import net.minecraft.util.math.BlockPos;
 
 import javax.annotation.Nullable;
@@ -17,24 +17,24 @@ public final class ComputerInventoryContainer extends AbstractContainer {
     @Nullable
     public static ComputerInventoryContainer create(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
         final BlockPos pos = data.readBlockPos();
-        final TileEntity tileEntity = playerInventory.player.getCommandSenderWorld().getBlockEntity(pos);
-        if (!(tileEntity instanceof ComputerTileEntity)) {
+        final BlockEntity tileEntity = playerInventory.player.getCommandSenderWorld().getBlockEntity(pos);
+        if (!(tileEntity instanceof ComputerBlockEntity)) {
             return null;
         }
-        return new ComputerInventoryContainer(id, (ComputerTileEntity) tileEntity, playerInventory);
+        return new ComputerInventoryContainer(id, (ComputerBlockEntity) tileEntity, playerInventory);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private final ComputerTileEntity computer;
+    private final ComputerBlockEntity computer;
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerInventoryContainer(final int id, final ComputerTileEntity computer, final PlayerInventory playerInventory) {
+    public ComputerInventoryContainer(final int id, final ComputerBlockEntity computer, final PlayerInventory playerInventory) {
         super(Containers.COMPUTER_CONTAINER.get(), id);
         this.computer = computer;
 
-        final VMItemStackHandlers handlers = computer.getItemStackHandlers();
+        final VMContainerHelpers handlers = computer.getContainerHelpers();
 
         handlers.getItemHandler(DeviceTypes.FLASH_MEMORY).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {
@@ -67,6 +67,6 @@ public final class ComputerInventoryContainer extends AbstractContainer {
 
     @Override
     public boolean stillValid(final PlayerEntity player) {
-        return stillValid(IWorldPosCallable.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER.get());
+        return stillValid(LevelPosCallable.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER.get());
     }
 }

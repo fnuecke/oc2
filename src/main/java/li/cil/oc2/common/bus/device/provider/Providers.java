@@ -25,7 +25,7 @@ public final class Providers {
 
     public static void initialize() {
         BLOCK_DEVICE_PROVIDERS.register("block", BlockStateDeviceProvider::new);
-        BLOCK_DEVICE_PROVIDERS.register("tile_entity", TileEntityDeviceProvider::new);
+        BLOCK_DEVICE_PROVIDERS.register("tile_entity", BlockEntityDeviceProvider::new);
 
         BLOCK_DEVICE_PROVIDERS.register("energy_storage", EnergyStorageBlockDeviceProvider::new);
         BLOCK_DEVICE_PROVIDERS.register("fluid_handler", FluidHandlerBlockDeviceProvider::new);

@@ -1,39 +1,36 @@
 package li.cil.oc2.common.tileentity;
 
 import li.cil.oc2.common.util.ServerScheduler;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
-import net.minecraft.world.World;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
-public abstract class AbstractTileEntity extends TileEntity {
+public abstract class AbstractBlockEntity extends BlockEntity {
     private final Runnable onWorldUnloaded = this::onWorldUnloaded;
-    private final HashMap<CapabilityCacheKey, LazyOptional<?>> capabilityCache = new HashMap<>();
+    private final HashMap<CapabilityCacheKey, Optional<?>> capabilityCache = new HashMap<>();
     private boolean needsWorldUnloadEvent;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractTileEntity(final TileEntityType<?> tileEntityType) {
+    protected AbstractBlockEntity(final BlockEntityType<?> tileEntityType) {
         super(tileEntityType);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
+    public <T> Optional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
         if (isRemoved()) {
-            return LazyOptional.empty();
+            return Optional.empty();
         }
 
         final CapabilityCacheKey key = new CapabilityCacheKey(capability, side);
-        final LazyOptional<?> value;
+        final Optional<?> value;
         if (capabilityCache.containsKey(key)) {
             value = capabilityCache.get(key);
         } else {
@@ -50,7 +47,7 @@ public abstract class AbstractTileEntity extends TileEntity {
 
             if (!list.isEmpty()) {
                 final T instance = list.get(0);
-                value = LazyOptional.of(() -> instance);
+                value = Optional.of(() -> instance);
             } else {
                 value = super.getCapability(capability, side);
             }
@@ -104,7 +101,7 @@ public abstract class AbstractTileEntity extends TileEntity {
 
     protected <T> void invalidateCapability(final Capability<T> capability, @Nullable final Direction direction) {
         final CapabilityCacheKey key = new CapabilityCacheKey(capability, direction);
-        final LazyOptional<?> value = capabilityCache.get(key);
+        final Optional<?> value = capabilityCache.get(key);
         if (value != null) {
             value.invalidate();
         }
@@ -115,7 +112,7 @@ public abstract class AbstractTileEntity extends TileEntity {
         super.invalidateCaps();
 
         // Copy values because invalidate callback will modify map (removes invalidated entry).
-        for (final LazyOptional<?> capability : new ArrayList<>(capabilityCache.values())) {
+        for (final Optional<?> capability : new ArrayList<>(capabilityCache.values())) {
             capability.invalidate();
         }
     }

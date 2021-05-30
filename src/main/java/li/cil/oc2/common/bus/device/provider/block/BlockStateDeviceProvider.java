@@ -9,11 +9,11 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.util.Optional;
 
 public final class BlockStateDeviceProvider extends AbstractBlockDeviceProvider {
     @Override
-    public LazyOptional<Device> getDevice(final BlockDeviceQuery query) {
+    public Optional<Device> getDevice(final BlockDeviceQuery query) {
         final World world = query.getLevel();
         final BlockPos position = query.getQueryPosition();
 
@@ -21,13 +21,13 @@ public final class BlockStateDeviceProvider extends AbstractBlockDeviceProvider 
         final Block block = blockState.getBlock();
 
         if (block.isAir(blockState, world, position)) {
-            return LazyOptional.empty();
+            return Optional.empty();
         }
 
         if (!Callbacks.hasMethods(block)) {
-            return LazyOptional.empty();
+            return Optional.empty();
         }
 
-        return LazyOptional.of(() -> new ObjectDevice(block));
+        return Optional.of(() -> new ObjectDevice(block));
     }
 }

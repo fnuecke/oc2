@@ -1,28 +1,28 @@
 package li.cil.oc2.client.renderer.tileentity;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.matrix.PoseStack;
 import li.cil.oc2.common.block.DiskDriveBlock;
-import li.cil.oc2.common.tileentity.DiskDriveTileEntity;
+import li.cil.oc2.common.tileentity.DiskDriveBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.client.renderer.tileentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.tileentity.BlockEntityRendererDispatcher;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.vector.Vector3f;
 
-public final class DiskDriveTileEntityRenderer extends TileEntityRenderer<DiskDriveTileEntity> {
-    public DiskDriveTileEntityRenderer(final TileEntityRendererDispatcher dispatcher) {
+public final class DiskDriveBlockEntityRenderer extends BlockEntityRenderer<DiskDriveBlockEntity> {
+    public DiskDriveBlockEntityRenderer(final BlockEntityRendererDispatcher dispatcher) {
         super(dispatcher);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void render(final DiskDriveTileEntity tileEntity, final float partialTicks, final MatrixStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
+    public void render(final DiskDriveBlockEntity tileEntity, final float partialTicks, final PoseStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
         final ItemStack stack = tileEntity.getFloppy();
         final Direction blockFacing = tileEntity.getBlockState().getValue(DiskDriveBlock.FACING);
         final int neighborLight = WorldRenderer.getLightColor(renderer.level, tileEntity.getBlockPos().relative(blockFacing));

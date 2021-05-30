@@ -1,7 +1,8 @@
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.matrix.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.client.gui.widget.Sprite;
@@ -9,26 +10,25 @@ import li.cil.oc2.client.gui.widget.ToggleImageButton;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.client.gui.GuiUtils;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 
 import static li.cil.oc2.common.util.TooltipUtils.withColor;
 
-public abstract class AbstractTerminalWidget extends AbstractGui {
+public abstract class AbstractTerminalWidget extends GuiComponent {
     public static final ResourceLocation BACKGROUND_LOCATION = new ResourceLocation(API.MOD_ID, "textures/gui/screen/terminal.png");
     public static final ResourceLocation TERMINAL_FOCUSED_LOCATION = new ResourceLocation(API.MOD_ID, "textures/gui/screen/terminal_focused.png");
     public static final int TEXTURE_SIZE = 512;
@@ -89,7 +89,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         this.energyConsumption = consumption;
     }
 
-    public void renderBackground(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
+    public void renderBackground(final PoseStack matrixStack, final int mouseX, final int mouseY) {
         isMouseOverTerminal = isMouseOverTerminal(mouseX, mouseY);
 
         RenderSystem.color4f(1f, 1f, 1f, 1f);
@@ -111,19 +111,19 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         }
     }
 
-    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, @Nullable final ITextComponent error) {
+    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, @Nullable final Component error) {
         if (isRunning()) {
-            final MatrixStack stack = new MatrixStack();
+            final PoseStack stack = new PoseStack();
             stack.translate(windowLeft + TERMINAL_X, windowTop + TERMINAL_Y, getClient().getItemRenderer().blitOffset);
             stack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
             terminal.render(stack);
         } else {
-            final FontRenderer font = getClient().font;
+            final Font font = getClient().font;
             if (error != null) {
                 final int textWidth = font.width(error);
                 final int textOffsetX = (TERMINAL_WIDTH - textWidth) / 2;
                 final int textOffsetY = (TERMINAL_HEIGHT - font.lineHeight) / 2;
-                font.drawShadow(matrixStack,
+                font.draw(matrixStack,
                         error,
                         windowLeft + TERMINAL_X + textOffsetX,
                         windowTop + TERMINAL_Y + textOffsetY,
@@ -135,9 +135,9 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
             ENERGY_BAR.drawFillY(matrixStack, windowLeft - ENERGY_BACKGROUND.width + 4, windowTop + ENERGY_TOP + 4, currentEnergy / (float) maxEnergy);
 
             if (isMouseOver(mouseX, mouseY, -ENERGY_BACKGROUND.width + 4, ENERGY_TOP + 4, ENERGY_BAR.width, ENERGY_BAR.height)) {
-                final List<? extends ITextProperties> tooltip = Arrays.asList(
-                        new TranslationTextComponent(Constants.TOOLTIP_ENERGY, withColor(currentEnergy + "/" + maxEnergy, TextFormatting.GREEN)),
-                        new TranslationTextComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(String.valueOf(energyConsumption), TextFormatting.GREEN))
+                final List<? extends FormattedText> tooltip = Arrays.asList(
+                        new TranslatableComponent(Constants.TOOLTIP_ENERGY, withColor(currentEnergy + "/" + maxEnergy, TextFormatting.GREEN)),
+                        new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(String.valueOf(energyConsumption), TextFormatting.GREEN))
                 );
                 GuiUtils.drawHoveringText(matrixStack, tooltip, mouseX, mouseY, parent.width, parent.height, 200, getClient().font);
             }
@@ -187,8 +187,8 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         addButton(new ToggleImageButton(
                 parent, windowLeft - CONTROLS_BACKGROUND.width + 4, windowTop + CONTROLS_TOP + 4,
                 12, 12,
-                new TranslationTextComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
-                new TranslationTextComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION),
+                new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
+                new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION),
                 POWER_BASE,
                 POWER_PRESSED,
                 POWER_ACTIVE

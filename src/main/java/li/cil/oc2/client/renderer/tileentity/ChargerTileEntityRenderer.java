@@ -1,20 +1,20 @@
 package li.cil.oc2.client.renderer.tileentity;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.matrix.PoseStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.CustomRenderType;
-import li.cil.oc2.common.tileentity.ChargerTileEntity;
+import li.cil.oc2.common.tileentity.ChargerBlockEntity;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.model.RenderMaterial;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.client.renderer.tileentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.tileentity.BlockEntityRendererDispatcher;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Matrix4f;
 
-public final class ChargerTileEntityRenderer extends TileEntityRenderer<ChargerTileEntity> {
+public final class ChargerBlockEntityRenderer extends BlockEntityRenderer<ChargerBlockEntity> {
     public static final ResourceLocation EFFECT_LOCATION = new ResourceLocation(API.MOD_ID, "block/charger/effect");
 
     private static final RenderMaterial TEXTURE_EFFECT = new RenderMaterial(PlayerContainer.BLOCK_ATLAS, EFFECT_LOCATION);
@@ -31,14 +31,14 @@ public final class ChargerTileEntityRenderer extends TileEntityRenderer<ChargerT
 
     ///////////////////////////////////////////////////////////////////
 
-    public ChargerTileEntityRenderer(final TileEntityRendererDispatcher dispatcher) {
+    public ChargerBlockEntityRenderer(final BlockEntityRendererDispatcher dispatcher) {
         super(dispatcher);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void render(final ChargerTileEntity tileEntity, final float partialTicks, final MatrixStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
+    public void render(final ChargerBlockEntity tileEntity, final float partialTicks, final PoseStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
         offset = (offset + EFFECT_SPEED * partialTicks / 20f) % (float) (Math.PI * 2);
 
         matrixStack.pushPose();
@@ -60,7 +60,7 @@ public final class ChargerTileEntityRenderer extends TileEntityRenderer<ChargerT
         matrixStack.popPose();
     }
 
-    private static void renderScaledQuad(final MatrixStack matrixStack, final IVertexBuilder builder, final float scale) {
+    private static void renderScaledQuad(final PoseStack matrixStack, final IVertexBuilder builder, final float scale) {
         matrixStack.pushPose();
         matrixStack.scale(scale, scale, scale);
         renderQuad(matrixStack.last().pose(), builder);

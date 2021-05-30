@@ -1,18 +1,18 @@
 package li.cil.oc2.client.renderer.tileentity;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.matrix.PoseStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.CustomRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.tileentity.ComputerBlockEntity;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.model.RenderMaterial;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.client.renderer.tileentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.tileentity.BlockEntityRendererDispatcher;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
@@ -26,7 +26,7 @@ import net.minecraft.util.text.Style;
 
 import java.util.List;
 
-public final class ComputerTileEntityRenderer extends TileEntityRenderer<ComputerTileEntity> {
+public final class ComputerBlockEntityRenderer extends BlockEntityRenderer<ComputerBlockEntity> {
     public static final ResourceLocation OVERLAY_POWER_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_power");
     public static final ResourceLocation OVERLAY_STATUS_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_status");
     public static final ResourceLocation OVERLAY_TERMINAL_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_terminal");
@@ -37,14 +37,14 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerTileEntityRenderer(final TileEntityRendererDispatcher dispatcher) {
+    public ComputerBlockEntityRenderer(final BlockEntityRendererDispatcher dispatcher) {
         super(dispatcher);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void render(final ComputerTileEntity tileEntity, final float partialTicks, final MatrixStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
+    public void render(final ComputerBlockEntity tileEntity, final float partialTicks, final PoseStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
         final Direction blockFacing = tileEntity.getBlockState().getValue(ComputerBlock.FACING);
         final Vector3d cameraPosition = renderer.camera.getEntity().getEyePosition(partialTicks);
 
@@ -111,7 +111,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
 
     ///////////////////////////////////////////////////////////////////
 
-    private void renderTerminal(final ComputerTileEntity tileEntity, final MatrixStack stack, final IRenderTypeBuffer buffer, final Vector3d cameraPosition) {
+    private void renderTerminal(final ComputerBlockEntity tileEntity, final PoseStack stack, final IRenderTypeBuffer buffer, final Vector3d cameraPosition) {
         // Render terminal content if close enough.
         if (Vector3d.atCenterOf(tileEntity.getBlockPos()).closerThan(cameraPosition, 6f)) {
             stack.pushPose();
@@ -151,7 +151,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         }
     }
 
-    private void renderStatusText(final ComputerTileEntity tileEntity, final MatrixStack stack, final Vector3d cameraPosition) {
+    private void renderStatusText(final ComputerBlockEntity tileEntity, final PoseStack stack, final Vector3d cameraPosition) {
         if (!Vector3d.atCenterOf(tileEntity.getBlockPos()).closerThan(cameraPosition, 12f)) {
             return;
         }
@@ -169,7 +169,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         stack.popPose();
     }
 
-    private void drawText(final MatrixStack stack, final ITextComponent text) {
+    private void drawText(final PoseStack stack, final ITextComponent text) {
         final int maxWidth = 100;
 
         stack.pushPose();

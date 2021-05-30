@@ -1,8 +1,8 @@
 package li.cil.oc2.client.renderer;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.matrix.PoseStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
-import li.cil.oc2.common.tileentity.NetworkConnectorTileEntity;
+import li.cil.oc2.common.tileentity.NetworkConnectorBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
@@ -17,7 +17,7 @@ import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.world.IBlockDisplayReader;
-import net.minecraft.world.IWorld;
+import net.minecraft.world.Level;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -48,12 +48,12 @@ public final class NetworkCableRenderer {
     private static final float CABLE_MAX_LENGTH = 8f;
     private static final Vector3f CABLE_COLOR = new Vector3f(0.0f, 0.33f, 0.4f);
 
-    private static final Set<NetworkConnectorTileEntity> connectors = Collections.newSetFromMap(new WeakHashMap<>());
+    private static final Set<NetworkConnectorBlockEntity> connectors = Collections.newSetFromMap(new WeakHashMap<>());
     private static int lastKnownConnectorCount;
     private static boolean isDirty;
 
     private static final ArrayList<Connection> connections = new ArrayList<>();
-    private static final WeakHashMap<NetworkConnectorTileEntity, ArrayList<Connection>> connectionsByConnector = new WeakHashMap<>();
+    private static final WeakHashMap<NetworkConnectorBlockEntity, ArrayList<Connection>> connectionsByConnector = new WeakHashMap<>();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -63,7 +63,7 @@ public final class NetworkCableRenderer {
         MinecraftForge.EVENT_BUS.addListener(NetworkCableRenderer::handleWorldUnloadEvent);
     }
 
-    public static void addNetworkConnector(final NetworkConnectorTileEntity connector) {
+    public static void addNetworkConnector(final NetworkConnectorBlockEntity connector) {
         connectors.add(connector);
         invalidateConnections();
     }
@@ -72,7 +72,7 @@ public final class NetworkCableRenderer {
         isDirty = true;
     }
 
-    public static void renderCablesFor(final IBlockDisplayReader world, final MatrixStack matrixStack, final Vector3d eye, final NetworkConnectorTileEntity connector) {
+    public static void renderCablesFor(final IBlockDisplayReader world, final PoseStack matrixStack, final Vector3d eye, final NetworkConnectorBlockEntity connector) {
         final ArrayList<Connection> connections = connectionsByConnector.get(connector);
         if (connections != null) {
             renderCables(world, matrixStack, eye, connections, unused -> true);
@@ -85,8 +85,8 @@ public final class NetworkCableRenderer {
         if (event.getWorld().isClientSide()) {
             final ChunkPos chunkPos = event.getChunk().getPos();
 
-            final ArrayList<NetworkConnectorTileEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
-            for (final NetworkConnectorTileEntity connector : list) {
+            final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
+            for (final NetworkConnectorBlockEntity connector : list) {
                 final ChunkPos connectorChunkPos = new ChunkPos(connector.getBlockPos());
                 if (Objects.equals(connectorChunkPos, chunkPos)) {
                     connectors.remove(connector);
@@ -99,10 +99,10 @@ public final class NetworkCableRenderer {
 
     private static void handleWorldUnloadEvent(final WorldEvent.Unload event) {
         if (event.getWorld().isClientSide()) {
-            final IWorld world = event.getWorld();
+            final Level world = event.getWorld();
 
-            final ArrayList<NetworkConnectorTileEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
-            for (final NetworkConnectorTileEntity connector : list) {
+            final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
+            for (final NetworkConnectorBlockEntity connector : list) {
                 if (connector.getLevel() == world) {
                     connectors.remove(connector);
                 }
@@ -130,7 +130,7 @@ public final class NetworkCableRenderer {
             return;
         }
 
-        final MatrixStack matrixStack = event.getMatrixStack();
+        final PoseStack matrixStack = event.getPoseStack();
 
         final ActiveRenderInfo activeRenderInfo = client.gameRenderer.getMainCamera();
         final Vector3d eye = activeRenderInfo.getPosition();
@@ -146,7 +146,7 @@ public final class NetworkCableRenderer {
         matrixStack.popPose();
     }
 
-    private static void renderCables(final IBlockDisplayReader world, final MatrixStack matrixStack, final Vector3d eye, final ArrayList<Connection> connections, final Predicate<AxisAlignedBB> filter) {
+    private static void renderCables(final IBlockDisplayReader world, final PoseStack matrixStack, final Vector3d eye, final ArrayList<Connection> connections, final Predicate<AxisAlignedBB> filter) {
         final Matrix4f viewMatrix = matrixStack.last().pose();
 
         final RenderType renderType = CustomRenderType.getNetworkCable();
@@ -244,8 +244,8 @@ public final class NetworkCableRenderer {
     }
 
     private static void validateConnectors() {
-        final ArrayList<NetworkConnectorTileEntity> list = new ArrayList<>(connectors);
-        for (final NetworkConnectorTileEntity connector : list) {
+        final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(connectors);
+        for (final NetworkConnectorBlockEntity connector : list) {
             if (connector.isRemoved()) {
                 connectors.remove(connector);
                 connectionsByConnector.remove(connector);
@@ -271,7 +271,7 @@ public final class NetworkCableRenderer {
         connectionsByConnector.clear();
 
         final HashSet<Connection> seen = new HashSet<>();
-        for (final NetworkConnectorTileEntity connector : connectors) {
+        for (final NetworkConnectorBlockEntity connector : connectors) {
             final BlockPos position = connector.getBlockPos();
             for (final BlockPos connectedPosition : connector.getConnectedPositions()) {
                 final Connection connection = new Connection(position, connectedPosition);

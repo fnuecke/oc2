@@ -1,11 +1,11 @@
 package li.cil.oc2.client.gui.widget;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.resources.ResourceLocation;
 
-public final class Sprite extends AbstractGui {
+public final class Sprite extends GuiComponent {
     public final ResourceLocation image;
     public final int textureSize;
     public final int width, height;
@@ -20,12 +20,12 @@ public final class Sprite extends AbstractGui {
         this.v0 = v0;
     }
 
-    public void draw(final MatrixStack stack, final int x, final int y) {
+    public void draw(final PoseStack stack, final int x, final int y) {
         Minecraft.getInstance().getTextureManager().bind(image);
         blit(stack, x, y, u0, v0, width, height, textureSize, textureSize);
     }
 
-    public void drawFillY(final MatrixStack stack, final int x, final int y, final float value) {
+    public void drawFillY(final PoseStack stack, final int x, final int y, final float value) {
         Minecraft.getInstance().getTextureManager().bind(image);
         final int h = (int) (this.height * value);
         blit(stack, x, y + (height - h), u0, v0 + (height - h), width, h, textureSize, textureSize);

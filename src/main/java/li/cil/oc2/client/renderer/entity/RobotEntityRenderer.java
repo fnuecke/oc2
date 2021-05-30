@@ -1,13 +1,20 @@
 package li.cil.oc2.client.renderer.entity;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.matrix.PoseStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Vector3f;
 import li.cil.oc2.client.renderer.entity.model.RobotModel;
 import li.cil.oc2.common.entity.RobotEntity;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3f;
@@ -17,7 +24,7 @@ public final class RobotEntityRenderer extends EntityRenderer<RobotEntity> {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotEntityRenderer(final EntityRendererManager renderManager) {
+    public RobotEntityRenderer(final EntityRenderDispatcher renderManager) {
         super(renderManager);
     }
 
@@ -29,7 +36,7 @@ public final class RobotEntityRenderer extends EntityRenderer<RobotEntity> {
     }
 
     @Override
-    public void render(final RobotEntity entity, final float entityYaw, final float partialTicks, final MatrixStack matrixStack, final IRenderTypeBuffer buffer, final int packedLight) {
+    public void render(final RobotEntity entity, final float entityYaw, final float partialTicks, final PoseStack matrixStack, final MultiBufferSource buffer, final int packedLight) {
         final RobotEntity.AnimationState state = entity.getAnimationState();
         state.update(partialTicks, entity.level.random);
 
@@ -38,13 +45,13 @@ public final class RobotEntityRenderer extends EntityRenderer<RobotEntity> {
         //     jumps in case we get a wrapped rotationYaw synced from the server (leading to ~360
         //     degree delta to the last known previous rotation). Haven't figured out where to
         //     alternatively prevent this wrapping or patch the prev value instead.
-        final float partialRotation = MathHelper.degreesDifferenceAbs(entity.yRotO, entity.yRot) * partialTicks;
-        final float rotation = MathHelper.approachDegrees(entity.yRotO, entity.yRot, partialRotation);
+        final float partialRotation = Mth.degreesDifferenceAbs(entity.yRotO, entity.yRot) * partialTicks;
+        final float rotation = Mth.approachDegrees(entity.yRotO, entity.yRot, partialRotation);
         matrixStack.mulPose(Vector3f.YN.rotationDegrees(rotation));
 
         model.setupAnim(entity, 0, 0, 0, 0, 0);
 
-        final IVertexBuilder builder = buffer.getBuffer(model.renderType(getTextureLocation(entity)));
+        final VertexConsumer builder = buffer.getBuffer(model.renderType(getTextureLocation(entity)));
         model.renderToBuffer(matrixStack, builder, packedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
 
         matrixStack.popPose();

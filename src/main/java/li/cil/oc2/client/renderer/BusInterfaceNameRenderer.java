@@ -1,9 +1,9 @@
 package li.cil.oc2.client.renderer;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.matrix.PoseStack;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.integration.Wrenches;
-import li.cil.oc2.common.tileentity.BusCableTileEntity;
+import li.cil.oc2.common.tileentity.BusCableBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.ActiveRenderInfo;
@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -47,12 +47,12 @@ public enum BusInterfaceNameRenderer {
 
         final BlockRayTraceResult hit = (BlockRayTraceResult) mc.hitResult;
         final BlockPos blockPos = hit.getBlockPos();
-        final TileEntity tileEntity = world.getBlockEntity(blockPos);
-        if (!(tileEntity instanceof BusCableTileEntity)) {
+        final BlockEntity tileEntity = world.getBlockEntity(blockPos);
+        if (!(tileEntity instanceof BusCableBlockEntity)) {
             return;
         }
 
-        final BusCableTileEntity busCable = (BusCableTileEntity) tileEntity;
+        final BusCableBlockEntity busCable = (BusCableBlockEntity) tileEntity;
         final Direction side = BusCableBlock.getHitSide(blockPos, hit);
         if (BusCableBlock.getConnectionType(world.getBlockState(blockPos), side) != BusCableBlock.ConnectionType.INTERFACE) {
             return;
@@ -64,7 +64,7 @@ public enum BusInterfaceNameRenderer {
         }
 
 
-        final MatrixStack stack = event.getMatrixStack();
+        final PoseStack stack = event.getPoseStack();
         stack.pushPose();
 
         stack.translate(0.5, 1, 0.5);

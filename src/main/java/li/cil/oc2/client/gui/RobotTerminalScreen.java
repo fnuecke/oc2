@@ -1,6 +1,7 @@
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.matrix.PoseStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.client.gui.widget.Sprite;
 import li.cil.oc2.common.container.RobotTerminalContainer;
 import li.cil.oc2.common.network.Network;
@@ -8,14 +9,17 @@ import li.cil.oc2.common.network.message.RobotPowerMessage;
 import li.cil.oc2.common.network.message.RobotTerminalInputMessage;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.world.entity.player.Inventory;
 
 import java.nio.ByteBuffer;
 
-public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalContainer> {
+public final class RobotTerminalScreen extends AbstractContainerScreen<RobotTerminalContainer> {
     private static final Sprite INVENTORY_BACKGROUND = new Sprite(AbstractTerminalWidget.BACKGROUND_LOCATION, AbstractTerminalWidget.TEXTURE_SIZE, 224, 26, 80, 300);
 
     private static final int SLOTS_X = (AbstractTerminalWidget.WIDTH - INVENTORY_BACKGROUND.width) / 2;
@@ -25,7 +29,7 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotTerminalScreen(final RobotTerminalContainer container, final PlayerInventory playerInventory, final ITextComponent title) {
+    public RobotTerminalScreen(final RobotTerminalContainer container, final Inventory playerInventory, final Component title) {
         super(container, playerInventory, title);
         this.terminalWidget = new RobotTerminalWidget(container.getRobot().getTerminal());
         imageWidth = AbstractTerminalWidget.WIDTH;
@@ -33,18 +37,18 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
     }
 
     @Override
-    protected void renderBg(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
+    protected void renderBg(final PoseStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
         INVENTORY_BACKGROUND.draw(matrixStack, leftPos + SLOTS_X, topPos + SLOTS_Y);
         terminalWidget.renderBackground(matrixStack, mouseX, mouseY);
     }
 
     @Override
-    protected void renderLabels(final MatrixStack p_230451_1_, final int p_230451_2_, final int p_230451_3_) {
+    protected void renderLabels(final PoseStack p_230451_1_, final int p_230451_2_, final int p_230451_3_) {
 
     }
 
     @Override
-    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
+    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
         terminalWidget.setEnergyInfo(menu.getEnergy(), menu.getEnergyCapacity(), menu.getEnergyConsumption());
 
         renderBackground(matrixStack);

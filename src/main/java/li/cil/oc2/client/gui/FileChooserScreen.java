@@ -1,6 +1,6 @@
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.matrix.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -116,7 +116,7 @@ public class FileChooserScreen extends Screen {
     }
 
     @Override
-    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
+    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
         super.renderBackground(matrixStack);
         fileList.render(matrixStack, mouseX, mouseY, partialTicks);
         fileNameTextField.render(matrixStack, mouseX, mouseY, partialTicks);
@@ -341,7 +341,7 @@ public class FileChooserScreen extends Screen {
             }
 
             @Override
-            public void render(final MatrixStack stack, final int index, final int top, final int left, final int width, final int height,
+            public void render(final PoseStack stack, final int index, final int top, final int left, final int width, final int height,
                                final int mouseX, final int mouseY, final boolean isHovered, final float deltaTime) {
                 font.drawShadow(stack, displayName, left, top, 0xFFFFFFFF);
             }

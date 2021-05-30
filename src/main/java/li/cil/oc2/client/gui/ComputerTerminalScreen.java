@@ -1,6 +1,6 @@
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.matrix.PoseStack;
 import li.cil.oc2.common.container.ComputerTerminalContainer;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerPowerMessage;
@@ -29,17 +29,17 @@ public final class ComputerTerminalScreen extends ContainerScreen<ComputerTermin
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void renderBg(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
+    protected void renderBg(final PoseStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
         terminalWidget.renderBackground(matrixStack, mouseX, mouseY);
     }
 
     @Override
-    protected void renderLabels(final MatrixStack p_230451_1_, final int p_230451_2_, final int p_230451_3_) {
+    protected void renderLabels(final PoseStack p_230451_1_, final int p_230451_2_, final int p_230451_3_) {
         // This is required to prevent the labels from beeing rendered
     }
 
     @Override
-    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
+    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
         terminalWidget.setEnergyInfo(menu.getEnergy(), menu.getEnergyCapacity(), menu.getEnergyConsumption());
 
         renderBackground(matrixStack);

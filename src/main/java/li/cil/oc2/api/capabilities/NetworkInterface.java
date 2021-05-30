@@ -1,8 +1,7 @@
 package li.cil.oc2.api.capabilities;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This interface provides interaction with the network bus.

@@ -1,7 +1,7 @@
 package li.cil.oc2.api.bus;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 /**
  * Implementing this interface allows providing positional information to the {@link DeviceBusController}.
@@ -16,7 +16,7 @@ public interface BlockDeviceBusElement extends DeviceBusElement {
      *
      * @return the world the bus lives in.
      */
-    IWorld getLevel();
+    Level getLevel();
 
     /**
      * The position of this bus element.

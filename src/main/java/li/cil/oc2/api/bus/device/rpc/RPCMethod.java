@@ -2,8 +2,8 @@ package li.cil.oc2.api.bus.device.rpc;
 
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**

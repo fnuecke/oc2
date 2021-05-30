@@ -1,10 +1,9 @@
 package li.cil.oc2.api.bus.device.provider;
 
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-
-import javax.annotation.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Device query for a block in the world.
@@ -17,7 +16,7 @@ public interface BlockDeviceQuery {
      *
      * @return the world containing the block.
      */
-    World getLevel();
+    Level getLevel();
 
     /**
      * The position of the block this query is performed for.

@@ -1,13 +1,13 @@
 package li.cil.oc2.api.bus.device.vm.event;
 
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.network.chat.Component;
 
 import java.util.Optional;
 
 public final class VMInitializationException extends RuntimeException {
-    private final ITextComponent message;
+    private final Component message;
 
-    public VMInitializationException(final ITextComponent message) {
+    public VMInitializationException(final Component message) {
         this.message = message;
     }
 
@@ -15,7 +15,7 @@ public final class VMInitializationException extends RuntimeException {
         this.message = null;
     }
 
-    public Optional<ITextComponent> getErrorMessage() {
+    public Optional<Component> getErrorMessage() {
         return Optional.ofNullable(message);
     }
 }

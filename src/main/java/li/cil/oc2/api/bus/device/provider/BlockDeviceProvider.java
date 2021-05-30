@@ -4,6 +4,8 @@ import li.cil.oc2.api.bus.device.Device;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
+import java.util.Optional;
+
 /**
  * This is used to query for devices given a block face.
  * <p>
@@ -47,5 +49,5 @@ public interface BlockDeviceProvider extends IForgeRegistryEntry<BlockDeviceProv
      * @param query the query describing the object to get a {@link Device} for.
      * @return a device for the specified query, if available.
      */
-    LazyOptional<Device> getDevice(BlockDeviceQuery query);
+    Optional<Device> getDevice(BlockDeviceQuery query);
 }

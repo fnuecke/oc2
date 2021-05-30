@@ -1,6 +1,8 @@
 package li.cil.oc2.api.bus.device;
 
 import li.cil.oc2.api.API;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.registries.IForgeRegistryEntry;
@@ -32,5 +34,5 @@ public interface DeviceType extends IForgeRegistryEntry<DeviceType> {
      *
      * @return the display name for this device type.
      */
-    ITextComponent getName();
+    Component getName();
 }

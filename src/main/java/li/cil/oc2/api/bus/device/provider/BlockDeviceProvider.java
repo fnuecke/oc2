@@ -1,7 +1,7 @@
 package li.cil.oc2.api.bus.device.provider;
 
 import li.cil.oc2.api.bus.device.Device;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.util.Optional;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import java.util.Optional;

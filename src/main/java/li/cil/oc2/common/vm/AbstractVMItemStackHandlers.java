@@ -154,7 +154,7 @@ public abstract class AbstractVMContainerHelpers implements VMContainerHelpers {
         @Override
         public Optional<Collection<Optional<DeviceBusElement>>> getNeighbors() {
             return Optional.of(itemHandlers.values().stream()
-                    .map(h -> Optional.of(() -> (DeviceBusElement) h.getBusElement()))
+                    .map(h -> Optional.of((DeviceBusElement) h.getBusElement()))
                     .collect(Collectors.toList()));
         }
     }

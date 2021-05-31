@@ -22,7 +22,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vec3;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.TranslatableComponent;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 
@@ -68,7 +68,7 @@ public final class BusInterfaceScreen extends Screen {
         left = (width - BACKGROUND.width) / 2;
         top = (height - BACKGROUND.height) / 2;
 
-        nameField = new EditBox(font, left + TEXT_LEFT, top + TEXT_TOP, 192, 12, new TranslationTextComponent("oc2.gui.bus_interface_name"));
+        nameField = new EditBox(font, left + TEXT_LEFT, top + TEXT_TOP, 192, 12, new TranslatableComponent("oc2.gui.bus_interface_name"));
         nameField.setCanLoseFocus(false);
         nameField.setTextColor(0xFFFFFFFF);
         nameField.setBordered(false);

@@ -8,22 +8,22 @@ import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.entity.robot.RobotActions;
 import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.WorldUtils;
-import net.minecraft.block.SoundType;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vec3;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static li.cil.oc2.common.Constants.ENERGY_TAG_NAME;
@@ -37,8 +37,8 @@ public final class RobotItem extends ModItem {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void appendHoverText(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
-        super.appendHoverText(stack, world, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, final @Nullable Level level, final List<Component> tooltip, final TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, level, tooltip, tooltipFlag);
         TooltipUtils.addEnergyConsumption(Config.robotEnergyPerTick, tooltip);
         TooltipUtils.addEntityEnergyInformation(stack, tooltip);
         TooltipUtils.addEntityInventoryInformation(stack, tooltip);
@@ -55,12 +55,12 @@ public final class RobotItem extends ModItem {
     }
 
     @Override
-    public ActionResultType useOn(final ItemUseContext context) {
-        final World world = context.getLevel();
+    public InteractionResult useOn(final UseOnContext context) {
+        final Level world = context.getLevel();
         final BlockPos pos = context.getClickedPos();
 
         final Vec3 position;
-        if (world.getBlockState(pos).canBeReplaced(new BlockItemUseContext(context))) {
+        if (world.getBlockState(pos).canBeReplaced(new BlockPlaceContext(context))) {
             position = Vec3.atCenterOf(pos);
         } else {
             position = Vec3.atCenterOf(pos.relative(context.getClickedFace()));
@@ -87,6 +87,6 @@ public final class RobotItem extends ModItem {
 
         context.getPlayer().awardStat(Stats.ITEM_USED.get(this));
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 }

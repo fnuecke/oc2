@@ -6,7 +6,7 @@ import li.cil.oc2.common.network.Network;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.Color;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.TranslatableComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 public final class RequestImportedFileMessage {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final TranslationTextComponent FILE_TOO_LARGE_TEXT = new TranslationTextComponent("message.oc2.import_file.file_too_large");
+    private static final TranslatableComponent FILE_TOO_LARGE_TEXT = new TranslatableComponent("message.oc2.import_file.file_too_large");
 
     ///////////////////////////////////////////////////////////////////
 

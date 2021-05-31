@@ -208,8 +208,8 @@ public abstract class AbstractTerminalWidget extends GuiComponent {
         addButton(new ToggleImageButton(
                 parent, windowLeft - CONTROLS_BACKGROUND.width + 4, windowTop + CONTROLS_TOP + 18,
                 12, 12,
-                new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_CAPTION),
-                new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_DESCRIPTION),
+                new TranslatableComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_CAPTION),
+                new TranslatableComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_DESCRIPTION),
                 CAPTURE_INPUT_BASE,
                 CAPTURE_INPUT_PRESSED,
                 CAPTURE_INPUT_ACTIVE

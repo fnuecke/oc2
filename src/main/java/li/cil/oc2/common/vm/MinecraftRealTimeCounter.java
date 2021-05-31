@@ -1,9 +1,8 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.sedna.api.device.rtc.RealTimeCounter;
-import net.minecraft.world.World;
-
-import javax.annotation.Nullable;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 public final class MinecraftRealTimeCounter implements RealTimeCounter {
     private static final int TICKS_PER_DAY = 24000;
@@ -11,11 +10,11 @@ public final class MinecraftRealTimeCounter implements RealTimeCounter {
 
     ///////////////////////////////////////////////////////////////////
 
-    private World world;
+    private Level world;
 
     ///////////////////////////////////////////////////////////////////
 
-    public void setWorld(@Nullable final World world) {
+    public void setWorld(@Nullable final Level world) {
         this.world = world;
     }
 

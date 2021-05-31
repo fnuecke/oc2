@@ -4,7 +4,7 @@ import li.cil.oc2.api.API;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Component;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**

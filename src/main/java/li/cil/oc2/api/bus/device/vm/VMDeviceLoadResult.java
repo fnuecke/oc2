@@ -2,7 +2,7 @@ package li.cil.oc2.api.bus.device.vm;
 
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Component;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nullable;

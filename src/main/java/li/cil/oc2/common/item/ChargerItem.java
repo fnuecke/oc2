@@ -1,10 +1,10 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.common.Config;
-import net.minecraft.block.Block;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 
 public final class ChargerItem extends ModBlockItem {
     public ChargerItem(final Block block) {
@@ -14,7 +14,7 @@ public final class ChargerItem extends ModBlockItem {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fillItemCategory(final ItemGroup group, final NonNullList<ItemStack> items) {
+    public void fillItemCategory(final CreativeModeTab group, final NonNullList<ItemStack> items) {
         if (Config.chargerUseEnergy()) {
             super.fillItemCategory(group, items);
         }

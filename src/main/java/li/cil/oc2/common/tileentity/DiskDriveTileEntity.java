@@ -31,8 +31,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -105,7 +104,7 @@ public final class DiskDriveBlockEntity extends AbstractBlockEntity {
         return itemHandler.getStackInSlot(0);
     }
 
-    @OnlyIn(Dist.CLIENT)
+
     public void setFloppyClient(final ItemStack stack) {
         itemHandler.setStackInSlot(0, stack);
     }

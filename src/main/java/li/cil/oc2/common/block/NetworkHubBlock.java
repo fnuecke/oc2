@@ -8,8 +8,9 @@ import net.minecraft.block.HorizontalDirectionalBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.StateContainer;
+import net.minecraft.state.StateDefinition;
 import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
@@ -19,13 +20,16 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.Material;
+import org.jetbrains.annotations.Nullable;
 
-public final class NetworkHubBlock extends HorizontalDirectionalBlock {
+public final class NetworkHubBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public NetworkHubBlock() {
         super(Properties
                 .of(Material.METAL)
@@ -42,12 +46,7 @@ public final class NetworkHubBlock extends HorizontalDirectionalBlock {
     }
 
     @Override
-    public boolean hasBlockEntity(final BlockState state) {
-        return true;
-    }
-
-    @Override
-    public BlockEntity createBlockEntity(final BlockState state, final BlockGetter world) {
+    public BlockEntity newBlockEntity(final BlockGetter world) {
         return TileEntities.NETWORK_HUB_TILE_ENTITY.get().create();
     }
 
@@ -64,7 +63,7 @@ public final class NetworkHubBlock extends HorizontalDirectionalBlock {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(FACING);
     }

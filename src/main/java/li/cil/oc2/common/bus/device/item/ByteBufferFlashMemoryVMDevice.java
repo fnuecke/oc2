@@ -17,7 +17,7 @@ import li.cil.sedna.device.flash.FlashMemoryDevice;
 import li.cil.sedna.memory.MemoryMaps;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.TranslatableComponent;
 
 import java.nio.ByteBuffer;
 
@@ -128,7 +128,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
         try {
             MemoryMaps.store(memoryMap, startAddress, data);
         } catch (final MemoryAccessException e) {
-            throw new VMInitializationException(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
+            throw new VMInitializationException(new TranslatableComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
         }
     }
 }

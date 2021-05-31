@@ -25,31 +25,26 @@ import li.cil.oc2.common.network.message.ComputerBootErrorMessage;
 import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.ComputerTerminalOutputMessage;
-import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.serialization.TagSerialization;
 import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.vm.*;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.tileentity.TickableBlockEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.IIntArray;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.TickableBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.Optional;
 import net.minecraftforge.fml.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -80,7 +75,7 @@ public final class ComputerBlockEntity extends AbstractBlockEntity implements Ti
     private final ComputerContainerHelpers deviceItems = new ComputerContainerHelpers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
     private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockEntityDeviceBusController(busElement, Config.computerEnergyPerTick, this), deviceItems::getDeviceAddressBase);
-    private final Set<PlayerEntity> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
+    private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
 
     ///////////////////////////////////////////////////////////////////
 
@@ -119,15 +114,15 @@ public final class ComputerBlockEntity extends AbstractBlockEntity implements Ti
         virtualMachine.stop();
     }
 
-    public void openTerminalScreen(final ServerPlayerEntity player) {
+    public void openTerminalScreen(final ServerPlayer player) {
         NetworkHooks.openGui(player, new INamedContainerProvider() {
             @Override
-            public ITextComponent getDisplayName() {
-                return new TranslationTextComponent(getBlockState().getBlock().getDescriptionId());
+            public Component getDisplayName() {
+                return new TranslatableComponent(getBlockState().getBlock().getDescriptionId());
             }
 
             @Override
-            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
+            public Container createMenu(final int id, final Inventory inventory, final Player player) {
                 return new ComputerTerminalContainer(id, player, ComputerBlockEntity.this, new IIntArray() {
                     @Override
                     public int get(final int index) {
@@ -156,30 +151,30 @@ public final class ComputerBlockEntity extends AbstractBlockEntity implements Ti
         }, getBlockPos());
     }
 
-    public void openContainerScreen(final ServerPlayerEntity player) {
+    public void openContainerScreen(final ServerPlayer player) {
         NetworkHooks.openGui(player, new INamedContainerProvider() {
             @Override
-            public ITextComponent getDisplayName() {
-                return new TranslationTextComponent(getBlockState().getBlock().getDescriptionId());
+            public Component getDisplayName() {
+                return new TranslatableComponent(getBlockState().getBlock().getDescriptionId());
             }
 
             @Override
-            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
+            public Container createMenu(final int id, final Inventory inventory, final Player player) {
                 return new ComputerInventoryContainer(id, ComputerBlockEntity.this, inventory);
             }
         }, getBlockPos());
     }
 
-    public void addTerminalUser(final PlayerEntity player) {
+    public void addTerminalUser(final Player player) {
         terminalUsers.add(player);
     }
 
-    public void removeTerminalUser(final PlayerEntity player) {
+    public void removeTerminalUser(final Player player) {
         terminalUsers.remove(player);
     }
 
     @Override
-    public Iterable<PlayerEntity> getTerminalUsers() {
+    public Iterable<Player> getTerminalUsers() {
         return terminalUsers;
     }
 
@@ -249,10 +244,10 @@ public final class ComputerBlockEntity extends AbstractBlockEntity implements Ti
     public CompoundTag getUpdateTag() {
         final CompoundTag tag = super.getUpdateTag();
 
-        tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+        tag.put(TERMINAL_TAG_NAME, TagSerialization.serialize(terminal));
         tag.putInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME, virtualMachine.getBusState().ordinal());
         tag.putInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME, virtualMachine.getRunState().ordinal());
-        tag.putString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME, ITextComponent.Serializer.toJson(virtualMachine.getBootError()));
+        tag.putString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME, Component.Serializer.toJson(virtualMachine.getBootError()));
 
         return tag;
     }
@@ -261,10 +256,10 @@ public final class ComputerBlockEntity extends AbstractBlockEntity implements Ti
     public void handleUpdateTag(final BlockState blockState, final CompoundTag tag) {
         super.handleUpdateTag(blockState, tag);
 
-        NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
+        TagSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
         virtualMachine.setBusStateClient(CommonDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME)]);
         virtualMachine.setRunStateClient(VMRunState.values()[tag.getInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME)]);
-        virtualMachine.setBootErrorClient(ITextComponent.Serializer.fromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)));
+        virtualMachine.setBootErrorClient(Component.Serializer.fromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)));
     }
 
     @Override
@@ -272,8 +267,8 @@ public final class ComputerBlockEntity extends AbstractBlockEntity implements Ti
         super.save(tag);
 
         tag.put(STATE_TAG_NAME, virtualMachine.serialize());
-        tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
-        tag.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
+        tag.put(TERMINAL_TAG_NAME, TagSerialization.serialize(terminal));
+        tag.put(BUS_ELEMENT_TAG_NAME, TagSerialization.serialize(busElement));
         tag.put(Constants.ITEMS_TAG_NAME, deviceItems.serialize());
 
         return tag;
@@ -284,10 +279,10 @@ public final class ComputerBlockEntity extends AbstractBlockEntity implements Ti
         super.load(blockState, tag);
 
         virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
-        NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
+        TagSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
 
         if (tag.contains(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            NBTSerialization.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME), busElement);
+            TagSerialization.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME), busElement);
         }
 
         deviceItems.deserialize(tag.getCompound(Constants.ITEMS_TAG_NAME));
@@ -370,10 +365,10 @@ public final class ComputerBlockEntity extends AbstractBlockEntity implements Ti
         }
 
         @Override
-        public Optional<Collection<@Nullable DeviceBusElement>> getNeighbors() {
+        public Optional<Collection<Optional<DeviceBusElement>>> getNeighbors() {
             return super.getNeighbors().map(neighbors -> {
                 final ArrayList<Optional<DeviceBusElement>> list = new ArrayList<>(neighbors);
-                list.add(Optional.of(() -> deviceItems.busElement));
+                list.add(Optional.of(deviceItems.busElement));
                 return list;
             });
         }
@@ -396,7 +391,7 @@ public final class ComputerBlockEntity extends AbstractBlockEntity implements Ti
     }
 
     private final class ComputerVirtualMachine extends AbstractVirtualMachine {
-        private Chunk chunk;
+        private LevelChunk chunk;
 
         private ComputerVirtualMachine(final CommonDeviceBusController busController, final BaseAddressProvider baseAddressProvider) {
             super(busController);
@@ -409,7 +404,7 @@ public final class ComputerBlockEntity extends AbstractBlockEntity implements Ti
 
             if (value == VMRunState.RUNNING) {
                 if (!LoopingSoundManager.isPlaying(ComputerBlockEntity.this)) {
-                    LoopingSoundManager.play(ComputerBlockEntity.this, SoundEvents.COMPUTER_RUNNING.get(), level.getRandom().nextInt(MAX_RUNNING_SOUND_DELAY));
+                    LoopingSoundManager.play(ComputerBlockEntity.this, SoundEvents.COMPUTER_RUNNING, level.getRandom().nextInt(MAX_RUNNING_SOUND_DELAY));
                 }
             } else {
                 LoopingSoundManager.stop(ComputerBlockEntity.this);
@@ -477,7 +472,7 @@ public final class ComputerBlockEntity extends AbstractBlockEntity implements Ti
         }
 
         @Override
-        protected void handleBootErrorChanged(@Nullable final ITextComponent value) {
+        protected void handleBootErrorChanged(@Nullable final Component value) {
             Network.sendToClientsTrackingChunk(new ComputerBootErrorMessage(ComputerBlockEntity.this), chunk);
         }
     }

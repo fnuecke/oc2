@@ -21,10 +21,9 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vec3;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Component;
 import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -37,9 +36,9 @@ public final class BusInterfaceItem extends ModBlockItem {
 
     ///////////////////////////////////////////////////////////////////
 
-    @OnlyIn(Dist.CLIENT)
+
     @Override
-    public void appendHoverText(final ItemStack stack, final @Nullable World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
+    public void appendHoverText(final ItemStack stack, final @Nullable World world, final List<Component> tooltip, final ITooltipFlag flag) {
         super.appendHoverText(stack, world, tooltip, flag);
         TooltipUtils.addEnergyConsumption(Config.busInterfaceEnergyPerTick, tooltip);
     }

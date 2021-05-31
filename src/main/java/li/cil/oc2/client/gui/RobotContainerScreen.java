@@ -11,8 +11,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.Component;
+import net.minecraft.util.text.TranslatableComponent;
 
 public final class RobotContainerScreen extends ContainerScreen<RobotContainer> {
     private static final ResourceLocation BACKGROUND = new ResourceLocation(API.MOD_ID, "textures/gui/container/robot.png");
@@ -34,7 +34,7 @@ public final class RobotContainerScreen extends ContainerScreen<RobotContainer> 
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotContainerScreen(final RobotContainer container, final PlayerInventory playerInventory, final ITextComponent title) {
+    public RobotContainerScreen(final RobotContainer container, final PlayerInventory playerInventory, final Component title) {
         super(container, playerInventory, title);
         imageWidth = 176;
         imageHeight = 197;
@@ -53,9 +53,9 @@ public final class RobotContainerScreen extends ContainerScreen<RobotContainer> 
         GuiUtils.renderMissingDeviceInfoIcon(matrixStack, this, DeviceTypes.MEMORY, GuiUtils.WARN_ICON);
         GuiUtils.renderMissingDeviceInfoIcon(matrixStack, this, DeviceTypes.HARD_DRIVE, GuiUtils.INFO_ICON);
 
-        GuiUtils.renderMissingDeviceInfoTooltip(matrixStack, this, mouseX, mouseY, DeviceTypes.FLASH_MEMORY, new TranslationTextComponent(Constants.TOOLTIP_FLASH_MEMORY_MISSING));
-        GuiUtils.renderMissingDeviceInfoTooltip(matrixStack, this, mouseX, mouseY, DeviceTypes.MEMORY, new TranslationTextComponent(Constants.TOOLTIP_MEMORY_MISSING));
-        GuiUtils.renderMissingDeviceInfoTooltip(matrixStack, this, mouseX, mouseY, DeviceTypes.HARD_DRIVE, new TranslationTextComponent(Constants.TOOLTIP_HARD_DRIVE_MISSING));
+        GuiUtils.renderMissingDeviceInfoTooltip(matrixStack, this, mouseX, mouseY, DeviceTypes.FLASH_MEMORY, new TranslatableComponent(Constants.TOOLTIP_FLASH_MEMORY_MISSING));
+        GuiUtils.renderMissingDeviceInfoTooltip(matrixStack, this, mouseX, mouseY, DeviceTypes.MEMORY, new TranslatableComponent(Constants.TOOLTIP_MEMORY_MISSING));
+        GuiUtils.renderMissingDeviceInfoTooltip(matrixStack, this, mouseX, mouseY, DeviceTypes.HARD_DRIVE, new TranslatableComponent(Constants.TOOLTIP_HARD_DRIVE_MISSING));
 
         renderTooltip(matrixStack, mouseX, mouseY);
     }

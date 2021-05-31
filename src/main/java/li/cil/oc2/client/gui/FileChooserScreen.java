@@ -7,9 +7,9 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.gui.widget.list.ExtendedList;
 import net.minecraft.util.text.Color;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Component;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.TranslatableComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -32,13 +32,13 @@ public class FileChooserScreen extends Screen {
     private static final int BUTTON_HEIGHT = 20;
     private static final int LIST_ENTRY_HEIGHT = 12;
 
-    private static final TranslationTextComponent OPEN_TITLE_TEXT = new TranslationTextComponent("gui.oc2.file_chooser.title.load");
-    private static final TranslationTextComponent SAVE_TITLE_TEXT = new TranslationTextComponent("gui.oc2.file_chooser.title.save");
-    private static final TranslationTextComponent FILE_NAME_TEXT = new TranslationTextComponent("gui.oc2.file_chooser.text_field.filename");
-    private static final TranslationTextComponent LOAD_TEXT = new TranslationTextComponent("gui.oc2.file_chooser.confirm_button.load");
-    private static final TranslationTextComponent SAVE_TEXT = new TranslationTextComponent("gui.oc2.file_chooser.confirm_button.save");
-    private static final TranslationTextComponent OVERWRITE_TEXT = new TranslationTextComponent("gui.oc2.file_chooser.confirm_button.overwrite");
-    private static final TranslationTextComponent CANCEL_TEXT = new TranslationTextComponent("gui.oc2.file_chooser.cancel_button");
+    private static final TranslatableComponent OPEN_TITLE_TEXT = new TranslatableComponent("gui.oc2.file_chooser.title.load");
+    private static final TranslatableComponent SAVE_TITLE_TEXT = new TranslatableComponent("gui.oc2.file_chooser.title.save");
+    private static final TranslatableComponent FILE_NAME_TEXT = new TranslatableComponent("gui.oc2.file_chooser.text_field.filename");
+    private static final TranslatableComponent LOAD_TEXT = new TranslatableComponent("gui.oc2.file_chooser.confirm_button.load");
+    private static final TranslatableComponent SAVE_TEXT = new TranslatableComponent("gui.oc2.file_chooser.confirm_button.save");
+    private static final TranslatableComponent OVERWRITE_TEXT = new TranslatableComponent("gui.oc2.file_chooser.confirm_button.overwrite");
+    private static final TranslatableComponent CANCEL_TEXT = new TranslatableComponent("gui.oc2.file_chooser.cancel_button");
 
     ///////////////////////////////////////////////////////////////////
 
@@ -331,11 +331,11 @@ public class FileChooserScreen extends Screen {
 
         private final class FileEntry extends ExtendedList.AbstractListEntry<FileEntry> {
             private final Path file;
-            private final ITextComponent displayName;
+            private final Component displayName;
 
             private long lastEntryClickTime = 0;
 
-            public FileEntry(final Path file, final ITextComponent displayName) {
+            public FileEntry(final Path file, final Component displayName) {
                 this.file = file;
                 this.displayName = displayName;
             }

@@ -10,7 +10,7 @@ import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Component;
 
 import java.nio.ByteBuffer;
 
@@ -19,7 +19,7 @@ public final class ComputerTerminalScreen extends ContainerScreen<ComputerTermin
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerTerminalScreen(final ComputerTerminalContainer container, final PlayerInventory playerInventory, final ITextComponent title) {
+    public ComputerTerminalScreen(final ComputerTerminalContainer container, final PlayerInventory playerInventory, final Component title) {
         super(container, playerInventory, title);
         this.terminalWidget = new ComputerTerminalWidget(container.getComputer().getTerminal());
         imageWidth = AbstractTerminalWidget.WIDTH;

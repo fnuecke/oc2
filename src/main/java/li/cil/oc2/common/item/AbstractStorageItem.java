@@ -3,10 +3,10 @@ package li.cil.oc2.common.item;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.TextFormatUtils;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.item.ItemStack;
 
 public abstract class AbstractStorageItem extends ModItem {
     private static final String CAPACITY_TAG_NAME = "capacity";
@@ -47,9 +47,9 @@ public abstract class AbstractStorageItem extends ModItem {
     }
 
     @Override
-    public ITextComponent getName(final ItemStack stack) {
+    public Component getName(final ItemStack stack) {
         final int capacity = getCapacity(stack);
-        return new StringTextComponent("")
+        return new TextComponent("")
                 .append(super.getName(stack))
                 .append(" (")
                 .append(TextFormatUtils.formatSize(capacity))

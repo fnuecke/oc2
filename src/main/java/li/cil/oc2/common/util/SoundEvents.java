@@ -1,33 +1,33 @@
 package li.cil.oc2.common.util;
 
 import li.cil.oc2.api.API;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
 
 public final class SoundEvents {
-    private static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, API.MOD_ID);
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static final RegistryObject<SoundEvent> COMPUTER_RUNNING = register("computer_running");
-    public static final RegistryObject<SoundEvent> FLOPPY_ACCESS = register("floppy_access");
-    public static final RegistryObject<SoundEvent> FLOPPY_EJECT = register("floppy_eject");
-    public static final RegistryObject<SoundEvent> FLOPPY_INSERT = register("floppy_insert");
-    public static final RegistryObject<SoundEvent> HDD_ACCESS = register("hdd_access");
+    public static SoundEvent COMPUTER_RUNNING;
+    public static SoundEvent FLOPPY_ACCESS;
+    public static SoundEvent FLOPPY_EJECT;
+    public static SoundEvent FLOPPY_INSERT;
+    public static SoundEvent HDD_ACCESS;
 
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        SOUNDS.register(FMLJavaModLoadingContext.get().getModEventBus());
+        COMPUTER_RUNNING = register("computer_running");
+        FLOPPY_ACCESS = register("floppy_access");
+        FLOPPY_EJECT = register("floppy_eject");
+        FLOPPY_INSERT = register("floppy_insert");
+        HDD_ACCESS = register("hdd_access");
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private static RegistryObject<SoundEvent> register(final String name) {
-        return SOUNDS.register(name, () -> new SoundEvent(new ResourceLocation(API.MOD_ID, name)));
+    private static SoundEvent register(final String name) {
+        ResourceLocation res = new ResourceLocation(API.MOD_ID, name);
+        SoundEvent soundEvent = new SoundEvent(res);
+        Registry.register(Registry.SOUND_EVENT, res, soundEvent);
+        return soundEvent;
     }
 }

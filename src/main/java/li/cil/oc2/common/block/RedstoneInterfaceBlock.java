@@ -2,20 +2,19 @@ package li.cil.oc2.common.block;
 
 import li.cil.oc2.common.tileentity.RedstoneInterfaceBlockEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalDirectionalBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.BlockEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.LevelReader;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.material.Material;
+import org.jetbrains.annotations.Nullable;
 
-public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock {
+public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock implements EntityBlock  {
     public RedstoneInterfaceBlock() {
         super(Properties
                 .of(Material.METAL)
@@ -27,18 +26,8 @@ public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public BlockState getStateForPlacement(final BlockItemUseContext context) {
+    public BlockState getStateForPlacement(final BlockPlaceContext context) {
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-    }
-
-    @Override
-    public boolean hasBlockEntity(final BlockState state) {
-        return true;
-    }
-
-    @Override
-    public BlockEntity createBlockEntity(final BlockState state, final IBlockReader world) {
-        return TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get().create();
     }
 
     @SuppressWarnings("deprecation")
@@ -49,7 +38,7 @@ public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock {
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getSignal(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
+    public int getSignal(final BlockState state, final BlockGetter world, final BlockPos pos, final Direction side) {
         final BlockEntity tileEntity = world.getBlockEntity(pos);
         if (tileEntity instanceof RedstoneInterfaceBlockEntity) {
             final RedstoneInterfaceBlockEntity redstoneInterface = (RedstoneInterfaceBlockEntity) tileEntity;
@@ -68,15 +57,21 @@ public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock {
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getDirectSignal(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
+    public int getDirectSignal(final BlockState state, final BlockGetter world, final BlockPos pos, final Direction side) {
         return getSignal(state, world, pos, side);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(FACING);
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(final BlockGetter blockGetter) {
+        return TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get().create();;
     }
 }

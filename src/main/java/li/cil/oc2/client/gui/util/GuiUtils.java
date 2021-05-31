@@ -37,7 +37,7 @@ public final class GuiUtils {
         });
     }
 
-    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final PoseStack matrixStack, final Screen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final ITextComponent tooltip) {
+    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final PoseStack matrixStack, final Screen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final Component tooltip) {
         final boolean isCursorHoldingStack = !screen.getMinecraft().player.inventory.items.isEmpty();
         if (isCursorHoldingStack) {
             return;

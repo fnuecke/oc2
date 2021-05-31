@@ -29,8 +29,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -164,7 +163,7 @@ public final class NetworkConnectorBlockEntity extends AbstractBlockEntity imple
         isLocalConnectionDirty = true;
     }
 
-    @OnlyIn(Dist.CLIENT)
+
     public void setConnectedPositionsClient(final ArrayList<BlockPos> positions) {
         connectorPositions.clear();
         connectorPositions.addAll(positions);

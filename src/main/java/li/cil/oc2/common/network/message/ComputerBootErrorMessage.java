@@ -4,14 +4,14 @@ import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.tileentity.ComputerBlockEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Component;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
 public final class ComputerBootErrorMessage {
     private BlockPos pos;
-    private ITextComponent value;
+    private Component value;
 
     ///////////////////////////////////////////////////////////////////
 

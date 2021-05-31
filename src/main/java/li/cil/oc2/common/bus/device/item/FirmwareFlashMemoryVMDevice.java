@@ -13,7 +13,7 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.sedna.api.memory.MemoryMap;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.TranslatableComponent;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class FirmwareFlashMemoryVMDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, FirmwareLoader {
@@ -52,7 +52,7 @@ public final class FirmwareFlashMemoryVMDevice extends IdentityProxy<ItemStack> 
 
     private void copyDataToMemory(final long address) {
         if (!firmware.run(memoryMap, address)) {
-            throw new VMInitializationException(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
+            throw new VMInitializationException(new TranslatableComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
         }
     }
 }

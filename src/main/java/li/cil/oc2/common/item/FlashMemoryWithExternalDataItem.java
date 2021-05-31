@@ -7,7 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.ResourceLocationException;
 import net.minecraft.util.StringUtils;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Component;
 import net.minecraft.util.text.StringTextComponent;
 
 import javax.annotation.Nullable;
@@ -67,7 +67,7 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
     }
 
     @Override
-    public ITextComponent getName(final ItemStack stack) {
+    public Component getName(final ItemStack stack) {
         final Firmware firmware = getFirmware(stack);
         if (firmware != null) {
             return new StringTextComponent("")

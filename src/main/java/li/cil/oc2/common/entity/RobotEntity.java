@@ -79,8 +79,7 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -151,7 +150,7 @@ public final class RobotEntity extends Entity implements Robot {
 
     ///////////////////////////////////////////////////////////////////
 
-    @OnlyIn(Dist.CLIENT)
+
     public AnimationState getAnimationState() {
         return animationState;
     }
@@ -431,7 +430,7 @@ public final class RobotEntity extends Entity implements Robot {
 
     ///////////////////////////////////////////////////////////////////
 
-    @OnlyIn(Dist.CLIENT)
+
     private void requestInitialState() {
         Network.INSTANCE.sendToServer(new RobotInitializationRequestMessage(this));
     }
@@ -864,7 +863,7 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         @Override
-        protected void handleBootErrorChanged(@Nullable final ITextComponent value) {
+        protected void handleBootErrorChanged(@Nullable final Component value) {
             Network.sendToClientsTrackingEntity(new RobotBootErrorMessage(RobotEntity.this), RobotEntity.this);
         }
     }

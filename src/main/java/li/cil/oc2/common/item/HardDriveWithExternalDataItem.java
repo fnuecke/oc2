@@ -1,25 +1,25 @@
 package li.cil.oc2.common.item;
 
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.IDyeableArmorItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeableLeatherItem;
+import net.minecraft.world.item.ItemStack;
 
-public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem implements IDyeableArmorItem {
+public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem implements DyeableLeatherItem {
     private final int defaultColor;
 
     ///////////////////////////////////////////////////////////////////
 
     public HardDriveWithExternalDataItem(final ResourceLocation defaultData, final DyeColor defaultColor) {
         super(defaultData);
-        this.defaultColor = defaultColor.getColorValue();
+        this.defaultColor = defaultColor.getId();
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     public int getColor(final ItemStack stack) {
-        return hasCustomColor(stack) ? IDyeableArmorItem.super.getColor(stack) : defaultColor;
+        return hasCustomColor(stack) ? DyeableLeatherItem.super.getColor(stack) : defaultColor;
     }
 
     ///////////////////////////////////////////////////////////////////

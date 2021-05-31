@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import li.cil.ceres.Ceres;
 import li.cil.oc2.common.vm.context.global.MemoryRangeList;
 import li.cil.sedna.api.memory.MemoryRange;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Component;
 
 public final class Serializers {
     private static boolean isInitialized = false;
@@ -21,7 +21,7 @@ public final class Serializers {
         isInitialized = true;
 
         Ceres.putSerializer(JsonArray.class, new JsonArraySerializer());
-        Ceres.putSerializer(ITextComponent.class, new TextComponentSerializer());
+        Ceres.putSerializer(Component.class, new TextComponentSerializer());
         Ceres.putSerializer(MemoryRange.class, new MemoryRangeSerializer());
         Ceres.putSerializer(MemoryRangeList.class, new MemoryRangeListSerializer());
     }

@@ -5,96 +5,113 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
 import li.cil.oc2.common.bus.device.data.Firmwares;
-import net.minecraft.block.Block;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.Item;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 public final class Items {
-    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, API.MOD_ID);
+    ///////////////////////////////////////////////////////////////////
+
+    public static Item COMPUTER ;
+    public static Item BUS_CABLE;
+    public static BusInterfaceItem BUS_INTERFACE;
+    public static Item NETWORK_CONNECTOR;
+    public static Item NETWORK_HUB;
+    public static Item REDSTONE_INTERFACE;
+    public static Item DISK_DRIVE;
+    public static Item CHARGER;
+    public static Item CREATIVE_ENERGY;
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final RegistryObject<Item> COMPUTER = register(Blocks.COMPUTER);
-    public static final RegistryObject<Item> BUS_CABLE = register(Blocks.BUS_CABLE, BusCableItem::new);
-    public static final RegistryObject<BusInterfaceItem> BUS_INTERFACE = register("bus_interface", BusInterfaceItem::new);
-    public static final RegistryObject<Item> NETWORK_CONNECTOR = register(Blocks.NETWORK_CONNECTOR);
-    public static final RegistryObject<Item> NETWORK_HUB = register(Blocks.NETWORK_HUB);
-    public static final RegistryObject<Item> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE);
-    public static final RegistryObject<Item> DISK_DRIVE = register(Blocks.DISK_DRIVE);
-    public static final RegistryObject<Item> CHARGER = register(Blocks.CHARGER, ChargerItem::new);
-    public static final RegistryObject<Item> CREATIVE_ENERGY = register(Blocks.CREATIVE_ENERGY);
+    public static Item WRENCH;
+    public static NetworkCableItem NETWORK_CABLE;
+    public static Item ROBOT;
 
-    ///////////////////////////////////////////////////////////////////
+    public static MemoryItem MEMORY_SMALL;
+    public static MemoryItem MEMORY_MEDIUM;
+    public static MemoryItem MEMORY_LARGE;
 
-    public static final RegistryObject<Item> WRENCH = register("wrench", WrenchItem::new);
+    public static HardDriveItem HARD_DRIVE_SMALL;
+    public static HardDriveItem HARD_DRIVE_MEDIUM;
+    public static HardDriveItem HARD_DRIVE_LARGE;
+    public static HardDriveWithExternalDataItem HARD_DRIVE_CUSTOM;
+    public static FlashMemoryItem FLASH_MEMORY;
+    public static FlashMemoryWithExternalDataItem FLASH_MEMORY_CUSTOM;
+    public static FloppyItem FLOPPY;
 
-    public static final RegistryObject<NetworkCableItem> NETWORK_CABLE = register("network_cable", NetworkCableItem::new);
-    public static final RegistryObject<Item> ROBOT = register("robot", RobotItem::new);
+    public static Item REDSTONE_INTERFACE_CARD;
+    public static Item NETWORK_INTERFACE_CARD;
+    public static Item FILE_IMPORT_EXPORT_CARD;
 
-    public static final RegistryObject<MemoryItem> MEMORY_SMALL = register("memory_small", () ->
-            new MemoryItem(2 * Constants.MEGABYTE));
-    public static final RegistryObject<MemoryItem> MEMORY_MEDIUM = register("memory_medium", () ->
-            new MemoryItem(4 * Constants.MEGABYTE));
-    public static final RegistryObject<MemoryItem> MEMORY_LARGE = register("memory_large", () ->
-            new MemoryItem(8 * Constants.MEGABYTE));
-
-    public static final RegistryObject<HardDriveItem> HARD_DRIVE_SMALL = register("hard_drive_small", () ->
-            new HardDriveItem(2 * Constants.MEGABYTE, DyeColor.LIGHT_GRAY));
-    public static final RegistryObject<HardDriveItem> HARD_DRIVE_MEDIUM = register("hard_drive_medium", () ->
-            new HardDriveItem(4 * Constants.MEGABYTE, DyeColor.GREEN));
-    public static final RegistryObject<HardDriveItem> HARD_DRIVE_LARGE = register("hard_drive_large", () ->
-            new HardDriveItem(8 * Constants.MEGABYTE, DyeColor.CYAN));
-    public static final RegistryObject<HardDriveWithExternalDataItem> HARD_DRIVE_CUSTOM = register("hard_drive_custom", () ->
-            new HardDriveWithExternalDataItem(BlockDeviceDataRegistration.BUILDROOT.getId(), DyeColor.BROWN));
-
-    public static final RegistryObject<FlashMemoryItem> FLASH_MEMORY = register("flash_memory", () ->
-            new FlashMemoryItem(4 * Constants.KILOBYTE));
-    public static final RegistryObject<FlashMemoryWithExternalDataItem> FLASH_MEMORY_CUSTOM = register("flash_memory_custom", () ->
-            new FlashMemoryWithExternalDataItem(Firmwares.BUILDROOT.getId()));
-
-    public static final RegistryObject<FloppyItem> FLOPPY = register("floppy", () ->
-            new FloppyItem(512 * Constants.KILOBYTE));
-
-    public static final RegistryObject<Item> REDSTONE_INTERFACE_CARD = register("redstone_interface_card");
-    public static final RegistryObject<Item> NETWORK_INTERFACE_CARD = register("network_interface_card");
-    public static final RegistryObject<Item> FILE_IMPORT_EXPORT_CARD = register("file_import_export_card");
-
-    public static final RegistryObject<Item> INVENTORY_OPERATIONS_MODULE = register("inventory_operations_module");
-    public static final RegistryObject<Item> BLOCK_OPERATIONS_MODULE = register("block_operations_module", BlockOperationsModule::new);
-
-    public static final RegistryObject<Item> TRANSISTOR = register("transistor", ModItem::new);
-    public static final RegistryObject<Item> CIRCUIT_BOARD = register("circuit_board", ModItem::new);
+    public static Item INVENTORY_OPERATIONS_MODULE;
+    public static Item BLOCK_OPERATIONS_MODULE;
+    public static Item TRANSISTOR;
+    public static Item CIRCUIT_BOARD;
 
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
+        ///////////////////////////////////////////////////////////////////
+
+        COMPUTER = register(Blocks.COMPUTER);
+        BUS_CABLE = register(Blocks.BUS_CABLE, new BusCableItem(Blocks.BUS_CABLE));
+        BUS_INTERFACE = register("bus_interface", new BusInterfaceItem());
+        NETWORK_CONNECTOR = register(Blocks.NETWORK_CONNECTOR);
+        NETWORK_HUB = register(Blocks.NETWORK_HUB);
+        REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE);
+        DISK_DRIVE = register(Blocks.DISK_DRIVE);
+        CHARGER = register(Blocks.CHARGER, new ChargerItem(Blocks.CHARGER));
+        CREATIVE_ENERGY = register(Blocks.CREATIVE_ENERGY);
+
+        ///////////////////////////////////////////////////////////////////
+
+        WRENCH = register("wrench", new WrenchItem());
+
+        NETWORK_CABLE = register("network_cable", new NetworkCableItem());
+        ROBOT = register("robot", new RobotItem());
+
+        MEMORY_SMALL = register("memory_small", new MemoryItem(2 * Constants.MEGABYTE));
+        MEMORY_MEDIUM = register("memory_medium", new MemoryItem(4 * Constants.MEGABYTE));
+        MEMORY_LARGE = register("memory_large", new MemoryItem(8 * Constants.MEGABYTE));
+
+        HARD_DRIVE_SMALL = register("hard_drive_small", new HardDriveItem(2 * Constants.MEGABYTE, DyeColor.LIGHT_GRAY));
+        HARD_DRIVE_MEDIUM = register("hard_drive_medium", new HardDriveItem(4 * Constants.MEGABYTE, DyeColor.GREEN));
+        HARD_DRIVE_LARGE = register("hard_drive_large", new HardDriveItem(8 * Constants.MEGABYTE, DyeColor.CYAN));
+        HARD_DRIVE_CUSTOM = register("hard_drive_custom", () -> new HardDriveWithExternalDataItem(BlockDeviceDataRegistration.BUILDROOT.getId(), DyeColor.BROWN));
+
+        FLASH_MEMORY = register("flash_memory", new FlashMemoryItem(4 * Constants.KILOBYTE));
+        FLASH_MEMORY_CUSTOM = register("flash_memory_custom", new FlashMemoryWithExternalDataItem(Firmwares.BUILDROOT.getId()));
+
+        FLOPPY = register("floppy", new FloppyItem(512 * Constants.KILOBYTE));
+
+        REDSTONE_INTERFACE_CARD = register("redstone_interface_card");
+        NETWORK_INTERFACE_CARD = register("network_interface_card");
+        FILE_IMPORT_EXPORT_CARD = register("file_import_export_card");
+
+        INVENTORY_OPERATIONS_MODULE = register("inventory_operations_module");
+        BLOCK_OPERATIONS_MODULE = register("block_operations_module", new BlockOperationsModule());
+        TRANSISTOR = register("transistor", new ModItem());
+        CIRCUIT_BOARD = register("circuit_board", new ModItem());
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private static RegistryObject<Item> register(final String name) {
-        return register(name, ModItem::new);
+    private static Item register(final String name) {
+        return register(name, new ModItem());
     }
 
-    private static <T extends Item> RegistryObject<T> register(final String name, final Supplier<T> factory) {
-        return ITEMS.register(name, factory);
+    private static <T extends Item> T register(final String name, final T factory) {
+        return Registry.register(Registry.ITEM, new ResourceLocation(API.MOD_ID, name), factory);
     }
 
-    private static <T extends Block> RegistryObject<Item> register(final RegistryObject<T> block) {
-        return register(block, ModBlockItem::new);
+    private static <T extends Block> Item register(final T block) {
+        return register(block, new ModBlockItem(block));
     }
 
-    private static <TBlock extends Block, TItem extends Item> RegistryObject<TItem> register(final RegistryObject<TBlock> block, final Function<TBlock, TItem> factory) {
-        return register(block.getId().getPath(), () -> factory.apply(block.get()));
+    private static <TBlock extends Block, TItem extends Item> TItem register(final TBlock block, TItem item) {
+        return register(Registry.BLOCK.getKey(block).getPath(), item);
     }
 }

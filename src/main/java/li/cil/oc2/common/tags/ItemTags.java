@@ -2,6 +2,7 @@ package li.cil.oc2.common.tags;
 
 import li.cil.oc2.api.API;
 import net.minecraft.item.Item;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.Tags;
 

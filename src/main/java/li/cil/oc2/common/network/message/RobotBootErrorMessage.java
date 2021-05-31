@@ -3,14 +3,14 @@ package li.cil.oc2.common.network.message;
 import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Component;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
 public final class RobotBootErrorMessage {
     private int entityId;
-    private ITextComponent value;
+    private Component value;
 
     ///////////////////////////////////////////////////////////////////
 

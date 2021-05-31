@@ -6,23 +6,21 @@ import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.WorldUtils;
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public final class BusCableItem extends ModBlockItem {
@@ -32,51 +30,50 @@ public final class BusCableItem extends ModBlockItem {
 
     ///////////////////////////////////////////////////////////////////
 
-    @OnlyIn(Dist.CLIENT)
     @Override
-    public void appendHoverText(final ItemStack stack, final @Nullable World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
-        super.appendHoverText(stack, world, tooltip, flag);
-        TooltipUtils.addEnergyConsumption(Config.busCableEnergyPerTick, tooltip);
+    public void appendHoverText(final ItemStack itemStack, final @Nullable Level level, final List<Component> list, final TooltipFlag tooltipFlag) {
+        super.appendHoverText(itemStack, level, list, tooltipFlag);
+        TooltipUtils.addEnergyConsumption(Config.busCableEnergyPerTick, list);
     }
 
     @Override
-    public ActionResultType useOn(final ItemUseContext context) {
-        final ActionResultType result = tryAddToBlock(context);
+    public InteractionResult useOn(final UseOnContext context) {
+        final InteractionResult result = tryAddToBlock(context);
         return result.consumesAction() ? result : super.useOn(context);
     }
 
     @Override
-    public ActionResultType place(final BlockItemUseContext context) {
-        final ActionResultType result = tryAddToBlock(context);
+    public InteractionResult place(final BlockPlaceContext context) {
+        final InteractionResult result = tryAddToBlock(context);
         return result.consumesAction() ? result : super.place(context);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private ActionResultType tryAddToBlock(final ItemUseContext context) {
-        final BusCableBlock busCableBlock = Blocks.BUS_CABLE.get();
+    private InteractionResult tryAddToBlock(final UseOnContext context) {
+        final BusCableBlock busCableBlock = Blocks.BUS_CABLE;
 
-        final World world = context.getLevel();
+        final Level world = context.getLevel();
         final BlockPos pos = context.getClickedPos();
         final BlockState state = world.getBlockState(pos);
 
         if (state.getBlock() == busCableBlock && busCableBlock.addCable(world, pos, state)) {
-            final PlayerEntity player = context.getPlayer();
+            final Player player = context.getPlayer();
             final ItemStack stack = context.getItemInHand();
 
-            if (player instanceof ServerPlayerEntity) {
-                CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayerEntity) player, pos, stack);
+            if (player instanceof ServerPlayer) {
+                CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayer) player, pos, stack);
             }
 
-            WorldUtils.playSound(world, pos, state.getSoundType(world, pos, player), SoundType::getPlaceSound);
+            WorldUtils.playSound(world, pos, state.getSoundType(), SoundType::getPlaceSound);
 
             if (player == null || !player.abilities.instabuild) {
                 stack.shrink(1);
             }
 
-            return ActionResultType.sidedSuccess(world.isClientSide);
+            return InteractionResult.sidedSuccess(world.isClientSide);
         }
 
-        return ActionResultType.PASS;
+        return InteractionResult.PASS;
     }
 }

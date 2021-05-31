@@ -8,7 +8,9 @@ import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.API;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 import java.nio.ByteBuffer;
@@ -101,12 +103,12 @@ public final class Terminal {
         return HEIGHT * CHAR_HEIGHT;
     }
 
-    @OnlyIn(Dist.CLIENT)
+
     public void render(final PoseStack stack) {
         if (hasPendingBell) {
             hasPendingBell = false;
             final Minecraft client = Minecraft.getInstance();
-            client.execute(() -> client.getSoundManager().play(SimpleSound.forUI(NoteBlockInstrument.PLING.getSoundEvent(), 1)));
+            client.execute(() -> client.getSoundManager().play(SimpleSoundInstance.forUI(NoteBlockInstrument.PLING.getSoundEvent(), 1)));
         }
 
         if (renderer == null) {
@@ -486,7 +488,7 @@ public final class Terminal {
 
     ///////////////////////////////////////////////////////////////////
 
-    @OnlyIn(Dist.CLIENT)
+
     private static final class Renderer {
         private static final ResourceLocation LOCATION_FONT_TEXTURE = new ResourceLocation(API.MOD_ID, "textures/font/terminus.png");
         private static final int TEXTURE_RESOLUTION = 256;

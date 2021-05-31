@@ -12,7 +12,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.state.StateContainer;
+import net.minecraft.state.StateDefinition;
 import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;

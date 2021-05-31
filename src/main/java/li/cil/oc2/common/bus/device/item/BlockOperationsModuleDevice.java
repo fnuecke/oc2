@@ -12,29 +12,31 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.FakePlayerUtils;
-import net.minecraft.block.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.*;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.tileentity.BlockEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.Mth;
-import net.minecraft.util.math.vector.Vec3;
-import net.minecraft.world.GameType;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ContainerHelper;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
+import java.util.logging.Level;
 
 public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice {
     private static final String LAST_OPERATION_TAG_NAME = "cooldown";
@@ -97,8 +99,8 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         beginCooldown();
 
-        final World world = entity.getCommandSenderWorld();
-        if (!(world instanceof ServerWorld)) {
+        final Level world = entity.getCommandSenderWorld();
+        if (!(world instanceof ServerLevel)) {
             return false;
         }
 
@@ -131,8 +133,8 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         beginCooldown();
 
-        final World world = entity.getCommandSenderWorld();
-        if (!(world instanceof ServerWorld)) {
+        final net.minecraft.world.level.Level world = entity.getCommandSenderWorld();
+        if (!(world instanceof ServerLevel) ) {
             return false;
         }
 
@@ -146,7 +148,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         final BlockPos blockPos = entity.blockPosition().relative(getAdjustedDirection(direction));
         final Direction side = getAdjustedDirection(direction).getOpposite();
-        final BlockRayTraceResult hit = new BlockRayTraceResult(
+        final BlockHitResult hit = new BlockHitResult(
                 Vec3.atCenterOf(blockPos).add(Vec3.atCenterOf(side.getNormal()).scale(0.5)),
                 side,
                 blockPos,
@@ -154,10 +156,10 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         final ItemStack itemStack = extracted.copy();
         final BlockItem blockItem = (BlockItem) itemStack.getItem();
-        final ServerPlayerEntity player = FakePlayerUtils.getFakePlayer((ServerWorld) world, entity);
-        final BlockItemUseContext context = new BlockItemUseContext(player, Hand.MAIN_HAND, itemStack, hit);
+        final ServerPlayer player = FakePlayerUtils.getFakePlayer((ServerLevel) world, entity);
+        final UseOnContext context = new BlockPlaceContext(player, InteractionHand.MAIN_HAND, itemStack, hit);
 
-        final ActionResultType result = blockItem.place(context);
+        final InteractionResult result = blockItem.place(context);
         if (!result.consumesAction()) {
             return false;
         }
@@ -240,14 +242,14 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
         return entity.getCommandSenderWorld().getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(2));
     }
 
-    private boolean tryHarvestBlock(final World world, final BlockPos blockPos) {
+    private boolean tryHarvestBlock(final Level world, final BlockPos blockPos) {
         // This method is based on PlayerInteractionManager::tryHarvestBlock. Simplified for our needs.
         final BlockState blockState = world.getBlockState(blockPos);
         if (blockState.isAir(world, blockPos)) {
             return false;
         }
 
-        final ServerPlayerEntity player = FakePlayerUtils.getFakePlayer((ServerWorld) world, entity);
+        final ServerPlayer player = FakePlayerUtils.getFakePlayer((ServerLevel) world, entity);
         final int experience = net.minecraftforge.common.ForgeHooks.onBlockBreakEvent(world, GameType.NOT_SET, player, blockPos);
         if (experience == -1) {
             return false;

@@ -14,13 +14,13 @@ import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ExportedFileMessage;
 import li.cil.oc2.common.network.message.RequestImportedFileMessage;
 import li.cil.oc2.common.network.message.ServerCanceledImportFileMessage;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.StringUtils;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.StringUtil;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -69,7 +69,7 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
     }
 
     private static final class ImportFileRequest {
-        public final Set<ServerPlayerEntity> PendingPlayers = Collections.newSetFromMap(new WeakHashMap<>());
+        public final Set<ServerPlayer> PendingPlayers = Collections.newSetFromMap(new WeakHashMap<>());
         public final WeakReference<FileImportExportCardItemDevice> Device;
 
         private ImportFileRequest(final FileImportExportCardItemDevice device) {
@@ -106,14 +106,14 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
             if (device != null) {
                 device.importedFile = new ImportedFile(data);
                 final ServerCanceledImportFileMessage message = new ServerCanceledImportFileMessage(id);
-                for (final ServerPlayerEntity player : request.PendingPlayers) {
+                for (final ServerPlayer player : request.PendingPlayers) {
                     Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
                 }
             }
         }
     }
 
-    public static void cancelImport(final ServerPlayerEntity player, final int id) {
+    public static void cancelImport(final ServerPlayer player, final int id) {
         final ImportFileRequest request = importingDevices.get(id);
         if (request != null) {
             request.PendingPlayers.remove(player);
@@ -145,7 +145,7 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
             throw new IllegalStateException("invalid state");
         }
 
-        if (StringUtils.isNullOrEmpty(name)) {
+        if (StringUtil.isNullOrEmpty(name)) {
             throw new IllegalArgumentException("name must not be empty");
         }
 
@@ -178,10 +178,10 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
         }
 
         try {
-            for (final PlayerEntity player : userProvider.getTerminalUsers()) {
-                if (player instanceof ServerPlayerEntity) {
+            for (final Player player : userProvider.getTerminalUsers()) {
+                if (player instanceof ServerPlayer) {
                     final ExportedFileMessage message = new ExportedFileMessage(exportedFile.name, exportedFile.data.toByteArray());
-                    Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), message);
+                    Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), message);
                 }
             }
         } finally {
@@ -201,10 +201,10 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
         importingDevices.put(importingId, new ImportFileRequest(this));
 
         boolean hasAnyUsers = false;
-        for (final PlayerEntity player : userProvider.getTerminalUsers()) {
-            if (player instanceof ServerPlayerEntity) {
+        for (final Player player : userProvider.getTerminalUsers()) {
+            if (player instanceof ServerPlayer) {
                 final RequestImportedFileMessage message = new RequestImportedFileMessage(importingId);
-                Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), message);
+                Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), message);
                 hasAnyUsers = true;
             }
         }

@@ -12,21 +12,21 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.HorizontalDirectionalBlockUtils;
-import net.minecraft.item.ItemStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.tileentity.BlockEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Mth;
-import net.minecraft.world.World;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.Optional;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements RPCDevice, DocumentedDevice, ItemDevice, ICapabilityProvider {
     private static final String OUTPUT_TAG_NAME = "output";
@@ -60,11 +60,11 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
 
     ///////////////////////////////////////////////////////////////////
 
-    @Nonnull
+    @NotNull
     @Override
-    public <T> Optional<T> getCapability(@Nonnull final Capability<T> capability, @Nullable final Direction side) {
+    public <T> Optional<T> getCapability(@NotNull final Capability<T> capability, @Nullable final Direction side) {
         if (capability == Capabilities.REDSTONE_EMITTER && side != null) {
-            return Optional.of(() -> capabilities[side.get3DDataValue()]).cast();
+            return (Optional<T>) Optional.of(capabilities[side.get3DDataValue()]);
         }
 
         return Optional.empty();
@@ -95,7 +95,7 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
 
     @Callback(name = GET_REDSTONE_INPUT)
     public int getRedstoneInput(@Parameter(SIDE) final Direction side) {
-        final World world = tileEntity.getLevel();
+        final Level world = tileEntity.getLevel();
         if (world == null) {
             return 0;
         }
@@ -162,7 +162,7 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
     ///////////////////////////////////////////////////////////////////
 
     private void notifyNeighbor(final Direction direction) {
-        final World world = tileEntity.getLevel();
+        final Level world = tileEntity.getLevel();
         if (world == null) {
             return;
         }

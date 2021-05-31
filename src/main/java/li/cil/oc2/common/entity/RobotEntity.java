@@ -25,6 +25,7 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.*;
 import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.serialization.TagSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.TerminalUtils;
@@ -75,6 +76,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -238,7 +240,7 @@ public final class RobotEntity extends Entity implements Robot {
             return;
         }
 
-        final ItemStack stack = new ItemStack(Items.ROBOT.get());
+        final ItemStack stack = new ItemStack(Items.ROBOT);
         exportToItemStack(stack);
         spawnAtLocation(stack);
 
@@ -373,7 +375,7 @@ public final class RobotEntity extends Entity implements Robot {
     public void importFromItemStack(final ItemStack stack) {
         final CompoundTag itemsTag = NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ITEMS_TAG_NAME);
         deviceItems.deserialize(itemsTag);
-        inventory.deserializeNBT(itemsTag.getCompound(INVENTORY_TAG_NAME));
+        inventory.deserializeTag(itemsTag.getCompound(INVENTORY_TAG_NAME));
 
         energy.deserializeNBT(NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ENERGY_TAG_NAME));
     }
@@ -391,7 +393,7 @@ public final class RobotEntity extends Entity implements Robot {
     @Override
     protected void addAdditionalSaveData(final CompoundTag tag) {
         tag.put(STATE_TAG_NAME, virtualMachine.serialize());
-        tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+        tag.put(TERMINAL_TAG_NAME, TagSerialization.serialize(terminal));
         tag.put(COMMAND_PROCESSOR_TAG_NAME, actionProcessor.serialize());
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.serialize());
         tag.put(Constants.ITEMS_TAG_NAME, deviceItems.serialize());
@@ -403,12 +405,12 @@ public final class RobotEntity extends Entity implements Robot {
     @Override
     protected void readAdditionalSaveData(final CompoundTag tag) {
         virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
-        NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
+        TagSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
         actionProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
         busElement.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME));
         deviceItems.deserialize(tag.getCompound(Constants.ITEMS_TAG_NAME));
         energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
-        inventory.deserializeNBT(tag.getCompound(INVENTORY_TAG_NAME));
+        inventory.deserializeTag(tag.getCompound(INVENTORY_TAG_NAME));
         setSelectedSlot(tag.getByte(SELECTED_SLOT_TAG_NAME));
     }
 

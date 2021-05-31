@@ -5,12 +5,12 @@ import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.common.bus.device.provider.util.AbstractBlockEntityDeviceProvider;
 import li.cil.oc2.common.tileentity.DiskDriveBlockEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
-import net.minecraft.block.HorizontalDirectionalBlock;
-import net.minecraftforge.common.util.Optional;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import java.util.Optional;
 
 public final class DiskDriveDeviceProvider extends AbstractBlockEntityDeviceProvider<DiskDriveBlockEntity> {
     public DiskDriveDeviceProvider() {
-        super(TileEntities.DISK_DRIVE_TILE_ENTITY.get());
+        super(TileEntities.DISK_DRIVE_TILE_ENTITY);
     }
 
     @Override
@@ -21,6 +21,6 @@ public final class DiskDriveDeviceProvider extends AbstractBlockEntityDeviceProv
             return Optional.empty();
         }
 
-        return Optional.of(tileEntity::getDevice);
+        return Optional.of(tileEntity.getDevice());
     }
 }

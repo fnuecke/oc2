@@ -5,8 +5,7 @@ import li.cil.ceres.api.SerializationException;
 import li.cil.ceres.api.SerializationVisitor;
 import li.cil.ceres.api.Serializer;
 import li.cil.sedna.api.memory.MemoryRange;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public final class MemoryRangeSerializer implements Serializer<MemoryRange> {
     @Override

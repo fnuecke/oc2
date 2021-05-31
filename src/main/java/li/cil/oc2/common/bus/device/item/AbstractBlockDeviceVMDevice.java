@@ -10,7 +10,7 @@ import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.bus.device.util.OptionalInterrupt;
 import li.cil.oc2.common.serialization.BlobStorage;
-import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.serialization.TagSerialization;
 import li.cil.oc2.common.util.Event;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.BlockDevice;
@@ -77,7 +77,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
         deserializeData();
 
         if (deviceTag != null) {
-            NBTSerialization.deserialize(deviceTag, device);
+            TagSerialization.deserialize(deviceTag, device);
         }
 
         return VMDeviceLoadResult.success();
@@ -128,7 +128,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
 
         serializeData();
         if (device != null) {
-            deviceTag = NBTSerialization.serialize(device);
+            deviceTag = TagSerialization.serialize(device);
         }
         if (deviceTag != null) {
             tag.put(DEVICE_TAG_NAME, deviceTag);

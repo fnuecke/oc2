@@ -14,8 +14,8 @@ import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.device.memory.Memory;
 import li.cil.sedna.memory.PhysicalMemoryInputStream;
 import li.cil.sedna.memory.PhysicalMemoryOutputStream;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 

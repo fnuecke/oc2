@@ -13,7 +13,7 @@ public final class BlockEntityDeviceProvider extends AbstractBlockEntityDevicePr
     @Override
     public Optional<Device> getBlockDevice(final BlockDeviceQuery query, final BlockEntity tileEntity) {
         if (Callbacks.hasMethods(tileEntity)) {
-            return Optional.of(() -> new ObjectDevice(tileEntity));
+            return Optional.of(new ObjectDevice(tileEntity));
         } else {
             return Optional.empty();
         }

@@ -13,16 +13,21 @@ import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.bus.device.util.OptionalInterrupt;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.serialization.TagSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.device.virtio.VirtIONetworkDevice;
+import net.minecraft.core.Direction;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Direction;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.Optional;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, ICapabilityProvider {
@@ -51,7 +56,7 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
     @Override
     public <T> Optional<T> getCapability(final Capability<T> cap, @Nullable final Direction side) {
         if (cap == Capabilities.NETWORK_INTERFACE && side != null) {
-            return Optional.of(() -> networkInterface).cast();
+            return (Optional<T>) Optional.of(networkInterface);
         }
 
         return Optional.empty();
@@ -72,7 +77,7 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
         }
 
         if (deviceTag != null) {
-            NBTSerialization.deserialize(deviceTag, device);
+            TagSerialization.deserialize(deviceTag, device);
         }
 
         context.getEventBus().register(this);
@@ -103,7 +108,7 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
         final CompoundTag tag = new CompoundTag();
 
         if (device != null) {
-            deviceTag = NBTSerialization.serialize(device);
+            deviceTag = TagSerialization.serialize(device);
         }
         if (deviceTag != null) {
             tag.put(DEVICE_TAG_NAME, deviceTag);

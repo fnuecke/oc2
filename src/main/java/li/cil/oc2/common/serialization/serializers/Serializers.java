@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import li.cil.ceres.Ceres;
 import li.cil.oc2.common.vm.context.global.MemoryRangeList;
 import li.cil.sedna.api.memory.MemoryRange;
-import net.minecraft.util.text.Component;
+import net.minecraft.network.chat.Component;
 
 public final class Serializers {
     private static boolean isInitialized = false;

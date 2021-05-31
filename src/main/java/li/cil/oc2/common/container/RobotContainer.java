@@ -7,14 +7,17 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.items.ContainerHelper;
 import net.minecraftforge.items.SlotItemHandler;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nullable;
 
 public final class RobotContainer extends AbstractContainer {
     @Nullable
-    public static RobotContainer create(final int id, final PlayerInventory inventory, final PacketBuffer data) {
+    public static RobotContainer create(final int id, final Inventory inventory, final PacketBuffer data) {
         final int entityId = data.readVarInt();
         final Entity entity = inventory.player.getCommandSenderWorld().getEntity(entityId);
         if (!(entity instanceof RobotEntity)) {
@@ -29,7 +32,7 @@ public final class RobotContainer extends AbstractContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotContainer(final int id, final RobotEntity robot, final PlayerInventory playerInventory) {
+    public RobotContainer(final int id, final RobotEntity robot, final Inventory playerInventory) {
         super(Containers.ROBOT_CONTAINER.get(), id);
         this.robot = robot;
 

@@ -6,8 +6,8 @@ import li.cil.ceres.api.SerializationVisitor;
 import li.cil.ceres.api.Serializer;
 import li.cil.oc2.common.vm.context.global.MemoryRangeList;
 import li.cil.sedna.api.memory.MemoryRange;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 
 public final class MemoryRangeListSerializer implements Serializer<MemoryRangeList> {

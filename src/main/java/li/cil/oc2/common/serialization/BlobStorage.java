@@ -3,11 +3,10 @@ package li.cil.oc2.common.serialization;
 import com.google.common.collect.HashMultimap;
 import li.cil.oc2.common.Constants;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.storage.FolderName;
+import net.minecraft.world.level.storage.LevelResource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,8 +30,6 @@ public final class BlobStorage {
     private static final Logger LOGGER = LogManager.getLogger();
 
     ///////////////////////////////////////////////////////////////////
-
-    private static final FolderName BLOBS_FOLDER_NAME = new FolderName("oc2-blobs");
 
     private static final HashMultimap<UUID, Future<Void>> WRITE_HANDLES = HashMultimap.create();
     private static final HashMultimap<UUID, Future<Void>> READ_HANDLES = HashMultimap.create();
@@ -118,9 +115,9 @@ public final class BlobStorage {
      */
     public static void setServer(final MinecraftServer server) {
         synchronize();
-        dataDirectory = server.getWorldPath(BLOBS_FOLDER_NAME);
+        dataDirectory = server.getWorldPath(LevelResource.ROOT);
         try {
-            Files.createDirectories(dataDirectory);
+            Files.createDirectories(dataDirectory.resolve("oc2-blobs"));
         } catch (final IOException e) {
             LOGGER.error(e);
         }

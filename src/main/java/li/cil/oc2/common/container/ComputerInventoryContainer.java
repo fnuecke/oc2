@@ -4,18 +4,24 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.tileentity.ComputerBlockEntity;
 import li.cil.oc2.common.vm.VMContainerHelpers;
+import net.minecraft.core.BlockPos;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.LevelPosCallable;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nullable;
 
 public final class ComputerInventoryContainer extends AbstractContainer {
     @Nullable
-    public static ComputerInventoryContainer create(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
+    public static ComputerInventoryContainer create(final int id, final Inventory playerInventory, final PacketBuffer data) {
         final BlockPos pos = data.readBlockPos();
         final BlockEntity tileEntity = playerInventory.player.getCommandSenderWorld().getBlockEntity(pos);
         if (!(tileEntity instanceof ComputerBlockEntity)) {
@@ -30,8 +36,8 @@ public final class ComputerInventoryContainer extends AbstractContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerInventoryContainer(final int id, final ComputerBlockEntity computer, final PlayerInventory playerInventory) {
-        super(Containers.COMPUTER_CONTAINER.get(), id);
+    public ComputerInventoryContainer(final int id, final ComputerBlockEntity computer, final Inventory playerInventory) {
+        super(Containers.COMPUTER_CONTAINER, id);
         this.computer = computer;
 
         final VMContainerHelpers handlers = computer.getContainerHelpers();
@@ -66,7 +72,7 @@ public final class ComputerInventoryContainer extends AbstractContainer {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public boolean stillValid(final PlayerEntity player) {
-        return stillValid(LevelPosCallable.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER.get());
+    public boolean stillValid(final Player player) {
+        return stillValid(ContainerLevelAccess.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER);
     }
 }

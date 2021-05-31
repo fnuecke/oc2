@@ -1,6 +1,6 @@
 package li.cil.oc2.common.bus.device.util;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 public abstract class IdentityProxy<T> {

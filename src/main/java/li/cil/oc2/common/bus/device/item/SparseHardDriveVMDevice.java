@@ -7,7 +7,7 @@ import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.SparseBlockDevice;
 import li.cil.sedna.utils.ByteBufferInputStream;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -29,7 +29,7 @@ public final class SparseHardDriveVMDevice extends AbstractBlockDeviceVMDevice<S
         super(identity);
         this.base = base;
         this.readonly = readonly;
-        this.soundEmitter = new ThrottledSoundEmitter(location, SoundEvents.HDD_ACCESS.get())
+        this.soundEmitter = new ThrottledSoundEmitter(location, SoundEvents.HDD_ACCESS)
                 .withMinInterval(Duration.ofSeconds(1));
     }
 

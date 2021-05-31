@@ -8,14 +8,14 @@ import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.bus.device.provider.Providers;
-import net.minecraft.entity.Entity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.BlockEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.Optional;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.registries.IForgeRegistry;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -24,12 +24,12 @@ import static java.util.Objects.requireNonNull;
 
 public final class Devices {
     public static BlockDeviceQuery makeQuery(final BlockEntity tileEntity, @Nullable final Direction side) {
-        final World world = requireNonNull(tileEntity.getLevel());
+        final Level world = requireNonNull(tileEntity.getLevel());
         final BlockPos pos = tileEntity.getBlockPos();
         return new BlockQuery(world, pos, side);
     }
 
-    public static BlockDeviceQuery makeQuery(final World world, final BlockPos pos, @Nullable final Direction side) {
+    public static BlockDeviceQuery makeQuery(final Level world, final BlockPos pos, @Nullable final Direction side) {
         return new BlockQuery(world, pos, side);
     }
 
@@ -51,7 +51,7 @@ public final class Devices {
         for (final BlockDeviceProvider provider : registry.getValues()) {
             final Optional<Device> device = provider.getDevice(query);
             if (device.isPresent()) {
-                final Optional<BlockDeviceInfo> info = device.lazyMap(d -> new BlockDeviceInfo(provider, d));
+                final Optional<BlockDeviceInfo> info = device.map(d -> new BlockDeviceInfo(provider, d));
                 device.addListener(unused -> info.invalidate());
                 devices.add(info);
             }
@@ -95,18 +95,18 @@ public final class Devices {
     ///////////////////////////////////////////////////////////////////
 
     private static class BlockQuery implements BlockDeviceQuery {
-        private final World world;
+        private final Level world;
         private final BlockPos pos;
         @Nullable private final Direction side;
 
-        public BlockQuery(final World world, final BlockPos pos, @Nullable final Direction side) {
+        public BlockQuery(final Level world, final BlockPos pos, @Nullable final Direction side) {
             this.world = world;
             this.pos = pos;
             this.side = side;
         }
 
         @Override
-        public World getLevel() {
+        public Level getLevel() {
             return world;
         }
 

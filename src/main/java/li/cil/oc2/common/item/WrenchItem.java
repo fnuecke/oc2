@@ -9,35 +9,35 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.world.LevelReader;
 import net.minecraft.world.World;
 
 public final class WrenchItem extends ModItem {
     @Override
-    public ActionResultType onItemUse(final ItemUseContext context) {
+    public ActionResultType useOn(final ItemUseContext context) {
         final PlayerEntity player = context.getPlayer();
-        if (!player.isSneaking()) {
-            return super.onItemUse(context);
+        if (!player.isShiftKeyDown()) {
+            return super.useOn(context);
         }
 
-        final World world = context.getWorld();
-        final BlockPos pos = context.getPos();
+        final World world = context.getLevel();
+        final BlockPos pos = context.getClickedPos();
         final BlockState state = world.getBlockState(pos);
-        if (!state.isIn(BlockTags.WRENCH_BREAKABLE)) {
-            return super.onItemUse(context);
+        if (!state.is(BlockTags.WRENCH_BREAKABLE)) {
+            return super.useOn(context);
         }
 
-        if (world.isRemote()) {
-            Minecraft.getInstance().playerController.onPlayerDestroyBlock(pos);
+        if (world.isClientSide) {
+            Minecraft.getInstance().gameMode.destroyBlock(pos);
         } else if (player instanceof ServerPlayerEntity) {
-            ((ServerPlayerEntity) player).interactionManager.tryHarvestBlock(pos);
+            ((ServerPlayerEntity) player).gameMode.destroyBlock(pos);
         }
 
-        return ActionResultType.func_233537_a_(world.isRemote);
+        return ActionResultType.sidedSuccess(world.isClientSide);
     }
 
     @Override
-    public boolean doesSneakBypassUse(final ItemStack stack, final IWorldReader world, final BlockPos pos, final PlayerEntity player) {
+    public boolean doesSneakBypassUse(final ItemStack stack, final LevelReader world, final BlockPos pos, final PlayerEntity player) {
         return true;
     }
 }

@@ -1,9 +1,8 @@
 package li.cil.oc2.common.serialization.serializers;
 
 import com.google.gson.*;
-import net.minecraft.util.Direction;
-
-import javax.annotation.Nullable;
+import net.minecraft.core.Direction;
+import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Type;
 
 public final class DirectionJsonSerializer implements JsonDeserializer<Direction>, JsonSerializer<Direction> {
@@ -24,7 +23,7 @@ public final class DirectionJsonSerializer implements JsonDeserializer<Direction
         }
 
         if (primitive.isNumber()) {
-            return Direction.byIndex(json.getAsInt());
+            return Direction.from3DDataValue(json.getAsInt());
         }
 
         return null;
@@ -35,7 +34,7 @@ public final class DirectionJsonSerializer implements JsonDeserializer<Direction
         if (src == null) {
             return JsonNull.INSTANCE;
         } else {
-            return new JsonPrimitive(src.getString());
+            return new JsonPrimitive(src.toString());
         }
     }
 }

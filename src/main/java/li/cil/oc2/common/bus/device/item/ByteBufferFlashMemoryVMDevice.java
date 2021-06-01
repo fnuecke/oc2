@@ -15,9 +15,9 @@ import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.device.flash.FlashMemoryDevice;
 import li.cil.sedna.memory.MemoryMaps;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.item.ItemStack;
 
 import java.nio.ByteBuffer;
 
@@ -35,7 +35,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
     ///////////////////////////////////////////////////////////////
 
     // Online persisted data.
-    private CompoundNBT deviceTag;
+    private CompoundTag deviceTag;
     private final OptionalAddress address = new OptionalAddress();
 
     ///////////////////////////////////////////////////////////////
@@ -81,8 +81,8 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        final CompoundTag tag = new CompoundTag();
 
         if (device != null) {
             tag.putByteArray(DATA_TAG_NAME, device.getData().array());
@@ -92,7 +92,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT tag) {
+    public void deserializeNBT(final CompoundTag tag) {
         final byte[] data = tag.getByteArray(DATA_TAG_NAME);
         final ByteBuffer bufferData = device.getData();
         bufferData.clear();
@@ -128,7 +128,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
         try {
             MemoryMaps.store(memoryMap, startAddress, data);
         } catch (final MemoryAccessException e) {
-            throw new VMInitializationException(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
+            throw new VMInitializationException(new TranslatableComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
         }
     }
 }

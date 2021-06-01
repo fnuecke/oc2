@@ -1,28 +1,25 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.network.chat.Component;
 
-import javax.annotation.Nullable;
-
+import org.jetbrains.annotations.Nullable;
 public interface VirtualMachine {
     CommonDeviceBusController.BusState getBusState();
 
-    @OnlyIn(Dist.CLIENT)
+
     void setBusStateClient(CommonDeviceBusController.BusState value);
 
     VMRunState getRunState();
 
-    @OnlyIn(Dist.CLIENT)
+
     void setRunStateClient(VMRunState value);
 
     @Nullable
-    ITextComponent getBootError();
+    Component getBootError();
 
-    @OnlyIn(Dist.CLIENT)
-    void setBootErrorClient(ITextComponent value);
+
+    void setBootErrorClient(Component value);
 
     boolean isRunning();
 

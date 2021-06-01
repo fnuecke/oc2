@@ -1,31 +1,29 @@
 package li.cil.oc2.common.block;
 
 import li.cil.oc2.common.tileentity.TileEntities;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import org.jetbrains.annotations.Nullable;
 
-public final class CreativeEnergyBlock extends Block {
+public final class CreativeEnergyBlock extends BaseEntityBlock {
     public CreativeEnergyBlock() {
         super(Properties
-                .create(Material.IRON)
+                .of(Material.METAL)
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(-1, 3600000)
+                .strength(-1, 3600000)
                 .noDrops());
     }
 
     ///////////////////////////////////////////////////////////////////
 
+    @Nullable
     @Override
-    public boolean hasTileEntity(final BlockState state) {
-        return true;
-    }
-
-    @Override
-    public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
+    public BlockEntity newBlockEntity(final BlockGetter blockGetter) {
         return TileEntities.CREATIVE_ENERGY_TILE_ENTITY.get().create();
     }
 }

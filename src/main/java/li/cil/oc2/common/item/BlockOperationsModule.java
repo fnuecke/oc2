@@ -6,6 +6,6 @@ public final class BlockOperationsModule extends ModItem {
     ///////////////////////////////////////////////////////////////////
 
     public BlockOperationsModule() {
-        super(createProperties().maxDamage(DURABILITY));
+        super(createProperties().durability(DURABILITY));
     }
 }

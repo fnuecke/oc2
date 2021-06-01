@@ -1,25 +1,23 @@
 package li.cil.oc2.common.block;
 
 import li.cil.oc2.common.tileentity.TileEntities;
-import net.minecraft.block.*;
-import net.minecraft.block.material.Material;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Mirror;
-import net.minecraft.util.Rotation;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.material.Material;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-public final class ChargerBlock extends BreakableBlock {
+public final class ChargerBlock extends Block implements EntityBlock {
     public ChargerBlock() {
         super(Properties
-                .create(Material.IRON)
+                .of(Material.METAL)
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(1.5f, 6.0f));
-        setDefaultState(getStateContainer().getBaseState().with(HorizontalBlock.HORIZONTAL_FACING, Direction.NORTH));
+                .strength(1.5f, 6.0f));
+        registerDefaultState(getStateDefinition().any().setValue(HorizontalDirectionalBlock.FACING, Direction.NORTH));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -27,36 +25,31 @@ public final class ChargerBlock extends BreakableBlock {
     @SuppressWarnings("deprecation")
     @Override
     public BlockState rotate(final BlockState state, final Rotation rot) {
-        return state.with(HorizontalBlock.HORIZONTAL_FACING, rot.rotate(state.get(HorizontalBlock.HORIZONTAL_FACING)));
+        return state.setValue(HorizontalDirectionalBlock.FACING, rot.rotate(state.getValue(HorizontalDirectionalBlock.FACING)));
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public BlockState mirror(final BlockState state, final Mirror mirrorIn) {
-        return state.rotate(mirrorIn.toRotation(state.get(HorizontalBlock.HORIZONTAL_FACING)));
-    }
-
-    @Override
-    public boolean hasTileEntity(final BlockState state) {
-        return true;
+        return state.rotate(mirrorIn.getRotation(state.getValue(HorizontalDirectionalBlock.FACING)));
     }
 
     @Nullable
     @Override
-    public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
+    public BlockEntity newBlockEntity(final BlockGetter world) {
         return TileEntities.CHARGER_TILE_ENTITY.get().create();
     }
 
     @Override
-    public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        return super.getDefaultState().with(HorizontalBlock.HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
+    public BlockState getStateForPlacement(final BlockPlaceContext context) {
+        return super.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, context.getHorizontalDirection().getOpposite());
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
-        builder.add(HorizontalBlock.HORIZONTAL_FACING);
+    protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(HorizontalDirectionalBlock.FACING);
     }
 }

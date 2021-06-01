@@ -6,8 +6,7 @@ import li.cil.ceres.api.DeserializationVisitor;
 import li.cil.ceres.api.SerializationException;
 import li.cil.ceres.api.SerializationVisitor;
 import li.cil.ceres.api.Serializer;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public final class JsonArraySerializer implements Serializer<JsonArray> {
     @Override

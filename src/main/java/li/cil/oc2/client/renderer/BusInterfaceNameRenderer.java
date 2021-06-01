@@ -1,23 +1,25 @@
 package li.cil.oc2.client.renderer;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.matrix.PoseStack;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.integration.Wrenches;
-import li.cil.oc2.common.tileentity.BusCableTileEntity;
+import li.cil.oc2.common.tileentity.BusCableBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -34,25 +36,25 @@ public enum BusInterfaceNameRenderer {
     @SubscribeEvent
     public void handleRenderLastEvent(final RenderWorldLastEvent event) {
         final Minecraft mc = Minecraft.getInstance();
-        final PlayerEntity player = mc.player;
-        final World world = player.getEntityWorld();
+        final Player player = mc.player;
+        final Level world = player.getCommandSenderWorld();
 
         if (!Wrenches.isHoldingWrench(player)) {
             return;
         }
 
-        if (!(mc.objectMouseOver instanceof BlockRayTraceResult)) {
+        if (!(mc.hitResult instanceof BlockRayTraceResult)) {
             return;
         }
 
-        final BlockRayTraceResult hit = (BlockRayTraceResult) mc.objectMouseOver;
-        final BlockPos blockPos = hit.getPos();
-        final TileEntity tileEntity = world.getTileEntity(blockPos);
-        if (!(tileEntity instanceof BusCableTileEntity)) {
+        final BlockRayTraceResult hit = (BlockRayTraceResult) mc.hitResult;
+        final BlockPos blockPos = hit.getBlockPos();
+        final BlockEntity tileEntity = world.getBlockEntity(blockPos);
+        if (!(tileEntity instanceof BusCableBlockEntity)) {
             return;
         }
 
-        final BusCableTileEntity busCable = (BusCableTileEntity) tileEntity;
+        final BusCableBlockEntity busCable = (BusCableBlockEntity) tileEntity;
         final Direction side = BusCableBlock.getHitSide(blockPos, hit);
         if (BusCableBlock.getConnectionType(world.getBlockState(blockPos), side) != BusCableBlock.ConnectionType.INTERFACE) {
             return;
@@ -64,40 +66,40 @@ public enum BusInterfaceNameRenderer {
         }
 
 
-        final MatrixStack stack = event.getMatrixStack();
-        stack.push();
+        final PoseStack stack = event.getPoseStack();
+        stack.pushPose();
 
         stack.translate(0.5, 1, 0.5);
-        stack.translate(side.getXOffset() * 0.5f, 0, side.getZOffset() * 0.5f);
+        stack.translate(side.getStepX() * 0.5f, 0, side.getStepZ() * 0.5f);
 
-        final ActiveRenderInfo info = mc.gameRenderer.getActiveRenderInfo();
+        final ActiveRenderInfo info = mc.gameRenderer.getMainCamera();
         stack.translate(
-                blockPos.getX() - info.getProjectedView().getX(),
-                blockPos.getY() - info.getProjectedView().getY(),
-                blockPos.getZ() - info.getProjectedView().getZ());
+                blockPos.getX() - info.getPosition().x,
+                blockPos.getY() - info.getPosition().y,
+                blockPos.getZ() - info.getPosition().z);
 
-        final EntityRendererManager renderManager = mc.getRenderManager();
-        stack.rotate(renderManager.getCameraOrientation());
+        final EntityRendererManager renderManager = mc.getEntityRenderDispatcher();
+        stack.mulPose(renderManager.cameraOrientation());
 
         stack.scale(-0.025f, -0.025f, 0.025f);
 
-        final Matrix4f matrix = stack.getLast().getMatrix();
+        final Matrix4f matrix = stack.last().pose();
 
-        final FontRenderer fontrenderer = renderManager.getFontRenderer();
-        final IRenderTypeBuffer.Impl buffer = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
+        final FontRenderer fontrenderer = renderManager.getFont();
+        final MultiBufferSource.Impl buffer = MultiBufferSource.immediate(Tessellator.getInstance().getBuilder());
 
-        final float horizontalTextOffset = -fontrenderer.getStringWidth(name) * 0.5f;
-        final float backgroundOpacity = Minecraft.getInstance().gameSettings.getTextBackgroundOpacity(0.25F);
+        final float horizontalTextOffset = -fontrenderer.width(name) * 0.5f;
+        final float backgroundOpacity = Minecraft.getInstance().options.getBackgroundOpacity(0.25F);
         final int backgroundColor = (int) (backgroundOpacity * 255.0F) << 24;
-        final int packedLight = LightTexture.packLight(15, 15);
+        final int packedLight = LightTexture.pack(15, 15);
 
-        fontrenderer.renderString(name, horizontalTextOffset, 0, 0xffffffff,
+        fontrenderer.drawInBatch(name, horizontalTextOffset, 0, 0xffffffff,
                 false, matrix, buffer, true, backgroundColor, packedLight);
-        fontrenderer.renderString(name, horizontalTextOffset, 0, 0xffffffff,
+        fontrenderer.drawInBatch(name, horizontalTextOffset, 0, 0xffffffff,
                 false, matrix, buffer, false, 0, packedLight);
 
-        buffer.finish();
+        buffer.endBatch();
 
-        stack.pop();
+        stack.popPose();
     }
 }

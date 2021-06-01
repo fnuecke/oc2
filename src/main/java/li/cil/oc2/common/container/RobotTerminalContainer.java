@@ -2,48 +2,48 @@ package li.cil.oc2.common.container;
 
 import li.cil.oc2.client.gui.AbstractTerminalWidget;
 import li.cil.oc2.common.entity.RobotEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.IIntArray;
-import net.minecraft.util.IntArray;
-import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraftforge.items.ContainerHelper;
 import net.minecraftforge.items.SlotItemHandler;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-public final class RobotTerminalContainer extends AbstractContainer {
+public final class RobotTerminalContainer extends AbstractContainerMenu {
     private static final int ENERGY_INFO_SIZE = 3;
 
     ///////////////////////////////////////////////////////////////////
 
     @Nullable
-    public static RobotTerminalContainer create(final int id, final PlayerInventory inventory, final PacketBuffer data) {
+    public static RobotTerminalContainer create(final int id, final Inventory inventory, final FriendlyByteBuf data) {
         final int entityId = data.readVarInt();
-        final Entity entity = inventory.player.getEntityWorld().getEntityByID(entityId);
+        final Entity entity = inventory.player.getCommandSenderWorld().getEntity(entityId);
         if (!(entity instanceof RobotEntity)) {
             return null;
         }
-        return new RobotTerminalContainer(id, (RobotEntity) entity, new IntArray(3));
+        return new RobotTerminalContainer(id, (RobotEntity) entity, new SimpleContainerData(3));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     private final RobotEntity robot;
-    private final IIntArray energyInfo;
+    private final ContainerData energyInfo;
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotTerminalContainer(final int id, final RobotEntity robot, final IIntArray energyInfo) {
+    public RobotTerminalContainer(final int id, final RobotEntity robot, final ContainerData energyInfo) {
         super(Containers.ROBOT_TERMINAL_CONTAINER.get(), id);
         this.robot = robot;
         this.energyInfo = energyInfo;
 
-        assertIntArraySize(energyInfo, ENERGY_INFO_SIZE);
-        trackIntArray(energyInfo);
+        checkContainerDataCount(energyInfo, ENERGY_INFO_SIZE);
+        addDataSlots(energyInfo);
 
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             final int x = (AbstractTerminalWidget.WIDTH - inventory.getSlots() * SLOT_SIZE) / 2 + 1 + slot * SLOT_SIZE;
             addSlot(new SlotItemHandler(inventory, slot, x, AbstractTerminalWidget.HEIGHT + 4));
@@ -69,7 +69,7 @@ public final class RobotTerminalContainer extends AbstractContainer {
     }
 
     @Override
-    public boolean canInteractWith(final PlayerEntity player) {
-        return robot.isEntityInRange(player, 8);
+    public boolean stillValid(final Player player) {
+        return robot.closerThan(player, 8);
     }
 }

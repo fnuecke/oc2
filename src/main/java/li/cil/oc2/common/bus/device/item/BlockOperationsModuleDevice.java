@@ -12,29 +12,31 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.FakePlayerUtils;
-import net.minecraft.block.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.*;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.GameType;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
+import java.util.logging.Level;
 
 public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice {
     private static final String LAST_OPERATION_TAG_NAME = "cooldown";
@@ -68,15 +70,15 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        final CompoundTag tag = new CompoundTag();
         tag.putLong(LAST_OPERATION_TAG_NAME, lastOperation);
         return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT tag) {
-        lastOperation = MathHelper.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.getEntityWorld().getGameTime());
+    public void deserializeNBT(final CompoundTag tag) {
+        lastOperation = Mth.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.getCommandSenderWorld().getGameTime());
     }
 
     @Override
@@ -97,17 +99,17 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         beginCooldown();
 
-        final World world = entity.getEntityWorld();
-        if (!(world instanceof ServerWorld)) {
+        final Level world = entity.getCommandSenderWorld();
+        if (!(world instanceof ServerLevel)) {
             return false;
         }
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
 
         final List<ItemEntity> oldItems = getItemsInRange();
 
-        if (!tryHarvestBlock(world, entity.getPosition().offset(getAdjustedDirection(direction)))) {
+        if (!tryHarvestBlock(world, entity.blockPosition().relative(getAdjustedDirection(direction)))) {
             return false;
         }
 
@@ -131,34 +133,34 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         beginCooldown();
 
-        final World world = entity.getEntityWorld();
-        if (!(world instanceof ServerWorld)) {
+        final net.minecraft.world.level.Level world = entity.getCommandSenderWorld();
+        if (!(world instanceof ServerLevel) ) {
             return false;
         }
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
 
         final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);
         if (extracted.isEmpty() || !(extracted.getItem() instanceof BlockItem)) {
             return false;
         }
 
-        final BlockPos blockPos = entity.getPosition().offset(getAdjustedDirection(direction));
+        final BlockPos blockPos = entity.blockPosition().relative(getAdjustedDirection(direction));
         final Direction side = getAdjustedDirection(direction).getOpposite();
-        final BlockRayTraceResult hit = new BlockRayTraceResult(
-                Vector3d.copyCentered(blockPos).add(Vector3d.copy(side.getDirectionVec()).scale(0.5)),
+        final BlockHitResult hit = new BlockHitResult(
+                Vec3.atCenterOf(blockPos).add(Vec3.atCenterOf(side.getNormal()).scale(0.5)),
                 side,
                 blockPos,
                 false);
 
         final ItemStack itemStack = extracted.copy();
         final BlockItem blockItem = (BlockItem) itemStack.getItem();
-        final ServerPlayerEntity player = FakePlayerUtils.getFakePlayer((ServerWorld) world, entity);
-        final BlockItemUseContext context = new BlockItemUseContext(player, Hand.MAIN_HAND, itemStack, hit);
+        final ServerPlayer player = FakePlayerUtils.getFakePlayer((ServerLevel) world, entity);
+        final UseOnContext context = new BlockPlaceContext(player, InteractionHand.MAIN_HAND, itemStack, hit);
 
-        final ActionResultType result = blockItem.tryPlace(context);
-        if (!result.isSuccessOrConsume()) {
+        final InteractionResult result = blockItem.place(context);
+        if (!result.consumesAction()) {
             return false;
         }
 
@@ -171,7 +173,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
     @Callback(synchronize = false)
     public int durability() {
-        return identity.getMaxDamage() - identity.getDamage();
+        return identity.getMaxDamage() - identity.getDamageValue();
     }
 
     @Callback
@@ -182,12 +184,12 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         beginCooldown();
 
-        if (identity.getDamage() == 0) {
+        if (identity.getDamageValue() == 0) {
             return false;
         }
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
 
         final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);
 
@@ -196,7 +198,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        final int repairValue = tier.getMaxUses();
+        final int repairValue = tier.getUses();
         if (repairValue == 0) {
             return false;
         }
@@ -206,7 +208,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        identity.setDamage(identity.getDamage() - repairValue);
+        identity.setDamageValue(identity.getDamageValue() - repairValue);
 
         return true;
     }
@@ -214,11 +216,11 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
     ///////////////////////////////////////////////////////////////////
 
     private void beginCooldown() {
-        lastOperation = entity.getEntityWorld().getGameTime();
+        lastOperation = entity.getCommandSenderWorld().getGameTime();
     }
 
     private boolean isOnCooldown() {
-        return entity.getEntityWorld().getGameTime() - lastOperation < COOLDOWN;
+        return entity.getCommandSenderWorld().getGameTime() - lastOperation < COOLDOWN;
     }
 
     private Direction getAdjustedDirection(@Nullable final PlacementDirection placementDirection) {
@@ -228,35 +230,35 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return Direction.DOWN;
         } else {
             Direction direction = Direction.SOUTH;
-            final int horizontalIndex = entity.getHorizontalFacing().getHorizontalIndex();
+            final int horizontalIndex = entity.getDirection().get2DDataValue();
             for (int i = 0; i < horizontalIndex; i++) {
-                direction = direction.rotateY();
+                direction = direction.getClockWise();
             }
             return direction;
         }
     }
 
     private List<ItemEntity> getItemsInRange() {
-        return entity.getEntityWorld().getEntitiesWithinAABB(ItemEntity.class, entity.getBoundingBox().grow(2));
+        return entity.getCommandSenderWorld().getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(2));
     }
 
-    private boolean tryHarvestBlock(final World world, final BlockPos blockPos) {
+    private boolean tryHarvestBlock(final Level world, final BlockPos blockPos) {
         // This method is based on PlayerInteractionManager::tryHarvestBlock. Simplified for our needs.
         final BlockState blockState = world.getBlockState(blockPos);
         if (blockState.isAir(world, blockPos)) {
             return false;
         }
 
-        final ServerPlayerEntity player = FakePlayerUtils.getFakePlayer((ServerWorld) world, entity);
+        final ServerPlayer player = FakePlayerUtils.getFakePlayer((ServerLevel) world, entity);
         final int experience = net.minecraftforge.common.ForgeHooks.onBlockBreakEvent(world, GameType.NOT_SET, player, blockPos);
         if (experience == -1) {
             return false;
         }
 
-        final TileEntity tileEntity = world.getTileEntity(blockPos);
+        final BlockEntity tileEntity = world.getBlockEntity(blockPos);
         final Block block = blockState.getBlock();
         final boolean isCommandBlock = block instanceof CommandBlockBlock || block instanceof StructureBlock || block instanceof JigsawBlock;
-        if (isCommandBlock && !player.canUseCommandBlock()) {
+        if (isCommandBlock && !player.canUseGameMasterBlocks()) {
             return false;
         }
 
@@ -273,7 +275,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        if (identity.attemptDamageItem(1, world.rand, null)) {
+        if (identity.hurt(1, world.random, null)) {
             return false;
         }
 
@@ -281,8 +283,8 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        block.onPlayerDestroy(world, blockPos, blockState);
-        block.harvestBlock(world, player, blockPos, blockState, tileEntity, ItemStack.EMPTY);
+        block.destroy(world, blockPos, blockState);
+        block.playerDestroy(world, player, blockPos, blockState, tileEntity, ItemStack.EMPTY);
 
         return true;
     }

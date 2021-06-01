@@ -1,85 +1,97 @@
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.common.tags.ItemTags;
-import li.cil.oc2.common.tileentity.DiskDriveTileEntity;
+import li.cil.oc2.common.tileentity.DiskDriveBlockEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalBlock;
+import net.minecraft.block.HorizontalDirectionalBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.state.StateDefinition;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.BlockHitResult;
 
-public final class DiskDriveBlock extends HorizontalBlock {
+public final class DiskDriveBlock extends HorizontalDirectionalBlock {
     public DiskDriveBlock() {
         super(Properties
-                .create(Material.IRON)
+                .of(Material.METAL)
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(1.5f, 6.0f));
-        setDefaultState(getStateContainer().getBaseState().with(HORIZONTAL_FACING, Direction.NORTH));
+                .strength(1.5f, 6.0f));
+        registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
+    public BlockState getStateForPlacement(final BlockPlaceContext context) {
+        return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override
-    public boolean hasTileEntity(final BlockState state) {
+    public boolean hasBlockEntity(final BlockState state) {
         return true;
     }
 
     @Override
-    public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
+    public BlockEntity createBlockEntity(final BlockState state, final BlockGetter world) {
         return TileEntities.DISK_DRIVE_TILE_ENTITY.get().create();
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public ActionResultType onBlockActivated(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
-        final TileEntity tileEntity = world.getTileEntity(pos);
-        if (!(tileEntity instanceof DiskDriveTileEntity)) {
-            return super.onBlockActivated(state, world, pos, player, hand, hit);
+    public InteractionResult use(final BlockState state, final Level world, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
+        final BlockEntity tileEntity = world.getBlockEntity(pos);
+        if (!(tileEntity instanceof DiskDriveBlockEntity)) {
+            return super.use(state, world, pos, player, hand, hit);
         }
 
-        if (world.isRemote()) {
-            return ActionResultType.SUCCESS;
+        if (world.isClientSide) {
+            return InteractionResult.SUCCESS;
         }
 
-        final DiskDriveTileEntity diskDrive = (DiskDriveTileEntity) tileEntity;
-        final ItemStack stack = player.getHeldItem(hand);
+        final DiskDriveBlockEntity diskDrive = (DiskDriveBlockEntity) tileEntity;
+        final ItemStack stack = player.getItemInHand(hand);
 
-        if (ItemTags.WRENCHES.contains(stack.getItem())) {
-            // TODO add container UI that opens when interacting with scrench?
-        }
-
-        if (player.isSneaking()) {
+        if (player.isShiftKeyDown()) {
             diskDrive.eject();
         } else {
-            player.setHeldItem(hand, diskDrive.insert(stack));
+            player.setItemInHand(hand, diskDrive.insert(stack));
         }
 
-        return ActionResultType.CONSUME;
+        return InteractionResult.CONSUME;
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
-        builder.add(HORIZONTAL_FACING);
+    protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(FACING);
     }
 }

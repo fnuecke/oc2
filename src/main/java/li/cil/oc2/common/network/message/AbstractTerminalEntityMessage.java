@@ -12,7 +12,7 @@ public abstract class AbstractTerminalEntityMessage {
     ///////////////////////////////////////////////////////////////////
 
     protected AbstractTerminalEntityMessage(final Entity entity, final ByteBuffer data) {
-        this.entityId = entity.getEntityId();
+        this.entityId = entity.getId();
         this.data = data.array();
     }
 

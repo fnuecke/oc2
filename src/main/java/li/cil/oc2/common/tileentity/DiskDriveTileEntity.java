@@ -1,6 +1,5 @@
 package li.cil.oc2.common.tileentity;
 
-import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
@@ -9,8 +8,8 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.DiskDriveBlock;
 import li.cil.oc2.common.bus.device.item.AbstractBlockDeviceVMDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.container.TypedItemStackHandler;
-import li.cil.oc2.common.item.AbstractBlockDeviceItem;
+import li.cil.oc2.common.container.TypedContainerHelper;
+import li.cil.oc2.common.item.FloppyItem;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.DiskDriveFloppyMessage;
 import li.cil.oc2.common.tags.ItemTags;
@@ -21,15 +20,21 @@ import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.block.BlockState;
+import net.minecraft.core.Direction;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.tileentity.BlockEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Mth;
+import net.minecraft.util.math.Mth;
 import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -38,7 +43,7 @@ import java.io.OutputStream;
 import java.time.Duration;
 import java.util.Optional;
 
-public final class DiskDriveTileEntity extends AbstractTileEntity {
+public final class DiskDriveBlockEntity extends AbstractBlockEntity {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final String DATA_TAG_NAME = "data";
@@ -47,7 +52,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final DiskDriveItemStackHandler itemHandler = new DiskDriveItemStackHandler();
+    private final DiskDriveContainerHelper itemHandler = new DiskDriveContainerHelper();
     private final DiskDriveVMDevice device = new DiskDriveVMDevice();
     private final ThrottledSoundEmitter accessSoundEmitter;
     private final ThrottledSoundEmitter insertSoundEmitter;
@@ -55,7 +60,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    public DiskDriveTileEntity() {
+    public DiskDriveBlockEntity() {
         super(TileEntities.DISK_DRIVE_TILE_ENTITY.get());
 
         this.accessSoundEmitter = new ThrottledSoundEmitter(LocationSupplierUtils.of(this),
@@ -89,8 +94,8 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     public void eject() {
         final ItemStack stack = itemHandler.extractItem(0, 1, false);
         if (!stack.isEmpty()) {
-            final Direction facing = getBlockState().get(DiskDriveBlock.HORIZONTAL_FACING);
-            ItemStackUtils.spawnAsEntity(getWorld(), getPos().offset(facing), stack, facing);
+            final Direction facing = getBlockState().getValue(DiskDriveBlock.FACING);
+            ItemStackUtils.spawnAsEntity(level, getBlockPos().relative(facing), stack, facing);
             ejectSoundEmitter.play();
         }
     }
@@ -99,7 +104,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         return itemHandler.getStackInSlot(0);
     }
 
-    @OnlyIn(Dist.CLIENT)
+
     public void setFloppyClient(final ItemStack stack) {
         itemHandler.setStackInSlot(0, stack);
     }
@@ -110,38 +115,38 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public CompoundNBT getUpdateTag() {
-        final CompoundNBT tag = super.getUpdateTag();
-        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
+    public CompoundTag getUpdateTag() {
+        final CompoundTag tag = super.getUpdateTag();
+        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeTag());
         return tag;
     }
 
     @Override
-    public void handleUpdateTag(final BlockState state, final CompoundNBT tag) {
+    public void handleUpdateTag(final BlockState state, final CompoundTag tag) {
         super.handleUpdateTag(state, tag);
-        itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
+        itemHandler.deserializeTag(tag.getCompound(Constants.ITEMS_TAG_NAME));
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
-        tag = super.write(tag);
+    public CompoundTag save(CompoundTag tag) {
+        tag = super.save(tag);
 
-        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
+        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeTag());
 
         return tag;
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT tag) {
-        super.read(state, tag);
+    public void load(final BlockState state, final CompoundTag tag) {
+        super.load(state, tag);
 
-        itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
+        itemHandler.deserializeTag(tag.getCompound(Constants.ITEMS_TAG_NAME));
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private final class DiskDriveItemStackHandler extends TypedItemStackHandler {
-        public DiskDriveItemStackHandler() {
+    private final class DiskDriveContainerHelper extends TypedContainerHelper {
+        public DiskDriveContainerHelper() {
             super(1, ItemTags.DEVICES_FLOPPY);
         }
 
@@ -174,8 +179,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         protected void onContentsChanged(final int slot) {
             super.onContentsChanged(slot);
 
-            final World world = getWorld();
-            if (world == null || world.isRemote()) {
+            if (level == null || level.isClientSide) {
                 return;
             }
 
@@ -183,11 +187,11 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
             if (stack.isEmpty()) {
                 device.removeBlockDevice();
             } else {
-                final CompoundNBT tag = ItemStackUtils.getOrCreateModDataTag(stack).getCompound(DATA_TAG_NAME);
+                final CompoundTag tag = ItemStackUtils.getOrCreateModDataTag(stack).getCompound(DATA_TAG_NAME);
                 device.updateBlockDevice(tag);
             }
 
-            Network.sendToClientsTrackingChunk(new DiskDriveFloppyMessage(DiskDriveTileEntity.this), world.getChunkAt(getPos()));
+            Network.sendToClientsTrackingChunk(new DiskDriveFloppyMessage(DiskDriveBlockEntity.this), level.getChunkAt(getBlockPos()));
         }
 
         private void exportDeviceDataToItemStack(final ItemStack stack) {
@@ -195,27 +199,26 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
                 return;
             }
 
-            final World world = getWorld();
-            if (world == null || world.isRemote()) {
+            if (level == null || level.isClientSide) {
                 return;
             }
 
             device.serializeData();
 
-            final CompoundNBT tag = new CompoundNBT();
+            final CompoundTag tag = new CompoundTag();
             device.exportToItemStack(tag);
             ItemStackUtils.getOrCreateModDataTag(stack).put(DATA_TAG_NAME, tag);
         }
     }
 
-    private final class DiskDriveVMDevice extends AbstractBlockDeviceVMDevice<BlockDevice, TileEntity> {
+    private final class DiskDriveVMDevice extends AbstractBlockDeviceVMDevice<BlockDevice, BlockEntity> {
         private VMContext context;
 
         public DiskDriveVMDevice() {
-            super(DiskDriveTileEntity.this);
+            super(DiskDriveBlockEntity.this);
         }
 
-        public void updateBlockDevice(final CompoundNBT tag) {
+        public void updateBlockDevice(final CompoundTag tag) {
             blobHandle = null;
             importFromItemStack(tag);
 
@@ -233,7 +236,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         }
 
         public void removeBlockDevice() {
-            updateBlockDevice(new CompoundNBT());
+            updateBlockDevice(new CompoundTag());
         }
 
         @Override
@@ -250,28 +253,17 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         @Override
         protected BlockDevice createBlockDevice() {
             final ItemStack stack = itemHandler.getStackInSlotRaw(0);
-            if (stack.isEmpty()) {
+            if (stack.isEmpty() || !(stack.getItem() instanceof FloppyItem)) {
                 return EMPTY_BLOCK_DEVICE;
             }
 
-            // NB: I don't see any reason why people would want to add custom floppy items,
-            //     since the existing ones can be customized by registering block device data
-            //     with the BlockDeviceData registry and then just create our floppy item with
-            //     the associated tag. If there should turn out to be a use case, we'll need
-            //     to have the item return its data via a capability or so, so others don't
-            //     have to extend the non-api BlockDeviceItem class.
-
-            final BlockDeviceData data = AbstractBlockDeviceItem.getData(stack);
-            if (data != null) {
-                return new FakeReadonlyBlockDevice(data.getBlockDevice());
-            }
-
-            final int capacity = AbstractBlockDeviceItem.getCapacity(stack);
+            final FloppyItem item = (FloppyItem) stack.getItem();
+            final int capacity = Mth.clamp(item.getCapacity(stack), 0, Config.maxFloppySize);
             if (capacity <= 0) {
                 return EMPTY_BLOCK_DEVICE;
             }
 
-            return ByteBufferBlockDevice.create(Math.min(capacity, Config.maxFloppySize), false);
+            return ByteBufferBlockDevice.create(capacity, false);
         }
 
         @Override
@@ -299,38 +291,6 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         @Override
         protected void handleDataAccess() {
             accessSoundEmitter.play();
-        }
-    }
-
-    // We cannot change the read-only flag of the underlying VirtIO device after
-    // initial setup (config change does not trigger feature renegotiation). So
-    // we have to always pretend to be writable and just error when something
-    // tries to write to a read-only file system.
-    private static final class FakeReadonlyBlockDevice implements BlockDevice {
-        private final BlockDevice device;
-
-        private FakeReadonlyBlockDevice(final BlockDevice device) {
-            this.device = device;
-        }
-
-        @Override
-        public boolean isReadonly() {
-            return false;
-        }
-
-        @Override
-        public long getCapacity() {
-            return device.getCapacity();
-        }
-
-        @Override
-        public InputStream getInputStream(final long offset) {
-            return device.getInputStream(offset);
-        }
-
-        @Override
-        public OutputStream getOutputStream(final long offset) {
-            throw new UnsupportedOperationException();
         }
     }
 }

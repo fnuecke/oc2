@@ -12,7 +12,7 @@ import java.util.UUID;
  * <p>
  * This interface is usually provided by VM containers and used to collect connected
  * {@link Device}s by aggregating the devices that were added to the device bus elements
- * via {@link DeviceBus#addDevice(Device)}.
+ * via DeviceBus#addDevice(Device).
  * <p>
  * The only way for {@link DeviceBusElement}s to be added to a bus is for a
  * {@link DeviceBusController} to detect them during a scan.

@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
-import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,7 +36,7 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     }
 
     @Override
-    public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
+    public Optional<Collection<Optional<DeviceBusElement>>> getNeighbors() {
         return Optional.of(Collections.emptyList());
     }
 

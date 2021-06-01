@@ -10,12 +10,12 @@ import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.bus.device.util.OptionalInterrupt;
 import li.cil.oc2.common.serialization.BlobStorage;
-import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.serialization.TagSerialization;
 import li.cil.oc2.common.util.Event;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.virtio.VirtIOBlockDevice;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,7 +41,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     // Online persisted data.
     private final OptionalAddress address = new OptionalAddress();
     private final OptionalInterrupt interrupt = new OptionalInterrupt();
-    private CompoundNBT deviceTag;
+    private CompoundTag deviceTag;
 
     // Offline persisted data.
     protected UUID blobHandle;
@@ -77,7 +77,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
         deserializeData();
 
         if (deviceTag != null) {
-            NBTSerialization.deserialize(deviceTag, device);
+            TagSerialization.deserialize(deviceTag, device);
         }
 
         return VMDeviceLoadResult.success();
@@ -106,29 +106,29 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     }
 
     @Override
-    public void exportToItemStack(final CompoundNBT nbt) {
+    public void exportToItemStack(final CompoundTag nbt) {
         if (blobHandle == null && data != null) {
             getSerializationStream(data).ifPresent(stream -> blobHandle = BlobStorage.validateHandle(blobHandle));
         }
         if (blobHandle != null) {
-            nbt.putUniqueId(BLOB_HANDLE_TAG_NAME, blobHandle);
+            nbt.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
         }
     }
 
     @Override
-    public void importFromItemStack(final CompoundNBT nbt) {
-        if (nbt.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = nbt.getUniqueId(BLOB_HANDLE_TAG_NAME);
+    public void importFromItemStack(final CompoundTag nbt) {
+        if (nbt.hasUUID(BLOB_HANDLE_TAG_NAME)) {
+            blobHandle = nbt.getUUID(BLOB_HANDLE_TAG_NAME);
         }
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        final CompoundTag tag = new CompoundTag();
 
         serializeData();
         if (device != null) {
-            deviceTag = NBTSerialization.serialize(device);
+            deviceTag = TagSerialization.serialize(device);
         }
         if (deviceTag != null) {
             tag.put(DEVICE_TAG_NAME, deviceTag);
@@ -141,16 +141,16 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
         }
 
         if (blobHandle != null) {
-            tag.putUniqueId(BLOB_HANDLE_TAG_NAME, blobHandle);
+            tag.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
         }
 
         return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT tag) {
-        if (tag.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = tag.getUniqueId(BLOB_HANDLE_TAG_NAME);
+    public void deserializeNBT(final CompoundTag tag) {
+        if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
+            blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
         }
 
         if (tag.contains(DEVICE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {

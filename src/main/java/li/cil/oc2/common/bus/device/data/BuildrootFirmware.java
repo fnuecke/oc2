@@ -4,7 +4,7 @@ import li.cil.oc2.api.bus.device.data.Firmware;
 import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.memory.MemoryMaps;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Component;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
@@ -23,7 +23,7 @@ public final class BuildrootFirmware extends ForgeRegistryEntry<Firmware> implem
     }
 
     @Override
-    public ITextComponent getDisplayName() {
+    public Component getDisplayName() {
         return new StringTextComponent("Linux");
     }
 }

@@ -1,22 +1,22 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.tileentity.ComputerBlockEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Component;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
 public final class ComputerBootErrorMessage {
     private BlockPos pos;
-    private ITextComponent value;
+    private Component value;
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerBootErrorMessage(final ComputerTileEntity tileEntity) {
-        this.pos = tileEntity.getPos();
+    public ComputerBootErrorMessage(final ComputerBlockEntity tileEntity) {
+        this.pos = tileEntity.getBlockPos();
         this.value = tileEntity.getVirtualMachine().getBootError();
     }
 
@@ -27,18 +27,18 @@ public final class ComputerBootErrorMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static boolean handleMessage(final ComputerBootErrorMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
+        context.get().enqueueWork(() -> MessageUtils.withClientBlockEntityAt(message.pos, ComputerBlockEntity.class,
                 (tileEntity) -> tileEntity.getVirtualMachine().setBootErrorClient(message.value)));
         return true;
     }
 
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
-        value = buffer.readTextComponent();
+        value = buffer.readComponent();
     }
 
     public static void toBytes(final ComputerBootErrorMessage message, final PacketBuffer buffer) {
         buffer.writeBlockPos(message.pos);
-        buffer.writeTextComponent(message.value);
+        buffer.writeComponent(message.value);
     }
 }

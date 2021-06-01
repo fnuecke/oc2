@@ -2,17 +2,18 @@ package li.cil.oc2.common.energy;
 
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.NBTUtils;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.util.Optional;
 import net.minecraftforge.energy.IEnergyStorage;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 public final class EnergyStorageItemStack implements IEnergyStorage, ICapabilityProvider {
-    private final LazyOptional<IEnergyStorage> optional = LazyOptional.of(() -> this);
+    private final Optional<IEnergyStorage> optional = Optional.of(() -> this);
 
     private final ItemStack stack;
     private final int capacity;
@@ -62,11 +63,11 @@ public final class EnergyStorageItemStack implements IEnergyStorage, ICapability
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
+    public <T> Optional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
         if (Capabilities.ENERGY_STORAGE != null && capability != null) {
             return Capabilities.ENERGY_STORAGE.orEmpty(capability, optional);
         } else {
-            return LazyOptional.empty();
+            return Optional.empty();
         }
     }
 }

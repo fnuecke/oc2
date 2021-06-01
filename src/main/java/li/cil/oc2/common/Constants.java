@@ -1,7 +1,7 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.api.API;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 
 public final class Constants {
     public static final int KILOBYTE = 1024;
@@ -22,38 +22,6 @@ public final class Constants {
     public static final String MOD_TAG_NAME = API.MOD_ID;
     public static final String ITEMS_TAG_NAME = "items";
     public static final String ENERGY_TAG_NAME = "energy";
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static final String COMPUTER_BLOCK_NAME = "computer";
-    public static final String BUS_CABLE_BLOCK_NAME = "bus_cable";
-    public static final String NETWORK_CONNECTOR_BLOCK_NAME = "network_connector";
-    public static final String NETWORK_HUB_BLOCK_NAME = "network_hub";
-    public static final String DISK_DRIVE_BLOCK_NAME = "disk_drive";
-    public static final String REDSTONE_INTERFACE_BLOCK_NAME = "redstone_interface";
-    public static final String CHARGER_BLOCK_NAME = "charger";
-    public static final String CREATIVE_ENERGY_BLOCK_NAME = "creative_energy";
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static final String WRENCH_ITEM_NAME = "wrench";
-
-    public static final String BUS_INTERFACE_ITEM_NAME = "bus_interface";
-    public static final String NETWORK_CABLE_ITEM_NAME = "network_cable";
-
-    public static final String FLASH_MEMORY_ITEM_NAME = "flash_memory";
-    public static final String MEMORY_ITEM_NAME = "memory";
-    public static final String HARD_DRIVE_ITEM_NAME = "hard_drive";
-    public static final String REDSTONE_INTERFACE_CARD_ITEM_NAME = "redstone_interface_card";
-    public static final String NETWORK_INTERFACE_CARD_ITEM_NAME = "network_interface_card";
-    public static final String FLOPPY_ITEM_NAME = "floppy";
-
-    public static final String INVENTORY_OPERATIONS_MODULE_ITEM_NAME = "inventory_operations_module";
-    public static final String BLOCK_OPERATIONS_MODULE_ITEM_NAME = "block_operations_module";
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static final String ROBOT_ENTITY_NAME = "robot";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -86,4 +54,16 @@ public final class Constants {
     public static final String CONNECTOR_ERROR_FULL = "message.oc2.connector.error.full";
     public static final String CONNECTOR_ERROR_TOO_FAR = "message.oc2.connector.error.too_far";
     public static final String CONNECTOR_ERROR_OBSTRUCTED = "message.oc2.connector.error.obstructed";
+
+    public static class BlockFlags {
+        public static final int NOTIFY_NEIGHBORS     = (1);
+        public static final int BLOCK_UPDATE         = (1 << 1);
+        public static final int NO_RERENDER          = (1 << 2);
+        public static final int RERENDER_MAIN_THREAD = (1 << 3);
+        public static final int UPDATE_NEIGHBORS     = (1 << 4);
+        public static final int NO_NEIGHBOR_DROPS    = (1 << 5);
+        public static final int IS_MOVING            = (1 << 6);
+        public static final int DEFAULT = NOTIFY_NEIGHBORS | BLOCK_UPDATE;
+        public static final int DEFAULT_AND_RERENDER = DEFAULT | RERENDER_MAIN_THREAD;
+    }
 }

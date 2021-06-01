@@ -5,6 +5,7 @@ import li.cil.oc2.common.network.message.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -134,9 +135,39 @@ public final class Network {
                 .decoder(BusInterfaceNameMessage.ToServer::new)
                 .consumer(BusInterfaceNameMessage::handleMessageServer)
                 .add();
+
+        INSTANCE.messageBuilder(ExportedFileMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ExportedFileMessage::toBytes)
+                .decoder(ExportedFileMessage::new)
+                .consumer(ExportedFileMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(RequestImportedFileMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(RequestImportedFileMessage::toBytes)
+                .decoder(RequestImportedFileMessage::new)
+                .consumer(RequestImportedFileMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(ImportedFileMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ImportedFileMessage::toBytes)
+                .decoder(ImportedFileMessage::new)
+                .consumer(ImportedFileMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(ServerCanceledImportFileMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ServerCanceledImportFileMessage::toBytes)
+                .decoder(ServerCanceledImportFileMessage::new)
+                .consumer(ServerCanceledImportFileMessage::handleMessage)
+                .add();
+
+        INSTANCE.messageBuilder(ClientCanceledImportFileMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ClientCanceledImportFileMessage::toBytes)
+                .decoder(ClientCanceledImportFileMessage::new)
+                .consumer(ClientCanceledImportFileMessage::handleMessage)
+                .add();
     }
 
-    public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {
+    public static <T> void sendToClientsTrackingChunk(final T message, final LevelChunk chunk) {
         Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
     }
 

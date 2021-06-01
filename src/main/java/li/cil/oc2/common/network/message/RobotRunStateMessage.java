@@ -15,7 +15,7 @@ public final class RobotRunStateMessage {
     ///////////////////////////////////////////////////////////////////
 
     public RobotRunStateMessage(final RobotEntity robot) {
-        this.entityId = robot.getEntityId();
+        this.entityId = robot.getId();
         this.value = robot.getVirtualMachine().getRunState();
     }
 
@@ -33,11 +33,11 @@ public final class RobotRunStateMessage {
 
     public void fromBytes(final PacketBuffer buffer) {
         entityId = buffer.readVarInt();
-        value = buffer.readEnumValue(VMRunState.class);
+        value = buffer.readEnum(VMRunState.class);
     }
 
     public static void toBytes(final RobotRunStateMessage message, final PacketBuffer buffer) {
         buffer.writeVarInt(message.entityId);
-        buffer.writeEnumValue(message.value);
+        buffer.writeEnum(message.value);
     }
 }

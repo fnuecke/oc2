@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IBI",
+    "XTX",
+    "IDI"
+  ],
+  "key": {
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "B": {
+      "tag": "minecraft:buttons"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    },
+    "X": {
+      "item": "oc2:bus_interface"
+    },
+    "D": {
+      "item": "minecraft:dispenser"
+    }
+  },
+  "result": {
+    "item": "oc2:disk_drive"
+  }
+}

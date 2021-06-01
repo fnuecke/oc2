@@ -15,7 +15,7 @@ public final class RobotBusStateMessage {
     ///////////////////////////////////////////////////////////////////
 
     public RobotBusStateMessage(final RobotEntity robot) {
-        this.entityId = robot.getEntityId();
+        this.entityId = robot.getId();
         this.value = robot.getVirtualMachine().getBusState();
     }
 
@@ -33,11 +33,11 @@ public final class RobotBusStateMessage {
 
     public void fromBytes(final PacketBuffer buffer) {
         entityId = buffer.readVarInt();
-        value = buffer.readEnumValue(CommonDeviceBusController.BusState.class);
+        value = buffer.readEnum(CommonDeviceBusController.BusState.class);
     }
 
     public static void toBytes(final RobotBusStateMessage message, final PacketBuffer buffer) {
         buffer.writeVarInt(message.entityId);
-        buffer.writeEnumValue(message.value);
+        buffer.writeEnum(message.value);
     }
 }

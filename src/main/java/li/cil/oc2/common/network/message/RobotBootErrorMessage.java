@@ -3,19 +3,19 @@ package li.cil.oc2.common.network.message;
 import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Component;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
 public final class RobotBootErrorMessage {
     private int entityId;
-    private ITextComponent value;
+    private Component value;
 
     ///////////////////////////////////////////////////////////////////
 
     public RobotBootErrorMessage(final RobotEntity robot) {
-        this.entityId = robot.getEntityId();
+        this.entityId = robot.getId();
         this.value = robot.getVirtualMachine().getBootError();
     }
 
@@ -33,11 +33,11 @@ public final class RobotBootErrorMessage {
 
     public void fromBytes(final PacketBuffer buffer) {
         entityId = buffer.readVarInt();
-        value = buffer.readTextComponent();
+        value = buffer.readComponent();
     }
 
     public static void toBytes(final RobotBootErrorMessage message, final PacketBuffer buffer) {
         buffer.writeVarInt(message.entityId);
-        buffer.writeTextComponent(message.value);
+        buffer.writeComponent(message.value);
     }
 }

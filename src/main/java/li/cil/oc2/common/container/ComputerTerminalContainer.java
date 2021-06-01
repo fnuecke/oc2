@@ -1,17 +1,12 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.block.Blocks;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IIntArray;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.IntArray;
-import net.minecraft.util.math.BlockPos;
-
-import javax.annotation.Nullable;
+import li.cil.oc2.common.tileentity.ComputerBlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import org.jetbrains.annotations.Nullable;
 
 public final class ComputerTerminalContainer extends AbstractContainer {
     private static final int ENERGY_INFO_SIZE = 3;
@@ -19,34 +14,36 @@ public final class ComputerTerminalContainer extends AbstractContainer {
     ///////////////////////////////////////////////////////////////////
 
     @Nullable
-    public static ComputerTerminalContainer create(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
+    public static ComputerTerminalContainer create(final int id, final Inventory playerInventory, final PacketBuffer data) {
         final BlockPos pos = data.readBlockPos();
-        final TileEntity tileEntity = playerInventory.player.getEntityWorld().getTileEntity(pos);
-        if (!(tileEntity instanceof ComputerTileEntity)) {
+        final BlockEntity tileEntity = playerInventory.player.getCommandSenderWorld().getBlockEntity(pos);
+        if (!(tileEntity instanceof ComputerBlockEntity)) {
             return null;
         }
-        return new ComputerTerminalContainer(id, (ComputerTileEntity) tileEntity, new IntArray(3));
+        return new ComputerTerminalContainer(id, playerInventory.player, (ComputerBlockEntity) tileEntity, new IntArray(3));
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private final ComputerTileEntity computer;
+    private final ComputerBlockEntity computer;
     private final IIntArray energyInfo;
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerTerminalContainer(final int id, final ComputerTileEntity computer, final IIntArray energyInfo) {
-        super(Containers.COMPUTER_TERMINAL_CONTAINER.get(), id);
+    public ComputerTerminalContainer(final int id, final Player player, final ComputerBlockEntity computer, final IIntArray energyInfo) {
+        super(Containers.COMPUTER_TERMINAL_CONTAINER, id);
         this.computer = computer;
         this.energyInfo = energyInfo;
 
-        assertIntArraySize(energyInfo, ENERGY_INFO_SIZE);
-        trackIntArray(energyInfo);
+        this.computer.addTerminalUser(player);
+
+        checkContainerDataCount(energyInfo, ENERGY_INFO_SIZE);
+        addDataSlots(energyInfo);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerTileEntity getComputer() {
+    public ComputerBlockEntity getComputer() {
         return computer;
     }
 
@@ -63,7 +60,14 @@ public final class ComputerTerminalContainer extends AbstractContainer {
     }
 
     @Override
-    public boolean canInteractWith(final PlayerEntity player) {
-        return isWithinUsableDistance(IWorldPosCallable.of(computer.getWorld(), computer.getPos()), player, Blocks.COMPUTER.get());
+    public boolean stillValid(final Player player) {
+        return stillValid(LevelPosCallable.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER.get());
+    }
+
+    @Override
+    public void removed(final Player player) {
+        super.removed(player);
+
+        this.computer.removeTerminalUser(player);
     }
 }

@@ -1,35 +1,27 @@
-buildscript {
-    repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
-    }
-}
-
 plugins {
-    id 'eclipse'
+    id 'fabric-loom' version '0.7-SNAPSHOT'
     id 'maven-publish'
 }
 
-apply plugin: 'net.minecraftforge.gradle'
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+archivesBaseName = project.archives_base_name
 
 def getGitRef() {
     try {
-        def stdout = new ByteArrayOutputStream()
+        final def stdout = new ByteArrayOutputStream()
         exec {
             commandLine 'git', 'rev-parse', '--short', 'HEAD'
             standardOutput = stdout
         }
         return stdout.toString().trim()
-    } catch (Throwable ignored) {
+    } catch (final Throwable ignored) {
         return "unknown"
     }
 }
 
-String semver = "${version_major}.${version_minor}.${version_patch}"
+final def semver = "${version_major}.${version_minor}.${version_patch}"
 
 String build_number = System.getenv("PROMOTED_NUMBER");
 if (build_number == null)
@@ -39,117 +31,77 @@ if (build_number == null)
 
 version = "${semver}+${build_number}"
 group = mod_group
-archivesBaseName = "${mod_name.replace(' ', '-')}-MC${minecraft_version}-Forge"
-
-sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
-compileJava.sourceCompatibility = compileJava.targetCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
+    maven { url "https://maven.cil.li/" } // Sedna
+    maven { url 'https://jitpack.io' }
     mavenCentral()
-    maven { url "http://dvs1.progwml6.com/files/maven" } // JEI
-    maven { url "http://maven.cil.li/" } // Sedna
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings minecraft.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // Fabric API. This is technically optional, but you probably want it anyway.
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    implementation "com.github.Siphalor:tweed-api:${project.tweed_version}"
 
     compileOnly 'org.jetbrains:annotations:16.0.2'
 
-    implementation 'li.cil.oc2:oc2-sedna:0.0.1+262'
+    implementation 'li.cil.oc2:oc2-sedna:0.0.1+268'
 
     // These three will be provided by oc2-sedna in standalone.
-    implementation 'li.cil.ceres:ceres:0.0.2+19'
-    implementation 'li.cil.sedna:sedna:0.0.1+95'
-    implementation 'li.cil.sedna:sedna-buildroot:0.0.1+10'
+    implementation 'li.cil.ceres:ceres:0.0.2+20'
+    implementation 'li.cil.sedna:sedna:0.0.1+99'
+    implementation 'li.cil.sedna:sedna-buildroot:0.0.1+15'
 
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
-    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
-
-    testImplementation 'li.cil.ceres:ceres:0.0.2+19'
-    testImplementation 'li.cil.sedna:sedna:0.0.1+88'
+    testImplementation 'li.cil.ceres:ceres:0.0.2+20'
+    testImplementation 'li.cil.sedna:sedna:0.0.1+99'
 
     testImplementation "org.mockito:mockito-core:2.+"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 }
 
-processResources {
-    from(sourceSets.main.resources.srcDirs) {
-        include 'META-INF/mods.toml'
+task packageScripts(type: Zip) {
+    archiveFileName = "scripts.zip"
+    destinationDirectory = file("$buildDir/resources/main/data/oc2/file_systems")
+    from "src/main/scripts"
+}
 
-        expand([
-                'mod_version'          : version,
-                'mod_name'             : mod_name,
-                'mod_url'              : mod_url,
-                'mod_issues_url'       : mod_issues_url,
-                'forge_version_min'    : forge_version_min,
-                'minecraft_version_min': minecraft_version_min,
-                'oc2_sedna_version_min': oc2_sedna_version_min
-        ])
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
     }
 }
 
-minecraft {
-    mappings channel: mappings_channel, version: mappings_version
+tasks.withType(JavaCompile).configureEach {
+    // ensure that the encoding is set to UTF-8, no matter what the system default is
+    // this fixes some edge cases with special characters not displaying correctly
+    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+    // If Javadoc is generated, this must be specified in that task too.
+    it.options.encoding = "UTF-8"
 
-    runs {
-        client {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'info'
-
-            mods {
-                oc2 {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'info'
-
-            mods {
-                oc2 {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'info'
-
-            args '--mod', 'oc2', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources')
-            forceExit false
-
-            mods {
-                oc2 {
-                    source sourceSets.main
-                }
-            }
-        }
+    // The Minecraft launcher currently installs Java 8 for users, so your mod probably wants to target Java 8 too
+    // JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
+    // We'll use that if it's available, but otherwise we'll use the older option.
+    def targetVersion = 8
+    if (JavaVersion.current().isJava9Compatible()) {
+        it.options.release = targetVersion
     }
+}
+
+java {
+    withSourcesJar()
 }
 
 jar {
-    finalizedBy 'reobfJar'
-
-    manifest {
-        attributes([
-                "Specification-Title"     : "oc2",
-                "Specification-Vendor"    : "Sangar",
-                "Specification-Version"   : "1",
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : "${semver}",
-                "Implementation-Vendor"   : "Sangar",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
+    from("LICENSE") {
+        rename { "${it}_${project.archivesBaseName}"}
     }
 }
 
@@ -167,10 +119,18 @@ artifacts {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            // add all the jars that should be included when publishing to maven
+            artifact(remapJar) {
+                builtBy remapJar
+            }
+            artifact(sourcesJar) {
+                builtBy remapSourcesJar
+            }
             artifact jar
             artifact apiJar
         }
     }
+
     repositories {
         maven {
             url System.getenv("MAVEN_PATH")

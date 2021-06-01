@@ -1,8 +1,8 @@
 package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.entity.RobotEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.math.vector.Vec3;
 
 public final class RobotMovementActionType extends AbstractRobotActionType {
     public RobotMovementActionType(final int id) {
@@ -13,26 +13,26 @@ public final class RobotMovementActionType extends AbstractRobotActionType {
 
     @Override
     public void initializeData(final RobotEntity robot) {
-        robot.getDataManager().set(RobotEntity.TARGET_POSITION, robot.getPosition());
+        robot.getEntityData().set(RobotEntity.TARGET_POSITION, robot.blockPosition());
     }
 
     @Override
     public void performServer(final RobotEntity robot, final AbstractRobotAction currentAction) {
         if (!(currentAction instanceof RobotMovementAction)) {
-            robot.getDataManager().set(RobotEntity.TARGET_POSITION, robot.getPosition());
+            robot.getEntityData().set(RobotEntity.TARGET_POSITION, robot.blockPosition());
         }
     }
 
     @Override
     public void performClient(final RobotEntity robot) {
-        final Vector3d target = RobotMovementAction.getTargetPositionInBlock(robot.getDataManager().get(RobotEntity.TARGET_POSITION));
-        if (robot.getPositionVec().squareDistanceTo(target) > RobotMovementAction.TARGET_EPSILON) {
+        final Vec3 target = RobotMovementAction.getTargetPositionInBlock(robot.getEntityData().get(RobotEntity.TARGET_POSITION));
+        if (robot.position().distanceToSqr(target) > RobotMovementAction.TARGET_EPSILON) {
             RobotMovementAction.moveTowards(robot, target);
         }
     }
 
     @Override
-    public AbstractRobotAction deserialize(final CompoundNBT tag) {
+    public AbstractRobotAction deserialize(final CompoundTag tag) {
         return new RobotMovementAction(tag);
     }
 }

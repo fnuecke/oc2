@@ -2,7 +2,7 @@ package li.cil.oc2.common.bus.device.rpc;
 
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StringUtils;
 
@@ -18,7 +18,7 @@ public final class RPCItemStackTagFilter {
     ///////////////////////////////////////////////////////////////////
 
     @Nullable
-    public CompoundNBT apply(final ItemStack stack, final CompoundNBT tag) {
+    public CompoundTag apply(final ItemStack stack, final CompoundTag tag) {
         if (stack.isEmpty() || tags == null) {
             return null;
         }
@@ -29,9 +29,9 @@ public final class RPCItemStackTagFilter {
 
         validatePaths();
 
-        final CompoundNBT filtered = new CompoundNBT();
+        final CompoundTag filtered = new CompoundTag();
         for (final String[] path : paths) {
-            final CompoundNBT filteredByPath = filterPath(path, tag);
+            final CompoundTag filteredByPath = filterPath(path, tag);
             if (filteredByPath != null) {
                 filtered.merge(filteredByPath);
             }
@@ -43,20 +43,20 @@ public final class RPCItemStackTagFilter {
     ///////////////////////////////////////////////////////////////////
 
     @Nullable
-    private CompoundNBT filterPath(final String[] path, final CompoundNBT source) {
+    private CompoundTag filterPath(final String[] path, final CompoundTag source) {
         if (path.length == 0) {
             return null;
         }
 
-        final CompoundNBT result = new CompoundNBT();
+        final CompoundTag result = new CompoundTag();
 
-        CompoundNBT currentSource = source;
-        CompoundNBT currentTarget = result;
+        CompoundTag currentSource = source;
+        CompoundTag currentTarget = result;
         for (int j = 0; j < path.length - 1; j++) {
             final String segment = path[j];
             if (currentSource.contains(segment, NBTTagIds.TAG_COMPOUND)) {
                 currentSource = currentSource.getCompound(segment);
-                currentTarget.put(segment, new CompoundNBT());
+                currentTarget.put(segment, new CompoundTag());
                 currentTarget = currentTarget.getCompound(segment);
             } else {
                 return null; // Path mismatch, inner element is not a compound tag.

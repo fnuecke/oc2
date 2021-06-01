@@ -6,19 +6,16 @@ import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
-import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
-import li.cil.oc2.common.item.MemoryItem;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.device.memory.Memory;
 import li.cil.sedna.memory.PhysicalMemoryInputStream;
 import li.cil.sedna.memory.PhysicalMemoryOutputStream;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
@@ -40,9 +37,9 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     ///////////////////////////////////////////////////////////////
 
-    public MemoryDevice(final ItemStack identity) {
+    public MemoryDevice(final ItemStack identity, final int capacity) {
         super(identity);
-        size = MathHelper.clamp(MemoryItem.getCapacity(identity), 0, Config.maxMemorySize);
+        size = capacity;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -81,12 +78,12 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        final CompoundTag tag = new CompoundTag();
 
         if (device != null) {
             blobHandle = BlobStorage.validateHandle(blobHandle);
-            tag.putUniqueId(BLOB_HANDLE_TAG_NAME, blobHandle);
+            tag.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
 
             jobHandle = BlobStorage.submitSave(blobHandle, new PhysicalMemoryInputStream(device));
         }
@@ -98,9 +95,9 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT tag) {
-        if (tag.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = tag.getUniqueId(BLOB_HANDLE_TAG_NAME);
+    public void deserializeNBT(final CompoundTag tag) {
+        if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
+            blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
         }
         if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
             address.set(tag.getLong(ADDRESS_TAG_NAME));

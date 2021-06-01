@@ -1,79 +1,71 @@
 package li.cil.oc2.common.tileentity;
 
-import li.cil.oc2.client.model.BusCableBakedModel;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.BusCableBlock;
-import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
+import li.cil.oc2.common.bus.BlockEntityDeviceBusElement;
 import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.BusInterfaceNameMessage;
 import li.cil.oc2.common.util.NBTTagIds;
-import net.minecraft.block.BlockState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.StringUtils;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.client.model.data.IModelData;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.util.StringUtil;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Objects;
 
-public final class BusCableTileEntity extends AbstractTileEntity {
+public final class BusCableBlockEntity extends AbstractBlockEntity {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
     private static final String INTERFACE_NAMES_TAG_NAME = "interfaceNames";
 
     ///////////////////////////////////////////////////////////////////
 
-    private final TileEntityDeviceBusElement busElement = new BusCableBusElement();
+    private final BlockEntityDeviceBusElement busElement = new BusCableBusElement();
     private final String[] interfaceNames = new String[Constants.BLOCK_FACE_COUNT];
 
     ///////////////////////////////////////////////////////////////////
 
-    public BusCableTileEntity() {
+    public BusCableBlockEntity() {
         super(TileEntities.BUS_CABLE_TILE_ENTITY.get());
     }
 
     ///////////////////////////////////////////////////////////////////
 
     public String getInterfaceName(final Direction side) {
-        final String interfaceName = interfaceNames[side.getIndex()];
+        final String interfaceName = interfaceNames[side.get3DDataValue()];
         return interfaceName == null ? "" : interfaceName;
     }
 
     public void setInterfaceName(final Direction side, final String name) {
         final String validatedName = validateName(name);
-        if (Objects.equals(validatedName, interfaceNames[side.getIndex()])) {
+        if (Objects.equals(validatedName, interfaceNames[side.get3DDataValue()])) {
             return;
         }
 
-        interfaceNames[side.getIndex()] = validatedName;
-        if (!getWorld().isRemote()) {
-            final BusInterfaceNameMessage message = new BusInterfaceNameMessage.ToClient(this, side, interfaceNames[side.getIndex()]);
-            Network.sendToClientsTrackingChunk(message, getWorld().getChunkAt(getPos()));
-            handleNeighborChanged(getPos().offset(side));
+        interfaceNames[side.get3DDataValue()] = validatedName;
+        if (!level.isClientSide) {
+            final BusInterfaceNameMessage message = new BusInterfaceNameMessage.ToClient(this, side, interfaceNames[side.get3DDataValue()]);
+            Network.sendToClientsTrackingChunk(message, level.getChunkAt(getBlockPos()));
+            handleNeighborChanged(getBlockPos().relative(side));
         }
     }
 
     public void handleNeighborChanged(final BlockPos pos) {
         busElement.handleNeighborChanged(pos);
-
-        // TODO Remove if https://github.com/MinecraftForge/MinecraftForge/pull/7595 gets merged.
-        requestModelDataUpdate();
     }
 
     public void handleConnectivityChanged(@Nullable final Direction side) {
         if (side == null) {
             busElement.scheduleScan();
-
-            // TODO Remove if https://github.com/MinecraftForge/MinecraftForge/pull/7595 gets merged.
-            requestModelDataUpdate();
         } else {
             // Whenever they type changes we can clear it. Technically only needed
             // for the interface->none transition, but all others are no-ops, so
@@ -81,13 +73,13 @@ public final class BusCableTileEntity extends AbstractTileEntity {
             setInterfaceName(side, "");
 
             invalidateCapability(Capabilities.DEVICE_BUS_ELEMENT, side);
-            handleNeighborChanged(getPos().offset(side));
+            handleNeighborChanged(getBlockPos().relative(side));
         }
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
 
         // Bus element will usually be discovered via bus scan, not via capability request, so
         // automatic invalidation via capability will *not* necessarily schedule a scan on the
@@ -96,8 +88,8 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public CompoundNBT getUpdateTag() {
-        final CompoundNBT tag = super.getUpdateTag();
+    public CompoundTag getUpdateTag() {
+        final CompoundTag tag = super.getUpdateTag();
 
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
 
@@ -105,13 +97,13 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public void handleUpdateTag(final BlockState state, final CompoundNBT tag) {
+    public void handleUpdateTag(final BlockState state, final CompoundTag tag) {
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
-        tag = super.write(tag);
+    public CompoundTag save(CompoundTag tag) {
+        tag = super.save(tag);
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.serializeNBT());
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
 
@@ -119,8 +111,8 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT tag) {
-        super.read(state, tag);
+    public void load(final BlockState state, final CompoundTag tag) {
+        super.load(state, tag);
         busElement.deserializeNBT(tag.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
     }
@@ -141,27 +133,17 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         busElement.initialize();
     }
 
-    // TODO Remove if https://github.com/MinecraftForge/MinecraftForge/pull/7595 gets merged.
-    @Override
-    public IModelData getModelData() {
-        final World world = getWorld();
-        if (world != null) {
-            return BusCableBakedModel.getBusCableSupportSideData(world, getPos(), getBlockState(), super.getModelData());
-        }
-        return super.getModelData();
-    }
-
     ///////////////////////////////////////////////////////////////////
 
-    private ListNBT serializeInterfaceNames() {
-        final ListNBT tag = new ListNBT();
+    private ListTag serializeInterfaceNames() {
+        final ListTag tag = new ListTag();
         for (int i = 0; i < Constants.BLOCK_FACE_COUNT; i++) {
-            tag.add(StringNBT.valueOf(getInterfaceName(Direction.byIndex(i))));
+            tag.add(StringTag.valueOf(getInterfaceName(Direction.from3DDataValue(i))));
         }
         return tag;
     }
 
-    private void deserializeInterfaceNames(final ListNBT tag) {
+    private void deserializeInterfaceNames(final ListTag tag) {
         for (int i = 0; i < Constants.BLOCK_FACE_COUNT; i++) {
             final String name = tag.getString(i).trim();
             interfaceNames[i] = name.substring(0, Math.min(32, name.length()));
@@ -175,9 +157,9 @@ public final class BusCableTileEntity extends AbstractTileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final class BusCableBusElement extends TileEntityDeviceBusElement {
+    private final class BusCableBusElement extends BlockEntityDeviceBusElement {
         public BusCableBusElement() {
-            super(BusCableTileEntity.this);
+            super(BusCableBlockEntity.this);
         }
 
         @Override
@@ -194,10 +176,10 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         }
 
         @Override
-        protected void collectSyntheticDevices(final World world, final BlockPos pos, final Direction direction, final HashSet<BlockDeviceInfo> devices) {
+        protected void collectSyntheticDevices(final Level world, final BlockPos pos, final Direction direction, final HashSet<BlockDeviceInfo> devices) {
             super.collectSyntheticDevices(world, pos, direction, devices);
-            final String interfaceName = interfaceNames[direction.getIndex()];
-            if (!StringUtils.isNullOrEmpty(interfaceName)) {
+            final String interfaceName = interfaceNames[direction.get3DDataValue()];
+            if (!StringUtil.isNullOrEmpty(interfaceName)) {
                 devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)));
             }
         }

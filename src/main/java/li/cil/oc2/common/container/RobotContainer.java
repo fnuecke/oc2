@@ -2,21 +2,24 @@ package li.cil.oc2.common.container;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.entity.RobotEntity;
-import li.cil.oc2.common.vm.VMItemStackHandlers;
+import li.cil.oc2.common.vm.VMContainerHelpers;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraftforge.items.ContainerHelper;
 import net.minecraftforge.items.SlotItemHandler;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nullable;
 
 public final class RobotContainer extends AbstractContainer {
     @Nullable
-    public static RobotContainer create(final int id, final PlayerInventory inventory, final PacketBuffer data) {
+    public static RobotContainer create(final int id, final Inventory inventory, final PacketBuffer data) {
         final int entityId = data.readVarInt();
-        final Entity entity = inventory.player.getEntityWorld().getEntityByID(entityId);
+        final Entity entity = inventory.player.getCommandSenderWorld().getEntity(entityId);
         if (!(entity instanceof RobotEntity)) {
             return null;
         }
@@ -29,11 +32,11 @@ public final class RobotContainer extends AbstractContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotContainer(final int id, final RobotEntity robot, final PlayerInventory playerInventory) {
+    public RobotContainer(final int id, final RobotEntity robot, final Inventory playerInventory) {
         super(Containers.ROBOT_CONTAINER.get(), id);
         this.robot = robot;
 
-        final VMItemStackHandlers handlers = robot.getItemStackHandlers();
+        final VMContainerHelpers handlers = robot.getContainerHelpers();
 
         handlers.getItemHandler(DeviceTypes.FLASH_MEMORY).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {
@@ -59,7 +62,7 @@ public final class RobotContainer extends AbstractContainer {
             }
         });
 
-        final ItemStackHandler inventory = robot.getInventory();
+        final ContainerHelper inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             final int x = 116 + (slot % 3) * SLOT_SIZE;
             final int y = 24 + (slot / 3) * SLOT_SIZE;
@@ -76,7 +79,7 @@ public final class RobotContainer extends AbstractContainer {
     }
 
     @Override
-    public boolean canInteractWith(final PlayerEntity player) {
-        return robot.isEntityInRange(player, 8);
+    public boolean stillValid(final PlayerEntity player) {
+        return robot.closerThan(player, 8);
     }
 }

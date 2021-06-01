@@ -1,20 +1,18 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.common.util.TooltipUtils;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class ModItem extends Item {
     public ModItem(final Properties properties) {
-        super(properties.group(ItemGroup.COMMON));
+        super(properties.tab(ItemGroup.COMMON));
     }
 
     public ModItem() {
@@ -23,11 +21,10 @@ public class ModItem extends Item {
 
     ///////////////////////////////////////////////////////////////////
 
-    @OnlyIn(Dist.CLIENT)
     @Override
-    public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
-        super.addInformation(stack, world, tooltip, flag);
-        TooltipUtils.tryAddDescription(stack, tooltip);
+    public void appendHoverText(final ItemStack itemStack, @Nullable final Level level, final List<Component> list, final TooltipFlag tooltipFlag) {
+        super.appendHoverText(itemStack, level, list, tooltipFlag);
+        TooltipUtils.tryAddDescription(itemStack, list);
     }
 
     ///////////////////////////////////////////////////////////////////

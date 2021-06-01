@@ -1,32 +1,30 @@
 package li.cil.oc2.common.item;
 
-import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeableLeatherItem;
+import net.minecraft.world.item.ItemStack;
 
-import static li.cil.oc2.client.item.CustomItemColors.withColor;
-
-public final class HardDriveItem extends AbstractBlockDeviceItem {
-    private static final int DEFAULT_CAPACITY = 2 * Constants.MEGABYTE;
+public final class HardDriveItem extends AbstractStorageItem implements DyeableLeatherItem {
+    private final int defaultColor;
 
     ///////////////////////////////////////////////////////////////////
 
-    public HardDriveItem() {
-        super(DEFAULT_CAPACITY);
+    public HardDriveItem(final int capacity, final DyeColor defaultColor) {
+        super(capacity);
+        this.defaultColor = defaultColor.getId();
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fillItemGroup(final ItemGroup group, final NonNullList<ItemStack> items) {
-        if (isInGroup(group)) {
-            items.add(withColor(withCapacity(2 * Constants.MEGABYTE), DyeColor.LIGHT_GRAY));
-            items.add(withColor(withCapacity(4 * Constants.MEGABYTE), DyeColor.GREEN));
-            items.add(withColor(withCapacity(8 * Constants.MEGABYTE), DyeColor.CYAN));
-            items.add(withColor(withData(BlockDeviceDataRegistration.BUILDROOT.get()), DyeColor.BROWN));
-        }
+    public int getColor(final ItemStack stack) {
+        return hasCustomColor(stack) ? DyeableLeatherItem.super.getColor(stack) : defaultColor;
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected String getOrCreateDescriptionId() {
+        return "item.oc2.hard_drive";
     }
 }

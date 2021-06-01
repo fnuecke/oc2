@@ -1,31 +1,29 @@
 package li.cil.oc2.client.renderer;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
-import li.cil.oc2.common.tileentity.NetworkConnectorTileEntity;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
+import li.cil.oc2.common.tileentity.NetworkConnectorBlockEntity;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.culling.ClippingHelper;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.world.IBlockDisplayReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.LightType;
-import net.minecraft.world.World;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -48,12 +46,12 @@ public final class NetworkCableRenderer {
     private static final float CABLE_MAX_LENGTH = 8f;
     private static final Vector3f CABLE_COLOR = new Vector3f(0.0f, 0.33f, 0.4f);
 
-    private static final Set<NetworkConnectorTileEntity> connectors = Collections.newSetFromMap(new WeakHashMap<>());
+    private static final Set<NetworkConnectorBlockEntity> connectors = Collections.newSetFromMap(new WeakHashMap<>());
     private static int lastKnownConnectorCount;
     private static boolean isDirty;
 
     private static final ArrayList<Connection> connections = new ArrayList<>();
-    private static final WeakHashMap<NetworkConnectorTileEntity, ArrayList<Connection>> connectionsByConnector = new WeakHashMap<>();
+    private static final WeakHashMap<NetworkConnectorBlockEntity, ArrayList<Connection>> connectionsByConnector = new WeakHashMap<>();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -63,7 +61,7 @@ public final class NetworkCableRenderer {
         MinecraftForge.EVENT_BUS.addListener(NetworkCableRenderer::handleWorldUnloadEvent);
     }
 
-    public static void addNetworkConnector(final NetworkConnectorTileEntity connector) {
+    public static void addNetworkConnector(final NetworkConnectorBlockEntity connector) {
         connectors.add(connector);
         invalidateConnections();
     }
@@ -72,7 +70,7 @@ public final class NetworkCableRenderer {
         isDirty = true;
     }
 
-    public static void renderCablesFor(final IBlockDisplayReader world, final MatrixStack matrixStack, final Vector3d eye, final NetworkConnectorTileEntity connector) {
+    public static void renderCablesFor(final BlockAndTintGetter world, final PoseStack matrixStack, final Vec3 eye, final NetworkConnectorBlockEntity connector) {
         final ArrayList<Connection> connections = connectionsByConnector.get(connector);
         if (connections != null) {
             renderCables(world, matrixStack, eye, connections, unused -> true);
@@ -82,12 +80,12 @@ public final class NetworkCableRenderer {
     ///////////////////////////////////////////////////////////////////
 
     private static void handleChunkUnloadEvent(final ChunkEvent.Unload event) {
-        if (event.getWorld().isRemote()) {
+        if (event.getWorld().isClientSide()) {
             final ChunkPos chunkPos = event.getChunk().getPos();
 
-            final ArrayList<NetworkConnectorTileEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
-            for (final NetworkConnectorTileEntity connector : list) {
-                final ChunkPos connectorChunkPos = new ChunkPos(connector.getPos());
+            final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
+            for (final NetworkConnectorBlockEntity connector : list) {
+                final ChunkPos connectorChunkPos = new ChunkPos(connector.getBlockPos());
                 if (Objects.equals(connectorChunkPos, chunkPos)) {
                     connectors.remove(connector);
                 }
@@ -98,12 +96,12 @@ public final class NetworkCableRenderer {
     }
 
     private static void handleWorldUnloadEvent(final WorldEvent.Unload event) {
-        if (event.getWorld().isRemote()) {
-            final IWorld world = event.getWorld();
+        if (event.getWorld().isClientSide()) {
+            final Level world = event.getWorld();
 
-            final ArrayList<NetworkConnectorTileEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
-            for (final NetworkConnectorTileEntity connector : list) {
-                if (connector.getWorld() == world) {
+            final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
+            for (final NetworkConnectorBlockEntity connector : list) {
+                if (connector.getLevel() == world) {
                     connectors.remove(connector);
                 }
             }
@@ -116,7 +114,7 @@ public final class NetworkCableRenderer {
         validateConnectors();
         validatePairs();
 
-        if (Minecraft.isFabulousGraphicsEnabled()) {
+        if (Minecraft.useShaderTransparency()) {
             return;
         }
 
@@ -125,42 +123,42 @@ public final class NetworkCableRenderer {
         }
 
         final Minecraft client = Minecraft.getInstance();
-        final World world = client.world;
+        final Level world = client.level;
         if (world == null) {
             return;
         }
 
-        final MatrixStack matrixStack = event.getMatrixStack();
+        final PoseStack matrixStack = event.getPoseStack();
 
-        final ActiveRenderInfo activeRenderInfo = client.gameRenderer.getActiveRenderInfo();
-        final Vector3d eye = activeRenderInfo.getProjectedView();
+        final Camera activeRenderInfo = client.gameRenderer.getMainCamera();
+        final Vec3 eye = activeRenderInfo.getPosition();
 
-        final ClippingHelper frustum = new ClippingHelper(matrixStack.getLast().getMatrix(), event.getProjectionMatrix());
-        frustum.setCameraPosition(eye.getX(), eye.getY(), eye.getZ());
+        final Frustum frustum = new Frustum(matrixStack.last().pose(), event.getProjectionMatrix());
+        frustum.prepare(eye.x, eye.y, eye.z);
 
-        matrixStack.push();
-        matrixStack.translate(-eye.getX(), -eye.getY(), -eye.getZ());
+        matrixStack.pushPose();
+        matrixStack.translate(-eye.x, -eye.y, -eye.z);
 
-        renderCables(world, matrixStack, eye, connections, frustum::isBoundingBoxInFrustum);
+        renderCables(world, matrixStack, eye, connections, frustum::isVisible);
 
-        matrixStack.pop();
+        matrixStack.popPose();
     }
 
-    private static void renderCables(final IBlockDisplayReader world, final MatrixStack matrixStack, final Vector3d eye, final ArrayList<Connection> connections, final Predicate<AxisAlignedBB> filter) {
-        final Matrix4f viewMatrix = matrixStack.getLast().getMatrix();
+    private static void renderCables(final BlockAndTintGetter world, final PoseStack matrixStack, final Vec3 eye, final ArrayList<Connection> connections, final Predicate<AABB> filter) {
+        final Matrix4f viewMatrix = matrixStack.last().pose();
 
         final RenderType renderType = CustomRenderType.getNetworkCable();
-        final IRenderTypeBuffer.Impl bufferSource = Minecraft.getInstance().getRenderTypeBuffers().getBufferSource();
+        final MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
 
-        final float r = CABLE_COLOR.getX();
-        final float g = CABLE_COLOR.getY();
-        final float b = CABLE_COLOR.getZ();
+        final float r = CABLE_COLOR.x();
+        final float g = CABLE_COLOR.y();
+        final float b = CABLE_COLOR.z();
 
         for (final Connection connection : connections) {
-            final Vector3d p0 = connection.from;
-            final Vector3d p1 = connection.to;
+            final Vec3 p0 = connection.from;
+            final Vec3 p1 = connection.to;
 
-            if (!p0.isWithinDistanceOf(eye, MAX_RENDER_DISTANCE) && !p1.isWithinDistanceOf(eye, MAX_RENDER_DISTANCE)) {
+            if (!p0.closerThan(eye, MAX_RENDER_DISTANCE) && !p1.closerThan(eye, MAX_RENDER_DISTANCE)) {
                 continue;
             }
 
@@ -169,83 +167,83 @@ public final class NetworkCableRenderer {
                 continue;
             }
 
-            final Vector3d p2 = animateCableSwing(
+            final Vec3 p2 = animateCableSwing(
                     lerp(p0, p1, 0.5f).subtract(0, computeCableHang(p0, p1), 0),
                     connection.right,
                     computeCableSwingAmount(p0, p1),
                     connection.hashCode());
 
-            final IVertexBuilder buffer = bufferSource.getBuffer(renderType);
+            final VertexConsumer buffer = bufferSource.getBuffer(renderType);
 
             for (int i = 0; i < CABLE_VERTEX_COUNT; i++) {
                 final float t = i / (CABLE_VERTEX_COUNT - 1f);
-                final Vector3d p = quadraticBezier(p0, p1, p2, t);
-                final Vector3d n = getExtrusionVector(eye, p, connection.forward);
+                final Vec3 p = quadraticBezier(p0, p1, p2, t);
+                final Vec3 n = getExtrusionVector(eye, p, connection.forward);
 
                 final BlockPos blockPos = new BlockPos(p);
-                final int blockLight = world.getLightFor(LightType.BLOCK, blockPos);
-                final int skyLight = world.getLightFor(LightType.SKY, blockPos);
-                final int packedLight = LightTexture.packLight(blockLight, skyLight);
+                final int blockLight = world.getBrightness(LightLayer.BLOCK, blockPos);
+                final int skyLight = world.getBrightness(LightLayer.SKY, blockPos);
+                final int packedLight = LightTexture.pack(blockLight, skyLight);
 
                 final Vector3f v0 = new Vector3f(p.subtract(n));
                 final Vector3f v1 = new Vector3f(p.add(n));
 
-                buffer.pos(viewMatrix, v0.getX(), v0.getY(), v0.getZ())
+                buffer.vertex(viewMatrix, v0.x(), v0.y(), v0.z())
                         .color(r, g, b, 1f)
-                        .lightmap(packedLight)
+                        .uv2(packedLight)
                         .endVertex();
-                buffer.pos(viewMatrix, v1.getX(), v1.getY(), v1.getZ())
+                buffer.vertex(viewMatrix, v1.x(), v1.y(), v1.z())
                         .color(r, g, b, 1f)
-                        .lightmap(packedLight)
+                        .uv2(packedLight)
                         .endVertex();
             }
 
-            bufferSource.finish(renderType);
+            bufferSource.endBatch(renderType);
         }
     }
 
-    private static Vector3d lerp(final Vector3d a, final Vector3d b, final float t) {
+    private static Vec3 lerp(final Vec3 a, final Vec3 b, final float t) {
         return a.add(b.subtract(a).scale(t)); // a + (b - a)*t = a*(1-t) + b*t
     }
 
-    private static Vector3d quadraticBezier(final Vector3d a, final Vector3d b, final Vector3d c, final float t) {
-        final Vector3d a1 = lerp(a, c, t);
-        final Vector3d b1 = lerp(c, b, t);
+    private static Vec3 quadraticBezier(final Vec3 a, final Vec3 b, final Vec3 c, final float t) {
+        final Vec3 a1 = lerp(a, c, t);
+        final Vec3 b1 = lerp(c, b, t);
         return lerp(a1, b1, t);
     }
 
-    private static Vector3d getExtrusionVector(final Vector3d eye, final Vector3d v, final Vector3d forward) {
-        return forward.crossProduct(eye.subtract(v)).normalize().scale(CABLE_THICKNESS);
+    private static Vec3 getExtrusionVector(final Vec3 eye, final Vec3 v, final Vec3 forward) {
+        return forward.cross(eye.subtract(v)).normalize().scale(CABLE_THICKNESS);
     }
 
-    private static float computeCableHang(final Vector3d a, final Vector3d b) {
+    private static float computeCableHang(final Vec3 a, final Vec3 b) {
         final double length = a.distanceTo(b);
-        final double hangFactor = MathHelper.clamp(length / CABLE_MAX_LENGTH, 0, 1);
+        final double hangFactor = Mth.clamp(length / CABLE_MAX_LENGTH, 0, 1);
         return (float) (CABLE_HANG_MIN + (CABLE_HANG_MAX - CABLE_HANG_MIN) * hangFactor);
     }
 
-    private static float computeCableSwingAmount(final Vector3d p0, final Vector3d p1) {
-        return MathHelper.clamp((float) p0.distanceTo(p1) / CABLE_LENGTH_FOR_MAX_SWING, 0.1f, 1f) * CABLE_MAX_SWING_AMOUNT;
+    private static float computeCableSwingAmount(final Vec3 p0, final Vec3 p1) {
+        return Mth.clamp((float) p0.distanceTo(p1) / CABLE_LENGTH_FOR_MAX_SWING, 0.1f, 1f) * CABLE_MAX_SWING_AMOUNT;
     }
 
-    private static Vector3d animateCableSwing(final Vector3d c, @Nullable final Vector3d right, final float swingAmount, final int seed) {
+    private static Vec3 animateCableSwing(final Vec3 c, @Nullable final Vec3 right, final float swingAmount, final int seed) {
         final float relTime = ((System.currentTimeMillis() + seed) % CABLE_SWING_INTERVAL) / (float) CABLE_SWING_INTERVAL;
         final float relRadialTime = relTime * 2 * (float) Math.PI;
 
         if (right == null) {
-            return c.add(swingAmount * MathHelper.sin(relRadialTime),
+            return c.add(swingAmount * Mth.sin(relRadialTime),
                     0,
-                    swingAmount * MathHelper.cos(relRadialTime));
+                    swingAmount * Mth.cos(relRadialTime));
         } else {
-            return c.add(swingAmount * MathHelper.cos(relRadialTime) * right.getX(),
-                    0.5f * swingAmount * MathHelper.sin(relRadialTime * 2 - (float) Math.PI) - swingAmount,
-                    swingAmount * MathHelper.cos(relRadialTime) * right.getZ());
+            return c.add(swingAmount * Mth.cos(relRadialTime) * right.x,
+                    0.5f * swingAmount * Mth.sin(relRadialTime * 2 - (float) Math.PI) - swingAmount,
+                    swingAmount * Mth.cos(relRadialTime) * right.z);
         }
     }
 
     private static void validateConnectors() {
-        final ArrayList<NetworkConnectorTileEntity> list = new ArrayList<>(connectors);
-        for (final NetworkConnectorTileEntity connector : list) {
+        final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(connectors);
+        for (final NetworkConnectorBlockEntity connector : list) {
             if (connector.isRemoved()) {
                 connectors.remove(connector);
                 connectionsByConnector.remove(connector);
@@ -271,8 +269,8 @@ public final class NetworkCableRenderer {
         connectionsByConnector.clear();
 
         final HashSet<Connection> seen = new HashSet<>();
-        for (final NetworkConnectorTileEntity connector : connectors) {
-            final BlockPos position = connector.getPos();
+        for (final NetworkConnectorBlockEntity connector : connectors) {
+            final BlockPos position = connector.getBlockPos();
             for (final BlockPos connectedPosition : connector.getConnectedPositions()) {
                 final Connection connection = new Connection(position, connectedPosition);
                 if (seen.add(connection)) {
@@ -286,11 +284,11 @@ public final class NetworkCableRenderer {
     ///////////////////////////////////////////////////////////////////
 
     private static final class Connection {
-        private static final Vector3d POS_Y = new Vector3d(0, 1, 0);
+        private static final Vec3 POS_Y = new Vec3(0, 1, 0);
 
         public final BlockPos fromPos, toPos;
-        public final Vector3d from, to, forward, right;
-        public final AxisAlignedBB bounds;
+        public final Vec3 from, to, forward, right;
+        public final AABB bounds;
 
         private Connection(final BlockPos fromPos, final BlockPos toPos) {
             if (fromPos.compareTo(toPos) > 0) {
@@ -301,12 +299,12 @@ public final class NetworkCableRenderer {
                 this.toPos = toPos;
             }
 
-            from = Vector3d.copyCentered(fromPos);
-            to = Vector3d.copyCentered(toPos);
+            from = Vec3.atCenterOf(fromPos);
+            to = Vec3.atCenterOf(toPos);
             forward = to.subtract(from).normalize();
             right = fromPos.getX() == toPos.getX() && fromPos.getZ() == toPos.getZ()
-                    ? null : forward.crossProduct(POS_Y);
-            bounds = new AxisAlignedBB(from, to).grow(0, CABLE_HANG_MAX, 0);
+                    ? null : forward.cross(POS_Y);
+            bounds = new AABB(from, to).inflate(0, CABLE_HANG_MAX, 0);
         }
 
         @Override

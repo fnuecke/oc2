@@ -3,40 +3,55 @@ package li.cil.oc2.common.item;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
 import li.cil.oc2.common.util.ItemStackUtils;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.ResourceLocationException;
-import net.minecraft.util.StringUtils;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.ResourceLocationException;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.StringUtil;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-public abstract class AbstractBlockDeviceItem extends AbstractStorageItem {
+public abstract class AbstractBlockDeviceItem extends ModItem {
     private static final String DATA_TAG_NAME = "data";
-    private static final String READONLY_TAG_NAME = "readonly";
+
+    ///////////////////////////////////////////////////////////////////
+
+    private final ResourceLocation defaultData;
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected AbstractBlockDeviceItem(final Properties properties, final ResourceLocation defaultData) {
+        super(properties.stacksTo(1));
+        this.defaultData = defaultData;
+    }
+
+    protected AbstractBlockDeviceItem(final ResourceLocation defaultData) {
+        this(createProperties(), defaultData);
+    }
 
     ///////////////////////////////////////////////////////////////////
 
     @Nullable
-    public static BlockDeviceData getData(final ItemStack stack) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof AbstractBlockDeviceItem)) {
+    public BlockDeviceData getData(final ItemStack stack) {
+        if (stack.isEmpty() || stack.getItem() != this) {
             return null;
         }
 
         final String registryName = ItemStackUtils.getModDataTag(stack).getString(DATA_TAG_NAME);
-        if (StringUtils.isNullOrEmpty(registryName)) {
-            return null;
+
+        ResourceLocation location = defaultData;
+        if (!StringUtil.isNullOrEmpty(registryName)) {
+            try {
+                location = new ResourceLocation(registryName);
+            } catch (final ResourceLocationException ignored) {
+            }
         }
 
-        try {
-            return BlockDeviceDataRegistration.REGISTRY.get().getValue(new ResourceLocation(registryName));
-        } catch (final ResourceLocationException ignored) {
-            return null;
-        }
+        return BlockDeviceDataRegistration.REGISTRY.get().getValue(location);
     }
 
-    public static ItemStack withData(final ItemStack stack, final BlockDeviceData data) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof AbstractBlockDeviceItem)) {
+    public ItemStack withData(final ItemStack stack, final BlockDeviceData data) {
+        if (stack.isEmpty() || stack.getItem() != this) {
             return stack;
         }
 
@@ -50,49 +65,21 @@ public abstract class AbstractBlockDeviceItem extends AbstractStorageItem {
         return stack;
     }
 
-    public static boolean isReadonly(final ItemStack stack) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof AbstractBlockDeviceItem)) {
-            return false;
-        }
-
-        return ItemStackUtils.getModDataTag(stack).getBoolean(READONLY_TAG_NAME);
-    }
-
-    public static ItemStack withReadonly(final ItemStack stack, final boolean readonly) {
-        if (!stack.isEmpty() && stack.getItem() instanceof AbstractBlockDeviceItem) {
-            ItemStackUtils.getOrCreateModDataTag(stack).putBoolean(READONLY_TAG_NAME, readonly);
-        }
-
-        return stack;
-    }
-
     public ItemStack withData(final BlockDeviceData data) {
         return withData(new ItemStack(this), data);
     }
 
-    public ItemStack withReadonly(final boolean readonly) {
-        return withReadonly(new ItemStack(this), readonly);
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    protected AbstractBlockDeviceItem(final Properties properties, final int defaultCapacity) {
-        super(properties.maxStackSize(1), defaultCapacity);
-    }
-
-    protected AbstractBlockDeviceItem(final int defaultCapacity) {
-        this(createProperties(), defaultCapacity);
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
     @Override
-    protected ITextComponent getDisplayNameSuffix(final ItemStack stack) {
+    public Component getName(final ItemStack stack) {
         final BlockDeviceData data = getData(stack);
         if (data != null) {
-            return data.getDisplayName();
+            return new TextComponent("")
+                    .append(super.getName(stack))
+                    .append(" (")
+                    .append(data.getDisplayName())
+                    .append(")");
         } else {
-            return super.getDisplayNameSuffix(stack);
+            return super.getName(stack);
         }
     }
 }

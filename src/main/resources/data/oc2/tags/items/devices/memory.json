@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
-    "oc2:memory"
+    "oc2:memory_small",
+    "oc2:memory_medium",
+    "oc2:memory_large"
   ]
 }

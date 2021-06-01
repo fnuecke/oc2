@@ -9,10 +9,9 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.riscv.R5Board;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-
-import javax.annotation.Nullable;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,7 +41,7 @@ public class VMRunner implements Runnable {
 
     private boolean firedResumeEvent;
     @Serialized private boolean firedInitializationEvent;
-    @Serialized private ITextComponent runtimeError;
+    @Serialized private Component runtimeError;
 
     @Serialized private long cycleLimit;
     @Serialized private long cycles;
@@ -62,7 +61,7 @@ public class VMRunner implements Runnable {
     }
 
     @Nullable
-    public ITextComponent getRuntimeError() {
+    public Component getRuntimeError() {
         return runtimeError;
     }
 
@@ -131,7 +130,7 @@ public class VMRunner implements Runnable {
                 context.postEvent(new VMInitializingEvent(board.getDefaultProgramStart()));
             } catch (final VMInitializationException e) {
                 board.setRunning(false);
-                runtimeError = e.getErrorMessage().orElse(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
+                runtimeError = e.getErrorMessage().orElse(new TranslatableComponent(Constants.COMPUTER_ERROR_UNKNOWN));
                 return;
             }
         }

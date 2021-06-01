@@ -4,27 +4,22 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.items.IItemHandler;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.TickableBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-public final class ChargerTileEntity extends AbstractTileEntity implements ITickableTileEntity {
+public final class ChargerBlockEntity extends AbstractBlockEntity implements TickableBlockEntity {
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.chargerEnergyStorage);
 
     ///////////////////////////////////////////////////////////////////
 
-    ChargerTileEntity() {
+    ChargerBlockEntity() {
         super(TileEntities.CHARGER_TILE_ENTITY.get());
     }
 
@@ -37,8 +32,8 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
-        tag = super.write(tag);
+    public CompoundTag save(CompoundTag tag) {
+        tag = super.save(tag);
 
         tag.put(Constants.ENERGY_TAG_NAME, energy.serializeNBT());
 
@@ -46,8 +41,8 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT tag) {
-        super.read(state, tag);
+    public void load(final BlockState state, final CompoundTag tag) {
+        super.load(state, tag);
 
         energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
     }
@@ -66,7 +61,7 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
             return;
         }
 
-        final TileEntity tileEntity = getWorld().getTileEntity(getPos().up());
+        final BlockEntity tileEntity = getLevel().getBlockEntity(getBlockPos().above());
         if (tileEntity != null) {
             chargeCapabilityProvider(tileEntity);
         }
@@ -77,7 +72,7 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
             return;
         }
 
-        final List<Entity> entities = getWorld().getEntitiesInAABBexcluding(null, new AxisAlignedBB(getPos().up()), null);
+        final List<Entity> entities = getLevel().getEntities((Entity) null, new AABB(getBlockPos().above()), null);
         for (final Entity entity : entities) {
             chargeCapabilityProvider(entity);
         }

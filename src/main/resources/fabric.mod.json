@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "oc2",
+  "version": "${version}",
+  "name": "OpenComputers II",
+  "description": "Modern computers for the modern player.",
+  "authors": [
+    "Singer",
+    "lucsoft"
+  ]
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "li.cil.oc2.common.Main.Main"
+    ],
+    "tweed:config": [
+      "de.siphalor.spiceoffabric.config.Config"
+    ]
+  },
+  "requires": {
+    "fabricloader": ">=0.4.0"
+  }
+}

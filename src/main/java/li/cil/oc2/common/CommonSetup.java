@@ -8,9 +8,8 @@ import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.util.ServerScheduler;
 import net.fabricmc.api.ModInitializer;
 
-public final class CommonSetup implements ModInitializer {
+public final class CommonSetup {
 
-    @Override
     public void onInitialize() {
         Capabilities.initialize();
         FileSystems.initialize();

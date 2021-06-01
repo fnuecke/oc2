@@ -34,9 +34,7 @@ group = mod_group
 
 repositories {
     maven { url "https://maven.cil.li/" } // Sedna
-}
-
-repositories {
+    maven { url 'https://jitpack.io' }
     mavenCentral()
 }
 
@@ -47,6 +45,8 @@ dependencies {
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    implementation "com.github.Siphalor:tweed-api:${project.tweed_version}"
 
     compileOnly 'org.jetbrains:annotations:16.0.2'
 

@@ -326,7 +326,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     @Override
-    public boolean canBeCollidedWith() {
+    public boolean isPickable() {
         return true;
     }
 
@@ -337,6 +337,11 @@ public final class RobotEntity extends Entity implements Robot {
 
     @Override
     public void push(final Entity entity) {
+    }
+
+    @Override
+    public boolean canBeCollidedWith() {
+        return true;
     }
 
     @Override

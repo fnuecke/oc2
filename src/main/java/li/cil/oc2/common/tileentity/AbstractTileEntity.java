@@ -96,7 +96,7 @@ public abstract class AbstractTileEntity extends TileEntity {
 
     @Override
     public void setRemoved() {
-        super.setRemoved();
+        super.setRemoved(); // -> invalidateCaps()
         onUnload();
     }
 

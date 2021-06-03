@@ -30,7 +30,8 @@ public final class Main {
         Sedna.initialize();
         Serializers.initialize();
 
-        Config.initialize();
+        ConfigManager.add(Config::new);
+        ConfigManager.initialize();
 
         ItemTags.initialize();
         BlockTags.initialize();

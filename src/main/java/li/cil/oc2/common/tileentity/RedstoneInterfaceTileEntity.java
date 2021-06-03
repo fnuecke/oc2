@@ -62,7 +62,7 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
     }
 
     @Callback(name = GET_REDSTONE_INPUT)
-    public int setSignal(@Parameter(SIDE) final Direction side) {
+    public int setRedstoneSignal(@Parameter(SIDE) final Direction side) {
         final World world = getLevel();
         if (world == null) {
             return 0;
@@ -82,12 +82,12 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
     }
 
     @Callback(name = GET_REDSTONE_OUTPUT, synchronize = false)
-    public int getSignal(@Parameter(SIDE) final Direction side) {
+    public int getRedstoneSignal(@Parameter(SIDE) final Direction side) {
         return output[side.get3DDataValue()];
     }
 
     @Callback(name = SET_REDSTONE_OUTPUT)
-    public void getSignal(@Parameter(SIDE) final Direction side, @Parameter(VALUE) final int value) {
+    public void getRedstoneSignal(@Parameter(SIDE) final Direction side, @Parameter(VALUE) final int value) {
         final byte clampedValue = (byte) MathHelper.clamp(value, 0, 15);
         if (clampedValue == output[side.get3DDataValue()]) {
             return;

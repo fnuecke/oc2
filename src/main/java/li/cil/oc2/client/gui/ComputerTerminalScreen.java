@@ -35,7 +35,7 @@ public final class ComputerTerminalScreen extends ContainerScreen<ComputerTermin
 
     @Override
     protected void renderLabels(final MatrixStack p_230451_1_, final int p_230451_2_, final int p_230451_3_) {
-        // This is required to prevent the labels from beeing rendered
+        // This is required to prevent the labels from being rendered
     }
 
     @Override

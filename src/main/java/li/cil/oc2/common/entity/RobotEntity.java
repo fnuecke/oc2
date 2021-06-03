@@ -484,7 +484,9 @@ public final class RobotEntity extends Entity implements Robot {
                     }
 
                     @Override
-                    public int getCount() { return 3; }
+                    public int getCount() {
+                        return 3;
+                    }
                 });
             }
         }, b -> b.writeVarInt(getId()));

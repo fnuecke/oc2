@@ -37,8 +37,8 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
-        tag = super.write(tag);
+    public CompoundNBT save(CompoundNBT tag) {
+        tag = super.save(tag);
 
         tag.put(Constants.ENERGY_TAG_NAME, energy.serializeNBT());
 
@@ -46,8 +46,8 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT tag) {
-        super.read(state, tag);
+    public void load(final BlockState state, final CompoundNBT tag) {
+        super.load(state, tag);
 
         energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
     }
@@ -66,7 +66,7 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
             return;
         }
 
-        final TileEntity tileEntity = getWorld().getTileEntity(getPos().up());
+        final TileEntity tileEntity = getLevel().getBlockEntity(getBlockPos().above());
         if (tileEntity != null) {
             chargeCapabilityProvider(tileEntity);
         }
@@ -77,7 +77,7 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
             return;
         }
 
-        final List<Entity> entities = getWorld().getEntitiesInAABBexcluding(null, new AxisAlignedBB(getPos().up()), null);
+        final List<Entity> entities = getLevel().getEntities((Entity) null, new AxisAlignedBB(getBlockPos().above()), null);
         for (final Entity entity : entities) {
             chargeCapabilityProvider(entity);
         }

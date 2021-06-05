@@ -25,7 +25,7 @@ public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> ext
     @SuppressWarnings("unchecked")
     @Override
     public final LazyOptional<Device> getDevice(final BlockDeviceQuery query) {
-        final TileEntity tileEntity = WorldUtils.getTileEntityIfChunkExists(query.getWorld(), query.getQueryPosition());
+        final TileEntity tileEntity = WorldUtils.getBlockEntityIfChunkExists(query.getLevel(), query.getQueryPosition());
         if (tileEntity == null) {
             return LazyOptional.empty();
         }

@@ -50,12 +50,12 @@ public final class RobotMovementAction extends AbstractRobotAction {
     ///////////////////////////////////////////////////////////////////
 
     public static Vector3d getTargetPositionInBlock(final BlockPos position) {
-        return Vector3d.copyCenteredHorizontally(position).add(0, 0.5f * (1 - Entities.ROBOT.get().getHeight()), 0);
+        return Vector3d.atBottomCenterOf(position).add(0, 0.5f * (1 - Entities.ROBOT.get().getHeight()), 0);
     }
 
     public static void moveTowards(final RobotEntity robot, final Vector3d targetPosition) {
-        Vector3d delta = targetPosition.subtract(robot.getPositionVec());
-        if (delta.lengthSquared() > MOVEMENT_SPEED * MOVEMENT_SPEED) {
+        Vector3d delta = targetPosition.subtract(robot.position());
+        if (delta.lengthSqr() > MOVEMENT_SPEED * MOVEMENT_SPEED) {
             delta = delta.normalize().scale(MOVEMENT_SPEED);
         }
 
@@ -67,27 +67,27 @@ public final class RobotMovementAction extends AbstractRobotAction {
     @Override
     public void initialize(final RobotEntity robot) {
         if (origin == null || start == null || target == null) {
-            origin = robot.getPosition();
+            origin = robot.blockPosition();
             start = origin;
             target = start;
             switch (direction) {
                 case UP:
-                    target = target.offset(Direction.UP);
+                    target = target.relative(Direction.UP);
                     break;
                 case DOWN:
-                    target = target.offset(Direction.DOWN);
+                    target = target.relative(Direction.DOWN);
                     break;
                 case FORWARD:
-                    target = target.offset(robot.getHorizontalFacing());
+                    target = target.relative(robot.getDirection());
                     break;
                 case BACKWARD:
-                    target = target.offset(robot.getHorizontalFacing().getOpposite());
+                    target = target.relative(robot.getDirection().getOpposite());
                     break;
             }
         }
 
         targetPos = getTargetPositionInBlock(target);
-        robot.getDataManager().set(RobotEntity.TARGET_POSITION, target);
+        robot.getEntityData().set(RobotEntity.TARGET_POSITION, target);
     }
 
     @Override
@@ -100,7 +100,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
         moveAndResolveCollisions(robot);
 
-        if (robot.getPositionVec().squareDistanceTo(targetPos) < TARGET_EPSILON) {
+        if (robot.position().distanceToSqr(targetPos) < TARGET_EPSILON) {
             if (Objects.equals(target, origin)) {
                 return RobotActionResult.FAILURE; // Collided and returned.
             } else {
@@ -149,20 +149,20 @@ public final class RobotMovementAction extends AbstractRobotAction {
     private void moveAndResolveCollisions(final RobotEntity robot) {
         moveTowards(robot, targetPos);
 
-        final boolean didCollide = robot.collidedHorizontally || robot.collidedVertically;
-        final long gameTime = robot.getEntityWorld().getGameTime();
-        if (didCollide && !robot.getEntityWorld().isRemote()
+        final boolean didCollide = robot.horizontalCollision || robot.verticalCollision;
+        final long gameTime = robot.level.getGameTime();
+        if (didCollide && !robot.level.isClientSide
             && robot.getLastPistonMovement() < gameTime - 1) {
             final BlockPos newStart = target;
             target = start;
             start = newStart;
             targetPos = getTargetPositionInBlock(target);
-            robot.getDataManager().set(RobotEntity.TARGET_POSITION, target);
+            robot.getEntityData().set(RobotEntity.TARGET_POSITION, target);
         }
     }
 
     private void validateTarget(final RobotEntity robot) {
-        final BlockPos currentPosition = robot.getPosition();
+        final BlockPos currentPosition = robot.blockPosition();
         if (Objects.equals(currentPosition, start) || Objects.equals(currentPosition, target)) {
             return;
         }
@@ -176,13 +176,13 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
         if (deltaStart < deltaTarget) {
             start = currentPosition;
-            target = target.add(fromStart);
+            target = target.offset(fromStart);
         } else {
-            start = start.add(fromTarget);
+            start = start.offset(fromTarget);
             target = currentPosition;
         }
 
         targetPos = getTargetPositionInBlock(target);
-        robot.getDataManager().set(RobotEntity.TARGET_POSITION, target);
+        robot.getEntityData().set(RobotEntity.TARGET_POSITION, target);
     }
 }

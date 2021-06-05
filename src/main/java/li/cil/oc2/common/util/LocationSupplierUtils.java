@@ -18,7 +18,7 @@ public final class LocationSupplierUtils {
     }
 
     public static Supplier<Optional<Location>> of(final BlockDeviceQuery query) {
-        final Optional<Location> location = Optional.of(new Location(query.getWorld(), query.getQueryPosition()));
+        final Optional<Location> location = Optional.of(new Location(query.getLevel(), query.getQueryPosition()));
         return () -> location;
     }
 

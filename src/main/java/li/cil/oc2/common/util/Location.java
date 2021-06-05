@@ -5,6 +5,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public final class Location {
@@ -18,7 +19,7 @@ public final class Location {
 
     public static Optional<Location> of(final Entity entity) {
         if (entity.isAlive()) {
-            return Optional.of(new Location(entity.getEntityWorld(), entity.getPosition()));
+            return Optional.of(new Location(entity.level, entity.blockPosition()));
         } else {
             return Optional.empty();
         }
@@ -26,7 +27,7 @@ public final class Location {
 
     public static Optional<Location> of(final TileEntity tileEntity) {
         if (!tileEntity.isRemoved()) {
-            return Optional.of(new Location(tileEntity.getWorld(), tileEntity.getPos()));
+            return Optional.of(new Location(Objects.requireNonNull(tileEntity.getLevel()), tileEntity.getBlockPos()));
         } else {
             return Optional.empty();
         }

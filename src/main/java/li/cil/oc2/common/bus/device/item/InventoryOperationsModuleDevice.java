@@ -78,7 +78,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
 
         // And if putting it back fails, just drop it. Avoid destroying items.
         if (!remaining.isEmpty()) {
-            entity.entityDropItem(remaining);
+            entity.spawnAtLocation(remaining);
         }
     }
 
@@ -112,7 +112,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
 
         if (!stack.isEmpty()) {
             dropped += stack.getCount();
-            entity.entityDropItem(stack);
+            entity.spawnAtLocation(stack);
         }
 
         return dropped;
@@ -146,7 +146,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
 
         if (!stack.isEmpty()) {
             dropped += stack.getCount();
-            entity.entityDropItem(stack);
+            entity.spawnAtLocation(stack);
         }
 
         return dropped;
@@ -187,9 +187,9 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
         }
 
         if (direction.getAxis().isHorizontal()) {
-            final int horizontalIndex = entity.getHorizontalFacing().getHorizontalIndex();
+            final int horizontalIndex = entity.getDirection().get2DDataValue();
             for (int i = 0; i < horizontalIndex; i++) {
-                direction = direction.rotateY();
+                direction = direction.getClockWise();
             }
         }
 
@@ -209,8 +209,8 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
     }
 
     private Stream<IItemHandler> getItemStackHandlersInDirection(final Direction direction) {
-        final Vector3i directionVec = direction.getDirectionVec();
-        return getItemStackHandlersAt(entity.getPositionVec().add(Vector3d.copy(directionVec)), direction.getOpposite());
+        final Vector3i directionVec = direction.getNormal();
+        return getItemStackHandlersAt(entity.position().add(Vector3d.atCenterOf(directionVec)), direction.getOpposite());
     }
 
     private Stream<IItemHandler> getItemStackHandlersAt(final Vector3d position, final Direction side) {
@@ -218,8 +218,8 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
     }
 
     private Stream<IItemHandler> getEntityItemHandlersAt(final Vector3d position, final Direction side) {
-        final AxisAlignedBB bounds = AxisAlignedBB.fromVector(position.subtract(0.5, 0.5, 0.5));
-        return entity.getEntityWorld().getEntitiesWithinAABBExcludingEntity(entity, bounds).stream()
+        final AxisAlignedBB bounds = AxisAlignedBB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
+        return entity.getCommandSenderWorld().getEntities(entity, bounds).stream()
                 .map(e -> e.getCapability(Capabilities.ITEM_HANDLER, side))
                 .filter(LazyOptional::isPresent)
                 .map(c -> c.orElseThrow(AssertionError::new));
@@ -227,7 +227,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
 
     private Stream<IItemHandler> getBlockItemHandlersAt(final Vector3d position, final Direction side) {
         final BlockPos pos = new BlockPos(position);
-        final TileEntity tileEntity = entity.getEntityWorld().getTileEntity(pos);
+        final TileEntity tileEntity = entity.getCommandSenderWorld().getBlockEntity(pos);
         if (tileEntity == null) {
             return Stream.empty();
         }
@@ -241,7 +241,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
     }
 
     private List<ItemEntity> getItemsInRange() {
-        return entity.getEntityWorld().getEntitiesWithinAABB(ItemEntity.class, entity.getBoundingBox().grow(1));
+        return entity.getCommandSenderWorld().getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(1));
     }
 
     private int takeFromWorld(final int count) {
@@ -298,7 +298,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
                 // And if putting it back fails, just drop it. Avoid destroying items.
                 if (!overflow.isEmpty()) {
                     remaining -= overflow.getCount();
-                    entity.entityDropItem(overflow);
+                    entity.spawnAtLocation(overflow);
                 }
             }
 
@@ -331,7 +331,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
         // And if putting it back fails, just drop it. Avoid destroying items.
         if (!overflow.isEmpty()) {
             // NB: not counting this towards taken count since it did not end up in our inventory.
-            entity.entityDropItem(overflow);
+            entity.spawnAtLocation(overflow);
         }
 
         return taken;

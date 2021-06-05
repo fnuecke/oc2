@@ -15,319 +15,319 @@ public final class ModRecipesProvider extends RecipeProvider {
     }
 
     @Override
-    protected void registerRecipes(final Consumer<IFinishedRecipe> consumer) {
+    protected void buildShapelessRecipes(final Consumer<IFinishedRecipe> consumer) {
         ShapedRecipeBuilder
-                .shapedRecipe(Items.COMPUTER.get())
-                .patternLine("ICI")
-                .patternLine("XTX")
-                .patternLine("IBI")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('C', Tags.Items.CHESTS_WOODEN)
-                .key('X', Items.BUS_INTERFACE.get())
-                .key('T', Items.TRANSISTOR.get())
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .addCriterion("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
-                .addCriterion("has_circuit_board", inventoryChange(Items.CIRCUIT_BOARD.get()))
-                .build(consumer);
+                .shaped(Items.COMPUTER.get())
+                .pattern("ICI")
+                .pattern("XTX")
+                .pattern("IBI")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('C', Tags.Items.CHESTS_WOODEN)
+                .define('X', Items.BUS_INTERFACE.get())
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
+                .unlockedBy("has_circuit_board", inventoryChange(Items.CIRCUIT_BOARD.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.BUS_CABLE.get(), 16)
-                .patternLine("III")
-                .patternLine("GTG")
-                .patternLine("III")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('G', Tags.Items.INGOTS_GOLD)
-                .key('T', Items.TRANSISTOR.get())
-                .addCriterion("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
-                .build(consumer);
+                .shaped(Items.BUS_CABLE.get(), 16)
+                .pattern("III")
+                .pattern("GTG")
+                .pattern("III")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('G', Tags.Items.INGOTS_GOLD)
+                .define('T', Items.TRANSISTOR.get())
+                .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
+                .save(consumer);
 
         ShapelessRecipeBuilder
-                .shapelessRecipe(Items.BUS_INTERFACE.get())
-                .addIngredient(Items.TRANSISTOR.get())
-                .addIngredient(Items.BUS_CABLE.get())
-                .addCriterion("has_bus_cable", inventoryChange(Items.BUS_CABLE.get()))
-                .build(consumer);
+                .shapeless(Items.BUS_INTERFACE.get())
+                .requires(Items.TRANSISTOR.get())
+                .requires(Items.BUS_CABLE.get())
+                .unlockedBy("has_bus_cable", inventoryChange(Items.BUS_CABLE.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.NETWORK_CONNECTOR.get(), 4)
-                .patternLine("IGI")
-                .patternLine("ITI")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('G', Tags.Items.GLASS)
-                .key('T', Items.TRANSISTOR.get())
-                .addCriterion("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
-                .build(consumer);
+                .shaped(Items.NETWORK_CONNECTOR.get(), 4)
+                .pattern("IGI")
+                .pattern("ITI")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('G', Tags.Items.GLASS)
+                .define('T', Items.TRANSISTOR.get())
+                .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.NETWORK_HUB.get())
-                .patternLine("ICI")
-                .patternLine("XTX")
-                .patternLine("ICI")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('C', Items.NETWORK_CONNECTOR.get())
-                .key('X', Items.BUS_INTERFACE.get())
-                .key('T', Items.TRANSISTOR.get())
-                .addCriterion("has_network_connector", inventoryChange(Items.NETWORK_CONNECTOR.get()))
-                .build(consumer);
+                .shaped(Items.NETWORK_HUB.get())
+                .pattern("ICI")
+                .pattern("XTX")
+                .pattern("ICI")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('C', Items.NETWORK_CONNECTOR.get())
+                .define('X', Items.BUS_INTERFACE.get())
+                .define('T', Items.TRANSISTOR.get())
+                .unlockedBy("has_network_connector", inventoryChange(Items.NETWORK_CONNECTOR.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.REDSTONE_INTERFACE.get())
-                .patternLine("IRI")
-                .patternLine("XTX")
-                .patternLine("IRI")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('R', Tags.Items.DUSTS_REDSTONE)
-                .key('T', Items.TRANSISTOR.get())
-                .key('X', Items.BUS_INTERFACE.get())
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .build(consumer);
+                .shaped(Items.REDSTONE_INTERFACE.get())
+                .pattern("IRI")
+                .pattern("XTX")
+                .pattern("IRI")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('R', Tags.Items.DUSTS_REDSTONE)
+                .define('T', Items.TRANSISTOR.get())
+                .define('X', Items.BUS_INTERFACE.get())
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.DISK_DRIVE.get())
-                .patternLine("IBI")
-                .patternLine("XTX")
-                .patternLine("IDI")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('B', ItemTags.BUTTONS)
-                .key('T', Items.TRANSISTOR.get())
-                .key('X', Items.BUS_INTERFACE.get())
-                .key('D', net.minecraft.item.Items.DISPENSER)
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .build(consumer);
+                .shaped(Items.DISK_DRIVE.get())
+                .pattern("IBI")
+                .pattern("XTX")
+                .pattern("IDI")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('B', ItemTags.BUTTONS)
+                .define('T', Items.TRANSISTOR.get())
+                .define('X', Items.BUS_INTERFACE.get())
+                .define('D', net.minecraft.item.Items.DISPENSER)
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.CHARGER.get())
-                .patternLine("IPI")
-                .patternLine("XTX")
-                .patternLine("IRI")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('P', net.minecraft.item.Items.LIGHT_WEIGHTED_PRESSURE_PLATE)
-                .key('T', Items.TRANSISTOR.get())
-                .key('X', Items.BUS_INTERFACE.get())
-                .key('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
-                .addCriterion("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
-                .build(consumer);
-
-
-        ShapedRecipeBuilder
-                .shapedRecipe(Items.WRENCH.get())
-                .patternLine("I I")
-                .patternLine(" T ")
-                .patternLine(" I ")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('T', Items.TRANSISTOR.get())
-                .addCriterion("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
-                .build(consumer);
+                .shaped(Items.CHARGER.get())
+                .pattern("IPI")
+                .pattern("XTX")
+                .pattern("IRI")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('P', net.minecraft.item.Items.LIGHT_WEIGHTED_PRESSURE_PLATE)
+                .define('T', Items.TRANSISTOR.get())
+                .define('X', Items.BUS_INTERFACE.get())
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+                .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
+                .save(consumer);
 
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.NETWORK_CABLE.get(), 8)
-                .patternLine("SSS")
-                .patternLine("GTG")
-                .patternLine("SSS")
-                .key('S', Tags.Items.STRING)
-                .key('G', Tags.Items.GLASS)
-                .key('T', Items.TRANSISTOR.get())
-                .addCriterion("has_network_connector", inventoryChange(Items.NETWORK_CONNECTOR.get()))
-                .build(consumer);
+                .shaped(Items.WRENCH.get())
+                .pattern("I I")
+                .pattern(" T ")
+                .pattern(" I ")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('T', Items.TRANSISTOR.get())
+                .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
+                .save(consumer);
+
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.ROBOT.get())
-                .patternLine("ICI")
-                .patternLine("PTP")
-                .patternLine("IBI")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('C', Tags.Items.CHESTS_WOODEN)
-                .key('P', net.minecraft.item.Items.PISTON)
-                .key('T', Items.TRANSISTOR.get())
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .addCriterion("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
-                .addCriterion("has_circuit_board", inventoryChange(Items.CIRCUIT_BOARD.get()))
-                .build(consumer);
+                .shaped(Items.NETWORK_CABLE.get(), 8)
+                .pattern("SSS")
+                .pattern("GTG")
+                .pattern("SSS")
+                .define('S', Tags.Items.STRING)
+                .define('G', Tags.Items.GLASS)
+                .define('T', Items.TRANSISTOR.get())
+                .unlockedBy("has_network_connector", inventoryChange(Items.NETWORK_CONNECTOR.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.MEMORY_SMALL.get(), 2)
-                .patternLine("ITI")
-                .patternLine(" B ")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('T', Items.TRANSISTOR.get())
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .addCriterion("has_robot", inventoryChange(Items.ROBOT.get()))
-                .build(consumer);
+                .shaped(Items.ROBOT.get())
+                .pattern("ICI")
+                .pattern("PTP")
+                .pattern("IBI")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('C', Tags.Items.CHESTS_WOODEN)
+                .define('P', net.minecraft.item.Items.PISTON)
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
+                .unlockedBy("has_circuit_board", inventoryChange(Items.CIRCUIT_BOARD.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.MEMORY_MEDIUM.get(), 2)
-                .patternLine("GTG")
-                .patternLine(" B ")
-                .key('G', Tags.Items.INGOTS_GOLD)
-                .key('T', Items.TRANSISTOR.get())
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .addCriterion("has_robot", inventoryChange(Items.ROBOT.get()))
-                .build(consumer);
+                .shaped(Items.MEMORY_SMALL.get(), 2)
+                .pattern("ITI")
+                .pattern(" B ")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.MEMORY_LARGE.get(), 2)
-                .patternLine("DTD")
-                .patternLine(" B ")
-                .key('D', Tags.Items.GEMS_DIAMOND)
-                .key('T', Items.TRANSISTOR.get())
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .addCriterion("has_robot", inventoryChange(Items.ROBOT.get()))
-                .build(consumer);
+                .shaped(Items.MEMORY_MEDIUM.get(), 2)
+                .pattern("GTG")
+                .pattern(" B ")
+                .define('G', Tags.Items.INGOTS_GOLD)
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.HARD_DRIVE_SMALL.get())
-                .patternLine("ITI")
-                .patternLine("EBE")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('T', Items.TRANSISTOR.get())
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .key('E', Tags.Items.GEMS_EMERALD)
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .addCriterion("has_robot", inventoryChange(Items.ROBOT.get()))
-                .build(consumer);
+                .shaped(Items.MEMORY_LARGE.get(), 2)
+                .pattern("DTD")
+                .pattern(" B ")
+                .define('D', Tags.Items.GEMS_DIAMOND)
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.HARD_DRIVE_MEDIUM.get())
-                .patternLine("GTG")
-                .patternLine("EBE")
-                .key('G', Tags.Items.INGOTS_GOLD)
-                .key('T', Items.TRANSISTOR.get())
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .key('E', Tags.Items.GEMS_EMERALD)
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .addCriterion("has_robot", inventoryChange(Items.ROBOT.get()))
-                .build(consumer);
+                .shaped(Items.HARD_DRIVE_SMALL.get())
+                .pattern("ITI")
+                .pattern("EBE")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .define('E', Tags.Items.GEMS_EMERALD)
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.HARD_DRIVE_LARGE.get())
-                .patternLine("DTD")
-                .patternLine("EBE")
-                .key('D', Tags.Items.GEMS_DIAMOND)
-                .key('T', Items.TRANSISTOR.get())
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .key('E', Tags.Items.GEMS_EMERALD)
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .addCriterion("has_robot", inventoryChange(Items.ROBOT.get()))
-                .build(consumer);
+                .shaped(Items.HARD_DRIVE_MEDIUM.get())
+                .pattern("GTG")
+                .pattern("EBE")
+                .define('G', Tags.Items.INGOTS_GOLD)
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .define('E', Tags.Items.GEMS_EMERALD)
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+                .save(consumer);
+
+        ShapedRecipeBuilder
+                .shaped(Items.HARD_DRIVE_LARGE.get())
+                .pattern("DTD")
+                .pattern("EBE")
+                .define('D', Tags.Items.GEMS_DIAMOND)
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .define('E', Tags.Items.GEMS_EMERALD)
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+                .save(consumer);
 
         WrenchRecipeBuilder
                 .wrenchRecipe(Items.HARD_DRIVE_CUSTOM.get())
-                .addIngredient(Items.HARD_DRIVE_LARGE.get())
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .addCriterion("has_robot", inventoryChange(Items.ROBOT.get()))
-                .build(consumer);
+                .requires(Items.HARD_DRIVE_LARGE.get())
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.FLASH_MEMORY.get())
-                .patternLine("ITI")
-                .patternLine("RBR")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('T', Items.TRANSISTOR.get())
-                .key('R', Tags.Items.DUSTS_REDSTONE)
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .addCriterion("has_robot", inventoryChange(Items.ROBOT.get()))
-                .build(consumer);
+                .shaped(Items.FLASH_MEMORY.get())
+                .pattern("ITI")
+                .pattern("RBR")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('T', Items.TRANSISTOR.get())
+                .define('R', Tags.Items.DUSTS_REDSTONE)
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+                .save(consumer);
 
         WrenchRecipeBuilder
                 .wrenchRecipe(Items.FLASH_MEMORY_CUSTOM.get())
-                .addIngredient(Items.FLASH_MEMORY.get())
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .addCriterion("has_robot", inventoryChange(Items.ROBOT.get()))
-                .build(consumer);
+                .requires(Items.FLASH_MEMORY.get())
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.REDSTONE_INTERFACE_CARD.get())
-                .patternLine("IRT")
-                .patternLine(" B ")
-                .key('R', net.minecraft.item.Items.REDSTONE_TORCH)
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('T', Items.TRANSISTOR.get())
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .build(consumer);
+                .shaped(Items.REDSTONE_INTERFACE_CARD.get())
+                .pattern("IRT")
+                .pattern(" B ")
+                .define('R', net.minecraft.item.Items.REDSTONE_TORCH)
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.NETWORK_INTERFACE_CARD.get())
-                .patternLine("IGT")
-                .patternLine(" B ")
-                .key('G', Tags.Items.GLASS)
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('T', Items.TRANSISTOR.get())
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .build(consumer);
+                .shaped(Items.NETWORK_INTERFACE_CARD.get())
+                .pattern("IGT")
+                .pattern(" B ")
+                .define('G', Tags.Items.GLASS)
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.FILE_IMPORT_EXPORT_CARD.get())
-                .patternLine("IET")
-                .patternLine(" B ")
-                .key('E', net.minecraft.item.Items.PAPER)
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('T', Items.TRANSISTOR.get())
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .addCriterion("has_computer", inventoryChange(Items.COMPUTER.get()))
-                .build(consumer);
+                .shaped(Items.FILE_IMPORT_EXPORT_CARD.get())
+                .pattern("IET")
+                .pattern(" B ")
+                .define('E', net.minecraft.item.Items.PAPER)
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .save(consumer);
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.FLOPPY.get())
-                .patternLine("ITI")
-                .patternLine("QBQ")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('T', Items.TRANSISTOR.get())
-                .key('Q', Tags.Items.GEMS_QUARTZ)
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .addCriterion("has_disk_drive", inventoryChange(Items.DISK_DRIVE.get()))
-                .build(consumer);
-
-
-        ShapedRecipeBuilder
-                .shapedRecipe(Items.INVENTORY_OPERATIONS_MODULE.get())
-                .patternLine("TCG")
-                .patternLine(" B ")
-                .key('T', Items.TRANSISTOR.get())
-                .key('C', Tags.Items.CHESTS_WOODEN)
-                .key('G', Tags.Items.INGOTS_GOLD)
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .addCriterion("has_robot", inventoryChange(Items.ROBOT.get()))
-                .build(consumer);
-
-        ShapedRecipeBuilder
-                .shapedRecipe(Items.BLOCK_OPERATIONS_MODULE.get())
-                .patternLine("TPG")
-                .patternLine(" B ")
-                .key('T', Items.TRANSISTOR.get())
-                .key('P', net.minecraft.item.Items.DIAMOND_PICKAXE)
-                .key('G', Tags.Items.INGOTS_GOLD)
-                .key('B', Items.CIRCUIT_BOARD.get())
-                .addCriterion("has_robot", inventoryChange(Items.ROBOT.get()))
-                .build(consumer);
+                .shaped(Items.FLOPPY.get())
+                .pattern("ITI")
+                .pattern("QBQ")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('T', Items.TRANSISTOR.get())
+                .define('Q', Tags.Items.GEMS_QUARTZ)
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_disk_drive", inventoryChange(Items.DISK_DRIVE.get()))
+                .save(consumer);
 
 
         ShapedRecipeBuilder
-                .shapedRecipe(Items.TRANSISTOR.get(), 8)
-                .patternLine("RCR")
-                .patternLine("III")
-                .key('I', Tags.Items.INGOTS_IRON)
-                .key('R', Tags.Items.DUSTS_REDSTONE)
-                .key('C', net.minecraft.item.Items.COMPARATOR)
-                .addCriterion("has_gold", inventoryChange(net.minecraft.item.Items.GOLD_INGOT))
-                .build(consumer);
+                .shaped(Items.INVENTORY_OPERATIONS_MODULE.get())
+                .pattern("TCG")
+                .pattern(" B ")
+                .define('T', Items.TRANSISTOR.get())
+                .define('C', Tags.Items.CHESTS_WOODEN)
+                .define('G', Tags.Items.INGOTS_GOLD)
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+                .save(consumer);
+
+        ShapedRecipeBuilder
+                .shaped(Items.BLOCK_OPERATIONS_MODULE.get())
+                .pattern("TPG")
+                .pattern(" B ")
+                .define('T', Items.TRANSISTOR.get())
+                .define('P', net.minecraft.item.Items.DIAMOND_PICKAXE)
+                .define('G', Tags.Items.INGOTS_GOLD)
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+                .save(consumer);
+
+
+        ShapedRecipeBuilder
+                .shaped(Items.TRANSISTOR.get(), 8)
+                .pattern("RCR")
+                .pattern("III")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('R', Tags.Items.DUSTS_REDSTONE)
+                .define('C', net.minecraft.item.Items.COMPARATOR)
+                .unlockedBy("has_gold", inventoryChange(net.minecraft.item.Items.GOLD_INGOT))
+                .save(consumer);
 
         ShapelessRecipeBuilder
-                .shapelessRecipe(Items.CIRCUIT_BOARD.get(), 4)
-                .addIngredient(Tags.Items.INGOTS_GOLD)
-                .addIngredient(net.minecraft.item.Items.CLAY_BALL)
-                .addIngredient(Items.TRANSISTOR.get())
-                .addCriterion("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
-                .build(consumer);
+                .shapeless(Items.CIRCUIT_BOARD.get(), 4)
+                .requires(Tags.Items.INGOTS_GOLD)
+                .requires(net.minecraft.item.Items.CLAY_BALL)
+                .requires(Items.TRANSISTOR.get())
+                .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
+                .save(consumer);
     }
 
     private static InventoryChangeTrigger.Instance inventoryChange(final IItemProvider item) {
-        return InventoryChangeTrigger.Instance.forItems(item);
+        return InventoryChangeTrigger.Instance.hasItems(item);
     }
 }

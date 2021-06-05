@@ -14,7 +14,7 @@ public final class RobotInitializationRequestMessage {
     ///////////////////////////////////////////////////////////////////
 
     public RobotInitializationRequestMessage(final RobotEntity robot) {
-        this.entityId = robot.getEntityId();
+        this.entityId = robot.getId();
     }
 
     public RobotInitializationRequestMessage(final PacketBuffer buffer) {

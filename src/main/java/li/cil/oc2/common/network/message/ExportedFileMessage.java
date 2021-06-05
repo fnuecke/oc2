@@ -44,12 +44,12 @@ public final class ExportedFileMessage {
     }
 
     public static void toBytes(final ExportedFileMessage message, final PacketBuffer buffer) {
-        buffer.writeString(message.name);
+        buffer.writeUtf(message.name);
         buffer.writeByteArray(message.data);
     }
 
     public void fromBytes(final PacketBuffer buffer) {
-        name = buffer.readString();
+        name = buffer.readUtf();
         data = buffer.readByteArray();
     }
 }

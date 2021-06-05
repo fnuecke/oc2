@@ -43,7 +43,7 @@ public class TileEntityDeviceBusController extends CommonDeviceBusController {
     protected void onAfterBusScan() {
         super.onAfterBusScan();
 
-        final World world = tileEntity.getWorld();
+        final World world = tileEntity.getLevel();
         if (world == null) {
             return;
         }
@@ -52,19 +52,19 @@ public class TileEntityDeviceBusController extends CommonDeviceBusController {
         for (final DeviceBusElement element : getElements()) {
             if (element instanceof BlockDeviceBusElement) {
                 final BlockDeviceBusElement blockElement = (BlockDeviceBusElement) element;
-                final IWorld elementWorld = blockElement.getWorld();
+                final IWorld elementWorld = blockElement.getLevel();
                 final BlockPos elementPosition = blockElement.getPosition();
                 newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition));
-                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.offset(Direction.NORTH)));
-                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.offset(Direction.EAST)));
-                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.offset(Direction.SOUTH)));
-                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.offset(Direction.WEST)));
+                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.relative(Direction.NORTH)));
+                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.relative(Direction.EAST)));
+                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.relative(Direction.SOUTH)));
+                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.relative(Direction.WEST)));
             }
         }
 
         // Do not track the chunk the controller itself is in -- this is unneeded because
         // we expect the controller to be disposed if its chunk is unloaded.
-        newTrackedChunks.remove(new TrackedChunk(world, tileEntity.getPos()));
+        newTrackedChunks.remove(new TrackedChunk(world, tileEntity.getBlockPos()));
 
         final HashSet<TrackedChunk> removedChunks = new HashSet<>(trackedChunks);
         removedChunks.removeAll(newTrackedChunks);

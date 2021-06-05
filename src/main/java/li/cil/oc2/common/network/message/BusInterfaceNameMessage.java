@@ -18,7 +18,7 @@ public abstract class BusInterfaceNameMessage {
     ///////////////////////////////////////////////////////////////////
 
     protected BusInterfaceNameMessage(final BusCableTileEntity tileEntity, final Direction side, final String value) {
-        this.pos = tileEntity.getPos();
+        this.pos = tileEntity.getBlockPos();
         this.side = side;
         this.value = value;
     }
@@ -38,8 +38,8 @@ public abstract class BusInterfaceNameMessage {
     public static boolean handleMessageServer(final BusInterfaceNameMessage message, final Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> MessageUtils.withServerTileEntityAt(context, message.pos, BusCableTileEntity.class,
                 (tileEntity) -> {
-                    final Vector3d busCableCenter = Vector3d.copyCentered(tileEntity.getPos());
-                    if (context.get().getSender().getDistanceSq(busCableCenter) <= 8 * 8) {
+                    final Vector3d busCableCenter = Vector3d.atCenterOf(tileEntity.getBlockPos());
+                    if (context.get().getSender().distanceToSqr(busCableCenter) <= 8 * 8) {
                         tileEntity.setInterfaceName(message.side, message.value);
                     }
                 }));
@@ -48,14 +48,14 @@ public abstract class BusInterfaceNameMessage {
 
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
-        side = buffer.readEnumValue(Direction.class);
-        value = buffer.readString(32);
+        side = buffer.readEnum(Direction.class);
+        value = buffer.readUtf(32);
     }
 
     public static void toBytes(final BusInterfaceNameMessage message, final PacketBuffer buffer) {
         buffer.writeBlockPos(message.pos);
-        buffer.writeEnumValue(message.side);
-        buffer.writeString(message.value, 32);
+        buffer.writeEnum(message.side);
+        buffer.writeUtf(message.value, 32);
     }
 
     ///////////////////////////////////////////////////////////////////

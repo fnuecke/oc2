@@ -23,17 +23,17 @@ import net.minecraft.world.World;
 public final class DiskDriveBlock extends HorizontalBlock {
     public DiskDriveBlock() {
         super(Properties
-                .create(Material.IRON)
+                .of(Material.METAL)
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(1.5f, 6.0f));
-        setDefaultState(getStateContainer().getBaseState().with(HORIZONTAL_FACING, Direction.NORTH));
+                .strength(1.5f, 6.0f));
+        registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
+        return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override
@@ -48,23 +48,23 @@ public final class DiskDriveBlock extends HorizontalBlock {
 
     @SuppressWarnings("deprecation")
     @Override
-    public ActionResultType onBlockActivated(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
-        final TileEntity tileEntity = world.getTileEntity(pos);
+    public ActionResultType use(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
+        final TileEntity tileEntity = world.getBlockEntity(pos);
         if (!(tileEntity instanceof DiskDriveTileEntity)) {
-            return super.onBlockActivated(state, world, pos, player, hand, hit);
+            return super.use(state, world, pos, player, hand, hit);
         }
 
-        if (world.isRemote()) {
+        if (world.isClientSide) {
             return ActionResultType.SUCCESS;
         }
 
         final DiskDriveTileEntity diskDrive = (DiskDriveTileEntity) tileEntity;
-        final ItemStack stack = player.getHeldItem(hand);
+        final ItemStack stack = player.getItemInHand(hand);
 
-        if (player.isSneaking()) {
+        if (player.isShiftKeyDown()) {
             diskDrive.eject();
         } else {
-            player.setHeldItem(hand, diskDrive.insert(stack));
+            player.setItemInHand(hand, diskDrive.insert(stack));
         }
 
         return ActionResultType.CONSUME;
@@ -73,8 +73,8 @@ public final class DiskDriveBlock extends HorizontalBlock {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
-        builder.add(HORIZONTAL_FACING);
+    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(FACING);
     }
 }

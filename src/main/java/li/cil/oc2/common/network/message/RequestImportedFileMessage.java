@@ -44,8 +44,8 @@ public final class RequestImportedFileMessage {
                     final byte[] data = Files.readAllBytes(path);
                     if (data.length > FileImportExportCardItemDevice.MAX_TRANSFERRED_FILE_SIZE) {
                         Network.INSTANCE.sendToServer(new ClientCanceledImportFileMessage(message.id));
-                        Minecraft.getInstance().player.sendStatusMessage(FILE_TOO_LARGE_TEXT
-                                .modifyStyle(s -> s.setColor(Color.fromInt(0xFFA0A0))), false);
+                        Minecraft.getInstance().player.displayClientMessage(FILE_TOO_LARGE_TEXT
+                                .withStyle(s -> s.withColor(Color.fromRgb(0xFFA0A0))), false);
                     } else {
                         Network.INSTANCE.sendToServer(new ImportedFileMessage(message.id, data));
                     }

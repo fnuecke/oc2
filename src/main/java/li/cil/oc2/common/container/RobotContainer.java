@@ -16,7 +16,7 @@ public final class RobotContainer extends AbstractContainer {
     @Nullable
     public static RobotContainer create(final int id, final PlayerInventory inventory, final PacketBuffer data) {
         final int entityId = data.readVarInt();
-        final Entity entity = inventory.player.getEntityWorld().getEntityByID(entityId);
+        final Entity entity = inventory.player.getCommandSenderWorld().getEntity(entityId);
         if (!(entity instanceof RobotEntity)) {
             return null;
         }
@@ -76,7 +76,7 @@ public final class RobotContainer extends AbstractContainer {
     }
 
     @Override
-    public boolean canInteractWith(final PlayerEntity player) {
-        return robot.isEntityInRange(player, 8);
+    public boolean stillValid(final PlayerEntity player) {
+        return robot.closerThan(player, 8);
     }
 }

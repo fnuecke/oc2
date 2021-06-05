@@ -30,7 +30,7 @@ public final class ModLootTableProvider extends LootTableProvider {
 
     @Override
     protected void validate(final Map<ResourceLocation, LootTable> map, final ValidationTracker validationtracker) {
-        map.forEach((location, table) -> LootTableManager.validateLootTable(validationtracker, location, table));
+        map.forEach((location, table) -> LootTableManager.validate(validationtracker, location, table));
     }
 
     @Override
@@ -41,13 +41,13 @@ public final class ModLootTableProvider extends LootTableProvider {
     public static final class ModBlockLootTables extends BlockLootTables {
         @Override
         protected void addTables() {
-            registerDropSelfLootTable(Blocks.REDSTONE_INTERFACE.get());
-            registerDropSelfLootTable(Blocks.NETWORK_CONNECTOR.get());
-            registerDropSelfLootTable(Blocks.NETWORK_HUB.get());
-            registerDropSelfLootTable(Blocks.DISK_DRIVE.get());
-            registerDropSelfLootTable(Blocks.CHARGER.get());
+            dropSelf(Blocks.REDSTONE_INTERFACE.get());
+            dropSelf(Blocks.NETWORK_CONNECTOR.get());
+            dropSelf(Blocks.NETWORK_HUB.get());
+            dropSelf(Blocks.DISK_DRIVE.get());
+            dropSelf(Blocks.CHARGER.get());
 
-            registerLootTable(Blocks.COMPUTER.get(), ModBlockLootTables::droppingWithInventory);
+            add(Blocks.COMPUTER.get(), ModBlockLootTables::droppingWithInventory);
         }
 
         @Override
@@ -59,15 +59,15 @@ public final class ModLootTableProvider extends LootTableProvider {
         }
 
         private static LootTable.Builder droppingWithInventory(final Block block) {
-            return LootTable.builder()
-                    .addLootPool(withSurvivesExplosion(block, LootPool.builder()
-                            .rolls(ConstantRange.of(1))
-                            .addEntry(ItemLootEntry.builder(block)
-                                    .acceptFunction(CopyNbt.builder(CopyNbt.Source.BLOCK_ENTITY)
-                                            .addOperation(ITEMS_TAG_NAME,
+            return LootTable.lootTable()
+                    .withPool(applyExplosionCondition(block, LootPool.lootPool()
+                            .setRolls(ConstantRange.exactly(1))
+                            .add(ItemLootEntry.lootTableItem(block)
+                                    .apply(CopyNbt.copyData(CopyNbt.Source.BLOCK_ENTITY)
+                                            .copy(ITEMS_TAG_NAME,
                                                     concat(BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME),
                                                     CopyNbt.Action.REPLACE)
-                                            .addOperation(ENERGY_TAG_NAME,
+                                            .copy(ENERGY_TAG_NAME,
                                                     concat(BLOCK_ENTITY_TAG_NAME_IN_ITEM, ENERGY_TAG_NAME),
                                                     CopyNbt.Action.REPLACE)
                                     )

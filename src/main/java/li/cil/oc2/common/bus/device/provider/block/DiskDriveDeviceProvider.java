@@ -17,7 +17,7 @@ public final class DiskDriveDeviceProvider extends AbstractTileEntityDeviceProvi
     protected LazyOptional<Device> getBlockDevice(final BlockDeviceQuery query, final DiskDriveTileEntity tileEntity) {
         // We only allow connecting to exactly one face of the disk drive to ensure only one
         // bus (and thus, one VM) will access the device at any single time.
-        if (query.getQuerySide() != tileEntity.getBlockState().get(HorizontalBlock.HORIZONTAL_FACING)) {
+        if (query.getQuerySide() != tileEntity.getBlockState().getValue(HorizontalBlock.FACING)) {
             return LazyOptional.empty();
         }
 

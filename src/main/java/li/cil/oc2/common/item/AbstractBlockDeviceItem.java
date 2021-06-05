@@ -22,7 +22,7 @@ public abstract class AbstractBlockDeviceItem extends ModItem {
     ///////////////////////////////////////////////////////////////////
 
     protected AbstractBlockDeviceItem(final Properties properties, final ResourceLocation defaultData) {
-        super(properties.maxStackSize(1));
+        super(properties.stacksTo(1));
         this.defaultData = defaultData;
     }
 
@@ -71,16 +71,16 @@ public abstract class AbstractBlockDeviceItem extends ModItem {
     }
 
     @Override
-    public ITextComponent getDisplayName(final ItemStack stack) {
+    public ITextComponent getName(final ItemStack stack) {
         final BlockDeviceData data = getData(stack);
         if (data != null) {
             return new StringTextComponent("")
-                    .append(super.getDisplayName(stack))
-                    .appendString(" (")
+                    .append(super.getName(stack))
+                    .append(" (")
                     .append(data.getDisplayName())
-                    .appendString(")");
+                    .append(")");
         } else {
-            return super.getDisplayName(stack);
+            return super.getName(stack);
         }
     }
 }

@@ -11,15 +11,15 @@ public final class CustomItemModelProperties {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        ItemModelsProperties.registerProperty(Items.HARD_DRIVE_SMALL.get(), CustomItemModelProperties.COLOR_PROPERTY,
+        ItemModelsProperties.register(Items.HARD_DRIVE_SMALL.get(), CustomItemModelProperties.COLOR_PROPERTY,
                 (stack, world, entity) -> CustomItemColors.getColor(stack));
-        ItemModelsProperties.registerProperty(Items.HARD_DRIVE_MEDIUM.get(), CustomItemModelProperties.COLOR_PROPERTY,
+        ItemModelsProperties.register(Items.HARD_DRIVE_MEDIUM.get(), CustomItemModelProperties.COLOR_PROPERTY,
                 (stack, world, entity) -> CustomItemColors.getColor(stack));
-        ItemModelsProperties.registerProperty(Items.HARD_DRIVE_LARGE.get(), CustomItemModelProperties.COLOR_PROPERTY,
+        ItemModelsProperties.register(Items.HARD_DRIVE_LARGE.get(), CustomItemModelProperties.COLOR_PROPERTY,
                 (stack, world, entity) -> CustomItemColors.getColor(stack));
-        ItemModelsProperties.registerProperty(Items.HARD_DRIVE_CUSTOM.get(), CustomItemModelProperties.COLOR_PROPERTY,
+        ItemModelsProperties.register(Items.HARD_DRIVE_CUSTOM.get(), CustomItemModelProperties.COLOR_PROPERTY,
                 (stack, world, entity) -> CustomItemColors.getColor(stack));
-        ItemModelsProperties.registerProperty(Items.FLOPPY.get(), CustomItemModelProperties.COLOR_PROPERTY,
+        ItemModelsProperties.register(Items.FLOPPY.get(), CustomItemModelProperties.COLOR_PROPERTY,
                 (stack, world, entity) -> CustomItemColors.getColor(stack));
     }
 }

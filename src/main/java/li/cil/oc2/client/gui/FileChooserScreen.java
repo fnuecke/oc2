@@ -71,24 +71,24 @@ public class FileChooserScreen extends Screen {
     ///////////////////////////////////////////////////////////////////
 
     public static void openFileChooserForSave(final String name, final FileChooserCallback callback) {
-        final Screen currentScreen = Minecraft.getInstance().currentScreen;
+        final Screen currentScreen = Minecraft.getInstance().screen;
         if (currentScreen instanceof FileChooserScreen) {
-            currentScreen.closeScreen();
+            currentScreen.onClose();
         }
 
         final FileChooserScreen screen = new FileChooserScreen(callback, false);
-        Minecraft.getInstance().displayGuiScreen(screen);
-        screen.fileNameTextField.setText(name);
+        Minecraft.getInstance().setScreen(screen);
+        screen.fileNameTextField.setValue(name);
     }
 
     public static void openFileChooserForLoad(final FileChooserCallback callback) {
-        final Screen currentScreen = Minecraft.getInstance().currentScreen;
+        final Screen currentScreen = Minecraft.getInstance().screen;
         if (currentScreen instanceof FileChooserScreen) {
-            currentScreen.closeScreen();
+            currentScreen.onClose();
         }
 
         final FileChooserScreen screen = new FileChooserScreen(callback, true);
-        Minecraft.getInstance().displayGuiScreen(screen);
+        Minecraft.getInstance().setScreen(screen);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -99,7 +99,7 @@ public class FileChooserScreen extends Screen {
         this.callback = callback;
         this.isLoad = isLoad;
 
-        this.previousScreen = Minecraft.getInstance().currentScreen;
+        this.previousScreen = Minecraft.getInstance().screen;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -111,7 +111,7 @@ public class FileChooserScreen extends Screen {
         }
 
         if (previousScreen != null) {
-            minecraft.enqueue(() -> minecraft.displayGuiScreen(previousScreen));
+            minecraft.tell(() -> minecraft.setScreen(previousScreen));
         }
     }
 
@@ -133,12 +133,12 @@ public class FileChooserScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        minecraft.keyboardListener.enableRepeatEvents(true);
+        minecraft.keyboardHandler.setSendRepeatsToGui(true);
 
         final int widgetsWidth = width - MARGIN * 2;
         final int listHeight = height - MARGIN - WIDGET_SPACING - TEXT_FIELD_HEIGHT - WIDGET_SPACING - BUTTON_HEIGHT - MARGIN;
         fileList = new FileList(MARGIN, listHeight, LIST_ENTRY_HEIGHT);
-        addListener(fileList);
+        addWidget(fileList);
 
         final int fileNameTop = MARGIN + listHeight + WIDGET_SPACING;
         fileNameTextField = new TextFieldWidget(font, MARGIN, fileNameTop, widgetsWidth, TEXT_FIELD_HEIGHT, FILE_NAME_TEXT);
@@ -146,8 +146,8 @@ public class FileChooserScreen extends Screen {
             fileList.setSelected(null);
             updateButtons();
         });
-        fileNameTextField.setMaxStringLength(1024);
-        addListener(fileNameTextField);
+        fileNameTextField.setMaxLength(1024);
+        addWidget(fileNameTextField);
 
         final int buttonTop = fileNameTop + TEXT_FIELD_HEIGHT + WIDGET_SPACING;
         final int buttonCount = 2;
@@ -172,7 +172,7 @@ public class FileChooserScreen extends Screen {
             return selected.file == null || selected.file.equals(directory.getParent());
         }
 
-        final String selectedFileEntry = fileNameTextField.getText();
+        final String selectedFileEntry = fileNameTextField.getValue();
         return "..".equals(selectedFileEntry);
     }
 
@@ -187,7 +187,7 @@ public class FileChooserScreen extends Screen {
             return Optional.empty();
         }
 
-        final String selectedFileEntry = fileNameTextField.getText();
+        final String selectedFileEntry = fileNameTextField.getValue();
         if (selectedFileEntry == null || "".equals(selectedFileEntry) || ".".equals(selectedFileEntry)) {
             return Optional.empty();
         }
@@ -202,24 +202,24 @@ public class FileChooserScreen extends Screen {
     private void confirm() {
         if (isParentPath()) {
             fileList.refreshFiles(getPath().orElse(null));
-            fileNameTextField.setText("");
+            fileNameTextField.setValue("");
             return;
         }
 
         getPath().ifPresent(path -> {
             if (path == null || Files.isDirectory(path)) {
                 fileList.refreshFiles(path);
-                fileNameTextField.setText("");
+                fileNameTextField.setValue("");
                 return;
             }
             if (Files.isRegularFile(path)) {
                 isComplete = true;
                 callback.onFileSelected(path);
-                closeScreen();
+                onClose();
             } else if (!isLoad) {
                 isComplete = true;
                 callback.onFileSelected(path);
-                closeScreen();
+                onClose();
             } // else: cannot load non-existing file
         });
     }
@@ -227,7 +227,7 @@ public class FileChooserScreen extends Screen {
     private void cancel() {
         isComplete = true;
         callback.onCanceled();
-        closeScreen();
+        onClose();
     }
 
     private void updateButtons() {
@@ -326,7 +326,7 @@ public class FileChooserScreen extends Screen {
 
         private FileList.FileEntry createDirectoryEntry(final Path path, final String displayName) {
             return new FileList.FileEntry(path, new StringTextComponent(displayName)
-                    .modifyStyle(s -> s.setColor(Color.fromInt(0xA0A0FF))));
+                    .withStyle(s -> s.withColor(Color.fromRgb(0xA0A0FF))));
         }
 
         private final class FileEntry extends ExtendedList.AbstractListEntry<FileEntry> {
@@ -343,7 +343,7 @@ public class FileChooserScreen extends Screen {
             @Override
             public void render(final MatrixStack stack, final int index, final int top, final int left, final int width, final int height,
                                final int mouseX, final int mouseY, final boolean isHovered, final float deltaTime) {
-                font.func_243246_a(stack, displayName, left, top, 0xFFFFFFFF);
+                font.drawShadow(stack, displayName, left, top, 0xFFFFFFFF);
             }
 
             @Override
@@ -351,13 +351,13 @@ public class FileChooserScreen extends Screen {
                 final boolean isLeftClick = button == 0;
                 if (isLeftClick) {
                     if (file == null || (directory != null && file.equals(directory.getParent()))) {
-                        fileNameTextField.setText("..");
+                        fileNameTextField.setValue("..");
                     } else {
                         final Path fileName = file.getFileName();
-                        fileNameTextField.setText(fileName != null ? fileName.toString() : file.toString());
+                        fileNameTextField.setValue(fileName != null ? fileName.toString() : file.toString());
                     }
-                    fileNameTextField.setCursorPositionZero();
-                    fileNameTextField.setSelectionPos(0);
+                    fileNameTextField.moveCursorToStart();
+                    fileNameTextField.setHighlightPos(0);
                     setSelected(this);
 
                     final boolean isDoubleClick = System.currentTimeMillis() - lastEntryClickTime < 250;

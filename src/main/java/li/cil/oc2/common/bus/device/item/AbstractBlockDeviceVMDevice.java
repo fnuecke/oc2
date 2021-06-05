@@ -111,14 +111,14 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
             getSerializationStream(data).ifPresent(stream -> blobHandle = BlobStorage.validateHandle(blobHandle));
         }
         if (blobHandle != null) {
-            nbt.putUniqueId(BLOB_HANDLE_TAG_NAME, blobHandle);
+            nbt.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
         }
     }
 
     @Override
     public void importFromItemStack(final CompoundNBT nbt) {
-        if (nbt.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = nbt.getUniqueId(BLOB_HANDLE_TAG_NAME);
+        if (nbt.hasUUID(BLOB_HANDLE_TAG_NAME)) {
+            blobHandle = nbt.getUUID(BLOB_HANDLE_TAG_NAME);
         }
     }
 
@@ -141,7 +141,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
         }
 
         if (blobHandle != null) {
-            tag.putUniqueId(BLOB_HANDLE_TAG_NAME, blobHandle);
+            tag.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
         }
 
         return tag;
@@ -149,8 +149,8 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
 
     @Override
     public void deserializeNBT(final CompoundNBT tag) {
-        if (tag.hasUniqueId(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = tag.getUniqueId(BLOB_HANDLE_TAG_NAME);
+        if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
+            blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
         }
 
         if (tag.contains(DEVICE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {

@@ -131,7 +131,7 @@ public final class ServerScheduler {
 
         @SubscribeEvent
         public static void handleChunkLoad(final ChunkEvent.Load event) {
-            final HashMap<ChunkPos, SimpleScheduler> chunkMap = chunkLoadSchedulers.get(event.getWorld());
+            final HashMap<ChunkPos, SimpleScheduler> chunkMap = chunkLoadSchedulers.get(event.getChunk());
             if (chunkMap == null) {
                 return;
             }
@@ -144,7 +144,7 @@ public final class ServerScheduler {
 
         @SubscribeEvent
         public static void handleChunkUnload(final ChunkEvent.Unload event) {
-            final HashMap<ChunkPos, SimpleScheduler> chunkMap = chunkUnloadSchedulers.get(event.getWorld());
+            final HashMap<ChunkPos, SimpleScheduler> chunkMap = chunkUnloadSchedulers.get(event.getChunk());
             if (chunkMap == null) {
                 return;
             }

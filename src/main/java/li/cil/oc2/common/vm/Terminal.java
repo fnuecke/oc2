@@ -115,7 +115,7 @@ public final class Terminal {
         if (hasPendingBell) {
             hasPendingBell = false;
             final Minecraft client = Minecraft.getInstance();
-            client.execute(() -> client.getSoundHandler().play(SimpleSound.master(NoteBlockInstrument.PLING.getSound(), 1)));
+            client.execute(() -> client.getSoundManager().play(SimpleSound.forUI(NoteBlockInstrument.PLING.getSoundEvent(), 1)));
         }
 
         if (renderer == null) {
@@ -552,23 +552,23 @@ public final class Terminal {
         ///////////////////////////////////////////////////////////////
 
         private void renderBuffer() {
-            GlStateManager.depthMask(false);
-            Minecraft.getInstance().getTextureManager().bindTexture(LOCATION_FONT_TEXTURE);
+            GlStateManager._depthMask(false);
+            Minecraft.getInstance().getTextureManager().bind(LOCATION_FONT_TEXTURE);
 
-            final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+            final BufferBuilder buffer = Tessellator.getInstance().getBuilder();
             for (final Object line : lines) {
                 buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX);
-                buffer.setVertexState((BufferBuilder.State) line);
-                buffer.finishDrawing();
-                WorldVertexBufferUploader.draw(buffer);
+                buffer.restoreState((BufferBuilder.State) line);
+                buffer.end();
+                WorldVertexBufferUploader.end(buffer);
             }
 
-            GlStateManager.depthMask(true);
+            GlStateManager._depthMask(true);
         }
 
         private void validateLineCache(final AtomicInteger dirty, final MatrixStack stack) {
-            if (!Objects.equals(lastMatrix, stack.getLast().getMatrix())) {
-                lastMatrix = stack.getLast().getMatrix();
+            if (!Objects.equals(lastMatrix, stack.last().pose())) {
+                lastMatrix = stack.last().pose();
                 dirty.set(-1);
             }
 
@@ -576,7 +576,7 @@ public final class Terminal {
                 return;
             }
 
-            final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+            final BufferBuilder buffer = Tessellator.getInstance().getBuilder();
 
             final int mask = dirty.getAndSet(0);
             for (int row = 0; row < lines.length; row++) {
@@ -584,20 +584,20 @@ public final class Terminal {
                     continue;
                 }
 
-                stack.push();
+                stack.pushPose();
                 stack.translate(0, row * CHAR_HEIGHT, 0);
-                final Matrix4f matrix = stack.getLast().getMatrix();
+                final Matrix4f matrix = stack.last().pose();
 
                 buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX);
 
                 renderBackground(matrix, buffer, row);
                 renderForeground(matrix, buffer, row);
 
-                lines[row] = buffer.getVertexState();
-                buffer.finishDrawing();
+                lines[row] = buffer.getState();
+                buffer.end();
                 buffer.discard();
 
-                stack.pop();
+                stack.popPose();
             }
         }
 
@@ -651,10 +651,10 @@ public final class Terminal {
             final float ulu = (TEXTURE_RESOLUTION - 1) / (float) TEXTURE_RESOLUTION;
             final float ulv = 1 / (float) TEXTURE_RESOLUTION;
 
-            buffer.pos(matrix, x0, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-            buffer.pos(matrix, x1, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-            buffer.pos(matrix, x1, 0, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-            buffer.pos(matrix, x0, 0, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+            buffer.vertex(matrix, x0, CHAR_HEIGHT, 0).color(r, g, b, 1).uv(ulu, ulv).endVertex();
+            buffer.vertex(matrix, x1, CHAR_HEIGHT, 0).color(r, g, b, 1).uv(ulu, ulv).endVertex();
+            buffer.vertex(matrix, x1, 0, 0).color(r, g, b, 1).uv(ulu, ulv).endVertex();
+            buffer.vertex(matrix, x0, 0, 0).color(r, g, b, 1).uv(ulu, ulv).endVertex();
         }
 
         private void renderForeground(final Matrix4f matrix, final BufferBuilder buffer, final int row) {
@@ -692,20 +692,20 @@ public final class Terminal {
                 final float v0 = y * (CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION);
                 final float v1 = (y + 1) * (CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION);
 
-                buffer.pos(matrix, offset, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u0, v1).endVertex();
-                buffer.pos(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).tex(u1, v1).endVertex();
-                buffer.pos(matrix, offset + CHAR_WIDTH, 0, 0).color(r, g, b, 1).tex(u1, v0).endVertex();
-                buffer.pos(matrix, offset, 0, 0).color(r, g, b, 1).tex(u0, v0).endVertex();
+                buffer.vertex(matrix, offset, CHAR_HEIGHT, 0).color(r, g, b, 1).uv(u0, v1).endVertex();
+                buffer.vertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).uv(u1, v1).endVertex();
+                buffer.vertex(matrix, offset + CHAR_WIDTH, 0, 0).color(r, g, b, 1).uv(u1, v0).endVertex();
+                buffer.vertex(matrix, offset, 0, 0).color(r, g, b, 1).uv(u0, v0).endVertex();
             }
 
             if ((style & STYLE_UNDERLINE_MASK) != 0) {
                 final float ulu = (TEXTURE_RESOLUTION - 1) / (float) TEXTURE_RESOLUTION;
                 final float ulv = 1 / (float) TEXTURE_RESOLUTION;
 
-                buffer.pos(matrix, offset, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-                buffer.pos(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-                buffer.pos(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
-                buffer.pos(matrix, offset, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).tex(ulu, ulv).endVertex();
+                buffer.vertex(matrix, offset, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).uv(ulu, ulv).endVertex();
+                buffer.vertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 3, 0).color(r, g, b, 1).uv(ulu, ulv).endVertex();
+                buffer.vertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).uv(ulu, ulv).endVertex();
+                buffer.vertex(matrix, offset, CHAR_HEIGHT - 2, 0).color(r, g, b, 1).uv(ulu, ulv).endVertex();
             }
         }
 
@@ -714,14 +714,14 @@ public final class Terminal {
                 return;
             }
 
-            GlStateManager.depthMask(false);
+            GlStateManager._depthMask(false);
             RenderSystem.disableTexture();
 
-            stack.push();
+            stack.pushPose();
             stack.translate(terminal.x * CHAR_WIDTH, terminal.y * CHAR_HEIGHT, 0);
 
-            final Matrix4f matrix = stack.getLast().getMatrix();
-            final BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+            final Matrix4f matrix = stack.last().pose();
+            final BufferBuilder buffer = Tessellator.getInstance().getBuilder();
             buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
 
             final int foreground = COLORS[COLOR_WHITE];
@@ -729,18 +729,18 @@ public final class Terminal {
             final float g = ((foreground >> 8) & 0xFF) / 255f;
             final float b = ((foreground) & 0xFF) / 255f;
 
-            buffer.pos(matrix, 0, CHAR_HEIGHT, 0).color(r, g, b, 1).endVertex();
-            buffer.pos(matrix, CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).endVertex();
-            buffer.pos(matrix, CHAR_WIDTH, 0, 0).color(r, g, b, 1).endVertex();
-            buffer.pos(matrix, 0, 0, 0).color(r, g, b, 1).endVertex();
+            buffer.vertex(matrix, 0, CHAR_HEIGHT, 0).color(r, g, b, 1).endVertex();
+            buffer.vertex(matrix, CHAR_WIDTH, CHAR_HEIGHT, 0).color(r, g, b, 1).endVertex();
+            buffer.vertex(matrix, CHAR_WIDTH, 0, 0).color(r, g, b, 1).endVertex();
+            buffer.vertex(matrix, 0, 0, 0).color(r, g, b, 1).endVertex();
 
-            buffer.finishDrawing();
-            WorldVertexBufferUploader.draw(buffer);
+            buffer.end();
+            WorldVertexBufferUploader.end(buffer);
 
-            stack.pop();
+            stack.popPose();
 
             RenderSystem.enableTexture();
-            GlStateManager.depthMask(true);
+            GlStateManager._depthMask(true);
         }
 
         private static boolean isPrintableCharacter(final char ch) {

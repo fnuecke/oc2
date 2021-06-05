@@ -1,3 +1,6 @@
+#system
+.DS_Store
+
 # eclipse
 bin
 *.launch

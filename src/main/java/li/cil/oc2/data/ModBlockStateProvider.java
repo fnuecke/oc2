@@ -62,7 +62,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 .end();
 
         BusCableBlock.FACING_TO_CONNECTION_MAP.forEach((direction, connectionType) -> {
-            final int rotationY = (int) direction.getHorizontalAngle();
+            final int rotationY = (int) direction.toYRot();
             final int rotationX;
             if (direction == Direction.UP) {
                 rotationX = 90;

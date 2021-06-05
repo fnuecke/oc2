@@ -24,18 +24,18 @@ public final class ResourceUtils {
 
         try (final IResource metadataResource = manager.getResource(metadataLocation)) {
             final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(metadataResource.getInputStream(), StandardCharsets.UTF_8));
-            final JsonObject metadataJson = JSONUtils.fromJson(bufferedReader);
+            final JsonObject metadataJson = JSONUtils.parse(bufferedReader);
             if (metadataJson == null) {
                 return null;
             }
 
-            final String sectionName = serializer.getSectionName();
+            final String sectionName = serializer.getMetadataSectionName();
             if (!metadataJson.has(sectionName)) {
                 return null;
             }
 
-            final JsonObject section = JSONUtils.getJsonObject(metadataJson, sectionName);
-            return serializer.deserialize(section);
+            final JsonObject section = JSONUtils.convertToJsonObject(metadataJson, sectionName);
+            return serializer.fromJson(section);
         }
     }
 }

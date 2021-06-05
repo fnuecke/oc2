@@ -18,13 +18,13 @@ public final class HardDriveItem extends AbstractStorageItem implements IDyeable
 
     @Override
     public int getColor(final ItemStack stack) {
-        return hasColor(stack) ? IDyeableArmorItem.super.getColor(stack) : defaultColor;
+        return hasCustomColor(stack) ? IDyeableArmorItem.super.getColor(stack) : defaultColor;
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected String getDefaultTranslationKey() {
+    protected String getOrCreateDescriptionId() {
         return "item.oc2.hard_drive";
     }
 }

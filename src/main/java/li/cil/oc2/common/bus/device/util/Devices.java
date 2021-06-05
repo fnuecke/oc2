@@ -24,8 +24,8 @@ import static java.util.Objects.requireNonNull;
 
 public final class Devices {
     public static BlockDeviceQuery makeQuery(final TileEntity tileEntity, @Nullable final Direction side) {
-        final World world = requireNonNull(tileEntity.getWorld());
-        final BlockPos pos = tileEntity.getPos();
+        final World world = requireNonNull(tileEntity.getLevel());
+        final BlockPos pos = tileEntity.getBlockPos();
         return new BlockQuery(world, pos, side);
     }
 
@@ -106,7 +106,7 @@ public final class Devices {
         }
 
         @Override
-        public World getWorld() {
+        public World getLevel() {
             return world;
         }
 

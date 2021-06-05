@@ -50,8 +50,8 @@ public final class BusCableModel implements IModelGeometry<BusCableModel> {
     @Override
     public Collection<RenderMaterial> getTextures(final IModelConfiguration owner, final Function<ResourceLocation, IUnbakedModel> modelGetter, final Set<Pair<String, String>> missingTextureErrors) {
         final ArrayList<RenderMaterial> textures = new ArrayList<>(proxy.getTextures(owner, modelGetter, missingTextureErrors));
-        textures.addAll(modelGetter.apply(BUS_CABLE_STRAIGHT_MODEL).getTextures(modelGetter, missingTextureErrors));
-        textures.addAll(modelGetter.apply(BUS_CABLE_SUPPORT_MODEL).getTextures(modelGetter, missingTextureErrors));
+        textures.addAll(modelGetter.apply(BUS_CABLE_STRAIGHT_MODEL).getMaterials(modelGetter, missingTextureErrors));
+        textures.addAll(modelGetter.apply(BUS_CABLE_SUPPORT_MODEL).getMaterials(modelGetter, missingTextureErrors));
         return textures;
     }
 }

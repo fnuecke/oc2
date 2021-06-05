@@ -34,21 +34,21 @@ public final class BusCableItem extends ModBlockItem {
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void addInformation(final ItemStack stack, final @Nullable World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
-        super.addInformation(stack, world, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, final @Nullable World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
+        super.appendHoverText(stack, world, tooltip, flag);
         TooltipUtils.addEnergyConsumption(Config.busCableEnergyPerTick, tooltip);
     }
 
     @Override
-    public ActionResultType onItemUse(final ItemUseContext context) {
+    public ActionResultType useOn(final ItemUseContext context) {
         final ActionResultType result = tryAddToBlock(context);
-        return result.isSuccessOrConsume() ? result : super.onItemUse(context);
+        return result.consumesAction() ? result : super.useOn(context);
     }
 
     @Override
-    public ActionResultType tryPlace(final BlockItemUseContext context) {
+    public ActionResultType place(final BlockItemUseContext context) {
         final ActionResultType result = tryAddToBlock(context);
-        return result.isSuccessOrConsume() ? result : super.tryPlace(context);
+        return result.consumesAction() ? result : super.place(context);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -56,13 +56,13 @@ public final class BusCableItem extends ModBlockItem {
     private ActionResultType tryAddToBlock(final ItemUseContext context) {
         final BusCableBlock busCableBlock = Blocks.BUS_CABLE.get();
 
-        final World world = context.getWorld();
-        final BlockPos pos = context.getPos();
+        final World world = context.getLevel();
+        final BlockPos pos = context.getClickedPos();
         final BlockState state = world.getBlockState(pos);
 
         if (state.getBlock() == busCableBlock && busCableBlock.addCable(world, pos, state)) {
             final PlayerEntity player = context.getPlayer();
-            final ItemStack stack = context.getItem();
+            final ItemStack stack = context.getItemInHand();
 
             if (player instanceof ServerPlayerEntity) {
                 CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayerEntity) player, pos, stack);
@@ -70,11 +70,11 @@ public final class BusCableItem extends ModBlockItem {
 
             WorldUtils.playSound(world, pos, state.getSoundType(world, pos, player), SoundType::getPlaceSound);
 
-            if (player == null || !player.abilities.isCreativeMode) {
+            if (player == null || !player.abilities.instabuild) {
                 stack.shrink(1);
             }
 
-            return ActionResultType.func_233537_a_(world.isRemote);
+            return ActionResultType.sidedSuccess(world.isClientSide);
         }
 
         return ActionResultType.PASS;

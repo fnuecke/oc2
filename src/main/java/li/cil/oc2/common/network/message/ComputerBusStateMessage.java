@@ -16,7 +16,7 @@ public final class ComputerBusStateMessage {
     ///////////////////////////////////////////////////////////////////
 
     public ComputerBusStateMessage(final ComputerTileEntity tileEntity) {
-        this.pos = tileEntity.getPos();
+        this.pos = tileEntity.getBlockPos();
         this.value = tileEntity.getVirtualMachine().getBusState();
     }
 
@@ -34,11 +34,11 @@ public final class ComputerBusStateMessage {
 
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
-        value = buffer.readEnumValue(CommonDeviceBusController.BusState.class);
+        value = buffer.readEnum(CommonDeviceBusController.BusState.class);
     }
 
     public static void toBytes(final ComputerBusStateMessage message, final PacketBuffer buffer) {
         buffer.writeBlockPos(message.pos);
-        buffer.writeEnumValue(message.value);
+        buffer.writeEnum(message.value);
     }
 }

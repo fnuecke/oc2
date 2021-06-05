@@ -81,9 +81,9 @@ import java.util.function.Consumer;
 import static li.cil.oc2.common.Constants.*;
 
 public final class RobotEntity extends Entity implements Robot {
-    public static final DataParameter<BlockPos> TARGET_POSITION = EntityDataManager.createKey(RobotEntity.class, DataSerializers.BLOCK_POS);
-    public static final DataParameter<Direction> TARGET_DIRECTION = EntityDataManager.createKey(RobotEntity.class, DataSerializers.DIRECTION);
-    public static final DataParameter<Byte> SELECTED_SLOT = EntityDataManager.createKey(RobotEntity.class, DataSerializers.BYTE);
+    public static final DataParameter<BlockPos> TARGET_POSITION = EntityDataManager.defineId(RobotEntity.class, DataSerializers.BLOCK_POS);
+    public static final DataParameter<Direction> TARGET_DIRECTION = EntityDataManager.defineId(RobotEntity.class, DataSerializers.DIRECTION);
+    public static final DataParameter<Byte> SELECTED_SLOT = EntityDataManager.defineId(RobotEntity.class, DataSerializers.BYTE);
 
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String STATE_TAG_NAME = "state";
@@ -121,7 +121,7 @@ public final class RobotEntity extends Entity implements Robot {
 
     public RobotEntity(final EntityType<?> type, final World world) {
         super(type, world);
-        this.preventEntitySpawning = true;
+        this.blocksBuilding = true;
         setNoGravity(true);
 
         final CommonDeviceBusController busController = new CommonDeviceBusController(busElement, Config.robotEnergyPerTick);
@@ -157,12 +157,12 @@ public final class RobotEntity extends Entity implements Robot {
 
     @Override
     public int getSelectedSlot() {
-        return getDataManager().get(SELECTED_SLOT);
+        return getEntityData().get(SELECTED_SLOT);
     }
 
     @Override
     public void setSelectedSlot(final int value) {
-        getDataManager().set(SELECTED_SLOT, (byte) MathHelper.clamp(value, 0, INVENTORY_SIZE - 1));
+        getEntityData().set(SELECTED_SLOT, (byte) MathHelper.clamp(value, 0, INVENTORY_SIZE - 1));
     }
 
     @Override
@@ -199,8 +199,8 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     public void start() {
-        final World world = getEntityWorld();
-        if (world == null || world.isRemote()) {
+        final World world = getCommandSenderWorld();
+        if (world.isClientSide) {
             return;
         }
 
@@ -208,8 +208,8 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     public void stop() {
-        final World world = getEntityWorld();
-        if (world == null || world.isRemote()) {
+        final World world = getCommandSenderWorld();
+        if (world.isClientSide) {
             return;
         }
 
@@ -223,18 +223,17 @@ public final class RobotEntity extends Entity implements Robot {
 
         final ItemStack stack = new ItemStack(Items.ROBOT.get());
         exportToItemStack(stack);
-        entityDropItem(stack);
+        spawnAtLocation(stack);
 
         remove();
-        WorldUtils.playSound(world, getPosition(), SoundType.METAL, SoundType::getBreakSound);
+        WorldUtils.playSound(level, blockPosition(), SoundType.METAL, SoundType::getBreakSound);
     }
 
     @Override
     public void tick() {
-        final World world = getEntityWorld();
-        final boolean isClient = world.isRemote();
+        final boolean isClient = level.isClientSide;
 
-        if (firstUpdate) {
+        if (firstTick) {
             if (isClient) {
                 requestInitialState();
             } else {
@@ -254,35 +253,35 @@ public final class RobotEntity extends Entity implements Robot {
 
         actionProcessor.tick();
 
-        if (!isClient && world instanceof ServerWorld) {
+        if (!isClient && level instanceof ServerWorld) {
             final VoxelShape shape = VoxelShapes.create(getBoundingBox());
             final CubeCoordinateIterator iterator = getBlockPosIterator();
-            while (iterator.hasNext()) {
-                final int x = iterator.getX();
-                final int y = iterator.getY();
-                final int z = iterator.getZ();
-                mutablePosition.setPos(x, y, z);
-                final BlockState blockState = world.getBlockState(mutablePosition);
-                if (blockState.isAir(world, mutablePosition) ||
-                    blockState.isIn(Blocks.MOVING_PISTON) ||
-                    blockState.isIn(Blocks.PISTON_HEAD)) {
+            while (iterator.advance()) {
+                final int x = iterator.nextX();
+                final int y = iterator.nextY();
+                final int z = iterator.nextZ();
+                mutablePosition.set(x, y, z);
+                final BlockState blockState = level.getBlockState(mutablePosition);
+                if (blockState.isAir(level, mutablePosition) ||
+                    blockState.is(Blocks.MOVING_PISTON) ||
+                    blockState.is(Blocks.PISTON_HEAD)) {
                     continue;
                 }
 
-                final VoxelShape blockShape = blockState.getCollisionShape(world, mutablePosition);
-                if (VoxelShapes.compare(shape, blockShape.withOffset(x, y, z), IBooleanFunction.AND)) {
-                    final TileEntity tileEntity = blockState.hasTileEntity() ? world.getTileEntity(mutablePosition) : null;
-                    final LootContext.Builder builder = new LootContext.Builder((ServerWorld) world)
-                            .withRandom(world.rand)
+                final VoxelShape blockShape = blockState.getCollisionShape(level, mutablePosition);
+                if (VoxelShapes.joinIsNotEmpty(shape, blockShape.move(x, y, z), IBooleanFunction.AND)) {
+                    final TileEntity tileEntity = blockState.hasTileEntity() ? level.getBlockEntity(mutablePosition) : null;
+                    final LootContext.Builder builder = new LootContext.Builder((ServerWorld) level)
+                            .withRandom(level.random)
                             .withParameter(LootParameters.THIS_ENTITY, this)
-                            .withParameter(LootParameters.field_237457_g_, getPositionVec())
+                            .withParameter(LootParameters.ORIGIN, position())
                             .withParameter(LootParameters.TOOL, ItemStack.EMPTY)
                             .withParameter(LootParameters.BLOCK_STATE, blockState)
-                            .withNullableParameter(LootParameters.BLOCK_ENTITY, tileEntity);
+                            .withOptionalParameter(LootParameters.BLOCK_ENTITY, tileEntity);
                     final List<ItemStack> drops = blockState.getDrops(builder);
-                    world.setBlockState(mutablePosition, Blocks.AIR.getDefaultState());
+                    level.setBlockAndUpdate(mutablePosition, Blocks.AIR.defaultBlockState());
                     for (final ItemStack drop : drops) {
-                        Block.spawnAsEntity(world, mutablePosition, drop);
+                        Block.popResource(level, mutablePosition, drop);
                     }
                 }
             }
@@ -290,17 +289,17 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     @Override
-    public ActionResultType processInitialInteract(final PlayerEntity player, final Hand hand) {
-        final ItemStack stack = player.getHeldItem(hand);
-        if (!world.isRemote()) {
+    public ActionResultType interact(final PlayerEntity player, final Hand hand) {
+        final ItemStack stack = player.getItemInHand(hand);
+        if (!level.isClientSide) {
             if (Wrenches.isWrench(stack)) {
-                if (player.isSneaking()) {
+                if (player.isShiftKeyDown()) {
                     dropSelf();
                 } else if (player instanceof ServerPlayerEntity) {
                     openContainerScreen((ServerPlayerEntity) player);
                 }
             } else {
-                if (player.isSneaking()) {
+                if (player.isShiftKeyDown()) {
                     start();
                 } else if (player instanceof ServerPlayerEntity) {
                     openTerminalScreen((ServerPlayerEntity) player);
@@ -312,7 +311,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     @Override
-    public IPacket<?> createSpawnPacket() {
+    public IPacket<?> getAddEntityPacket()  {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 
@@ -327,26 +326,26 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     @Override
+    public boolean isPickable() {
+        return true;
+    }
+
+    @Override
+    public boolean canCollideWith(final Entity entity) {
+        return entity != this;
+    }
+
+    @Override
+    public void push(final Entity entity) {
+    }
+
+    @Override
     public boolean canBeCollidedWith() {
         return true;
     }
 
     @Override
-    public boolean canCollide(final Entity entity) {
-        return entity != this;
-    }
-
-    @Override
-    public void applyEntityCollision(final Entity entity) {
-    }
-
-    @Override
-    public boolean func_241845_aY() {
-        return true;
-    }
-
-    @Override
-    public boolean shouldSpawnRunningEffects() {
+    public boolean canSpawnSprintParticle() {
         return false;
     }
 
@@ -370,15 +369,15 @@ public final class RobotEntity extends Entity implements Robot {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void registerData() {
-        final EntityDataManager dataManager = getDataManager();
-        dataManager.register(TARGET_POSITION, BlockPos.ZERO);
-        dataManager.register(TARGET_DIRECTION, Direction.NORTH);
-        dataManager.register(SELECTED_SLOT, (byte) 0);
+    protected void defineSynchedData() {
+        final EntityDataManager dataManager = getEntityData();
+        dataManager.define(TARGET_POSITION, BlockPos.ZERO);
+        dataManager.define(TARGET_DIRECTION, Direction.NORTH);
+        dataManager.define(SELECTED_SLOT, (byte) 0);
     }
 
     @Override
-    protected void writeAdditional(final CompoundNBT tag) {
+    protected void addAdditionalSaveData(final CompoundNBT tag) {
         tag.put(STATE_TAG_NAME, virtualMachine.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(COMMAND_PROCESSOR_TAG_NAME, actionProcessor.serialize());
@@ -386,11 +385,11 @@ public final class RobotEntity extends Entity implements Robot {
         tag.put(Constants.ITEMS_TAG_NAME, deviceItems.serialize());
         tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
         tag.put(INVENTORY_TAG_NAME, inventory.serializeNBT());
-        tag.putByte(SELECTED_SLOT_TAG_NAME, dataManager.get(SELECTED_SLOT));
+        tag.putByte(SELECTED_SLOT_TAG_NAME, getEntityData().get(SELECTED_SLOT));
     }
 
     @Override
-    protected void readAdditional(final CompoundNBT tag) {
+    protected void readAdditionalSaveData(final CompoundNBT tag) {
         virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
         actionProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
@@ -402,18 +401,19 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     @Override
-    protected boolean canTriggerWalking() {
+    protected boolean isMovementNoisy() {
         return false;
     }
 
     @Override
-    protected void doBlockCollisions() {
+    protected void checkInsideBlocks() {
     }
 
+
     @Override
-    protected Vector3d handlePistonMovement(final Vector3d pos) {
-        lastPistonMovement = getEntityWorld().getGameTime();
-        return super.handlePistonMovement(pos);
+    protected Vector3d limitPistonMovement(final Vector3d pos) {
+        lastPistonMovement = getCommandSenderWorld().getGameTime();
+        return super.limitPistonMovement(pos);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -434,11 +434,11 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     private void handleChunkUnload(final ChunkEvent.Unload event) {
-        if (event.getWorld() != getEntityWorld()) {
+        if (event.getWorld() != getCommandSenderWorld()) {
             return;
         }
 
-        final ChunkPos chunkPos = new ChunkPos(getPosition());
+        final ChunkPos chunkPos = new ChunkPos(blockPosition());
         if (!Objects.equals(chunkPos, event.getChunk().getPos())) {
             return;
         }
@@ -448,7 +448,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     private void handleWorldUnload(final WorldEvent.Unload event) {
-        if (event.getWorld() != getEntityWorld()) {
+        if (event.getWorld() != getCommandSenderWorld()) {
             return;
         }
 
@@ -489,12 +489,12 @@ public final class RobotEntity extends Entity implements Robot {
                     }
 
                     @Override
-                    public int size() {
+                    public int getCount() {
                         return 3;
                     }
                 });
             }
-        }, b -> b.writeVarInt(getEntityId()));
+        }, b -> b.writeVarInt(getId()));
     }
 
     private void openContainerScreen(final ServerPlayerEntity player) {
@@ -508,7 +508,7 @@ public final class RobotEntity extends Entity implements Robot {
             public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
                 return new RobotContainer(id, RobotEntity.this, inventory);
             }
-        }, b -> b.writeVarInt(getEntityId()));
+        }, b -> b.writeVarInt(getId()));
     }
 
     private CubeCoordinateIterator getBlockPosIterator() {
@@ -639,7 +639,7 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         public void tick() {
-            if (getEntityWorld().isRemote()) {
+            if (getCommandSenderWorld().isClientSide) {
                 RobotActions.performClient(RobotEntity.this);
             } else {
                 if (action != null) {
@@ -722,7 +722,7 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         private boolean addAction(final AbstractRobotAction action) {
-            if (getEntityWorld().isRemote()) {
+            if (getCommandSenderWorld().isClientSide) {
                 return false;
             }
 
@@ -785,13 +785,13 @@ public final class RobotEntity extends Entity implements Robot {
 
         public CompoundNBT serialize() {
             final CompoundNBT tag = new CompoundNBT();
-            tag.putUniqueId(DEVICE_ID_TAG_NAME, deviceId);
+            tag.putUUID(DEVICE_ID_TAG_NAME, deviceId);
             return tag;
         }
 
         public void deserialize(final CompoundNBT tag) {
-            if (tag.hasUniqueId(DEVICE_ID_TAG_NAME)) {
-                deviceId = tag.getUniqueId(DEVICE_ID_TAG_NAME);
+            if (tag.hasUUID(DEVICE_ID_TAG_NAME)) {
+                deviceId = tag.getUUID(DEVICE_ID_TAG_NAME);
             }
         }
     }

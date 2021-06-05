@@ -24,11 +24,11 @@ public final class FakePlayerUtils {
 
     public static ServerPlayerEntity getFakePlayer(final ServerWorld world, final Entity entity) {
         final ServerPlayerEntity player = getFakePlayer(world);
-        player.copyLocationAndAnglesFrom(entity);
-        player.prevRotationPitch = player.rotationPitch;
-        player.prevRotationYaw = player.rotationYaw;
-        player.rotationYawHead = player.rotationYaw;
-        player.prevRotationYawHead = player.rotationYawHead;
+        player.copyPosition(entity);
+        player.xRotO = player.xRot;
+        player.yRotO  = player.yRot;
+        player.yHeadRot = player.yRot;
+        player.yHeadRotO = player.yHeadRot;
         return player;
     }
 
@@ -52,7 +52,7 @@ public final class FakePlayerUtils {
         }
 
         @Override
-        public void sendPacket(final IPacket<?> packetIn, @Nullable final GenericFutureListener<? extends Future<? super Void>> futureListeners) {
+        public void send(final IPacket<?> packetIn, @Nullable final GenericFutureListener<? extends Future<? super Void>> futureListeners) {
         }
     }
 }

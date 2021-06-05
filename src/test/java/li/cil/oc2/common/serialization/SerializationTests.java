@@ -38,7 +38,7 @@ public final class SerializationTests {
         assertArrayEquals(new int[]{4, 5, 6}, nbt.getIntArray("intArrayValue"));
         assertArrayEquals(new long[]{7, 8, 9}, nbt.getLongArray("longArrayValue"));
         assertEquals("test string", nbt.getString("stringValue"));
-        assertEquals(uuid, nbt.getCompound("uuidValue").getUniqueId("uuidValue"));
+        assertEquals(uuid, nbt.getCompound("uuidValue").getUUID("uuidValue"));
     }
 
     @Test
@@ -56,7 +56,7 @@ public final class SerializationTests {
         nbt.putString("stringValue", "another test");
         final UUID uuid = UUID.randomUUID();
         final CompoundNBT uuidNBT = new CompoundNBT();
-        uuidNBT.putUniqueId("uuidValue", uuid);
+        uuidNBT.putUUID("uuidValue", uuid);
         nbt.put("uuidValue", uuidNBT);
 
         final Flat value = assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, Flat.class, new Flat()));
@@ -90,7 +90,7 @@ public final class SerializationTests {
         nbt.putString("stringValue", "another test");
         final UUID uuid = UUID.randomUUID();
         final CompoundNBT uuidNBT = new CompoundNBT();
-        uuidNBT.putUniqueId("uuidValue", uuid);
+        uuidNBT.putUUID("uuidValue", uuid);
         nbt.put("uuidValue", uuidNBT);
 
         final Flat value = assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, Flat.class, null));

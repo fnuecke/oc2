@@ -15,7 +15,7 @@ import java.util.List;
 
 public class ModBlockItem extends BlockItem {
     public ModBlockItem(final Block block, final Properties properties) {
-        super(block, properties.group(ItemGroup.COMMON));
+        super(block, properties.tab(ItemGroup.COMMON));
     }
 
     public ModBlockItem(final Block block) {
@@ -26,9 +26,9 @@ public class ModBlockItem extends BlockItem {
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
+    public void appendHoverText(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
         TooltipUtils.tryAddDescription(stack, tooltip);
-        super.addInformation(stack, world, tooltip, flag);
+        super.appendHoverText(stack, world, tooltip, flag);
     }
 
     ///////////////////////////////////////////////////////////////////

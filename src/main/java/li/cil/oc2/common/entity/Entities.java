@@ -16,7 +16,7 @@ public final class Entities {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final RegistryObject<EntityType<RobotEntity>> ROBOT = register("robot", RobotEntity::new, EntityClassification.MISC, b -> b.size(14f / 16f, 14f / 16f).immuneToFire().disableSummoning());
+    public static final RegistryObject<EntityType<RobotEntity>> ROBOT = register("robot", RobotEntity::new, EntityClassification.MISC, b -> b.sized(14f / 16f, 14f / 16f).fireImmune().noSummon());
 
     ///////////////////////////////////////////////////////////////////
 
@@ -27,6 +27,6 @@ public final class Entities {
     ///////////////////////////////////////////////////////////////////
 
     private static <T extends Entity> RegistryObject<EntityType<T>> register(final String name, final EntityType.IFactory<T> factory, final EntityClassification classification, final Function<EntityType.Builder<T>, EntityType.Builder<T>> customizer) {
-        return ENTITIES.register(name, () -> customizer.apply(EntityType.Builder.create(factory, classification)).build(name));
+        return ENTITIES.register(name, () -> customizer.apply(EntityType.Builder.of(factory, classification)).build(name));
     }
 }

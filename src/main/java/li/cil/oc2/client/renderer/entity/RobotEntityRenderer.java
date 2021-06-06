@@ -48,10 +48,5 @@ public final class RobotEntityRenderer extends EntityRenderer<RobotEntity> {
         model.renderToBuffer(matrixStack, builder, packedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
 
         matrixStack.popPose();
-
-//        final RayTraceResult hit = Minecraft.getInstance().objectMouseOver;
-//        if (hit instanceof EntityRayTraceResult && entity == ((EntityRayTraceResult) hit).getEntity()) {
-//            super.renderName(entity, new StringTextComponent("hi"), matrixStack, buffer, packedLight);
-//        }
     }
 }

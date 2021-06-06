@@ -21,11 +21,17 @@ public final class BusCableModel implements IModelGeometry<BusCableModel> {
     private static final ResourceLocation BUS_CABLE_STRAIGHT_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_straight");
     private static final ResourceLocation BUS_CABLE_SUPPORT_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_support");
 
+    ///////////////////////////////////////////////////////////////////
+
     private final ModelLoaderRegistry.VanillaProxy proxy;
+
+    ///////////////////////////////////////////////////////////////////
 
     public BusCableModel(final ModelLoaderRegistry.VanillaProxy proxy) {
         this.proxy = proxy;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     public IBakedModel bake(final IModelConfiguration owner, final ModelBakery bakery, final Function<RenderMaterial, TextureAtlasSprite> spriteGetter, final IModelTransform modelTransform, final ItemOverrideList overrides, final ResourceLocation modelLocation) {

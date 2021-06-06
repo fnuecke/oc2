@@ -22,6 +22,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -48,6 +49,7 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
 
     ///////////////////////////////////////////////////////////////
 
+    @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(final Capability<T> cap, @Nullable final Direction side) {
         if (cap == Capabilities.NETWORK_INTERFACE && side != null) {

@@ -73,6 +73,7 @@ import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.items.ItemStackHandler;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -165,6 +166,7 @@ public final class RobotEntity extends Entity implements Robot {
         getEntityData().set(SELECTED_SLOT, (byte) MathHelper.clamp(value, 0, INVENTORY_SIZE - 1));
     }
 
+    @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
         if (capability == Capabilities.ITEM_HANDLER) {
@@ -311,7 +313,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     @Override
-    public IPacket<?> getAddEntityPacket()  {
+    public IPacket<?> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 

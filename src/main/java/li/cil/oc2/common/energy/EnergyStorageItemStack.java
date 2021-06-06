@@ -9,6 +9,7 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public final class EnergyStorageItemStack implements IEnergyStorage, ICapabilityProvider {
@@ -61,6 +62,7 @@ public final class EnergyStorageItemStack implements IEnergyStorage, ICapability
         return true;
     }
 
+    @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
         if (Capabilities.ENERGY_STORAGE != null && capability != null) {

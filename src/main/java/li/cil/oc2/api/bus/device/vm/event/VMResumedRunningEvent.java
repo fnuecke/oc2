@@ -10,5 +10,5 @@ package li.cil.oc2.api.bus.device.vm.event;
  * Typically this is used in combination with {@link VMPausingEvent}, to re-enable external
  * interactions after VM state is guaranteed to be safe to modify again.
  */
-public final class VMResumedRunningEvent extends VMLifecycleEvent {
+public final class VMResumedRunningEvent {
 }

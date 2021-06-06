@@ -19,6 +19,8 @@ public abstract class ToggleImageButton extends AbstractButton {
     private static final long PRESS_DURATION = 200;
     private static final long TOOLTIP_DELAY = 250;
 
+    ///////////////////////////////////////////////////////////////////
+
     private final Screen parent;
     private final List<? extends ITextComponent> tooltip;
     private final Sprite baseImage;
@@ -27,6 +29,8 @@ public abstract class ToggleImageButton extends AbstractButton {
     private boolean isToggled;
     private long lastPressedAt;
     private long hoveringStartedAt;
+
+    ///////////////////////////////////////////////////////////////////
 
     public ToggleImageButton(
             final Screen parent,
@@ -48,6 +52,8 @@ public abstract class ToggleImageButton extends AbstractButton {
         this.pressedImage = pressedImage;
         this.activeImage = activeImage;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     public void onPress() {

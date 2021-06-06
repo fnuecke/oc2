@@ -19,12 +19,16 @@ public abstract class ImageButton extends AbstractButton {
     private static final long PRESS_DURATION = 200;
     private static final long TOOLTIP_DELAY = 250;
 
+    ///////////////////////////////////////////////////////////////////
+
     private final Screen parent;
     private final List<? extends ITextComponent> tooltip;
     private final Sprite baseImage;
     private final Sprite pressedImage;
     private long lastPressedAt;
     private long hoveringStartedAt;
+
+    ///////////////////////////////////////////////////////////////////
 
     public ImageButton(final Screen parent,
                        final int x, final int y,
@@ -43,6 +47,8 @@ public abstract class ImageButton extends AbstractButton {
         this.baseImage = baseImage;
         this.pressedImage = pressedImage;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     public void onPress() {

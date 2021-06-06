@@ -47,6 +47,14 @@ public interface ItemDeviceProvider extends IForgeRegistryEntry<ItemDeviceProvid
      */
     Optional<ItemDevice> getDevice(ItemDeviceQuery query);
 
+    /**
+     * Get the type of a device that would be obtained from {@link #getDevice(ItemDeviceQuery)}
+     * if called with the same query. The device type controls which slot devices may be
+     * inserted in in item device containers.
+     *
+     * @param query the query describing the object to get the {@link DeviceType} for.
+     * @return the device type for the specified type, if available.
+     */
     default Optional<DeviceType> getDeviceType(final ItemDeviceQuery query) {
         return Optional.of(DeviceTypes.CARD);
     }

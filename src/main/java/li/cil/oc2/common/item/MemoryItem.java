@@ -11,5 +11,4 @@ public final class MemoryItem extends AbstractStorageItem {
     protected String getOrCreateDescriptionId() {
         return "item.oc2.memory";
     }
-
 }

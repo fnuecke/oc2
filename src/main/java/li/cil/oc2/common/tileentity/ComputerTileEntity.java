@@ -41,12 +41,12 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.IIntArray;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.network.NetworkHooks;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -186,6 +186,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         virtualMachine.busController.scheduleBusScan();
     }
 
+    @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
         if (isRemoved()) {
@@ -371,6 +372,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         @Override
         public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
             return super.getNeighbors().map(neighbors -> {
+                // If we have valid neighbors (complete bus) also add a connection to the bus
+                // element hosting our item devices.
                 final ArrayList<LazyOptional<DeviceBusElement>> list = new ArrayList<>(neighbors);
                 list.add(LazyOptional.of(() -> deviceItems.busElement));
                 return list;

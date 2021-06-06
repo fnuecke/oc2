@@ -8,6 +8,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ public abstract class AbstractTileEntity extends TileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
+    @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
         if (isRemoved()) {

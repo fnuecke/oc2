@@ -22,16 +22,19 @@ import java.util.List;
 import java.util.Random;
 
 public final class BusCableBakedModel implements IDynamicBakedModel {
-
     private final IBakedModel proxy;
     private final IBakedModel[] straightModelByAxis;
     private final IBakedModel[] supportModelByFace;
+
+    ///////////////////////////////////////////////////////////////////
 
     public BusCableBakedModel(final IBakedModel proxy, final IBakedModel[] straightModelByAxis, final IBakedModel[] supportModelByFace) {
         this.proxy = proxy;
         this.straightModelByAxis = straightModelByAxis;
         this.supportModelByFace = supportModelByFace;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, final Random rand, final IModelData extraData) {

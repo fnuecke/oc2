@@ -19,7 +19,7 @@ import li.cil.oc2.api.bus.device.vm.context.VMContext;
  * <p>
  * <em>This is invoked from the worker thread running the VM.</em>
  */
-public final class VMInitializingEvent extends VMLifecycleEvent {
+public final class VMInitializingEvent {
     private final long programStartAddress;
 
     ///////////////////////////////////////////////////////////////

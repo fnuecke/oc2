@@ -21,6 +21,8 @@ public final class GuiUtils {
     private static final int DEVICE_INFO_ICON_SIZE = 28;
     private static final int RELATIVE_ICON_POSITION = (SLOT_SIZE - DEVICE_INFO_ICON_SIZE) / 2;
 
+    ///////////////////////////////////////////////////////////////////
+
     public static <TContainer extends Container> void renderMissingDeviceInfoIcon(final MatrixStack matrixStack, final ContainerScreen<TContainer> screen, final DeviceType type, final ResourceLocation icon) {
         findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> {
             screen.getMinecraft().getTextureManager().bind(icon);
@@ -54,6 +56,8 @@ public final class GuiUtils {
             }
         });
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     private static Optional<TypedSlotItemHandler> findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(final Container container, final DeviceType type) {
         TypedSlotItemHandler firstSlot = null;

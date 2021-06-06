@@ -27,6 +27,7 @@ while true do
     if #bytes > 0 then
         file:write(string.char(table.unpack(bytes)))
         io.write(".")
+        io.flush()
     end
 end
 io.write("\n")

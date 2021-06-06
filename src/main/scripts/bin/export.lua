@@ -28,6 +28,7 @@ while true do
         local bytes = {string.byte(str, 1, -1)}
         device:writeExportFile(bytes)
         io.write(".")
+        io.flush()
     end
 end
 io.write("\n")

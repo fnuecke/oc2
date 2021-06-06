@@ -290,14 +290,17 @@ public class FileChooserScreen extends Screen {
                             })
                             .collect(Collectors.toList());
                     for (final Path path : files) {
-                        if (Files.isHidden(path)) {
-                            continue;
-                        }
+                        try {
+                            if (Files.isHidden(path)) {
+                                continue;
+                            }
 
-                        if (Files.isDirectory(path)) {
-                            addEntry(createDirectoryEntry(path));
-                        } else {
-                            addEntry(createFileEntry(path));
+                            if (Files.isDirectory(path)) {
+                                addEntry(createDirectoryEntry(path));
+                            } else {
+                                addEntry(createFileEntry(path));
+                            }
+                        } catch (final IOException | SecurityException ignored) {
                         }
                     }
                 } catch (final IOException | SecurityException e) {

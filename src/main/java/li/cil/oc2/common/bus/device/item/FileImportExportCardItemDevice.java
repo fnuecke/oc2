@@ -25,10 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 
 public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStack> implements RPCDevice, DocumentedDevice, ItemDevice {
     public static final int MAX_TRANSFERRED_FILE_SIZE = 512 * 1024;
@@ -36,6 +33,7 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
     private static final String BEGIN_EXPORT_FILE = "beginExportFile";
     private static final String WRITE_EXPORT_FILE = "writeExportFile";
     private static final String FINISH_EXPORT_FILE = "finishExportFile";
+    private static final String REQUEST_IMPORT_FILE = "requestImportFile";
     private static final String BEGIN_IMPORT_FILE = "beginImportFile";
     private static final String READ_IMPORT_FILE = "readImportFile";
     private static final String RESET = "reset";
@@ -47,6 +45,7 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
     private enum State {
         IDLE,
         EXPORTING,
+        IMPORT_REQUESTED,
         IMPORTING,
         IMPORT_CANCELED,
     }
@@ -61,10 +60,24 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
     }
 
     private static final class ImportedFile {
+        public final String name;
+        public final int size;
         public final ByteArrayInputStream data;
 
-        private ImportedFile(final byte[] data) {
+        private ImportedFile(final String name, final byte[] data) {
+            this.name = name;
+            this.size = data.length;
             this.data = new ByteArrayInputStream(data);
+        }
+    }
+
+    private static final class ImportedFileInfo {
+        public String name;
+        public int size;
+
+        public ImportedFileInfo(final String name, final int size) {
+            this.name = name;
+            this.size = size;
         }
     }
 
@@ -99,12 +112,12 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void setImportedFile(final int id, final byte[] data) {
+    public static void setImportedFile(final int id, final String name, final byte[] data) {
         final ImportFileRequest request = importingDevices.remove(id);
         if (request != null) {
             final FileImportExportCardItemDevice device = request.Device.get();
             if (device != null) {
-                device.importedFile = new ImportedFile(data);
+                device.importedFile = new ImportedFile(name, data);
                 final ServerCanceledImportFileMessage message = new ServerCanceledImportFileMessage(id);
                 for (final ServerPlayerEntity player : request.PendingPlayers) {
                     Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
@@ -189,30 +202,48 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
         }
     }
 
-    @Callback(name = BEGIN_IMPORT_FILE)
-    public void beginImportFile() {
+    @Callback(name = REQUEST_IMPORT_FILE)
+    public boolean requestImportFile() {
         if (state != State.IDLE) {
             throw new IllegalStateException("invalid state");
         }
 
-        state = State.IMPORTING;
-
-        importingId = nextImportId++;
-        importingDevices.put(importingId, new ImportFileRequest(this));
-
-        boolean hasAnyUsers = false;
+        final ArrayList<ServerPlayerEntity> players = new ArrayList<>();
         for (final PlayerEntity player : userProvider.getTerminalUsers()) {
             if (player instanceof ServerPlayerEntity) {
-                final RequestImportedFileMessage message = new RequestImportedFileMessage(importingId);
-                Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), message);
-                hasAnyUsers = true;
+                players.add((ServerPlayerEntity) player);
             }
         }
 
-        if (!hasAnyUsers) {
-            importingDevices.remove(importingId);
-            importedFile = new ImportedFile(new byte[0]);
+        if (players.isEmpty()) {
+            return false;
         }
+
+        state = State.IMPORT_REQUESTED;
+        importingId = nextImportId++;
+        importingDevices.put(importingId, new ImportFileRequest(this));
+
+        for (final ServerPlayerEntity player : players) {
+            final RequestImportedFileMessage message = new RequestImportedFileMessage(importingId);
+            Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
+        }
+
+        return true;
+    }
+
+    @Nullable
+    @Callback(name = BEGIN_IMPORT_FILE)
+    public ImportedFileInfo beginImportFile() {
+        if (state != State.IMPORT_REQUESTED) {
+            throw new IllegalStateException("invalid state");
+        }
+
+        if (importedFile == null) {
+            return null;
+        }
+
+        state = State.IMPORTING;
+        return new ImportedFileInfo(importedFile.name, importedFile.size);
     }
 
     @Nullable
@@ -231,7 +262,7 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
             return new byte[0];
         }
 
-        final byte[] buffer = new byte[512];
+        final byte[] buffer = new byte[1024];
         final int count = importedFile.data.read(buffer);
         if (count <= 0) {
             reset();

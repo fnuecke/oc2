@@ -4,7 +4,7 @@ local devices = require("devices")
 local device = devices:find("file_import_export")
 
 if not device then
-    print("A File Import/Export Card is required for this functionality.")
+    io.write("A File Import/Export Card is required for this functionality.\n")
     return
 end
 
@@ -17,7 +17,8 @@ local file = assert(io.open(arg[1], "rb"))
 
 device:reset()
 
-io.write("Exporting")
+io.write("Exporting ")
+io.flush()
 
 device:beginExportFile(arg[1])
 

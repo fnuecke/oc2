@@ -59,6 +59,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String STATE_TAG_NAME = "state";
+    private static final String ENERGY_TAG_NAME = "energy";
 
     private static final int MEMORY_SLOTS = 4;
     private static final int HARD_DRIVE_SLOTS = 4;
@@ -271,6 +272,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     public CompoundNBT save(final CompoundNBT tag) {
         super.save(tag);
 
+        tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
         tag.put(STATE_TAG_NAME, virtualMachine.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
@@ -283,6 +285,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     public void load(final BlockState blockState, final CompoundNBT tag) {
         super.load(blockState, tag);
 
+        energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
         virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
 

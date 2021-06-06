@@ -80,9 +80,9 @@
   "tooltip.oc2.confirm": "确认",
   "tooltip.oc2.cancel": "取消",
 
-  "subtitles.oc2.computer": "风扇：运行",
-  "subtitles.oc2.floppy": "软盘：访问",
-  "subtitles.oc2.floppy_eject": "软盘：弹出",
-  "subtitles.oc2.floppy_insert": "软盘：插入",
-  "subtitles.oc2.hdd": "硬盘：访问"
+  "subtitles.oc2.computer": "电脑:运行",
+  "subtitles.oc2.floppy": "软盘:访问",
+  "subtitles.oc2.floppy_eject": "软盘:弹出",
+  "subtitles.oc2.floppy_insert": "软盘:插入",
+  "subtitles.oc2.hdd": "硬盘:访问"
 }

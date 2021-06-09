@@ -11,14 +11,20 @@ import java.util.UUID;
  * {@link DeviceBusElement#addController(DeviceBusController)}.
  * <p>
  * This interface is usually provided by VM containers and used to collect connected
- * {@link Device}s by aggregating the devices that were added to the device bus elements
- * via {@link DeviceBus#addDevice(Device)}.
+ * {@link Device}s by aggregating the devices made available by {@link DeviceBusElement}s
+ * via {@link DeviceBusElement#getLocalDevices()}.
  * <p>
  * The only way for {@link DeviceBusElement}s to be added to a bus is for a
  * {@link DeviceBusController} to detect them during a scan.
  * <p>
- * This interface is only of relevance when implementing a VM container or a bus element,
- * i.e. something that acts as a "cable" or otherwise extends the bus itself.
+ * This interface is only of relevance when implementing
+ * <ul>
+ * <li>a VM container, in which case an implementation
+ * of this interface must be used to control the bus for that container, or</li>
+ * <li>a bus element, which <em>must</em> call {@link #scheduleBusScan()} when the observable structure
+ * of the bus has changed (neighbors connected/disconnected) and <em>must</em> call {@link #scanDevices()}
+ * when the local list of devices has changed.</li>
+ * </ul>
  *
  * @see DeviceBusElement
  */

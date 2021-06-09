@@ -9,8 +9,8 @@ import java.util.Optional;
 /**
  * Represents a single method that can be exposed by a {@link RPCDevice}.
  * <p>
- * The easiest and hence recommended way of implementing this interface is to use
- * the {@link ObjectDevice} class.
+ * The easiest and hence recommended way of generating an implementation of this
+ * interface is to use the {@link ObjectDevice} class.
  * <p>
  * Method parameters are serialized and deserialized using Gson. When using custom
  * parameter types it may be necessary to register a custom type adapter for them

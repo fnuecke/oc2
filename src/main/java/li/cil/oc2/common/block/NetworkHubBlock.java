@@ -18,17 +18,17 @@ import net.minecraft.world.World;
 public final class NetworkHubBlock extends HorizontalBlock {
     public NetworkHubBlock() {
         super(Properties
-                .create(Material.IRON)
+                .of(Material.METAL)
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(1.5f, 6.0f));
-        setDefaultState(getStateContainer().getBaseState().with(HORIZONTAL_FACING, Direction.NORTH));
+                .strength(1.5f, 6.0f));
+        registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
+        return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override
@@ -44,7 +44,7 @@ public final class NetworkHubBlock extends HorizontalBlock {
     @SuppressWarnings("deprecation")
     @Override
     public void neighborChanged(final BlockState state, final World world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
-        final TileEntity tileEntity = world.getTileEntity(pos);
+        final TileEntity tileEntity = world.getBlockEntity(pos);
         if (tileEntity instanceof NetworkHubTileEntity) {
             final NetworkHubTileEntity hub = (NetworkHubTileEntity) tileEntity;
             hub.handleNeighborChanged();
@@ -54,8 +54,8 @@ public final class NetworkHubBlock extends HorizontalBlock {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
-        builder.add(HORIZONTAL_FACING);
+    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(FACING);
     }
 }

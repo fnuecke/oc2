@@ -17,8 +17,13 @@ import java.util.UUID;
  * When discovered during a scan, the controller will then use the devices
  * connected to this element.
  * <p>
- * This interface is only relevant when implementing it, e.g. to provide a custom
- * "cable" or other means to extend a bus.
+ * This interface is relevant when implementing means to extend the bus, e.g.
+ * to provide a custom cable implementation or some kind of a device container.
+ * <p>
+ * Implementations <em>must</em> call {@link #scheduleScan()} when they become
+ * invalid, e.g. due to being in a chunk that is being unloaded or the block
+ * they are defined by being destroyed or the block face they were available
+ * through no longer offering the element.
  */
 public interface DeviceBusElement extends DeviceBus {
     /**
@@ -26,7 +31,8 @@ public interface DeviceBusElement extends DeviceBus {
      * <p>
      * This will be called by {@link DeviceBusController}s when scanning.
      * <p>
-     * Bus elements can be have multiple controllers at the same time.
+     * Bus elements can be have multiple controllers at the same time. This is used
+     * by controllers to detect each other on the bus.
      * <p>
      * When {@link #scheduleScan()} is called, {@link DeviceBusController#scheduleBusScan()}
      * <em>must</em> be called for each registered controller.
@@ -104,7 +110,7 @@ public interface DeviceBusElement extends DeviceBus {
      * any connected item devices.
      * <p>
      * Block devices that require a running amount of energy should use regular means of having
-     * energy injected into them. The device bus is not intended nor communicated as something
+     * energy injected into them. The device bus is not intended for nor communicated as something
      * that transfers power.
      *
      * @return the complexity of this bus element.

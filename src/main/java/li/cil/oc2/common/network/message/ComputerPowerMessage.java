@@ -16,7 +16,7 @@ public final class ComputerPowerMessage {
     ///////////////////////////////////////////////////////////////////
 
     public ComputerPowerMessage(final ComputerTileEntity computer, final boolean power) {
-        this.pos = computer.getPos();
+        this.pos = computer.getBlockPos();
         this.power = power;
     }
 
@@ -30,7 +30,7 @@ public final class ComputerPowerMessage {
         context.get().enqueueWork(() -> MessageUtils.withServerTileEntityAt(context, message.pos, ComputerTileEntity.class,
                 (computer) -> {
                     final ServerPlayerEntity player = context.get().getSender();
-                    if (player != null && computer.getPos().withinDistance(player.getPositionVec(), 8)) {
+                    if (player != null && computer.getBlockPos().closerThan(player.position(), 8)) {
                         if (message.power) {
                             computer.start();
                         } else {

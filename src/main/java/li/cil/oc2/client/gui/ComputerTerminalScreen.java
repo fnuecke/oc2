@@ -22,28 +22,29 @@ public final class ComputerTerminalScreen extends ContainerScreen<ComputerTermin
     public ComputerTerminalScreen(final ComputerTerminalContainer container, final PlayerInventory playerInventory, final ITextComponent title) {
         super(container, playerInventory, title);
         this.terminalWidget = new ComputerTerminalWidget(container.getComputer().getTerminal());
-        xSize = AbstractTerminalWidget.WIDTH;
-        ySize = AbstractTerminalWidget.HEIGHT;
+        imageWidth = AbstractTerminalWidget.WIDTH;
+        imageHeight = AbstractTerminalWidget.HEIGHT;
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
+    protected void renderBg(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
         terminalWidget.renderBackground(matrixStack, mouseX, mouseY);
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
+    protected void renderLabels(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
+        // This is required to prevent the labels from being rendered
     }
 
     @Override
     public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
-        terminalWidget.setEnergyInfo(container.getEnergy(), container.getEnergyCapacity(), container.getEnergyConsumption());
+        terminalWidget.setEnergyInfo(menu.getEnergy(), menu.getEnergyCapacity(), menu.getEnergyConsumption());
 
         renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-        terminalWidget.render(matrixStack, mouseX, mouseY, container.getComputer().getVirtualMachine().getBootError());
+        terminalWidget.render(matrixStack, mouseX, mouseY, menu.getComputer().getVirtualMachine().getBootError());
     }
 
     @Override
@@ -67,8 +68,8 @@ public final class ComputerTerminalScreen extends ContainerScreen<ComputerTermin
 
         // Don't close with inventory binding since we usually want to use that as terminal input
         // even without input capture enabled.
-        final InputMappings.Input input = InputMappings.getInputByCode(keyCode, scanCode);
-        if (this.minecraft.gameSettings.keyBindInventory.isActiveAndMatches(input)) {
+        final InputMappings.Input input = InputMappings.getKey(keyCode, scanCode);
+        if (this.minecraft.options.keyInventory.isActiveAndMatches(input)) {
             return true;
         }
 
@@ -96,7 +97,7 @@ public final class ComputerTerminalScreen extends ContainerScreen<ComputerTermin
 
         @Override
         protected boolean isRunning() {
-            return container.getComputer().getVirtualMachine().isRunning();
+            return menu.getComputer().getVirtualMachine().isRunning();
         }
 
         @Override
@@ -106,12 +107,12 @@ public final class ComputerTerminalScreen extends ContainerScreen<ComputerTermin
 
         @Override
         protected void sendPowerStateToServer(final boolean value) {
-            Network.INSTANCE.sendToServer(new ComputerPowerMessage(container.getComputer(), value));
+            Network.INSTANCE.sendToServer(new ComputerPowerMessage(menu.getComputer(), value));
         }
 
         @Override
         protected void sendTerminalInputToServer(final ByteBuffer input) {
-            Network.INSTANCE.sendToServer(new ComputerTerminalInputMessage(container.getComputer(), input));
+            Network.INSTANCE.sendToServer(new ComputerTerminalInputMessage(menu.getComputer(), input));
         }
     }
 }

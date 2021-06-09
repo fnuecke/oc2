@@ -23,6 +23,6 @@ public final class TextComponentSerializer implements Serializer<ITextComponent>
         }
 
         final String json = (String) visitor.getObject("value", String.class, null);
-        return ITextComponent.Serializer.getComponentFromJson(json);
+        return ITextComponent.Serializer.fromJson(json);
     }
 }

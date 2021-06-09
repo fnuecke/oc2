@@ -8,6 +8,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ public abstract class AbstractTileEntity extends TileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
+    @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
         if (isRemoved()) {
@@ -68,18 +70,17 @@ public abstract class AbstractTileEntity extends TileEntity {
     public void onLoad() {
         super.onLoad();
 
-        final World world = getWorld();
-        if (world == null) {
+        if (level == null) {
             return;
         }
 
-        if (world.isRemote()) {
+        if (level.isClientSide) {
             loadClient();
         } else {
             loadServer();
 
             if (needsWorldUnloadEvent) {
-                ServerScheduler.scheduleOnUnload(world, onWorldUnloaded);
+                ServerScheduler.scheduleOnUnload(level, onWorldUnloaded);
             }
         }
     }
@@ -96,8 +97,8 @@ public abstract class AbstractTileEntity extends TileEntity {
     }
 
     @Override
-    public void remove() {
-        super.remove(); // -> invalidateCaps()
+    public void setRemoved() {
+        super.setRemoved(); // -> invalidateCaps()
         onUnload();
     }
 
@@ -122,10 +123,9 @@ public abstract class AbstractTileEntity extends TileEntity {
     }
 
     protected void onUnload() {
-        final World world = getWorld();
-        if (world != null && !world.isRemote()) {
+        if (level != null && !level.isClientSide) {
             unloadServer();
-            ServerScheduler.cancelOnUnload(world, onWorldUnloaded);
+            ServerScheduler.cancelOnUnload(level, onWorldUnloaded);
         }
     }
 

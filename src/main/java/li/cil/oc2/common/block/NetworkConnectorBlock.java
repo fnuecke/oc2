@@ -20,29 +20,29 @@ import net.minecraft.world.World;
 import java.util.Objects;
 
 public final class NetworkConnectorBlock extends HorizontalFaceBlock {
-    private static final VoxelShape NEG_Z_SHAPE = Block.makeCuboidShape(5, 5, 7, 11, 11, 16);
-    private static final VoxelShape POS_Z_SHAPE = Block.makeCuboidShape(5, 5, 0, 11, 11, 9);
-    private static final VoxelShape NEG_X_SHAPE = Block.makeCuboidShape(7, 5, 5, 16, 11, 11);
-    private static final VoxelShape POS_X_SHAPE = Block.makeCuboidShape(0, 5, 5, 9, 11, 11);
-    private static final VoxelShape NEG_Y_SHAPE = Block.makeCuboidShape(5, 0, 5, 11, 9, 11);
-    private static final VoxelShape POS_Y_SHAPE = Block.makeCuboidShape(5, 7, 5, 11, 16, 11);
+    private static final VoxelShape NEG_Z_SHAPE = Block.box(5, 5, 7, 11, 11, 16);
+    private static final VoxelShape POS_Z_SHAPE = Block.box(5, 5, 0, 11, 11, 9);
+    private static final VoxelShape NEG_X_SHAPE = Block.box(7, 5, 5, 16, 11, 11);
+    private static final VoxelShape POS_X_SHAPE = Block.box(0, 5, 5, 9, 11, 11);
+    private static final VoxelShape NEG_Y_SHAPE = Block.box(5, 0, 5, 11, 9, 11);
+    private static final VoxelShape POS_Y_SHAPE = Block.box(5, 7, 5, 11, 16, 11);
 
     ///////////////////////////////////////////////////////////////////
 
     public NetworkConnectorBlock() {
         super(Properties
-                .create(Material.IRON)
+                .of(Material.METAL)
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(1.5f, 6.0f));
-        setDefaultState(getStateContainer().getBaseState()
-                .with(HORIZONTAL_FACING, Direction.NORTH)
-                .with(FACE, AttachFace.WALL));
+                .strength(1.5f, 6.0f));
+        registerDefaultState(getStateDefinition().any()
+                .setValue(FACING, Direction.NORTH)
+                .setValue(FACE, AttachFace.WALL));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     public static Direction getFacing(final BlockState state) {
-        return HorizontalFaceBlock.getFacing(state);
+        return HorizontalFaceBlock.getConnectedDirection(state);
     }
 
     @Override
@@ -58,8 +58,8 @@ public final class NetworkConnectorBlock extends HorizontalFaceBlock {
     @SuppressWarnings("deprecation")
     @Override
     public void neighborChanged(final BlockState state, final World world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
-        if (Objects.equals(changedBlockPos, pos.offset(getFacing(state).getOpposite()))) {
-            final TileEntity tileEntity = world.getTileEntity(pos);
+        if (Objects.equals(changedBlockPos, pos.relative(getFacing(state).getOpposite()))) {
+            final TileEntity tileEntity = world.getBlockEntity(pos);
             if (tileEntity instanceof NetworkConnectorTileEntity) {
                 final NetworkConnectorTileEntity connector = (NetworkConnectorTileEntity) tileEntity;
                 connector.setLocalInterfaceChanged();
@@ -70,9 +70,9 @@ public final class NetworkConnectorBlock extends HorizontalFaceBlock {
     @SuppressWarnings("deprecation")
     @Override
     public VoxelShape getShape(final BlockState state, final IBlockReader world, final BlockPos pos, final ISelectionContext context) {
-        switch (state.get(FACE)) {
+        switch (state.getValue(FACE)) {
             case WALL:
-                switch (state.get(HORIZONTAL_FACING)) {
+                switch (state.getValue(FACING)) {
                     case EAST:
                         return POS_X_SHAPE;
                     case WEST:
@@ -93,7 +93,7 @@ public final class NetworkConnectorBlock extends HorizontalFaceBlock {
 
     ///////////////////////////////////////////////////////////////////
 
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        builder.add(FACE, HORIZONTAL_FACING);
+    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
+        builder.add(FACE, FACING);
     }
 }

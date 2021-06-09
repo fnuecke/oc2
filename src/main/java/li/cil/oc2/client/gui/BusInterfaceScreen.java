@@ -44,7 +44,7 @@ public final class BusInterfaceScreen extends Screen {
     ///////////////////////////////////////////////////////////////////
 
     public BusInterfaceScreen(final BusCableTileEntity tileEntity, final Direction side) {
-        super(Items.BUS_INTERFACE.get().getName());
+        super(Items.BUS_INTERFACE.get().getDescription());
         this.tileEntity = tileEntity;
         this.side = side;
     }
@@ -55,7 +55,7 @@ public final class BusInterfaceScreen extends Screen {
     protected void init() {
         super.init();
 
-        getMinecraft().keyboardListener.enableRepeatEvents(true);
+        getMinecraft().keyboardHandler.setSendRepeatsToGui(true);
 
         left = (width - BACKGROUND.width) / 2;
         top = (height - BACKGROUND.height) / 2;
@@ -63,11 +63,11 @@ public final class BusInterfaceScreen extends Screen {
         nameField = new TextFieldWidget(font, left + TEXT_LEFT, top + TEXT_TOP, 192, 12, new TranslationTextComponent("oc2.gui.bus_interface_name"));
         nameField.setCanLoseFocus(false);
         nameField.setTextColor(0xFFFFFFFF);
-        nameField.setEnableBackgroundDrawing(false);
-        nameField.setMaxStringLength(32);
-        nameField.setText(tileEntity.getInterfaceName(side));
-        addListener(nameField);
-        setFocusedDefault(nameField);
+        nameField.setBordered(false);
+        nameField.setMaxLength(32);
+        nameField.setValue(tileEntity.getInterfaceName(side));
+        addWidget(nameField);
+        setFocused(nameField);
 
         addButton(new ImageButton(
                 this,
@@ -81,8 +81,8 @@ public final class BusInterfaceScreen extends Screen {
             @Override
             public void onPress() {
                 super.onPress();
-                setInterfaceName(nameField.getText());
-                closeScreen();
+                setInterfaceName(nameField.getValue());
+                onClose();
             }
         });
         addButton(new ImageButton(
@@ -97,7 +97,7 @@ public final class BusInterfaceScreen extends Screen {
             @Override
             public void onPress() {
                 super.onPress();
-                closeScreen();
+                onClose();
             }
         });
     }
@@ -106,7 +106,7 @@ public final class BusInterfaceScreen extends Screen {
     public void onClose() {
         super.onClose();
 
-        getMinecraft().keyboardListener.enableRepeatEvents(false);
+        getMinecraft().keyboardHandler.setSendRepeatsToGui(false);
     }
 
     @Override
@@ -114,9 +114,9 @@ public final class BusInterfaceScreen extends Screen {
         super.tick();
         nameField.tick();
 
-        final Vector3d busCableCenter = Vector3d.copyCentered(tileEntity.getPos());
-        if (getMinecraft().player.getDistanceSq(busCableCenter) > 8 * 8) {
-            closeScreen();
+        final Vector3d busCableCenter = Vector3d.atCenterOf(tileEntity.getBlockPos());
+        if (getMinecraft().player.distanceToSqr(busCableCenter) > 8 * 8) {
+            onClose();
         }
     }
 
@@ -124,8 +124,8 @@ public final class BusInterfaceScreen extends Screen {
     public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
         if (keyCode == GLFW.GLFW_KEY_ENTER ||
             keyCode == GLFW.GLFW_KEY_KP_ENTER) {
-            setInterfaceName(nameField.getText());
-            closeScreen();
+            setInterfaceName(nameField.getValue());
+            onClose();
             return true;
         }
 

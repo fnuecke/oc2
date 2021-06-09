@@ -16,7 +16,7 @@ public final class NetworkConnectorConnectionsMessage {
     ///////////////////////////////////////////////////////////////////
 
     public NetworkConnectorConnectionsMessage(final NetworkConnectorTileEntity connector) {
-        this.pos = connector.getPos();
+        this.pos = connector.getBlockPos();
         this.connectedPositions = new ArrayList<>(connector.getConnectedPositions());
     }
 

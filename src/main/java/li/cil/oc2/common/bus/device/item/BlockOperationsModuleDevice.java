@@ -76,7 +76,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
     @Override
     public void deserializeNBT(final CompoundNBT tag) {
-        lastOperation = MathHelper.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.getEntityWorld().getGameTime());
+        lastOperation = MathHelper.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.getCommandSenderWorld().getGameTime());
     }
 
     @Override
@@ -97,7 +97,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         beginCooldown();
 
-        final World world = entity.getEntityWorld();
+        final World world = entity.getCommandSenderWorld();
         if (!(world instanceof ServerWorld)) {
             return false;
         }
@@ -107,7 +107,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         final List<ItemEntity> oldItems = getItemsInRange();
 
-        if (!tryHarvestBlock(world, entity.getPosition().offset(getAdjustedDirection(direction)))) {
+        if (!tryHarvestBlock(world, entity.blockPosition().relative(getAdjustedDirection(direction)))) {
             return false;
         }
 
@@ -131,7 +131,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         beginCooldown();
 
-        final World world = entity.getEntityWorld();
+        final World world = entity.getCommandSenderWorld();
         if (!(world instanceof ServerWorld)) {
             return false;
         }
@@ -144,10 +144,10 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        final BlockPos blockPos = entity.getPosition().offset(getAdjustedDirection(direction));
+        final BlockPos blockPos = entity.blockPosition().relative(getAdjustedDirection(direction));
         final Direction side = getAdjustedDirection(direction).getOpposite();
         final BlockRayTraceResult hit = new BlockRayTraceResult(
-                Vector3d.copyCentered(blockPos).add(Vector3d.copy(side.getDirectionVec()).scale(0.5)),
+                Vector3d.atCenterOf(blockPos).add(Vector3d.atCenterOf(side.getNormal()).scale(0.5)),
                 side,
                 blockPos,
                 false);
@@ -157,8 +157,8 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
         final ServerPlayerEntity player = FakePlayerUtils.getFakePlayer((ServerWorld) world, entity);
         final BlockItemUseContext context = new BlockItemUseContext(player, Hand.MAIN_HAND, itemStack, hit);
 
-        final ActionResultType result = blockItem.tryPlace(context);
-        if (!result.isSuccessOrConsume()) {
+        final ActionResultType result = blockItem.place(context);
+        if (!result.consumesAction()) {
             return false;
         }
 
@@ -171,7 +171,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
     @Callback(synchronize = false)
     public int durability() {
-        return identity.getMaxDamage() - identity.getDamage();
+        return identity.getMaxDamage() - identity.getDamageValue();
     }
 
     @Callback
@@ -182,7 +182,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         beginCooldown();
 
-        if (identity.getDamage() == 0) {
+        if (identity.getDamageValue() == 0) {
             return false;
         }
 
@@ -196,7 +196,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        final int repairValue = tier.getMaxUses();
+        final int repairValue = tier.getUses();
         if (repairValue == 0) {
             return false;
         }
@@ -206,7 +206,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        identity.setDamage(identity.getDamage() - repairValue);
+        identity.setDamageValue(identity.getDamageValue() - repairValue);
 
         return true;
     }
@@ -214,11 +214,11 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
     ///////////////////////////////////////////////////////////////////
 
     private void beginCooldown() {
-        lastOperation = entity.getEntityWorld().getGameTime();
+        lastOperation = entity.getCommandSenderWorld().getGameTime();
     }
 
     private boolean isOnCooldown() {
-        return entity.getEntityWorld().getGameTime() - lastOperation < COOLDOWN;
+        return entity.getCommandSenderWorld().getGameTime() - lastOperation < COOLDOWN;
     }
 
     private Direction getAdjustedDirection(@Nullable final PlacementDirection placementDirection) {
@@ -228,16 +228,16 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return Direction.DOWN;
         } else {
             Direction direction = Direction.SOUTH;
-            final int horizontalIndex = entity.getHorizontalFacing().getHorizontalIndex();
+            final int horizontalIndex = entity.getDirection().get2DDataValue();
             for (int i = 0; i < horizontalIndex; i++) {
-                direction = direction.rotateY();
+                direction = direction.getClockWise();
             }
             return direction;
         }
     }
 
     private List<ItemEntity> getItemsInRange() {
-        return entity.getEntityWorld().getEntitiesWithinAABB(ItemEntity.class, entity.getBoundingBox().grow(2));
+        return entity.getCommandSenderWorld().getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(2));
     }
 
     private boolean tryHarvestBlock(final World world, final BlockPos blockPos) {
@@ -253,10 +253,10 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        final TileEntity tileEntity = world.getTileEntity(blockPos);
+        final TileEntity tileEntity = world.getBlockEntity(blockPos);
         final Block block = blockState.getBlock();
         final boolean isCommandBlock = block instanceof CommandBlockBlock || block instanceof StructureBlock || block instanceof JigsawBlock;
-        if (isCommandBlock && !player.canUseCommandBlock()) {
+        if (isCommandBlock && !player.canUseGameMasterBlocks()) {
             return false;
         }
 
@@ -273,7 +273,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        if (identity.attemptDamageItem(1, world.rand, null)) {
+        if (identity.hurt(1, world.random, null)) {
             return false;
         }
 
@@ -281,8 +281,8 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        block.onPlayerDestroy(world, blockPos, blockState);
-        block.harvestBlock(world, player, blockPos, blockState, tileEntity, ItemStack.EMPTY);
+        block.destroy(world, blockPos, blockState);
+        block.playerDestroy(world, player, blockPos, blockState, tileEntity, ItemStack.EMPTY);
 
         return true;
     }

@@ -23,11 +23,11 @@ public final class TypedSlotItemHandler extends SlotItemHandler {
 
     @Nullable
     @Override
-    public Pair<ResourceLocation, ResourceLocation> getBackground() {
-        if (getHasStack()) {
-            return super.getBackground();
+    public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+        if (hasItem()) {
+            return super.getNoItemIcon();
         } else {
-            return Pair.of(PlayerContainer.LOCATION_BLOCKS_TEXTURE, deviceType.getBackgroundIcon());
+            return Pair.of(PlayerContainer.BLOCK_ATLAS, deviceType.getBackgroundIcon());
         }
     }
 }

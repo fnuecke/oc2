@@ -17,7 +17,7 @@ public final class ComputerInventoryContainer extends AbstractContainer {
     @Nullable
     public static ComputerInventoryContainer create(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
         final BlockPos pos = data.readBlockPos();
-        final TileEntity tileEntity = playerInventory.player.getEntityWorld().getTileEntity(pos);
+        final TileEntity tileEntity = playerInventory.player.getCommandSenderWorld().getBlockEntity(pos);
         if (!(tileEntity instanceof ComputerTileEntity)) {
             return null;
         }
@@ -66,7 +66,7 @@ public final class ComputerInventoryContainer extends AbstractContainer {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public boolean canInteractWith(final PlayerEntity player) {
-        return isWithinUsableDistance(IWorldPosCallable.of(computer.getWorld(), computer.getPos()), player, Blocks.COMPUTER.get());
+    public boolean stillValid(final PlayerEntity player) {
+        return stillValid(IWorldPosCallable.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER.get());
     }
 }

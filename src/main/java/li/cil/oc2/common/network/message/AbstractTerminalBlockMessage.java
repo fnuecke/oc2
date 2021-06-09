@@ -13,7 +13,7 @@ public abstract class AbstractTerminalBlockMessage {
     ///////////////////////////////////////////////////////////////////
 
     protected AbstractTerminalBlockMessage(final ComputerTileEntity tileEntity, final ByteBuffer data) {
-        this.pos = tileEntity.getPos();
+        this.pos = tileEntity.getBlockPos();
         this.data = data.array();
     }
 

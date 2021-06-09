@@ -16,10 +16,10 @@ import javax.annotation.Nullable;
 public final class ChargerBlock extends BreakableBlock {
     public ChargerBlock() {
         super(Properties
-                .create(Material.IRON)
+                .of(Material.METAL)
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(1.5f, 6.0f));
-        setDefaultState(getStateContainer().getBaseState().with(HorizontalBlock.HORIZONTAL_FACING, Direction.NORTH));
+                .strength(1.5f, 6.0f));
+        registerDefaultState(getStateDefinition().any().setValue(HorizontalBlock.FACING, Direction.NORTH));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -27,13 +27,13 @@ public final class ChargerBlock extends BreakableBlock {
     @SuppressWarnings("deprecation")
     @Override
     public BlockState rotate(final BlockState state, final Rotation rot) {
-        return state.with(HorizontalBlock.HORIZONTAL_FACING, rot.rotate(state.get(HorizontalBlock.HORIZONTAL_FACING)));
+        return state.setValue(HorizontalBlock.FACING, rot.rotate(state.getValue(HorizontalBlock.FACING)));
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public BlockState mirror(final BlockState state, final Mirror mirrorIn) {
-        return state.rotate(mirrorIn.toRotation(state.get(HorizontalBlock.HORIZONTAL_FACING)));
+        return state.rotate(mirrorIn.getRotation(state.getValue(HorizontalBlock.FACING)));
     }
 
     @Override
@@ -49,14 +49,14 @@ public final class ChargerBlock extends BreakableBlock {
 
     @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        return super.getDefaultState().with(HorizontalBlock.HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
+        return super.defaultBlockState().setValue(HorizontalBlock.FACING, context.getHorizontalDirection().getOpposite());
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
-        builder.add(HorizontalBlock.HORIZONTAL_FACING);
+    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(HorizontalBlock.FACING);
     }
 }

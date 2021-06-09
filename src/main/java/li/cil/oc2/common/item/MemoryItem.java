@@ -8,7 +8,7 @@ public final class MemoryItem extends AbstractStorageItem {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected String getDefaultTranslationKey() {
+    protected String getOrCreateDescriptionId() {
         return "item.oc2.memory";
     }
 }

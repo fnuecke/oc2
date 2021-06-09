@@ -28,29 +28,30 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
     public RobotTerminalScreen(final RobotTerminalContainer container, final PlayerInventory playerInventory, final ITextComponent title) {
         super(container, playerInventory, title);
         this.terminalWidget = new RobotTerminalWidget(container.getRobot().getTerminal());
-        xSize = AbstractTerminalWidget.WIDTH;
-        ySize = AbstractTerminalWidget.HEIGHT;
+        imageWidth = AbstractTerminalWidget.WIDTH;
+        imageHeight = AbstractTerminalWidget.HEIGHT;
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
-        INVENTORY_BACKGROUND.draw(matrixStack, guiLeft + SLOTS_X, guiTop + SLOTS_Y);
+    protected void renderBg(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
+        INVENTORY_BACKGROUND.draw(matrixStack, leftPos + SLOTS_X, topPos + SLOTS_Y);
         terminalWidget.renderBackground(matrixStack, mouseX, mouseY);
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
+    protected void renderLabels(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
+
     }
 
     @Override
     public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
-        terminalWidget.setEnergyInfo(container.getEnergy(), container.getEnergyCapacity(), container.getEnergyConsumption());
+        terminalWidget.setEnergyInfo(menu.getEnergy(), menu.getEnergyCapacity(), menu.getEnergyConsumption());
 
         renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-        terminalWidget.render(matrixStack, mouseX, mouseY, container.getRobot().getVirtualMachine().getBootError());
-        RobotContainerScreen.renderSelection(matrixStack, container.getRobot().getSelectedSlot(), guiLeft + SLOTS_X + 4, guiTop + SLOTS_Y + 4, 12);
-        renderHoveredTooltip(matrixStack, mouseX, mouseY);
+        terminalWidget.render(matrixStack, mouseX, mouseY, menu.getRobot().getVirtualMachine().getBootError());
+        RobotContainerScreen.renderSelection(matrixStack, menu.getRobot().getSelectedSlot(), leftPos + SLOTS_X + 4, topPos + SLOTS_Y + 4, 12);
+        renderTooltip(matrixStack, mouseX, mouseY);
     }
 
     @Override
@@ -74,8 +75,8 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
 
         // Don't close with inventory binding since we usually want to use that as terminal input
         // even without input capture enabled.
-        final InputMappings.Input input = InputMappings.getInputByCode(keyCode, scanCode);
-        if (this.minecraft.gameSettings.keyBindInventory.isActiveAndMatches(input)) {
+        final InputMappings.Input input = InputMappings.getKey(keyCode, scanCode);
+        if (this.minecraft.options.keyInventory.isActiveAndMatches(input)) {
             return true;
         }
 
@@ -103,7 +104,7 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
 
         @Override
         protected boolean isRunning() {
-            return container.getRobot().getVirtualMachine().isRunning();
+            return menu.getRobot().getVirtualMachine().isRunning();
         }
 
         @Override
@@ -113,12 +114,12 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
 
         @Override
         protected void sendPowerStateToServer(final boolean value) {
-            Network.INSTANCE.sendToServer(new RobotPowerMessage(container.getRobot(), value));
+            Network.INSTANCE.sendToServer(new RobotPowerMessage(menu.getRobot(), value));
         }
 
         @Override
         protected void sendTerminalInputToServer(final ByteBuffer input) {
-            Network.INSTANCE.sendToServer(new RobotTerminalInputMessage(container.getRobot(), input));
+            Network.INSTANCE.sendToServer(new RobotTerminalInputMessage(menu.getRobot(), input));
         }
     }
 }

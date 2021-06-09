@@ -19,6 +19,8 @@ public abstract class ToggleImageButton extends AbstractButton {
     private static final long PRESS_DURATION = 200;
     private static final long TOOLTIP_DELAY = 250;
 
+    ///////////////////////////////////////////////////////////////////
+
     private final Screen parent;
     private final List<? extends ITextComponent> tooltip;
     private final Sprite baseImage;
@@ -27,6 +29,8 @@ public abstract class ToggleImageButton extends AbstractButton {
     private boolean isToggled;
     private long lastPressedAt;
     private long hoveringStartedAt;
+
+    ///////////////////////////////////////////////////////////////////
 
     public ToggleImageButton(
             final Screen parent,
@@ -42,12 +46,14 @@ public abstract class ToggleImageButton extends AbstractButton {
         if (description == null) {
             this.tooltip = Collections.singletonList(caption);
         } else {
-            this.tooltip = Arrays.asList(caption, new StringTextComponent("").modifyStyle(style -> style.setColor(Color.fromTextFormatting(TextFormatting.GRAY))).append(description));
+            this.tooltip = Arrays.asList(caption, new StringTextComponent("").withStyle(style -> style.withColor(Color.fromLegacyFormat(TextFormatting.GRAY))).append(description));
         }
         this.baseImage = baseImage;
         this.pressedImage = pressedImage;
         this.activeImage = activeImage;
     }
+
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     public void onPress() {
@@ -90,6 +96,6 @@ public abstract class ToggleImageButton extends AbstractButton {
 
     @Override
     public void renderToolTip(final MatrixStack stack, final int mouseX, final int mouseY) {
-        GuiUtils.drawHoveringText(stack, tooltip, mouseX, mouseY, parent.width, parent.height, 200, Minecraft.getInstance().fontRenderer);
+        GuiUtils.drawHoveringText(stack, tooltip, mouseX, mouseY, parent.width, parent.height, 200, Minecraft.getInstance().font);
     }
 }

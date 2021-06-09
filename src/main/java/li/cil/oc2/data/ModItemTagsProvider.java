@@ -21,11 +21,11 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected void registerTags() {
+    protected void addTags() {
         copy(BlockTags.CABLES, CABLES);
 
         copy(BlockTags.DEVICES, DEVICES);
-        getOrCreateBuilder(DEVICES).addTags(
+        tag(DEVICES).addTags(
                 DEVICES_MEMORY,
                 DEVICES_HARD_DRIVE,
                 DEVICES_FLASH_MEMORY,
@@ -33,35 +33,35 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
                 DEVICES_ROBOT_MODULE,
                 DEVICES_FLOPPY
         );
-        getOrCreateBuilder(DEVICES_MEMORY).add(
+        tag(DEVICES_MEMORY).add(
                 Items.MEMORY_SMALL.get(),
                 Items.MEMORY_MEDIUM.get(),
                 Items.MEMORY_LARGE.get()
         );
-        getOrCreateBuilder(DEVICES_HARD_DRIVE).add(
+        tag(DEVICES_HARD_DRIVE).add(
                 Items.HARD_DRIVE_SMALL.get(),
                 Items.HARD_DRIVE_MEDIUM.get(),
                 Items.HARD_DRIVE_LARGE.get(),
                 Items.HARD_DRIVE_CUSTOM.get()
         );
-        getOrCreateBuilder(DEVICES_FLASH_MEMORY).add(
+        tag(DEVICES_FLASH_MEMORY).add(
                 Items.FLASH_MEMORY.get(),
                 Items.FLASH_MEMORY_CUSTOM.get()
         );
-        getOrCreateBuilder(DEVICES_FLOPPY).add(
+        tag(DEVICES_FLOPPY).add(
                 Items.FLOPPY.get()
         );
-        getOrCreateBuilder(DEVICES_CARD).add(
+        tag(DEVICES_CARD).add(
                 Items.REDSTONE_INTERFACE_CARD.get(),
                 Items.NETWORK_INTERFACE_CARD.get(),
                 Items.FILE_IMPORT_EXPORT_CARD.get()
         );
-        getOrCreateBuilder(DEVICES_ROBOT_MODULE).add(
+        tag(DEVICES_ROBOT_MODULE).add(
                 Items.INVENTORY_OPERATIONS_MODULE.get(),
                 Items.BLOCK_OPERATIONS_MODULE.get()
         );
 
-        getOrCreateBuilder(TOOL_MATERIALS).addTags(
+        tag(TOOL_MATERIALS).addTags(
                 TOOL_MATERIAL_WOOD,
                 TOOL_MATERIAL_STONE,
                 TOOL_MATERIAL_IRON,
@@ -69,28 +69,28 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
                 TOOL_MATERIAL_DIAMOND,
                 TOOL_MATERIAL_NETHERITE
         );
-        getOrCreateBuilder(TOOL_MATERIAL_WOOD).addTags(
+        tag(TOOL_MATERIAL_WOOD).addTags(
                 ItemTags.PLANKS
         );
-        getOrCreateBuilder(TOOL_MATERIAL_STONE).addTags(
+        tag(TOOL_MATERIAL_STONE).addTags(
                 ItemTags.STONE_TOOL_MATERIALS
         );
-        getOrCreateBuilder(TOOL_MATERIAL_IRON).addTags(
+        tag(TOOL_MATERIAL_IRON).addTags(
                 Tags.Items.INGOTS_IRON
         );
-        getOrCreateBuilder(TOOL_MATERIAL_GOLD).addTags(
+        tag(TOOL_MATERIAL_GOLD).addTags(
                 Tags.Items.INGOTS_GOLD
         );
-        getOrCreateBuilder(TOOL_MATERIAL_DIAMOND).addTags(
+        tag(TOOL_MATERIAL_DIAMOND).addTags(
                 Tags.Items.GEMS_DIAMOND
         );
-        getOrCreateBuilder(TOOL_MATERIAL_NETHERITE).addTags(
+        tag(TOOL_MATERIAL_NETHERITE).addTags(
                 Tags.Items.INGOTS_NETHERITE
         );
 
-        getOrCreateBuilder(WRENCHES).add(Items.WRENCH.get());
+        tag(WRENCHES).add(Items.WRENCH.get());
 
-        getOrCreateBuilder(DEVICE_NEEDS_REBOOT).add(
+        tag(DEVICE_NEEDS_REBOOT).add(
                 Items.MEMORY_SMALL.get(),
                 Items.MEMORY_MEDIUM.get(),
                 Items.MEMORY_LARGE.get(),

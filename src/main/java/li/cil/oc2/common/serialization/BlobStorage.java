@@ -118,7 +118,7 @@ public final class BlobStorage {
      */
     public static void setServer(final MinecraftServer server) {
         synchronize();
-        dataDirectory = server.func_240776_a_(BLOBS_FOLDER_NAME);
+        dataDirectory = server.getWorldPath(BLOBS_FOLDER_NAME);
         try {
             Files.createDirectories(dataDirectory);
         } catch (final IOException e) {

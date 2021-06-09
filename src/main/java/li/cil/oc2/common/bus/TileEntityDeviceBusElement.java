@@ -40,19 +40,19 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public IWorld getWorld() {
-        return tileEntity.getWorld();
+    public IWorld getLevel() {
+        return tileEntity.getLevel();
     }
 
     @Override
     public BlockPos getPosition() {
-        return tileEntity.getPos();
+        return tileEntity.getBlockPos();
     }
 
     @Override
     public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
-        final World world = tileEntity.getWorld();
-        if (world == null || world.isRemote()) {
+        final World world = tileEntity.getLevel();
+        if (world == null || world.isClientSide) {
             return Optional.empty();
         }
 
@@ -62,14 +62,14 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
                 continue;
             }
 
-            final BlockPos neighborPos = tileEntity.getPos().offset(neighborDirection);
+            final BlockPos neighborPos = tileEntity.getBlockPos().relative(neighborDirection);
 
             final ChunkPos chunkPos = new ChunkPos(neighborPos);
-            if (!world.chunkExists(chunkPos.x, chunkPos.z)) {
+            if (!world.hasChunk(chunkPos.x, chunkPos.z)) {
                 return Optional.empty();
             }
 
-            final TileEntity tileEntity = world.getTileEntity(neighborPos);
+            final TileEntity tileEntity = world.getBlockEntity(neighborPos);
             if (tileEntity == null) {
                 continue;
             }
@@ -84,18 +84,18 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     }
 
     public void handleNeighborChanged(final BlockPos pos) {
-        final World world = tileEntity.getWorld();
-        if (world == null || world.isRemote()) {
+        final World world = tileEntity.getLevel();
+        if (world == null || world.isClientSide) {
             return;
         }
 
-        final BlockPos toPos = pos.subtract(tileEntity.getPos());
-        final Direction direction = Direction.byLong(toPos.getX(), toPos.getY(), toPos.getZ());
+        final BlockPos toPos = pos.subtract(tileEntity.getBlockPos());
+        final Direction direction = Direction.fromNormal(toPos.getX(), toPos.getY(), toPos.getZ());
         if (direction == null) {
             return;
         }
 
-        final int index = direction.getIndex();
+        final int index = direction.get3DDataValue();
 
         final HashSet<BlockDeviceInfo> newDevices = new HashSet<>();
         if (canDetectDevicesTowards(direction)) {
@@ -112,7 +112,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     }
 
     public void initialize() {
-        final World world = requireNonNull(tileEntity.getWorld());
+        final World world = requireNonNull(tileEntity.getLevel());
         ServerScheduler.schedule(world, () -> {
             if (tileEntity.isRemoved()) {
                 return;
@@ -144,16 +144,16 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
 
     private void scanNeighborsForDevices() {
         for (final Direction direction : Constants.DIRECTIONS) {
-            handleNeighborChanged(tileEntity.getPos().offset(direction));
+            handleNeighborChanged(tileEntity.getBlockPos().relative(direction));
         }
     }
 
     private void scheduleBusScanInAdjacentBusElements() {
-        final World world = requireNonNull(tileEntity.getWorld());
-        final BlockPos pos = tileEntity.getPos();
+        final World world = requireNonNull(tileEntity.getLevel());
+        final BlockPos pos = tileEntity.getBlockPos();
         for (final Direction direction : Constants.DIRECTIONS) {
-            final BlockPos neighborPos = pos.offset(direction);
-            final TileEntity tileEntity = WorldUtils.getTileEntityIfChunkExists(world, neighborPos);
+            final BlockPos neighborPos = pos.relative(direction);
+            final TileEntity tileEntity = WorldUtils.getBlockEntityIfChunkExists(world, neighborPos);
             if (tileEntity == null) {
                 continue;
             }

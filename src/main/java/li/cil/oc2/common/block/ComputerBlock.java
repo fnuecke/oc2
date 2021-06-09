@@ -52,11 +52,11 @@ public final class ComputerBlock extends HorizontalBlock {
     // We bake the "screen" indent on the front into the collision shape to prevent stuff being
     // placeable on that side, such as network connectors, torches, etc.
     private static final VoxelShape NEG_Z_SHAPE = VoxelShapes.or(
-            Block.makeCuboidShape(0, 0, 1, 16, 16, 16), // main body
-            Block.makeCuboidShape(0, 15, 0, 16, 16, 1), // across top
-            Block.makeCuboidShape(0, 0, 0, 16, 6, 1), // across bottom
-            Block.makeCuboidShape(0, 0, 0, 1, 16, 1), // up left
-            Block.makeCuboidShape(15, 0, 0, 16, 16, 1) // up right
+            Block.box(0, 0, 1, 16, 16, 16), // main body
+            Block.box(0, 15, 0, 16, 16, 1), // across top
+            Block.box(0, 0, 0, 16, 6, 1), // across bottom
+            Block.box(0, 0, 0, 1, 16, 1), // up left
+            Block.box(15, 0, 0, 16, 16, 1) // up right
     );
     private static final VoxelShape NEG_X_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_Z_SHAPE);
     private static final VoxelShape POS_Z_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_X_SHAPE);
@@ -66,25 +66,25 @@ public final class ComputerBlock extends HorizontalBlock {
 
     public ComputerBlock() {
         super(Properties
-                .create(Material.IRON)
+                .of(Material.METAL)
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(1.5f, 6.0f));
-        setDefaultState(getStateContainer().getBaseState().with(HORIZONTAL_FACING, Direction.NORTH));
+                .strength(1.5f, 6.0f));
+        registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fillItemGroup(final ItemGroup group, final NonNullList<ItemStack> items) {
-        super.fillItemGroup(group, items);
+    public void fillItemCategory(final ItemGroup group, final NonNullList<ItemStack> items) {
+        super.fillItemCategory(group, items);
 
         items.add(getPreconfiguredComputer());
     }
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void addInformation(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
-        super.addInformation(stack, world, tooltip, advanced);
+    public void appendHoverText(final ItemStack stack, @Nullable final IBlockReader world, final List<ITextComponent> tooltip, final ITooltipFlag advanced) {
+        super.appendHoverText(stack, world, tooltip, advanced);
         TooltipUtils.addEnergyConsumption(Config.computerEnergyPerTick, tooltip);
         TooltipUtils.addTileEntityInventoryInformation(stack, tooltip);
     }
@@ -101,14 +101,14 @@ public final class ComputerBlock extends HorizontalBlock {
 
     @SuppressWarnings("deprecation")
     @Override
-    public boolean canProvidePower(final BlockState state) {
+    public boolean isSignalSource(final BlockState state) {
         return true;
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getWeakPower(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
-        final TileEntity tileEntity = world.getTileEntity(pos);
+    public int getSignal(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
+        final TileEntity tileEntity = world.getBlockEntity(pos);
         if (tileEntity != null) {
             // Redstone requests info for faces with external perspective. Capabilities treat
             // the Direction from internal perspective, so flip it.
@@ -117,13 +117,13 @@ public final class ComputerBlock extends HorizontalBlock {
                     .orElse(0);
         }
 
-        return super.getWeakPower(state, world, pos, side);
+        return super.getSignal(state, world, pos, side);
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getStrongPower(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
-        return getWeakPower(state, world, pos, side);
+    public int getDirectSignal(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
+        return getSignal(state, world, pos, side);
     }
 
     @Override
@@ -134,7 +134,7 @@ public final class ComputerBlock extends HorizontalBlock {
     @SuppressWarnings("deprecation")
     @Override
     public void neighborChanged(final BlockState state, final World world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
-        final TileEntity tileEntity = world.getTileEntity(pos);
+        final TileEntity tileEntity = world.getBlockEntity(pos);
         if (tileEntity instanceof ComputerTileEntity) {
             final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
             computer.handleNeighborChanged();
@@ -144,7 +144,7 @@ public final class ComputerBlock extends HorizontalBlock {
     @SuppressWarnings("deprecation")
     @Override
     public VoxelShape getShape(final BlockState state, final IBlockReader world, final BlockPos pos, final ISelectionContext context) {
-        switch (state.get(HORIZONTAL_FACING)) {
+        switch (state.getValue(FACING)) {
             case NORTH:
                 return NEG_Z_SHAPE;
             case SOUTH:
@@ -159,21 +159,21 @@ public final class ComputerBlock extends HorizontalBlock {
 
     @SuppressWarnings("deprecation")
     @Override
-    public ActionResultType onBlockActivated(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
-        final TileEntity tileEntity = world.getTileEntity(pos);
+    public ActionResultType use(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
+        final TileEntity tileEntity = world.getBlockEntity(pos);
         if (!(tileEntity instanceof ComputerTileEntity)) {
-            return super.onBlockActivated(state, world, pos, player, hand, hit);
+            return super.use(state, world, pos, player, hand, hit);
         }
 
         final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
-        final ItemStack heldItem = player.getHeldItem(hand);
-        if (!world.isRemote()) {
+        final ItemStack heldItem = player.getItemInHand(hand);
+        if (!world.isClientSide) {
             if (Wrenches.isWrench(heldItem)) {
                 if (player instanceof ServerPlayerEntity) {
                     computer.openContainerScreen((ServerPlayerEntity) player);
                 }
             } else {
-                if (player.isSneaking()) {
+                if (player.isShiftKeyDown()) {
                     computer.start();
                 } else if (player instanceof ServerPlayerEntity) {
                     computer.openTerminalScreen((ServerPlayerEntity) player);
@@ -181,13 +181,13 @@ public final class ComputerBlock extends HorizontalBlock {
             }
         }
 
-        return world.isRemote() ? ActionResultType.SUCCESS : ActionResultType.CONSUME;
+        return world.isClientSide ? ActionResultType.SUCCESS : ActionResultType.CONSUME;
     }
 
     @Override
-    public void onBlockHarvested(final World world, final BlockPos pos, final BlockState state, final PlayerEntity player) {
-        final TileEntity tileEntity = world.getTileEntity(pos);
-        if (!world.isRemote() && tileEntity instanceof ComputerTileEntity) {
+    public void playerWillDestroy(final World world, final BlockPos pos, final BlockState state, final PlayerEntity player) {
+        final TileEntity tileEntity = world.getBlockEntity(pos);
+        if (!world.isClientSide && tileEntity instanceof ComputerTileEntity) {
             final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
             if (!computer.getItemStackHandlers().isEmpty()) {
                 computer.getItemStackHandlers().exportDeviceDataToItemStacks();
@@ -195,25 +195,25 @@ public final class ComputerBlock extends HorizontalBlock {
                 if (player.isCreative()) {
                     final ItemStack stack = new ItemStack(Items.COMPUTER.get());
                     computer.exportToItemStack(stack);
-                    spawnAsEntity(world, pos, stack);
+                    popResource(world, pos, stack);
                 }
             }
         }
 
-        super.onBlockHarvested(world, pos, state, player);
+        super.playerWillDestroy(world, pos, state, player);
     }
 
     @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        return super.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
+        return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
-        builder.add(HORIZONTAL_FACING);
+    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(FACING);
     }
 
     ///////////////////////////////////////////////////////////////////

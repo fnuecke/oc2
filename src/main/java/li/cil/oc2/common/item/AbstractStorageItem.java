@@ -47,12 +47,12 @@ public abstract class AbstractStorageItem extends ModItem {
     }
 
     @Override
-    public ITextComponent getDisplayName(final ItemStack stack) {
+    public ITextComponent getName(final ItemStack stack) {
         final int capacity = getCapacity(stack);
         return new StringTextComponent("")
-                .append(super.getDisplayName(stack))
-                .appendString(" (")
-                .appendString(TextFormatUtils.formatSize(capacity))
-                .appendString(")");
+                .append(super.getName(stack))
+                .append(" (")
+                .append(TextFormatUtils.formatSize(capacity))
+                .append(")");
     }
 }

@@ -24,51 +24,51 @@ public final class NetworkCableItem extends ModItem {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(final World world, final PlayerEntity player, final Hand hand) {
-        if (player.isSneaking()) {
+    public ActionResult<ItemStack> use(final World world, final PlayerEntity player, final Hand hand) {
+        if (player.isShiftKeyDown()) {
             if (player instanceof ServerPlayerEntity) {
                 LINK_STARTS.remove(player);
             }
 
-            return ActionResult.resultSuccess(player.getHeldItem(hand));
+            return ActionResult.success(player.getItemInHand(hand));
         }
 
-        return super.onItemRightClick(world, player, hand);
+        return super.use(world, player, hand);
     }
 
     @Override
-    public ActionResultType onItemUse(final ItemUseContext context) {
+    public ActionResultType useOn(final ItemUseContext context) {
         final PlayerEntity player = context.getPlayer();
         if (player == null) {
-            return super.onItemUse(context);
+            return super.useOn(context);
         }
 
-        final ItemStack stack = player.getHeldItem(context.getHand());
+        final ItemStack stack = player.getItemInHand(context.getHand());
         if (stack.isEmpty() || stack.getItem() != this) {
-            return super.onItemUse(context);
+            return super.useOn(context);
         }
 
-        final World world = context.getWorld();
-        final BlockPos currentPos = context.getPos();
+        final World world = context.getLevel();
+        final BlockPos currentPos = context.getClickedPos();
 
-        final TileEntity currentTileEntity = world.getTileEntity(currentPos);
+        final TileEntity currentTileEntity = world.getBlockEntity(currentPos);
         if (!(currentTileEntity instanceof NetworkConnectorTileEntity)) {
-            return super.onItemUse(context);
+            return super.useOn(context);
         }
 
-        if (!world.isRemote() && player instanceof ServerPlayerEntity) {
+        if (!world.isClientSide && player instanceof ServerPlayerEntity) {
             final BlockPos startPos = LINK_STARTS.remove(player);
             if (startPos == null || Objects.equals(startPos, currentPos)) {
                 if (((NetworkConnectorTileEntity) currentTileEntity).canConnectMore()) {
                     LINK_STARTS.put((ServerPlayerEntity) player, currentPos);
                 } else {
-                    player.sendStatusMessage(new TranslationTextComponent(Constants.CONNECTOR_ERROR_FULL), true);
+                    player.displayClientMessage(new TranslationTextComponent(Constants.CONNECTOR_ERROR_FULL), true);
                 }
             } else {
-                final TileEntity startTileEntity = world.getTileEntity(startPos);
+                final TileEntity startTileEntity = world.getBlockEntity(startPos);
                 if (!(startTileEntity instanceof NetworkConnectorTileEntity)) {
                     // Starting connector was removed in the meantime.
-                    return super.onItemUse(context);
+                    return super.useOn(context);
                 }
 
                 final NetworkConnectorTileEntity connectorA = (NetworkConnectorTileEntity) startTileEntity;
@@ -87,15 +87,15 @@ public final class NetworkCableItem extends ModItem {
                         break;
                     case FAILURE_FULL:
                         LINK_STARTS.put((ServerPlayerEntity) player, startPos);
-                        player.sendStatusMessage(new TranslationTextComponent(Constants.CONNECTOR_ERROR_FULL), true);
+                        player.displayClientMessage(new TranslationTextComponent(Constants.CONNECTOR_ERROR_FULL), true);
                         break;
                     case FAILURE_TOO_FAR:
                         LINK_STARTS.put((ServerPlayerEntity) player, startPos);
-                        player.sendStatusMessage(new TranslationTextComponent(Constants.CONNECTOR_ERROR_TOO_FAR), true);
+                        player.displayClientMessage(new TranslationTextComponent(Constants.CONNECTOR_ERROR_TOO_FAR), true);
                         break;
                     case FAILURE_OBSTRUCTED:
                         LINK_STARTS.put((ServerPlayerEntity) player, startPos);
-                        player.sendStatusMessage(new TranslationTextComponent(Constants.CONNECTOR_ERROR_OBSTRUCTED), true);
+                        player.displayClientMessage(new TranslationTextComponent(Constants.CONNECTOR_ERROR_OBSTRUCTED), true);
                         break;
                 }
             }

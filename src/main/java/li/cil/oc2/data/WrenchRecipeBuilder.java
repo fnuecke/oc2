@@ -27,14 +27,14 @@ public final class WrenchRecipeBuilder {
     private final Item result;
     private final int count;
     private final List<Ingredient> ingredients = Lists.newArrayList();
-    private final Advancement.Builder advancementBuilder = Advancement.Builder.builder();
+    private final Advancement.Builder advancementBuilder = Advancement.Builder.advancement();
     private String group;
 
     public WrenchRecipeBuilder(final IItemProvider result, final int count) {
         this.result = result.asItem();
         this.count = count;
 
-        addIngredient(Items.WRENCH.get());
+        requires(Items.WRENCH.get());
     }
 
     public static WrenchRecipeBuilder wrenchRecipe(final IItemProvider resultIn) {
@@ -45,23 +45,23 @@ public final class WrenchRecipeBuilder {
         return new WrenchRecipeBuilder(resultIn, countIn);
     }
 
-    public WrenchRecipeBuilder addIngredient(final ITag<Item> tagIn) {
-        return this.addIngredient(Ingredient.fromTag(tagIn));
+    public WrenchRecipeBuilder requires(final ITag<Item> tagIn) {
+        return this.requires(Ingredient.of(tagIn));
     }
 
-    public WrenchRecipeBuilder addIngredient(final IItemProvider itemIn) {
-        return this.addIngredient(itemIn, 1);
+    public WrenchRecipeBuilder requires(final IItemProvider itemIn) {
+        return this.requires(itemIn, 1);
     }
 
-    public WrenchRecipeBuilder addIngredient(final IItemProvider itemIn, final int quantity) {
+    public WrenchRecipeBuilder requires(final IItemProvider itemIn, final int quantity) {
         for (int i = 0; i < quantity; ++i) {
-            this.addIngredient(Ingredient.fromItems(itemIn));
+            this.requires(Ingredient.of(itemIn));
         }
 
         return this;
     }
 
-    public WrenchRecipeBuilder addIngredient(final Ingredient ingredientIn) {
+    public WrenchRecipeBuilder requires(final Ingredient ingredientIn) {
         return this.addIngredient(ingredientIn, 1);
     }
 
@@ -73,8 +73,8 @@ public final class WrenchRecipeBuilder {
         return this;
     }
 
-    public WrenchRecipeBuilder addCriterion(final String name, final ICriterionInstance criterionIn) {
-        this.advancementBuilder.withCriterion(name, criterionIn);
+    public WrenchRecipeBuilder unlockedBy(final String name, final ICriterionInstance criterionIn) {
+        this.advancementBuilder.addCriterion(name, criterionIn);
         return this;
     }
 
@@ -83,23 +83,23 @@ public final class WrenchRecipeBuilder {
         return this;
     }
 
-    public void build(final Consumer<IFinishedRecipe> consumerIn) {
-        this.build(consumerIn, ForgeRegistries.ITEMS.getKey(this.result));
+    public void save(final Consumer<IFinishedRecipe> consumerIn) {
+        this.save(consumerIn, ForgeRegistries.ITEMS.getKey(this.result));
     }
 
-    public void build(final Consumer<IFinishedRecipe> consumerIn, final String save) {
+    public void save(final Consumer<IFinishedRecipe> consumerIn, final String save) {
         final ResourceLocation resourcelocation = ForgeRegistries.ITEMS.getKey(this.result);
         if ((new ResourceLocation(save)).equals(resourcelocation)) {
             throw new IllegalStateException("Shapeless Recipe " + save + " should remove its 'save' argument");
         } else {
-            this.build(consumerIn, new ResourceLocation(save));
+            this.save(consumerIn, new ResourceLocation(save));
         }
     }
 
-    public void build(final Consumer<IFinishedRecipe> consumerIn, final ResourceLocation id) {
+    public void save(final Consumer<IFinishedRecipe> consumerIn, final ResourceLocation id) {
         this.validate(id);
-        this.advancementBuilder.withParentId(new ResourceLocation("recipes/root")).withCriterion("has_the_recipe", RecipeUnlockedTrigger.create(id)).withRewards(AdvancementRewards.Builder.recipe(id)).withRequirementsStrategy(IRequirementsStrategy.OR);
-        consumerIn.accept(new WrenchRecipeBuilder.Result(id, this.result, this.count, this.group == null ? "" : this.group, this.ingredients, this.advancementBuilder, new ResourceLocation(id.getNamespace(), "recipes/" + this.result.getGroup().getPath() + "/" + id.getPath())));
+        this.advancementBuilder.parent(new ResourceLocation("recipes/root")).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id)).rewards(AdvancementRewards.Builder.recipe(id)).requirements(IRequirementsStrategy.OR);
+        consumerIn.accept(new WrenchRecipeBuilder.Result(id, this.result, this.count, this.group == null ? "" : this.group, this.ingredients, this.advancementBuilder, new ResourceLocation(id.getNamespace(), "recipes/" + this.result.getItemCategory().getRecipeFolderName() + "/" + id.getPath())));
     }
 
     private void validate(final ResourceLocation id) {
@@ -127,7 +127,7 @@ public final class WrenchRecipeBuilder {
             this.advancementId = advancementIdIn;
         }
 
-        public void serialize(final JsonObject json) {
+        public void serializeRecipeData(final JsonObject json) {
             if (!this.group.isEmpty()) {
                 json.addProperty("group", this.group);
             }
@@ -135,7 +135,7 @@ public final class WrenchRecipeBuilder {
             final JsonArray jsonarray = new JsonArray();
 
             for (final Ingredient ingredient : this.ingredients) {
-                jsonarray.add(ingredient.serialize());
+                jsonarray.add(ingredient.toJson());
             }
 
             json.add("ingredients", jsonarray);
@@ -148,21 +148,21 @@ public final class WrenchRecipeBuilder {
             json.add("result", jsonobject);
         }
 
-        public IRecipeSerializer<?> getSerializer() {
+        public IRecipeSerializer<?> getType() {
             return RecipeSerializers.WRENCH.get();
         }
 
-        public ResourceLocation getID() {
+        public ResourceLocation getId() {
             return this.id;
         }
 
         @Nullable
-        public JsonObject getAdvancementJson() {
-            return this.advancementBuilder.serialize();
+        public JsonObject serializeAdvancement() {
+            return this.advancementBuilder.serializeToJson();
         }
 
         @Nullable
-        public ResourceLocation getAdvancementID() {
+        public ResourceLocation getAdvancementId() {
             return this.advancementId;
         }
     }

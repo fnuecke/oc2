@@ -89,8 +89,8 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     public void eject() {
         final ItemStack stack = itemHandler.extractItem(0, 1, false);
         if (!stack.isEmpty()) {
-            final Direction facing = getBlockState().get(DiskDriveBlock.HORIZONTAL_FACING);
-            ItemStackUtils.spawnAsEntity(getWorld(), getPos().offset(facing), stack, facing);
+            final Direction facing = getBlockState().getValue(DiskDriveBlock.FACING);
+            ItemStackUtils.spawnAsEntity(level, getBlockPos().relative(facing), stack, facing);
             ejectSoundEmitter.play();
         }
     }
@@ -123,8 +123,8 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
-        tag = super.write(tag);
+    public CompoundNBT save(CompoundNBT tag) {
+        tag = super.save(tag);
 
         tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
 
@@ -132,8 +132,8 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT tag) {
-        super.read(state, tag);
+    public void load(final BlockState state, final CompoundNBT tag) {
+        super.load(state, tag);
 
         itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
     }
@@ -174,8 +174,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         protected void onContentsChanged(final int slot) {
             super.onContentsChanged(slot);
 
-            final World world = getWorld();
-            if (world == null || world.isRemote()) {
+            if (level == null || level.isClientSide) {
                 return;
             }
 
@@ -187,7 +186,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
                 device.updateBlockDevice(tag);
             }
 
-            Network.sendToClientsTrackingChunk(new DiskDriveFloppyMessage(DiskDriveTileEntity.this), world.getChunkAt(getPos()));
+            Network.sendToClientsTrackingChunk(new DiskDriveFloppyMessage(DiskDriveTileEntity.this), level.getChunkAt(getBlockPos()));
         }
 
         private void exportDeviceDataToItemStack(final ItemStack stack) {
@@ -195,8 +194,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
                 return;
             }
 
-            final World world = getWorld();
-            if (world == null || world.isRemote()) {
+            if (level == null || level.isClientSide) {
                 return;
             }
 

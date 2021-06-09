@@ -15,23 +15,23 @@ import java.util.function.Function;
 
 public final class WorldUtils {
     @Nullable
-    public static TileEntity getTileEntityIfChunkExists(final IWorld world, final BlockPos pos) {
+    public static TileEntity getBlockEntityIfChunkExists(final IWorld world, final BlockPos pos) {
         final ChunkPos chunkPos = new ChunkPos(pos);
-        if (!world.chunkExists(chunkPos.x, chunkPos.z)) {
+        if (!world.hasChunk(chunkPos.x, chunkPos.z)) {
             return null;
         }
 
-        return world.getTileEntity(pos);
+        return world.getBlockEntity(pos);
     }
 
     @Nullable
     public static String getBlockName(final IWorld world, final BlockPos pos) {
         final ChunkPos chunkPos = new ChunkPos(pos);
-        if (!world.chunkExists(chunkPos.x, chunkPos.z)) {
+        if (!world.hasChunk(chunkPos.x, chunkPos.z)) {
             return null;
         }
 
-        final TileEntity tileEntity = world.getTileEntity(pos);
+        final TileEntity tileEntity = world.getBlockEntity(pos);
         if (tileEntity != null) {
             final ResourceLocation registryName = tileEntity.getType().getRegistryName();
             if (registryName != null) {

@@ -25,20 +25,20 @@ public final class RobotModel extends EntityModel<RobotEntity> {
 
     public RobotModel() {
         topRenderer = new ModelRenderer(this, 1, 1)
-                .setTextureSize(64, 64)
+                .setTexSize(64, 64)
                 .addBox(-7, 8, -7, 14, 6, 14);
         baseRenderer = new ModelRenderer(this, 1, 23)
-                .setTextureSize(64, 64)
+                .setTexSize(64, 64)
                 .addBox(-7, 0, -7, 14, 7, 14);
         coreRenderer = new ModelRenderer(this, 1, 34)
-                .setTextureSize(64, 64)
+                .setTexSize(64, 64)
                 .addBox(-6, 7, -6, 12, 1, 12);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void setRotationAngles(final RobotEntity entity, final float limbSwing, final float limbSwingAmount, final float ageInTicks, final float netHeadYaw, final float headPitch) {
+    public void setupAnim(final RobotEntity entity, final float limbSwing, final float limbSwingAmount, final float ageInTicks, final float netHeadYaw, final float headPitch) {
         final RobotEntity.AnimationState state = entity.getAnimationState();
         baseY = state.baseRenderOffsetY;
         topY = state.topRenderOffsetY;
@@ -46,17 +46,17 @@ public final class RobotModel extends EntityModel<RobotEntity> {
     }
 
     @Override
-    public void render(final MatrixStack matrixStack, final IVertexBuilder buffer, final int packedLight, final int packedOverlay, final float red, final float green, final float blue, final float alpha) {
-        matrixStack.push();
+    public void renderToBuffer(final MatrixStack matrixStack, final IVertexBuilder buffer, final int packedLight, final int packedOverlay, final float red, final float green, final float blue, final float alpha) {
+        matrixStack.pushPose();
         matrixStack.translate(0, topY, 0);
-        matrixStack.rotate(TransformationHelper.quatFromXYZ(topRotation, true));
+        matrixStack.mulPose(TransformationHelper.quatFromXYZ(topRotation, true));
         topRenderer.render(matrixStack, buffer, packedLight, packedOverlay);
-        matrixStack.pop();
+        matrixStack.popPose();
 
-        matrixStack.push();
+        matrixStack.pushPose();
         matrixStack.translate(0, baseY, 0);
         baseRenderer.render(matrixStack, buffer, packedLight, packedOverlay);
-        coreRenderer.render(matrixStack, buffer, LightTexture.packLight(15, 15), packedOverlay);
-        matrixStack.pop();
+        coreRenderer.render(matrixStack, buffer, LightTexture.pack(15, 15), packedOverlay);
+        matrixStack.popPose();
     }
 }

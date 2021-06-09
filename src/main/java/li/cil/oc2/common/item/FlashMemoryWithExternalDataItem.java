@@ -22,7 +22,7 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
     ///////////////////////////////////////////////////////////////////
 
     public FlashMemoryWithExternalDataItem(final ResourceLocation defaultData) {
-        super(createProperties().maxStackSize(1));
+        super(createProperties().stacksTo(1));
         this.defaultData = defaultData;
     }
 
@@ -67,23 +67,23 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
     }
 
     @Override
-    public ITextComponent getDisplayName(final ItemStack stack) {
+    public ITextComponent getName(final ItemStack stack) {
         final Firmware firmware = getFirmware(stack);
         if (firmware != null) {
             return new StringTextComponent("")
-                    .append(super.getDisplayName(stack))
-                    .appendString(" (")
+                    .append(super.getName(stack))
+                    .append(" (")
                     .append(firmware.getDisplayName())
-                    .appendString(")");
+                    .append(")");
         } else {
-            return super.getDisplayName(stack);
+            return super.getName(stack);
         }
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected String getDefaultTranslationKey() {
+    protected String getOrCreateDescriptionId() {
         return "item.oc2.flash_memory";
     }
 }

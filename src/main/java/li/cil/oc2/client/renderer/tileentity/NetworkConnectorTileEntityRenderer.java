@@ -21,17 +21,17 @@ public final class NetworkConnectorTileEntityRenderer extends TileEntityRenderer
         // We do cable rendering as a fall-back in the TESR when Fabulous rendering is enabled.
         // We need to do this because there's no hook to render before the Fabulous full-screen
         // effects are rendered, which, sadly, completely ruin the depth buffer for us.
-        if (!Minecraft.isFabulousGraphicsEnabled()) {
+        if (!Minecraft.useShaderTransparency()) {
             return;
         }
 
-        final BlockPos from = connector.getPos();
+        final BlockPos from = connector.getBlockPos();
 
-        matrixStack.push();
+        matrixStack.pushPose();
         matrixStack.translate(-from.getX(), -from.getY(), -from.getZ());
 
-        NetworkCableRenderer.renderCablesFor(renderDispatcher.world, matrixStack, renderDispatcher.renderInfo.getProjectedView(), connector);
+        NetworkCableRenderer.renderCablesFor(renderer.level, matrixStack, renderer.camera.getPosition(), connector);
 
-        matrixStack.pop();
+        matrixStack.popPose();
     }
 }

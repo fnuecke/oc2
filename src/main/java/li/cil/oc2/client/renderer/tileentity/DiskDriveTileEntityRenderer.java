@@ -24,21 +24,21 @@ public final class DiskDriveTileEntityRenderer extends TileEntityRenderer<DiskDr
     @Override
     public void render(final DiskDriveTileEntity tileEntity, final float partialTicks, final MatrixStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
         final ItemStack stack = tileEntity.getFloppy();
-        final Direction blockFacing = tileEntity.getBlockState().get(DiskDriveBlock.HORIZONTAL_FACING);
-        final int neighborLight = WorldRenderer.getCombinedLight(renderDispatcher.world, tileEntity.getPos().offset(blockFacing));
+        final Direction blockFacing = tileEntity.getBlockState().getValue(DiskDriveBlock.FACING);
+        final int neighborLight = WorldRenderer.getLightColor(renderer.level, tileEntity.getBlockPos().relative(blockFacing));
         final ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
 
-        matrixStack.push();
+        matrixStack.pushPose();
 
         matrixStack.translate(0.5f, 0.5f, 0.5f);
-        matrixStack.rotate(Vector3f.YN.rotationDegrees(blockFacing.getHorizontalAngle()));
+        matrixStack.mulPose(Vector3f.YN.rotationDegrees(blockFacing.toYRot()));
         matrixStack.translate(0.0f, 0.0f, 0.5f);
-        matrixStack.rotate(Vector3f.XN.rotationDegrees(90));
+        matrixStack.mulPose(Vector3f.XN.rotationDegrees(90));
         matrixStack.translate(0.0f, 0.2375f, 2.5f / 16f);
         matrixStack.scale(0.55f, 0.55f, 0.55f);
 
-        itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED, neighborLight, overlay, matrixStack, buffer);
+        itemRenderer.renderStatic(stack, ItemCameraTransforms.TransformType.FIXED, neighborLight, overlay, matrixStack, buffer);
 
-        matrixStack.pop();
+        matrixStack.popPose();
     }
 }

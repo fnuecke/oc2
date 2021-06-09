@@ -31,9 +31,9 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
     public static final ResourceLocation OVERLAY_STATUS_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_status");
     public static final ResourceLocation OVERLAY_TERMINAL_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_terminal");
 
-    private static final RenderMaterial TEXTURE_POWER = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_POWER_LOCATION);
-    private static final RenderMaterial TEXTURE_STATUS = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_STATUS_LOCATION);
-    private static final RenderMaterial TEXTURE_TERMINAL = new RenderMaterial(PlayerContainer.LOCATION_BLOCKS_TEXTURE, OVERLAY_TERMINAL_LOCATION);
+    private static final RenderMaterial TEXTURE_POWER = new RenderMaterial(PlayerContainer.BLOCK_ATLAS, OVERLAY_POWER_LOCATION);
+    private static final RenderMaterial TEXTURE_STATUS = new RenderMaterial(PlayerContainer.BLOCK_ATLAS, OVERLAY_STATUS_LOCATION);
+    private static final RenderMaterial TEXTURE_TERMINAL = new RenderMaterial(PlayerContainer.BLOCK_ATLAS, OVERLAY_TERMINAL_LOCATION);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -45,23 +45,23 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
 
     @Override
     public void render(final ComputerTileEntity tileEntity, final float partialTicks, final MatrixStack matrixStack, final IRenderTypeBuffer buffer, final int light, final int overlay) {
-        final Direction blockFacing = tileEntity.getBlockState().get(ComputerBlock.HORIZONTAL_FACING);
-        final Vector3d cameraPosition = renderDispatcher.renderInfo.getRenderViewEntity().getEyePosition(partialTicks);
+        final Direction blockFacing = tileEntity.getBlockState().getValue(ComputerBlock.FACING);
+        final Vector3d cameraPosition = renderer.camera.getEntity().getEyePosition(partialTicks);
 
         // If viewer is not in front of the block we can skip all of the rest, it cannot be visible.
         // We check against the center of the block instead of the actual relevant face for simplicity.
-        final Vector3d relativeCameraPosition = cameraPosition.subtract(Vector3d.copyCentered(tileEntity.getPos()));
-        final double projectedCameraPosition = relativeCameraPosition.dotProduct(Vector3d.copy(blockFacing.getDirectionVec()));
+        final Vector3d relativeCameraPosition = cameraPosition.subtract(Vector3d.atCenterOf(tileEntity.getBlockPos()));
+        final double projectedCameraPosition = relativeCameraPosition.dot(Vector3d.atLowerCornerOf(blockFacing.getNormal()));
         if (projectedCameraPosition <= 0) {
             return;
         }
 
-        matrixStack.push();
+        matrixStack.pushPose();
 
         // Align with front face of block.
-        final Quaternion rotation = new Quaternion(Vector3f.YN, blockFacing.getHorizontalAngle() + 180, true);
+        final Quaternion rotation = new Quaternion(Vector3f.YN, blockFacing.toYRot() + 180, true);
         matrixStack.translate(0.5f, 0, 0.5f);
-        matrixStack.rotate(rotation);
+        matrixStack.mulPose(rotation);
         matrixStack.translate(-0.5f, 0, -0.5f);
 
         // Flip and align with top left corner.
@@ -79,7 +79,7 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         }
 
         matrixStack.translate(0, 0, -0.1f);
-        final Matrix4f matrix = matrixStack.getLast().getMatrix();
+        final Matrix4f matrix = matrixStack.last().pose();
 
         switch (tileEntity.getVirtualMachine().getBusState()) {
             case SCAN_PENDING:
@@ -106,15 +106,15 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
                 break;
         }
 
-        matrixStack.pop();
+        matrixStack.popPose();
     }
 
     ///////////////////////////////////////////////////////////////////
 
     private void renderTerminal(final ComputerTileEntity tileEntity, final MatrixStack stack, final IRenderTypeBuffer buffer, final Vector3d cameraPosition) {
         // Render terminal content if close enough.
-        if (Vector3d.copyCentered(tileEntity.getPos()).isWithinDistanceOf(cameraPosition, 6f)) {
-            stack.push();
+        if (Vector3d.atCenterOf(tileEntity.getBlockPos()).closerThan(cameraPosition, 6f)) {
+            stack.pushPose();
             stack.translate(2, 2, -0.9f);
 
             // Scale to make terminal fit fully.
@@ -134,25 +134,25 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
             stack.scale(scale, scale, 1f);
 
             // TODO Make terminal renderer use buffer+rendertype.
-            GlStateManager.enableBlend();
-            GlStateManager.enableDepthTest();
-            GlStateManager.depthMask(false);
+            GlStateManager._enableBlend();
+            GlStateManager._enableDepthTest();
+            GlStateManager._depthMask(false);
             terminal.render(stack);
 
-            stack.pop();
+            stack.popPose();
         } else {
-            stack.push();
+            stack.pushPose();
             stack.translate(0, 0, -0.9f);
 
-            final Matrix4f matrix = stack.getLast().getMatrix();
-            renderQuad(matrix, TEXTURE_TERMINAL.getBuffer(buffer, CustomRenderType::getUnlitBlock));
+            final Matrix4f matrix = stack.last().pose();
+            renderQuad(matrix, TEXTURE_TERMINAL.buffer(buffer, CustomRenderType::getUnlitBlock));
 
-            stack.pop();
+            stack.popPose();
         }
     }
 
     private void renderStatusText(final ComputerTileEntity tileEntity, final MatrixStack stack, final Vector3d cameraPosition) {
-        if (!Vector3d.copyCentered(tileEntity.getPos()).isWithinDistanceOf(cameraPosition, 12f)) {
+        if (!Vector3d.atCenterOf(tileEntity.getBlockPos()).closerThan(cameraPosition, 12f)) {
             return;
         }
 
@@ -161,32 +161,32 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
             return;
         }
 
-        stack.push();
+        stack.pushPose();
         stack.translate(3, 3, -0.9f);
 
         drawText(stack, bootError);
 
-        stack.pop();
+        stack.popPose();
     }
 
     private void drawText(final MatrixStack stack, final ITextComponent text) {
         final int maxWidth = 100;
 
-        stack.push();
+        stack.pushPose();
         stack.scale(10f / maxWidth, 10f / maxWidth, 10f / maxWidth);
 
-        final FontRenderer fontRenderer = renderDispatcher.getFontRenderer();
-        final List<ITextProperties> wrappedText = renderDispatcher.getFontRenderer().getCharacterManager().func_238362_b_(text, maxWidth, Style.EMPTY);
+        final FontRenderer fontRenderer = renderer.font;
+        final List<ITextProperties> wrappedText = fontRenderer.getSplitter().splitLines(text, maxWidth, Style.EMPTY);
         if (wrappedText.size() == 1) {
-            final int textWidth = fontRenderer.getStringPropertyWidth(text);
-            fontRenderer.func_243248_b(stack, text, (maxWidth - textWidth) * 0.5f, 0, 0xEE3322);
+            final int textWidth = fontRenderer.width(text);
+            fontRenderer.draw(stack, text, (maxWidth - textWidth) * 0.5f, 0, 0xEE3322);
         } else {
             for (int i = 0; i < wrappedText.size(); i++) {
-                fontRenderer.drawString(stack, wrappedText.get(i).getString(), 0, i * fontRenderer.FONT_HEIGHT, 0xEE3322);
+                fontRenderer.draw(stack, wrappedText.get(i).getString(), 0, i * fontRenderer.lineHeight, 0xEE3322);
             }
         }
 
-        stack.pop();
+        stack.popPose();
     }
 
     private void renderStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer) {
@@ -195,12 +195,12 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
 
     private void renderStatus(final Matrix4f matrix, final IRenderTypeBuffer buffer, final int frequency) {
         if (frequency <= 0 || (((System.currentTimeMillis() + hashCode()) / frequency) % 2) == 1) {
-            renderQuad(matrix, TEXTURE_STATUS.getBuffer(buffer, CustomRenderType::getUnlitBlock));
+            renderQuad(matrix, TEXTURE_STATUS.buffer(buffer, CustomRenderType::getUnlitBlock));
         }
     }
 
     private void renderPower(final Matrix4f matrix, final IRenderTypeBuffer buffer) {
-        renderQuad(matrix, TEXTURE_POWER.getBuffer(buffer, CustomRenderType::getUnlitBlock));
+        renderQuad(matrix, TEXTURE_POWER.buffer(buffer, CustomRenderType::getUnlitBlock));
     }
 
     private static void renderQuad(final Matrix4f matrix, final IVertexBuilder builder) {
@@ -208,20 +208,20 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
         //     because methods may return the underlying vertex builder, so e.g. calling
         //     buffer.pos(...).tex(...) will not actually call SpriteAwareVertexBuilder.tex(...)
         //     but SpriteAwareVertexBuilder.vertexBuilder.tex(...), skipping the UV remapping.
-        builder.pos(matrix, 0, 0, 0);
-        builder.tex(0, 0);
+        builder.vertex(matrix, 0, 0, 0);
+        builder.uv(0, 0);
         builder.endVertex();
 
-        builder.pos(matrix, 0, 16, 0);
-        builder.tex(0, 1);
+        builder.vertex(matrix, 0, 16, 0);
+        builder.uv(0, 1);
         builder.endVertex();
 
-        builder.pos(matrix, 16, 16, 0);
-        builder.tex(1, 1);
+        builder.vertex(matrix, 16, 16, 0);
+        builder.uv(1, 1);
         builder.endVertex();
 
-        builder.pos(matrix, 16, 0, 0);
-        builder.tex(1, 0);
+        builder.vertex(matrix, 16, 0, 0);
+        builder.uv(1, 0);
         builder.endVertex();
     }
 }

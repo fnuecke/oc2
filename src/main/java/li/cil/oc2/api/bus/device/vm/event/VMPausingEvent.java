@@ -8,5 +8,5 @@ package li.cil.oc2.api.bus.device.vm.event;
  * if such interactions may modify VM state, to prevent corrupting data being
  * serialized asynchronously.
  */
-public final class VMPausingEvent extends VMLifecycleEvent {
+public final class VMPausingEvent {
 }

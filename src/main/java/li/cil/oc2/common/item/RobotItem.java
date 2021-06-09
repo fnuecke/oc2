@@ -37,8 +37,8 @@ public final class RobotItem extends ModItem {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
-        super.addInformation(stack, world, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
+        super.appendHoverText(stack, world, tooltip, flag);
         TooltipUtils.addEnergyConsumption(Config.robotEnergyPerTick, tooltip);
         TooltipUtils.addEntityEnergyInformation(stack, tooltip);
         TooltipUtils.addEntityInventoryInformation(stack, tooltip);
@@ -55,37 +55,37 @@ public final class RobotItem extends ModItem {
     }
 
     @Override
-    public ActionResultType onItemUse(final ItemUseContext context) {
-        final World world = context.getWorld();
-        final BlockPos pos = context.getPos();
+    public ActionResultType useOn(final ItemUseContext context) {
+        final World world = context.getLevel();
+        final BlockPos pos = context.getClickedPos();
 
         final Vector3d position;
-        if (world.getBlockState(pos).isReplaceable(new BlockItemUseContext(context))) {
-            position = Vector3d.copyCentered(pos);
+        if (world.getBlockState(pos).canBeReplaced(new BlockItemUseContext(context))) {
+            position = Vector3d.atCenterOf(pos);
         } else {
-            position = Vector3d.copyCentered(pos.offset(context.getFace()));
+            position = Vector3d.atCenterOf(pos.relative(context.getClickedFace()));
         }
 
-        final RobotEntity robot = Entities.ROBOT.get().create(context.getWorld());
-        robot.setLocationAndAngles(position.getX(), position.getY() - robot.getHeight() * 0.5f, position.getZ(),
-                Direction.fromAngle(context.getPlacementYaw()).getOpposite().getHorizontalAngle(), 0);
-        if (!world.hasNoCollisions(robot)) {
-            return super.onItemUse(context);
+        final RobotEntity robot = Entities.ROBOT.get().create(context.getLevel());
+        robot.moveTo(position.x, position.y - robot.getBbHeight() * 0.5f, position.z,
+                Direction.fromYRot(context.getRotation()).getOpposite().toYRot(), 0);
+        if (!world.noCollision(robot)) {
+            return super.useOn(context);
         }
 
-        if (!world.isRemote()) {
+        if (!world.isClientSide) {
             RobotActions.initializeData(robot);
-            robot.importFromItemStack(context.getItem());
+            robot.importFromItemStack(context.getItemInHand());
 
-            world.addEntity(robot);
+            world.addFreshEntity(robot);
             WorldUtils.playSound(world, new BlockPos(position), SoundType.METAL, SoundType::getPlaceSound);
 
             if (!context.getPlayer().isCreative()) {
-                context.getItem().shrink(1);
+                context.getItemInHand().shrink(1);
             }
         }
 
-        context.getPlayer().addStat(Stats.ITEM_USED.get(this));
+        context.getPlayer().awardStat(Stats.ITEM_USED.get(this));
 
         return ActionResultType.SUCCESS;
     }

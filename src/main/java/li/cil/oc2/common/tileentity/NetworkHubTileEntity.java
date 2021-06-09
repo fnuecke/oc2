@@ -63,20 +63,20 @@ public final class NetworkHubTileEntity extends AbstractTileEntity implements Ne
 
         areAdjacentInterfacesDirty = false;
 
-        final World world = getWorld();
-        if (world == null || world.isRemote()) {
+        final World world = getLevel();
+        if (world == null || world.isClientSide) {
             return;
         }
 
-        final BlockPos pos = getPos();
+        final BlockPos pos = getBlockPos();
         for (final Direction side : Constants.DIRECTIONS) {
-            adjacentInterfaces[side.getIndex()] = null;
+            adjacentInterfaces[side.get3DDataValue()] = null;
 
-            final TileEntity neighborTileEntity = world.getTileEntity(pos.offset(side));
+            final TileEntity neighborTileEntity = world.getBlockEntity(pos.relative(side));
             if (neighborTileEntity != null) {
                 final LazyOptional<NetworkInterface> capability = neighborTileEntity.getCapability(Capabilities.NETWORK_INTERFACE, side.getOpposite());
                 capability.ifPresent(adjacentInterface -> {
-                    adjacentInterfaces[side.getIndex()] = adjacentInterface;
+                    adjacentInterfaces[side.get3DDataValue()] = adjacentInterface;
                     capability.addListener(unused -> handleNeighborChanged());
                 });
             }

@@ -15,7 +15,7 @@ public final class RobotBootErrorMessage {
     ///////////////////////////////////////////////////////////////////
 
     public RobotBootErrorMessage(final RobotEntity robot) {
-        this.entityId = robot.getEntityId();
+        this.entityId = robot.getId();
         this.value = robot.getVirtualMachine().getBootError();
     }
 
@@ -33,11 +33,11 @@ public final class RobotBootErrorMessage {
 
     public void fromBytes(final PacketBuffer buffer) {
         entityId = buffer.readVarInt();
-        value = buffer.readTextComponent();
+        value = buffer.readComponent();
     }
 
     public static void toBytes(final RobotBootErrorMessage message, final PacketBuffer buffer) {
         buffer.writeVarInt(message.entityId);
-        buffer.writeTextComponent(message.value);
+        buffer.writeComponent(message.value);
     }
 }

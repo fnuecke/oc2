@@ -81,12 +81,12 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             return ConnectionResult.FAILURE;
         }
 
-        final World world = connectorA.getWorld();
-        if (world == null || world.isRemote()) {
+        final World world = connectorA.level;
+        if (world == null || world.isClientSide) {
             return ConnectionResult.FAILURE;
         }
 
-        if (connectorB.getWorld() != world) {
+        if (connectorB.level != world) {
             return ConnectionResult.FAILURE;
         }
 
@@ -94,10 +94,10 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             return ConnectionResult.FAILURE_FULL;
         }
 
-        final BlockPos posA = connectorA.getPos();
-        final BlockPos posB = connectorB.getPos();
+        final BlockPos posA = connectorA.getBlockPos();
+        final BlockPos posB = connectorB.getBlockPos();
 
-        if (!posA.withinDistance(posB, MAX_CONNECTION_DISTANCE)) {
+        if (!posA.closerThan(posB, MAX_CONNECTION_DISTANCE)) {
             return ConnectionResult.FAILURE_TOO_FAR;
         }
 
@@ -125,8 +125,8 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             result = ConnectionResult.SUCCESS;
         }
 
-        connectorA.markDirty();
-        connectorB.markDirty();
+        connectorA.setChanged();
+        connectorB.setChanged();
 
         return result;
     }
@@ -136,10 +136,9 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
         connectors.remove(pos);
 
         if (ownedCables.remove(pos)) {
-            final World world = getWorld();
-            if (world != null) {
-                final Vector3d middle = Vector3d.copyCentered(getPos().add(pos)).scale(0.5f);
-                ItemStackUtils.spawnAsEntity(world, middle, new ItemStack(Items.NETWORK_CABLE.get()));
+            if (level != null) {
+                final Vector3d middle = Vector3d.atCenterOf(getBlockPos().offset(pos)).scale(0.5f);
+                ItemStackUtils.spawnAsEntity(level, middle, new ItemStack(Items.NETWORK_CABLE.get()));
             }
         }
 
@@ -148,7 +147,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
                 onConnectedPositionsChanged();
             }
 
-            markDirty();
+            setChanged();
         }
     }
 
@@ -224,8 +223,8 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
-        tag = super.write(tag);
+    public CompoundNBT save(CompoundNBT tag) {
+        tag = super.save(tag);
 
         final ListNBT connections = new ListNBT();
         for (final BlockPos position : connectorPositions) {
@@ -241,8 +240,8 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT tag) {
-        super.read(state, tag);
+    public void load(final BlockState state, final CompoundNBT tag) {
+        super.load(state, tag);
 
         final ListNBT connections = tag.getList(CONNECTIONS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
         for (int i = 0; i < Math.min(connections.size(), MAX_CONNECTION_COUNT); i++) {
@@ -264,16 +263,16 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
 
         // When we're being removed we want to break the actual link to any connected
         // connectors. This will also cause cables to be dropped.
         final ArrayList<NetworkConnectorTileEntity> list = new ArrayList<>(connectors.values());
         connectors.clear();
         for (final NetworkConnectorTileEntity connector : list) {
-            disconnectFrom(connector.getPos());
-            connector.disconnectFrom(getPos());
+            disconnectFrom(connector.getBlockPos());
+            connector.disconnectFrom(getBlockPos());
         }
     }
 
@@ -283,7 +282,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
 
         // When unloading, we just want to remove the reference to this tile entity
         // from connected connectors; we don't want to actually break the link.
-        final BlockPos pos = getPos();
+        final BlockPos pos = getBlockPos();
         for (final NetworkConnectorTileEntity connector : connectors.values()) {
             connector.connectors.remove(pos);
             if (connector.connectorPositions.contains(pos)) {
@@ -294,8 +293,11 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
 
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
-        if (Minecraft.isFabulousGraphicsEnabled()) {
-            return new AxisAlignedBB(pos.add(-MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE), pos.add(1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE));
+        if (Minecraft.useShaderTransparency()) {
+            return new AxisAlignedBB(
+                getBlockPos().offset(-MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE),
+                getBlockPos().offset(1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE)
+            );
         } else {
             return super.getRenderBoundingBox();
         }
@@ -319,21 +321,20 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             return;
         }
 
-        final World world = getWorld();
-        if (world == null || world.isRemote()) {
+        if (level == null || level.isClientSide) {
             return;
         }
 
         final Direction facing = NetworkConnectorBlock.getFacing(getBlockState());
-        final BlockPos sourcePos = getPos().offset(facing.getOpposite());
+        final BlockPos sourcePos = getBlockPos().relative(facing.getOpposite());
 
         final ChunkPos sourceChunk = new ChunkPos(sourcePos);
-        if (!world.chunkExists(sourceChunk.x, sourceChunk.z)) {
-            ServerScheduler.schedule(world, this::setLocalInterfaceChanged, RETRY_UNLOADED_CHUNK_INTERVAL);
+        if (!level.hasChunk(sourceChunk.x, sourceChunk.z)) {
+            ServerScheduler.schedule(level, this::setLocalInterfaceChanged, RETRY_UNLOADED_CHUNK_INTERVAL);
             return;
         }
 
-        final TileEntity tileEntity = world.getTileEntity(sourcePos);
+        final TileEntity tileEntity = level.getBlockEntity(sourcePos);
         if (tileEntity == null) {
             return;
         }
@@ -351,18 +352,17 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             return;
         }
 
-        final World world = getWorld();
-        if (world == null || world.isRemote()) {
+        if (level == null || level.isClientSide) {
             return;
         }
 
         final ChunkPos destinationChunk = new ChunkPos(connectedPosition);
-        if (!world.chunkExists(destinationChunk.x, destinationChunk.z)) {
-            ServerScheduler.schedule(world, () -> dirtyConnectors.add(connectedPosition), RETRY_UNLOADED_CHUNK_INTERVAL);
+        if (!level.hasChunk(destinationChunk.x, destinationChunk.z)) {
+            ServerScheduler.schedule(level, () -> dirtyConnectors.add(connectedPosition), RETRY_UNLOADED_CHUNK_INTERVAL);
             return;
         }
 
-        final TileEntity tileEntity = world.getTileEntity(connectedPosition);
+        final TileEntity tileEntity = level.getBlockEntity(connectedPosition);
         if (!(tileEntity instanceof NetworkConnectorTileEntity)) {
             disconnectFrom(connectedPosition);
             return;
@@ -370,15 +370,15 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
 
         final NetworkConnectorTileEntity connector = (NetworkConnectorTileEntity) tileEntity;
 
-        if (!connectedPosition.withinDistance(getPos(), MAX_CONNECTION_DISTANCE)) {
+        if (!connectedPosition.closerThan(getBlockPos(), MAX_CONNECTION_DISTANCE)) {
             disconnectFrom(connectedPosition);
-            connector.disconnectFrom(getPos());
+            connector.disconnectFrom(getBlockPos());
             return;
         }
 
-        if (isObstructed(world, getPos(), connectedPosition)) {
+        if (isObstructed(level, getBlockPos(), connectedPosition)) {
             disconnectFrom(connectedPosition);
-            connector.disconnectFrom(getPos());
+            connector.disconnectFrom(getBlockPos());
             return;
         }
 
@@ -386,21 +386,21 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     }
 
     private static boolean isObstructed(final World world, final BlockPos a, final BlockPos b) {
-        final Vector3d va = Vector3d.copyCentered(a);
-        final Vector3d vb = Vector3d.copyCentered(b);
+        final Vector3d va = Vector3d.atCenterOf(a);
+        final Vector3d vb = Vector3d.atCenterOf(b);
         final Vector3d ab = vb.subtract(va).normalize().scale(0.5);
 
         // Because of floating point inaccuracies the raytrace is not necessarily
         // symmetric. In particular when grazing corners perfectly, e.g. two connectors
         // attached to the same block at a 90 degree angle. So we check both ways.
-        final BlockRayTraceResult hitAB = world.rayTraceBlocks(new RayTraceContext(
+        final BlockRayTraceResult hitAB = world.clip(new RayTraceContext(
                 va.add(ab),
                 vb.subtract(ab),
                 RayTraceContext.BlockMode.COLLIDER,
                 RayTraceContext.FluidMode.NONE,
                 null
         ));
-        final BlockRayTraceResult hitBA = world.rayTraceBlocks(new RayTraceContext(
+        final BlockRayTraceResult hitBA = world.clip(new RayTraceContext(
                 vb.subtract(ab),
                 va.add(ab),
                 RayTraceContext.BlockMode.COLLIDER,
@@ -413,10 +413,10 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     }
 
     private void onConnectedPositionsChanged() {
-        final World world = getWorld();
-        if (world != null && !world.isRemote()) {
+
+        if (level != null && !level.isClientSide) {
             final NetworkConnectorConnectionsMessage message = new NetworkConnectorConnectionsMessage(this);
-            final Chunk chunk = world.getChunkAt(getPos());
+            final Chunk chunk = level.getChunkAt(getBlockPos());
             Network.sendToClientsTrackingChunk(message, chunk);
         }
     }

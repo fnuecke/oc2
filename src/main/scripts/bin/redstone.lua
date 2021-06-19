@@ -31,13 +31,13 @@ if #args > 0 then
 	end
 	local value = args[2]
 	if value then 
-	if tonumber(value) then
-		value = tonumber(value)
-    else
-		value = ({["true"]=true,["on"]=true,["yes"]=true})[value] and 15 or 0
-    end
-    rs:setRedstoneOutput(side, value)
+		if tonumber(value) then
+			value = tonumber(value)
+		else
+			value = ({["true"]=true,["on"]=true,["yes"]=true})[value] and 15 or 0
+		end
+		rs:setRedstoneOutput(side, value)
 	end
-	io.write("in: " .. rs:getRedstoneInput(side) .. "\n")
-	io.write("out: " .. rs:getRedstoneOutput(side) .. "\n")
+	io.write("in: " .. math.ceil(rs:getRedstoneInput(side)) .. "\n")
+	io.write("out: " .. math.ceil(rs:getRedstoneOutput(side)) .. "\n")
 end

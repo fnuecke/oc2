@@ -22,6 +22,7 @@ public final class TileEntities {
     public static final RegistryObject<TileEntityType<ComputerTileEntity>> COMPUTER_TILE_ENTITY = register(Blocks.COMPUTER, ComputerTileEntity::new);
     public static final RegistryObject<TileEntityType<NetworkConnectorTileEntity>> NETWORK_CONNECTOR_TILE_ENTITY = register(Blocks.NETWORK_CONNECTOR, NetworkConnectorTileEntity::new);
     public static final RegistryObject<TileEntityType<NetworkHubTileEntity>> NETWORK_HUB_TILE_ENTITY = register(Blocks.NETWORK_HUB, NetworkHubTileEntity::new);
+    public static final RegistryObject<TileEntityType<NetworkSwitchTileEntity>> NETWORK_SWITCH_TILE_ENTITY = register(Blocks.NETWORK_SWITCH, NetworkSwitchTileEntity::new);
     public static final RegistryObject<TileEntityType<DiskDriveTileEntity>> DISK_DRIVE_TILE_ENTITY = register(Blocks.DISK_DRIVE, DiskDriveTileEntity::new);
     public static final RegistryObject<TileEntityType<ChargerTileEntity>> CHARGER_TILE_ENTITY = register(Blocks.CHARGER, ChargerTileEntity::new);
     public static final RegistryObject<TileEntityType<CreativeEnergyTileEntity>> CREATIVE_ENERGY_TILE_ENTITY = register(Blocks.CREATIVE_ENERGY, CreativeEnergyTileEntity::new);

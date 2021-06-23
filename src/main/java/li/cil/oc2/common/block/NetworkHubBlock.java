@@ -15,7 +15,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
-public final class NetworkHubBlock extends HorizontalBlock {
+public class NetworkHubBlock extends HorizontalBlock {
     public NetworkHubBlock() {
         super(Properties
                 .of(Material.METAL)

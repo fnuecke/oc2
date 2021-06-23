@@ -11,8 +11,8 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
 
-public final class NetworkHubTileEntity extends AbstractTileEntity implements NetworkInterface {
-    private static final int TTL_COST = 1;
+public class NetworkHubTileEntity extends AbstractTileEntity implements NetworkInterface {
+    protected static final int TTL_COST = 1;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -41,7 +41,7 @@ public final class NetworkHubTileEntity extends AbstractTileEntity implements Ne
         validateAdjacentInterfaces();
 
         for (int i = 0; i < adjacentInterfaces.length; i++) {
-            if (adjacentInterfaces[i] != null) {
+            if (adjacentInterfaces[i] != null && adjacentInterfaces[i] != source) {
                 adjacentInterfaces[i].writeEthernetFrame(this, frame, timeToLive - TTL_COST);
             }
         }
@@ -56,7 +56,7 @@ public final class NetworkHubTileEntity extends AbstractTileEntity implements Ne
 
     ///////////////////////////////////////////////////////////////////
 
-    private void validateAdjacentInterfaces() {
+    protected void validateAdjacentInterfaces() {
         if (!areAdjacentInterfacesDirty || isRemoved()) {
             return;
         }

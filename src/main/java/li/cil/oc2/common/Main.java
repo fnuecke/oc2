@@ -40,7 +40,7 @@ public final class Main {
         TileEntities.initialize();
         Entities.initialize();
         Containers.initialize();
-        RecipeSerializers.initialize();
+        //RecipeSerializers.initialize();
         SoundEvents.initialize();
 
         Providers.initialize();

@@ -30,7 +30,7 @@ def getGitRef() {
 
 final def semver = "${version_major}.${version_minor}.${version_patch}"
 
-String build_number = System.getenv("PROMOTED_NUMBER");
+String build_number = System.getenv("PROMOTED_NUMBER")
 if (build_number == null)
     build_number = System.getenv("BUILD_NUMBER")
 if (build_number == null)
@@ -105,7 +105,7 @@ minecraft {
         client {
             workingDirectory project.file('run')
 
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'info'
 
             mods {
@@ -118,7 +118,7 @@ minecraft {
         server {
             workingDirectory project.file('run')
 
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'info'
 
             mods {
@@ -131,7 +131,7 @@ minecraft {
         data {
             workingDirectory project.file('run')
 
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'info'
 
             args '--mod', 'oc2', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources')
@@ -168,7 +168,7 @@ jar {
 }
 
 task apiJar(type: Jar) {
-    classifier = 'api'
+    archiveClassifier.set('api')
     from sourceSets.main.allSource
     from sourceSets.main.output
     include 'li/cil/oc2/api/**'

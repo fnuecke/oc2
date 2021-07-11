@@ -1,19 +1,18 @@
 package li.cil.oc2.common.tileentity;
 
-import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
+import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.function.Supplier;
 
 public final class TileEntities {
-    private static final DeferredRegister<TileEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, API.MOD_ID);
+    private static final DeferredRegister<TileEntityType<?>> TILES = RegistryUtils.create(ForgeRegistries.TILE_ENTITIES);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -29,7 +28,6 @@ public final class TileEntities {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        TileEntities.TILES.register(FMLJavaModLoadingContext.get().getModEventBus());
     }
 
     ///////////////////////////////////////////////////////////////////

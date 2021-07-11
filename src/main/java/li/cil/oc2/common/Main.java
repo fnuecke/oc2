@@ -33,6 +33,8 @@ public final class Main {
         ConfigManager.add(Config::new);
         ConfigManager.initialize();
 
+        RegistryUtils.begin();
+
         ItemTags.initialize();
         BlockTags.initialize();
         Blocks.initialize();
@@ -47,6 +49,8 @@ public final class Main {
         DeviceTypes.initialize();
         BlockDeviceDataRegistration.initialize();
         Firmwares.initialize();
+
+        RegistryUtils.finish();
 
         FMLJavaModLoadingContext.get().getModEventBus().register(CommonSetup.class);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().register(ClientSetup.class));

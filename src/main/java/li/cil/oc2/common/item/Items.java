@@ -1,15 +1,14 @@
 package li.cil.oc2.common.item;
 
-import li.cil.oc2.api.API;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
 import li.cil.oc2.common.bus.device.data.Firmwares;
+import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.block.Block;
 import net.minecraft.item.DyeColor;
 import net.minecraft.item.Item;
 import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -17,7 +16,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class Items {
-    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, API.MOD_ID);
+    private static final DeferredRegister<Item> ITEMS = RegistryUtils.create(ForgeRegistries.ITEMS);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -75,7 +74,6 @@ public final class Items {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
     }
 
     ///////////////////////////////////////////////////////////////////

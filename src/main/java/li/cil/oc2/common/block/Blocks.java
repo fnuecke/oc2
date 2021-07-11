@@ -1,14 +1,13 @@
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.api.API;
+import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.block.Block;
 import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
 public final class Blocks {
-    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, API.MOD_ID);
+    private static final DeferredRegister<Block> BLOCKS = RegistryUtils.create(ForgeRegistries.BLOCKS);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -24,6 +23,5 @@ public final class Blocks {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
     }
 }

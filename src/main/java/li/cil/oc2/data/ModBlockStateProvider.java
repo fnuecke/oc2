@@ -3,7 +3,6 @@ package li.cil.oc2.data;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
-import li.cil.oc2.common.block.CreativeEnergyBlock;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.block.Block;
 import net.minecraft.data.DataGenerator;
@@ -162,8 +161,8 @@ public class ModBlockStateProvider extends BlockStateProvider {
         return itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }
 
-    private void simpleBlock(final RegistryObject<CreativeEnergyBlock> block, final RegistryObject<Item> item) {
-        simpleBlock(block.get());
+    private void simpleBlock(final RegistryObject<? extends Block> block, final RegistryObject<Item> item) {
+        simpleBlock((Block) block.get());
         itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }
 }

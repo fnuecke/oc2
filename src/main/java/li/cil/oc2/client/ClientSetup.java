@@ -38,10 +38,10 @@ public final class ClientSetup {
         CustomItemModelProperties.initialize();
         CustomItemColors.initialize();
 
-        ScreenManager.register(Containers.COMPUTER_CONTAINER.get(), ComputerInventoryScreen::new);
-        ScreenManager.register(Containers.COMPUTER_TERMINAL_CONTAINER.get(), ComputerTerminalScreen::new);
-        ScreenManager.register(Containers.ROBOT_CONTAINER.get(), RobotContainerScreen::new);
-        ScreenManager.register(Containers.ROBOT_TERMINAL_CONTAINER.get(), RobotTerminalScreen::new);
+        ScreenManager.register(Containers.COMPUTER.get(), ComputerInventoryScreen::new);
+        ScreenManager.register(Containers.COMPUTER_TERMINAL.get(), ComputerTerminalScreen::new);
+        ScreenManager.register(Containers.ROBOT.get(), RobotContainerScreen::new);
+        ScreenManager.register(Containers.ROBOT_TERMINAL.get(), RobotTerminalScreen::new);
 
         ClientRegistry.bindTileEntityRenderer(TileEntities.COMPUTER_TILE_ENTITY.get(), ComputerTileEntityRenderer::new);
         ClientRegistry.bindTileEntityRenderer(TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), NetworkConnectorTileEntityRenderer::new);

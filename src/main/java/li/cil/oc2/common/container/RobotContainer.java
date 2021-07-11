@@ -30,7 +30,7 @@ public final class RobotContainer extends AbstractContainer {
     ///////////////////////////////////////////////////////////////////
 
     public RobotContainer(final int id, final RobotEntity robot, final PlayerInventory playerInventory) {
-        super(Containers.ROBOT_CONTAINER.get(), id);
+        super(Containers.ROBOT.get(), id);
         this.robot = robot;
 
         final VMItemStackHandlers handlers = robot.getItemStackHandlers();

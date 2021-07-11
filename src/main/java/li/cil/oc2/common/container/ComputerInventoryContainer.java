@@ -31,7 +31,7 @@ public final class ComputerInventoryContainer extends AbstractContainer {
     ///////////////////////////////////////////////////////////////////
 
     public ComputerInventoryContainer(final int id, final ComputerTileEntity computer, final PlayerInventory playerInventory) {
-        super(Containers.COMPUTER_CONTAINER.get(), id);
+        super(Containers.COMPUTER.get(), id);
         this.computer = computer;
 
         final VMItemStackHandlers handlers = computer.getItemStackHandlers();

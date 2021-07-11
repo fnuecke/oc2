@@ -36,7 +36,7 @@ public final class RobotTerminalContainer extends AbstractContainer {
     ///////////////////////////////////////////////////////////////////
 
     public RobotTerminalContainer(final int id, final RobotEntity robot, final IIntArray energyInfo) {
-        super(Containers.ROBOT_TERMINAL_CONTAINER.get(), id);
+        super(Containers.ROBOT_TERMINAL.get(), id);
         this.robot = robot;
         this.energyInfo = energyInfo;
 

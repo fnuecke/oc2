@@ -36,7 +36,7 @@ public final class ComputerTerminalContainer extends AbstractContainer {
     ///////////////////////////////////////////////////////////////////
 
     public ComputerTerminalContainer(final int id, final PlayerEntity player, final ComputerTileEntity computer, final IIntArray energyInfo) {
-        super(Containers.COMPUTER_TERMINAL_CONTAINER.get(), id);
+        super(Containers.COMPUTER_TERMINAL.get(), id);
         this.computer = computer;
         this.energyInfo = energyInfo;
 

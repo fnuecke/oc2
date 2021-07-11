@@ -30,6 +30,8 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
+import java.util.Objects;
+
 public final class ClientSetup {
     @SubscribeEvent
     public static void handleSetupEvent(final FMLClientSetupEvent event) {
@@ -58,7 +60,7 @@ public final class ClientSetup {
 
     @SubscribeEvent
     public static void handleTextureStitchEvent(final TextureStitchEvent.Pre event) {
-        if (event.getMap().location() != PlayerContainer.BLOCK_ATLAS) {
+        if (!Objects.equals(event.getMap().location(), PlayerContainer.BLOCK_ATLAS)) {
             return;
         }
 

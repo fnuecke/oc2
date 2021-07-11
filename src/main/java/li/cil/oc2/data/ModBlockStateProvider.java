@@ -14,15 +14,26 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.fml.RegistryObject;
 
 public class ModBlockStateProvider extends BlockStateProvider {
+    private static final ResourceLocation CABLE_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_base");
+    private static final ResourceLocation CABLE_LINK_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_link");
+    private static final ResourceLocation CABLE_PLUG_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_plug");
+    private static final ResourceLocation CABLE_STRAIGHT_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_straight");
+    private static final ResourceLocation CHARGER_MODEL = new ResourceLocation(API.MOD_ID, "block/charger");
+    private static final ResourceLocation COMPUTER_MODEL = new ResourceLocation(API.MOD_ID, "block/computer");
+    private static final ResourceLocation DISK_DRIVE_MODEL = new ResourceLocation(API.MOD_ID, "block/disk_drive");
+    private static final ResourceLocation NETWORK_CONNECTOR_MODEL = new ResourceLocation(API.MOD_ID, "block/network_connector");
+    private static final ResourceLocation NETWORK_HUB_MODEL = new ResourceLocation(API.MOD_ID, "block/network_hub");
+    private static final ResourceLocation REDSTONE_INTERFACE_MODEL = new ResourceLocation(API.MOD_ID, "block/redstone_interface");
+
     public ModBlockStateProvider(final DataGenerator generator, final ExistingFileHelper existingFileHelper) {
         super(generator, API.MOD_ID, existingFileHelper);
     }
 
     @Override
     protected void registerStatesAndModels() {
-        horizontalBlock(Blocks.COMPUTER, Items.COMPUTER);
-        horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE);
-        horizontalFaceBlock(Blocks.NETWORK_CONNECTOR, Items.NETWORK_CONNECTOR)
+        horizontalBlock(Blocks.COMPUTER, Items.COMPUTER, COMPUTER_MODEL);
+        horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE, REDSTONE_INTERFACE_MODEL);
+        horizontalFaceBlock(Blocks.NETWORK_CONNECTOR, Items.NETWORK_CONNECTOR, NETWORK_CONNECTOR_MODEL)
                 .transforms()
                 .transform(ModelBuilder.Perspective.GUI)
                 .rotation(30, 315, 0)
@@ -35,19 +46,19 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 .scale(1, 1, 1)
                 .end()
                 .end();
-        horizontalBlock(Blocks.NETWORK_HUB, Items.NETWORK_HUB);
-        horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE);
-        horizontalBlock(Blocks.CHARGER, Items.CHARGER);
+        horizontalBlock(Blocks.NETWORK_HUB, Items.NETWORK_HUB, NETWORK_HUB_MODEL);
+        horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE, DISK_DRIVE_MODEL);
+        horizontalBlock(Blocks.CHARGER, Items.CHARGER, CHARGER_MODEL);
         simpleBlock(Blocks.CREATIVE_ENERGY, Items.CREATIVE_ENERGY);
 
         registerCableStates();
     }
 
     private void registerCableStates() {
-        final ModelFile baseModel = models().getExistingFile(new ResourceLocation(API.MOD_ID, "block/cable_base"));
-        final ModelFile linkModel = models().getExistingFile(new ResourceLocation(API.MOD_ID, "block/cable_link"));
-        final ModelFile plugModel = models().getExistingFile(new ResourceLocation(API.MOD_ID, "block/cable_plug"));
-        final ModelFile straightModel = models().getExistingFile(new ResourceLocation(API.MOD_ID, "block/cable_straight"));
+        final ModelFile baseModel = models().getExistingFile(CABLE_MODEL);
+        final ModelFile linkModel = models().getExistingFile(CABLE_LINK_MODEL);
+        final ModelFile plugModel = models().getExistingFile(CABLE_PLUG_MODEL);
+        final ModelFile straightModel = models().getExistingFile(CABLE_STRAIGHT_MODEL);
 
         final MultiPartBlockStateBuilder builder = getMultipartBuilder(Blocks.BUS_CABLE.get());
 
@@ -151,18 +162,18 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 .end();
     }
 
-    private <T extends Block> ItemModelBuilder horizontalBlock(final RegistryObject<T> block, final RegistryObject<Item> item) {
-        horizontalBlock(block.get(), models().getBuilder(block.getId().getPath()));
+    private <T extends Block> ItemModelBuilder horizontalBlock(final RegistryObject<T> block, final RegistryObject<Item> item, final ResourceLocation modelFileLocation) {
+        horizontalBlock(block.get(), models().getExistingFile(modelFileLocation));
         return itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }
 
-    private <T extends Block> ItemModelBuilder horizontalFaceBlock(final RegistryObject<T> block, final RegistryObject<Item> item) {
-        horizontalFaceBlock(block.get(), models().getBuilder(block.getId().getPath()));
+    private <T extends Block> ItemModelBuilder horizontalFaceBlock(final RegistryObject<T> block, final RegistryObject<Item> item, final ResourceLocation modelFileLocation) {
+        horizontalFaceBlock(block.get(), models().getExistingFile(modelFileLocation));
         return itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }
 
     private void simpleBlock(final RegistryObject<? extends Block> block, final RegistryObject<Item> item) {
-        simpleBlock((Block) block.get());
+        simpleBlock(block.get());
         itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }
 }

@@ -119,6 +119,13 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
                 .save(consumer);
 
+        WrenchRecipeBuilder
+                .wrenchRecipe(Items.MANUAL.get())
+                .requires(net.minecraft.item.Items.BOOK)
+                .unlockedBy("has_book", inventoryChange(net.minecraft.item.Items.BOOK))
+                .unlockedBy("has_wrench", inventoryChange(Items.WRENCH.get()))
+                .save(consumer);
+
 
         ShapedRecipeBuilder
                 .shaped(Items.NETWORK_CABLE.get(), 8)

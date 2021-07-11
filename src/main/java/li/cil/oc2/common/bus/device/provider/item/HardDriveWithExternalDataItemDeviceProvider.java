@@ -12,7 +12,6 @@ import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.item.HardDriveWithExternalDataItem;
 import li.cil.oc2.common.util.LocationSupplierUtils;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.MathHelper;
 
 import java.util.Optional;
 
@@ -49,7 +48,7 @@ public final class HardDriveWithExternalDataItemDeviceProvider extends AbstractI
             return 0;
         }
 
-        final long capacity = MathHelper.clamp(data.getBlockDevice().getCapacity(), 0, Config.maxHardDriveSize);
+        final long capacity = Math.min(data.getBlockDevice().getCapacity(), Math.max(0, Config.maxHardDriveSize));
         return Math.max(1, (int) Math.round(capacity * Config.hardDriveEnergyPerMegabytePerTick / Constants.MEGABYTE));
     }
 }

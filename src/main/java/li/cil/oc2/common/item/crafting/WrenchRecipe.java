@@ -37,10 +37,12 @@ public final class WrenchRecipe extends ShapelessRecipe {
 
     @Override
     public IRecipeSerializer<?> getSerializer() {
-        return new Serializer();
+        return Serializer.INSTANCE;
     }
 
     public static final class Serializer extends ForgeRegistryEntry<IRecipeSerializer<?>> implements IRecipeSerializer<WrenchRecipe> {
+        public static final Serializer INSTANCE = new Serializer();
+
         @Override
         public WrenchRecipe fromJson(final ResourceLocation location, final JsonObject json) {
             return new WrenchRecipe(SHAPELESS_RECIPE.fromJson(location, json));

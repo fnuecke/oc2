@@ -17,6 +17,8 @@
 
   "item.oc2.wrench": "Scrench",
   "item.oc2.wrench.desc": "Used to configure devices and to dismantle them (while sneaking).",
+  "item.oc2.manual": "Manual",
+  "item.oc2.manual.desc": "Obtain by using a book on a computer casing in the world.",
   "item.oc2.bus_interface": "Bus Interface",
   "item.oc2.bus_interface.desc": "Used to attach Bus Cables to external devices.",
   "item.oc2.network_cable": "Network Cable",
@@ -65,6 +67,10 @@
   "gui.oc2.file_chooser.confirm_button.save": "Save",
   "gui.oc2.file_chooser.confirm_button.overwrite": "Overwrite",
   "gui.oc2.file_chooser.cancel_button": "Cancel",
+
+  "manual.oc2.home": "Home",
+  "manual.oc2.blocks": "Blocks",
+  "manual.oc2.items": "Items",
 
   "message.oc2.connector.error.full": "Cannot attach more cables.",
   "message.oc2.connector.error.too_far": "Distance between connectors is too large.",

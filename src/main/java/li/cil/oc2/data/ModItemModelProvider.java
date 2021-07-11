@@ -19,6 +19,7 @@ public final class ModItemModelProvider extends ItemModelProvider {
     @Override
     protected void registerModels() {
         simple(Items.WRENCH);
+        simple(Items.MANUAL);
 
         simple(Items.NETWORK_CABLE);
 

@@ -33,6 +33,7 @@ public final class Items {
     ///////////////////////////////////////////////////////////////////
 
     public static final RegistryObject<Item> WRENCH = register("wrench", WrenchItem::new);
+    public static final RegistryObject<Item> MANUAL = register("manual", ManualItem::new);
 
     public static final RegistryObject<NetworkCableItem> NETWORK_CABLE = register("network_cable", NetworkCableItem::new);
     public static final RegistryObject<Item> ROBOT = register("robot", RobotItem::new);

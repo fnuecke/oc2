@@ -60,6 +60,9 @@ dependencies {
     implementation 'li.cil.sedna:sedna:0.0.1+99'
     implementation 'li.cil.sedna:sedna-buildroot:0.0.1+15'
 
+    compileOnly fg.deobf("li.cil.markdown_manual:MarkdownManual:MC${minecraft_version}-Forge-${manual_version}:api")
+    runtimeOnly fg.deobf("li.cil.markdown_manual:MarkdownManual:MC${minecraft_version}-Forge-${manual_version}")
+
     compileOnly fg.deobf("mezz.jei:jei-${jei_minecraft_version}:${jei_version}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${jei_minecraft_version}:${jei_version}")
 
@@ -89,7 +92,8 @@ processResources {
                 'mod_issues_url'       : mod_issues_url,
                 'forge_version_min'    : forge_version_min,
                 'minecraft_version_min': minecraft_version_min,
-                'oc2_sedna_version_min': oc2_sedna_version_min
+                'oc2_sedna_version_min': oc2_sedna_version_min,
+                'manual_version_min'   : manual_version,
         ])
     }
 }
@@ -142,11 +146,9 @@ minecraft {
 }
 
 task copyGeneratedResources(type: Copy) {
-    dependsOn { runData }
     from "src/generated"
     into "src/main"
     exclude "resources/.cache"
-    exclude "resources/assets/oc2/models/block"
 }
 
 jar {
@@ -179,6 +181,7 @@ artifacts {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            version "MC${minecraft_version}-Forge-${version}"
             artifact jar
             artifact apiJar
         }

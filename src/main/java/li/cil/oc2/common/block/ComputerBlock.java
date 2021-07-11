@@ -181,7 +181,7 @@ public final class ComputerBlock extends HorizontalBlock {
             }
         }
 
-        return world.isClientSide ? ActionResultType.SUCCESS : ActionResultType.CONSUME;
+        return ActionResultType.sidedSuccess(world.isClientSide());
     }
 
     @Override

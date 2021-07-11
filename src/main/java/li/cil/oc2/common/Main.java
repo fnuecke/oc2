@@ -35,8 +35,8 @@ public final class Main {
 
         ItemTags.initialize();
         BlockTags.initialize();
-        Items.initialize();
         Blocks.initialize();
+        Items.initialize();
         TileEntities.initialize();
         Entities.initialize();
         Containers.initialize();

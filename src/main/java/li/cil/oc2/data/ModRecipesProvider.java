@@ -10,8 +10,8 @@ import net.minecraftforge.common.Tags;
 import java.util.function.Consumer;
 
 public final class ModRecipesProvider extends RecipeProvider {
-    public ModRecipesProvider(final DataGenerator generatorIn) {
-        super(generatorIn);
+    public ModRecipesProvider(final DataGenerator generator) {
+        super(generator);
     }
 
     @Override

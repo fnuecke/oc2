@@ -20,7 +20,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final float MOVEMENT_SPEED = 1f / Constants.TICK_SECONDS; // In blocks per second.
+    private static final float MOVEMENT_SPEED = 1f / Constants.SECONDS_TO_TICKS; // block / sec -> block / tick.
 
     private static final String DIRECTION_TAG_NAME = "direction";
     private static final String ORIGIN_TAG_NAME = "origin";

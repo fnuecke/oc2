@@ -39,7 +39,7 @@ import java.util.List;
 public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice {
     private static final String LAST_OPERATION_TAG_NAME = "cooldown";
 
-    private static final int COOLDOWN = Constants.TICK_SECONDS;
+    private static final int COOLDOWN = Constants.SECONDS_TO_TICKS;
 
     ///////////////////////////////////////////////////////////////////
 

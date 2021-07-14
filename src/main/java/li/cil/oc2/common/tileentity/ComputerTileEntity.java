@@ -66,7 +66,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final int FLASH_MEMORY_SLOTS = 1;
     private static final int CARD_SLOTS = 4;
 
-    private static final int MAX_RUNNING_SOUND_DELAY = Constants.TICK_SECONDS * 2;
+    private static final int MAX_RUNNING_SOUND_DELAY = Constants.SECONDS_TO_TICKS * 2;
 
     ///////////////////////////////////////////////////////////////////
 

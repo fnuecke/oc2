@@ -36,7 +36,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     public static final String RUN_STATE_TAG_NAME = "runState";
     public static final String BOOT_ERROR_TAG_NAME = "bootError";
 
-    private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * Constants.TICK_SECONDS;
+    private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * Constants.SECONDS_TO_TICKS;
 
     ///////////////////////////////////////////////////////////////////
 

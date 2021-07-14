@@ -47,12 +47,11 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     private static final String CONNECTIONS_TAG_NAME = "connections";
     private static final String IS_OWNER_TAG_NAME = "is_owner";
 
-    private static final int RETRY_UNLOADED_CHUNK_INTERVAL = 5 * Constants.TICK_SECONDS;
+    private static final int RETRY_UNLOADED_CHUNK_INTERVAL = 5 * Constants.SECONDS_TO_TICKS;
     private static final int MAX_CONNECTION_COUNT = 2;
     private static final int MAX_CONNECTION_DISTANCE = 16;
     private static final int INITIAL_PACKET_TIME_TO_LIVE = 12;
-    private static final int BYTES_PER_SECOND = 64 * 1024;
-    private static final int BYTES_PER_TICK = BYTES_PER_SECOND / Constants.TICK_SECONDS;
+    private static final int BYTES_PER_TICK = 64 * 1024 / Constants.SECONDS_TO_TICKS; // bytes / sec -> bytes / tick
     private static final int MIN_ETHERNET_FRAME_SIZE = 42;
     private static final int TTL_COST = 1;
 

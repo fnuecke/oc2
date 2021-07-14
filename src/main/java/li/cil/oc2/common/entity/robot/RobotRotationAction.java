@@ -15,7 +15,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final float ROTATION_SPEED = 90f / Constants.TICK_SECONDS; // In degrees per second.
+    private static final float ROTATION_SPEED = 90f / Constants.SECONDS_TO_TICKS; // degrees / sec -> degrees / tick
 
     private static final String DIRECTION_TAG_NAME = "direction";
     private static final String TARGET_TAG_NAME = "start";

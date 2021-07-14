@@ -14,6 +14,7 @@ import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.container.FixedSizeItemStackHandler;
 import li.cil.oc2.common.container.RobotContainer;
 import li.cil.oc2.common.container.RobotTerminalContainer;
@@ -758,6 +759,11 @@ public final class RobotEntity extends Entity implements Robot {
         @Override
         protected ItemDeviceQuery getDeviceQuery(final ItemStack stack) {
             return Devices.makeQuery(RobotEntity.this, stack);
+        }
+
+        @Override
+        protected void onContentsChanged(final DeviceItemStackHandler itemHandler, final int slot) {
+            virtualMachine.busController.scheduleBusScan();
         }
     }
 

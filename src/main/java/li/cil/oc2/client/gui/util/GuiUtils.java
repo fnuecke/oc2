@@ -61,7 +61,7 @@ public final class GuiUtils {
     }
 
     public static <TContainer extends Container> void renderMissingDeviceInfoTooltip(final MatrixStack matrixStack, final ContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final ITextComponent tooltip) {
-        final boolean isCursorHoldingStack = !screen.getMinecraft().player.inventory.items.isEmpty();
+        final boolean isCursorHoldingStack = !screen.getMinecraft().player.inventory.getCarried().isEmpty();
         if (isCursorHoldingStack) {
             return;
         }

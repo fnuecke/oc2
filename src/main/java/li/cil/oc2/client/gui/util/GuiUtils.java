@@ -3,19 +3,35 @@ package li.cil.oc2.client.gui.util;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.DeviceType;
+import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.container.TypedSlotItemHandler;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public final class GuiUtils {
     public static final ResourceLocation WARN_ICON = new ResourceLocation(API.MOD_ID, "textures/gui/overlay/slot_warn.png");
     public static final ResourceLocation INFO_ICON = new ResourceLocation(API.MOD_ID, "textures/gui/overlay/slot_info.png");
+
+    private static final Map<DeviceType, ITextComponent> WARNING_BY_DEVICE_TYPE = Util.make(() -> {
+        final HashMap<DeviceType, ITextComponent> map = new HashMap<>();
+
+        map.put(DeviceTypes.FLASH_MEMORY, new TranslationTextComponent("tooltip.oc2.flash_memory_missing"));
+        map.put(DeviceTypes.MEMORY, new TranslationTextComponent("tooltip.oc2.memory_missing"));
+        map.put(DeviceTypes.HARD_DRIVE, new TranslationTextComponent("tooltip.oc2.hard_drive_missing"));
+
+        return map;
+    });
 
     private static final int SLOT_SIZE = 18;
     private static final int DEVICE_INFO_ICON_SIZE = 28;
@@ -37,6 +53,10 @@ public final class GuiUtils {
                     DEVICE_INFO_ICON_SIZE,
                     DEVICE_INFO_ICON_SIZE);
         });
+    }
+
+    public static <TContainer extends Container> void renderMissingDeviceInfoTooltip(final MatrixStack matrixStack, final ContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type) {
+        renderMissingDeviceInfoTooltip(matrixStack, screen, mouseX, mouseY, type, Objects.requireNonNull(WARNING_BY_DEVICE_TYPE.get(type)));
     }
 
     public static <TContainer extends Container> void renderMissingDeviceInfoTooltip(final MatrixStack matrixStack, final ContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final ITextComponent tooltip) {

@@ -11,6 +11,8 @@ buildscript {
 plugins {
     id 'eclipse'
     id 'maven-publish'
+    id 'idea'
+    id 'com.matthewprenger.cursegradle' version '1.4.0'
 }
 
 apply plugin: 'net.minecraftforge.gradle'
@@ -189,6 +191,14 @@ publishing {
     repositories {
         maven {
             url System.getenv("MAVEN_PATH")
+        }
+    }
+}
+
+idea {
+    module {
+        for (final String exclude in ['.github', 'assets', 'gradle', 'run', 'out', 'logs', 'src/generated']) {
+            excludeDirs += file(exclude)
         }
     }
 }

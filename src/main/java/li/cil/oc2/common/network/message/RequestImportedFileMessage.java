@@ -16,9 +16,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
+import static li.cil.oc2.common.util.TranslationUtils.text;
+
 public final class RequestImportedFileMessage {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final TranslationTextComponent FILE_TOO_LARGE_TEXT = new TranslationTextComponent("message.oc2.import_file.file_too_large");
+    private static final TranslationTextComponent FILE_TOO_LARGE_TEXT = text("message.{mod}.import_file.file_too_large");
 
     ///////////////////////////////////////////////////////////////////
 

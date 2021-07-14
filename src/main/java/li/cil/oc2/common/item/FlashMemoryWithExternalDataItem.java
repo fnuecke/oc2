@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.ResourceLocationException;
 import net.minecraft.util.StringUtils;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
@@ -18,6 +19,7 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
     ///////////////////////////////////////////////////////////////////
 
     private final ResourceLocation defaultData;
+    @Nullable private String descriptionId;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -84,6 +86,9 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
 
     @Override
     protected String getOrCreateDescriptionId() {
-        return "item.oc2.flash_memory";
+        if (descriptionId == null) {
+            descriptionId = Util.makeDescriptionId("item", Items.FLASH_MEMORY.getId());
+        }
+        return descriptionId;
     }
 }

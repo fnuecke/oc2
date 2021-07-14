@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static li.cil.oc2.common.util.TranslationUtils.text;
+
 public final class GuiUtils {
     public static final ResourceLocation WARN_ICON = new ResourceLocation(API.MOD_ID, "textures/gui/overlay/slot_warn.png");
     public static final ResourceLocation INFO_ICON = new ResourceLocation(API.MOD_ID, "textures/gui/overlay/slot_info.png");
@@ -26,9 +28,9 @@ public final class GuiUtils {
     private static final Map<DeviceType, ITextComponent> WARNING_BY_DEVICE_TYPE = Util.make(() -> {
         final HashMap<DeviceType, ITextComponent> map = new HashMap<>();
 
-        map.put(DeviceTypes.FLASH_MEMORY, new TranslationTextComponent("tooltip.oc2.flash_memory_missing"));
-        map.put(DeviceTypes.MEMORY, new TranslationTextComponent("tooltip.oc2.memory_missing"));
-        map.put(DeviceTypes.HARD_DRIVE, new TranslationTextComponent("tooltip.oc2.hard_drive_missing"));
+        map.put(DeviceTypes.FLASH_MEMORY, text("tooltip.{mod}.flash_memory_missing"));
+        map.put(DeviceTypes.MEMORY, text("tooltip.{mod}.memory_missing"));
+        map.put(DeviceTypes.HARD_DRIVE, text("tooltip.{mod}.hard_drive_missing"));
 
         return map;
     });

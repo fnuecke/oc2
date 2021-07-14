@@ -5,12 +5,13 @@ import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.common.bus.device.util.DeviceTypeImpl;
 import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryBuilder;
 
 import java.util.function.Supplier;
+
+import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class DeviceTypes {
     private static final DeferredRegister<DeviceType> DEVICE_TYPES = RegistryUtils.create(DeviceType.class);
@@ -35,7 +36,7 @@ public final class DeviceTypes {
     private static void register(final String name) {
         DEVICE_TYPES.register(name, () -> new DeviceTypeImpl(
                 new ResourceLocation(API.MOD_ID, "gui/icon/" + name),
-                new TranslationTextComponent("gui.oc2.device_type." + name)
+                text("gui.{mod}.device_type." + name)
         ));
     }
 }

@@ -1,6 +1,7 @@
 package li.cil.oc2.common.serialization;
 
 import com.google.common.collect.HashMultimap;
+import li.cil.oc2.api.API;
 import li.cil.oc2.common.Constants;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.storage.FolderName;
@@ -32,7 +33,7 @@ public final class BlobStorage {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final FolderName BLOBS_FOLDER_NAME = new FolderName("oc2-blobs");
+    private static final FolderName BLOBS_FOLDER_NAME = new FolderName(API.MOD_ID + "-blobs");
 
     private static final HashMultimap<UUID, Future<Void>> WRITE_HANDLES = HashMultimap.create();
     private static final HashMultimap<UUID, Future<Void>> READ_HANDLES = HashMultimap.create();

@@ -18,6 +18,8 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.lwjgl.glfw.GLFW;
 
+import static li.cil.oc2.common.util.TranslationUtils.text;
+
 public final class BusInterfaceScreen extends Screen {
     private static final ResourceLocation BACKGROUND_LOCATION = new ResourceLocation(API.MOD_ID, "textures/gui/screen/bus_interface.png");
 
@@ -60,7 +62,7 @@ public final class BusInterfaceScreen extends Screen {
         left = (width - BACKGROUND.width) / 2;
         top = (height - BACKGROUND.height) / 2;
 
-        nameField = new TextFieldWidget(font, left + TEXT_LEFT, top + TEXT_TOP, 192, 12, new TranslationTextComponent("oc2.gui.bus_interface_name"));
+        nameField = new TextFieldWidget(font, left + TEXT_LEFT, top + TEXT_TOP, 192, 12, text("{mod}.gui.bus_interface_name"));
         nameField.setCanLoseFocus(false);
         nameField.setTextColor(0xFFFFFFFF);
         nameField.setBordered(false);

@@ -5,10 +5,13 @@ import li.cil.oc2.common.bus.device.item.ByteBufferFlashMemoryVMDevice;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Util;
 
 import javax.annotation.Nullable;
 
 public final class FlashMemoryItem extends AbstractStorageItem {
+    @Nullable private String descriptionId;
+
     public FlashMemoryItem(final int defaultCapacity) {
         super(createProperties().stacksTo(1), defaultCapacity);
     }
@@ -29,6 +32,9 @@ public final class FlashMemoryItem extends AbstractStorageItem {
 
     @Override
     protected String getOrCreateDescriptionId() {
-        return "item.oc2.flash_memory";
+        if (descriptionId == null) {
+            descriptionId = Util.makeDescriptionId("item", Items.FLASH_MEMORY.getId());
+        }
+        return descriptionId;
     }
 }

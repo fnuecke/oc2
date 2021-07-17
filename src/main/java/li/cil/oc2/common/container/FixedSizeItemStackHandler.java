@@ -24,6 +24,15 @@ public class FixedSizeItemStackHandler extends ItemStackHandler {
 
     ///////////////////////////////////////////////////////////////////
 
+    public boolean isEmpty() {
+        for (int slot = 0; slot < getSlots(); slot++) {
+            if (!getStackInSlot(slot).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public void deserializeNBT(final CompoundNBT tag) {
         // Our size is fixed, don't trust NBT data we're loading.

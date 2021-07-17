@@ -8,7 +8,6 @@ import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.client.audio.LoopingSoundManager;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusController;
@@ -52,11 +51,11 @@ import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
-import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
+import static li.cil.oc2.common.Constants.*;
 
 public final class ComputerTileEntity extends AbstractTileEntity implements ITickableTileEntity, TerminalUserProvider {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
+    private static final String DEVICES_TAG_NAME = "devices";
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String STATE_TAG_NAME = "state";
     private static final String ENERGY_TAG_NAME = "energy";
@@ -66,7 +65,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final int FLASH_MEMORY_SLOTS = 1;
     private static final int CARD_SLOTS = 4;
 
-    private static final int MAX_RUNNING_SOUND_DELAY = Constants.SECONDS_TO_TICKS * 2;
+    private static final int MAX_RUNNING_SOUND_DELAY = SECONDS_TO_TICKS * 2;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -276,7 +275,8 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         tag.put(STATE_TAG_NAME, virtualMachine.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
-        tag.put(Constants.ITEMS_TAG_NAME, deviceItems.serialize());
+        tag.put(ITEMS_TAG_NAME, deviceItems.saveItems());
+        tag.put(DEVICES_TAG_NAME, deviceItems.saveDevices());
 
         return tag;
     }
@@ -293,11 +293,12 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             NBTSerialization.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME), busElement);
         }
 
-        deviceItems.deserialize(tag.getCompound(Constants.ITEMS_TAG_NAME));
+        deviceItems.loadItems(tag.getCompound(ITEMS_TAG_NAME));
+        deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        deviceItems.serialize(NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME));
+        deviceItems.saveItems(NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME));
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -104,7 +104,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     @Override
     public CompoundNBT save(CompoundNBT tag) {
         tag = super.save(tag);
-        tag.put(BUS_ELEMENT_TAG_NAME, busElement.serializeNBT());
+        tag.put(BUS_ELEMENT_TAG_NAME, busElement.save());
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
 
         return tag;
@@ -113,7 +113,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     @Override
     public void load(final BlockState state, final CompoundNBT tag) {
         super.load(state, tag);
-        busElement.deserializeNBT(tag.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
+        busElement.load(tag.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
     }
 

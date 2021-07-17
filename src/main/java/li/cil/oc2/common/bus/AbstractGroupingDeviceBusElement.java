@@ -6,12 +6,11 @@ import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
-import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import java.util.*;
 
-public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeRegistryEntry<TProvider>, TDeviceInfo extends AbstractDeviceInfo<TProvider, ?>> extends AbstractDeviceBusElement implements INBTSerializable<ListNBT> {
+public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeRegistryEntry<TProvider>, TDeviceInfo extends AbstractDeviceInfo<TProvider, ?>> extends AbstractDeviceBusElement {
     private static final String GROUP_ID_TAG_NAME = "groupId";
     private static final String GROUP_DATA_TAG_NAME = "groupData";
 
@@ -46,11 +45,10 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         return groups.get(index);
     }
 
-    @Override
-    public ListNBT serializeNBT() {
+    public ListNBT save() {
         final ListNBT listTag = new ListNBT();
         for (int i = 0; i < groupCount; i++) {
-            serializeDevices(i);
+            saveGroup(i);
 
             final CompoundNBT sideTag = new CompoundNBT();
 
@@ -62,8 +60,7 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         return listTag;
     }
 
-    @Override
-    public void deserializeNBT(final ListNBT nbt) {
+    public void load(final ListNBT nbt) {
         final int count = Math.min(groupCount, nbt.size());
         for (int i = 0; i < count; i++) {
             final CompoundNBT sideTag = nbt.getCompound(i);
@@ -130,7 +127,7 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
 
     ///////////////////////////////////////////////////////////////////
 
-    private void serializeDevices(final int index) {
+    private void saveGroup(final int index) {
         final CompoundNBT devicesTag = new CompoundNBT();
         for (final TDeviceInfo deviceInfo : groups.get(index)) {
             ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(key -> {

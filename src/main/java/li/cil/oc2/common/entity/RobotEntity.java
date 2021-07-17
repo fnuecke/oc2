@@ -9,7 +9,6 @@ import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
@@ -90,6 +89,7 @@ public final class RobotEntity extends Entity implements Robot {
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String STATE_TAG_NAME = "state";
     private static final String BUS_ELEMENT_TAG_NAME = "bus_element";
+    private static final String DEVICES_TAG_NAME = "devices";
     private static final String COMMAND_PROCESSOR_TAG_NAME = "commands";
     private static final String INVENTORY_TAG_NAME = "inventory";
     private static final String SELECTED_SLOT_TAG_NAME = "selected_slot";
@@ -353,8 +353,8 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        final CompoundNBT itemsTag = NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME, Constants.ITEMS_TAG_NAME);
-        deviceItems.serialize(itemsTag); // Puts one tag per device type, as expected by TooltipUtils.
+        final CompoundNBT itemsTag = NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME, ITEMS_TAG_NAME);
+        deviceItems.saveItems(itemsTag); // Puts one tag per device type, as expected by TooltipUtils.
         itemsTag.put(INVENTORY_TAG_NAME, inventory.serializeNBT()); // Won't show up in tooltip.
 
         NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME)
@@ -363,7 +363,7 @@ public final class RobotEntity extends Entity implements Robot {
 
     public void importFromItemStack(final ItemStack stack) {
         final CompoundNBT itemsTag = NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ITEMS_TAG_NAME);
-        deviceItems.deserialize(itemsTag);
+        deviceItems.loadItems(itemsTag);
         inventory.deserializeNBT(itemsTag.getCompound(INVENTORY_TAG_NAME));
 
         energy.deserializeNBT(NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ENERGY_TAG_NAME));
@@ -385,7 +385,8 @@ public final class RobotEntity extends Entity implements Robot {
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(COMMAND_PROCESSOR_TAG_NAME, actionProcessor.serialize());
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.serialize());
-        tag.put(Constants.ITEMS_TAG_NAME, deviceItems.serialize());
+        tag.put(ITEMS_TAG_NAME, deviceItems.saveItems());
+        tag.put(DEVICES_TAG_NAME, deviceItems.saveDevices());
         tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
         tag.put(INVENTORY_TAG_NAME, inventory.serializeNBT());
         tag.putByte(SELECTED_SLOT_TAG_NAME, getEntityData().get(SELECTED_SLOT));
@@ -397,7 +398,8 @@ public final class RobotEntity extends Entity implements Robot {
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
         actionProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
         busElement.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME));
-        deviceItems.deserialize(tag.getCompound(Constants.ITEMS_TAG_NAME));
+        deviceItems.loadItems(tag.getCompound(ITEMS_TAG_NAME));
+        deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
         energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
         inventory.deserializeNBT(tag.getCompound(INVENTORY_TAG_NAME));
         setSelectedSlot(tag.getByte(SELECTED_SLOT_TAG_NAME));

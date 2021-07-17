@@ -223,20 +223,20 @@ public final class BusCableBlock extends Block {
             if (player.isShiftKeyDown()) {
                 if (busCableTileEntity.hasFacade()) {
                     busCableTileEntity.removeFacade();
-                    return ActionResultType.sidedSuccess(world.isClientSide);
+                    return ActionResultType.sidedSuccess(world.isClientSide());
                 } else {
                     // NB: leave wrenching logic up to wrench when the to-be-removed interface is the last
                     //     part of this bus. This ensures we properly remove the block itself without having
                     //     to duplicate the logic needed for that.
                     if (getPartCount(state) > 1 && (tryRemovePlug(state, world, pos, player, hit) || tryRemoveCable(state, world, pos, player))) {
-                        return ActionResultType.sidedSuccess(world.isClientSide);
+                        return ActionResultType.sidedSuccess(world.isClientSide());
                     }
                 }
             } else {
                 final Direction side = getHitSide(pos, hit);
                 if (getConnectionType(state, side) == ConnectionType.INTERFACE) {
                     openBusInterfaceScreen(busCableTileEntity, side);
-                    return ActionResultType.sidedSuccess(world.isClientSide);
+                    return ActionResultType.sidedSuccess(world.isClientSide());
                 }
             }
         } else if (getInterfaceCount(state) == 0 && !player.isShiftKeyDown()) {
@@ -247,7 +247,7 @@ public final class BusCableBlock extends Block {
                 }
 
                 // Always return success (even on failure) to avoid accidentally placing blocks.
-                return ActionResultType.sidedSuccess(world.isClientSide);
+                return ActionResultType.sidedSuccess(world.isClientSide());
             }
         }
 

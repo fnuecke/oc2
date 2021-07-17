@@ -87,6 +87,6 @@ public final class RobotItem extends ModItem {
 
         context.getPlayer().awardStat(Stats.ITEM_USED.get(this));
 
-        return ActionResultType.SUCCESS;
+        return ActionResultType.sidedSuccess(world.isClientSide());
     }
 }

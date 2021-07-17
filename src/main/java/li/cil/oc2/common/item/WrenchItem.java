@@ -33,7 +33,7 @@ public final class WrenchItem extends ModItem {
             ((ServerPlayerEntity) player).gameMode.destroyBlock(pos);
         }
 
-        return ActionResultType.sidedSuccess(world.isClientSide);
+        return ActionResultType.sidedSuccess(world.isClientSide());
     }
 
     @Override

@@ -101,6 +101,6 @@ public final class NetworkCableItem extends ModItem {
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return ActionResultType.sidedSuccess(world.isClientSide());
     }
 }

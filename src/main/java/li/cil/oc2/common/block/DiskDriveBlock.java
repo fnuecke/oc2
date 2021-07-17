@@ -54,20 +54,18 @@ public final class DiskDriveBlock extends HorizontalBlock {
             return super.use(state, world, pos, player, hand, hit);
         }
 
-        if (world.isClientSide) {
-            return ActionResultType.SUCCESS;
+        if (!world.isClientSide()) {
+            final DiskDriveTileEntity diskDrive = (DiskDriveTileEntity) tileEntity;
+            final ItemStack stack = player.getItemInHand(hand);
+
+            if (player.isShiftKeyDown()) {
+                diskDrive.eject();
+            } else {
+                player.setItemInHand(hand, diskDrive.insert(stack));
+            }
         }
 
-        final DiskDriveTileEntity diskDrive = (DiskDriveTileEntity) tileEntity;
-        final ItemStack stack = player.getItemInHand(hand);
-
-        if (player.isShiftKeyDown()) {
-            diskDrive.eject();
-        } else {
-            player.setItemInHand(hand, diskDrive.insert(stack));
-        }
-
-        return ActionResultType.CONSUME;
+        return ActionResultType.sidedSuccess(world.isClientSide());
     }
 
     ///////////////////////////////////////////////////////////////////

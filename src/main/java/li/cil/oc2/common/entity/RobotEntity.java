@@ -310,7 +310,7 @@ public final class RobotEntity extends Entity implements Robot {
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return ActionResultType.sidedSuccess(level.isClientSide());
     }
 
     @Override

@@ -57,23 +57,23 @@ public final class BusCableItem extends ModBlockItem {
         final BlockPos pos = context.getClickedPos();
         final BlockState state = world.getBlockState(pos);
 
-        if (BusCableBlock.addCable(world, pos, state)) {
-            final PlayerEntity player = context.getPlayer();
-            final ItemStack stack = context.getItemInHand();
-
-            if (player instanceof ServerPlayerEntity) {
-                CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayerEntity) player, pos, stack);
-            }
-
-            WorldUtils.playSound(world, pos, state.getSoundType(world, pos, player), SoundType::getPlaceSound);
-
-            if (player == null || !player.abilities.instabuild) {
-                stack.shrink(1);
-            }
-
-            return ActionResultType.sidedSuccess(world.isClientSide);
+        if (!BusCableBlock.addCable(world, pos, state)) {
+            return ActionResultType.PASS;
         }
 
-        return ActionResultType.PASS;
+        final PlayerEntity player = context.getPlayer();
+        final ItemStack stack = context.getItemInHand();
+
+        if (player instanceof ServerPlayerEntity) {
+            CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayerEntity) player, pos, stack);
+        }
+
+        WorldUtils.playSound(world, pos, state.getSoundType(world, pos, player), SoundType::getPlaceSound);
+
+        if (player == null || !player.abilities.instabuild) {
+            stack.shrink(1);
+        }
+
+        return ActionResultType.sidedSuccess(world.isClientSide());
     }
 }

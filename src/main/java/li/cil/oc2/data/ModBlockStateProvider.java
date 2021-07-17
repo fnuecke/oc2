@@ -63,12 +63,11 @@ public class ModBlockStateProvider extends BlockStateProvider {
         final MultiPartBlockStateBuilder builder = getMultipartBuilder(Blocks.BUS_CABLE.get());
 
         // NB: We use a custom model loader + baked model to replace the base part with straight parts and
-        //     insert supports where appropriate.
+        //     insert supports where appropriate, as well as for replacing it with a facade block model.
 
         builder.part()
                 .modelFile(baseModel)
                 .addModel()
-                .condition(BusCableBlock.HAS_CABLE, true)
                 .end();
 
         BusCableBlock.FACING_TO_CONNECTION_MAP.forEach((direction, connectionType) -> {
@@ -88,6 +87,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                     .rotationX(rotationX)
                     .addModel()
                     .condition(connectionType, BusCableBlock.ConnectionType.CABLE)
+                    .condition(BusCableBlock.HAS_FACADE, false)
                     .end();
 
             builder.part()
@@ -96,6 +96,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
                     .rotationX(rotationX)
                     .addModel()
                     .condition(connectionType, BusCableBlock.ConnectionType.INTERFACE)
+                    .condition(BusCableBlock.HAS_FACADE, false)
                     .end();
         });
 

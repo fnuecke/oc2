@@ -1,7 +1,6 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.WorldUtils;
@@ -53,14 +52,12 @@ public final class BusCableItem extends ModBlockItem {
 
     ///////////////////////////////////////////////////////////////////
 
-    private ActionResultType tryAddToBlock(final ItemUseContext context) {
-        final BusCableBlock busCableBlock = Blocks.BUS_CABLE.get();
-
+    private static ActionResultType tryAddToBlock(final ItemUseContext context) {
         final World world = context.getLevel();
         final BlockPos pos = context.getClickedPos();
         final BlockState state = world.getBlockState(pos);
 
-        if (state.getBlock() == busCableBlock && busCableBlock.addCable(world, pos, state)) {
+        if (BusCableBlock.addCable(world, pos, state)) {
             final PlayerEntity player = context.getPlayer();
             final ItemStack stack = context.getItemInHand();
 

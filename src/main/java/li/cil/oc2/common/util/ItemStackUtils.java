@@ -1,5 +1,7 @@
 package li.cil.oc2.common.util;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -21,6 +23,20 @@ public final class ItemStackUtils {
 
     public static CompoundNBT getOrCreateModDataTag(final ItemStack stack) {
         return NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME);
+    }
+
+    @Nullable
+    public static BlockState getBlockState(final ItemStack stack) {
+        if (stack.isEmpty()) {
+            return null;
+        }
+
+        final Block block = Block.byItem(stack.getItem());
+        if (block == null || block == net.minecraft.block.Blocks.AIR) {
+            return null;
+        }
+
+        return block.defaultBlockState();
     }
 
     public static Optional<ItemEntity> spawnAsEntity(final World world, final BlockPos pos, final ItemStack stack) {

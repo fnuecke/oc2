@@ -10,9 +10,12 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.BusInterfaceNameMessage;
 import li.cil.oc2.common.util.NBTTagIds;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.nbt.StringNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.util.StringUtils;
@@ -26,11 +29,13 @@ import java.util.Objects;
 public final class BusCableTileEntity extends AbstractTileEntity {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
     private static final String INTERFACE_NAMES_TAG_NAME = "interfaceNames";
+    private static final String FACADE_TAG_NAME = "facade";
 
     ///////////////////////////////////////////////////////////////////
 
     private final TileEntityDeviceBusElement busElement = new BusCableBusElement();
     private final String[] interfaceNames = new String[Constants.BLOCK_FACE_COUNT];
+    private BlockState facade = Blocks.AIR.defaultBlockState();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -57,6 +62,38 @@ public final class BusCableTileEntity extends AbstractTileEntity {
             Network.sendToClientsTrackingChunk(message, level.getChunkAt(getBlockPos()));
             handleNeighborChanged(getBlockPos().relative(side));
         }
+    }
+
+    public boolean hasFacade() {
+        return getFacade() != Blocks.AIR.defaultBlockState();
+    }
+
+    public BlockState getFacade() {
+        return facade;
+    }
+
+    public boolean trySetFacade(final BlockState state) {
+        if (!trySetFacadeWithoutUpdate(state)) {
+            return false;
+        }
+
+        if (!getLevel().isClientSide()) {
+            setChanged();
+        }
+
+        BusCableBlock.setHasFacade(getLevel(), getBlockPos(), getBlockState(), true);
+
+        return true;
+    }
+
+    public void removeFacade() {
+        facade = Blocks.AIR.defaultBlockState();
+
+        if (!getLevel().isClientSide()) {
+            setChanged();
+        }
+
+        BusCableBlock.setHasFacade(getLevel(), getBlockPos(), getBlockState(), false);
     }
 
     public void handleNeighborChanged(final BlockPos pos) {
@@ -92,6 +129,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         final CompoundNBT tag = super.getUpdateTag();
 
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
+        tag.put(FACADE_TAG_NAME, NBTUtil.writeBlockState(facade));
 
         return tag;
     }
@@ -99,6 +137,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     @Override
     public void handleUpdateTag(final BlockState state, final CompoundNBT tag) {
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
+        trySetFacade(NBTUtil.readBlockState(tag.getCompound(FACADE_TAG_NAME)));
     }
 
     @Override
@@ -106,6 +145,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         tag = super.save(tag);
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.save());
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
+        tag.put(FACADE_TAG_NAME, NBTUtil.writeBlockState(facade));
 
         return tag;
     }
@@ -115,6 +155,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         super.load(state, tag);
         busElement.load(tag.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
+        trySetFacadeWithoutUpdate(NBTUtil.readBlockState(tag.getCompound(FACADE_TAG_NAME)));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -134,6 +175,18 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    private boolean trySetFacadeWithoutUpdate(final BlockState state) {
+        if (state.getRenderShape() != BlockRenderType.MODEL ||
+            !state.isSolidRender(getLevel(), getBlockPos()) ||
+            state.getBlock().hasTileEntity(state)) {
+            return false;
+        }
+
+        facade = state;
+
+        return true;
+    }
 
     private ListNBT serializeInterfaceNames() {
         final ListNBT tag = new ListNBT();

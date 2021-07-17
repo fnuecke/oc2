@@ -45,6 +45,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static li.cil.oc2.common.util.TranslationUtils.text;
+
 public final class BusCableBlock extends Block {
     public enum ConnectionType implements IStringSerializable {
         NONE,
@@ -69,6 +71,7 @@ public final class BusCableBlock extends Block {
     ///////////////////////////////////////////////////////////////////
 
     public static final BooleanProperty HAS_CABLE = BooleanProperty.create("has_cable");
+    public static final BooleanProperty HAS_FACADE = BooleanProperty.create("has_facade");
     public static final EnumProperty<ConnectionType> CONNECTION_NORTH = EnumProperty.create("connection_north", ConnectionType.class);
     public static final EnumProperty<ConnectionType> CONNECTION_EAST = EnumProperty.create("connection_east", ConnectionType.class);
     public static final EnumProperty<ConnectionType> CONNECTION_SOUTH = EnumProperty.create("connection_south", ConnectionType.class);
@@ -125,6 +128,7 @@ public final class BusCableBlock extends Block {
             defaultState = defaultState.setValue(property, ConnectionType.NONE);
         }
         defaultState = defaultState.setValue(HAS_CABLE, true);
+        defaultState = defaultState.setValue(HAS_FACADE, false);
         registerDefaultState(defaultState);
 
         shapes = makeShapes();
@@ -132,7 +136,15 @@ public final class BusCableBlock extends Block {
 
     ///////////////////////////////////////////////////////////////////
 
-    public boolean addInterface(final World world, final BlockPos pos, final BlockState state, final Direction side) {
+    public static boolean addInterface(final World world, final BlockPos pos, final BlockState state, final Direction side) {
+        if (state.getBlock() != Blocks.BUS_CABLE.get()) {
+            return false;
+        }
+
+        if (state.getValue(HAS_FACADE)) {
+            return false;
+        }
+
         final EnumProperty<BusCableBlock.ConnectionType> property = FACING_TO_CONNECTION_MAP.get(side);
         if (state.getValue(property) != ConnectionType.NONE) {
             return false;
@@ -145,7 +157,11 @@ public final class BusCableBlock extends Block {
         return true;
     }
 
-    public boolean addCable(final World world, final BlockPos pos, final BlockState state) {
+    public static boolean addCable(final World world, final BlockPos pos, final BlockState state) {
+        if (state.getBlock() != Blocks.BUS_CABLE.get()) {
+            return false;
+        }
+
         if (state.getValue(HAS_CABLE)) {
             return false;
         }
@@ -155,6 +171,16 @@ public final class BusCableBlock extends Block {
         onConnectionTypeChanged(world, pos, null);
 
         return true;
+    }
+
+    public static void setHasFacade(final World world, final BlockPos pos, final BlockState state, final boolean value) {
+        if (state.getValue(HAS_FACADE) == value) {
+            return;
+        }
+
+        world.setBlock(pos, state.setValue(HAS_FACADE, value), BlockFlags.DEFAULT_AND_RERENDER);
+
+        WorldUtils.playSound(world, pos, state.getSoundType(), value ? SoundType::getPlaceSound : SoundType::getBreakSound);
     }
 
     @Override
@@ -180,26 +206,48 @@ public final class BusCableBlock extends Block {
     @SuppressWarnings("deprecation")
     @Override
     public ActionResultType use(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
-        if (Wrenches.isWrench(player.getItemInHand(hand))) {
-            if (player.isShiftKeyDown()) {
-                // NB: leave wrenching logic up to wrench when the to-be-removed interface is the last
-                //     part of this bus. This ensures we properly remove the block itself without having
-                //     to duplicate the logic needed for that.
-                if (getPartCount(state) > 1)
-                    if (tryRemovePlug(state, world, pos, player, hit) || tryRemoveCable(state, world, pos, player)) {
-                        return ActionResultType.sidedSuccess(world.isClientSide);
-                    }
-            } else {
-                final TileEntity tileEntity = world.getBlockEntity(pos);
-                if (tileEntity instanceof BusCableTileEntity) {
-                    final BusCableTileEntity busCableTileEntity = (BusCableTileEntity) tileEntity;
+        final ItemStack heldItem = player.getItemInHand(hand);
+        if (heldItem.getItem() == Items.BUS_CABLE.get() ||
+            heldItem.getItem() == Items.BUS_INTERFACE.get()) {
+            return ActionResultType.PASS;
+        }
 
-                    final Direction side = getHitSide(pos, hit);
-                    if (getConnectionType(state, side) == ConnectionType.INTERFACE) {
-                        openBusInterfaceScreen(busCableTileEntity, side);
+        final TileEntity tileEntity = world.getBlockEntity(pos);
+        if (!(tileEntity instanceof BusCableTileEntity)) {
+            return super.use(state, world, pos, player, hand, hit);
+        }
+
+        final BusCableTileEntity busCableTileEntity = (BusCableTileEntity) tileEntity;
+
+        if (Wrenches.isWrench(heldItem)) {
+            if (player.isShiftKeyDown()) {
+                if (busCableTileEntity.hasFacade()) {
+                    busCableTileEntity.removeFacade();
+                    return ActionResultType.sidedSuccess(world.isClientSide);
+                } else {
+                    // NB: leave wrenching logic up to wrench when the to-be-removed interface is the last
+                    //     part of this bus. This ensures we properly remove the block itself without having
+                    //     to duplicate the logic needed for that.
+                    if (getPartCount(state) > 1 && (tryRemovePlug(state, world, pos, player, hit) || tryRemoveCable(state, world, pos, player))) {
                         return ActionResultType.sidedSuccess(world.isClientSide);
                     }
                 }
+            } else {
+                final Direction side = getHitSide(pos, hit);
+                if (getConnectionType(state, side) == ConnectionType.INTERFACE) {
+                    openBusInterfaceScreen(busCableTileEntity, side);
+                    return ActionResultType.sidedSuccess(world.isClientSide);
+                }
+            }
+        } else if (getInterfaceCount(state) == 0 && !player.isShiftKeyDown()) {
+            final BlockState blockState = ItemStackUtils.getBlockState(heldItem);
+            if (blockState != null) {
+                if (!busCableTileEntity.trySetFacade(blockState) && !world.isClientSide()) {
+                    player.displayClientMessage(text("message.{mod}.invalid_facade_block"), true);
+                }
+
+                // Always return success (even on failure) to avoid accidentally placing blocks.
+                return ActionResultType.sidedSuccess(world.isClientSide);
             }
         }
 
@@ -269,6 +317,10 @@ public final class BusCableBlock extends Block {
     @SuppressWarnings("deprecation")
     @Override
     public VoxelShape getShape(final BlockState state, final IBlockReader world, final BlockPos pos, final ISelectionContext context) {
+        if (state.getValue(HAS_FACADE)) {
+            return VoxelShapes.block();
+        }
+
         return shapes[getShapeIndex(state)];
     }
 
@@ -279,6 +331,7 @@ public final class BusCableBlock extends Block {
         super.createBlockStateDefinition(builder);
         FACING_TO_CONNECTION_MAP.values().forEach(builder::add);
         builder.add(HAS_CABLE);
+        builder.add(HAS_FACADE);
     }
 
     ///////////////////////////////////////////////////////////////////

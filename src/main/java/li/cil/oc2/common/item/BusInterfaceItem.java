@@ -93,14 +93,12 @@ public final class BusInterfaceItem extends ModBlockItem {
 
     ///////////////////////////////////////////////////////////////////
 
-    private ActionResultType tryAddToBlock(final ItemUseContext context, final Direction side) {
-        final BusCableBlock busCableBlock = Blocks.BUS_CABLE.get();
-
+    private static ActionResultType tryAddToBlock(final ItemUseContext context, final Direction side) {
         final World world = context.getLevel();
         final BlockPos pos = context.getClickedPos();
         final BlockState state = world.getBlockState(pos);
 
-        if (state.getBlock() == busCableBlock && busCableBlock.addInterface(world, pos, state, side)) {
+        if (BusCableBlock.addInterface(world, pos, state, side)) {
             final PlayerEntity player = context.getPlayer();
             final ItemStack stack = context.getItemInHand();
 

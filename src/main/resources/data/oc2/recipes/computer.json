@@ -23,6 +23,21 @@
     }
   },
   "result": {
-    "item": "oc2:computer"
+    "item": "oc2:computer",
+    "nbt": {
+      "BlockEntityTag": {
+        "items": {
+          "oc2:flash_memory": {
+            "Items": [
+              {
+                "Slot": 0,
+                "Count": 1,
+                "id": "oc2:flash_memory_custom"
+              }
+            ]
+          }
+        }
+      }
+    }
   }
 }

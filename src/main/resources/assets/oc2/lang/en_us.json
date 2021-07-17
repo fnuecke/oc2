@@ -3,6 +3,7 @@
 
   "block.oc2.computer": "Computer",
   "block.oc2.computer.desc": "Use a Scrench or compatible wrench to add and remove components.",
+  "block.oc2.computer.preconfigured": "Preconfigured Computer",
   "block.oc2.bus_cable": "Bus Cable",
   "block.oc2.bus_cable.desc": "Used in combination with Bus Interfaces to connect external devices to computers.",
   "block.oc2.network_connector": "Network Connector",

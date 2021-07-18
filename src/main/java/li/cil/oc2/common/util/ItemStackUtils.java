@@ -91,7 +91,7 @@ public final class ItemStackUtils {
 
         final ItemEntity entity = new ItemEntity(world, px, py, pz, stack);
 
-        entity.moveTo(
+        entity.setDeltaMovement(
                 0.0125 * (rng.nextDouble() - 0.5) + ox * 0.03,
                 0.0125 * (rng.nextDouble() - 0.5) + oy * 0.08 + (ox + oz) * 0.03,
                 0.0125 * (rng.nextDouble() - 0.5) + oz * 0.03

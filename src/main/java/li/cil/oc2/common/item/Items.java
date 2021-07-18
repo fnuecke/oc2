@@ -51,12 +51,12 @@ public final class Items {
             new HardDriveItem(4 * Constants.MEGABYTE, DyeColor.GREEN));
     public static final RegistryObject<HardDriveItem> HARD_DRIVE_LARGE = register("hard_drive_large", () ->
             new HardDriveItem(8 * Constants.MEGABYTE, DyeColor.CYAN));
-    public static final RegistryObject<HardDriveWithExternalDataItem> HARD_DRIVE_CUSTOM = register("hard_drive_custom", () ->
+    public static final RegistryObject<HardDriveWithExternalDataItem> HARD_DRIVE_CUSTOM = register("hard_drive_buildroot", () ->
             new HardDriveWithExternalDataItem(BlockDeviceDataRegistration.BUILDROOT.getId(), DyeColor.BROWN));
 
     public static final RegistryObject<FlashMemoryItem> FLASH_MEMORY = register("flash_memory", () ->
             new FlashMemoryItem(4 * Constants.KILOBYTE));
-    public static final RegistryObject<FlashMemoryWithExternalDataItem> FLASH_MEMORY_CUSTOM = register("flash_memory_custom", () ->
+    public static final RegistryObject<FlashMemoryWithExternalDataItem> FLASH_MEMORY_CUSTOM = register("flash_memory_buildroot", () ->
             new FlashMemoryWithExternalDataItem(Firmwares.BUILDROOT.getId()));
 
     public static final RegistryObject<FloppyItem> FLOPPY = register("floppy", () ->

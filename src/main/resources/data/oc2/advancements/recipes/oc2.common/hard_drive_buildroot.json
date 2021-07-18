@@ -2,7 +2,7 @@
   "parent": "minecraft:recipes/root",
   "rewards": {
     "recipes": [
-      "oc2:flash_memory_custom"
+      "oc2:hard_drive_buildroot"
     ]
   },
   "criteria": {
@@ -29,7 +29,7 @@
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "oc2:flash_memory_custom"
+        "recipe": "oc2:hard_drive_buildroot"
       }
     }
   },

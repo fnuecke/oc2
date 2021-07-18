@@ -32,7 +32,7 @@
               {
                 "Slot": 0,
                 "Count": 1,
-                "id": "oc2:flash_memory_custom"
+                "id": "oc2:flash_memory_buildroot"
               }
             ]
           }

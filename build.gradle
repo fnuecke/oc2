@@ -9,9 +9,8 @@ buildscript {
 }
 
 plugins {
-    id 'eclipse'
-    id 'maven-publish'
     id 'idea'
+    id 'maven-publish'
     id 'com.matthewprenger.cursegradle' version '1.4.0'
 }
 
@@ -197,7 +196,7 @@ publishing {
 
 idea {
     module {
-        for (final String exclude in ['.github', 'assets', 'gradle', 'run', 'out', 'logs', 'src/generated']) {
+        for (final String exclude in ['assets', 'run', 'out', 'logs', 'src/generated']) {
             excludeDirs += file(exclude)
         }
     }

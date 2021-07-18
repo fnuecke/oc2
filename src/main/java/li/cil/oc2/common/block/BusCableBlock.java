@@ -18,6 +18,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.LootContext;
+import net.minecraft.loot.LootParameters;
 import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
@@ -221,8 +222,17 @@ public final class BusCableBlock extends Block {
 
         if (Wrenches.isWrench(heldItem)) {
             if (player.isShiftKeyDown()) {
-                if (busCableTileEntity.hasFacade()) {
-                    busCableTileEntity.removeFacade();
+                final ItemStack facadeItem = busCableTileEntity.getFacade();
+                if (!facadeItem.isEmpty()) {
+                    if (!world.isClientSide()) {
+                        busCableTileEntity.removeFacade();
+                        if (!player.isCreative() && world.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) {
+                            ItemStackUtils.spawnAsEntity(world, pos, facadeItem, hit.getDirection()).ifPresent(entity -> {
+                                entity.setNoPickUpDelay();
+                                entity.playerTouch(player);
+                            });
+                        }
+                    }
                     return ActionResultType.sidedSuccess(world.isClientSide());
                 } else {
                     // NB: leave wrenching logic up to wrench when the to-be-removed interface is the last
@@ -239,15 +249,24 @@ public final class BusCableBlock extends Block {
                     return ActionResultType.sidedSuccess(world.isClientSide());
                 }
             }
-        } else if (getInterfaceCount(state) == 0 && !player.isShiftKeyDown()) {
-            final BlockState blockState = ItemStackUtils.getBlockState(heldItem);
-            if (blockState != null) {
-                if (!busCableTileEntity.trySetFacade(blockState) && !world.isClientSide()) {
-                    player.displayClientMessage(text("message.{mod}.invalid_facade_block"), true);
-                }
+        } else if (!player.isShiftKeyDown() && !state.getValue(HAS_FACADE) && getInterfaceCount(state) == 0) {
+            switch (busCableTileEntity.getFacadeType(heldItem)) {
+                case INVALID_BLOCK:
+                    if (!world.isClientSide()) {
+                        player.displayClientMessage(text("message.{mod}.invalid_facade_block"), true);
+                    }
 
-                // Always return success (even on failure) to avoid accidentally placing blocks.
-                return ActionResultType.sidedSuccess(world.isClientSide());
+                    // Always return success (even on failure) to avoid accidentally placing blocks.
+                    return ActionResultType.sidedSuccess(world.isClientSide());
+                case VALID_BLOCK:
+                    if (!world.isClientSide()) {
+                        busCableTileEntity.setFacade(heldItem);
+                        if (!player.abilities.instabuild) {
+                            heldItem.shrink(1);
+                        }
+                    }
+
+                    return ActionResultType.sidedSuccess(world.isClientSide());
             }
         }
 
@@ -258,6 +277,16 @@ public final class BusCableBlock extends Block {
     @Override
     public List<ItemStack> getDrops(final BlockState state, final LootContext.Builder builder) {
         final List<ItemStack> drops = new ArrayList<>(super.getDrops(state, builder));
+
+        if (state.getValue(HAS_FACADE)) {
+            final TileEntity tileEntity = builder.getOptionalParameter(LootParameters.BLOCK_ENTITY);
+            if (tileEntity instanceof BusCableTileEntity) {
+                final ItemStack stack = ((BusCableTileEntity) tileEntity).getFacade();
+                if (!stack.isEmpty()) {
+                    drops.add(stack);
+                }
+            }
+        }
 
         if (state.getValue(HAS_CABLE)) {
             drops.add(new ItemStack(Items.BUS_CABLE.get()));

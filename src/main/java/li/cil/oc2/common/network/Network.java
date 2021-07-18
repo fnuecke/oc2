@@ -3,6 +3,7 @@ package li.cil.oc2.common.network;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.network.message.*;
 import net.minecraft.entity.Entity;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fml.network.NetworkDirection;
@@ -164,9 +165,20 @@ public final class Network {
                 .decoder(ClientCanceledImportFileMessage::new)
                 .consumer(ClientCanceledImportFileMessage::handleMessage)
                 .add();
+
+        INSTANCE.messageBuilder(BusCableFacadeMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(BusCableFacadeMessage::toBytes)
+                .decoder(BusCableFacadeMessage::new)
+                .consumer(BusCableFacadeMessage::handleMessage)
+                .add();
     }
 
     public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {
+        Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
+    }
+
+    public static <T> void sendToClientsTrackingTileEntity(final T message, final TileEntity tileEntity) {
+        final Chunk chunk = tileEntity.getLevel().getChunkAt(tileEntity.getBlockPos());
         Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
     }
 

@@ -3,6 +3,7 @@ package li.cil.oc2.client.model;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.tileentity.BusCableTileEntity;
+import li.cil.oc2.common.util.ItemStackUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
@@ -11,6 +12,7 @@ import net.minecraft.client.renderer.model.BakedQuad;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.item.ItemStack;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -111,10 +113,13 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
     public IModelData getModelData(final IBlockDisplayReader world, final BlockPos pos, final BlockState state, final IModelData tileData) {
         if (state.hasProperty(BusCableBlock.HAS_FACADE) && state.getValue(BusCableBlock.HAS_FACADE)) {
             final TileEntity tileEntity = world.getBlockEntity(pos);
-            final BlockState facadeState;
-            if (tileEntity instanceof BusCableTileEntity && ((BusCableTileEntity) tileEntity).hasFacade()) {
-                facadeState = ((BusCableTileEntity) tileEntity).getFacade();
-            } else {
+
+            BlockState facadeState = null;
+            if (tileEntity instanceof BusCableTileEntity) {
+                final ItemStack facadeItem = ((BusCableTileEntity) tileEntity).getFacade();
+                facadeState = ItemStackUtils.getBlockState(facadeItem);
+            }
+            if (facadeState == null) {
                 facadeState = Blocks.IRON_BLOCK.defaultBlockState();
             }
 

@@ -185,7 +185,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
                 device.updateBlockDevice(tag);
             }
 
-            Network.sendToClientsTrackingChunk(new DiskDriveFloppyMessage(DiskDriveTileEntity.this), level.getChunkAt(getBlockPos()));
+            Network.sendToClientsTrackingTileEntity(new DiskDriveFloppyMessage(DiskDriveTileEntity.this), DiskDriveTileEntity.this);
         }
 
         private void exportDeviceDataToItemStack(final ItemStack stack) {

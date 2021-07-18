@@ -454,7 +454,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
             super.stopRunnerAndReset();
 
             TerminalUtils.resetTerminal(terminal, output -> Network.sendToClientsTrackingChunk(
-                    new ComputerTerminalOutputMessage(ComputerTileEntity.this, output), virtualMachine.chunk));
+                    new ComputerTerminalOutputMessage(ComputerTileEntity.this, output), chunk));
         }
 
         @Override

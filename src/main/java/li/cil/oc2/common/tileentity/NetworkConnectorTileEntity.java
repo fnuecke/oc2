@@ -23,7 +23,6 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.LazyOptional;
@@ -294,8 +293,8 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     public AxisAlignedBB getRenderBoundingBox() {
         if (Minecraft.useShaderTransparency()) {
             return new AxisAlignedBB(
-                getBlockPos().offset(-MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE),
-                getBlockPos().offset(1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE)
+                    getBlockPos().offset(-MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE),
+                    getBlockPos().offset(1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE)
             );
         } else {
             return super.getRenderBoundingBox();
@@ -412,11 +411,9 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     }
 
     private void onConnectedPositionsChanged() {
-
-        if (level != null && !level.isClientSide) {
+        if (!getLevel().isClientSide()) {
             final NetworkConnectorConnectionsMessage message = new NetworkConnectorConnectionsMessage(this);
-            final Chunk chunk = level.getChunkAt(getBlockPos());
-            Network.sendToClientsTrackingChunk(message, chunk);
+            Network.sendToClientsTrackingTileEntity(message, this);
         }
     }
 

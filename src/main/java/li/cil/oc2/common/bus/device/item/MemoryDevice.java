@@ -45,7 +45,7 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public VMDeviceLoadResult load(final VMContext context) {
+    public VMDeviceLoadResult mount(final VMContext context) {
         if (!allocateDevice(context)) {
             return VMDeviceLoadResult.fail();
         }
@@ -62,14 +62,20 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     }
 
     @Override
-    public void unload() {
+    public void unmount() {
+        suspend();
+
         // Memory is volatile, so free up our persisted blob when device is unloaded.
         BlobStorage.freeHandle(blobHandle);
         blobHandle = null;
         jobHandle = null;
 
-        device = null;
         address.clear();
+    }
+
+    @Override
+    public void suspend() {
+        device = null;
     }
 
     @Subscribe

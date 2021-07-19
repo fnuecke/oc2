@@ -15,7 +15,7 @@ import li.cil.sedna.api.device.MemoryMappedDevice;
  * in the guest system.
  * <p>
  * To listen to lifecycle events of the VM and the device, register to the event
- * bus provided via {@link VMContext#getEventBus()} in {@link #load(VMContext)}.
+ * bus provided via {@link VMContext#getEventBus()} in {@link #mount(VMContext)}.
  *
  * @see li.cil.oc2.api.bus.device.provider.BlockDeviceProvider
  * @see li.cil.oc2.api.bus.device.provider.ItemDeviceProvider
@@ -35,7 +35,7 @@ public interface VMDevice extends Device {
      * @param context the virtual machine context.
      * @return {@code true} if the device was loaded successfully; {@code false} otherwise.
      */
-    VMDeviceLoadResult load(VMContext context);
+    VMDeviceLoadResult mount(VMContext context);
 
     /**
      * Called when the device is removed from the context it was loaded with.
@@ -43,7 +43,17 @@ public interface VMDevice extends Device {
      * This can happen because the VM was stopped or the device was removed from
      * the device bus that connected it to the VM, for example.
      * <p>
-     * Intended for releasing resources acquired in {@link #load(VMContext)}.
+     * Intended for releasing resources acquired in {@link #mount(VMContext)}.
      */
-    void unload();
+    void unmount();
+
+    /**
+     * Called when the device is suspended.
+     * <p>
+     * This can happen when the world area containing the context the device was loaded in is unloaded,
+     * e.g. due to player moving too far away from the area.
+     * <p>
+     * Intended for soft-releasing resources acquired in {@link #mount(VMContext)}.
+     */
+    void suspend();
 }

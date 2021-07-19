@@ -322,10 +322,10 @@ public final class RobotEntity extends Entity implements Robot {
     public void remove(final boolean keepData) {
         super.remove(keepData);
 
-        handleUnload();
+        virtualMachine.suspend();
 
         // Full unload to release out-of-nbt persisted runtime-only data such as ram.
-        virtualMachine.state.vmAdapter.unload();
+        virtualMachine.state.vmAdapter.unmount();
     }
 
     @Override
@@ -449,7 +449,7 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         unregisterListeners();
-        handleUnload();
+        virtualMachine.suspend();
     }
 
     private void handleWorldUnload(final WorldEvent.Unload event) {
@@ -458,11 +458,7 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         unregisterListeners();
-        handleUnload();
-    }
-
-    private void handleUnload() {
-        virtualMachine.unload();
+        virtualMachine.suspend();
     }
 
     private void openTerminalScreen(final ServerPlayerEntity player) {

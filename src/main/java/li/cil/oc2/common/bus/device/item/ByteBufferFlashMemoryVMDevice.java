@@ -48,7 +48,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
     ///////////////////////////////////////////////////////////////
 
     @Override
-    public VMDeviceLoadResult load(final VMContext context) {
+    public VMDeviceLoadResult mount(final VMContext context) {
         if (!allocateDevice(context)) {
             return VMDeviceLoadResult.fail();
         }
@@ -67,12 +67,17 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
     }
 
     @Override
-    public void unload() {
+    public void unmount() {
+        suspend();
+        deviceTag = null;
+        address.clear();
+    }
+
+    @Override
+    public void suspend() {
         memoryMap = null;
         data = null;
         device = null;
-        deviceTag = null;
-        address.clear();
     }
 
     @Subscribe

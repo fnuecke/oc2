@@ -242,7 +242,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         // super.remove() calls onUnload. This in turn only suspends, but we want to do
         // a full clean-up when we get destroyed, so stuff inside us can delete out-of-nbt
         // persisted runtime-only data such as ram.
-        virtualMachine.state.vmAdapter.unload();
+        virtualMachine.state.vmAdapter.unmount();
     }
 
     @Override
@@ -333,7 +333,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     protected void unloadServer() {
         super.unloadServer();
 
-        virtualMachine.unload();
+        virtualMachine.suspend();
 
         // This is necessary in case some other controller found us before our controller
         // did its scan, which can happen because the scan can happen with a delay. In

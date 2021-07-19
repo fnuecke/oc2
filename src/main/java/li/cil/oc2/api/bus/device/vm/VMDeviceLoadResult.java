@@ -6,7 +6,7 @@ import net.minecraft.util.text.ITextComponent;
 import javax.annotation.Nullable;
 
 /**
- * {@link VMDevice}s may signal the result of their {@link VMDevice#load(VMContext)} operations.
+ * {@link VMDevice}s may signal the result of their {@link VMDevice#mount(VMContext)} operations.
  */
 public final class VMDeviceLoadResult {
     /**

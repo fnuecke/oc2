@@ -7,7 +7,7 @@ import java.util.OptionalLong;
 
 /**
  * Allows adding {@link MemoryMappedDevice}s to the memory map of a virtual machine
- * during a {@link VMDevice#load(VMContext)} call.
+ * during a {@link VMDevice#mount(VMContext)} call.
  * <p>
  * Allocated addresses should be persisted and used in {@link #claimMemoryRange(long, MemoryMappedDevice)}
  * when restoring from a saved state to ensure correct behaviour of the loaded virtual

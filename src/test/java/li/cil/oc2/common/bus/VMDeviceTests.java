@@ -63,64 +63,64 @@ public final class VMDeviceTests {
     public void addedDevicesHaveLoadCalled() {
         final VMDevice device1 = mock(VMDevice.class);
         final VMDevice device2 = mock(VMDevice.class);
-        when(device1.load(any())).thenReturn(VMDeviceLoadResult.success());
-        when(device2.load(any())).thenReturn(VMDeviceLoadResult.success());
+        when(device1.mount(any())).thenReturn(VMDeviceLoadResult.success());
+        when(device2.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device1));
-        assertTrue(adapter.load().wasSuccessful());
-        verify(device1).load(any());
+        assertTrue(adapter.mount().wasSuccessful());
+        verify(device1).mount(any());
 
         adapter.addDevices(Collections.singleton(device2));
-        assertTrue(adapter.load().wasSuccessful());
+        assertTrue(adapter.mount().wasSuccessful());
 
         verifyNoMoreInteractions(device1);
-        verify(device2).load(any());
+        verify(device2).mount(any());
     }
 
     @Test
     public void removedDevicesHaveUnloadCalled() {
         final VMDevice device = mock(VMDevice.class);
-        when(device.load(any())).thenReturn(VMDeviceLoadResult.success());
+        when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load().wasSuccessful());
+        assertTrue(adapter.mount().wasSuccessful());
 
         adapter.removeDevices(Collections.singleton(device));
-        verify(device).unload();
+        verify(device).unmount();
     }
 
     @Test
     public void devicesHaveUnloadCalledOnGlobalUnload() {
         final VMDevice device = mock(VMDevice.class);
-        when(device.load(any())).thenReturn(VMDeviceLoadResult.success());
+        when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load().wasSuccessful());
+        assertTrue(adapter.mount().wasSuccessful());
 
-        adapter.unload();
-        verify(device).unload();
+        adapter.unmount();
+        verify(device).unmount();
     }
 
     @Test
     public void devicesHaveLoadCalledAfterGlobalUnload() {
         final VMDevice device = mock(VMDevice.class);
-        when(device.load(any())).thenReturn(VMDeviceLoadResult.success());
+        when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load().wasSuccessful());
-        verify(device).load(any());
+        assertTrue(adapter.mount().wasSuccessful());
+        verify(device).mount(any());
 
-        adapter.unload();
-        verify(device).unload();
+        adapter.unmount();
+        verify(device).unmount();
 
-        assertTrue(adapter.load().wasSuccessful());
-        verify(device, times(2)).load(any());
+        assertTrue(adapter.mount().wasSuccessful());
+        verify(device, times(2)).mount(any());
     }
 
     @Test
     public void deviceCanClaimInterrupts() {
         final VMDevice device = mock(VMDevice.class);
-        when(device.load(any())).thenAnswer(invocation -> {
+        when(device.mount(any())).thenAnswer(invocation -> {
             final VMContext context = invocation.getArgument(0);
             final OptionalInt interrupt = context.getInterruptAllocator().claimInterrupt();
             assertTrue(interrupt.isPresent());
@@ -128,9 +128,9 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load().wasSuccessful());
+        assertTrue(adapter.mount().wasSuccessful());
 
-        verify(device).load(any());
+        verify(device).mount(any());
     }
 
     @Test
@@ -138,7 +138,7 @@ public final class VMDeviceTests {
         final int claimedInterrupt = 1;
 
         final VMDevice device = mock(VMDevice.class);
-        when(device.load(any())).thenAnswer(invocation -> {
+        when(device.mount(any())).thenAnswer(invocation -> {
             final VMContext context = invocation.getArgument(0);
             final boolean result = context.getInterruptAllocator().claimInterrupt(claimedInterrupt);
             assertFalse(result);
@@ -148,14 +148,14 @@ public final class VMDeviceTests {
         context.getInterruptAllocator().claimInterrupt(claimedInterrupt);
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load().wasSuccessful());
+        assertTrue(adapter.mount().wasSuccessful());
     }
 
     @Test
     public void deviceCanRaiseClaimedInterrupts() {
         final DeviceData deviceData = new DeviceData();
         final VMDevice device = mock(VMDevice.class);
-        when(device.load(any())).thenAnswer(invocation -> {
+        when(device.mount(any())).thenAnswer(invocation -> {
             final VMContext context = invocation.getArgument(0);
             final OptionalInt interrupt = context.getInterruptAllocator().claimInterrupt();
             assertTrue(interrupt.isPresent());
@@ -167,7 +167,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load().wasSuccessful());
+        assertTrue(adapter.mount().wasSuccessful());
 
         final int claimedInterruptMask = 1 << deviceData.interrupt;
         deviceData.context.getInterruptController().raiseInterrupts(claimedInterruptMask);
@@ -179,13 +179,13 @@ public final class VMDeviceTests {
     public void devicesCannotRaiseUnclaimedInterrupts() {
         final DeviceData deviceData = new DeviceData();
         final VMDevice device = mock(VMDevice.class);
-        when(device.load(any())).thenAnswer(invocation -> {
+        when(device.mount(any())).thenAnswer(invocation -> {
             deviceData.context = invocation.getArgument(0);
             return VMDeviceLoadResult.success();
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load().wasSuccessful());
+        assertTrue(adapter.mount().wasSuccessful());
 
         final int someInterruptMask = 0x1;
         assertThrows(IllegalArgumentException.class, () ->
@@ -196,7 +196,7 @@ public final class VMDeviceTests {
     public void unloadLowersClaimedInterrupts() {
         final DeviceData deviceData = new DeviceData();
         final VMDevice device = mock(VMDevice.class);
-        when(device.load(any())).thenAnswer(invocation -> {
+        when(device.mount(any())).thenAnswer(invocation -> {
             final VMContext context = invocation.getArgument(0);
             final OptionalInt interrupt = context.getInterruptAllocator().claimInterrupt();
             assertTrue(interrupt.isPresent());
@@ -208,14 +208,14 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load().wasSuccessful());
+        assertTrue(adapter.mount().wasSuccessful());
 
         final int claimedInterruptMask = 1 << deviceData.interrupt;
         deviceData.context.getInterruptController().raiseInterrupts(claimedInterruptMask);
 
         assertTrue((interruptController.getRaisedInterrupts() & claimedInterruptMask) != 0);
 
-        adapter.unload();
+        adapter.unmount();
 
         assertFalse((interruptController.getRaisedInterrupts() & claimedInterruptMask) != 0);
     }
@@ -223,7 +223,7 @@ public final class VMDeviceTests {
     @Test
     public void devicesCannotAddToMemoryMapDirectly() {
         final VMDevice device = mock(VMDevice.class);
-        when(device.load(any())).thenAnswer(invocation -> {
+        when(device.mount(any())).thenAnswer(invocation -> {
             final VMContext context = invocation.getArgument(0);
 
             assertThrows(UnsupportedOperationException.class, () ->
@@ -233,14 +233,14 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        adapter.load();
+        adapter.mount();
     }
 
     @Test
     public void devicesCanAddMemoryMappedDevices() {
         final DeviceData deviceData = new DeviceData();
         final VMDevice device = mock(VMDevice.class);
-        when(device.load(any())).thenAnswer(invocation -> {
+        when(device.mount(any())).thenAnswer(invocation -> {
             final VMContext context = invocation.getArgument(0);
 
             deviceData.context = context;
@@ -253,7 +253,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load().wasSuccessful());
+        assertTrue(adapter.mount().wasSuccessful());
 
         assertTrue(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
     }
@@ -262,7 +262,7 @@ public final class VMDeviceTests {
     public void addedDevicesGetRemovedOnUnload() {
         final DeviceData deviceData = new DeviceData();
         final VMDevice device = mock(VMDevice.class);
-        when(device.load(any())).thenAnswer(invocation -> {
+        when(device.mount(any())).thenAnswer(invocation -> {
             final VMContext context = invocation.getArgument(0);
 
             deviceData.context = context;
@@ -275,11 +275,11 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.load().wasSuccessful());
+        assertTrue(adapter.mount().wasSuccessful());
 
         assertTrue(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
 
-        adapter.unload();
+        adapter.unmount();
 
         assertFalse(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
     }

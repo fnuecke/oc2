@@ -60,7 +60,7 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
     }
 
     @Override
-    public VMDeviceLoadResult load(final VMContext context) {
+    public VMDeviceLoadResult mount(final VMContext context) {
         device = new VirtIONetworkDevice(context.getMemoryMap());
 
         if (!address.claim(context, device)) {
@@ -83,11 +83,16 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
     }
 
     @Override
-    public void unload() {
-        device = null;
+    public void unmount() {
+        suspend();
         isRunning = false;
         address.clear();
         interrupt.clear();
+    }
+
+    @Override
+    public void suspend() {
+        device = null;
     }
 
     @Subscribe

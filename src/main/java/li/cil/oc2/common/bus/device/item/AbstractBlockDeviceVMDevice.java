@@ -55,7 +55,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public VMDeviceLoadResult load(final VMContext context) {
+    public VMDeviceLoadResult mount(final VMContext context) {
         data = createBlockDevice();
 
         if (!allocateDevice(context)) {
@@ -84,20 +84,25 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     }
 
     @Override
-    public void unload() {
+    public void unmount() {
         // Since we cannot serialize the data in a regular serialize call due to the
         // actual data being unloaded at that point, but want to permanently persist
         // it (it's the contents of the block device) we need to serialize it in the
         // unload, too. Don't need to wait for the job, though.
         serializeData();
 
+        suspend();
+        deviceTag = null;
+        address.clear();
+        interrupt.clear();
+    }
+
+    @Override
+    public void suspend() {
         data = null;
         jobHandle = null;
 
         device = null;
-        deviceTag = null;
-        address.clear();
-        interrupt.clear();
     }
 
     @Subscribe

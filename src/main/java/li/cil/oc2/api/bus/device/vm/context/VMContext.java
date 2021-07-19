@@ -40,7 +40,7 @@ public interface VMContext {
     /**
      * Allows adding {@link MemoryMappedDevice}s to the VM's {@link MemoryMap}.
      * <p>
-     * {@link MemoryMappedDevice}s can only be added inside {@link VMDevice#load(VMContext)}.
+     * {@link MemoryMappedDevice}s can only be added inside {@link VMDevice#mount(VMContext)}.
      * Trying to add devices after that method has returned will result in an exception.
      * <p>
      * Added devices will be automatically removed when the {@link VMDevice} that added it
@@ -54,7 +54,7 @@ public interface VMContext {
     /**
      * Allows claiming interrupts for use with the VM's {@link InterruptController}.
      * <p>
-     * Interrupts can only be claimed inside {@link VMDevice#load(VMContext)}.
+     * Interrupts can only be claimed inside {@link VMDevice#mount(VMContext)}.
      * Trying to claim interrupts after that method has returned will result in an exception.
      * <p>
      * Claimed interrupts will automatically be released when the {@link VMDevice} that
@@ -73,7 +73,7 @@ public interface VMContext {
      * running VMs.
      * <p>
      * Devices failing to reserve the memory they would use should fail their
-     * {@link VMDevice#load(VMContext)}.
+     * {@link VMDevice#mount(VMContext)}.
      * <p>
      * Memory will automatically be released when the {@link VMDevice} that claimed
      * it is unloaded, e.g. because it is removed from the {@link DeviceBus} or the
@@ -97,7 +97,7 @@ public interface VMContext {
     /**
      * Waits for the executor thread of the virtual machine to finish running.
      * <p>
-     * Events subscribers can only be registered inside {@link VMDevice#load(VMContext)}.
+     * Events subscribers can only be registered inside {@link VMDevice#mount(VMContext)}.
      * Trying to register subscribers after that method has returned will result in an
      * exception.
      * <p>

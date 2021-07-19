@@ -6,7 +6,7 @@ import li.cil.oc2.api.bus.device.vm.context.VMContext;
 /**
  * Fired when the VM resumes running.
  * <p>
- * Fired after all devices reported success from {@link VMDevice#load(VMContext)}.
+ * Fired after all devices reported success from {@link VMDevice#mount(VMContext)}.
  * <p>
  * Fired on initial boot-up as well as when the VM resumes after being restored
  * from a saved state as well as when continuing to run after being paused for

@@ -1,18 +1,20 @@
 package li.cil.oc2.common.bus.device.item;
 
+import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.Location;
 import li.cil.oc2.common.util.SoundEvents;
 import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.item.ItemStack;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public final class HardDriveVMDevice extends AbstractBlockDeviceVMDevice<ByteBufferBlockDevice, ItemStack> {
+public class HardDriveVMDevice extends AbstractBlockDeviceVMDevice<ByteBufferBlockDevice, ItemStack> {
     private final int size;
     private final boolean readonly;
     private final ThrottledSoundEmitter soundEmitter;
@@ -30,23 +32,11 @@ public final class HardDriveVMDevice extends AbstractBlockDeviceVMDevice<ByteBuf
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected int getSize() {
-        return size;
-    }
-
-    @Override
-    protected ByteBufferBlockDevice createBlockDevice() {
-        return ByteBufferBlockDevice.create(size, readonly);
-    }
-
-    @Override
-    protected Optional<InputStream> getSerializationStream(final ByteBufferBlockDevice device) {
-        return Optional.of(device.getInputStream());
-    }
-
-    @Override
-    protected OutputStream getDeserializationStream(final ByteBufferBlockDevice device) {
-        return device.getOutputStream();
+    protected ByteBufferBlockDevice createBlockDevice() throws IOException {
+        blobHandle = BlobStorage.validateHandle(blobHandle);
+        final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
+        final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, size);
+        return ByteBufferBlockDevice.wrap(buffer, readonly);
     }
 
     @Override

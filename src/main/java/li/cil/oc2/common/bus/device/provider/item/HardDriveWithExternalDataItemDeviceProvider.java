@@ -7,7 +7,7 @@ import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.item.SparseHardDriveVMDevice;
+import li.cil.oc2.common.bus.device.item.HardDriveVMDeviceWithInitialData;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.item.HardDriveWithExternalDataItem;
 import li.cil.oc2.common.util.LocationSupplierUtils;
@@ -31,7 +31,7 @@ public final class HardDriveWithExternalDataItemDeviceProvider extends AbstractI
             return Optional.empty();
         }
 
-        return Optional.of(new SparseHardDriveVMDevice(stack, data.getBlockDevice(), false, LocationSupplierUtils.of(query)));
+        return Optional.of(new HardDriveVMDeviceWithInitialData(stack, data.getBlockDevice(), false, LocationSupplierUtils.of(query)));
     }
 
     @Override

@@ -3,6 +3,7 @@
 
   "block.oc2.computer": "电脑",
   "block.oc2.computer.desc": "使用螺丝刀扳手或者兼容的扳手来添加或移除组件。",
+  "block.oc2.computer.preconfigured": "电脑（已经配置好的）",
   "block.oc2.bus_cable": "总线线缆",
   "block.oc2.bus_cable.desc": "与总线接口结合使用，以将外部设备连接到电脑。",
   "block.oc2.network_connector": "网络连接口",
@@ -66,15 +67,20 @@
   "gui.oc2.file_chooser.confirm_button.overwrite": "覆盖",
   "gui.oc2.file_chooser.cancel_button": "取消",
 
+  "manual.oc2.home": "主页",
+  "manual.oc2.blocks": "方块",
+  "manual.oc2.items": "物品",
+    
   "message.oc2.connector.error.full": "不能放置更多线缆。",
   "message.oc2.connector.error.too_far": "距离太远了。",
   "message.oc2.connector.error.obstructed": "直线内有方块",
   "message.oc2.import_file.file_too_large": "文件过大",
+  "message.oc2.invalid_facade_block": "该方块不能被用作一个面。",
 
   "tooltip.oc2.device_needs_reboot": "需要重启",
   "tooltip.oc2.flash_memory_missing": "启动时需要包含固件的闪存。",
   "tooltip.oc2.memory_missing": "需要一些内存来加载闪存以执行引导.",
-  "tooltip.oc2.hard_drive_missing": "没找到硬盘。",
+  "tooltip.oc2.hard_drive_missing": "找不到硬盘。",
   "tooltip.oc2.energy": "能量：%s",
   "tooltip.oc2.energyConsumption": "能量使用：%s/t",
   "tooltip.oc2.confirm": "确认",

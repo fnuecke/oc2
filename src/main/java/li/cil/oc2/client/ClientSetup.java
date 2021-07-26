@@ -1,7 +1,7 @@
 package li.cil.oc2.client;
 
 import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.client.gui.ComputerInventoryScreen;
+import li.cil.oc2.client.gui.ComputerContainerScreen;
 import li.cil.oc2.client.gui.ComputerTerminalScreen;
 import li.cil.oc2.client.gui.RobotContainerScreen;
 import li.cil.oc2.client.gui.RobotTerminalScreen;
@@ -40,7 +40,7 @@ public final class ClientSetup {
         CustomItemModelProperties.initialize();
         CustomItemColors.initialize();
 
-        ScreenManager.register(Containers.COMPUTER.get(), ComputerInventoryScreen::new);
+        ScreenManager.register(Containers.COMPUTER.get(), ComputerContainerScreen::new);
         ScreenManager.register(Containers.COMPUTER_TERMINAL.get(), ComputerTerminalScreen::new);
         ScreenManager.register(Containers.ROBOT.get(), RobotContainerScreen::new);
         ScreenManager.register(Containers.ROBOT_TERMINAL.get(), RobotTerminalScreen::new);

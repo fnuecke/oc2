@@ -2,9 +2,7 @@ package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import li.cil.oc2.api.API;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
-import li.cil.oc2.client.gui.widget.Sprite;
 import li.cil.oc2.client.gui.widget.ToggleImageButton;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.vm.Terminal;
@@ -13,7 +11,6 @@ import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.TextFormatting;
@@ -29,29 +26,6 @@ import java.util.List;
 import static li.cil.oc2.common.util.TooltipUtils.withColor;
 
 public abstract class AbstractTerminalWidget extends AbstractGui {
-    public static final ResourceLocation BACKGROUND_LOCATION = new ResourceLocation(API.MOD_ID, "textures/gui/screen/terminal.png");
-    public static final ResourceLocation TERMINAL_FOCUSED_LOCATION = new ResourceLocation(API.MOD_ID, "textures/gui/screen/terminal_focused.png");
-    public static final int TEXTURE_SIZE = 512;
-
-    private static final Sprite BACKGROUND = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 336, 208, 0, 0);
-
-    private static final Sprite CONTROLS_BACKGROUND = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 19, 34, 50, 250);
-
-    private static final Sprite POWER_BASE = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 15, 255);
-    private static final Sprite POWER_PRESSED = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 29, 255);
-    private static final Sprite POWER_ACTIVE = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 1, 255);
-
-    private static final Sprite CAPTURE_INPUT_BASE = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 15, 241);
-    private static final Sprite CAPTURE_INPUT_PRESSED = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 29, 241);
-    private static final Sprite CAPTURE_INPUT_ACTIVE = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 12, 1, 241);
-
-    private static final Sprite ENERGY_BACKGROUND = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 19, 34, 80, 250);
-
-    private static final Sprite ENERGY_BASE = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 26, 110, 250);
-    private static final Sprite ENERGY_BAR = new Sprite(BACKGROUND_LOCATION, TEXTURE_SIZE, 12, 26, 125, 250);
-
-    private static final Sprite TERMINAL_FOCUSED = new Sprite(TERMINAL_FOCUSED_LOCATION, TEXTURE_SIZE, 336, 208, 0, 0);
-
     public static final int TERMINAL_WIDTH = Terminal.WIDTH * Terminal.CHAR_WIDTH / 2;
     public static final int TERMINAL_HEIGHT = Terminal.HEIGHT * Terminal.CHAR_HEIGHT / 2;
 
@@ -63,7 +37,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
     public static final int HEIGHT = TERMINAL_HEIGHT + MARGIN_SIZE * 2;
 
     private static final int CONTROLS_TOP = 8;
-    private static final int ENERGY_TOP = CONTROLS_TOP + CONTROLS_BACKGROUND.height + 4;
+    private static final int ENERGY_TOP = CONTROLS_TOP + Sprites.SIDEBAR_2.height + 4;
 
     private static boolean isInputCaptureEnabled;
 
@@ -90,24 +64,23 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
     }
 
     public void renderBackground(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
+        RenderSystem.color4f(1f, 1f, 1f, 1f);
+
         isMouseOverTerminal = isMouseOverTerminal(mouseX, mouseY);
 
-        RenderSystem.color4f(1f, 1f, 1f, 1f);
-        getClient().getTextureManager().bind(BACKGROUND_LOCATION);
-
-        CONTROLS_BACKGROUND.draw(matrixStack, windowLeft - CONTROLS_BACKGROUND.width, windowTop + CONTROLS_TOP);
+        Sprites.SIDEBAR_2.draw(matrixStack, windowLeft - Sprites.SIDEBAR_2.width, windowTop + CONTROLS_TOP);
 
         if (maxEnergy > 0) {
-            final int x = windowLeft - ENERGY_BACKGROUND.width;
+            final int x = windowLeft - Sprites.SIDEBAR_2.width;
             final int y = windowTop + ENERGY_TOP;
-            ENERGY_BACKGROUND.draw(matrixStack, x, y);
-            ENERGY_BASE.draw(matrixStack, x + 4, y + 4);
+            Sprites.SIDEBAR_2.draw(matrixStack, x, y);
+            Sprites.ENERGY_BASE.draw(matrixStack, x + 4, y + 4);
         }
 
-        BACKGROUND.draw(matrixStack, windowLeft, windowTop);
+        Sprites.TERMINAL_SCREEN.draw(matrixStack, windowLeft, windowTop);
 
         if (shouldCaptureInput()) {
-            TERMINAL_FOCUSED.draw(matrixStack, windowLeft, windowTop);
+            Sprites.TERMINAL_FOCUSED.draw(matrixStack, windowLeft, windowTop);
         }
     }
 
@@ -132,9 +105,9 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         }
 
         if (maxEnergy > 0) {
-            ENERGY_BAR.drawFillY(matrixStack, windowLeft - ENERGY_BACKGROUND.width + 4, windowTop + ENERGY_TOP + 4, currentEnergy / (float) maxEnergy);
+            Sprites.ENERGY_BAR.drawFillY(matrixStack, windowLeft - Sprites.SIDEBAR_2.width + 4, windowTop + ENERGY_TOP + 4, currentEnergy / (float) maxEnergy);
 
-            if (isMouseOver(mouseX, mouseY, -ENERGY_BACKGROUND.width + 4, ENERGY_TOP + 4, ENERGY_BAR.width, ENERGY_BAR.height)) {
+            if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
                 final List<? extends ITextProperties> tooltip = Arrays.asList(
                         new TranslationTextComponent(Constants.TOOLTIP_ENERGY, withColor(currentEnergy + "/" + maxEnergy, TextFormatting.GREEN)),
                         new TranslationTextComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(String.valueOf(energyConsumption), TextFormatting.GREEN))
@@ -185,13 +158,13 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         getClient().keyboardHandler.setSendRepeatsToGui(true);
 
         addButton(new ToggleImageButton(
-                parent, windowLeft - CONTROLS_BACKGROUND.width + 4, windowTop + CONTROLS_TOP + 4,
+                parent, windowLeft - Sprites.SIDEBAR_2.width + 4, windowTop + CONTROLS_TOP + 4,
                 12, 12,
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION),
-                POWER_BASE,
-                POWER_PRESSED,
-                POWER_ACTIVE
+                Sprites.POWER_BUTTON_BASE,
+                Sprites.POWER_BUTTON_PRESSED,
+                Sprites.POWER_BUTTON_ACTIVE
         ) {
             @Override
             public void onPress() {
@@ -206,13 +179,13 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         });
 
         addButton(new ToggleImageButton(
-                parent, windowLeft - CONTROLS_BACKGROUND.width + 4, windowTop + CONTROLS_TOP + 18,
+                parent, windowLeft - Sprites.SIDEBAR_2.width + 4, windowTop + CONTROLS_TOP + 18,
                 12, 12,
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_CAPTION),
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_DESCRIPTION),
-                CAPTURE_INPUT_BASE,
-                CAPTURE_INPUT_PRESSED,
-                CAPTURE_INPUT_ACTIVE
+                Sprites.INPUT_BUTTON_BASE,
+                Sprites.INPUT_BUTTON_PRESSED,
+                Sprites.INPUT_BUTTON_ACTIVE
         ) {
             @Override
             public void onPress() {

@@ -1,7 +1,6 @@
 package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import li.cil.oc2.client.gui.widget.Sprite;
 import li.cil.oc2.common.container.RobotTerminalContainer;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.RobotPowerMessage;
@@ -16,9 +15,7 @@ import net.minecraft.util.text.ITextComponent;
 import java.nio.ByteBuffer;
 
 public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalContainer> {
-    private static final Sprite INVENTORY_BACKGROUND = new Sprite(AbstractTerminalWidget.BACKGROUND_LOCATION, AbstractTerminalWidget.TEXTURE_SIZE, 224, 26, 80, 300);
-
-    private static final int SLOTS_X = (AbstractTerminalWidget.WIDTH - INVENTORY_BACKGROUND.width) / 2;
+    private static final int SLOTS_X = (AbstractTerminalWidget.WIDTH - Sprites.HOTBAR.width) / 2;
     private static final int SLOTS_Y = AbstractTerminalWidget.HEIGHT - 1;
 
     private final RobotTerminalWidget terminalWidget;
@@ -34,7 +31,7 @@ public final class RobotTerminalScreen extends ContainerScreen<RobotTerminalCont
 
     @Override
     protected void renderBg(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
-        INVENTORY_BACKGROUND.draw(matrixStack, leftPos + SLOTS_X, topPos + SLOTS_Y);
+        Sprites.HOTBAR.draw(matrixStack, leftPos + SLOTS_X, topPos + SLOTS_Y);
         terminalWidget.renderBackground(matrixStack, mouseX, mouseY);
     }
 

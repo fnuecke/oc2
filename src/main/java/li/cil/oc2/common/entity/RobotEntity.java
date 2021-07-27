@@ -13,10 +13,7 @@ import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.container.DeviceItemStackHandler;
-import li.cil.oc2.common.container.FixedSizeItemStackHandler;
-import li.cil.oc2.common.container.RobotContainer;
-import li.cil.oc2.common.container.RobotTerminalContainer;
+import li.cil.oc2.common.container.*;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.entity.robot.*;
 import li.cil.oc2.common.integration.Wrenches;
@@ -474,11 +471,11 @@ public final class RobotEntity extends Entity implements Robot {
                     @Override
                     public int get(final int index) {
                         switch (index) {
-                            case 0:
+                            case AbstractMachineTerminalContainer.ENERGY_STORED_INDEX:
                                 return energy.getEnergyStored();
-                            case 1:
+                            case AbstractMachineTerminalContainer.ENERGY_CAPACITY_INDEX:
                                 return energy.getMaxEnergyStored();
-                            case 2:
+                            case AbstractMachineTerminalContainer.ENERGY_CONSUMPTION_INDEX:
                                 return virtualMachine.busController.getEnergyConsumption();
                             default:
                                 return 0;

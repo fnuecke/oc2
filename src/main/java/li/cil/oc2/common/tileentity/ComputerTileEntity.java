@@ -15,6 +15,7 @@ import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.container.ComputerInventoryContainer;
 import li.cil.oc2.common.container.ComputerTerminalContainer;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
@@ -131,11 +132,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                     @Override
                     public int get(final int index) {
                         switch (index) {
-                            case 0:
+                            case AbstractMachineTerminalContainer.ENERGY_STORED_INDEX:
                                 return energy.getEnergyStored();
-                            case 1:
+                            case AbstractMachineTerminalContainer.ENERGY_CAPACITY_INDEX:
                                 return energy.getMaxEnergyStored();
-                            case 2:
+                            case AbstractMachineTerminalContainer.ENERGY_CONSUMPTION_INDEX:
                                 return virtualMachine.busController.getEnergyConsumption();
                             default:
                                 return 0;

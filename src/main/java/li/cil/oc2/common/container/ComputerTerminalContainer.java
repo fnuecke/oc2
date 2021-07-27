@@ -1,7 +1,12 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.block.Blocks;
+import li.cil.oc2.common.network.Network;
+import li.cil.oc2.common.network.message.ComputerPowerMessage;
+import li.cil.oc2.common.network.message.ComputerTerminalInputMessage;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.vm.Terminal;
+import li.cil.oc2.common.vm.VirtualMachine;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketBuffer;
@@ -11,6 +16,7 @@ import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.math.BlockPos;
 
 import javax.annotation.Nullable;
+import java.nio.ByteBuffer;
 
 public final class ComputerTerminalContainer extends AbstractMachineTerminalContainer {
     @Nullable
@@ -38,8 +44,24 @@ public final class ComputerTerminalContainer extends AbstractMachineTerminalCont
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerTileEntity getComputer() {
-        return computer;
+    @Override
+    public VirtualMachine getVirtualMachine() {
+        return computer.getVirtualMachine();
+    }
+
+    @Override
+    public void sendPowerStateToServer(final boolean value) {
+        Network.INSTANCE.sendToServer(new ComputerPowerMessage(computer, value));
+    }
+
+    @Override
+    public Terminal getTerminal() {
+        return computer.getTerminal();
+    }
+
+    @Override
+    public void sendTerminalInputToServer(final ByteBuffer input) {
+        Network.INSTANCE.sendToServer(new ComputerTerminalInputMessage(computer, input));
     }
 
     @Override

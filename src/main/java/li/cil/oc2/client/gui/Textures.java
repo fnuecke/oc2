@@ -22,5 +22,5 @@ public final class Textures {
     public static final Texture ENERGY_TEXTURE = new Texture("textures/gui/widget/energy.png", 24, 26);
     public static final Texture POWER_BUTTON_TEXTURE = new Texture("textures/gui/widget/power_button.png", 42, 14);
     public static final Texture INPUT_BUTTON_TEXTURE = new Texture("textures/gui/widget/input_button.png", 42, 14);
-    public static final Texture INVENTORY_BUTTON_TEXTURE = new Texture("textures/gui/widget/inventory_button.png", 42, 14);
+    public static final Texture INVENTORY_BUTTON_TEXTURE = new Texture("textures/gui/widget/inventory_button.png", 28, 14);
 }

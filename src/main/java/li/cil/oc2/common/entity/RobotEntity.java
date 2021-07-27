@@ -471,11 +471,11 @@ public final class RobotEntity extends Entity implements Robot {
                     @Override
                     public int get(final int index) {
                         switch (index) {
-                            case AbstractMachineTerminalContainer.ENERGY_STORED_INDEX:
+                            case AbstractMachineContainer.ENERGY_STORED_INDEX:
                                 return energy.getEnergyStored();
-                            case AbstractMachineTerminalContainer.ENERGY_CAPACITY_INDEX:
+                            case AbstractMachineContainer.ENERGY_CAPACITY_INDEX:
                                 return energy.getMaxEnergyStored();
-                            case AbstractMachineTerminalContainer.ENERGY_CONSUMPTION_INDEX:
+                            case AbstractMachineContainer.ENERGY_CONSUMPTION_INDEX:
                                 return virtualMachine.busController.getEnergyConsumption();
                             default:
                                 return 0;

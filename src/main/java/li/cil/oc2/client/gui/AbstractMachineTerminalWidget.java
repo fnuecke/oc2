@@ -3,8 +3,10 @@ package li.cil.oc2.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
+import li.cil.oc2.client.gui.widget.ImageButton;
 import li.cil.oc2.client.gui.widget.ToggleImageButton;
 import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
@@ -25,7 +27,7 @@ import java.util.List;
 
 import static li.cil.oc2.common.util.TooltipUtils.withColor;
 
-public abstract class AbstractTerminalWidget extends AbstractGui {
+public abstract class AbstractMachineTerminalWidget extends AbstractGui {
     public static final int TERMINAL_WIDTH = Terminal.WIDTH * Terminal.CHAR_WIDTH / 2;
     public static final int TERMINAL_HEIGHT = Terminal.HEIGHT * Terminal.CHAR_HEIGHT / 2;
 
@@ -33,34 +35,28 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
     public static final int TERMINAL_X = MARGIN_SIZE;
     public static final int TERMINAL_Y = MARGIN_SIZE;
 
-    public static final int WIDTH = TERMINAL_WIDTH + MARGIN_SIZE * 2;
-    public static final int HEIGHT = TERMINAL_HEIGHT + MARGIN_SIZE * 2;
+    public static final int WIDTH = Sprites.TERMINAL_SCREEN.width;
+    public static final int HEIGHT = Sprites.TERMINAL_SCREEN.height;
 
     private static final int CONTROLS_TOP = 8;
-    private static final int ENERGY_TOP = CONTROLS_TOP + Sprites.SIDEBAR_2.height + 4;
+    private static final int ENERGY_TOP = CONTROLS_TOP + Sprites.SIDEBAR_3.height + 4;
 
     private static boolean isInputCaptureEnabled;
 
     ///////////////////////////////////////////////////////////////////
 
     private final Screen parent;
+    private final AbstractMachineTerminalContainer container;
     private final Terminal terminal;
     private int windowLeft, windowTop;
     private boolean isMouseOverTerminal;
 
-    private int currentEnergy, maxEnergy, energyConsumption;
-
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractTerminalWidget(final Screen parent, final Terminal terminal) {
+    protected AbstractMachineTerminalWidget(final Screen parent, final AbstractMachineTerminalContainer container) {
         this.parent = parent;
-        this.terminal = terminal;
-    }
-
-    public void setEnergyInfo(final int current, final int capacity, final int consumption) {
-        this.currentEnergy = current;
-        this.maxEnergy = capacity;
-        this.energyConsumption = consumption;
+        this.container = container;
+        this.terminal = container.getTerminal();
     }
 
     public void renderBackground(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
@@ -68,9 +64,9 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
 
         isMouseOverTerminal = isMouseOverTerminal(mouseX, mouseY);
 
-        Sprites.SIDEBAR_2.draw(matrixStack, windowLeft - Sprites.SIDEBAR_2.width, windowTop + CONTROLS_TOP);
+        Sprites.SIDEBAR_3.draw(matrixStack, windowLeft - Sprites.SIDEBAR_2.width, windowTop + CONTROLS_TOP);
 
-        if (maxEnergy > 0) {
+        if (container.getEnergyCapacity() > 0) {
             final int x = windowLeft - Sprites.SIDEBAR_2.width;
             final int y = windowTop + ENERGY_TOP;
             Sprites.SIDEBAR_2.draw(matrixStack, x, y);
@@ -85,7 +81,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
     }
 
     public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, @Nullable final ITextComponent error) {
-        if (isRunning()) {
+        if (container.getVirtualMachine().isRunning()) {
             final MatrixStack stack = new MatrixStack();
             stack.translate(windowLeft + TERMINAL_X, windowTop + TERMINAL_Y, getClient().getItemRenderer().blitOffset);
             stack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
@@ -104,12 +100,16 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
             }
         }
 
-        if (maxEnergy > 0) {
-            Sprites.ENERGY_BAR.drawFillY(matrixStack, windowLeft - Sprites.SIDEBAR_2.width + 4, windowTop + ENERGY_TOP + 4, currentEnergy / (float) maxEnergy);
+        final int energyCapacity = container.getEnergyCapacity();
+        if (energyCapacity > 0) {
+            final int energyStored = container.getEnergy();
+            final int energyConsumption = container.getEnergyConsumption();
+
+            Sprites.ENERGY_BAR.drawFillY(matrixStack, windowLeft - Sprites.SIDEBAR_2.width + 4, windowTop + ENERGY_TOP + 4, energyStored / (float) energyCapacity);
 
             if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
                 final List<? extends ITextProperties> tooltip = Arrays.asList(
-                        new TranslationTextComponent(Constants.TOOLTIP_ENERGY, withColor(currentEnergy + "/" + maxEnergy, TextFormatting.GREEN)),
+                        new TranslationTextComponent(Constants.TOOLTIP_ENERGY, withColor(energyStored + "/" + energyCapacity, TextFormatting.GREEN)),
                         new TranslationTextComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(String.valueOf(energyConsumption), TextFormatting.GREEN))
                 );
                 GuiUtils.drawHoveringText(matrixStack, tooltip, mouseX, mouseY, parent.width, parent.height, 200, getClient().font);
@@ -120,7 +120,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
     public void tick() {
         final ByteBuffer input = terminal.getInput();
         if (input != null) {
-            sendTerminalInputToServer(input);
+            container.sendTerminalInputToServer(input);
         }
     }
 
@@ -158,7 +158,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
         getClient().keyboardHandler.setSendRepeatsToGui(true);
 
         addButton(new ToggleImageButton(
-                parent, windowLeft - Sprites.SIDEBAR_2.width + 4, windowTop + CONTROLS_TOP + 4,
+                parent, windowLeft - Sprites.SIDEBAR_3.width + 4, windowTop + CONTROLS_TOP + 4,
                 12, 12,
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION),
@@ -169,17 +169,17 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
             @Override
             public void onPress() {
                 super.onPress();
-                sendPowerStateToServer(!isRunning());
+                container.sendPowerStateToServer(!container.getVirtualMachine().isRunning());
             }
 
             @Override
             public boolean isToggled() {
-                return isRunning();
+                return container.getVirtualMachine().isRunning();
             }
         });
 
         addButton(new ToggleImageButton(
-                parent, windowLeft - Sprites.SIDEBAR_2.width + 4, windowTop + CONTROLS_TOP + 18,
+                parent, windowLeft - Sprites.SIDEBAR_3.width + 4, windowTop + CONTROLS_TOP + 4 + 14,
                 12, 12,
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_CAPTION),
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_DESCRIPTION),
@@ -198,6 +198,20 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
                 return isInputCaptureEnabled;
             }
         });
+
+        addButton(new ImageButton(
+                parent, windowLeft - Sprites.SIDEBAR_3.width + 4, windowTop + CONTROLS_TOP + 4 + 14 + 14,
+                12, 12,
+                new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_CAPTION),
+                new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_DESCRIPTION),
+                Sprites.INVENTORY_BUTTON_INACTIVE,
+                Sprites.INVENTORY_BUTTON_ACTIVE
+        ) {
+            @Override
+            public void onPress() {
+                // todo switch to container
+            }
+        });
     }
 
     public void onClose() {
@@ -206,14 +220,7 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
 
     ///////////////////////////////////////////////////////////////////
 
-    protected abstract boolean isRunning();
-
-    protected void addButton(final Widget widget) {
-    }
-
-    protected abstract void sendPowerStateToServer(boolean value);
-
-    protected abstract void sendTerminalInputToServer(final ByteBuffer input);
+    protected abstract void addButton(final Widget widget);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -222,13 +229,13 @@ public abstract class AbstractTerminalWidget extends AbstractGui {
     }
 
     private boolean shouldCaptureInput() {
-        return isMouseOverTerminal && isInputCaptureEnabled && isRunning();
+        return isMouseOverTerminal && isInputCaptureEnabled && container.getVirtualMachine().isRunning();
     }
 
     private boolean isMouseOverTerminal(final int mouseX, final int mouseY) {
         return isMouseOver(mouseX, mouseY,
-                AbstractTerminalWidget.TERMINAL_X, AbstractTerminalWidget.TERMINAL_Y,
-                AbstractTerminalWidget.TERMINAL_WIDTH, AbstractTerminalWidget.TERMINAL_HEIGHT);
+                AbstractMachineTerminalWidget.TERMINAL_X, AbstractMachineTerminalWidget.TERMINAL_Y,
+                AbstractMachineTerminalWidget.TERMINAL_WIDTH, AbstractMachineTerminalWidget.TERMINAL_HEIGHT);
     }
 
     private boolean isMouseOver(final int mouseX, final int mouseY, final int x, final int y, final int width, final int height) {

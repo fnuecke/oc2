@@ -15,10 +15,7 @@ import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
-import li.cil.oc2.common.container.ComputerInventoryContainer;
-import li.cil.oc2.common.container.ComputerTerminalContainer;
-import li.cil.oc2.common.container.DeviceItemStackHandler;
+import li.cil.oc2.common.container.*;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBootErrorMessage;
@@ -132,11 +129,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
                     @Override
                     public int get(final int index) {
                         switch (index) {
-                            case AbstractMachineTerminalContainer.ENERGY_STORED_INDEX:
+                            case AbstractMachineContainer.ENERGY_STORED_INDEX:
                                 return energy.getEnergyStored();
-                            case AbstractMachineTerminalContainer.ENERGY_CAPACITY_INDEX:
+                            case AbstractMachineContainer.ENERGY_CAPACITY_INDEX:
                                 return energy.getMaxEnergyStored();
-                            case AbstractMachineTerminalContainer.ENERGY_CONSUMPTION_INDEX:
+                            case AbstractMachineContainer.ENERGY_CONSUMPTION_INDEX:
                                 return virtualMachine.busController.getEnergyConsumption();
                             default:
                                 return 0;

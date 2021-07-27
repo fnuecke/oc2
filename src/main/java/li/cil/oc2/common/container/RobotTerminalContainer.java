@@ -1,6 +1,6 @@
 package li.cil.oc2.common.container;
 
-import li.cil.oc2.client.gui.AbstractMachineTerminalWidget;
+import li.cil.oc2.client.gui.MachineTerminalWidget;
 import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.RobotPowerMessage;
@@ -41,8 +41,8 @@ public final class RobotTerminalContainer extends AbstractMachineTerminalContain
 
         final ItemStackHandler inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
-            final int x = (AbstractMachineTerminalWidget.WIDTH - inventory.getSlots() * SLOT_SIZE) / 2 + 1 + slot * SLOT_SIZE;
-            addSlot(new SlotItemHandler(inventory, slot, x, AbstractMachineTerminalWidget.HEIGHT + 4));
+            final int x = (MachineTerminalWidget.WIDTH - inventory.getSlots() * SLOT_SIZE) / 2 + 1 + slot * SLOT_SIZE;
+            addSlot(new SlotItemHandler(inventory, slot, x, MachineTerminalWidget.HEIGHT + 4));
         }
     }
 

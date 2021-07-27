@@ -11,8 +11,6 @@ import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.TextFormatting;
@@ -27,7 +25,7 @@ import java.util.List;
 
 import static li.cil.oc2.common.util.TooltipUtils.withColor;
 
-public abstract class AbstractMachineTerminalWidget extends AbstractGui {
+public final class MachineTerminalWidget extends AbstractGui {
     public static final int TERMINAL_WIDTH = Terminal.WIDTH * Terminal.CHAR_WIDTH / 2;
     public static final int TERMINAL_HEIGHT = Terminal.HEIGHT * Terminal.CHAR_HEIGHT / 2;
 
@@ -45,7 +43,7 @@ public abstract class AbstractMachineTerminalWidget extends AbstractGui {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final Screen parent;
+    private final AbstractMachineTerminalScreen<?> parent;
     private final AbstractMachineTerminalContainer container;
     private final Terminal terminal;
     private int windowLeft, windowTop;
@@ -53,10 +51,10 @@ public abstract class AbstractMachineTerminalWidget extends AbstractGui {
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractMachineTerminalWidget(final Screen parent, final AbstractMachineTerminalContainer container) {
+    public MachineTerminalWidget(final AbstractMachineTerminalScreen<?> parent) {
         this.parent = parent;
-        this.container = container;
-        this.terminal = container.getTerminal();
+        this.container = this.parent.getMenu();
+        this.terminal = this.container.getTerminal();
     }
 
     public void renderBackground(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
@@ -157,7 +155,7 @@ public abstract class AbstractMachineTerminalWidget extends AbstractGui {
 
         getClient().keyboardHandler.setSendRepeatsToGui(true);
 
-        addButton(new ToggleImageButton(
+        parent.addButton(new ToggleImageButton(
                 parent, windowLeft - Sprites.SIDEBAR_3.width + 4, windowTop + CONTROLS_TOP + 4,
                 12, 12,
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
@@ -178,7 +176,7 @@ public abstract class AbstractMachineTerminalWidget extends AbstractGui {
             }
         });
 
-        addButton(new ToggleImageButton(
+        parent.addButton(new ToggleImageButton(
                 parent, windowLeft - Sprites.SIDEBAR_3.width + 4, windowTop + CONTROLS_TOP + 4 + 14,
                 12, 12,
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_CAPTION),
@@ -199,7 +197,7 @@ public abstract class AbstractMachineTerminalWidget extends AbstractGui {
             }
         });
 
-        addButton(new ImageButton(
+        parent.addButton(new ImageButton(
                 parent, windowLeft - Sprites.SIDEBAR_3.width + 4, windowTop + CONTROLS_TOP + 4 + 14 + 14,
                 12, 12,
                 new TranslationTextComponent(Constants.COMPUTER_SCREEN_CAPTURE_INPUT_CAPTION),
@@ -220,10 +218,6 @@ public abstract class AbstractMachineTerminalWidget extends AbstractGui {
 
     ///////////////////////////////////////////////////////////////////
 
-    protected abstract void addButton(final Widget widget);
-
-    ///////////////////////////////////////////////////////////////////
-
     private Minecraft getClient() {
         return parent.getMinecraft();
     }
@@ -234,8 +228,8 @@ public abstract class AbstractMachineTerminalWidget extends AbstractGui {
 
     private boolean isMouseOverTerminal(final int mouseX, final int mouseY) {
         return isMouseOver(mouseX, mouseY,
-                AbstractMachineTerminalWidget.TERMINAL_X, AbstractMachineTerminalWidget.TERMINAL_Y,
-                AbstractMachineTerminalWidget.TERMINAL_WIDTH, AbstractMachineTerminalWidget.TERMINAL_HEIGHT);
+                MachineTerminalWidget.TERMINAL_X, MachineTerminalWidget.TERMINAL_Y,
+                MachineTerminalWidget.TERMINAL_WIDTH, MachineTerminalWidget.TERMINAL_HEIGHT);
     }
 
     private boolean isMouseOver(final int mouseX, final int mouseY, final int x, final int y, final int width, final int height) {

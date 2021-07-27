@@ -6,8 +6,8 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.text.ITextComponent;
 
 public final class RobotTerminalScreen extends AbstractMachineTerminalScreen<RobotTerminalContainer> {
-    private static final int SLOTS_X = (AbstractMachineTerminalWidget.WIDTH - Sprites.HOTBAR.width) / 2;
-    private static final int SLOTS_Y = AbstractMachineTerminalWidget.HEIGHT - 1;
+    private static final int SLOTS_X = (MachineTerminalWidget.WIDTH - Sprites.HOTBAR.width) / 2;
+    private static final int SLOTS_Y = MachineTerminalWidget.HEIGHT - 1;
 
     ///////////////////////////////////////////////////////////////////
 

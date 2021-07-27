@@ -9,18 +9,13 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.text.ITextComponent;
 
 public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTerminalContainer> extends ContainerScreen<T> {
-    private final AbstractMachineTerminalWidget terminalWidget;
+    private final MachineTerminalWidget terminalWidget;
 
     ///////////////////////////////////////////////////////////////////
 
     protected AbstractMachineTerminalScreen(final T container, final PlayerInventory playerInventory, final ITextComponent title) {
         super(container, playerInventory, title);
-        this.terminalWidget = new AbstractMachineTerminalWidget(this, container) {
-            @Override
-            protected void addButton(final Widget widget) {
-                AbstractMachineTerminalScreen.this.addButton(widget);
-            }
-        };
+        this.terminalWidget = new MachineTerminalWidget(this);
         imageWidth = Sprites.TERMINAL_SCREEN.width;
         imageHeight = Sprites.TERMINAL_SCREEN.height;
     }
@@ -28,13 +23,8 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void renderBg(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
-        terminalWidget.renderBackground(matrixStack, mouseX, mouseY);
-    }
-
-    @Override
-    protected void renderLabels(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
-        // This is required to prevent the labels from being rendered
+    public <TWidget extends Widget> TWidget addButton(final TWidget widget) {
+        return super.addButton(widget);
     }
 
     @Override
@@ -83,5 +73,17 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     public void onClose() {
         super.onClose();
         terminalWidget.onClose();
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void renderBg(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
+        terminalWidget.renderBackground(matrixStack, mouseX, mouseY);
+    }
+
+    @Override
+    protected void renderLabels(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
+        // This is required to prevent the labels from being rendered
     }
 }

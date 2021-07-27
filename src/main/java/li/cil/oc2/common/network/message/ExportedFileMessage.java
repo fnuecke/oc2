@@ -8,9 +8,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.function.Supplier;
 
-public final class ExportedFileMessage {
+public final class ExportedFileMessage extends AbstractMessage {
     private static final Logger LOGGER = LogManager.getLogger();
 
     ///////////////////////////////////////////////////////////////////
@@ -26,30 +25,32 @@ public final class ExportedFileMessage {
     }
 
     public ExportedFileMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final ExportedFileMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> FileChooserScreen.openFileChooserForSave(message.name, path -> {
-            try {
-                Files.write(path, message.data);
-            } catch (final IOException e) {
-                LOGGER.error(e);
-            }
-        }));
-
-        return true;
-    }
-
-    public static void toBytes(final ExportedFileMessage message, final PacketBuffer buffer) {
-        buffer.writeUtf(message.name);
-        buffer.writeByteArray(message.data);
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         name = buffer.readUtf();
         data = buffer.readByteArray();
+    }
+
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeUtf(name);
+        buffer.writeByteArray(data);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected void handleMessage(final NetworkEvent.Context context) {
+        FileChooserScreen.openFileChooserForSave(name, path -> {
+            try {
+                Files.write(path, data);
+            } catch (final IOException e) {
+                LOGGER.error(e);
+            }
+        });
     }
 }

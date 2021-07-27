@@ -5,7 +5,7 @@ import net.minecraft.network.PacketBuffer;
 
 import java.nio.ByteBuffer;
 
-public abstract class AbstractTerminalEntityMessage {
+public abstract class AbstractTerminalEntityMessage extends AbstractMessage {
     protected int entityId;
     protected byte[] data;
 
@@ -17,18 +17,20 @@ public abstract class AbstractTerminalEntityMessage {
     }
 
     protected AbstractTerminalEntityMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         entityId = buffer.readVarInt();
         data = buffer.readByteArray();
     }
 
-    public static void toBytes(final AbstractTerminalEntityMessage message, final PacketBuffer buffer) {
-        buffer.writeVarInt(message.entityId);
-        buffer.writeByteArray(message.data);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeVarInt(entityId);
+        buffer.writeByteArray(data);
     }
 }

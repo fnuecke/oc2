@@ -3,6 +3,7 @@ package li.cil.oc2.common.network;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.network.message.*;
 import net.minecraft.entity.Entity;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.chunk.Chunk;
@@ -10,6 +11,8 @@ import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
+
+import java.util.function.Function;
 
 public final class Network {
     private static final String PROTOCOL_VERSION = "1";
@@ -28,149 +31,36 @@ public final class Network {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        INSTANCE.messageBuilder(ComputerTerminalOutputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(ComputerTerminalOutputMessage::toBytes)
-                .decoder(ComputerTerminalOutputMessage::new)
-                .consumer(ComputerTerminalOutputMessage::handleMessage)
-                .add();
+        registerMessage(ComputerTerminalOutputMessage.class, ComputerTerminalOutputMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(ComputerTerminalInputMessage.class, ComputerTerminalInputMessage::new, NetworkDirection.PLAY_TO_SERVER);
+        registerMessage(ComputerRunStateMessage.class, ComputerRunStateMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(ComputerBusStateMessage.class, ComputerBusStateMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(ComputerBootErrorMessage.class, ComputerBootErrorMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(ComputerPowerMessage.class, ComputerPowerMessage::new, NetworkDirection.PLAY_TO_SERVER);
 
-        INSTANCE.messageBuilder(ComputerTerminalInputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ComputerTerminalInputMessage::toBytes)
-                .decoder(ComputerTerminalInputMessage::new)
-                .consumer(ComputerTerminalInputMessage::handleMessage)
-                .add();
+        registerMessage(NetworkConnectorConnectionsMessage.class, NetworkConnectorConnectionsMessage::new, NetworkDirection.PLAY_TO_CLIENT);
 
-        INSTANCE.messageBuilder(ComputerRunStateMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(ComputerRunStateMessage::toBytes)
-                .decoder(ComputerRunStateMessage::new)
-                .consumer(ComputerRunStateMessage::handleMessage)
-                .add();
+        registerMessage(RobotTerminalOutputMessage.class, RobotTerminalOutputMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(RobotTerminalInputMessage.class, RobotTerminalInputMessage::new, NetworkDirection.PLAY_TO_SERVER);
+        registerMessage(RobotRunStateMessage.class, RobotRunStateMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(RobotBusStateMessage.class, RobotBusStateMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(RobotBootErrorMessage.class, RobotBootErrorMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(RobotPowerMessage.class, RobotPowerMessage::new, NetworkDirection.PLAY_TO_SERVER);
+        registerMessage(RobotInitializationRequestMessage.class, RobotInitializationRequestMessage::new, NetworkDirection.PLAY_TO_SERVER);
+        registerMessage(RobotInitializationMessage.class, RobotInitializationMessage::new, NetworkDirection.PLAY_TO_CLIENT);
 
-        INSTANCE.messageBuilder(ComputerBusStateMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(ComputerBusStateMessage::toBytes)
-                .decoder(ComputerBusStateMessage::new)
-                .consumer(ComputerBusStateMessage::handleMessage)
-                .add();
+        registerMessage(DiskDriveFloppyMessage.class, DiskDriveFloppyMessage::new, NetworkDirection.PLAY_TO_CLIENT);
 
-        INSTANCE.messageBuilder(ComputerBootErrorMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(ComputerBootErrorMessage::toBytes)
-                .decoder(ComputerBootErrorMessage::new)
-                .consumer(ComputerBootErrorMessage::handleMessage)
-                .add();
+        registerMessage(BusInterfaceNameMessage.ToClient.class, BusInterfaceNameMessage.ToClient::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(BusInterfaceNameMessage.ToServer.class, BusInterfaceNameMessage.ToServer::new, NetworkDirection.PLAY_TO_SERVER);
 
-        INSTANCE.messageBuilder(ComputerPowerMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ComputerPowerMessage::toBytes)
-                .decoder(ComputerPowerMessage::new)
-                .consumer(ComputerPowerMessage::handleMessage)
-                .add();
+        registerMessage(ExportedFileMessage.class, ExportedFileMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(RequestImportedFileMessage.class, RequestImportedFileMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(ImportedFileMessage.class, ImportedFileMessage::new, NetworkDirection.PLAY_TO_SERVER);
+        registerMessage(ServerCanceledImportFileMessage.class, ServerCanceledImportFileMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(ClientCanceledImportFileMessage.class, ClientCanceledImportFileMessage::new, NetworkDirection.PLAY_TO_SERVER);
 
-        INSTANCE.messageBuilder(NetworkConnectorConnectionsMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(NetworkConnectorConnectionsMessage::toBytes)
-                .decoder(NetworkConnectorConnectionsMessage::new)
-                .consumer(NetworkConnectorConnectionsMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(RobotTerminalOutputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(RobotTerminalOutputMessage::toBytes)
-                .decoder(RobotTerminalOutputMessage::new)
-                .consumer(RobotTerminalOutputMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(RobotTerminalInputMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
-                .encoder(RobotTerminalInputMessage::toBytes)
-                .decoder(RobotTerminalInputMessage::new)
-                .consumer(RobotTerminalInputMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(RobotRunStateMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(RobotRunStateMessage::toBytes)
-                .decoder(RobotRunStateMessage::new)
-                .consumer(RobotRunStateMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(RobotBusStateMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(RobotBusStateMessage::toBytes)
-                .decoder(RobotBusStateMessage::new)
-                .consumer(RobotBusStateMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(RobotBootErrorMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(RobotBootErrorMessage::toBytes)
-                .decoder(RobotBootErrorMessage::new)
-                .consumer(RobotBootErrorMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(RobotPowerMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
-                .encoder(RobotPowerMessage::toBytes)
-                .decoder(RobotPowerMessage::new)
-                .consumer(RobotPowerMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(RobotInitializationRequestMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
-                .encoder(RobotInitializationRequestMessage::toBytes)
-                .decoder(RobotInitializationRequestMessage::new)
-                .consumer(RobotInitializationRequestMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(RobotInitializationMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(RobotInitializationMessage::toBytes)
-                .decoder(RobotInitializationMessage::new)
-                .consumer(RobotInitializationMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(DiskDriveFloppyMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(DiskDriveFloppyMessage::toBytes)
-                .decoder(DiskDriveFloppyMessage::new)
-                .consumer(DiskDriveFloppyMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(BusInterfaceNameMessage.ToClient.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(BusInterfaceNameMessage::toBytes)
-                .decoder(BusInterfaceNameMessage.ToClient::new)
-                .consumer(BusInterfaceNameMessage::handleMessageClient)
-                .add();
-
-        INSTANCE.messageBuilder(BusInterfaceNameMessage.ToServer.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
-                .encoder(BusInterfaceNameMessage::toBytes)
-                .decoder(BusInterfaceNameMessage.ToServer::new)
-                .consumer(BusInterfaceNameMessage::handleMessageServer)
-                .add();
-
-        INSTANCE.messageBuilder(ExportedFileMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(ExportedFileMessage::toBytes)
-                .decoder(ExportedFileMessage::new)
-                .consumer(ExportedFileMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(RequestImportedFileMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(RequestImportedFileMessage::toBytes)
-                .decoder(RequestImportedFileMessage::new)
-                .consumer(RequestImportedFileMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(ImportedFileMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ImportedFileMessage::toBytes)
-                .decoder(ImportedFileMessage::new)
-                .consumer(ImportedFileMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(ServerCanceledImportFileMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(ServerCanceledImportFileMessage::toBytes)
-                .decoder(ServerCanceledImportFileMessage::new)
-                .consumer(ServerCanceledImportFileMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(ClientCanceledImportFileMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ClientCanceledImportFileMessage::toBytes)
-                .decoder(ClientCanceledImportFileMessage::new)
-                .consumer(ClientCanceledImportFileMessage::handleMessage)
-                .add();
-
-        INSTANCE.messageBuilder(BusCableFacadeMessage.class, getNextPacketId(), NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(BusCableFacadeMessage::toBytes)
-                .decoder(BusCableFacadeMessage::new)
-                .consumer(BusCableFacadeMessage::handleMessage)
-                .add();
+        registerMessage(BusCableFacadeMessage.class, BusCableFacadeMessage::new, NetworkDirection.PLAY_TO_CLIENT);
     }
 
     public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {
@@ -187,6 +77,14 @@ public final class Network {
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    private static <T extends AbstractMessage> void registerMessage(final Class<T> type, final Function<PacketBuffer, T> decoder, final NetworkDirection direction) {
+        INSTANCE.messageBuilder(type, getNextPacketId(), direction)
+                .encoder(AbstractMessage::toBytes)
+                .decoder(decoder)
+                .consumer(AbstractMessage::handleMessage)
+                .add();
+    }
 
     private static int getNextPacketId() {
         return nextPacketId++;

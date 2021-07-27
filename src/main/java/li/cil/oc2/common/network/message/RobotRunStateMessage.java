@@ -6,9 +6,7 @@ import li.cil.oc2.common.vm.VMRunState;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public final class RobotRunStateMessage {
+public final class RobotRunStateMessage extends AbstractMessage {
     private int entityId;
     private VMRunState value;
 
@@ -20,24 +18,28 @@ public final class RobotRunStateMessage {
     }
 
     public RobotRunStateMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final RobotRunStateMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientEntity(message.entityId, RobotEntity.class,
-                (robot) -> robot.getVirtualMachine().setRunStateClient(message.value)));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         entityId = buffer.readVarInt();
         value = buffer.readEnum(VMRunState.class);
     }
 
-    public static void toBytes(final RobotRunStateMessage message, final PacketBuffer buffer) {
-        buffer.writeVarInt(message.entityId);
-        buffer.writeEnum(message.value);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeVarInt(entityId);
+        buffer.writeEnum(value);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withClientEntity(entityId, RobotEntity.class,
+                (robot) -> robot.getVirtualMachine().setRunStateClient(value));
     }
 }

@@ -10,9 +10,7 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public final class RobotInitializationMessage {
+public final class RobotInitializationMessage extends AbstractMessage {
     private int entityId;
     private CommonDeviceBusController.BusState busState;
     private VMRunState runState;
@@ -30,22 +28,12 @@ public final class RobotInitializationMessage {
     }
 
     public RobotInitializationMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final RobotInitializationMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientEntity(message.entityId, RobotEntity.class,
-                (robot) -> {
-                    robot.getVirtualMachine().setBusStateClient(message.busState);
-                    robot.getVirtualMachine().setRunStateClient(message.runState);
-                    robot.getVirtualMachine().setBootErrorClient(message.bootError);
-                    NBTSerialization.deserialize(message.terminal, robot.getTerminal());
-                }));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         entityId = buffer.readVarInt();
         busState = buffer.readEnum(CommonDeviceBusController.BusState.class);
@@ -54,11 +42,25 @@ public final class RobotInitializationMessage {
         terminal = buffer.readNbt();
     }
 
-    public static void toBytes(final RobotInitializationMessage message, final PacketBuffer buffer) {
-        buffer.writeVarInt(message.entityId);
-        buffer.writeEnum(message.busState);
-        buffer.writeEnum(message.runState);
-        buffer.writeComponent(message.bootError);
-        buffer.writeNbt(message.terminal);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeVarInt(entityId);
+        buffer.writeEnum(busState);
+        buffer.writeEnum(runState);
+        buffer.writeComponent(bootError);
+        buffer.writeNbt(terminal);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withClientEntity(entityId, RobotEntity.class,
+                (robot) -> {
+                    robot.getVirtualMachine().setBusStateClient(busState);
+                    robot.getVirtualMachine().setRunStateClient(runState);
+                    robot.getVirtualMachine().setBootErrorClient(bootError);
+                    NBTSerialization.deserialize(terminal, robot.getTerminal());
+                });
     }
 }

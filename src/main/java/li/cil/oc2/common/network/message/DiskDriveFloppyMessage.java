@@ -8,9 +8,7 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public final class DiskDriveFloppyMessage {
+public final class DiskDriveFloppyMessage extends AbstractMessage {
     private BlockPos pos;
     private CompoundNBT data;
 
@@ -22,24 +20,28 @@ public final class DiskDriveFloppyMessage {
     }
 
     public DiskDriveFloppyMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final DiskDriveFloppyMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, DiskDriveTileEntity.class,
-                (diskDrive) -> diskDrive.setFloppyClient(ItemStack.of(message.data))));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
         data = buffer.readNbt();
     }
 
-    public static void toBytes(final DiskDriveFloppyMessage message, final PacketBuffer buffer) {
-        buffer.writeBlockPos(message.pos);
-        buffer.writeNbt(message.data);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeNbt(data);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withClientTileEntityAt(pos, DiskDriveTileEntity.class,
+                (diskDrive) -> diskDrive.setFloppyClient(ItemStack.of(data)));
     }
 }

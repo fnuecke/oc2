@@ -6,7 +6,6 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.nio.ByteBuffer;
-import java.util.function.Supplier;
 
 public final class RobotTerminalInputMessage extends AbstractTerminalEntityMessage {
     public RobotTerminalInputMessage(final RobotEntity robot, final ByteBuffer data) {
@@ -19,9 +18,9 @@ public final class RobotTerminalInputMessage extends AbstractTerminalEntityMessa
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final AbstractTerminalEntityMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withServerEntity(context, message.entityId, RobotEntity.class,
-                (tileEntity) -> tileEntity.getTerminal().putInput(ByteBuffer.wrap(message.data))));
-        return true;
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withNearbyServerEntity(context, entityId, RobotEntity.class,
+                (tileEntity) -> tileEntity.getTerminal().putInput(ByteBuffer.wrap(data)));
     }
 }

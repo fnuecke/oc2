@@ -11,13 +11,12 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public final class MessageUtils {
     @SuppressWarnings("unchecked")
-    public static <T extends TileEntity> void withServerTileEntityAt(final Supplier<NetworkEvent.Context> context, final BlockPos pos, final Class<T> type, final Consumer<T> callback) {
-        final ServerPlayerEntity player = context.get().getSender();
-        if (player == null) {
+    public static <T extends TileEntity> void withNearbyServerTileEntityAt(final NetworkEvent.Context context, final BlockPos pos, final Class<T> type, final Consumer<T> callback) {
+        final ServerPlayerEntity player = context.getSender();
+        if (player == null || !pos.closerThan(player.position(), 8)) {
             return;
         }
 
@@ -29,8 +28,8 @@ public final class MessageUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Entity> void withServerEntity(final Supplier<NetworkEvent.Context> context, final int id, final Class<T> type, final Consumer<T> callback) {
-        final ServerPlayerEntity player = context.get().getSender();
+    public static <T extends Entity> void withServerEntity(final NetworkEvent.Context context, final int id, final Class<T> type, final Consumer<T> callback) {
+        final ServerPlayerEntity player = context.getSender();
         if (player == null) {
             return;
         }
@@ -38,6 +37,20 @@ public final class MessageUtils {
         final ServerWorld world = player.getLevel();
         final Entity entity = world.getEntity(id);
         if (type.isInstance(entity)) {
+            callback.accept((T) entity);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends Entity> void withNearbyServerEntity(final NetworkEvent.Context context, final int id, final Class<T> type, final Consumer<T> callback) {
+        final ServerPlayerEntity player = context.getSender();
+        if (player == null) {
+            return;
+        }
+
+        final ServerWorld world = player.getLevel();
+        final Entity entity = world.getEntity(id);
+        if (type.isInstance(entity) && entity.closerThan(player, 8)) {
             callback.accept((T) entity);
         }
     }

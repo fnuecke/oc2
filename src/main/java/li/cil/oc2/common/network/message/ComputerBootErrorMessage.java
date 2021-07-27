@@ -7,9 +7,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public final class ComputerBootErrorMessage {
+public final class ComputerBootErrorMessage extends AbstractMessage {
     private BlockPos pos;
     private ITextComponent value;
 
@@ -21,24 +19,28 @@ public final class ComputerBootErrorMessage {
     }
 
     public ComputerBootErrorMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final ComputerBootErrorMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
-                (tileEntity) -> tileEntity.getVirtualMachine().setBootErrorClient(message.value)));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
         value = buffer.readComponent();
     }
 
-    public static void toBytes(final ComputerBootErrorMessage message, final PacketBuffer buffer) {
-        buffer.writeBlockPos(message.pos);
-        buffer.writeComponent(message.value);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeComponent(value);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withClientTileEntityAt(pos, ComputerTileEntity.class,
+                (tileEntity) -> tileEntity.getVirtualMachine().setBootErrorClient(value));
     }
 }

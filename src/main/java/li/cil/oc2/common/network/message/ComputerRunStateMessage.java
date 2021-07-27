@@ -7,9 +7,7 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public final class ComputerRunStateMessage {
+public final class ComputerRunStateMessage extends AbstractMessage {
     private BlockPos pos;
     private VMRunState value;
 
@@ -21,24 +19,28 @@ public final class ComputerRunStateMessage {
     }
 
     public ComputerRunStateMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final ComputerRunStateMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
-                (tileEntity) -> tileEntity.getVirtualMachine().setRunStateClient(message.value)));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
         value = buffer.readEnum(VMRunState.class);
     }
 
-    public static void toBytes(final ComputerRunStateMessage message, final PacketBuffer buffer) {
-        buffer.writeBlockPos(message.pos);
-        buffer.writeEnum(message.value);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeEnum(value);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withClientTileEntityAt(pos, ComputerTileEntity.class,
+                (tileEntity) -> tileEntity.getVirtualMachine().setRunStateClient(value));
     }
 }

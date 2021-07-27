@@ -7,11 +7,11 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public final class BusCableFacadeMessage {
+public final class BusCableFacadeMessage extends AbstractMessage {
     private BlockPos pos;
     private ItemStack stack;
+
+    ///////////////////////////////////////////////////////////////////
 
     public BusCableFacadeMessage(final BlockPos pos, final ItemStack stack) {
         this.pos = pos;
@@ -19,24 +19,28 @@ public final class BusCableFacadeMessage {
     }
 
     public BusCableFacadeMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final BusCableFacadeMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, BusCableTileEntity.class,
-                (tileEntity) -> tileEntity.setFacade(message.stack)));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
         stack = buffer.readItem();
     }
 
-    public static void toBytes(final BusCableFacadeMessage message, final PacketBuffer buffer) {
-        buffer.writeBlockPos(message.pos);
-        buffer.writeItem(message.stack);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeItem(stack);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withClientTileEntityAt(pos, BusCableTileEntity.class,
+                (tileEntity) -> tileEntity.setFacade(stack));
     }
 }

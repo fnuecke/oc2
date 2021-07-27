@@ -7,9 +7,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.ArrayList;
-import java.util.function.Supplier;
 
-public final class NetworkConnectorConnectionsMessage {
+public final class NetworkConnectorConnectionsMessage extends AbstractMessage {
     private BlockPos pos;
     private ArrayList<BlockPos> connectedPositions;
 
@@ -21,17 +20,12 @@ public final class NetworkConnectorConnectionsMessage {
     }
 
     public NetworkConnectorConnectionsMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final NetworkConnectorConnectionsMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, NetworkConnectorTileEntity.class,
-                (tileEntity) -> tileEntity.setConnectedPositionsClient(message.connectedPositions)));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
         connectedPositions = new ArrayList<>();
@@ -42,11 +36,20 @@ public final class NetworkConnectorConnectionsMessage {
         }
     }
 
-    public static void toBytes(final NetworkConnectorConnectionsMessage message, final PacketBuffer buffer) {
-        buffer.writeBlockPos(message.pos);
-        buffer.writeVarInt(message.connectedPositions.size());
-        for (final BlockPos pos : message.connectedPositions) {
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeVarInt(connectedPositions.size());
+        for (final BlockPos pos : connectedPositions) {
             buffer.writeBlockPos(pos);
         }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withClientTileEntityAt(pos, NetworkConnectorTileEntity.class,
+                (tileEntity) -> tileEntity.setConnectedPositionsClient(connectedPositions));
     }
 }

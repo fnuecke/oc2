@@ -2,14 +2,11 @@ package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public final class ComputerPowerMessage {
+public final class ComputerPowerMessage extends AbstractMessage {
     private BlockPos pos;
     private boolean power;
 
@@ -21,33 +18,34 @@ public final class ComputerPowerMessage {
     }
 
     public ComputerPowerMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final ComputerPowerMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withServerTileEntityAt(context, message.pos, ComputerTileEntity.class,
-                (computer) -> {
-                    final ServerPlayerEntity player = context.get().getSender();
-                    if (player != null && computer.getBlockPos().closerThan(player.position(), 8)) {
-                        if (message.power) {
-                            computer.start();
-                        } else {
-                            computer.stop();
-                        }
-                    }
-                }));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
         power = buffer.readBoolean();
     }
 
-    public static void toBytes(final ComputerPowerMessage message, final PacketBuffer buffer) {
-        buffer.writeBlockPos(message.pos);
-        buffer.writeBoolean(message.power);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeBoolean(power);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withNearbyServerTileEntityAt(context, pos, ComputerTileEntity.class,
+                (computer) -> {
+                    if (power) {
+                        computer.start();
+                    } else {
+                        computer.stop();
+                    }
+                });
     }
 }

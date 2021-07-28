@@ -13,6 +13,8 @@ public abstract class AbstractMachineTerminalContainer extends AbstractMachineCo
 
     ///////////////////////////////////////////////////////////////////
 
+    public abstract void switchToTerminal();
+
     public abstract Terminal getTerminal();
 
     public abstract void sendTerminalInputToServer(final ByteBuffer input);

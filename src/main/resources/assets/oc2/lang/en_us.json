@@ -54,6 +54,9 @@
   "gui.oc2.computer.power.capt": "Toggle Power",
   "gui.oc2.computer.power.desc": "Toggles the power state of the computer.",
 
+  "gui.oc2.machine.open_inventory.capt": "Open Inventory",
+  "gui.oc2.machine.open_terminal.capt": "Open Terminal",
+
   "gui.oc2.device_type.memory": "Memory",
   "gui.oc2.device_type.hard_drive": "Hard Drive",
   "gui.oc2.device_type.flash_memory": "Flash Memory",

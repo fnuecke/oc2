@@ -6,7 +6,7 @@ import net.minecraft.util.IIntArray;
 import net.minecraft.util.IntArray;
 
 public abstract class AbstractMachineContainer extends AbstractContainer {
-    private static final int ENERGY_INFO_SIZE = 3;
+    protected static final int ENERGY_INFO_SIZE = 3;
 
     public static final int ENERGY_STORED_INDEX = 0;
     public static final int ENERGY_CAPACITY_INDEX = 1;
@@ -27,6 +27,8 @@ public abstract class AbstractMachineContainer extends AbstractContainer {
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    public abstract void switchToInventory();
 
     public abstract VirtualMachine getVirtualMachine();
 

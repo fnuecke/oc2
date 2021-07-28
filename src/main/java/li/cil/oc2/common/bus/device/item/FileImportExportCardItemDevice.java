@@ -113,28 +113,32 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
     ///////////////////////////////////////////////////////////////////
 
     public static void setImportedFile(final int id, final String name, final byte[] data) {
-        final ImportFileRequest request = importingDevices.remove(id);
-        if (request != null) {
-            final FileImportExportCardItemDevice device = request.Device.get();
-            if (device != null) {
-                device.importedFile = new ImportedFile(name, data);
-                final ServerCanceledImportFileMessage message = new ServerCanceledImportFileMessage(id);
-                for (final ServerPlayerEntity player : request.PendingPlayers) {
-                    Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
+        synchronized (importingDevices) {
+            final ImportFileRequest request = importingDevices.remove(id);
+            if (request != null) {
+                final FileImportExportCardItemDevice device = request.Device.get();
+                if (device != null) {
+                    device.importedFile = new ImportedFile(name, data);
+                    final ServerCanceledImportFileMessage message = new ServerCanceledImportFileMessage(id);
+                    for (final ServerPlayerEntity player : request.PendingPlayers) {
+                        Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
+                    }
                 }
             }
         }
     }
 
     public static void cancelImport(final ServerPlayerEntity player, final int id) {
-        final ImportFileRequest request = importingDevices.get(id);
-        if (request != null) {
-            request.PendingPlayers.remove(player);
-            if (request.PendingPlayers.isEmpty()) {
-                importingDevices.remove(id);
-                final FileImportExportCardItemDevice device = request.Device.get();
-                if (device != null) {
-                    device.state = State.IMPORT_CANCELED;
+        synchronized (importingDevices) {
+            final ImportFileRequest request = importingDevices.get(id);
+            if (request != null) {
+                request.PendingPlayers.remove(player);
+                if (request.PendingPlayers.isEmpty()) {
+                    importingDevices.remove(id);
+                    final FileImportExportCardItemDevice device = request.Device.get();
+                    if (device != null) {
+                        device.state = State.IMPORT_CANCELED;
+                    }
                 }
             }
         }
@@ -221,7 +225,9 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
 
         state = State.IMPORT_REQUESTED;
         importingId = nextImportId++;
-        importingDevices.put(importingId, new ImportFileRequest(this));
+        synchronized (importingDevices) {
+            importingDevices.put(importingId, new ImportFileRequest(this));
+        }
 
         for (final ServerPlayerEntity player : players) {
             final RequestImportedFileMessage message = new RequestImportedFileMessage(importingId);
@@ -282,7 +288,9 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
         state = State.IDLE;
         exportedFile = null;
         importedFile = null;
-        importingDevices.remove(importingId);
+        synchronized (importingDevices) {
+            importingDevices.remove(importingId);
+        }
     }
 
     @Override

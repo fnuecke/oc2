@@ -1,79 +1,55 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.client.gui.MachineTerminalWidget;
+import li.cil.oc2.common.bus.CommonDeviceBusController;
+import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.entity.RobotEntity;
-import li.cil.oc2.common.network.Network;
-import li.cil.oc2.common.network.message.RobotPowerMessage;
-import li.cil.oc2.common.network.message.RobotTerminalInputMessage;
-import li.cil.oc2.common.vm.Terminal;
-import li.cil.oc2.common.vm.VirtualMachine;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.IIntArray;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
-import javax.annotation.Nullable;
-import java.nio.ByteBuffer;
+public final class RobotTerminalContainer extends AbstractRobotContainer {
+    public static void createServer(final RobotEntity robot, final FixedEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayerEntity player) {
+        NetworkHooks.openGui(player, new INamedContainerProvider() {
+            @Override
+            public ITextComponent getDisplayName() {
+                return robot.getName();
+            }
 
-public final class RobotTerminalContainer extends AbstractMachineTerminalContainer {
-    @Nullable
-    public static RobotTerminalContainer create(final int id, final PlayerInventory inventory, final PacketBuffer data) {
+            @Override
+            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
+                return new RobotTerminalContainer(id, robot, createEnergyInfo(energy, busController));
+            }
+        }, b -> b.writeVarInt(robot.getId()));
+    }
+
+    public static RobotTerminalContainer createClient(final int id, final PlayerInventory inventory, final PacketBuffer data) {
         final int entityId = data.readVarInt();
         final Entity entity = inventory.player.getCommandSenderWorld().getEntity(entityId);
         if (!(entity instanceof RobotEntity)) {
-            return null;
+            throw new IllegalArgumentException();
         }
         return new RobotTerminalContainer(id, (RobotEntity) entity, createEnergyInfo());
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private final RobotEntity robot;
-
-    ///////////////////////////////////////////////////////////////////
-
-    public RobotTerminalContainer(final int id, final RobotEntity robot, final IIntArray energyInfo) {
-        super(Containers.ROBOT_TERMINAL.get(), id, energyInfo);
-        this.robot = robot;
+    private RobotTerminalContainer(final int id, final RobotEntity robot, final IIntArray energyInfo) {
+        super(Containers.ROBOT_TERMINAL.get(), id, robot, energyInfo);
 
         final ItemStackHandler inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             final int x = (MachineTerminalWidget.WIDTH - inventory.getSlots() * SLOT_SIZE) / 2 + 1 + slot * SLOT_SIZE;
             addSlot(new SlotItemHandler(inventory, slot, x, MachineTerminalWidget.HEIGHT + 4));
         }
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    public RobotEntity getRobot() {
-        return robot;
-    }
-
-    @Override
-    public VirtualMachine getVirtualMachine() {
-        return robot.getVirtualMachine();
-    }
-
-    @Override
-    public void sendPowerStateToServer(final boolean value) {
-        Network.INSTANCE.sendToServer(new RobotPowerMessage(robot, value));
-    }
-
-    @Override
-    public Terminal getTerminal() {
-        return robot.getTerminal();
-    }
-
-    @Override
-    public void sendTerminalInputToServer(final ByteBuffer input) {
-        Network.INSTANCE.sendToServer(new RobotTerminalInputMessage(robot, input));
-    }
-
-    @Override
-    public boolean stillValid(final PlayerEntity player) {
-        return robot.isAlive() && robot.closerThan(player, 8);
     }
 }

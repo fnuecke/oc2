@@ -15,7 +15,9 @@ import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.container.*;
+import li.cil.oc2.common.container.ComputerInventoryContainer;
+import li.cil.oc2.common.container.ComputerTerminalContainer;
+import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBootErrorMessage;
@@ -27,22 +29,16 @@ import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.IIntArray;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -117,54 +113,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     public void openTerminalScreen(final ServerPlayerEntity player) {
-        NetworkHooks.openGui(player, new INamedContainerProvider() {
-            @Override
-            public ITextComponent getDisplayName() {
-                return new TranslationTextComponent(getBlockState().getBlock().getDescriptionId());
-            }
-
-            @Override
-            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
-                return new ComputerTerminalContainer(id, player, ComputerTileEntity.this, new IIntArray() {
-                    @Override
-                    public int get(final int index) {
-                        switch (index) {
-                            case AbstractMachineContainer.ENERGY_STORED_INDEX:
-                                return energy.getEnergyStored();
-                            case AbstractMachineContainer.ENERGY_CAPACITY_INDEX:
-                                return energy.getMaxEnergyStored();
-                            case AbstractMachineContainer.ENERGY_CONSUMPTION_INDEX:
-                                return virtualMachine.busController.getEnergyConsumption();
-                            default:
-                                return 0;
-                        }
-                    }
-
-                    @Override
-                    public void set(final int index, final int value) {
-                    }
-
-                    @Override
-                    public int getCount() {
-                        return 3;
-                    }
-                });
-            }
-        }, getBlockPos());
+        ComputerTerminalContainer.createServer(this, energy, virtualMachine.busController, player);
     }
 
-    public void openContainerScreen(final ServerPlayerEntity player) {
-        NetworkHooks.openGui(player, new INamedContainerProvider() {
-            @Override
-            public ITextComponent getDisplayName() {
-                return new TranslationTextComponent(getBlockState().getBlock().getDescriptionId());
-            }
-
-            @Override
-            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
-                return new ComputerInventoryContainer(id, ComputerTileEntity.this, inventory);
-            }
-        }, getBlockPos());
+    public void openInventoryScreen(final ServerPlayerEntity player) {
+        ComputerInventoryContainer.createServer(this, energy, virtualMachine.busController, player);
     }
 
     public void addTerminalUser(final PlayerEntity player) {

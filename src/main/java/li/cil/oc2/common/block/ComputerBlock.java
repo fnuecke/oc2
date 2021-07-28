@@ -170,7 +170,7 @@ public final class ComputerBlock extends HorizontalBlock {
         if (!world.isClientSide) {
             if (Wrenches.isWrench(heldItem)) {
                 if (player instanceof ServerPlayerEntity) {
-                    computer.openContainerScreen((ServerPlayerEntity) player);
+                    computer.openInventoryScreen((ServerPlayerEntity) player);
                 }
             } else {
                 if (player.isShiftKeyDown()) {

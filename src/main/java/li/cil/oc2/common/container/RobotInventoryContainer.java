@@ -1,37 +1,51 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.common.bus.CommonDeviceBusController;
+import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.vm.VMItemStackHandlers;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.IIntArray;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
-import javax.annotation.Nullable;
+public final class RobotInventoryContainer extends AbstractRobotContainer {
+    public static void createServer(final RobotEntity robot, final FixedEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayerEntity player) {
+        NetworkHooks.openGui(player, new INamedContainerProvider() {
+            @Override
+            public ITextComponent getDisplayName() {
+                return robot.getName();
+            }
 
-public final class RobotContainer extends AbstractContainer {
-    @Nullable
-    public static RobotContainer create(final int id, final PlayerInventory inventory, final PacketBuffer data) {
+            @Override
+            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
+                return new RobotInventoryContainer(id, robot, player, createEnergyInfo(energy, busController));
+            }
+        }, b -> b.writeVarInt(robot.getId()));
+    }
+
+    public static RobotInventoryContainer createClient(final int id, final PlayerInventory inventory, final PacketBuffer data) {
         final int entityId = data.readVarInt();
         final Entity entity = inventory.player.getCommandSenderWorld().getEntity(entityId);
         if (!(entity instanceof RobotEntity)) {
-            return null;
+            throw new IllegalArgumentException();
         }
-        return new RobotContainer(id, (RobotEntity) entity, inventory);
+        return new RobotInventoryContainer(id, (RobotEntity) entity, inventory.player, createEnergyInfo());
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private final RobotEntity robot;
-
-    ///////////////////////////////////////////////////////////////////
-
-    public RobotContainer(final int id, final RobotEntity robot, final PlayerInventory playerInventory) {
-        super(Containers.ROBOT.get(), id);
-        this.robot = robot;
+    private RobotInventoryContainer(final int id, final RobotEntity robot, final PlayerEntity player, final IIntArray energyInfo) {
+        super(Containers.ROBOT.get(), id, robot, energyInfo);
 
         final VMItemStackHandlers handlers = robot.getItemStackHandlers();
 
@@ -66,17 +80,6 @@ public final class RobotContainer extends AbstractContainer {
             addSlot(new SlotItemHandler(inventory, slot, x, y));
         }
 
-        createPlayerInventoryAndHotbarSlots(playerInventory, 8, 115);
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    public RobotEntity getRobot() {
-        return robot;
-    }
-
-    @Override
-    public boolean stillValid(final PlayerEntity player) {
-        return robot.closerThan(player, 8);
+        createPlayerInventoryAndHotbarSlots(player.inventory, 8, 115);
     }
 }

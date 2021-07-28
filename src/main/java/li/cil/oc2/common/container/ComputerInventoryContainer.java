@@ -1,38 +1,51 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.common.block.Blocks;
+import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.vm.VMItemStackHandlers;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.util.IIntArray;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.energy.IEnergyStorage;
+import net.minecraftforge.fml.network.NetworkHooks;
 
-import javax.annotation.Nullable;
+public final class ComputerInventoryContainer extends AbstractComputerContainer {
+    public static void createServer(final ComputerTileEntity computer, final IEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayerEntity player) {
+        NetworkHooks.openGui(player, new INamedContainerProvider() {
+            @Override
+            public ITextComponent getDisplayName() {
+                return new TranslationTextComponent(computer.getBlockState().getBlock().getDescriptionId());
+            }
 
-public final class ComputerInventoryContainer extends AbstractContainer {
-    @Nullable
-    public static ComputerInventoryContainer create(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
+            @Override
+            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
+                return new ComputerInventoryContainer(id, computer, player, createEnergyInfo(energy, busController));
+            }
+        }, computer.getBlockPos());
+    }
+
+    public static ComputerInventoryContainer createClient(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
         final BlockPos pos = data.readBlockPos();
         final TileEntity tileEntity = playerInventory.player.getCommandSenderWorld().getBlockEntity(pos);
         if (!(tileEntity instanceof ComputerTileEntity)) {
-            return null;
+            throw new IllegalArgumentException();
         }
-        return new ComputerInventoryContainer(id, (ComputerTileEntity) tileEntity, playerInventory);
+        return new ComputerInventoryContainer(id, (ComputerTileEntity) tileEntity, playerInventory.player, createEnergyInfo());
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private final ComputerTileEntity computer;
-
-    ///////////////////////////////////////////////////////////////////
-
-    public ComputerInventoryContainer(final int id, final ComputerTileEntity computer, final PlayerInventory playerInventory) {
-        super(Containers.COMPUTER.get(), id);
-        this.computer = computer;
+    private ComputerInventoryContainer(final int id, final ComputerTileEntity computer, final PlayerEntity player, final IIntArray energyInfo) {
+        super(Containers.COMPUTER.get(), id, player, computer, energyInfo);
 
         final VMItemStackHandlers handlers = computer.getItemStackHandlers();
 
@@ -60,13 +73,6 @@ public final class ComputerInventoryContainer extends AbstractContainer {
             }
         });
 
-        createPlayerInventoryAndHotbarSlots(playerInventory, 8, 115);
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    @Override
-    public boolean stillValid(final PlayerEntity player) {
-        return stillValid(IWorldPosCallable.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER.get());
+        createPlayerInventoryAndHotbarSlots(player.inventory, 8, 115);
     }
 }

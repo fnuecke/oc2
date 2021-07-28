@@ -38,8 +38,8 @@ public final class Constants {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final String COMPUTER_SCREEN_CAPTURE_INPUT_CAPTION = key("gui.{mod}.computer.capture_input.capt");
-    public static final String COMPUTER_SCREEN_CAPTURE_INPUT_DESCRIPTION = key("gui.{mod}.computer.capture_input.desc");
+    public static final String TERMINAL_CAPTURE_INPUT_CAPTION = key("gui.{mod}.computer.capture_input.capt");
+    public static final String TERMINAL_CAPTURE_INPUT_DESCRIPTION = key("gui.{mod}.computer.capture_input.desc");
     public static final String COMPUTER_SCREEN_POWER_CAPTION = key("gui.{mod}.computer.power.capt");
     public static final String COMPUTER_SCREEN_POWER_DESCRIPTION = key("gui.{mod}.computer.power.desc");
     public static final String COMPUTER_ERROR_UNKNOWN = key("gui.{mod}.computer.error.unknown");
@@ -49,6 +49,8 @@ public final class Constants {
     public static final String COMPUTER_BUS_STATE_TOO_COMPLEX = key("gui.{mod}.computer.bus_state.too_complex");
     public static final String COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS = key("gui.{mod}.computer.bus_state.multiple_controllers");
     public static final String COMPUTER_ERROR_NOT_ENOUGH_ENERGY = key("gui.{mod}.computer.error.not_enough_energy");
+    public static final String MACHINE_OPEN_INVENTORY_CAPTION = key("gui.{mod}.machine.open_inventory.capt");
+    public static final String MACHINE_OPEN_TERMINAL_CAPTION = key("gui.{mod}.machine.open_terminal.capt");
 
     ///////////////////////////////////////////////////////////////////
 

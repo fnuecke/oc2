@@ -1,6 +1,7 @@
 package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.common.container.RobotTerminalContainer;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.text.ITextComponent;
@@ -17,7 +18,10 @@ public final class RobotTerminalScreen extends AbstractMachineTerminalScreen<Rob
 
     @Override
     protected void renderBg(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
+        RenderSystem.color4f(1f, 1f, 1f, 1f);
+
         Sprites.HOTBAR.draw(matrixStack, leftPos + SLOTS_X, topPos + SLOTS_Y);
+
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
     }
 

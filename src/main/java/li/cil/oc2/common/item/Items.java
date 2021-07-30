@@ -20,15 +20,15 @@ public final class Items {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final RegistryObject<Item> COMPUTER = register(Blocks.COMPUTER);
     public static final RegistryObject<Item> BUS_CABLE = register(Blocks.BUS_CABLE, BusCableItem::new);
     public static final RegistryObject<BusInterfaceItem> BUS_INTERFACE = register("bus_interface", BusInterfaceItem::new);
+    public static final RegistryObject<Item> CHARGER = register(Blocks.CHARGER, ChargerItem::new);
+    public static final RegistryObject<Item> COMPUTER = register(Blocks.COMPUTER);
+    public static final RegistryObject<Item> CREATIVE_ENERGY = register(Blocks.CREATIVE_ENERGY);
+    public static final RegistryObject<Item> DISK_DRIVE = register(Blocks.DISK_DRIVE);
     public static final RegistryObject<Item> NETWORK_CONNECTOR = register(Blocks.NETWORK_CONNECTOR);
     public static final RegistryObject<Item> NETWORK_HUB = register(Blocks.NETWORK_HUB);
     public static final RegistryObject<Item> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE);
-    public static final RegistryObject<Item> DISK_DRIVE = register(Blocks.DISK_DRIVE);
-    public static final RegistryObject<Item> CHARGER = register(Blocks.CHARGER, ChargerItem::new);
-    public static final RegistryObject<Item> CREATIVE_ENERGY = register(Blocks.CREATIVE_ENERGY);
 
     ///////////////////////////////////////////////////////////////////
 

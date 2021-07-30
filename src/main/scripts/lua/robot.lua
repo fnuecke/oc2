@@ -6,55 +6,6 @@ local function sleep(milliseconds)
   time.nanosleep({tv_sec=0,tv_nsec=milliseconds*1000})
 end
 
-local M = {}
-
-local directions = {
-  forward = "FORWARD",
-  backward = "BACKWARD",
-  up = "UP",
-  down = "DOWN",
-  left = "LEFT",
-  right = "RIGHT"
-}
-
-local directionAliases = {
-  [directions.forward] = directions.forward,
-  f = directions.forward,
-  ahead = directions.forward,
-  forward = directions.forward,
-  forwards = directions.forward,
-
-  [directions.backward] = directions.backward,
-  b = directions.backward,
-  back = directions.backward,
-  backward = directions.backward,
-  backwards = directions.backward,
-
-  [directions.up] = directions.up,
-  u = directions.up,
-  up = directions.up,
-  upward = directions.up,
-  upwards = directions.up,
-
-  [directions.down] = directions.down,
-  d = directions.down,
-  down = directions.down,
-  downward = directions.down,
-  downwards = directions.down,
-
-  [directions.left] = directions.left,
-  l = directions.left,
-  left = directions.left,
-
-  [directions.right] = directions.right,
-  r = directions.right,
-  right = directions.right
-}
-
-local function parseDirection(value)
-  return assert(directionAliases[value], "invalid direction")
-end
-
 local function waitForLastAction()
   local id = robot:getLastActionId()
 
@@ -71,28 +22,23 @@ local function waitForLastAction()
   end
 end
 
-M.move = function(direction)
-  M.moveAsync(direction)
-  return waitForLastAction()
+local M = {}
+
+M.direction = {
+  forward = "forward",
+  backward = "backward",
+  upward = "upward",
+  downward = "downward",
+  left = "left",
+  right = "right"
+}
+
+M.energy = function()
+  return robot:getEnergyStored()
 end
 
-M.moveAsync = function(direction)
-  direction = parseDirection(direction or directions.forward)
-  while not robot:move(direction) do
-    sleep(100)
-  end
-end
-
-M.turn = function(direction)
-  M.turnAsync(direction)
-  return waitForLastAction()
-end
-
-M.turnAsync = function(direction)
-  direction = parseDirection(direction)
-  while not robot:turn(direction) do
-    sleep(100)
-  end
+M.capacity = function()
+  return robot:getEnergyCapacity()
 end
 
 M.slot = function(value)
@@ -104,6 +50,30 @@ end
 
 M.stack = function(slot)
   return robot:getStackInSlot(slot or M.slot())
+end
+
+M.move = function(direction)
+  M.moveAsync(direction)
+  return waitForLastAction()
+end
+
+M.moveAsync = function(direction)
+  direction = assert(direction, "no direction specified")
+  while not robot:move(direction) do
+    sleep(100)
+  end
+end
+
+M.turn = function(direction)
+  M.turnAsync(direction)
+  return waitForLastAction()
+end
+
+M.turnAsync = function(direction)
+  direction = assert(direction, "no direction specified")
+  while not robot:turn(direction) do
+    sleep(100)
+  end
 end
 
 return M

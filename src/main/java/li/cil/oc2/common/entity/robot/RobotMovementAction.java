@@ -39,7 +39,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
     public RobotMovementAction(final MovementDirection direction) {
         super(RobotActions.MOVEMENT);
-        this.direction = direction;
+        this.direction = direction.resolve();
     }
 
     RobotMovementAction(final CompoundNBT tag) {
@@ -71,10 +71,10 @@ public final class RobotMovementAction extends AbstractRobotAction {
             start = origin;
             target = start;
             switch (direction) {
-                case UP:
+                case UPWARD:
                     target = target.relative(Direction.UP);
                     break;
-                case DOWN:
+                case DOWNWARD:
                     target = target.relative(Direction.DOWN);
                     break;
                 case FORWARD:
@@ -134,6 +134,8 @@ public final class RobotMovementAction extends AbstractRobotAction {
         super.deserialize(tag);
 
         direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, MovementDirection.class);
+        if (direction == null) direction = MovementDirection.FORWARD;
+        direction = direction.resolve();
         if (tag.contains(ORIGIN_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             origin = NBTUtil.readBlockPos(tag.getCompound(ORIGIN_TAG_NAME));
         }

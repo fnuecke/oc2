@@ -18,7 +18,7 @@
 
   "item.oc2.wrench": "Scrench",
   "item.oc2.wrench.desc": "Used to configure devices and to dismantle them (while sneaking).",
-  "item.oc2.manual": "Manual",
+  "item.oc2.manual": "The Computerist's Handbook",
   "item.oc2.bus_interface": "Bus Interface",
   "item.oc2.network_cable": "Network Cable",
   "item.oc2.memory": "Memory",

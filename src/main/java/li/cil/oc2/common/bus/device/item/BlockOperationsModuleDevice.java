@@ -7,6 +7,7 @@ import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.capabilities.Robot;
+import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
@@ -42,12 +43,6 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
     private static final int COOLDOWN = Constants.SECONDS_TO_TICKS;
 
     ///////////////////////////////////////////////////////////////////
-
-    public enum PlacementDirection {
-        FRONT,
-        UP,
-        DOWN,
-    }
 
     ///////////////////////////////////////////////////////////////////
 
@@ -90,7 +85,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
     }
 
     @Callback
-    public boolean excavate(@Parameter("direction") @Nullable final PlacementDirection direction) {
+    public boolean excavate(@Parameter("side") @Nullable final RobotOperationSide side) {
         if (isOnCooldown()) {
             return false;
         }
@@ -107,7 +102,8 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         final List<ItemEntity> oldItems = getItemsInRange();
 
-        if (!tryHarvestBlock(world, entity.blockPosition().relative(getAdjustedDirection(direction)))) {
+        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        if (!tryHarvestBlock(world, entity.blockPosition().relative(direction))) {
             return false;
         }
 
@@ -124,7 +120,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
     }
 
     @Callback
-    public boolean place(@Parameter("direction") @Nullable final PlacementDirection direction) {
+    public boolean place(@Parameter("side") @Nullable final RobotOperationSide side) {
         if (isOnCooldown()) {
             return false;
         }
@@ -144,11 +140,12 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        final BlockPos blockPos = entity.blockPosition().relative(getAdjustedDirection(direction));
-        final Direction side = getAdjustedDirection(direction).getOpposite();
+        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        final BlockPos blockPos = entity.blockPosition().relative(direction);
+        final Direction oppositeDirection = direction.getOpposite();
         final BlockRayTraceResult hit = new BlockRayTraceResult(
-                Vector3d.atCenterOf(blockPos).add(Vector3d.atCenterOf(side.getNormal()).scale(0.5)),
-                side,
+                Vector3d.atCenterOf(blockPos).add(Vector3d.atCenterOf(oppositeDirection.getNormal()).scale(0.5)),
+                oppositeDirection,
                 blockPos,
                 false);
 
@@ -219,21 +216,6 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
     private boolean isOnCooldown() {
         return entity.getCommandSenderWorld().getGameTime() - lastOperation < COOLDOWN;
-    }
-
-    private Direction getAdjustedDirection(@Nullable final PlacementDirection placementDirection) {
-        if (placementDirection == PlacementDirection.UP) {
-            return Direction.UP;
-        } else if (placementDirection == PlacementDirection.DOWN) {
-            return Direction.DOWN;
-        } else {
-            Direction direction = Direction.SOUTH;
-            final int horizontalIndex = entity.getDirection().get2DDataValue();
-            for (int i = 0; i < horizontalIndex; i++) {
-                direction = direction.getClockWise();
-            }
-            return direction;
-        }
     }
 
     private List<ItemEntity> getItemsInRange() {

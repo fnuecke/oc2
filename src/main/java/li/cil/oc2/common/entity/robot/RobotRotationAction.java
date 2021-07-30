@@ -29,7 +29,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
 
     public RobotRotationAction(final RotationDirection direction) {
         super(RobotActions.ROTATION);
-        this.direction = direction;
+        this.direction = direction.resolve();
     }
 
     RobotRotationAction(final CompoundNBT tag) {
@@ -94,6 +94,8 @@ public final class RobotRotationAction extends AbstractRobotAction {
         super.deserialize(tag);
 
         direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, RotationDirection.class);
+        if (direction == null) direction = RotationDirection.LEFT;
+        direction = direction.resolve();
         if (tag.contains(TARGET_TAG_NAME, NBTTagIds.TAG_INT)) {
             target = NBTUtils.getEnum(tag, TARGET_TAG_NAME, Direction.class);
         }

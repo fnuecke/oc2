@@ -819,6 +819,31 @@ public final class RobotEntity extends Entity implements Robot {
 
     public final class RobotDevice {
         @Callback(synchronize = false)
+        public int getEnergyStored() {
+            return energy.getEnergyStored();
+        }
+
+        @Callback(synchronize = false)
+        public int getEnergyCapacity() {
+            return energy.getMaxEnergyStored();
+        }
+
+        @Callback(synchronize = false)
+        public int getSelectedSlot() {
+            return RobotEntity.this.getSelectedSlot();
+        }
+
+        @Callback(synchronize = false)
+        public void setSelectedSlot(@Parameter("slot") final int slot) {
+            RobotEntity.this.setSelectedSlot(slot);
+        }
+
+        @Callback
+        public ItemStack getStackInSlot(@Parameter("slot") final int slot) {
+            return inventory.getStackInSlot(slot);
+        }
+
+        @Callback(synchronize = false)
         public boolean move(@Parameter("direction") @Nullable final MovementDirection direction) {
             if (direction == null) throw new IllegalArgumentException();
             return actionProcessor.move(direction);
@@ -828,16 +853,6 @@ public final class RobotEntity extends Entity implements Robot {
         public boolean turn(@Parameter("direction") @Nullable final RotationDirection direction) {
             if (direction == null) throw new IllegalArgumentException();
             return actionProcessor.rotate(direction);
-        }
-
-        @Callback(synchronize = false)
-        public int getCurrentEnergy() {
-            return energy.getEnergyStored();
-        }
-
-        @Callback(synchronize = false)
-        public int getMaxEnergy() {
-            return energy.getMaxEnergyStored();
         }
 
         @Callback(synchronize = false)
@@ -873,21 +888,6 @@ public final class RobotEntity extends Entity implements Robot {
             }
 
             return null;
-        }
-
-        @Callback(synchronize = false)
-        public int getSelectedSlot() {
-            return RobotEntity.this.getSelectedSlot();
-        }
-
-        @Callback(synchronize = false)
-        public void setSelectedSlot(@Parameter("slot") final int slot) {
-            RobotEntity.this.setSelectedSlot(slot);
-        }
-
-        @Callback(synchronize = false)
-        public ItemStack getStackInSlot(@Parameter("slot") final int slot) {
-            return inventory.getStackInSlot(slot);
         }
 
         private RobotDevice() {

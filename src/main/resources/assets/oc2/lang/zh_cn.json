@@ -54,6 +54,9 @@
   "gui.oc2.computer.power.capt": "电源",
   "gui.oc2.computer.power.desc": "开启或关闭这台电脑。",
 
+  "gui.oc2.machine.open_inventory.capt": "打开物品栏",
+  "gui.oc2.machine.open_terminal.capt": "打开终端",
+    
   "gui.oc2.device_type.memory": "内存条",
   "gui.oc2.device_type.hard_drive": "硬盘",
   "gui.oc2.device_type.flash_memory": "固件",

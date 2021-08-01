@@ -2,7 +2,7 @@ package li.cil.oc2.client.manual;
 
 import li.cil.manual.api.ManualStyle;
 import li.cil.manual.api.render.FontRenderer;
-import li.cil.oc2.client.renderer.font.TerminalFontRenderer;
+import li.cil.oc2.client.renderer.font.MonospaceFontRenderer;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
 import net.minecraftforge.api.distmarker.Dist;
@@ -44,7 +44,7 @@ public final class ModManualStyle implements ManualStyle {
 
     @Override
     public FontRenderer getMonospaceFont() {
-        return TerminalFontRenderer.INSTANCE;
+        return MonospaceFontRenderer.INSTANCE;
     }
 
     @Override

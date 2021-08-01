@@ -3,11 +3,11 @@ package li.cil.oc2.client.manual;
 import li.cil.manual.api.ManualModel;
 import li.cil.manual.api.Tab;
 import li.cil.manual.api.prefab.Manual;
-import li.cil.manual.api.prefab.provider.NamespaceContentProvider;
+import li.cil.manual.api.prefab.provider.NamespaceDocumentProvider;
 import li.cil.manual.api.prefab.provider.NamespacePathProvider;
 import li.cil.manual.api.prefab.tab.ItemStackTab;
 import li.cil.manual.api.prefab.tab.TextureTab;
-import li.cil.manual.api.provider.ContentProvider;
+import li.cil.manual.api.provider.DocumentProvider;
 import li.cil.manual.api.provider.PathProvider;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
@@ -33,11 +33,11 @@ public final class Manuals {
 
     public static void initialize() {
         final DeferredRegister<PathProvider> pathProviders = RegistryUtils.create(PathProvider.class);
-        final DeferredRegister<ContentProvider> contentProviders = RegistryUtils.create(ContentProvider.class);
+        final DeferredRegister<DocumentProvider> contentProviders = RegistryUtils.create(DocumentProvider.class);
         final DeferredRegister<Tab> tabs = RegistryUtils.create(Tab.class);
 
         pathProviders.register("path_provider", () -> new NamespacePathProvider(API.MOD_ID));
-        contentProviders.register("content_provider", () -> new NamespaceContentProvider(API.MOD_ID, "doc"));
+        contentProviders.register("content_provider", () -> new NamespaceDocumentProvider(API.MOD_ID, "doc"));
 
         tabs.register("home", () -> new TextureTab(
                 ManualModel.LANGUAGE_KEY + "/index.md",

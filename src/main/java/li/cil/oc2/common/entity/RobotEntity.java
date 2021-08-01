@@ -787,7 +787,7 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         @Override
-        public void stopRunnerAndReset() {
+        protected void stopRunnerAndReset() {
             super.stopRunnerAndReset();
 
             TerminalUtils.resetTerminal(terminal, output -> Network.sendToClientsTrackingEntity(

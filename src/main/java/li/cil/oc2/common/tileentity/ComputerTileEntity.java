@@ -401,7 +401,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         @Override
-        public void stopRunnerAndReset() {
+        protected void stopRunnerAndReset() {
             super.stopRunnerAndReset();
 
             TerminalUtils.resetTerminal(terminal, output -> Network.sendToClientsTrackingChunk(

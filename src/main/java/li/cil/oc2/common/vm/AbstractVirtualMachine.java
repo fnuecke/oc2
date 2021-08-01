@@ -167,8 +167,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
     }
 
-    @Override
-    public void joinWorkerThread() {
+    private void joinWorkerThread() {
         if (runner != null) {
             try {
                 state.context.postEvent(new VMPausingEvent());
@@ -196,7 +195,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         state.rpcAdapter.resume(busController, didDevicesChange);
     }
 
-    public void stopRunnerAndReset() {
+    protected void stopRunnerAndReset() {
         joinWorkerThread();
         setRunState(VMRunState.STOPPED);
 

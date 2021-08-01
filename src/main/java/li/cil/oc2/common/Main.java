@@ -57,6 +57,7 @@ public final class Main {
         RegistryUtils.finish();
 
         FMLJavaModLoadingContext.get().getModEventBus().register(CommonSetup.class);
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().register(ClientSetup.class));
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+                FMLJavaModLoadingContext.get().getModEventBus().register(ClientSetup.class));
     }
 }

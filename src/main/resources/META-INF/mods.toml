@@ -12,6 +12,8 @@ displayURL = "${mod_url}"
 authors = "Sangar"
 description = '''
 Modern computers for the modern player.
+
+This mod uses the Terminus Font under the Open Font License.
 '''
 
 [[dependencies.oc2]]

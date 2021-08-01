@@ -69,6 +69,12 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     ///////////////////////////////////////////////////////////////////
 
+    public void suspend() {
+        for (final RPCDeviceWithIdentifier info : devices) {
+            info.device.suspend();
+        }
+    }
+
     public void reset() {
         transmitBuffer.clear();
         receiveBuffer = null;

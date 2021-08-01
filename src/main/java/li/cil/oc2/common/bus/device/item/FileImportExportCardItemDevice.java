@@ -156,6 +156,11 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
         return device.getMethods();
     }
 
+    @Override
+    public void suspend() {
+        reset();
+    }
+
     @Callback(name = BEGIN_EXPORT_FILE, synchronize = false)
     public void beginExportFile(@Parameter(NAME) final String name) {
         if (state != State.IDLE) {

@@ -390,7 +390,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         if (receiveBuffer != null) throw new IllegalStateException();
         final String json = gson.toJson(new Message(type, data));
         final byte[] bytes = json.getBytes();
-        receiveBuffer = ByteBuffer.allocate(bytes.length + MESSAGE_DELIMITER.length * 2);
+        final ByteBuffer receiveBuffer = ByteBuffer.allocate(bytes.length + MESSAGE_DELIMITER.length * 2);
 
         // In case we went through a reset and the VM was in the middle of reading
         // a message we inject a delimiter up front to cause the truncated message
@@ -405,6 +405,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         receiveBuffer.put(MESSAGE_DELIMITER);
 
         receiveBuffer.flip();
+        this.receiveBuffer = receiveBuffer;
     }
 
     ///////////////////////////////////////////////////////////////////

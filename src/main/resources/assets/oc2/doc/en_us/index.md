@@ -1,8 +1,8 @@
 # The Computerists Handbook
-Hello, greetings, welcome! If you've come here, you either stumbled in by accident, are interested in building your first [computer](block/computer.md), or maybe you are looking for information on a particular [block](block/index.md) or [item](item/index.md)?
+Hello, greetings, welcome! If you've come here, you either stumbled in by accident, are interested in [building your first computer](getting_started.md), or maybe you are looking for information on a particular [block](block/index.md) or [item](item/index.md)?
 
 ## Overview
-Computers offer a variety of uses, from recreational to large-scale, highly customizable automation of other machines and devices.
+[Computers](block/computer.md) offer a variety of uses, from recreational to large-scale, highly customizable automation of other machines and devices.
 
 At the heart of each computer lies its operating system (OS). The default OS provided is a very basic Linux distribution. It offers just the most basic command line tools, as well as the means to write and run Lua programs.
 

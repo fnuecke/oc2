@@ -174,14 +174,15 @@ public final class BusCableBlock extends Block {
         return true;
     }
 
-    public static void setHasFacade(final World world, final BlockPos pos, final BlockState state, final boolean value) {
+    public static void setHasFacade(final World world, final BlockPos pos, final BlockState state, @Nullable final BlockState facadeState, final boolean value) {
         if (state.getValue(HAS_FACADE) == value) {
             return;
         }
 
         world.setBlock(pos, state.setValue(HAS_FACADE, value), BlockFlags.DEFAULT_AND_RERENDER);
 
-        WorldUtils.playSound(world, pos, state.getSoundType(), value ? SoundType::getPlaceSound : SoundType::getBreakSound);
+        final BlockState soundsSource = facadeState != null ? facadeState : state;
+        WorldUtils.playSound(world, pos, soundsSource.getSoundType(), value ? SoundType::getPlaceSound : SoundType::getBreakSound);
     }
 
     @Override

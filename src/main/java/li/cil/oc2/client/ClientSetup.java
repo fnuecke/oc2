@@ -10,6 +10,7 @@ import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.BusCableModelLoader;
 import li.cil.oc2.client.renderer.BusInterfaceNameRenderer;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
+import li.cil.oc2.client.renderer.color.BusCableBlockColor;
 import li.cil.oc2.client.renderer.entity.RobotEntityRenderer;
 import li.cil.oc2.client.renderer.tileentity.ChargerTileEntityRenderer;
 import li.cil.oc2.client.renderer.tileentity.ComputerTileEntityRenderer;
@@ -21,6 +22,7 @@ import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.tileentity.TileEntities;
 import net.minecraft.client.gui.ScreenManager;
+import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -51,6 +53,11 @@ public final class ClientSetup {
         ClientRegistry.bindTileEntityRenderer(TileEntities.CHARGER_TILE_ENTITY.get(), ChargerTileEntityRenderer::new);
 
         RenderingRegistry.registerEntityRenderingHandler(Entities.ROBOT.get(), RobotEntityRenderer::new);
+
+        event.enqueueWork(() -> {
+            RenderTypeLookup.setRenderLayer(Blocks.BUS_CABLE.get(), (RenderType) -> true);
+            event.getMinecraftSupplier().get().getBlockColors().register(new BusCableBlockColor(), Blocks.BUS_CABLE.get());
+        });
     }
 
     @SubscribeEvent

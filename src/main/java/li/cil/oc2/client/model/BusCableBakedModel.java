@@ -8,6 +8,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockModelShapes;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.client.renderer.model.BakedQuad;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemOverrideList;
@@ -18,6 +20,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockDisplayReader;
+import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.model.data.IDynamicBakedModel;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.client.model.data.ModelDataMap;
@@ -51,12 +54,18 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
     @Override
     @Nonnull
     public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, final Random rand, final IModelData extraData) {
+        final RenderType layer = MinecraftForgeClient.getRenderLayer();
+
         if (extraData.hasProperty(BUS_CABLE_FACADE_PROPERTY)) {
             final BusCableFacade facade = extraData.getData(BUS_CABLE_FACADE_PROPERTY);
-            return facade.model.getQuads(facade.blockState, side, rand, facade.data);
+            if (layer == null || RenderTypeLookup.canRenderInLayer(facade.blockState, layer)) {
+                return facade.model.getQuads(facade.blockState, side, rand, facade.data);
+            } else {
+                return Collections.emptyList();
+            }
         }
 
-        if (state == null || !state.getValue(BusCableBlock.HAS_CABLE)) {
+        if (state == null || !state.getValue(BusCableBlock.HAS_CABLE) || !layer.equals(RenderType.solid())) {
             return Collections.emptyList();
         }
 

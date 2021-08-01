@@ -73,7 +73,10 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     public FacadeType getFacadeType(final ItemStack stack) {
-        final BlockState state = ItemStackUtils.getBlockState(stack);
+        return getFacadeType(ItemStackUtils.getBlockState(stack));
+    }
+
+    public FacadeType getFacadeType(@Nullable final BlockState state) {
         if (state == null) {
             return FacadeType.NOT_A_BLOCK;
         }
@@ -92,7 +95,8 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     public void setFacade(ItemStack stack) {
-        if (getFacadeType(stack) != FacadeType.VALID_BLOCK) {
+        final BlockState facadeState = ItemStackUtils.getBlockState(stack);
+        if (getFacadeType(facadeState) != FacadeType.VALID_BLOCK) {
             stack = ItemStack.EMPTY;
         }
 
@@ -102,7 +106,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
 
         facade = stack.copy();
         facade.setCount(1);
-        BusCableBlock.setHasFacade(getLevel(), getBlockPos(), getBlockState(), true);
+        BusCableBlock.setHasFacade(getLevel(), getBlockPos(), getBlockState(), facadeState, true);
 
         setChanged();
         getLevel().sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), BlockFlags.DEFAULT);
@@ -114,8 +118,9 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     public void removeFacade() {
+        final BlockState facadeState = ItemStackUtils.getBlockState(facade);
         facade = ItemStack.EMPTY;
-        BusCableBlock.setHasFacade(getLevel(), getBlockPos(), getBlockState(), false);
+        BusCableBlock.setHasFacade(getLevel(), getBlockPos(), getBlockState(), facadeState, false);
 
         setChanged();
         getLevel().sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), BlockFlags.DEFAULT);

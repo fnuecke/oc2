@@ -1,15 +1,10 @@
 package li.cil.oc2.common.bus.device.item;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
-import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
-import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ExportedFileMessage;
 import li.cil.oc2.common.network.message.RequestImportedFileMessage;
@@ -25,9 +20,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
 
-public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStack> implements RPCDevice, DocumentedDevice, ItemDevice {
+public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice implements DocumentedDevice {
     public static final int MAX_TRANSFERRED_FILE_SIZE = 512 * 1024;
 
     private static final String BEGIN_EXPORT_FILE = "beginExportFile";
@@ -96,7 +94,6 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
     private static int nextImportId = 1;
 
     private final TerminalUserProvider userProvider;
-    private final ObjectDevice device;
     private State state;
     private ExportedFile exportedFile;
     private int importingId;
@@ -105,9 +102,8 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
     ///////////////////////////////////////////////////////////////////
 
     public FileImportExportCardItemDevice(final ItemStack identity, final TerminalUserProvider userProvider) {
-        super(identity);
+        super(identity, "file_import_export");
         this.userProvider = userProvider;
-        this.device = new ObjectDevice(this, "file_import_export");
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -145,16 +141,6 @@ public final class FileImportExportCardItemDevice extends IdentityProxy<ItemStac
     }
 
     ///////////////////////////////////////////////////////////////////
-
-    @Override
-    public List<String> getTypeNames() {
-        return device.getTypeNames();
-    }
-
-    @Override
-    public List<RPCMethod> getMethods() {
-        return device.getMethods();
-    }
 
     @Override
     public void suspend() {

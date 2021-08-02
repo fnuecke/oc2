@@ -1,16 +1,11 @@
 package li.cil.oc2.common.bus.device.item;
 
-import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
-import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.item.ItemStack;
@@ -27,9 +22,8 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
-public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemStack> implements RPCDevice, DocumentedDevice, ItemDevice, ICapabilityProvider {
+public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice implements DocumentedDevice, ICapabilityProvider {
     private static final String OUTPUT_TAG_NAME = "output";
 
     private static final String GET_REDSTONE_INPUT = "getRedstoneInput";
@@ -41,16 +35,14 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
     ///////////////////////////////////////////////////////////////////
 
     private final TileEntity tileEntity;
-    private final ObjectDevice device;
     private final RedstoneEmitter[] capabilities;
     private final byte[] output = new byte[Constants.BLOCK_FACE_COUNT];
 
     ///////////////////////////////////////////////////////////////////
 
     public RedstoneInterfaceCardItemDevice(final ItemStack identity, final TileEntity tileEntity) {
-        super(identity);
+        super(identity, "redstone");
         this.tileEntity = tileEntity;
-        this.device = new ObjectDevice(this, "redstone");
 
         capabilities = new RedstoneEmitter[Constants.BLOCK_FACE_COUNT];
         for (int i = 0; i < Constants.BLOCK_FACE_COUNT; i++) {
@@ -82,16 +74,6 @@ public final class RedstoneInterfaceCardItemDevice extends IdentityProxy<ItemSta
     public void deserializeNBT(final CompoundNBT tag) {
         final byte[] serializedOutput = tag.getByteArray(OUTPUT_TAG_NAME);
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
-    }
-
-    @Override
-    public List<String> getTypeNames() {
-        return device.getTypeNames();
-    }
-
-    @Override
-    public List<RPCMethod> getMethods() {
-        return device.getMethods();
     }
 
     @Callback(name = GET_REDSTONE_INPUT)

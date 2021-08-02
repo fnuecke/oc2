@@ -1,16 +1,11 @@
 package li.cil.oc2.common.bus.device.item;
 
-import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.FakePlayerUtils;
 import net.minecraft.block.*;
@@ -37,27 +32,23 @@ import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice {
+public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
     private static final String LAST_OPERATION_TAG_NAME = "cooldown";
 
     private static final int COOLDOWN = Constants.SECONDS_TO_TICKS;
 
     ///////////////////////////////////////////////////////////////////
 
-    ///////////////////////////////////////////////////////////////////
-
     private final Entity entity;
     private final Robot robot;
-    private final ObjectDevice device;
     private long lastOperation;
 
     ///////////////////////////////////////////////////////////////////
 
     public BlockOperationsModuleDevice(final ItemStack identity, final Entity entity, final Robot robot) {
-        super(identity);
+        super(identity, "block_operations");
         this.entity = entity;
         this.robot = robot;
-        this.device = new ObjectDevice(this, "block_operations");
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -72,16 +63,6 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
     @Override
     public void deserializeNBT(final CompoundNBT tag) {
         lastOperation = MathHelper.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.getCommandSenderWorld().getGameTime());
-    }
-
-    @Override
-    public List<String> getTypeNames() {
-        return device.getTypeNames();
-    }
-
-    @Override
-    public List<RPCMethod> getMethods() {
-        return device.getMethods();
     }
 
     @Callback

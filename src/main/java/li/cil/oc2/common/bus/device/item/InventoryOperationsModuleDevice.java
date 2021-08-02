@@ -1,14 +1,9 @@
 package li.cil.oc2.common.bus.device.item;
 
-import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
-import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
@@ -29,31 +24,19 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice {
+public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice {
     private final Entity entity;
     private final Robot robot;
-    private final ObjectDevice device;
 
     ///////////////////////////////////////////////////////////////////
 
     public InventoryOperationsModuleDevice(final ItemStack identity, final Entity entity, final Robot robot) {
-        super(identity);
+        super(identity, "inventory_operations");
         this.entity = entity;
         this.robot = robot;
-        this.device = new ObjectDevice(this, "inventory_operations");
     }
 
     ///////////////////////////////////////////////////////////////////
-
-    @Override
-    public List<String> getTypeNames() {
-        return device.getTypeNames();
-    }
-
-    @Override
-    public List<RPCMethod> getMethods() {
-        return device.getMethods();
-    }
 
     @Callback
     public void move(@Parameter("fromSlot") final int fromSlot,

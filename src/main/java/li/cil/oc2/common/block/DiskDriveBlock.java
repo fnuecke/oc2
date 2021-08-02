@@ -4,7 +4,6 @@ import li.cil.oc2.common.tileentity.DiskDriveTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.PlayerEntity;
@@ -20,7 +19,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
-public final class DiskDriveBlock extends HorizontalBlock {
+public final class DiskDriveBlock extends ImmutableHorizontalBlock {
     public DiskDriveBlock() {
         super(Properties
                 .of(Material.METAL)

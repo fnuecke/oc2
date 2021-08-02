@@ -25,10 +25,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.NonNullList;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -167,21 +164,25 @@ public final class ComputerBlock extends HorizontalBlock {
 
         final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
         final ItemStack heldItem = player.getItemInHand(hand);
-        if (!world.isClientSide) {
-            if (Wrenches.isWrench(heldItem)) {
-                if (player instanceof ServerPlayerEntity) {
+        if (Wrenches.isWrench(heldItem)) {
+            if (!player.isShiftKeyDown()) {
+                if (!world.isClientSide() && player instanceof ServerPlayerEntity) {
                     computer.openInventoryScreen((ServerPlayerEntity) player);
                 }
-            } else {
+                return ActionResultType.sidedSuccess(world.isClientSide());
+            }
+        } else {
+            if (!world.isClientSide()) {
                 if (player.isShiftKeyDown()) {
                     computer.start();
                 } else if (player instanceof ServerPlayerEntity) {
                     computer.openTerminalScreen((ServerPlayerEntity) player);
                 }
             }
+            return ActionResultType.sidedSuccess(world.isClientSide());
         }
 
-        return ActionResultType.sidedSuccess(world.isClientSide());
+        return super.use(state, world, pos, player, hand, hit);
     }
 
     @Override

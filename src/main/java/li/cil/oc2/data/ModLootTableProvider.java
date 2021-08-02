@@ -11,7 +11,6 @@ import net.minecraft.loot.*;
 import net.minecraft.loot.functions.CopyNbt;
 import net.minecraft.util.ResourceLocation;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -20,6 +19,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static li.cil.oc2.common.Constants.*;
 
@@ -35,7 +35,7 @@ public final class ModLootTableProvider extends LootTableProvider {
 
     @Override
     protected List<Pair<Supplier<Consumer<BiConsumer<ResourceLocation, LootTable.Builder>>>, LootParameterSet>> getTables() {
-        return Collections.singletonList(Pair.of(ModBlockLootTables::new, LootParameterSets.BLOCK));
+        return singletonList(Pair.of(ModBlockLootTables::new, LootParameterSets.BLOCK));
     }
 
     public static final class ModBlockLootTables extends BlockLootTables {

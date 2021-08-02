@@ -11,9 +11,10 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.client.gui.GuiUtils;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 public abstract class ToggleImageButton extends AbstractButton {
     private static final long PRESS_DURATION = 200;
@@ -44,9 +45,9 @@ public abstract class ToggleImageButton extends AbstractButton {
         super(x, y, width, height, caption);
         this.parent = parent;
         if (description == null) {
-            this.tooltip = Collections.singletonList(caption);
+            this.tooltip = singletonList(caption);
         } else {
-            this.tooltip = Arrays.asList(caption, new StringTextComponent("").withStyle(style -> style.withColor(Color.fromLegacyFormat(TextFormatting.GRAY))).append(description));
+            this.tooltip = asList(caption, new StringTextComponent("").withStyle(style -> style.withColor(Color.fromLegacyFormat(TextFormatting.GRAY))).append(description));
         }
         this.baseImage = baseImage;
         this.pressedImage = pressedImage;

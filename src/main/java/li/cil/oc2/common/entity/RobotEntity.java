@@ -75,6 +75,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Consumer;
 
+import static java.util.Collections.singleton;
 import static li.cil.oc2.common.Constants.*;
 
 public final class RobotEntity extends Entity implements Robot {
@@ -726,12 +727,12 @@ public final class RobotEntity extends Entity implements Robot {
 
         @Override
         public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
-            return Optional.of(Collections.singleton(LazyOptional.of(() -> deviceItems.busElement)));
+            return Optional.of(singleton(LazyOptional.of(() -> deviceItems.busElement)));
         }
 
         @Override
         public Collection<Device> getLocalDevices() {
-            return Collections.singleton(device);
+            return singleton(device);
         }
 
         @Override

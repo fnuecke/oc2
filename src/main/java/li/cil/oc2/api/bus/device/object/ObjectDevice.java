@@ -5,9 +5,9 @@ import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -51,7 +51,7 @@ public final class ObjectDevice implements RPCDevice {
      * @param typeNames the type names of the device.
      */
     public ObjectDevice(final Object object, final String... typeNames) {
-        this(object, Arrays.asList(typeNames));
+        this(object, asList(typeNames));
     }
 
     /**

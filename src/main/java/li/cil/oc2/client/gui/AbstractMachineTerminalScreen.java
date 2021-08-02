@@ -14,9 +14,9 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.client.gui.GuiUtils;
 
-import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static li.cil.oc2.common.util.TooltipUtils.withColor;
 
 public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTerminalContainer> extends AbstractContainerScreen<T> {
@@ -56,7 +56,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
             Sprites.ENERGY_BAR.drawFillY(matrixStack, leftPos - Sprites.SIDEBAR_2.width + 4, topPos + ENERGY_TOP + 4, energyStored / (float) energyCapacity);
 
             if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
-                final List<? extends ITextProperties> tooltip = Arrays.asList(
+                final List<? extends ITextProperties> tooltip = asList(
                         new TranslationTextComponent(Constants.TOOLTIP_ENERGY, withColor(energyStored + "/" + energyCapacity, TextFormatting.GREEN)),
                         new TranslationTextComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(String.valueOf(energyConsumption), TextFormatting.GREEN))
                 );

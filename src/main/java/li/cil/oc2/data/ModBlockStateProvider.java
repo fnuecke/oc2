@@ -173,7 +173,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
         return itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }
 
-    private void simpleBlock(final RegistryObject<? extends Block> block, final RegistryObject<Item> item) {
+    private <T extends Block> void simpleBlock(final RegistryObject<T> block, final RegistryObject<Item> item) {
         simpleBlock(block.get());
         itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }

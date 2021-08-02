@@ -58,7 +58,7 @@ public final class BusInterfaceScreen extends Screen {
         nameField.setMaxLength(32);
         nameField.setValue(tileEntity.getInterfaceName(side));
         addWidget(nameField);
-        setFocused(nameField);
+        setInitialFocus(nameField);
 
         addButton(new ImageButton(
                 this,

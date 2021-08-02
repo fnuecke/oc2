@@ -281,6 +281,17 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .save(consumer);
 
         ShapedRecipeBuilder
+                .shaped(Items.SOUND_CARD.get())
+                .pattern("IST")
+                .pattern(" B ")
+                .define('S', net.minecraft.item.Items.NOTE_BLOCK)
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .save(consumer);
+
+        ShapedRecipeBuilder
                 .shaped(Items.FLOPPY.get())
                 .pattern("ITI")
                 .pattern("QBQ")

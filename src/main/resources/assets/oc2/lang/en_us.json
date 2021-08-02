@@ -35,6 +35,8 @@
   "item.oc2.inventory_operations_module.desc": "Enables robots to move items in, into and out of their inventory.",
   "item.oc2.block_operations_module": "Block Operations Module",
   "item.oc2.block_operations_module.desc": "Enables robots to break and place blocks.",
+  "item.oc2.sound_card": "Sound Card",
+  "item.oc2.sound_card.desc": "Can play various sounds from its highly realistic sound bank.",
 
   "item.oc2.transistor": "Transistor",
   "item.oc2.circuit_board": "Circuit Board",

@@ -29,6 +29,7 @@ public final class Config {
     @Path("energy.items") public static int redstoneInterfaceCardEnergyPerTick = 1;
     @Path("energy.items") public static int networkInterfaceEnergyPerTick = 1;
     @Path("energy.items") public static int fileImportExportCardEnergyPerTick = 1;
+    @Path("energy.items") public static int soundCardEnergyPerTick = 1;
     @Path("energy.items") public static int blockOperationsModuleEnergyPerTick = 2;
     @Path("energy.items") public static int inventoryOperationsModuleEnergyPerTick = 1;
 

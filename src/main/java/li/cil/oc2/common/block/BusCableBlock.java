@@ -27,6 +27,7 @@ import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
@@ -352,6 +353,30 @@ public final class BusCableBlock extends Block {
         }
 
         return shapes[getShapeIndex(state)];
+    }
+
+    @Override
+    public ItemStack getPickBlock(final BlockState state, final RayTraceResult target, final IBlockReader world, final BlockPos pos, final PlayerEntity player) {
+        final TileEntity tileEntity = world.getBlockEntity(pos);
+        if (!(tileEntity instanceof BusCableTileEntity)) {
+            return super.getPickBlock(state, target, world, pos, player);
+        }
+
+        final BusCableTileEntity busCableTileEntity = (BusCableTileEntity) tileEntity;
+
+        final ItemStack facadeItem = busCableTileEntity.getFacade();
+        if (!facadeItem.isEmpty()) {
+            return facadeItem;
+        }
+
+        if (target instanceof BlockRayTraceResult) {
+            final Direction side = getHitSide(pos, (BlockRayTraceResult) target);
+            if (getConnectionType(state, side) == ConnectionType.INTERFACE) {
+                return new ItemStack(Items.BUS_INTERFACE.get());
+            }
+        }
+
+        return super.getPickBlock(state, target, world, pos, player);
     }
 
     ///////////////////////////////////////////////////////////////////

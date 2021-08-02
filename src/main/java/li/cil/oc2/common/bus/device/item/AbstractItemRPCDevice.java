@@ -16,8 +16,7 @@ public abstract class AbstractItemRPCDevice extends IdentityProxy<ItemStack> imp
 
     protected AbstractItemRPCDevice(final ItemStack identity, final String typeName) {
         super(identity);
-        this.device = new ObjectDevice(this, "redstone");
-
+        this.device = new ObjectDevice(this, typeName);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -296,6 +296,14 @@ public final class RPCDeviceBusAdapter implements Steppable {
             }
 
             final RPCParameter[] parametersSpec = method.getParameters();
+
+            // Special case: if a method takes as exactly one parameter a JsonArray, we pass
+            // on the parameters as-is, without automatically trying to deserialize them.
+            if (parametersSpec.length == 1 && parametersSpec[0].getType() == JsonArray.class) {
+                invokeMethod(methodInvocation, isMainThread, method, new Object[]{methodInvocation.parameters});
+                return;
+            }
+
             if (methodInvocation.parameters.size() != parametersSpec.length) {
                 if (canTrailingParametersBeImplicitlyNull(methodInvocation.parameters, parametersSpec)) {
                     fallbacks.add(method);

@@ -19,6 +19,7 @@ import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
@@ -70,26 +71,36 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         return device;
     }
 
-    public ItemStack insert(final ItemStack stack) {
+    public boolean canInsert(final ItemStack stack) {
+        return !stack.isEmpty() && ItemTags.DEVICES_FLOPPY.contains(stack.getItem());
+    }
+
+    public ItemStack insert(final ItemStack stack, @Nullable final PlayerEntity player) {
         if (stack.isEmpty() || !ItemTags.DEVICES_FLOPPY.contains(stack.getItem())) {
             return stack;
         }
 
-        eject();
+        eject(player);
 
-        if (!stack.isEmpty()) {
-            insertSoundEmitter.play();
-        }
-
+        insertSoundEmitter.play();
         return itemHandler.insertItem(0, stack, false);
     }
 
-    public void eject() {
+    public boolean canEject() {
+        return !itemHandler.extractItem(0, 1, true).isEmpty();
+    }
+
+    public void eject(@Nullable final PlayerEntity player) {
         final ItemStack stack = itemHandler.extractItem(0, 1, false);
         if (!stack.isEmpty()) {
             final Direction facing = getBlockState().getValue(DiskDriveBlock.FACING);
-            ItemStackUtils.spawnAsEntity(level, getBlockPos().relative(facing), stack, facing);
             ejectSoundEmitter.play();
+            ItemStackUtils.spawnAsEntity(level, getBlockPos().relative(facing), stack, facing).ifPresent(entity -> {
+                if (player != null) {
+                    entity.setNoPickUpDelay();
+                    entity.setOwner(player.getUUID());
+                }
+            });
         }
     }
 

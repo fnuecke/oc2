@@ -126,8 +126,6 @@ public final class RobotEntity extends Entity implements Robot {
         final CommonDeviceBusController busController = new CommonDeviceBusController(busElement, Config.robotEnergyPerTick);
         virtualMachine = new RobotVirtualMachine(busController);
         virtualMachine.state.builtinDevices.rtcMinecraft.setWorld(world);
-
-        deviceItems.busElement.addDevice(new ObjectDevice(new RobotDevice(), "robot"));
     }
 
     ///////////////////////////////////////////////////////////////////

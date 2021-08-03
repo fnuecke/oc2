@@ -50,7 +50,7 @@ public class DeviceItemStackHandler extends FixedSizeItemStackHandler {
         return super.serializeNBT();
     }
 
-    public ListNBT saveDevices() {
+    public CompoundNBT saveDevices() {
         return busElement.save();
     }
 
@@ -58,7 +58,7 @@ public class DeviceItemStackHandler extends FixedSizeItemStackHandler {
         super.deserializeNBT(tag);
     }
 
-    public void loadDevices(final ListNBT tag) {
+    public void loadDevices(final CompoundNBT tag) {
         busElement.load(tag);
         for (int slot = 0; slot < getSlots(); slot++) {
             busElement.updateDevices(slot, getStackInSlot(slot));

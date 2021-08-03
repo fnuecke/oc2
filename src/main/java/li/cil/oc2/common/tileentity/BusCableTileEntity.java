@@ -188,7 +188,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     @Override
     public void load(final BlockState state, final CompoundNBT tag) {
         super.load(state, tag);
-        busElement.load(tag.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
+        busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
         facade = ItemStack.of(tag.getCompound(FACADE_TAG_NAME));
     }
@@ -252,11 +252,13 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         }
 
         @Override
-        protected void collectSyntheticDevices(final World world, final BlockPos pos, final Direction direction, final HashSet<BlockDeviceInfo> devices) {
+        protected void collectSyntheticDevices(final World world, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockDeviceInfo> devices) {
             super.collectSyntheticDevices(world, pos, direction, devices);
-            final String interfaceName = interfaceNames[direction.get3DDataValue()];
-            if (!StringUtils.isNullOrEmpty(interfaceName)) {
-                devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)));
+            if (direction != null) {
+                final String interfaceName = interfaceNames[direction.get3DDataValue()];
+                if (!StringUtils.isNullOrEmpty(interfaceName)) {
+                    devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)));
+                }
             }
         }
 

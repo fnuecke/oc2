@@ -3,7 +3,6 @@ package li.cil.oc2.common.tileentity;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.client.audio.LoopingSoundManager;
@@ -25,7 +24,10 @@ import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.ComputerTerminalOutputMessage;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.util.*;
+import li.cil.oc2.common.util.HorizontalBlockUtils;
+import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.SoundEvents;
+import li.cil.oc2.common.util.TerminalUtils;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -69,7 +71,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     ///////////////////////////////////////////////////////////////////
 
     private final Terminal terminal = new Terminal();
-    private final TileEntityDeviceBusElement busElement = new ComputerBusElement();
+    private final ComputerBusElement busElement = new ComputerBusElement();
     private final ComputerItemStackHandlers deviceItems = new ComputerItemStackHandlers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
     private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new TileEntityDeviceBusController(busElement, Config.computerEnergyPerTick, this), deviceItems::getDeviceAddressBase);
@@ -172,10 +174,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         // adjacent cable. Because that would just be weird.
         if (!hasAddedOwnDevices) {
             hasAddedOwnDevices = true;
-            final BlockDeviceQuery query = Devices.makeQuery(this, (Direction) null);
-            for (final LazyOptional<BlockDeviceInfo> optional : Devices.getDevices(query)) {
-                optional.ifPresent(info -> busElement.addDevice(info.device));
-            }
+            busElement.addOwnDevices();
         }
 
         if (isNeighborUpdateScheduled) {
@@ -225,7 +224,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
         tag.put(STATE_TAG_NAME, virtualMachine.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
-        tag.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
+        tag.put(BUS_ELEMENT_TAG_NAME, busElement.save());
         tag.put(ITEMS_TAG_NAME, deviceItems.saveItems());
         tag.put(DEVICES_TAG_NAME, deviceItems.saveDevices());
 
@@ -239,10 +238,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
         virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
-
-        if (tag.contains(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            NBTSerialization.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME), busElement);
-        }
+        busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
 
         deviceItems.loadItems(tag.getCompound(ITEMS_TAG_NAME));
         deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
@@ -320,8 +316,20 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     private final class ComputerBusElement extends TileEntityDeviceBusElement {
+        private static final String DEVICE_ID_TAG_NAME = "device_id";
+
+        private final HashSet<Device> devices = new HashSet<>();
+        private UUID deviceId = UUID.randomUUID();
+
         public ComputerBusElement() {
             super(ComputerTileEntity.this);
+        }
+
+        public void addOwnDevices() {
+            for (final BlockDeviceInfo info : collectDevices(level, getPosition(), null)) {
+                devices.add(info.device);
+                super.addDevice(info.device);
+            }
         }
 
         @Override
@@ -338,6 +346,28 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         @Override
         public boolean canScanContinueTowards(@Nullable final Direction direction) {
             return getBlockState().getValue(ComputerBlock.FACING) != direction;
+        }
+
+        @Override
+        public Optional<UUID> getDeviceIdentifier(final Device device) {
+            if (devices.contains(device)) {
+                return Optional.of(deviceId);
+            }
+            return super.getDeviceIdentifier(device);
+        }
+
+        @Override
+        public CompoundNBT save() {
+            final CompoundNBT tag = super.save();
+            tag.putUUID(DEVICE_ID_TAG_NAME, deviceId);
+            return tag;
+        }
+
+        public void load(final CompoundNBT tag) {
+            super.load(tag);
+            if (tag.hasUUID(DEVICE_ID_TAG_NAME)) {
+                deviceId = tag.getUUID(DEVICE_ID_TAG_NAME);
+            }
         }
     }
 

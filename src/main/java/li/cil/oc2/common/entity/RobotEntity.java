@@ -197,8 +197,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     public void start() {
-        final World world = getCommandSenderWorld();
-        if (world.isClientSide) {
+        if (level.isClientSide()) {
             return;
         }
 
@@ -206,8 +205,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     public void stop() {
-        final World world = getCommandSenderWorld();
-        if (world.isClientSide) {
+        if (level.isClientSide()) {
             return;
         }
 
@@ -420,7 +418,7 @@ public final class RobotEntity extends Entity implements Robot {
 
     @Override
     protected Vector3d limitPistonMovement(final Vector3d pos) {
-        lastPistonMovement = getCommandSenderWorld().getGameTime();
+        lastPistonMovement = level.getGameTime();
         return super.limitPistonMovement(pos);
     }
 
@@ -442,7 +440,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     private void handleChunkUnload(final ChunkEvent.Unload event) {
-        if (event.getWorld() != getCommandSenderWorld()) {
+        if (event.getWorld() != level) {
             return;
         }
 
@@ -456,7 +454,7 @@ public final class RobotEntity extends Entity implements Robot {
     }
 
     private void handleWorldUnload(final WorldEvent.Unload event) {
-        if (event.getWorld() != getCommandSenderWorld()) {
+        if (event.getWorld() != level) {
             return;
         }
 
@@ -592,7 +590,7 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         public void tick() {
-            if (getCommandSenderWorld().isClientSide) {
+            if (level.isClientSide()) {
                 RobotActions.performClient(RobotEntity.this);
             } else {
                 if (action != null) {
@@ -675,7 +673,7 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         private boolean addAction(final AbstractRobotAction action) {
-            if (getCommandSenderWorld().isClientSide) {
+            if (level.isClientSide()) {
                 return false;
             }
 

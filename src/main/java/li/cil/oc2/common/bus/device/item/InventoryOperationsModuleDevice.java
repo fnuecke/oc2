@@ -196,7 +196,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
     private Stream<IItemHandler> getEntityItemHandlersAt(final Vector3d position, final Direction side) {
         final AxisAlignedBB bounds = AxisAlignedBB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
-        return entity.getCommandSenderWorld().getEntities(entity, bounds).stream()
+        return entity.level.getEntities(entity, bounds).stream()
                 .map(e -> e.getCapability(Capabilities.ITEM_HANDLER, side))
                 .filter(LazyOptional::isPresent)
                 .map(c -> c.orElseThrow(AssertionError::new));
@@ -204,7 +204,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
     private Stream<IItemHandler> getBlockItemHandlersAt(final Vector3d position, final Direction side) {
         final BlockPos pos = new BlockPos(position);
-        final TileEntity tileEntity = entity.getCommandSenderWorld().getBlockEntity(pos);
+        final TileEntity tileEntity = entity.level.getBlockEntity(pos);
         if (tileEntity == null) {
             return Stream.empty();
         }
@@ -218,7 +218,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     }
 
     private List<ItemEntity> getItemsInRange() {
-        return entity.getCommandSenderWorld().getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(1));
+        return entity.level.getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(1));
     }
 
     private int takeFromWorld(final int count) {

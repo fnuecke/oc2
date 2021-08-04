@@ -62,7 +62,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
     @Override
     public void deserializeNBT(final CompoundNBT tag) {
-        lastOperation = MathHelper.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.getCommandSenderWorld().getGameTime());
+        lastOperation = MathHelper.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.level.getGameTime());
     }
 
     @Callback
@@ -73,8 +73,8 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
         beginCooldown();
 
-        final World world = entity.getCommandSenderWorld();
-        if (!(world instanceof ServerWorld)) {
+        final World level = entity.level;
+        if (!(level instanceof ServerWorld)) {
             return false;
         }
 
@@ -84,7 +84,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         final List<ItemEntity> oldItems = getItemsInRange();
 
         final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
-        if (!tryHarvestBlock(world, entity.blockPosition().relative(direction))) {
+        if (!tryHarvestBlock(level, entity.blockPosition().relative(direction))) {
             return false;
         }
 
@@ -108,8 +108,8 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
         beginCooldown();
 
-        final World world = entity.getCommandSenderWorld();
-        if (!(world instanceof ServerWorld)) {
+        final World level = entity.level;
+        if (!(level instanceof ServerWorld)) {
             return false;
         }
 
@@ -132,7 +132,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
         final ItemStack itemStack = extracted.copy();
         final BlockItem blockItem = (BlockItem) itemStack.getItem();
-        final ServerPlayerEntity player = FakePlayerUtils.getFakePlayer((ServerWorld) world, entity);
+        final ServerPlayerEntity player = FakePlayerUtils.getFakePlayer((ServerWorld) level, entity);
         final BlockItemUseContext context = new BlockItemUseContext(player, Hand.MAIN_HAND, itemStack, hit);
 
         final ActionResultType result = blockItem.place(context);
@@ -192,15 +192,15 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
     ///////////////////////////////////////////////////////////////////
 
     private void beginCooldown() {
-        lastOperation = entity.getCommandSenderWorld().getGameTime();
+        lastOperation = entity.level.getGameTime();
     }
 
     private boolean isOnCooldown() {
-        return entity.getCommandSenderWorld().getGameTime() - lastOperation < COOLDOWN;
+        return entity.level.getGameTime() - lastOperation < COOLDOWN;
     }
 
     private List<ItemEntity> getItemsInRange() {
-        return entity.getCommandSenderWorld().getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(2));
+        return entity.level.getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(2));
     }
 
     private boolean tryHarvestBlock(final World world, final BlockPos blockPos) {

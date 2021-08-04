@@ -35,7 +35,7 @@ public final class ComputerInventoryContainer extends AbstractComputerContainer 
 
     public static ComputerInventoryContainer createClient(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
         final BlockPos pos = data.readBlockPos();
-        final TileEntity tileEntity = playerInventory.player.getCommandSenderWorld().getBlockEntity(pos);
+        final TileEntity tileEntity = playerInventory.player.level.getBlockEntity(pos);
         if (!(tileEntity instanceof ComputerTileEntity)) {
             throw new IllegalArgumentException();
         }

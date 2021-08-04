@@ -39,13 +39,6 @@ public final class ClientSetup {
     public static void handleSetupEvent(final FMLClientSetupEvent event) {
         NetworkCableRenderer.initialize();
         BusInterfaceNameRenderer.initialize();
-        CustomItemModelProperties.initialize();
-        CustomItemColors.initialize();
-
-        ScreenManager.register(Containers.COMPUTER.get(), ComputerContainerScreen::new);
-        ScreenManager.register(Containers.COMPUTER_TERMINAL.get(), ComputerTerminalScreen::new);
-        ScreenManager.register(Containers.ROBOT.get(), RobotContainerScreen::new);
-        ScreenManager.register(Containers.ROBOT_TERMINAL.get(), RobotTerminalScreen::new);
 
         ClientRegistry.bindTileEntityRenderer(TileEntities.COMPUTER_TILE_ENTITY.get(), ComputerTileEntityRenderer::new);
         ClientRegistry.bindTileEntityRenderer(TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), NetworkConnectorTileEntityRenderer::new);
@@ -55,6 +48,14 @@ public final class ClientSetup {
         RenderingRegistry.registerEntityRenderingHandler(Entities.ROBOT.get(), RobotEntityRenderer::new);
 
         event.enqueueWork(() -> {
+            CustomItemModelProperties.initialize();
+            CustomItemColors.initialize();
+
+            ScreenManager.register(Containers.COMPUTER.get(), ComputerContainerScreen::new);
+            ScreenManager.register(Containers.COMPUTER_TERMINAL.get(), ComputerTerminalScreen::new);
+            ScreenManager.register(Containers.ROBOT.get(), RobotContainerScreen::new);
+            ScreenManager.register(Containers.ROBOT_TERMINAL.get(), RobotTerminalScreen::new);
+
             RenderTypeLookup.setRenderLayer(Blocks.BUS_CABLE.get(), (RenderType) -> true);
             event.getMinecraftSupplier().get().getBlockColors().register(new BusCableBlockColor(), Blocks.BUS_CABLE.get());
         });

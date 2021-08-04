@@ -1,7 +1,6 @@
 package li.cil.oc2.common.vm;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
@@ -552,7 +551,7 @@ public final class Terminal {
         ///////////////////////////////////////////////////////////////
 
         private void renderBuffer() {
-            GlStateManager._depthMask(false);
+            RenderSystem.depthMask(false);
             Minecraft.getInstance().getTextureManager().bind(LOCATION_FONT_TEXTURE);
 
             final BufferBuilder buffer = Tessellator.getInstance().getBuilder();
@@ -563,7 +562,7 @@ public final class Terminal {
                 WorldVertexBufferUploader.end(buffer);
             }
 
-            GlStateManager._depthMask(true);
+            RenderSystem.depthMask(true);
         }
 
         private void validateLineCache(final AtomicInteger dirty, final MatrixStack stack) {
@@ -714,7 +713,7 @@ public final class Terminal {
                 return;
             }
 
-            GlStateManager._depthMask(false);
+            RenderSystem.depthMask(false);
             RenderSystem.disableTexture();
 
             stack.pushPose();
@@ -740,7 +739,7 @@ public final class Terminal {
             stack.popPose();
 
             RenderSystem.enableTexture();
-            GlStateManager._depthMask(true);
+            RenderSystem.depthMask(true);
         }
 
         private static boolean isPrintableCharacter(final char ch) {

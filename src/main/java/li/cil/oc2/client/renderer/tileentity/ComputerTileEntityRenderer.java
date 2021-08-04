@@ -1,7 +1,7 @@
 package li.cil.oc2.client.renderer.tileentity;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.CustomRenderType;
@@ -134,9 +134,9 @@ public final class ComputerTileEntityRenderer extends TileEntityRenderer<Compute
             stack.scale(scale, scale, 1f);
 
             // TODO Make terminal renderer use buffer+rendertype.
-            GlStateManager._enableBlend();
-            GlStateManager._enableDepthTest();
-            GlStateManager._depthMask(false);
+            RenderSystem.enableBlend();
+            RenderSystem.enableDepthTest();
+            RenderSystem.depthMask(false);
             terminal.render(stack);
 
             stack.popPose();

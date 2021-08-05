@@ -235,7 +235,7 @@ public final class RobotEntity extends Entity implements Robot {
 
     @Override
     public void tick() {
-        final boolean isClient = level.isClientSide;
+        final boolean isClient = level.isClientSide();
 
         if (firstTick) {
             if (isClient) {
@@ -295,7 +295,7 @@ public final class RobotEntity extends Entity implements Robot {
     @Override
     public ActionResultType interact(final PlayerEntity player, final Hand hand) {
         final ItemStack stack = player.getItemInHand(hand);
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             if (Wrenches.isWrench(stack)) {
                 if (player.isShiftKeyDown()) {
                     dropSelf();

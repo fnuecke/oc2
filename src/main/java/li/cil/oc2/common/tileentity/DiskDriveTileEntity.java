@@ -185,7 +185,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         protected void onContentsChanged(final int slot) {
             super.onContentsChanged(slot);
 
-            if (level == null || level.isClientSide) {
+            if (level == null || level.isClientSide()) {
                 return;
             }
 
@@ -205,7 +205,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
                 return;
             }
 
-            if (level == null || level.isClientSide) {
+            if (level == null || level.isClientSide()) {
                 return;
             }
 

@@ -80,7 +80,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
         }
 
         final World world = connectorA.level;
-        if (world == null || world.isClientSide) {
+        if (world == null || world.isClientSide()) {
             return ConnectionResult.FAILURE;
         }
 
@@ -319,7 +319,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             return;
         }
 
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
 
@@ -350,7 +350,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             return;
         }
 
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
 
@@ -411,7 +411,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     }
 
     private void onConnectedPositionsChanged() {
-        if (!getLevel().isClientSide()) {
+        if (!level.isClientSide()) {
             final NetworkConnectorConnectionsMessage message = new NetworkConnectorConnectionsMessage(this);
             Network.sendToClientsTrackingTileEntity(message, this);
         }

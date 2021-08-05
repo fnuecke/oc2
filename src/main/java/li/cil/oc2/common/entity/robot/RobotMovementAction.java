@@ -153,7 +153,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
         final boolean didCollide = robot.horizontalCollision || robot.verticalCollision;
         final long gameTime = robot.level.getGameTime();
-        if (didCollide && !robot.level.isClientSide
+        if (didCollide && !robot.level.isClientSide()
             && robot.getLastPistonMovement() < gameTime - 1) {
             final BlockPos newStart = target;
             target = start;

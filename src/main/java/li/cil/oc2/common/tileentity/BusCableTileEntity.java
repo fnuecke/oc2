@@ -65,7 +65,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         }
 
         interfaceNames[side.get3DDataValue()] = validatedName;
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             final BusInterfaceNameMessage message = new BusInterfaceNameMessage.ToClient(this, side, interfaceNames[side.get3DDataValue()]);
             Network.sendToClientsTrackingTileEntity(message, this);
             handleNeighborChanged(getBlockPos().relative(side));
@@ -82,7 +82,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         }
 
         if (state.getRenderShape() != BlockRenderType.MODEL ||
-            !state.isSolidRender(getLevel(), getBlockPos()) ||
+            !state.isSolidRender(level, getBlockPos()) ||
             state.getBlock().hasTileEntity(state)) {
             return FacadeType.INVALID_BLOCK;
         }
@@ -106,12 +106,12 @@ public final class BusCableTileEntity extends AbstractTileEntity {
 
         facade = stack.copy();
         facade.setCount(1);
-        BusCableBlock.setHasFacade(getLevel(), getBlockPos(), getBlockState(), facadeState, true);
+        BusCableBlock.setHasFacade(level, getBlockPos(), getBlockState(), facadeState, true);
 
         setChanged();
-        getLevel().sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), BlockFlags.DEFAULT);
+        level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), BlockFlags.DEFAULT);
 
-        if (!getLevel().isClientSide()) {
+        if (!level.isClientSide()) {
             final BusCableFacadeMessage message = new BusCableFacadeMessage(getBlockPos(), facade);
             Network.sendToClientsTrackingTileEntity(message, this);
         }
@@ -120,12 +120,12 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     public void removeFacade() {
         final BlockState facadeState = ItemStackUtils.getBlockState(facade);
         facade = ItemStack.EMPTY;
-        BusCableBlock.setHasFacade(getLevel(), getBlockPos(), getBlockState(), facadeState, false);
+        BusCableBlock.setHasFacade(level, getBlockPos(), getBlockState(), facadeState, false);
 
         setChanged();
-        getLevel().sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), BlockFlags.DEFAULT);
+        level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), BlockFlags.DEFAULT);
 
-        if (!getLevel().isClientSide()) {
+        if (!level.isClientSide()) {
             final BusCableFacadeMessage message = new BusCableFacadeMessage(getBlockPos(), facade);
             Network.sendToClientsTrackingTileEntity(message, this);
         }

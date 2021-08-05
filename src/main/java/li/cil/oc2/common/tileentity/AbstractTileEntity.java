@@ -73,7 +73,7 @@ public abstract class AbstractTileEntity extends TileEntity {
             return;
         }
 
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             loadClient();
         } else {
             loadServer();
@@ -122,7 +122,7 @@ public abstract class AbstractTileEntity extends TileEntity {
     }
 
     protected void onUnload() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             unloadServer();
             ServerScheduler.cancelOnUnload(level, onWorldUnloaded);
         }

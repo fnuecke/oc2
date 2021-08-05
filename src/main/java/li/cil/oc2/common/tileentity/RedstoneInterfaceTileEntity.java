@@ -67,8 +67,7 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
     public int getRedstoneInput(@Parameter(SIDE) @Nullable final Side side) {
         if (side == null) throw new IllegalArgumentException();
 
-        final World world = getLevel();
-        if (world == null) {
+        if (level == null) {
             return 0;
         }
 
@@ -78,11 +77,11 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
 
         final BlockPos neighborPos = pos.relative(direction);
         final ChunkPos chunkPos = new ChunkPos(neighborPos.getX(), neighborPos.getZ());
-        if (!world.hasChunk(chunkPos.x, chunkPos.z)) {
+        if (!level.hasChunk(chunkPos.x, chunkPos.z)) {
             return 0;
         }
 
-        return world.getSignal(neighborPos, direction);
+        return level.getSignal(neighborPos, direction);
     }
 
     @Callback(name = GET_REDSTONE_OUTPUT, synchronize = false)
@@ -145,12 +144,11 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
     ///////////////////////////////////////////////////////////////////
 
     private void notifyNeighbor(final Direction direction) {
-        final World world = getLevel();
-        if (world == null) {
+        if (level == null) {
             return;
         }
 
-        world.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
-        world.updateNeighborsAt(getBlockPos().relative(direction), getBlockState().getBlock());
+        level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
+        level.updateNeighborsAt(getBlockPos().relative(direction), getBlockState().getBlock());
     }
 }

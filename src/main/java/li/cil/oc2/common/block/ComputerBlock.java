@@ -190,7 +190,7 @@ public final class ComputerBlock extends ImmutableHorizontalBlock {
     @Override
     public void playerWillDestroy(final World world, final BlockPos pos, final BlockState state, final PlayerEntity player) {
         final TileEntity tileEntity = world.getBlockEntity(pos);
-        if (!world.isClientSide && tileEntity instanceof ComputerTileEntity) {
+        if (!world.isClientSide() && tileEntity instanceof ComputerTileEntity) {
             final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
             if (!computer.getItemStackHandlers().isEmpty()) {
                 computer.getItemStackHandlers().exportDeviceDataToItemStacks();

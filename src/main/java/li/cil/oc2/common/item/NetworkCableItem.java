@@ -48,15 +48,15 @@ public final class NetworkCableItem extends ModItem {
             return super.useOn(context);
         }
 
-        final World world = context.getLevel();
+        final World level = context.getLevel();
         final BlockPos currentPos = context.getClickedPos();
 
-        final TileEntity currentTileEntity = world.getBlockEntity(currentPos);
+        final TileEntity currentTileEntity = level.getBlockEntity(currentPos);
         if (!(currentTileEntity instanceof NetworkConnectorTileEntity)) {
             return super.useOn(context);
         }
 
-        if (!world.isClientSide && player instanceof ServerPlayerEntity) {
+        if (!level.isClientSide() && player instanceof ServerPlayerEntity) {
             final BlockPos startPos = LINK_STARTS.remove(player);
             if (startPos == null || Objects.equals(startPos, currentPos)) {
                 if (((NetworkConnectorTileEntity) currentTileEntity).canConnectMore()) {
@@ -65,7 +65,7 @@ public final class NetworkCableItem extends ModItem {
                     player.displayClientMessage(new TranslationTextComponent(Constants.CONNECTOR_ERROR_FULL), true);
                 }
             } else {
-                final TileEntity startTileEntity = world.getBlockEntity(startPos);
+                final TileEntity startTileEntity = level.getBlockEntity(startPos);
                 if (!(startTileEntity instanceof NetworkConnectorTileEntity)) {
                     // Starting connector was removed in the meantime.
                     return super.useOn(context);
@@ -101,6 +101,6 @@ public final class NetworkCableItem extends ModItem {
             }
         }
 
-        return ActionResultType.sidedSuccess(world.isClientSide());
+        return ActionResultType.sidedSuccess(level.isClientSide());
     }
 }

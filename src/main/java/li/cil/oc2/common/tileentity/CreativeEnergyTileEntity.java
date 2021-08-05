@@ -27,8 +27,8 @@ public final class CreativeEnergyTileEntity extends TileEntity implements ITicka
         for (final Direction side : SIDES) {
             final BlockPos neighborPos = getBlockPos().relative(side);
             final ChunkPos neighborChunkPos = new ChunkPos(neighborPos);
-            if (getLevel().hasChunk(neighborChunkPos.x, neighborChunkPos.z)) {
-                final TileEntity tileEntity = getLevel().getBlockEntity(neighborPos);
+            if (level.hasChunk(neighborChunkPos.x, neighborChunkPos.z)) {
+                final TileEntity tileEntity = level.getBlockEntity(neighborPos);
                 if (tileEntity != null) {
                     tileEntity.getCapability(Capabilities.ENERGY_STORAGE, side.getOpposite()).ifPresent(energy -> {
                         energy.receiveEnergy(Integer.MAX_VALUE, false);

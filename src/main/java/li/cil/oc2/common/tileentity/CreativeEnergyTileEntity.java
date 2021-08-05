@@ -20,6 +20,10 @@ public final class CreativeEnergyTileEntity extends TileEntity implements ITicka
 
     @Override
     public void tick() {
+        if (level.isClientSide()) {
+            return;
+        }
+
         for (final Direction side : SIDES) {
             final BlockPos neighborPos = getBlockPos().relative(side);
             final ChunkPos neighborChunkPos = new ChunkPos(neighborPos);

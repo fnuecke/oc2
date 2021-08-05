@@ -8,12 +8,19 @@ import net.minecraft.client.renderer.color.IBlockColor;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockDisplayReader;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 
+@OnlyIn(Dist.CLIENT)
 public final class BusCableBlockColor implements IBlockColor {
     @Override
     public int getColor(final BlockState state, @Nullable final IBlockDisplayReader level, @Nullable final BlockPos pos, final int tintIndex) {
+        if (level == null || pos == null) {
+            return 0;
+        }
+
         final TileEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof BusCableTileEntity) {
             final BlockState facade = ItemStackUtils.getBlockState(((BusCableTileEntity) blockEntity).getFacade());
@@ -21,6 +28,7 @@ public final class BusCableBlockColor implements IBlockColor {
                 return Minecraft.getInstance().getBlockColors().getColor(facade, level, pos, tintIndex);
             }
         }
+
         return 0;
     }
 }

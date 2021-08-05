@@ -5,7 +5,7 @@ import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 
 import javax.annotation.Nullable;
 
-public class ItemDeviceInfo extends AbstractDeviceInfo<ItemDeviceProvider, ItemDevice> {
+public final class ItemDeviceInfo extends AbstractDeviceInfo<ItemDeviceProvider, ItemDevice> {
     public final int energyConsumption;
 
     ///////////////////////////////////////////////////////////////////

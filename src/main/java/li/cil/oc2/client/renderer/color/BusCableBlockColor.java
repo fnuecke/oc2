@@ -11,7 +11,7 @@ import net.minecraft.world.IBlockDisplayReader;
 
 import javax.annotation.Nullable;
 
-public class BusCableBlockColor implements IBlockColor {
+public final class BusCableBlockColor implements IBlockColor {
     @Override
     public int getColor(final BlockState state, @Nullable final IBlockDisplayReader level, @Nullable final BlockPos pos, final int tintIndex) {
         final TileEntity blockEntity = level.getBlockEntity(pos);

@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class SoundCardItemDevice extends AbstractItemRPCDevice {
+public final class SoundCardItemDevice extends AbstractItemRPCDevice {
     private static final int COOLDOWN_IN_TICKS = 2 * Constants.SECONDS_TO_TICKS;
     private static final int MAX_FIND_RESULTS = 25;
 

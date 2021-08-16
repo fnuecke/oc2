@@ -61,8 +61,8 @@ dependencies {
     implementation "li.cil.sedna:sedna:1.0.1+101"
     implementation "li.cil.sedna:sedna-buildroot:0.0.1+15"
 
-    compileOnly fg.deobf("li.cil.markdown_manual:MarkdownManual:MC${minecraft_version}-Forge-${manual_version}:api")
-    runtimeOnly fg.deobf("li.cil.markdown_manual:MarkdownManual:MC${minecraft_version}-Forge-${manual_version}")
+    compileOnly fg.deobf("li.cil.markdown_manual:MarkdownManual:MC${minecraft_version}-Forge-${manual_version}+:api")
+    runtimeOnly fg.deobf("li.cil.markdown_manual:MarkdownManual:MC${minecraft_version}-Forge-${manual_version}+")
 
     compileOnly fg.deobf("mezz.jei:jei-${jei_minecraft_version}:${jei_version}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${jei_minecraft_version}:${jei_version}")

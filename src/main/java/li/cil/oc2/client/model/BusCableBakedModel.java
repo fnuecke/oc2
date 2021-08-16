@@ -65,7 +65,7 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
             }
         }
 
-        if (state == null || !state.getValue(BusCableBlock.HAS_CABLE) || !layer.equals(RenderType.solid())) {
+        if (state == null || !state.getValue(BusCableBlock.HAS_CABLE) || layer == null || !layer.equals(RenderType.solid())) {
             return Collections.emptyList();
         }
 

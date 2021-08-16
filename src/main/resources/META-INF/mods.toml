@@ -29,9 +29,9 @@ versionRange = "[${minecraft_version_min}]"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]
-modId = "oc2-sedna"
+modId = "sedna"
 mandatory = true
-versionRange = "[${oc2_sedna_version_min},)"
+versionRange = "[${sedna_version_min},)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]

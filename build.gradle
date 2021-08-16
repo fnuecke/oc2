@@ -93,7 +93,7 @@ processResources {
                 'mod_issues_url'       : mod_issues_url,
                 'forge_version_min'    : forge_version_min,
                 'minecraft_version_min': minecraft_version_min,
-                'oc2_sedna_version_min': oc2_sedna_version_min,
+                'sedna_version_min'    : sedna_version_min,
                 'manual_version_min'   : manual_version,
         ])
     }

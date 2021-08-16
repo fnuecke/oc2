@@ -244,7 +244,7 @@ public final class BusCableBlock extends Block {
                         return ActionResultType.sidedSuccess(world.isClientSide());
                     }
                 }
-            } else {
+            } else if (world.isClientSide()) {
                 final Direction side = getHitSide(pos, hit);
                 if (getConnectionType(state, side) == ConnectionType.INTERFACE) {
                     openBusInterfaceScreen(busCableTileEntity, side);

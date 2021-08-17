@@ -1,8 +1,6 @@
 package li.cil.oc2.common.tileentity;
 
 import li.cil.oc2.api.bus.device.vm.VMDevice;
-import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
-import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.DiskDriveBlock;
@@ -12,6 +10,7 @@ import li.cil.oc2.common.container.TypedItemStackHandler;
 import li.cil.oc2.common.item.FloppyItem;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.DiskDriveFloppyMessage;
+import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.LocationSupplierUtils;
@@ -20,23 +19,23 @@ import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.time.Duration;
-import java.util.Optional;
 
 public final class DiskDriveTileEntity extends AbstractTileEntity {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -72,26 +71,36 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         return device;
     }
 
-    public ItemStack insert(final ItemStack stack) {
+    public boolean canInsert(final ItemStack stack) {
+        return !stack.isEmpty() && ItemTags.DEVICES_FLOPPY.contains(stack.getItem());
+    }
+
+    public ItemStack insert(final ItemStack stack, @Nullable final PlayerEntity player) {
         if (stack.isEmpty() || !ItemTags.DEVICES_FLOPPY.contains(stack.getItem())) {
             return stack;
         }
 
-        eject();
+        eject(player);
 
-        if (!stack.isEmpty()) {
-            insertSoundEmitter.play();
-        }
-
+        insertSoundEmitter.play();
         return itemHandler.insertItem(0, stack, false);
     }
 
-    public void eject() {
+    public boolean canEject() {
+        return !itemHandler.extractItem(0, 1, true).isEmpty();
+    }
+
+    public void eject(@Nullable final PlayerEntity player) {
         final ItemStack stack = itemHandler.extractItem(0, 1, false);
         if (!stack.isEmpty()) {
             final Direction facing = getBlockState().getValue(DiskDriveBlock.FACING);
-            ItemStackUtils.spawnAsEntity(level, getBlockPos().relative(facing), stack, facing);
             ejectSoundEmitter.play();
+            ItemStackUtils.spawnAsEntity(level, getBlockPos().relative(facing), stack, facing).ifPresent(entity -> {
+                if (player != null) {
+                    entity.setNoPickUpDelay();
+                    entity.setOwner(player.getUUID());
+                }
+            });
         }
     }
 
@@ -150,6 +159,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         }
 
         @Override
+        @Nonnull
         public ItemStack getStackInSlot(final int slot) {
             final ItemStack stack = getStackInSlotRaw(slot);
             exportDeviceDataToItemStack(stack);
@@ -157,6 +167,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         }
 
         @Override
+        @Nonnull
         public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
             if (slot == 0 && !simulate && amount > 0) {
                 exportDeviceDataToItemStack(getStackInSlotRaw(0));
@@ -186,7 +197,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
                 device.updateBlockDevice(tag);
             }
 
-            Network.sendToClientsTrackingChunk(new DiskDriveFloppyMessage(DiskDriveTileEntity.this), level.getChunkAt(getBlockPos()));
+            Network.sendToClientsTrackingTileEntity(new DiskDriveFloppyMessage(DiskDriveTileEntity.this), DiskDriveTileEntity.this);
         }
 
         private void exportDeviceDataToItemStack(final ItemStack stack) {
@@ -198,8 +209,6 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
                 return;
             }
 
-            device.serializeData();
-
             final CompoundNBT tag = new CompoundNBT();
             device.exportToItemStack(tag);
             ItemStackUtils.getOrCreateModDataTag(stack).put(DATA_TAG_NAME, tag);
@@ -207,46 +216,48 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     }
 
     private final class DiskDriveVMDevice extends AbstractBlockDeviceVMDevice<BlockDevice, TileEntity> {
-        private VMContext context;
-
         public DiskDriveVMDevice() {
             super(DiskDriveTileEntity.this);
         }
 
         public void updateBlockDevice(final CompoundNBT tag) {
-            blobHandle = null;
+            if (device == null) {
+                return;
+            }
+
+            if (blobHandle != null) {
+                BlobStorage.close(blobHandle);
+                blobHandle = null;
+            }
+
             importFromItemStack(tag);
 
-            if (data != null) {
-                data = createBlockDevice();
-                deserializeData();
-
-                assert device != null;
-                try {
-                    device.setBlock(data);
-                } catch (final IOException e) {
-                    LOGGER.error(e);
-                }
+            try {
+                device.setBlock(createBlockDevice());
+            } catch (final IOException e) {
+                LOGGER.error(e);
             }
         }
 
         public void removeBlockDevice() {
-            updateBlockDevice(new CompoundNBT());
+            if (device == null) {
+                return;
+            }
+
+            if (blobHandle != null) {
+                BlobStorage.close(blobHandle);
+                blobHandle = null;
+            }
+
+            try {
+                device.setBlock(EMPTY_BLOCK_DEVICE);
+            } catch (final IOException e) {
+                LOGGER.error(e);
+            }
         }
 
         @Override
-        public VMDeviceLoadResult load(final VMContext context) {
-            this.context = context;
-            return super.load(context);
-        }
-
-        @Override
-        protected int getSize() {
-            return Config.maxFloppySize;
-        }
-
-        @Override
-        protected BlockDevice createBlockDevice() {
+        protected BlockDevice createBlockDevice() throws IOException {
             final ItemStack stack = itemHandler.getStackInSlotRaw(0);
             if (stack.isEmpty() || !(stack.getItem() instanceof FloppyItem)) {
                 return EMPTY_BLOCK_DEVICE;
@@ -258,29 +269,10 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
                 return EMPTY_BLOCK_DEVICE;
             }
 
-            return ByteBufferBlockDevice.create(capacity, false);
-        }
-
-        @Override
-        protected Optional<InputStream> getSerializationStream(final BlockDevice device) {
-            if (context != null) {
-                context.joinWorkerThread();
-            }
-
-            if (device.isReadonly()) {
-                return Optional.empty();
-            } else {
-                return Optional.of(device.getInputStream());
-            }
-        }
-
-        @Override
-        protected OutputStream getDeserializationStream(final BlockDevice device) {
-            if (context != null) {
-                context.joinWorkerThread();
-            }
-
-            return device.getOutputStream();
+            blobHandle = BlobStorage.validateHandle(blobHandle);
+            final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
+            final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, capacity);
+            return ByteBufferBlockDevice.wrap(buffer, false);
         }
 
         @Override

@@ -6,7 +6,7 @@ import net.minecraft.util.math.BlockPos;
 
 import java.nio.ByteBuffer;
 
-public abstract class AbstractTerminalBlockMessage {
+public abstract class AbstractTerminalBlockMessage extends AbstractMessage {
     protected BlockPos pos;
     protected byte[] data;
 
@@ -18,18 +18,20 @@ public abstract class AbstractTerminalBlockMessage {
     }
 
     protected AbstractTerminalBlockMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
         data = buffer.readByteArray();
     }
 
-    public static void toBytes(final AbstractTerminalBlockMessage message, final PacketBuffer buffer) {
-        buffer.writeBlockPos(message.pos);
-        buffer.writeByteArray(message.data);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeByteArray(data);
     }
 }

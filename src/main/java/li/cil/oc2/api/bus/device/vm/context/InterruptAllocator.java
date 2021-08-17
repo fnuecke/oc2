@@ -7,7 +7,7 @@ import java.util.OptionalInt;
 
 /**
  * Allows reserving interrupts on the primary interrupt controller of a virtual machine
- * during a {@link VMDevice#load(VMContext)} call.
+ * during a {@link VMDevice#mount(VMContext)} call.
  * <p>
  * Allocated interrupts should be persisted and used in {@link #claimInterrupt(int)}
  * when restoring from a saved state to ensure correct behaviour of the loaded virtual

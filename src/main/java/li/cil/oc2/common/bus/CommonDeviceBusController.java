@@ -24,8 +24,8 @@ public class CommonDeviceBusController implements DeviceBusController {
     ///////////////////////////////////////////////////////////////////
 
     private static final int MAX_BUS_ELEMENT_COUNT = 128;
-    private static final int INCOMPLETE_RETRY_INTERVAL = 10 * Constants.TICK_SECONDS;
-    private static final int BAD_CONFIGURATION_RETRY_INTERVAL = 5 * Constants.TICK_SECONDS;
+    private static final int INCOMPLETE_RETRY_INTERVAL = 10 * Constants.SECONDS_TO_TICKS;
+    private static final int BAD_CONFIGURATION_RETRY_INTERVAL = 5 * Constants.SECONDS_TO_TICKS;
 
     ///////////////////////////////////////////////////////////////////
 

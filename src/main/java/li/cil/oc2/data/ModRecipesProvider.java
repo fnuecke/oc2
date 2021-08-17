@@ -10,8 +10,8 @@ import net.minecraftforge.common.Tags;
 import java.util.function.Consumer;
 
 public final class ModRecipesProvider extends RecipeProvider {
-    public ModRecipesProvider(final DataGenerator generatorIn) {
-        super(generatorIn);
+    public ModRecipesProvider(final DataGenerator generator) {
+        super(generator);
     }
 
     @Override
@@ -117,6 +117,13 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('T', Items.TRANSISTOR.get())
                 .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
+                .save(consumer);
+
+        WrenchRecipeBuilder
+                .wrenchRecipe(Items.MANUAL.get())
+                .requires(net.minecraft.item.Items.BOOK)
+                .unlockedBy("has_book", inventoryChange(net.minecraft.item.Items.BOOK))
+                .unlockedBy("has_wrench", inventoryChange(Items.WRENCH.get()))
                 .save(consumer);
 
 
@@ -267,6 +274,17 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .pattern("IET")
                 .pattern(" B ")
                 .define('E', net.minecraft.item.Items.PAPER)
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('T', Items.TRANSISTOR.get())
+                .define('B', Items.CIRCUIT_BOARD.get())
+                .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+                .save(consumer);
+
+        ShapedRecipeBuilder
+                .shaped(Items.SOUND_CARD.get())
+                .pattern("IST")
+                .pattern(" B ")
+                .define('S', net.minecraft.item.Items.NOTE_BLOCK)
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('T', Items.TRANSISTOR.get())
                 .define('B', Items.CIRCUIT_BOARD.get())

@@ -3,6 +3,7 @@
 
   "block.oc2.computer": "Computer",
   "block.oc2.computer.desc": "Use a Scrench or compatible wrench to add and remove components.",
+  "block.oc2.computer.preconfigured": "Preconfigured Computer",
   "block.oc2.bus_cable": "Bus Cable",
   "block.oc2.bus_cable.desc": "Used in combination with Bus Interfaces to connect external devices to computers.",
   "block.oc2.network_connector": "Network Connector",
@@ -20,8 +21,8 @@
 
   "item.oc2.wrench": "Scrench",
   "item.oc2.wrench.desc": "Used to configure devices and to dismantle them (while sneaking).",
+  "item.oc2.manual": "The Computerist's Handbook",
   "item.oc2.bus_interface": "Bus Interface",
-  "item.oc2.bus_interface.desc": "Used to attach Bus Cables to external devices.",
   "item.oc2.network_cable": "Network Cable",
   "item.oc2.network_cable.desc": "Flexible and thin cable. Connects two Network Connectors together.",
   "item.oc2.memory": "Memory",
@@ -44,6 +45,8 @@
   "item.oc2.inventory_operations_module.desc": "Enables robots to move items in, into and out of their inventory.",
   "item.oc2.block_operations_module": "Block Operations Module",
   "item.oc2.block_operations_module.desc": "Enables robots to break and place blocks.",
+  "item.oc2.sound_card": "Sound Card",
+  "item.oc2.sound_card.desc": "Can play various sounds from its highly realistic sound bank.",
 
   "item.oc2.transistor": "Transistor",
   "item.oc2.transistor.desc": "It may or may not conduct a signal. It is the basis of any computer and not only.",
@@ -66,6 +69,9 @@
   "gui.oc2.computer.power.capt": "Toggle Power",
   "gui.oc2.computer.power.desc": "Toggles the power state of the computer.",
 
+  "gui.oc2.machine.open_inventory.capt": "Open Inventory",
+  "gui.oc2.machine.open_terminal.capt": "Open Terminal",
+
   "gui.oc2.device_type.memory": "Memory",
   "gui.oc2.device_type.hard_drive": "Hard Drive",
   "gui.oc2.device_type.flash_memory": "Flash Memory",
@@ -79,10 +85,15 @@
   "gui.oc2.file_chooser.confirm_button.overwrite": "Overwrite",
   "gui.oc2.file_chooser.cancel_button": "Cancel",
 
+  "manual.oc2.home": "Home",
+  "manual.oc2.blocks": "Blocks",
+  "manual.oc2.items": "Items",
+
   "message.oc2.connector.error.full": "Cannot attach more cables.",
   "message.oc2.connector.error.too_far": "Distance between connectors is too large.",
   "message.oc2.connector.error.obstructed": "No clear line of sight between connectors.",
   "message.oc2.import_file.file_too_large": "File is too large.",
+  "message.oc2.invalid_facade_block": "This block cannot be used as a facade.",
 
   "tooltip.oc2.device_needs_reboot": "Requires reboot",
   "tooltip.oc2.flash_memory_missing": "A flash memory containing a firmware is required to boot.",

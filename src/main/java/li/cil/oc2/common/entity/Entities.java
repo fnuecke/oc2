@@ -1,18 +1,17 @@
 package li.cil.oc2.common.entity;
 
-import li.cil.oc2.api.API;
+import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.function.Function;
 
 public final class Entities {
-    private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, API.MOD_ID);
+    private static final DeferredRegister<EntityType<?>> ENTITIES = RegistryUtils.create(ForgeRegistries.ENTITIES);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -21,7 +20,6 @@ public final class Entities {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        ENTITIES.register(FMLJavaModLoadingContext.get().getModEventBus());
     }
 
     ///////////////////////////////////////////////////////////////////

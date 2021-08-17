@@ -114,20 +114,39 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         }
     }
 
-    public void serialize(final CompoundNBT tag) {
-        itemHandlers.forEach((deviceType, handler) ->
-                tag.put(deviceType.getRegistryName().toString(), handler.serializeNBT()));
+    public void saveItems(final CompoundNBT tag) {
+        itemHandlers.forEach((deviceType, handler) -> {
+            if (!handler.isEmpty()) {
+                tag.put(deviceType.getRegistryName().toString(), handler.saveItems());
+            }
+        });
     }
 
-    public CompoundNBT serialize() {
+    public CompoundNBT saveItems() {
         final CompoundNBT tag = new CompoundNBT();
-        serialize(tag);
+        saveItems(tag);
         return tag;
     }
 
-    public void deserialize(final CompoundNBT tag) {
+    public void loadItems(final CompoundNBT tag) {
         itemHandlers.forEach((deviceType, handler) ->
-                handler.deserializeNBT(tag.getCompound(deviceType.getRegistryName().toString())));
+                handler.loadItems(tag.getCompound(deviceType.getRegistryName().toString())));
+    }
+
+    public void saveDevices(final CompoundNBT tag) {
+        itemHandlers.forEach((deviceType, handler) ->
+                tag.put(deviceType.getRegistryName().toString(), handler.saveDevices()));
+    }
+
+    public CompoundNBT saveDevices() {
+        final CompoundNBT tag = new CompoundNBT();
+        saveDevices(tag);
+        return tag;
+    }
+
+    public void loadDevices(final CompoundNBT tag) {
+        itemHandlers.forEach((deviceType, handler) ->
+                handler.loadDevices(tag.getCompound(deviceType.getRegistryName().toString())));
     }
 
     ///////////////////////////////////////////////////////////////////

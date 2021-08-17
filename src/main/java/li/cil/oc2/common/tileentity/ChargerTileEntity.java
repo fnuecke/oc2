@@ -1,5 +1,7 @@
 package li.cil.oc2.common.tileentity;
 
+import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -17,10 +19,14 @@ import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
-public final class ChargerTileEntity extends AbstractTileEntity implements ITickableTileEntity {
+import static java.util.Collections.singletonList;
+
+public final class ChargerTileEntity extends AbstractTileEntity implements ITickableTileEntity, NamedDevice {
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.chargerEnergyStorage);
+    private boolean isCharging;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -32,6 +38,7 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
 
     @Override
     public void tick() {
+        isCharging = false;
         chargeBlock();
         chargeEntities();
     }
@@ -50,6 +57,16 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
         super.load(state, tag);
 
         energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
+    }
+
+    @Callback
+    public boolean isCharging() {
+        return isCharging;
+    }
+
+    @Override
+    public Collection<String> getDeviceTypeNames() {
+        return singletonList("charger");
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -99,6 +116,8 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
 
     private void charge(final IEnergyStorage energyStorage) {
         final int amount = Math.min(energy.getEnergyStored(), Config.chargerEnergyPerTick);
-        energy.extractEnergy(energyStorage.receiveEnergy(amount, false), false);
+        if (energy.extractEnergy(energyStorage.receiveEnergy(amount, false), false) > 0) {
+            isCharging = true;
+        }
     }
 }

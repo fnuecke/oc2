@@ -36,7 +36,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     public static final String RUN_STATE_TAG_NAME = "runState";
     public static final String BOOT_ERROR_TAG_NAME = "bootError";
 
-    private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * Constants.TICK_SECONDS;
+    private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * Constants.SECONDS_TO_TICKS;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -81,9 +81,10 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     ///////////////////////////////////////////////////////////////////
 
-    public void unload() {
+    public void suspend() {
         joinWorkerThread();
         state.vmAdapter.suspend();
+        state.rpcAdapter.suspend();
         state.context.invalidate();
         busController.dispose();
     }
@@ -167,8 +168,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
     }
 
-    @Override
-    public void joinWorkerThread() {
+    private void joinWorkerThread() {
         if (runner != null) {
             try {
                 state.context.postEvent(new VMPausingEvent());
@@ -196,13 +196,13 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         state.rpcAdapter.resume(busController, didDevicesChange);
     }
 
-    public void stopRunnerAndReset() {
+    protected void stopRunnerAndReset() {
         joinWorkerThread();
         setRunState(VMRunState.STOPPED);
 
         state.board.reset();
         state.rpcAdapter.reset();
-        state.vmAdapter.unload();
+        state.vmAdapter.unmount();
 
         runner = null;
     }
@@ -306,7 +306,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
             return;
         }
 
-        final VMDeviceLoadResult loadResult = state.vmAdapter.load();
+        final VMDeviceLoadResult loadResult = state.vmAdapter.mount();
         if (!loadResult.wasSuccessful()) {
             if (loadResult.getErrorMessage() != null) {
                 error(loadResult.getErrorMessage(), false);

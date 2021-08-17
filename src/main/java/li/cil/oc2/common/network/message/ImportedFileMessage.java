@@ -6,7 +6,7 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public final class ImportedFileMessage {
+public final class ImportedFileMessage extends AbstractMessage {
     private static final int MAX_NAME_LENGTH = 256;
 
     ///////////////////////////////////////////////////////////////////
@@ -24,25 +24,29 @@ public final class ImportedFileMessage {
     }
 
     public ImportedFileMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final ImportedFileMessage message, final Supplier<NetworkEvent.Context> context) {
-        FileImportExportCardItemDevice.setImportedFile(message.id, message.name, message.data);
-        return true;
-    }
-
-    public static void toBytes(final ImportedFileMessage message, final PacketBuffer buffer) {
-        buffer.writeVarInt(message.id);
-        buffer.writeUtf(message.name, MAX_NAME_LENGTH);
-        buffer.writeByteArray(message.data);
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         id = buffer.readVarInt();
         name = buffer.readUtf(MAX_NAME_LENGTH);
         data = buffer.readByteArray();
+    }
+
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeVarInt(id);
+        buffer.writeUtf(name, MAX_NAME_LENGTH);
+        buffer.writeByteArray(data);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final Supplier<NetworkEvent.Context> context) {
+        FileImportExportCardItemDevice.setImportedFile(id, name, data);
     }
 }

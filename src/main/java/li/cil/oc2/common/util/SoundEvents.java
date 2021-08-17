@@ -4,12 +4,11 @@ import li.cil.oc2.api.API;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
 public final class SoundEvents {
-    private static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, API.MOD_ID);
+    private static final DeferredRegister<SoundEvent> SOUNDS = RegistryUtils.create(ForgeRegistries.SOUND_EVENTS);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -22,7 +21,6 @@ public final class SoundEvents {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        SOUNDS.register(FMLJavaModLoadingContext.get().getModEventBus());
     }
 
     ///////////////////////////////////////////////////////////////////

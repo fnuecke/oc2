@@ -1,15 +1,11 @@
 package li.cil.oc2.common.bus.device.item;
 
-import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.capabilities.Robot;
+import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.FakePlayerUtils;
 import net.minecraft.block.*;
@@ -36,33 +32,23 @@ import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice {
+public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
     private static final String LAST_OPERATION_TAG_NAME = "cooldown";
 
-    private static final int COOLDOWN = Constants.TICK_SECONDS;
-
-    ///////////////////////////////////////////////////////////////////
-
-    public enum PlacementDirection {
-        FRONT,
-        UP,
-        DOWN,
-    }
+    private static final int COOLDOWN = Constants.SECONDS_TO_TICKS;
 
     ///////////////////////////////////////////////////////////////////
 
     private final Entity entity;
     private final Robot robot;
-    private final ObjectDevice device;
     private long lastOperation;
 
     ///////////////////////////////////////////////////////////////////
 
     public BlockOperationsModuleDevice(final ItemStack identity, final Entity entity, final Robot robot) {
-        super(identity);
+        super(identity, "block_operations");
         this.entity = entity;
         this.robot = robot;
-        this.device = new ObjectDevice(this, "block_operations");
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -79,18 +65,8 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
         lastOperation = MathHelper.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.getCommandSenderWorld().getGameTime());
     }
 
-    @Override
-    public List<String> getTypeNames() {
-        return device.getTypeNames();
-    }
-
-    @Override
-    public List<RPCMethod> getMethods() {
-        return device.getMethods();
-    }
-
     @Callback
-    public boolean excavate(@Parameter("direction") @Nullable final PlacementDirection direction) {
+    public boolean excavate(@Parameter("side") @Nullable final RobotOperationSide side) {
         if (isOnCooldown()) {
             return false;
         }
@@ -107,7 +83,8 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
         final List<ItemEntity> oldItems = getItemsInRange();
 
-        if (!tryHarvestBlock(world, entity.blockPosition().relative(getAdjustedDirection(direction)))) {
+        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        if (!tryHarvestBlock(world, entity.blockPosition().relative(direction))) {
             return false;
         }
 
@@ -124,7 +101,7 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
     }
 
     @Callback
-    public boolean place(@Parameter("direction") @Nullable final PlacementDirection direction) {
+    public boolean place(@Parameter("side") @Nullable final RobotOperationSide side) {
         if (isOnCooldown()) {
             return false;
         }
@@ -144,11 +121,12 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
             return false;
         }
 
-        final BlockPos blockPos = entity.blockPosition().relative(getAdjustedDirection(direction));
-        final Direction side = getAdjustedDirection(direction).getOpposite();
+        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        final BlockPos blockPos = entity.blockPosition().relative(direction);
+        final Direction oppositeDirection = direction.getOpposite();
         final BlockRayTraceResult hit = new BlockRayTraceResult(
-                Vector3d.atCenterOf(blockPos).add(Vector3d.atCenterOf(side.getNormal()).scale(0.5)),
-                side,
+                Vector3d.atCenterOf(blockPos).add(Vector3d.atCenterOf(oppositeDirection.getNormal()).scale(0.5)),
+                oppositeDirection,
                 blockPos,
                 false);
 
@@ -219,21 +197,6 @@ public final class BlockOperationsModuleDevice extends IdentityProxy<ItemStack> 
 
     private boolean isOnCooldown() {
         return entity.getCommandSenderWorld().getGameTime() - lastOperation < COOLDOWN;
-    }
-
-    private Direction getAdjustedDirection(@Nullable final PlacementDirection placementDirection) {
-        if (placementDirection == PlacementDirection.UP) {
-            return Direction.UP;
-        } else if (placementDirection == PlacementDirection.DOWN) {
-            return Direction.DOWN;
-        } else {
-            Direction direction = Direction.SOUTH;
-            final int horizontalIndex = entity.getDirection().get2DDataValue();
-            for (int i = 0; i < horizontalIndex; i++) {
-                direction = direction.getClockWise();
-            }
-            return direction;
-        }
     }
 
     private List<ItemEntity> getItemsInRange() {

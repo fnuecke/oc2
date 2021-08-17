@@ -14,11 +14,12 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.function.Supplier;
 
-public final class RequestImportedFileMessage {
+import static li.cil.oc2.common.util.TranslationUtils.text;
+
+public final class RequestImportedFileMessage extends AbstractMessage {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final TranslationTextComponent FILE_TOO_LARGE_TEXT = new TranslationTextComponent("message.oc2.import_file.file_too_large");
+    private static final TranslationTextComponent FILE_TOO_LARGE_TEXT = text("message.{mod}.import_file.file_too_large");
 
     ///////////////////////////////////////////////////////////////////
 
@@ -31,24 +32,37 @@ public final class RequestImportedFileMessage {
     }
 
     public RequestImportedFileMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final RequestImportedFileMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> FileChooserScreen.openFileChooserForLoad(new FileChooserScreen.FileChooserCallback() {
+    @Override
+    public void fromBytes(final PacketBuffer buffer) {
+        id = buffer.readVarInt();
+    }
+
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeVarInt(id);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        FileChooserScreen.openFileChooserForLoad(new FileChooserScreen.FileChooserCallback() {
             @Override
             public void onFileSelected(final Path path) {
                 try {
                     final String fileName = path.getFileName().toString();
                     final byte[] data = Files.readAllBytes(path);
                     if (data.length > FileImportExportCardItemDevice.MAX_TRANSFERRED_FILE_SIZE) {
-                        Network.INSTANCE.sendToServer(new ClientCanceledImportFileMessage(message.id));
+                        Network.INSTANCE.sendToServer(new ClientCanceledImportFileMessage(id));
                         Minecraft.getInstance().player.displayClientMessage(FILE_TOO_LARGE_TEXT
                                 .withStyle(s -> s.withColor(Color.fromRgb(0xFFA0A0))), false);
                     } else {
-                        Network.INSTANCE.sendToServer(new ImportedFileMessage(message.id, fileName, data));
+                        Network.INSTANCE.sendToServer(new ImportedFileMessage(id, fileName, data));
                     }
                 } catch (final IOException e) {
                     LOGGER.error(e);
@@ -57,18 +71,8 @@ public final class RequestImportedFileMessage {
 
             @Override
             public void onCanceled() {
-                Network.INSTANCE.sendToServer(new ClientCanceledImportFileMessage(message.id));
+                Network.INSTANCE.sendToServer(new ClientCanceledImportFileMessage(id));
             }
-        }));
-
-        return true;
-    }
-
-    public static void toBytes(final RequestImportedFileMessage message, final PacketBuffer buffer) {
-        buffer.writeVarInt(message.id);
-    }
-
-    public void fromBytes(final PacketBuffer buffer) {
-        id = buffer.readVarInt();
+        });
     }
 }

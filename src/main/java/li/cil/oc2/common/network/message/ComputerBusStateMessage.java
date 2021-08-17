@@ -7,9 +7,7 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public final class ComputerBusStateMessage {
+public final class ComputerBusStateMessage extends AbstractMessage {
     private BlockPos pos;
     private CommonDeviceBusController.BusState value;
 
@@ -21,24 +19,28 @@ public final class ComputerBusStateMessage {
     }
 
     public ComputerBusStateMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final ComputerBusStateMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, ComputerTileEntity.class,
-                (tileEntity) -> tileEntity.getVirtualMachine().setBusStateClient(message.value)));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
         value = buffer.readEnum(CommonDeviceBusController.BusState.class);
     }
 
-    public static void toBytes(final ComputerBusStateMessage message, final PacketBuffer buffer) {
-        buffer.writeBlockPos(message.pos);
-        buffer.writeEnum(message.value);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeEnum(value);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withClientTileEntityAt(pos, ComputerTileEntity.class,
+                (tileEntity) -> tileEntity.getVirtualMachine().setBusStateClient(value));
     }
 }

@@ -6,9 +6,7 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public final class RobotBootErrorMessage {
+public final class RobotBootErrorMessage extends AbstractMessage {
     private int entityId;
     private ITextComponent value;
 
@@ -20,24 +18,28 @@ public final class RobotBootErrorMessage {
     }
 
     public RobotBootErrorMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final RobotBootErrorMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientEntity(message.entityId, RobotEntity.class,
-                (robot) -> robot.getVirtualMachine().setBootErrorClient(message.value)));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         entityId = buffer.readVarInt();
         value = buffer.readComponent();
     }
 
-    public static void toBytes(final RobotBootErrorMessage message, final PacketBuffer buffer) {
-        buffer.writeVarInt(message.entityId);
-        buffer.writeComponent(message.value);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeVarInt(entityId);
+        buffer.writeComponent(value);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withClientEntity(entityId, RobotEntity.class,
+                (robot) -> robot.getVirtualMachine().setBootErrorClient(value));
     }
 }

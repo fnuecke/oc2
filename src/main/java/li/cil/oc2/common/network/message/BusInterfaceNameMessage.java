@@ -5,15 +5,12 @@ import li.cil.oc2.common.tileentity.BusCableTileEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public abstract class BusInterfaceNameMessage {
-    private BlockPos pos;
-    private Direction side;
-    private String value;
+public abstract class BusInterfaceNameMessage extends AbstractMessage {
+    protected BlockPos pos;
+    protected Direction side;
+    protected String value;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -24,38 +21,23 @@ public abstract class BusInterfaceNameMessage {
     }
 
     protected BusInterfaceNameMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessageClient(final BusInterfaceNameMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientTileEntityAt(message.pos, BusCableTileEntity.class,
-                (tileEntity) -> tileEntity.setInterfaceName(message.side, message.value)));
-        return true;
-    }
-
-    public static boolean handleMessageServer(final BusInterfaceNameMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withServerTileEntityAt(context, message.pos, BusCableTileEntity.class,
-                (tileEntity) -> {
-                    final Vector3d busCableCenter = Vector3d.atCenterOf(tileEntity.getBlockPos());
-                    if (context.get().getSender().distanceToSqr(busCableCenter) <= 8 * 8) {
-                        tileEntity.setInterfaceName(message.side, message.value);
-                    }
-                }));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         pos = buffer.readBlockPos();
         side = buffer.readEnum(Direction.class);
         value = buffer.readUtf(32);
     }
 
-    public static void toBytes(final BusInterfaceNameMessage message, final PacketBuffer buffer) {
-        buffer.writeBlockPos(message.pos);
-        buffer.writeEnum(message.side);
-        buffer.writeUtf(message.value, 32);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeEnum(side);
+        buffer.writeUtf(value, 32);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -68,6 +50,12 @@ public abstract class BusInterfaceNameMessage {
         public ToClient(final PacketBuffer buffer) {
             super(buffer);
         }
+
+        @Override
+        protected void handleMessage(final NetworkEvent.Context context) {
+            MessageUtils.withClientTileEntityAt(pos, BusCableTileEntity.class,
+                    (tileEntity) -> tileEntity.setInterfaceName(side, value));
+        }
     }
 
     public static final class ToServer extends BusInterfaceNameMessage {
@@ -77,6 +65,12 @@ public abstract class BusInterfaceNameMessage {
 
         public ToServer(final PacketBuffer buffer) {
             super(buffer);
+        }
+
+        @Override
+        protected void handleMessage(final NetworkEvent.Context context) {
+            MessageUtils.withNearbyServerTileEntityAt(context, pos, BusCableTileEntity.class,
+                    (tileEntity) -> tileEntity.setInterfaceName(side, value));
         }
     }
 }

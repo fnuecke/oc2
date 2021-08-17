@@ -6,12 +6,12 @@ import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
-import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import java.util.*;
 
-public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeRegistryEntry<TProvider>, TDeviceInfo extends AbstractDeviceInfo<TProvider, ?>> extends AbstractDeviceBusElement implements INBTSerializable<ListNBT> {
+public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeRegistryEntry<TProvider>, TDeviceInfo extends AbstractDeviceInfo<TProvider, ?>> extends AbstractDeviceBusElement {
+    private static final String GROUPS_TAG_NAME = "groups";
     private static final String GROUP_ID_TAG_NAME = "groupId";
     private static final String GROUP_DATA_TAG_NAME = "groupData";
 
@@ -46,11 +46,10 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         return groups.get(index);
     }
 
-    @Override
-    public ListNBT serializeNBT() {
+    public CompoundNBT save() {
         final ListNBT listTag = new ListNBT();
         for (int i = 0; i < groupCount; i++) {
-            serializeDevices(i);
+            saveGroup(i);
 
             final CompoundNBT sideTag = new CompoundNBT();
 
@@ -59,14 +58,18 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
 
             listTag.add(sideTag);
         }
-        return listTag;
+
+        final CompoundNBT tag = new CompoundNBT();
+        tag.put(GROUPS_TAG_NAME, listTag);
+        return tag;
     }
 
-    @Override
-    public void deserializeNBT(final ListNBT nbt) {
-        final int count = Math.min(groupCount, nbt.size());
+    public void load(final CompoundNBT tag) {
+        final ListNBT listTag = tag.getList(GROUPS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
+
+        final int count = Math.min(groupCount, listTag.size());
         for (int i = 0; i < count; i++) {
-            final CompoundNBT sideTag = nbt.getCompound(i);
+            final CompoundNBT sideTag = listTag.getCompound(i);
 
             if (sideTag.hasUUID(GROUP_ID_TAG_NAME)) {
                 groupIds[i] = sideTag.getUUID(GROUP_ID_TAG_NAME);
@@ -130,7 +133,7 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
 
     ///////////////////////////////////////////////////////////////////
 
-    private void serializeDevices(final int index) {
+    private void saveGroup(final int index) {
         final CompoundNBT devicesTag = new CompoundNBT();
         for (final TDeviceInfo deviceInfo : groups.get(index)) {
             ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(key -> {

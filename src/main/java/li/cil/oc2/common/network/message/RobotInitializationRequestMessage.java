@@ -6,9 +6,7 @@ import li.cil.oc2.common.network.Network;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public final class RobotInitializationRequestMessage {
+public final class RobotInitializationRequestMessage extends AbstractMessage {
     private int entityId;
 
     ///////////////////////////////////////////////////////////////////
@@ -18,22 +16,26 @@ public final class RobotInitializationRequestMessage {
     }
 
     public RobotInitializationRequestMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final RobotInitializationRequestMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withServerEntity(context, message.entityId, RobotEntity.class,
-                (robot) -> Network.INSTANCE.reply(new RobotInitializationMessage(robot), context.get())));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         entityId = buffer.readVarInt();
     }
 
-    public static void toBytes(final RobotInitializationRequestMessage message, final PacketBuffer buffer) {
-        buffer.writeVarInt(message.entityId);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeVarInt(entityId);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withServerEntity(context, entityId, RobotEntity.class,
+                (robot) -> Network.INSTANCE.reply(new RobotInitializationMessage(robot), context));
     }
 }

@@ -15,7 +15,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final float ROTATION_SPEED = 90f / Constants.TICK_SECONDS; // In degrees per second.
+    private static final float ROTATION_SPEED = 90f / Constants.SECONDS_TO_TICKS; // degrees / sec -> degrees / tick
 
     private static final String DIRECTION_TAG_NAME = "direction";
     private static final String TARGET_TAG_NAME = "start";
@@ -29,7 +29,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
 
     public RobotRotationAction(final RotationDirection direction) {
         super(RobotActions.ROTATION);
-        this.direction = direction;
+        this.direction = direction.resolve();
     }
 
     RobotRotationAction(final CompoundNBT tag) {
@@ -94,6 +94,8 @@ public final class RobotRotationAction extends AbstractRobotAction {
         super.deserialize(tag);
 
         direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, RotationDirection.class);
+        if (direction == null) direction = RotationDirection.LEFT;
+        direction = direction.resolve();
         if (tag.contains(TARGET_TAG_NAME, NBTTagIds.TAG_INT)) {
             target = NBTUtils.getEnum(tag, TARGET_TAG_NAME, Direction.class);
         }

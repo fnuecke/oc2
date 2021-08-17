@@ -1,7 +1,7 @@
 package li.cil.oc2.client;
 
 import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.client.gui.ComputerInventoryScreen;
+import li.cil.oc2.client.gui.ComputerContainerScreen;
 import li.cil.oc2.client.gui.ComputerTerminalScreen;
 import li.cil.oc2.client.gui.RobotContainerScreen;
 import li.cil.oc2.client.gui.RobotTerminalScreen;
@@ -10,6 +10,7 @@ import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.BusCableModelLoader;
 import li.cil.oc2.client.renderer.BusInterfaceNameRenderer;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
+import li.cil.oc2.client.renderer.color.BusCableBlockColor;
 import li.cil.oc2.client.renderer.entity.RobotEntityRenderer;
 import li.cil.oc2.client.renderer.tileentity.ChargerTileEntityRenderer;
 import li.cil.oc2.client.renderer.tileentity.ComputerTileEntityRenderer;
@@ -21,6 +22,7 @@ import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.tileentity.TileEntities;
 import net.minecraft.client.gui.ScreenManager;
+import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -30,6 +32,8 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
+import java.util.Objects;
+
 public final class ClientSetup {
     @SubscribeEvent
     public static void handleSetupEvent(final FMLClientSetupEvent event) {
@@ -38,10 +42,10 @@ public final class ClientSetup {
         CustomItemModelProperties.initialize();
         CustomItemColors.initialize();
 
-        ScreenManager.register(Containers.COMPUTER_CONTAINER.get(), ComputerInventoryScreen::new);
-        ScreenManager.register(Containers.COMPUTER_TERMINAL_CONTAINER.get(), ComputerTerminalScreen::new);
-        ScreenManager.register(Containers.ROBOT_CONTAINER.get(), RobotContainerScreen::new);
-        ScreenManager.register(Containers.ROBOT_TERMINAL_CONTAINER.get(), RobotTerminalScreen::new);
+        ScreenManager.register(Containers.COMPUTER.get(), ComputerContainerScreen::new);
+        ScreenManager.register(Containers.COMPUTER_TERMINAL.get(), ComputerTerminalScreen::new);
+        ScreenManager.register(Containers.ROBOT.get(), RobotContainerScreen::new);
+        ScreenManager.register(Containers.ROBOT_TERMINAL.get(), RobotTerminalScreen::new);
 
         ClientRegistry.bindTileEntityRenderer(TileEntities.COMPUTER_TILE_ENTITY.get(), ComputerTileEntityRenderer::new);
         ClientRegistry.bindTileEntityRenderer(TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), NetworkConnectorTileEntityRenderer::new);
@@ -49,6 +53,11 @@ public final class ClientSetup {
         ClientRegistry.bindTileEntityRenderer(TileEntities.CHARGER_TILE_ENTITY.get(), ChargerTileEntityRenderer::new);
 
         RenderingRegistry.registerEntityRenderingHandler(Entities.ROBOT.get(), RobotEntityRenderer::new);
+
+        event.enqueueWork(() -> {
+            RenderTypeLookup.setRenderLayer(Blocks.BUS_CABLE.get(), (RenderType) -> true);
+            event.getMinecraftSupplier().get().getBlockColors().register(new BusCableBlockColor(), Blocks.BUS_CABLE.get());
+        });
     }
 
     @SubscribeEvent
@@ -58,7 +67,7 @@ public final class ClientSetup {
 
     @SubscribeEvent
     public static void handleTextureStitchEvent(final TextureStitchEvent.Pre event) {
-        if (event.getMap().location() != PlayerContainer.BLOCK_ATLAS) {
+        if (!Objects.equals(event.getMap().location(), PlayerContainer.BLOCK_ATLAS)) {
             return;
         }
 

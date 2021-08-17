@@ -1,13 +1,9 @@
 package li.cil.oc2.common.bus.device.item;
 
-import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.capabilities.Robot;
-import li.cil.oc2.common.bus.device.util.IdentityProxy;
+import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
@@ -17,7 +13,6 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3i;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -29,31 +24,19 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemStack> implements RPCDevice, ItemDevice {
+public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice {
     private final Entity entity;
     private final Robot robot;
-    private final ObjectDevice device;
 
     ///////////////////////////////////////////////////////////////////
 
     public InventoryOperationsModuleDevice(final ItemStack identity, final Entity entity, final Robot robot) {
-        super(identity);
+        super(identity, "inventory_operations");
         this.entity = entity;
         this.robot = robot;
-        this.device = new ObjectDevice(this, "inventory_operations");
     }
 
     ///////////////////////////////////////////////////////////////////
-
-    @Override
-    public List<String> getTypeNames() {
-        return device.getTypeNames();
-    }
-
-    @Override
-    public List<RPCMethod> getMethods() {
-        return device.getMethods();
-    }
 
     @Callback
     public void move(@Parameter("fromSlot") final int fromSlot,
@@ -84,7 +67,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
 
     @Callback
     public int drop(@Parameter("count") final int count,
-                    @Parameter("direction") @Nullable final Direction direction) {
+                    @Parameter("side") @Nullable final RobotOperationSide side) {
         if (count <= 0) {
             return 0;
         }
@@ -97,7 +80,9 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
         }
 
         final int originalStackSize = stack.getCount();
-        for (final IItemHandler handler : getItemStackHandlersInDirection(getAdjustedDirection(direction)).collect(Collectors.toList())) {
+        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        final List<IItemHandler> itemHandlers = getItemStackHandlersInDirection(direction).collect(Collectors.toList());
+        for (final IItemHandler handler : itemHandlers) {
             stack = ItemHandlerHelper.insertItemStacked(handler, stack, false);
 
             if (stack.isEmpty()) {
@@ -105,8 +90,11 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
             }
         }
 
+        // When we have items left, but there was an inventory, do *not* drop into the world.
+        // Instead, try to put items back where they came from. Only failing that drop them
+        // into the world.
         int dropped = originalStackSize - stack.getCount();
-        if (!stack.isEmpty() && dropped > 0) {
+        if (!stack.isEmpty() && !itemHandlers.isEmpty()) {
             stack = robot.getInventory().insertItem(selectedSlot, stack, false);
         }
 
@@ -121,7 +109,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
     @Callback
     public int dropInto(@Parameter("intoSlot") final int intoSlot,
                         @Parameter("count") final int count,
-                        @Parameter("direction") @Nullable final Direction direction) {
+                        @Parameter("side") @Nullable final RobotOperationSide side) {
         if (count <= 0) {
             return 0;
         }
@@ -134,13 +122,16 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
         }
 
         final int originalStackSize = stack.getCount();
-        final Optional<IItemHandler> optional = getItemStackHandlersInDirection(getAdjustedDirection(direction)).findFirst();
+        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        final Optional<IItemHandler> optional = getItemStackHandlersInDirection(direction).findFirst();
         if (optional.isPresent()) {
             stack = optional.get().insertItem(intoSlot, stack, false);
         }
 
+        // Subtle difference to drop(), we always try to put the remainder back. This method
+        // attempts to never drop anything into the world.
         int dropped = originalStackSize - stack.getCount();
-        if (!stack.isEmpty() && dropped > 0) {
+        if (!stack.isEmpty()) {
             stack = robot.getInventory().insertItem(selectedSlot, stack, false);
         }
 
@@ -154,12 +145,13 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
 
     @Callback
     public int take(@Parameter("count") final int count,
-                    @Parameter("direction") @Nullable final Direction direction) {
+                    @Parameter("side") @Nullable final RobotOperationSide side) {
         if (count <= 0) {
             return 0;
         }
 
-        final List<IItemHandler> handlers = getItemStackHandlersInDirection(getAdjustedDirection(direction)).collect(Collectors.toList());
+        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        final List<IItemHandler> handlers = getItemStackHandlersInDirection(direction).collect(Collectors.toList());
         if (handlers.isEmpty()) {
             return takeFromWorld(count);
         } else {
@@ -170,31 +162,17 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
     @Callback
     public int takeFrom(@Parameter("fromSlot") final int fromSlot,
                         @Parameter("count") final int count,
-                        @Parameter("direction") @Nullable final Direction direction) {
+                        @Parameter("side") @Nullable final RobotOperationSide side) {
         if (count <= 0) {
             return 0;
         }
 
-        return getItemStackHandlersInDirection(getAdjustedDirection(direction)).findFirst().map(handler ->
+        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        return getItemStackHandlersInDirection(direction).findFirst().map(handler ->
                 takeFromInventory(count, handler, fromSlot)).orElse(0);
     }
 
     ///////////////////////////////////////////////////////////////////
-
-    private Direction getAdjustedDirection(@Nullable Direction direction) {
-        if (direction == null) {
-            direction = Direction.SOUTH;
-        }
-
-        if (direction.getAxis().isHorizontal()) {
-            final int horizontalIndex = entity.getDirection().get2DDataValue();
-            for (int i = 0; i < horizontalIndex; i++) {
-                direction = direction.getClockWise();
-            }
-        }
-
-        return direction;
-    }
 
     private ItemStack insertStartingAt(final IItemHandler handler, ItemStack stack, final int startSlot, final boolean simulate) {
         for (int i = 0; i < handler.getSlots(); i++) {
@@ -209,8 +187,7 @@ public final class InventoryOperationsModuleDevice extends IdentityProxy<ItemSta
     }
 
     private Stream<IItemHandler> getItemStackHandlersInDirection(final Direction direction) {
-        final Vector3i directionVec = direction.getNormal();
-        return getItemStackHandlersAt(entity.position().add(Vector3d.atCenterOf(directionVec)), direction.getOpposite());
+        return getItemStackHandlersAt(Vector3d.atCenterOf(entity.blockPosition().relative(direction)), direction.getOpposite());
     }
 
     private Stream<IItemHandler> getItemStackHandlersAt(final Vector3d position, final Direction side) {

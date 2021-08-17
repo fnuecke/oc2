@@ -6,9 +6,7 @@ import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public final class RobotBusStateMessage {
+public final class RobotBusStateMessage extends AbstractMessage {
     private int entityId;
     private CommonDeviceBusController.BusState value;
 
@@ -20,24 +18,28 @@ public final class RobotBusStateMessage {
     }
 
     public RobotBusStateMessage(final PacketBuffer buffer) {
-        fromBytes(buffer);
+        super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final RobotBusStateMessage message, final Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> MessageUtils.withClientEntity(message.entityId, RobotEntity.class,
-                (robot) -> robot.getVirtualMachine().setBusStateClient(message.value)));
-        return true;
-    }
-
+    @Override
     public void fromBytes(final PacketBuffer buffer) {
         entityId = buffer.readVarInt();
         value = buffer.readEnum(CommonDeviceBusController.BusState.class);
     }
 
-    public static void toBytes(final RobotBusStateMessage message, final PacketBuffer buffer) {
-        buffer.writeVarInt(message.entityId);
-        buffer.writeEnum(message.value);
+    @Override
+    public void toBytes(final PacketBuffer buffer) {
+        buffer.writeVarInt(entityId);
+        buffer.writeEnum(value);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void handleMessage(final NetworkEvent.Context context) {
+        MessageUtils.withClientEntity(entityId, RobotEntity.class,
+                (robot) -> robot.getVirtualMachine().setBusStateClient(value));
     }
 }

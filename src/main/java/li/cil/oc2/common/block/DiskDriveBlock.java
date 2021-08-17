@@ -4,7 +4,6 @@ import li.cil.oc2.common.tileentity.DiskDriveTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.PlayerEntity;
@@ -20,7 +19,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
-public final class DiskDriveBlock extends HorizontalBlock {
+public final class DiskDriveBlock extends ImmutableHorizontalBlock {
     public DiskDriveBlock() {
         super(Properties
                 .of(Material.METAL)
@@ -54,20 +53,25 @@ public final class DiskDriveBlock extends HorizontalBlock {
             return super.use(state, world, pos, player, hand, hit);
         }
 
-        if (world.isClientSide) {
-            return ActionResultType.SUCCESS;
-        }
-
         final DiskDriveTileEntity diskDrive = (DiskDriveTileEntity) tileEntity;
-        final ItemStack stack = player.getItemInHand(hand);
-
+        final ItemStack heldStack = player.getItemInHand(hand);
         if (player.isShiftKeyDown()) {
-            diskDrive.eject();
+            if (diskDrive.canEject()) {
+                if (!world.isClientSide()) {
+                    diskDrive.eject(player);
+                }
+                return ActionResultType.sidedSuccess(world.isClientSide());
+            }
         } else {
-            player.setItemInHand(hand, diskDrive.insert(stack));
+            if (diskDrive.canInsert(heldStack)) {
+                if (!world.isClientSide()) {
+                    player.setItemInHand(hand, diskDrive.insert(heldStack, player));
+                }
+                return ActionResultType.sidedSuccess(world.isClientSide());
+            }
         }
 
-        return ActionResultType.CONSUME;
+        return super.use(state, world, pos, player, hand, hit);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -30,7 +30,7 @@ public final class FirmwareFlashMemoryVMDevice extends IdentityProxy<ItemStack> 
     ///////////////////////////////////////////////////////////////
 
     @Override
-    public VMDeviceLoadResult load(final VMContext context) {
+    public VMDeviceLoadResult mount(final VMContext context) {
         memoryMap = context.getMemoryMap();
 
         context.getEventBus().register(this);
@@ -39,7 +39,12 @@ public final class FirmwareFlashMemoryVMDevice extends IdentityProxy<ItemStack> 
     }
 
     @Override
-    public void unload() {
+    public void unmount() {
+        suspend();
+    }
+
+    @Override
+    public void suspend() {
         memoryMap = null;
     }
 

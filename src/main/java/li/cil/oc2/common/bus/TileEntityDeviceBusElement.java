@@ -95,19 +95,9 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
             return;
         }
 
+        final HashSet<BlockDeviceInfo> newDevices = collectDevices(world, pos, direction);
+
         final int index = direction.get3DDataValue();
-
-        final HashSet<BlockDeviceInfo> newDevices = new HashSet<>();
-        if (canDetectDevicesTowards(direction)) {
-            final BlockDeviceQuery query = Devices.makeQuery(world, pos, direction);
-            for (final LazyOptional<BlockDeviceInfo> deviceInfo : Devices.getDevices(query)) {
-                deviceInfo.ifPresent(newDevices::add);
-                deviceInfo.addListener(unused -> handleNeighborChanged(pos));
-            }
-        }
-
-        collectSyntheticDevices(world, pos, direction, newDevices);
-
         setDevicesForGroup(index, newDevices);
     }
 
@@ -133,7 +123,22 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
         return canScanContinueTowards(direction);
     }
 
-    protected void collectSyntheticDevices(final World world, final BlockPos pos, final Direction direction, final HashSet<BlockDeviceInfo> devices) {
+    protected HashSet<BlockDeviceInfo> collectDevices(final World world, final BlockPos pos, @Nullable final Direction direction) {
+        final HashSet<BlockDeviceInfo> newDevices = new HashSet<>();
+        if (canDetectDevicesTowards(direction)) {
+            final BlockDeviceQuery query = Devices.makeQuery(world, pos, direction);
+            for (final LazyOptional<BlockDeviceInfo> deviceInfo : Devices.getDevices(query)) {
+                deviceInfo.ifPresent(newDevices::add);
+                deviceInfo.addListener(unused -> handleNeighborChanged(pos));
+            }
+        }
+
+        collectSyntheticDevices(world, pos, direction, newDevices);
+
+        return newDevices;
+    }
+
+    protected void collectSyntheticDevices(final World world, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockDeviceInfo> devices) {
         final String blockName = WorldUtils.getBlockName(world, pos);
         if (blockName != null) {
             devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(blockName)));

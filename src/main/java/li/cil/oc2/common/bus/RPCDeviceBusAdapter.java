@@ -11,11 +11,7 @@ import li.cil.oc2.api.bus.device.rpc.RPCParameter;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
-import li.cil.oc2.common.serialization.serializers.UnsignedByteArrayJsonSerializer;
-import li.cil.oc2.common.serialization.serializers.MessageJsonDeserializer;
-import li.cil.oc2.common.serialization.serializers.MethodInvocationJsonDeserializer;
-import li.cil.oc2.common.serialization.serializers.RPCDeviceWithIdentifierJsonSerializer;
-import li.cil.oc2.common.serialization.serializers.RPCMethodJsonSerializer;
+import li.cil.oc2.common.serialization.serializers.*;
 import li.cil.sedna.api.device.Steppable;
 import li.cil.sedna.api.device.serial.SerialDevice;
 
@@ -72,6 +68,12 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    public void suspend() {
+        for (final RPCDeviceWithIdentifier info : devices) {
+            info.device.suspend();
+        }
+    }
 
     public void reset() {
         transmitBuffer.clear();
@@ -294,6 +296,14 @@ public final class RPCDeviceBusAdapter implements Steppable {
             }
 
             final RPCParameter[] parametersSpec = method.getParameters();
+
+            // Special case: if a method takes as exactly one parameter a JsonArray, we pass
+            // on the parameters as-is, without automatically trying to deserialize them.
+            if (parametersSpec.length == 1 && parametersSpec[0].getType() == JsonArray.class) {
+                invokeMethod(methodInvocation, isMainThread, method, new Object[]{methodInvocation.parameters});
+                return;
+            }
+
             if (methodInvocation.parameters.size() != parametersSpec.length) {
                 if (canTrailingParametersBeImplicitlyNull(methodInvocation.parameters, parametersSpec)) {
                     fallbacks.add(method);
@@ -394,7 +404,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         if (receiveBuffer != null) throw new IllegalStateException();
         final String json = gson.toJson(new Message(type, data));
         final byte[] bytes = json.getBytes();
-        receiveBuffer = ByteBuffer.allocate(bytes.length + MESSAGE_DELIMITER.length * 2);
+        final ByteBuffer receiveBuffer = ByteBuffer.allocate(bytes.length + MESSAGE_DELIMITER.length * 2);
 
         // In case we went through a reset and the VM was in the middle of reading
         // a message we inject a delimiter up front to cause the truncated message
@@ -409,6 +419,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         receiveBuffer.put(MESSAGE_DELIMITER);
 
         receiveBuffer.flip();
+        this.receiveBuffer = receiveBuffer;
     }
 
     ///////////////////////////////////////////////////////////////////

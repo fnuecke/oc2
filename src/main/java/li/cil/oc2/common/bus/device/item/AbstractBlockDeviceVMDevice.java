@@ -1,11 +1,10 @@
 package li.cil.oc2.common.bus.device.item;
 
-import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
-import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.bus.device.util.OptionalInterrupt;
@@ -16,15 +15,18 @@ import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.virtio.VirtIOBlockDevice;
 import net.minecraft.nbt.CompoundNBT;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Optional;
 import java.util.UUID;
 
-@SuppressWarnings("UnstableApiUsage")
 public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TIdentity> extends IdentityProxy<TIdentity> implements VMDevice, ItemDevice {
+    private static final Logger LOGGER = LogManager.getLogger();
+
     private static final String DEVICE_TAG_NAME = "device";
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String INTERRUPT_TAG_NAME = "interrupt";
@@ -32,8 +34,6 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
 
     ///////////////////////////////////////////////////////////////
 
-    private BlobStorage.JobHandle jobHandle;
-    protected TBlock data;
     protected VirtIOBlockDevice device;
 
     ///////////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     private CompoundNBT deviceTag;
 
     // Offline persisted data.
-    protected UUID blobHandle;
+    @Nullable protected UUID blobHandle;
 
     ///////////////////////////////////////////////////////////////
 
@@ -55,9 +55,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public VMDeviceLoadResult load(final VMContext context) {
-        data = createBlockDevice();
-
+    public VMDeviceLoadResult mount(final VMContext context) {
         if (!allocateDevice(context)) {
             return VMDeviceLoadResult.fail();
         }
@@ -74,8 +72,6 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
 
         context.getEventBus().register(this);
 
-        deserializeData();
-
         if (deviceTag != null) {
             NBTSerialization.deserialize(deviceTag, device);
         }
@@ -84,32 +80,32 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     }
 
     @Override
-    public void unload() {
-        // Since we cannot serialize the data in a regular serialize call due to the
-        // actual data being unloaded at that point, but want to permanently persist
-        // it (it's the contents of the block device) we need to serialize it in the
-        // unload, too. Don't need to wait for the job, though.
-        serializeData();
-
-        data = null;
-        jobHandle = null;
-
-        device = null;
+    public void unmount() {
+        suspend();
         deviceTag = null;
         address.clear();
         interrupt.clear();
     }
 
-    @Subscribe
-    public void handleResumingRunningEvent(final VMResumingRunningEvent event) {
-        awaitStorageOperation();
+    @Override
+    public void suspend() {
+        if (device != null) {
+            try {
+                device.close();
+            } catch (final IOException e) {
+                LOGGER.error(e);
+            }
+        }
+
+        if (blobHandle != null) {
+            BlobStorage.close(blobHandle);
+        }
+
+        device = null;
     }
 
     @Override
     public void exportToItemStack(final CompoundNBT nbt) {
-        if (blobHandle == null && data != null) {
-            getSerializationStream(data).ifPresent(stream -> blobHandle = BlobStorage.validateHandle(blobHandle));
-        }
         if (blobHandle != null) {
             nbt.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
         }
@@ -126,7 +122,10 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     public CompoundNBT serializeNBT() {
         final CompoundNBT tag = new CompoundNBT();
 
-        serializeData();
+        if (blobHandle != null) {
+            tag.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
+        }
+
         if (device != null) {
             deviceTag = NBTSerialization.serialize(device);
         }
@@ -138,10 +137,6 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
         }
         if (interrupt.isPresent()) {
             tag.putInt(INTERRUPT_TAG_NAME, interrupt.getAsInt());
-        }
-
-        if (blobHandle != null) {
-            tag.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
         }
 
         return tag;
@@ -164,42 +159,9 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
         }
     }
 
-    public void serializeData() {
-        if (data != null) {
-            final Optional<InputStream> optional = getSerializationStream(data);
-            optional.ifPresent(stream -> {
-                blobHandle = BlobStorage.validateHandle(blobHandle);
-                jobHandle = BlobStorage.submitSave(blobHandle, stream);
-            });
-            if (!optional.isPresent()) {
-                BlobStorage.freeHandle(blobHandle);
-                blobHandle = null;
-            }
-        }
-    }
-
-    public void deserializeData() {
-        if (data != null && blobHandle != null) {
-            try {
-                jobHandle = BlobStorage.submitLoad(blobHandle, getDeserializationStream(data));
-            } catch (final UnsupportedOperationException ignored) {
-                // If logic producing the block data implementation changed between saves we
-                // can potentially end up in a state where we now have read only block data
-                // with some previously persisted data. A call to getDeserializationStream
-                // will, indirectly, lead to this exception. So we just ignore it.
-            }
-        }
-    }
-
     ///////////////////////////////////////////////////////////////
 
-    protected abstract int getSize();
-
-    protected abstract TBlock createBlockDevice();
-
-    protected abstract Optional<InputStream> getSerializationStream(TBlock device);
-
-    protected abstract OutputStream getDeserializationStream(TBlock device);
+    protected abstract TBlock createBlockDevice() throws IOException;
 
     protected void handleDataAccess() {
     }
@@ -207,22 +169,20 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     ///////////////////////////////////////////////////////////////
 
     private boolean allocateDevice(final VMContext context) {
-        if (!context.getMemoryAllocator().claimMemory(getSize())) {
+        if (!context.getMemoryAllocator().claimMemory(Constants.PAGE_SIZE)) {
             return false;
         }
 
-        final ListenableBlockDevice listenableData = new ListenableBlockDevice(data);
-        listenableData.onAccess.add(this::handleDataAccess);
-        device = new VirtIOBlockDevice(context.getMemoryMap(), listenableData);
+        try {
+            final ListenableBlockDevice listenableData = new ListenableBlockDevice(createBlockDevice());
+            listenableData.onAccess.add(this::handleDataAccess);
+            device = new VirtIOBlockDevice(context.getMemoryMap(), listenableData);
+        } catch (final IOException e) {
+            LOGGER.error(e);
+            return false;
+        }
 
         return true;
-    }
-
-    private void awaitStorageOperation() {
-        if (jobHandle != null) {
-            jobHandle.await();
-            jobHandle = null;
-        }
     }
 
     ///////////////////////////////////////////////////////////////

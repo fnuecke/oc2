@@ -34,7 +34,7 @@ public final class VMDeviceBusAdapter {
         baseAddressProvider = provider;
     }
 
-    public VMDeviceLoadResult load() {
+    public VMDeviceLoadResult mount() {
         for (int i = 0; i < incompleteLoads.size(); i++) {
             final VMDevice device = incompleteLoads.get(i);
 
@@ -43,7 +43,7 @@ public final class VMDeviceBusAdapter {
 
             deviceContexts.put(device, context);
 
-            final VMDeviceLoadResult result = device.load(context);
+            final VMDeviceLoadResult result = device.mount(context);
             context.freeze();
 
             if (!result.wasSuccessful()) {
@@ -61,23 +61,20 @@ public final class VMDeviceBusAdapter {
         return VMDeviceLoadResult.success();
     }
 
-    public void unload() {
+    public void unmount() {
         for (final VMDevice device : deviceContexts.keySet()) {
-            device.unload();
+            device.unmount();
         }
 
-        suspend();
+        unload();
     }
 
     public void suspend() {
-        deviceContexts.forEach((device, context) -> {
-            if (context != null) {
-                context.invalidate();
-            }
-        });
+        for (final VMDevice device : deviceContexts.keySet()) {
+            device.suspend();
+        }
 
-        incompleteLoads.clear();
-        incompleteLoads.addAll(deviceContexts.keySet());
+        unload();
     }
 
     public void addDevices(final Collection<Device> devices) {
@@ -100,7 +97,7 @@ public final class VMDeviceBusAdapter {
             if (device instanceof VMDevice) {
                 final VMDevice vmDevice = (VMDevice) device;
 
-                vmDevice.unload();
+                vmDevice.unmount();
 
                 final ManagedVMContext context = deviceContexts.remove(vmDevice);
                 if (context != null) {
@@ -110,5 +107,18 @@ public final class VMDeviceBusAdapter {
                 incompleteLoads.remove(vmDevice);
             }
         }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private void unload() {
+        deviceContexts.forEach((device, context) -> {
+            if (context != null) {
+                context.invalidate();
+            }
+        });
+
+        incompleteLoads.clear();
+        incompleteLoads.addAll(deviceContexts.keySet());
     }
 }

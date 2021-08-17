@@ -13,7 +13,6 @@ import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.VoxelShapeUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.util.ITooltipFlag;
@@ -47,8 +46,9 @@ import java.util.List;
 import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
 import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
+import static li.cil.oc2.common.util.TranslationUtils.text;
 
-public final class ComputerBlock extends HorizontalBlock {
+public final class ComputerBlock extends ImmutableHorizontalBlock {
     // We bake the "screen" indent on the front into the collision shape to prevent stuff being
     // placeable on that side, such as network connectors, torches, etc.
     private static final VoxelShape NEG_Z_SHAPE = VoxelShapes.or(
@@ -76,8 +76,7 @@ public final class ComputerBlock extends HorizontalBlock {
 
     @Override
     public void fillItemCategory(final ItemGroup group, final NonNullList<ItemStack> items) {
-        super.fillItemCategory(group, items);
-
+        items.add(getComputerWithFlash());
         items.add(getPreconfiguredComputer());
     }
 
@@ -167,21 +166,25 @@ public final class ComputerBlock extends HorizontalBlock {
 
         final ComputerTileEntity computer = (ComputerTileEntity) tileEntity;
         final ItemStack heldItem = player.getItemInHand(hand);
-        if (!world.isClientSide) {
-            if (Wrenches.isWrench(heldItem)) {
-                if (player instanceof ServerPlayerEntity) {
-                    computer.openContainerScreen((ServerPlayerEntity) player);
+        if (Wrenches.isWrench(heldItem)) {
+            if (!player.isShiftKeyDown()) {
+                if (!world.isClientSide() && player instanceof ServerPlayerEntity) {
+                    computer.openInventoryScreen((ServerPlayerEntity) player);
                 }
-            } else {
+                return ActionResultType.sidedSuccess(world.isClientSide());
+            }
+        } else {
+            if (!world.isClientSide()) {
                 if (player.isShiftKeyDown()) {
                     computer.start();
                 } else if (player instanceof ServerPlayerEntity) {
                     computer.openTerminalScreen((ServerPlayerEntity) player);
                 }
             }
+            return ActionResultType.sidedSuccess(world.isClientSide());
         }
 
-        return world.isClientSide ? ActionResultType.SUCCESS : ActionResultType.CONSUME;
+        return super.use(state, world, pos, player, hand, hit);
     }
 
     @Override
@@ -218,11 +221,23 @@ public final class ComputerBlock extends HorizontalBlock {
 
     ///////////////////////////////////////////////////////////////////
 
+    private ItemStack getComputerWithFlash() {
+        final ItemStack computer = new ItemStack(this);
+
+        final CompoundNBT itemsTag = NBTUtils.getOrCreateChildTag(computer.getOrCreateTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME);
+        itemsTag.put(DeviceTypes.FLASH_MEMORY.getRegistryName().toString(), makeInventoryTag(
+                new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
+        ));
+
+        return computer;
+    }
+
     private ItemStack getPreconfiguredComputer() {
-        final ItemStack computer = new ItemStack(Items.COMPUTER.get());
+        final ItemStack computer = getComputerWithFlash();
 
         final CompoundNBT itemsTag = NBTUtils.getOrCreateChildTag(computer.getOrCreateTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME);
         itemsTag.put(DeviceTypes.MEMORY.getRegistryName().toString(), makeInventoryTag(
+                new ItemStack(Items.MEMORY_LARGE.get()),
                 new ItemStack(Items.MEMORY_LARGE.get()),
                 new ItemStack(Items.MEMORY_LARGE.get()),
                 new ItemStack(Items.MEMORY_LARGE.get())
@@ -230,12 +245,11 @@ public final class ComputerBlock extends HorizontalBlock {
         itemsTag.put(DeviceTypes.HARD_DRIVE.getRegistryName().toString(), makeInventoryTag(
                 new ItemStack(Items.HARD_DRIVE_CUSTOM.get())
         ));
-        itemsTag.put(DeviceTypes.FLASH_MEMORY.getRegistryName().toString(), makeInventoryTag(
-                new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
-        ));
         itemsTag.put(DeviceTypes.CARD.getRegistryName().toString(), makeInventoryTag(
                 new ItemStack(Items.NETWORK_INTERFACE_CARD.get())
         ));
+
+        computer.setHoverName(text("block.{mod}.computer.preconfigured"));
 
         return computer;
     }

@@ -10,7 +10,9 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 
 public final class LoopingTileEntitySound extends TickableSound {
-    private static final float FADE_IN_DURATION = 2.0f;
+    private static final float FADE_IN_DURATION_IN_SECONDS = 2.0f;
+    private static final float FADE_IN_DURATION_IN_TICKS = FADE_IN_DURATION_IN_SECONDS * Constants.SECONDS_TO_TICKS;
+    private static final float FADE_IN_PER_TICK = 1f / FADE_IN_DURATION_IN_TICKS;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -35,7 +37,7 @@ public final class LoopingTileEntitySound extends TickableSound {
 
     @Override
     public void tick() {
-        volume = MathHelper.clamp(volume + FADE_IN_DURATION / Constants.TICK_SECONDS, 0, 1);
+        volume = MathHelper.clamp(volume + FADE_IN_PER_TICK, 0, 1);
         final ChunkPos chunkPos = new ChunkPos(tileEntity.getBlockPos());
         if (tileEntity.isRemoved() || !tileEntity.getLevel().hasChunk(chunkPos.x, chunkPos.z)) {
             stop();

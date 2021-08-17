@@ -12,6 +12,8 @@ displayURL = "${mod_url}"
 authors = "Sangar"
 description = '''
 Modern computers for the modern player.
+
+This mod uses the Terminus Font under the Open Font License.
 '''
 
 [[dependencies.oc2]]
@@ -32,3 +34,8 @@ mandatory = true
 versionRange = "[${oc2_sedna_version_min},)"
 ordering = "NONE"
 side = "BOTH"
+[[dependencies.oc2]]
+modId = "markdown_manual"
+mandatory = true
+versionRange = "[${manual_version_min},)"
+side = "CLIENT"

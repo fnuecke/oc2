@@ -1,11 +1,10 @@
 package li.cil.oc2.common.bus.device.provider;
 
-import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.block.*;
 import li.cil.oc2.common.bus.device.provider.item.*;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryBuilder;
@@ -13,8 +12,8 @@ import net.minecraftforge.registries.RegistryBuilder;
 import java.util.function.Supplier;
 
 public final class Providers {
-    private static final DeferredRegister<BlockDeviceProvider> BLOCK_DEVICE_PROVIDERS = DeferredRegister.create(BlockDeviceProvider.class, API.MOD_ID);
-    private static final DeferredRegister<ItemDeviceProvider> ITEM_DEVICE_PROVIDERS = DeferredRegister.create(ItemDeviceProvider.class, API.MOD_ID);
+    private static final DeferredRegister<BlockDeviceProvider> BLOCK_DEVICE_PROVIDERS = RegistryUtils.create(BlockDeviceProvider.class);
+    private static final DeferredRegister<ItemDeviceProvider> ITEM_DEVICE_PROVIDERS = RegistryUtils.create(ItemDeviceProvider.class);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -40,12 +39,10 @@ public final class Providers {
         ITEM_DEVICE_PROVIDERS.register("flash_memory_custom", FlashMemoryWithExternalDataItemDeviceProvider::new);
         ITEM_DEVICE_PROVIDERS.register("redstone_interface_card", RedstoneInterfaceCardItemDeviceProvider::new);
         ITEM_DEVICE_PROVIDERS.register("network_interface_card", NetworkInterfaceCardItemDeviceProvider::new);
-        ITEM_DEVICE_PROVIDERS.register("file_import_export", FileImportExportCardItemDeviceProvider::new);
+        ITEM_DEVICE_PROVIDERS.register("file_import_export_card", FileImportExportCardItemDeviceProvider::new);
+        ITEM_DEVICE_PROVIDERS.register("sound_card", SoundCardItemDeviceProvider::new);
 
         ITEM_DEVICE_PROVIDERS.register("inventory_operations_module", InventoryOperationsModuleDeviceProvider::new);
         ITEM_DEVICE_PROVIDERS.register("block_operations_module", BlockOperationsModuleDeviceProvider::new);
-
-        BLOCK_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());
-        ITEM_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());
     }
 }

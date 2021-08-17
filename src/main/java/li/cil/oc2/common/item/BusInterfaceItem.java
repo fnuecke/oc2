@@ -93,30 +93,28 @@ public final class BusInterfaceItem extends ModBlockItem {
 
     ///////////////////////////////////////////////////////////////////
 
-    private ActionResultType tryAddToBlock(final ItemUseContext context, final Direction side) {
-        final BusCableBlock busCableBlock = Blocks.BUS_CABLE.get();
-
+    private static ActionResultType tryAddToBlock(final ItemUseContext context, final Direction side) {
         final World world = context.getLevel();
         final BlockPos pos = context.getClickedPos();
         final BlockState state = world.getBlockState(pos);
 
-        if (state.getBlock() == busCableBlock && busCableBlock.addInterface(world, pos, state, side)) {
-            final PlayerEntity player = context.getPlayer();
-            final ItemStack stack = context.getItemInHand();
-
-            if (player instanceof ServerPlayerEntity) {
-                CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayerEntity) player, pos, stack);
-            }
-
-            WorldUtils.playSound(world, pos, state.getSoundType(world, pos, player), SoundType::getPlaceSound);
-
-            if (player == null || !player.abilities.instabuild) {
-                stack.shrink(1);
-            }
-
-            return ActionResultType.sidedSuccess(world.isClientSide);
+        if (!BusCableBlock.addInterface(world, pos, state, side)) {
+            return ActionResultType.PASS;
         }
 
-        return ActionResultType.PASS;
+        final PlayerEntity player = context.getPlayer();
+        final ItemStack stack = context.getItemInHand();
+
+        if (player instanceof ServerPlayerEntity) {
+            CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayerEntity) player, pos, stack);
+        }
+
+        WorldUtils.playSound(world, pos, state.getSoundType(world, pos, player), SoundType::getPlaceSound);
+
+        if (player == null || !player.abilities.instabuild) {
+            stack.shrink(1);
+        }
+
+        return ActionResultType.sidedSuccess(world.isClientSide());
     }
 }

@@ -1,16 +1,14 @@
 {
   "multipart": [
     {
-      "when": {
-        "has_cable": "true"
-      },
       "apply": {
         "model": "oc2:block/cable_base"
       }
     },
     {
       "when": {
-        "connection_down": "cable"
+        "connection_down": "cable",
+        "has_facade": "false"
       },
       "apply": {
         "model": "oc2:block/cable_link",
@@ -20,7 +18,8 @@
     },
     {
       "when": {
-        "connection_down": "interface"
+        "connection_down": "interface",
+        "has_facade": "false"
       },
       "apply": {
         "model": "oc2:block/cable_plug",
@@ -30,7 +29,8 @@
     },
     {
       "when": {
-        "connection_up": "cable"
+        "connection_up": "cable",
+        "has_facade": "false"
       },
       "apply": {
         "model": "oc2:block/cable_link",
@@ -40,7 +40,8 @@
     },
     {
       "when": {
-        "connection_up": "interface"
+        "connection_up": "interface",
+        "has_facade": "false"
       },
       "apply": {
         "model": "oc2:block/cable_plug",
@@ -50,7 +51,8 @@
     },
     {
       "when": {
-        "connection_north": "cable"
+        "connection_north": "cable",
+        "has_facade": "false"
       },
       "apply": {
         "model": "oc2:block/cable_link",
@@ -59,7 +61,8 @@
     },
     {
       "when": {
-        "connection_north": "interface"
+        "connection_north": "interface",
+        "has_facade": "false"
       },
       "apply": {
         "model": "oc2:block/cable_plug",
@@ -68,7 +71,8 @@
     },
     {
       "when": {
-        "connection_south": "cable"
+        "connection_south": "cable",
+        "has_facade": "false"
       },
       "apply": {
         "model": "oc2:block/cable_link"
@@ -76,7 +80,8 @@
     },
     {
       "when": {
-        "connection_south": "interface"
+        "connection_south": "interface",
+        "has_facade": "false"
       },
       "apply": {
         "model": "oc2:block/cable_plug"
@@ -84,7 +89,8 @@
     },
     {
       "when": {
-        "connection_west": "cable"
+        "connection_west": "cable",
+        "has_facade": "false"
       },
       "apply": {
         "model": "oc2:block/cable_link",
@@ -93,7 +99,8 @@
     },
     {
       "when": {
-        "connection_west": "interface"
+        "connection_west": "interface",
+        "has_facade": "false"
       },
       "apply": {
         "model": "oc2:block/cable_plug",
@@ -102,7 +109,8 @@
     },
     {
       "when": {
-        "connection_east": "cable"
+        "connection_east": "cable",
+        "has_facade": "false"
       },
       "apply": {
         "model": "oc2:block/cable_link",
@@ -111,7 +119,8 @@
     },
     {
       "when": {
-        "connection_east": "interface"
+        "connection_east": "interface",
+        "has_facade": "false"
       },
       "apply": {
         "model": "oc2:block/cable_plug",

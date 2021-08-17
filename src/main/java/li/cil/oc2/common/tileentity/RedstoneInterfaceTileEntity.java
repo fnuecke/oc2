@@ -4,6 +4,7 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.block.BlockState;
@@ -15,6 +16,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 import static java.util.Collections.singletonList;
@@ -62,7 +64,9 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
     }
 
     @Callback(name = GET_REDSTONE_INPUT)
-    public int setRedstoneSignal(@Parameter(SIDE) final Direction side) {
+    public int getRedstoneInput(@Parameter(SIDE) @Nullable final Side side) {
+        if (side == null) throw new IllegalArgumentException();
+
         final World world = getLevel();
         if (world == null) {
             return 0;
@@ -82,12 +86,16 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
     }
 
     @Callback(name = GET_REDSTONE_OUTPUT, synchronize = false)
-    public int getRedstoneSignal(@Parameter(SIDE) final Direction side) {
+    public int getRedstoneOutput(@Parameter(SIDE) @Nullable final Side side) {
+        if (side == null) throw new IllegalArgumentException();
+
         return output[side.get3DDataValue()];
     }
 
     @Callback(name = SET_REDSTONE_OUTPUT)
-    public void getRedstoneSignal(@Parameter(SIDE) final Direction side, @Parameter(VALUE) final int value) {
+    public void setRedstoneOutput(@Parameter(SIDE) @Nullable final Side side, @Parameter(VALUE) final int value) {
+        if (side == null) throw new IllegalArgumentException();
+
         final byte clampedValue = (byte) MathHelper.clamp(value, 0, 15);
         if (clampedValue == output[side.get3DDataValue()]) {
             return;

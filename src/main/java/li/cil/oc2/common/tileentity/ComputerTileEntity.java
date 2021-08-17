@@ -3,12 +3,10 @@ package li.cil.oc2.common.tileentity;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.client.audio.LoopingSoundManager;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.TileEntityDeviceBusController;
@@ -26,37 +24,34 @@ import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.ComputerTerminalOutputMessage;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.util.*;
+import li.cil.oc2.common.util.HorizontalBlockUtils;
+import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.SoundEvents;
+import li.cil.oc2.common.util.TerminalUtils;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.IIntArray;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
-import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
+import static li.cil.oc2.common.Constants.*;
 
 public final class ComputerTileEntity extends AbstractTileEntity implements ITickableTileEntity, TerminalUserProvider {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
+    private static final String DEVICES_TAG_NAME = "devices";
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String STATE_TAG_NAME = "state";
     private static final String ENERGY_TAG_NAME = "energy";
@@ -66,7 +61,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     private static final int FLASH_MEMORY_SLOTS = 1;
     private static final int CARD_SLOTS = 4;
 
-    private static final int MAX_RUNNING_SOUND_DELAY = Constants.TICK_SECONDS * 2;
+    private static final int MAX_RUNNING_SOUND_DELAY = SECONDS_TO_TICKS * 2;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -76,7 +71,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     ///////////////////////////////////////////////////////////////////
 
     private final Terminal terminal = new Terminal();
-    private final TileEntityDeviceBusElement busElement = new ComputerBusElement();
+    private final ComputerBusElement busElement = new ComputerBusElement();
     private final ComputerItemStackHandlers deviceItems = new ComputerItemStackHandlers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
     private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new TileEntityDeviceBusController(busElement, Config.computerEnergyPerTick, this), deviceItems::getDeviceAddressBase);
@@ -120,54 +115,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     public void openTerminalScreen(final ServerPlayerEntity player) {
-        NetworkHooks.openGui(player, new INamedContainerProvider() {
-            @Override
-            public ITextComponent getDisplayName() {
-                return new TranslationTextComponent(getBlockState().getBlock().getDescriptionId());
-            }
-
-            @Override
-            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
-                return new ComputerTerminalContainer(id, player, ComputerTileEntity.this, new IIntArray() {
-                    @Override
-                    public int get(final int index) {
-                        switch (index) {
-                            case 0:
-                                return energy.getEnergyStored();
-                            case 1:
-                                return energy.getMaxEnergyStored();
-                            case 2:
-                                return virtualMachine.busController.getEnergyConsumption();
-                            default:
-                                return 0;
-                        }
-                    }
-
-                    @Override
-                    public void set(final int index, final int value) {
-                    }
-
-                    @Override
-                    public int getCount() {
-                        return 3;
-                    }
-                });
-            }
-        }, getBlockPos());
+        ComputerTerminalContainer.createServer(this, energy, virtualMachine.busController, player);
     }
 
-    public void openContainerScreen(final ServerPlayerEntity player) {
-        NetworkHooks.openGui(player, new INamedContainerProvider() {
-            @Override
-            public ITextComponent getDisplayName() {
-                return new TranslationTextComponent(getBlockState().getBlock().getDescriptionId());
-            }
-
-            @Override
-            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
-                return new ComputerInventoryContainer(id, ComputerTileEntity.this, inventory);
-            }
-        }, getBlockPos());
+    public void openInventoryScreen(final ServerPlayerEntity player) {
+        ComputerInventoryContainer.createServer(this, energy, virtualMachine.busController, player);
     }
 
     public void addTerminalUser(final PlayerEntity player) {
@@ -222,10 +174,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         // adjacent cable. Because that would just be weird.
         if (!hasAddedOwnDevices) {
             hasAddedOwnDevices = true;
-            final BlockDeviceQuery query = Devices.makeQuery(this, (Direction) null);
-            for (final LazyOptional<BlockDeviceInfo> optional : Devices.getDevices(query)) {
-                optional.ifPresent(info -> busElement.addDevice(info.device));
-            }
+            busElement.addOwnDevices();
         }
 
         if (isNeighborUpdateScheduled) {
@@ -243,7 +192,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         // super.remove() calls onUnload. This in turn only suspends, but we want to do
         // a full clean-up when we get destroyed, so stuff inside us can delete out-of-nbt
         // persisted runtime-only data such as ram.
-        virtualMachine.state.vmAdapter.unload();
+        virtualMachine.state.vmAdapter.unmount();
     }
 
     @Override
@@ -275,8 +224,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
         tag.put(STATE_TAG_NAME, virtualMachine.serialize());
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
-        tag.put(BUS_ELEMENT_TAG_NAME, NBTSerialization.serialize(busElement));
-        tag.put(Constants.ITEMS_TAG_NAME, deviceItems.serialize());
+        tag.put(BUS_ELEMENT_TAG_NAME, busElement.save());
+        tag.put(ITEMS_TAG_NAME, deviceItems.saveItems());
+        tag.put(DEVICES_TAG_NAME, deviceItems.saveDevices());
 
         return tag;
     }
@@ -288,16 +238,14 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
         virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
+        busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
 
-        if (tag.contains(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            NBTSerialization.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME), busElement);
-        }
-
-        deviceItems.deserialize(tag.getCompound(Constants.ITEMS_TAG_NAME));
+        deviceItems.loadItems(tag.getCompound(ITEMS_TAG_NAME));
+        deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        deviceItems.serialize(NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME));
+        deviceItems.saveItems(NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -332,7 +280,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     protected void unloadServer() {
         super.unloadServer();
 
-        virtualMachine.unload();
+        virtualMachine.suspend();
 
         // This is necessary in case some other controller found us before our controller
         // did its scan, which can happen because the scan can happen with a delay. In
@@ -368,8 +316,20 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     private final class ComputerBusElement extends TileEntityDeviceBusElement {
+        private static final String DEVICE_ID_TAG_NAME = "device_id";
+
+        private final HashSet<Device> devices = new HashSet<>();
+        private UUID deviceId = UUID.randomUUID();
+
         public ComputerBusElement() {
             super(ComputerTileEntity.this);
+        }
+
+        public void addOwnDevices() {
+            for (final BlockDeviceInfo info : collectDevices(level, getPosition(), null)) {
+                devices.add(info.device);
+                super.addDevice(info.device);
+            }
         }
 
         @Override
@@ -386,6 +346,28 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         @Override
         public boolean canScanContinueTowards(@Nullable final Direction direction) {
             return getBlockState().getValue(ComputerBlock.FACING) != direction;
+        }
+
+        @Override
+        public Optional<UUID> getDeviceIdentifier(final Device device) {
+            if (devices.contains(device)) {
+                return Optional.of(deviceId);
+            }
+            return super.getDeviceIdentifier(device);
+        }
+
+        @Override
+        public CompoundNBT save() {
+            final CompoundNBT tag = super.save();
+            tag.putUUID(DEVICE_ID_TAG_NAME, deviceId);
+            return tag;
+        }
+
+        public void load(final CompoundNBT tag) {
+            super.load(tag);
+            if (tag.hasUUID(DEVICE_ID_TAG_NAME)) {
+                deviceId = tag.getUUID(DEVICE_ID_TAG_NAME);
+            }
         }
     }
 
@@ -449,11 +431,11 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
         }
 
         @Override
-        public void stopRunnerAndReset() {
+        protected void stopRunnerAndReset() {
             super.stopRunnerAndReset();
 
             TerminalUtils.resetTerminal(terminal, output -> Network.sendToClientsTrackingChunk(
-                    new ComputerTerminalOutputMessage(ComputerTileEntity.this, output), virtualMachine.chunk));
+                    new ComputerTerminalOutputMessage(ComputerTileEntity.this, output), chunk));
         }
 
         @Override

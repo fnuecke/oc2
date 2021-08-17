@@ -40,9 +40,9 @@ public final class NetworkHubTileEntity extends AbstractTileEntity implements Ne
     public void writeEthernetFrame(final NetworkInterface source, final byte[] frame, final int timeToLive) {
         validateAdjacentInterfaces();
 
-        for (int i = 0; i < adjacentInterfaces.length; i++) {
-            if (adjacentInterfaces[i] != null) {
-                adjacentInterfaces[i].writeEthernetFrame(this, frame, timeToLive - TTL_COST);
+        for (final NetworkInterface adjacentInterface : adjacentInterfaces) {
+            if (adjacentInterface != null && adjacentInterface != source) {
+                adjacentInterface.writeEthernetFrame(this, frame, timeToLive - TTL_COST);
             }
         }
     }

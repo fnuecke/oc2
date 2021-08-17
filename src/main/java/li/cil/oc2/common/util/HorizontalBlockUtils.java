@@ -1,5 +1,6 @@
 package li.cil.oc2.common.util;
 
+import li.cil.oc2.api.util.Side;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalBlock;
 import net.minecraft.util.Direction;
@@ -33,18 +34,18 @@ public final class HorizontalBlockUtils {
     }
 
     @Nullable
-    public static Direction toGlobal(final BlockState blockState, @Nullable final Direction direction) {
-        if (direction == null) {
+    public static Direction toGlobal(final BlockState blockState, @Nullable final Side side) {
+        if (side == null) {
             return null;
         }
 
-        final int index = direction.get2DDataValue();
+        final int index = side.get2DDataValue();
         if (index < 0) {
-            return direction;
+            return side.getDirection();
         }
 
         if (!blockState.hasProperty(HorizontalBlock.FACING)) {
-            return direction;
+            return side.getDirection();
         }
 
         final Direction facing = blockState.getValue(HorizontalBlock.FACING);

@@ -8,9 +8,13 @@ import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.network.Network;
+import li.cil.oc2.common.network.message.BusCableFacadeMessage;
 import li.cil.oc2.common.network.message.BusInterfaceNameMessage;
+import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.StringNBT;
@@ -18,19 +22,28 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants.BlockFlags;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Objects;
 
 public final class BusCableTileEntity extends AbstractTileEntity {
+    public enum FacadeType {
+        NOT_A_BLOCK,
+        INVALID_BLOCK,
+        VALID_BLOCK,
+    }
+
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
     private static final String INTERFACE_NAMES_TAG_NAME = "interfaceNames";
+    private static final String FACADE_TAG_NAME = "facade";
 
     ///////////////////////////////////////////////////////////////////
 
     private final TileEntityDeviceBusElement busElement = new BusCableBusElement();
     private final String[] interfaceNames = new String[Constants.BLOCK_FACE_COUNT];
+    private ItemStack facade = ItemStack.EMPTY;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -54,8 +67,67 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         interfaceNames[side.get3DDataValue()] = validatedName;
         if (!level.isClientSide) {
             final BusInterfaceNameMessage message = new BusInterfaceNameMessage.ToClient(this, side, interfaceNames[side.get3DDataValue()]);
-            Network.sendToClientsTrackingChunk(message, level.getChunkAt(getBlockPos()));
+            Network.sendToClientsTrackingTileEntity(message, this);
             handleNeighborChanged(getBlockPos().relative(side));
+        }
+    }
+
+    public FacadeType getFacadeType(final ItemStack stack) {
+        return getFacadeType(ItemStackUtils.getBlockState(stack));
+    }
+
+    public FacadeType getFacadeType(@Nullable final BlockState state) {
+        if (state == null) {
+            return FacadeType.NOT_A_BLOCK;
+        }
+
+        if (state.getRenderShape() != BlockRenderType.MODEL ||
+            !state.isSolidRender(getLevel(), getBlockPos()) ||
+            state.getBlock().hasTileEntity(state)) {
+            return FacadeType.INVALID_BLOCK;
+        }
+
+        return FacadeType.VALID_BLOCK;
+    }
+
+    public ItemStack getFacade() {
+        return facade;
+    }
+
+    public void setFacade(ItemStack stack) {
+        final BlockState facadeState = ItemStackUtils.getBlockState(stack);
+        if (getFacadeType(facadeState) != FacadeType.VALID_BLOCK) {
+            stack = ItemStack.EMPTY;
+        }
+
+        if (ItemStack.isSame(stack, facade)) {
+            return;
+        }
+
+        facade = stack.copy();
+        facade.setCount(1);
+        BusCableBlock.setHasFacade(getLevel(), getBlockPos(), getBlockState(), facadeState, true);
+
+        setChanged();
+        getLevel().sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), BlockFlags.DEFAULT);
+
+        if (!getLevel().isClientSide()) {
+            final BusCableFacadeMessage message = new BusCableFacadeMessage(getBlockPos(), facade);
+            Network.sendToClientsTrackingTileEntity(message, this);
+        }
+    }
+
+    public void removeFacade() {
+        final BlockState facadeState = ItemStackUtils.getBlockState(facade);
+        facade = ItemStack.EMPTY;
+        BusCableBlock.setHasFacade(getLevel(), getBlockPos(), getBlockState(), facadeState, false);
+
+        setChanged();
+        getLevel().sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), BlockFlags.DEFAULT);
+
+        if (!getLevel().isClientSide()) {
+            final BusCableFacadeMessage message = new BusCableFacadeMessage(getBlockPos(), facade);
+            Network.sendToClientsTrackingTileEntity(message, this);
         }
     }
 
@@ -92,6 +164,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         final CompoundNBT tag = super.getUpdateTag();
 
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
+        tag.put(FACADE_TAG_NAME, facade.serializeNBT());
 
         return tag;
     }
@@ -99,13 +172,15 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     @Override
     public void handleUpdateTag(final BlockState state, final CompoundNBT tag) {
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
+        setFacade(ItemStack.of(tag.getCompound(FACADE_TAG_NAME)));
     }
 
     @Override
     public CompoundNBT save(CompoundNBT tag) {
         tag = super.save(tag);
-        tag.put(BUS_ELEMENT_TAG_NAME, busElement.serializeNBT());
+        tag.put(BUS_ELEMENT_TAG_NAME, busElement.save());
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
+        tag.put(FACADE_TAG_NAME, facade.serializeNBT());
 
         return tag;
     }
@@ -113,8 +188,9 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     @Override
     public void load(final BlockState state, final CompoundNBT tag) {
         super.load(state, tag);
-        busElement.deserializeNBT(tag.getList(BUS_ELEMENT_TAG_NAME, NBTTagIds.TAG_COMPOUND));
+        busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
+        facade = ItemStack.of(tag.getCompound(FACADE_TAG_NAME));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -176,11 +252,13 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         }
 
         @Override
-        protected void collectSyntheticDevices(final World world, final BlockPos pos, final Direction direction, final HashSet<BlockDeviceInfo> devices) {
+        protected void collectSyntheticDevices(final World world, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockDeviceInfo> devices) {
             super.collectSyntheticDevices(world, pos, direction, devices);
-            final String interfaceName = interfaceNames[direction.get3DDataValue()];
-            if (!StringUtils.isNullOrEmpty(interfaceName)) {
-                devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)));
+            if (direction != null) {
+                final String interfaceName = interfaceNames[direction.get3DDataValue()];
+                if (!StringUtils.isNullOrEmpty(interfaceName)) {
+                    devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)));
+                }
             }
         }
 

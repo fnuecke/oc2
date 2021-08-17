@@ -23,7 +23,6 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.LazyOptional;
@@ -47,12 +46,11 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     private static final String CONNECTIONS_TAG_NAME = "connections";
     private static final String IS_OWNER_TAG_NAME = "is_owner";
 
-    private static final int RETRY_UNLOADED_CHUNK_INTERVAL = 5 * Constants.TICK_SECONDS;
+    private static final int RETRY_UNLOADED_CHUNK_INTERVAL = 5 * Constants.SECONDS_TO_TICKS;
     private static final int MAX_CONNECTION_COUNT = 2;
     private static final int MAX_CONNECTION_DISTANCE = 16;
     private static final int INITIAL_PACKET_TIME_TO_LIVE = 12;
-    private static final int BYTES_PER_SECOND = 64 * 1024;
-    private static final int BYTES_PER_TICK = BYTES_PER_SECOND / Constants.TICK_SECONDS;
+    private static final int BYTES_PER_TICK = 64 * 1024 / Constants.SECONDS_TO_TICKS; // bytes / sec -> bytes / tick
     private static final int MIN_ETHERNET_FRAME_SIZE = 42;
     private static final int TTL_COST = 1;
 
@@ -295,8 +293,8 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     public AxisAlignedBB getRenderBoundingBox() {
         if (Minecraft.useShaderTransparency()) {
             return new AxisAlignedBB(
-                getBlockPos().offset(-MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE),
-                getBlockPos().offset(1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE)
+                    getBlockPos().offset(-MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE),
+                    getBlockPos().offset(1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE)
             );
         } else {
             return super.getRenderBoundingBox();
@@ -413,11 +411,9 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     }
 
     private void onConnectedPositionsChanged() {
-
-        if (level != null && !level.isClientSide) {
+        if (!getLevel().isClientSide()) {
             final NetworkConnectorConnectionsMessage message = new NetworkConnectorConnectionsMessage(this);
-            final Chunk chunk = level.getChunkAt(getBlockPos());
-            Network.sendToClientsTrackingChunk(message, chunk);
+            Network.sendToClientsTrackingTileEntity(message, this);
         }
     }
 

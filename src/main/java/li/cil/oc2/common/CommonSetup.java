@@ -37,7 +37,7 @@ public final class CommonSetup {
     }
 
     private static void handleServerStopped(final FMLServerStoppedEvent event) {
-        BlobStorage.synchronize();
+        BlobStorage.close();
         Allocator.resetAndCheckLeaks();
         FileSystems.reset();
     }

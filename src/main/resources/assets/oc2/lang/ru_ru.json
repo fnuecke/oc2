@@ -1,10 +1,9 @@
-//Russian localization by Bs()Dd - https://github.com/Bs0Dd
-
 {
   "itemGroup.oc2.common": "OpenComputers II",
 
   "block.oc2.computer": "Компьютер",
   "block.oc2.computer.desc": "Используйте ключ для установки и снятия компонентов.",
+  "block.oc2.computer.preconfigured": "Собранный компьютер",
   "block.oc2.bus_cable": "Интерфейсный кабель",
   "block.oc2.bus_cable.desc": "С помощью интерфейсных шин подключает внешние устройства к компьютеру.",
   "block.oc2.network_connector": "Сетевой разъем",
@@ -22,6 +21,7 @@
 
   "item.oc2.wrench": "Ключ",
   "item.oc2.wrench.desc": "Используется для конфигурации и демонтажа (если присесть) устройств.",
+  "item.oc2.manual": "Справочник компьютерщика",
   "item.oc2.bus_interface": "Интерфейсная шина",
   "item.oc2.bus_interface.desc": "Нужна для подключения внешних устройств по интерфейсному кабелю.",
   "item.oc2.network_cable": "Сетевой кабель",
@@ -46,6 +46,8 @@
   "item.oc2.inventory_operations_module.desc": "Позволяет роботам перемещать предметы в своем инвентаре, поднимать и бросать их.",
   "item.oc2.block_operations_module": "Модуль управления блоками",
   "item.oc2.block_operations_module.desc": "Позволяет роботам ломать и ставить блоки.",
+  "item.oc2.sound_card": "Звуковая карта",
+  "item.oc2.sound_card.desc": "Может проигрывать разные звуки из своих высококачественных звуковых банков.",
 
   "item.oc2.transistor": "Транзистор",
   "item.oc2.transistor.desc": "Может проводить или не проводить сигнал. Является основой любого компьютера и не только.",
@@ -67,6 +69,9 @@
   "gui.oc2.computer.power.capt": "Кнопка питания",
   "gui.oc2.computer.power.desc": "Включает или выключает компьютер.",
 
+  "gui.oc2.machine.open_inventory.capt": "Открыть инвентарь",
+  "gui.oc2.machine.open_terminal.capt": "Открыть терминал",
+    
   "gui.oc2.device_type.memory": "Память",
   "gui.oc2.device_type.hard_drive": "Жесткий диск",
   "gui.oc2.device_type.flash_memory": "Карта памяти",
@@ -80,10 +85,15 @@
   "gui.oc2.file_chooser.confirm_button.overwrite": "Перезаписать",
   "gui.oc2.file_chooser.cancel_button": "Отмена",
 
+  "manual.oc2.home": "Дом",
+  "manual.oc2.blocks": "Блоки",
+  "manual.oc2.items": "Предметы",
+    
   "message.oc2.connector.error.full": "Подключено слишком много кабелей.",
   "message.oc2.connector.error.too_far": "Дистанция между разъемами слишком велика.",
   "message.oc2.connector.error.obstructed": "Между разъемами присутствует преграда.",
   "message.oc2.import_file.file_too_large": "Файл слишком большой.",
+  "message.oc2.invalid_facade_block": "Этот блок нельзя использовать как фасад.",
 
   "tooltip.oc2.device_needs_reboot": "Требуется перезагрузка",
   "tooltip.oc2.flash_memory_missing": "Карта памяти содержит прошивку, необходимую для загрузки.",

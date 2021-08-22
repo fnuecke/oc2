@@ -1,10 +1,10 @@
 buildscript {
     repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
+        maven { url = 'https://maven.minecraftforge.net' }
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
     }
 }
 
@@ -38,8 +38,7 @@ if (build_number == null)
     build_number = getGitRef()
 
 version = "${semver}+${build_number}"
-group = mod_group
-archivesBaseName = "${mod_name.replace(' ', '-')}-MC${minecraft_version}-Forge"
+group = 'li.cil.oc2'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
@@ -52,27 +51,27 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    compileOnly "org.jetbrains:annotations:16.0.2"
+    compileOnly 'org.jetbrains:annotations:21.0.1'
 
-    implementation "li.cil.sedna:sedna-mc:MC${minecraft_version}-Forge-1.0.1+271"
+    implementation "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.0+"
 
     // These three will be provided by sedna-mc in standalone.
-    implementation "li.cil.ceres:ceres:0.0.2+20"
-    implementation "li.cil.sedna:sedna:1.0.1+101"
-    implementation "li.cil.sedna:sedna-buildroot:0.0.1+15"
+    implementation 'li.cil.ceres:ceres:0.0.3+'
+    implementation 'li.cil.sedna:sedna:1.0.1+'
+    implementation 'li.cil.sedna:sedna-buildroot:0.0.1+15'
 
-    compileOnly fg.deobf("li.cil.markdown_manual:MarkdownManual:MC${minecraft_version}-Forge-${manual_version}:api")
-    runtimeOnly fg.deobf("li.cil.markdown_manual:MarkdownManual:MC${minecraft_version}-Forge-${manual_version}")
+    compileOnly fg.deobf("li.cil.markdown_manual:markdown_manual-${minecraft_version}-forge:${manual_version}:api")
+    runtimeOnly fg.deobf("li.cil.markdown_manual:markdown_manual-${minecraft_version}-forge:${manual_version}")
 
     compileOnly fg.deobf("mezz.jei:jei-${jei_minecraft_version}:${jei_version}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${jei_minecraft_version}:${jei_version}")
 
-    testImplementation "li.cil.ceres:ceres:0.0.2+20"
-    testImplementation "li.cil.sedna:sedna:1.0.0+100"
+    testImplementation 'li.cil.ceres:ceres:0.0.3+'
+    testImplementation 'li.cil.sedna:sedna:1.0.1+'
 
-    testImplementation "org.mockito:mockito-core:2.+"
-    testImplementation "org.junit.jupiter:junit-jupiter-api:5.3.1"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.3.1"
+    testImplementation 'org.mockito:mockito-core:2.+'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 }
 
 task packageScripts(type: Zip) {
@@ -81,23 +80,7 @@ task packageScripts(type: Zip) {
     from 'src/main/scripts'
 }
 
-processResources {
-    dependsOn { packageScripts }
-    from(sourceSets.main.resources.srcDirs) {
-        include 'META-INF/mods.toml'
-
-        expand([
-                'mod_version'          : version,
-                'mod_name'             : mod_name,
-                'mod_url'              : mod_url,
-                'mod_issues_url'       : mod_issues_url,
-                'forge_version_min'    : forge_version_min,
-                'minecraft_version_min': minecraft_version_min,
-                'oc2_sedna_version_min': oc2_sedna_version_min,
-                'manual_version_min'   : manual_version,
-        ])
-    }
-}
+processResources.dependsOn(packageScripts)
 
 minecraft {
     mappings channel: mappings_channel, version: mappings_version
@@ -182,7 +165,6 @@ artifacts {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            version "MC${minecraft_version}-Forge-${version}"
             artifact jar
             artifact apiJar
         }
@@ -190,6 +172,22 @@ publishing {
     repositories {
         maven {
             url System.getenv('MAVEN_PATH')
+        }
+    }
+}
+
+curseforge {
+    apiKey = project.hasProperty('curseForgeApiKey') ? project.curseForgeApiKey : ''
+    project {
+        id = curse_project_id
+        releaseType = curse_project_releaseType
+        changelogType = 'markdown'
+        changelog = file('changelog.md')
+        addGameVersion 'Forge'
+        addGameVersion minecraft_version
+        addGameVersion 'Java 8'
+        relations {
+            requiredDependency 'markdownmanual'
         }
     }
 }

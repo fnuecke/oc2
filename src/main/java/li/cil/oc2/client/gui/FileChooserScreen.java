@@ -11,6 +11,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -159,6 +160,17 @@ public final class FileChooserScreen extends Screen {
         fileList.refreshFiles(directory);
 
         updateButtons();
+    }
+
+    @Override
+    public void onFilesDrop(final List<Path> files) {
+        files.stream().filter(x -> {
+            try {
+                return Files.exists(x) && !Files.isHidden(x);
+            } catch (IOException | SecurityException ignored) {
+                return false;
+            }
+        }).findFirst().ifPresent(file -> fileList.selectPath(file));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -314,6 +326,19 @@ public final class FileChooserScreen extends Screen {
             }
         }
 
+        public void selectPath(@NotNull Path path) {
+            if (Files.isDirectory(path)) {
+                refreshFiles(path);
+                fileNameTextField.setValue("");
+            } else {
+                refreshFiles(path.getParent());
+                children().stream().filter(x -> x.file.equals(path)).findFirst().ifPresent(entry -> {
+                    entry.select();
+                    centerScrollOn(entry);
+                });
+            }
+        }
+
         @Override
         public void setSelected(@Nullable final FileChooserScreen.FileList.FileEntry entry) {
             super.setSelected(entry);
@@ -354,15 +379,7 @@ public final class FileChooserScreen extends Screen {
             public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
                 final boolean isLeftClick = button == 0;
                 if (isLeftClick) {
-                    if (file == null || (directory != null && file.equals(directory.getParent()))) {
-                        fileNameTextField.setValue("..");
-                    } else {
-                        final Path fileName = file.getFileName();
-                        fileNameTextField.setValue(fileName != null ? fileName.toString() : file.toString());
-                    }
-                    fileNameTextField.moveCursorToStart();
-                    fileNameTextField.setHighlightPos(0);
-                    setSelected(this);
+                    select();
 
                     final boolean isDoubleClick = System.currentTimeMillis() - lastEntryClickTime < 250;
                     if (isDoubleClick) {
@@ -373,6 +390,18 @@ public final class FileChooserScreen extends Screen {
                 }
 
                 return false;
+            }
+
+            public void select() {
+                if (file == null || (directory != null && file.equals(directory.getParent()))) {
+                    fileNameTextField.setValue("..");
+                } else {
+                    final Path fileName = file.getFileName();
+                    fileNameTextField.setValue(fileName != null ? fileName.toString() : file.toString());
+                }
+                fileNameTextField.moveCursorToStart();
+                fileNameTextField.setHighlightPos(0);
+                setSelected(this);
             }
         }
     }

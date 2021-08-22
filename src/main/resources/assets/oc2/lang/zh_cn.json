@@ -35,6 +35,8 @@
   "item.oc2.inventory_operations_module.desc": "允许机器人存取物品。",
   "item.oc2.block_operations_module": "方块操作模块",
   "item.oc2.block_operations_module.desc": "允许机器人放置/破坏方块。",
+  "item.oc2.sound_card": "声卡",
+  "item.oc2.sound_card.desc": "可以从其高度逼真的音库播放各种声音。",
 
   "item.oc2.transistor": "晶体管",
   "item.oc2.circuit_board": "电路板",

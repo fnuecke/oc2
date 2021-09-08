@@ -11,21 +11,18 @@ end
 local args = table.pack(...)
 if #args == 0 then
 	io.write("Usage:\n")
-	io.write("  redstone <side> [<value>]\n")
+	io.write("  redstone <side name> [<value>]\n")
 	return
 end
 
 if #args > 0 then
 	local side = args[1]
-	if tonumber(side) then
-		side = tonumber(side)
-	else
-		sides = {["up"]=true,["down"]=true,["north"]=true,["south"]=true,["west"]=true,["east"]=true}
-		if not sides[string.lower(side)] then
-			io.stderr:write("invalid side\n")
-			return
-		end
+	sides = {["up"]=true,["down"]=true,["north"]=true,["south"]=true,["west"]=true,["east"]=true}
+	if not sides[string.lower(side)] then
+		io.stderr:write("invalid side\n")
+		return
 	end
+	
 	local value = args[2]
 	if value then 
 		if tonumber(value) then

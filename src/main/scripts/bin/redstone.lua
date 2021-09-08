@@ -1,7 +1,4 @@
 #!/usr/bin/lua
---Redstone utility port from OpenComputers
---Demonstration of programming in Lua in OpenComputers II
---Written by Bs()Dd in 2021
 
 local devices = require('devices')
 

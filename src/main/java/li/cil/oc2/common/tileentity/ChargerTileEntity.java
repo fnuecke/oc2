@@ -83,7 +83,7 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
             return;
         }
 
-        final TileEntity tileEntity = getLevel().getBlockEntity(getBlockPos().above());
+        final TileEntity tileEntity = level.getBlockEntity(getBlockPos().above());
         if (tileEntity != null) {
             chargeCapabilityProvider(tileEntity);
         }
@@ -94,7 +94,7 @@ public final class ChargerTileEntity extends AbstractTileEntity implements ITick
             return;
         }
 
-        final List<Entity> entities = getLevel().getEntities((Entity) null, new AxisAlignedBB(getBlockPos().above()), null);
+        final List<Entity> entities = level.getEntities((Entity) null, new AxisAlignedBB(getBlockPos().above()), null);
         for (final Entity entity : entities) {
             chargeCapabilityProvider(entity);
         }

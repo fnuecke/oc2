@@ -52,7 +52,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     @Override
     public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
         final World world = tileEntity.getLevel();
-        if (world == null || world.isClientSide) {
+        if (world == null || world.isClientSide()) {
             return Optional.empty();
         }
 
@@ -85,7 +85,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
 
     public void handleNeighborChanged(final BlockPos pos) {
         final World world = tileEntity.getLevel();
-        if (world == null || world.isClientSide) {
+        if (world == null || world.isClientSide()) {
             return;
         }
 

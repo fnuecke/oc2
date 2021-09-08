@@ -13,7 +13,7 @@ import net.minecraftforge.client.model.generators.*;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.fml.RegistryObject;
 
-public class ModBlockStateProvider extends BlockStateProvider {
+public final class ModBlockStateProvider extends BlockStateProvider {
     private static final ResourceLocation CABLE_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_base");
     private static final ResourceLocation CABLE_LINK_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_link");
     private static final ResourceLocation CABLE_PLUG_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_plug");

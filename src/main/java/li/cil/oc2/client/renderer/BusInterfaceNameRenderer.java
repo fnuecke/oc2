@@ -35,7 +35,7 @@ public enum BusInterfaceNameRenderer {
     public void handleRenderLastEvent(final RenderWorldLastEvent event) {
         final Minecraft mc = Minecraft.getInstance();
         final PlayerEntity player = mc.player;
-        final World world = player.getCommandSenderWorld();
+        final World level = player.level;
 
         if (!Wrenches.isHoldingWrench(player)) {
             return;
@@ -47,14 +47,14 @@ public enum BusInterfaceNameRenderer {
 
         final BlockRayTraceResult hit = (BlockRayTraceResult) mc.hitResult;
         final BlockPos blockPos = hit.getBlockPos();
-        final TileEntity tileEntity = world.getBlockEntity(blockPos);
+        final TileEntity tileEntity = level.getBlockEntity(blockPos);
         if (!(tileEntity instanceof BusCableTileEntity)) {
             return;
         }
 
         final BusCableTileEntity busCable = (BusCableTileEntity) tileEntity;
         final Direction side = BusCableBlock.getHitSide(blockPos, hit);
-        if (BusCableBlock.getConnectionType(world.getBlockState(blockPos), side) != BusCableBlock.ConnectionType.INTERFACE) {
+        if (BusCableBlock.getConnectionType(level.getBlockState(blockPos), side) != BusCableBlock.ConnectionType.INTERFACE) {
             return;
         }
 

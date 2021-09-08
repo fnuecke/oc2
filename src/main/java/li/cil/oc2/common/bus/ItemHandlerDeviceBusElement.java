@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.function.Function;
 
-public class ItemHandlerDeviceBusElement extends AbstractGroupingItemDeviceBusElement {
+public final class ItemHandlerDeviceBusElement extends AbstractGroupingItemDeviceBusElement {
     private final Function<ItemStack, ItemDeviceQuery> queryFactory;
 
     public ItemHandlerDeviceBusElement(final int slotCount, final Function<ItemStack, ItemDeviceQuery> queryFactory) {

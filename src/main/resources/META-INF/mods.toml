@@ -1,14 +1,12 @@
 modLoader = "javafml"
-loaderVersion = "[31,)"
-issueTrackerURL = "${mod_issues_url}"
+loaderVersion = "[36,)"
+issueTrackerURL = "https://github.com/fnuecke/oc2/issues"
 license = "MIT"
 
 [[mods]]
 modId = "oc2"
-version = "${mod_version}"
-displayName = "${mod_name}"
-displayURL = "${mod_url}"
-#logoFile = "logo.png"
+version = "${file.jarVersion}"
+displayName = "OpenComputers II"
 authors = "Sangar"
 description = '''
 Modern computers for the modern player.
@@ -19,23 +17,23 @@ This mod uses the Terminus Font under the Open Font License.
 [[dependencies.oc2]]
 modId = "forge"
 mandatory = true
-versionRange = "[${forge_version_min},)"
+versionRange = "[36.1.0,)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[${minecraft_version_min}]"
+versionRange = "[1.16.5,1.17)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]
-modId = "oc2-sedna"
+modId = "sedna"
 mandatory = true
-versionRange = "[${oc2_sedna_version_min},)"
+versionRange = "[0.0.1,)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]
 modId = "markdown_manual"
 mandatory = true
-versionRange = "[${manual_version_min},)"
+versionRange = "[1.1.0,)"
 side = "CLIENT"

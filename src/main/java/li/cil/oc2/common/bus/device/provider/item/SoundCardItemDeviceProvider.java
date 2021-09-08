@@ -10,7 +10,7 @@ import li.cil.oc2.common.util.LocationSupplierUtils;
 
 import java.util.Optional;
 
-public class SoundCardItemDeviceProvider extends AbstractItemDeviceProvider {
+public final class SoundCardItemDeviceProvider extends AbstractItemDeviceProvider {
     public SoundCardItemDeviceProvider() {
         super(Items.SOUND_CARD);
     }

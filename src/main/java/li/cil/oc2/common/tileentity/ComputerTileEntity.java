@@ -99,7 +99,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     public void start() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
 
@@ -107,7 +107,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
     }
 
     public void stop() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
 
@@ -166,7 +166,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements ITic
 
     @Override
     public void tick() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
 

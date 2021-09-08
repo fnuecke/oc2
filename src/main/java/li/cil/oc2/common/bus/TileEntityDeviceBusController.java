@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 
-public class TileEntityDeviceBusController extends CommonDeviceBusController {
+public final class TileEntityDeviceBusController extends CommonDeviceBusController {
     private final Runnable onBusChunkLoadedStateChanged = this::scheduleBusScan;
     private final HashSet<TrackedChunk> trackedChunks = new HashSet<>();
     private final TileEntity tileEntity;

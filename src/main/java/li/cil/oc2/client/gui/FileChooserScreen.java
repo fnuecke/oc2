@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
-public class FileChooserScreen extends Screen {
+public final class FileChooserScreen extends Screen {
     private static final Logger LOGGER = LogManager.getLogger();
 
     ///////////////////////////////////////////////////////////////////

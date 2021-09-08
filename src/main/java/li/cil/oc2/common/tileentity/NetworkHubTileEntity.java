@@ -6,7 +6,6 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
@@ -63,8 +62,7 @@ public final class NetworkHubTileEntity extends AbstractTileEntity implements Ne
 
         areAdjacentInterfacesDirty = false;
 
-        final World world = getLevel();
-        if (world == null || world.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
 
@@ -72,7 +70,7 @@ public final class NetworkHubTileEntity extends AbstractTileEntity implements Ne
         for (final Direction side : Constants.DIRECTIONS) {
             adjacentInterfaces[side.get3DDataValue()] = null;
 
-            final TileEntity neighborTileEntity = world.getBlockEntity(pos.relative(side));
+            final TileEntity neighborTileEntity = level.getBlockEntity(pos.relative(side));
             if (neighborTileEntity != null) {
                 final LazyOptional<NetworkInterface> capability = neighborTileEntity.getCapability(Capabilities.NETWORK_INTERFACE, side.getOpposite());
                 capability.ifPresent(adjacentInterface -> {

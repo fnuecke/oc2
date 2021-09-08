@@ -85,7 +85,7 @@ public final class RobotItem extends ModItem {
             return super.useOn(context);
         }
 
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             RobotActions.initializeData(robot);
             robot.importFromItemStack(context.getItemInHand());
 

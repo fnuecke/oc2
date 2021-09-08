@@ -32,7 +32,7 @@ public final class ItemHandlerBlockDeviceProvider extends AbstractTileEntityCapa
         }
 
         @Callback
-        public int getSlots() {
+        public int getSlotCount() {
             return identity.getSlots();
         }
 

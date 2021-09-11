@@ -17,7 +17,8 @@ end
 
 if #args > 0 then
 	local side = args[1]
-	sides = {["up"]=true,["down"]=true,["north"]=true,["south"]=true,["west"]=true,["east"]=true}
+	sides = {["up"]=true,["down"]=true,["north"]=true,["south"]=true,["west"]=true,["east"]=true,
+		["front"]=true,["back"]=true,["left"]=true,["right"]=true}
 	if not sides[string.lower(side)] then
 		io.stderr:write("invalid side\n")
 		return

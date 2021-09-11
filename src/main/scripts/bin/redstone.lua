@@ -16,10 +16,10 @@ if #args == 0 then
 end
 
 if #args > 0 then
-	local side = args[1]
+	local side = string.lower(args[1])
 	sides = {["up"]=true,["down"]=true,["north"]=true,["south"]=true,["west"]=true,["east"]=true,
 		["front"]=true,["back"]=true,["left"]=true,["right"]=true}
-	if not sides[string.lower(side)] then
+	if not sides[side] then
 		io.stderr:write("invalid side\n")
 		return
 	end

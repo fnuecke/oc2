@@ -84,6 +84,10 @@ public final class BusInterfaceItem extends ModBlockItem {
     @Override
     protected BlockState getPlacementState(final BlockItemUseContext context) {
         final BlockState state = super.getPlacementState(context);
+        if (state == null) {
+            return null;
+        }
+
         final EnumProperty<ConnectionType> connectionTypeProperty =
                 BusCableBlock.FACING_TO_CONNECTION_MAP.get(context.getClickedFace().getOpposite());
         return state

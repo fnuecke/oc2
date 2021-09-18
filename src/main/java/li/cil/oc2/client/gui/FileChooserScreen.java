@@ -11,7 +11,6 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -164,13 +163,13 @@ public final class FileChooserScreen extends Screen {
 
     @Override
     public void onFilesDrop(final List<Path> files) {
-        files.stream().filter(x -> {
+        files.stream().filter(file -> {
             try {
-                return Files.exists(x) && !Files.isHidden(x);
-            } catch (IOException | SecurityException ignored) {
+                return Files.exists(file) && !Files.isHidden(file);
+            } catch (final IOException | SecurityException ignored) {
                 return false;
             }
-        }).findFirst().ifPresent(file -> fileList.selectPath(file));
+        }).findFirst().ifPresent(fileList::selectPath);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -215,14 +214,12 @@ public final class FileChooserScreen extends Screen {
     private void confirm() {
         if (isParentPath()) {
             fileList.refreshFiles(getPath().orElse(null));
-            fileNameTextField.setValue("");
             return;
         }
 
         getPath().ifPresent(path -> {
             if (path == null || Files.isDirectory(path)) {
                 fileList.refreshFiles(path);
-                fileNameTextField.setValue("");
                 return;
             }
             if (Files.isRegularFile(path)) {
@@ -324,18 +321,20 @@ public final class FileChooserScreen extends Screen {
                     addEntry(createDirectoryEntry(path, path.toString()));
                 }
             }
+
+            fileNameTextField.setValue("");
         }
 
-        public void selectPath(@NotNull Path path) {
+        public void selectPath(final Path path) {
             if (Files.isDirectory(path)) {
                 refreshFiles(path);
-                fileNameTextField.setValue("");
             } else {
                 refreshFiles(path.getParent());
-                children().stream().filter(x -> x.file.equals(path)).findFirst().ifPresent(entry -> {
-                    entry.select();
-                    centerScrollOn(entry);
-                });
+                children().stream().filter(entry -> entry.file.equals(path))
+                        .findFirst().ifPresent(entry -> {
+                            entry.select();
+                            centerScrollOn(entry);
+                        });
             }
         }
 

@@ -8,17 +8,15 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.serialization.BlobStorage;
+import li.cil.oc2.common.bus.device.util.CompressedByteBufferMemory;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.PhysicalMemory;
-import li.cil.sedna.device.memory.ByteBufferMemory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.UUID;
 
 public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice {
@@ -63,7 +61,7 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     @Override
     public void unmount() {
-        suspend();
+        BlobStorage.close(blobHandle); // We don't need to suspend the compressed memory because it will be deleted and we will just be wasting time compressing data.
 
         // Memory is volatile, so free up our persisted blob when device is unloaded.
         if (blobHandle != null) {
@@ -124,9 +122,7 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
         try {
             blobHandle = BlobStorage.validateHandle(blobHandle);
-            final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
-            final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, size);
-            device = new ByteBufferMemory(buffer);
+            device = new CompressedByteBufferMemory(BlobStorage.getOrOpen(blobHandle), size);
         } catch (final IOException e) {
             return false;
         }

@@ -4,7 +4,7 @@ import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.api.memory.MemoryAccessException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -21,15 +21,15 @@ public class CompressedByteBufferMemory extends PhysicalMemory {
     private final FileChannel file;
     private final ByteBuffer data;
 
-    @Nullable
+    @NotNull
     private static ByteBuffer createBuffer(final FileChannel compressedFile, int size) {
+        ByteBuffer buffer = ByteBuffer.allocate(size);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
         try {
+            if(compressedFile.size() == 0) return buffer; // The file is empty so we create an empty byte buffer.
+
             long startTime;
             if(PROFILING) startTime = System.nanoTime();
-
-            ByteBuffer buffer = ByteBuffer.allocate(size);
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            if(compressedFile.size() == 0) return buffer; // The file is empty so we create an empty byte buffer.
 
             // Read the compressed file into a byte buffer
             ByteBuffer compressedBuffer = ByteBuffer.allocate((int) compressedFile.size());
@@ -54,11 +54,10 @@ public class CompressedByteBufferMemory extends PhysicalMemory {
                 long endTime = System.nanoTime();
                 LOGGER.info("Finished memory decompression, took " + ((endTime-startTime)/1000000f) + "ms.");
             }
-            return buffer;
         } catch (IOException e) {
             LOGGER.error(e);
-            return null;
         }
+        return buffer;
     }
 
     private static void saveBuffer(final FileChannel compressedFile, final ByteBuffer buffer) {
@@ -106,7 +105,6 @@ public class CompressedByteBufferMemory extends PhysicalMemory {
     public CompressedByteBufferMemory(final FileChannel file, int size) throws IOException {
         this.file = file;
         this.data = createBuffer(this.file, size);
-        if(this.data == null) throw new IllegalStateException("Failed to decompress the provided memory file.");
     }
 
     @Override

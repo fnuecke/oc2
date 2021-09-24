@@ -10,7 +10,6 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import java.util.LinkedList;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -65,33 +64,32 @@ public class CompressedByteBufferMemory extends PhysicalMemory {
             long startTime;
             if(PROFILING) startTime = System.nanoTime();
 
-            // Allocate the first chunk in our buffer
-            LinkedList<ByteBuffer> data = new LinkedList<>();
-            data.add(ByteBuffer.allocateDirect(1024*1024));
-
-            // Compress the memory
+            // Compress and write memory to the file.
+            compressedFile.position(0);
             GZIPOutputStream compressor = new GZIPOutputStream(new OutputStream() {
+                final ByteBuffer buffer = ByteBuffer.allocateDirect(1024 * 1024);
+
                 @Override
-                public void write(final int b) {
-                    ByteBuffer buffer = data.getLast();
-                    if(!buffer.hasRemaining()) {
-                        buffer = ByteBuffer.allocateDirect(1024*1024);
-                        data.add(buffer);
-                    }
-                    buffer.put((byte)b);
+                public void write(final int b) throws IOException {
+                    if(!this.buffer.hasRemaining()) this.flush();
+                    this.buffer.put((byte)b);
+                }
+
+                @Override
+                public void flush() throws IOException {
+                    this.buffer.limit(this.buffer.position());
+                    this.buffer.position(0);
+                    compressedFile.write(this.buffer);
+                    this.buffer.rewind();
+                }
+
+                @Override
+                public void close() throws IOException {
+                    this.flush();
                 }
             });
             compressor.write(buffer.array(), 0, buffer.capacity());
             compressor.close();
-
-            // Seek to position 0 and start writing the compressed data
-            compressedFile.position(0);
-            while(!data.isEmpty()) {
-                ByteBuffer toWrite = data.removeFirst();
-                toWrite.limit(toWrite.position());
-                toWrite.position(0);
-                compressedFile.write(toWrite);
-            }
 
             if(PROFILING) {
                 long endTime = System.nanoTime();

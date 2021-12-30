@@ -2,7 +2,7 @@ package li.cil.oc2.common.serialization;
 
 import li.cil.oc2.api.API;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.storage.FolderName;
+import net.minecraft.world.level.storage.LevelResource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -24,7 +24,7 @@ public final class BlobStorage {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final FolderName BLOBS_FOLDER_NAME = new FolderName(API.MOD_ID + "-blobs");
+    private static final LevelResource BLOBS_FOLDER_NAME = new LevelResource(API.MOD_ID + "-blobs");
     private static final Map<UUID, FileChannel> BLOBS = new HashMap<>();
 
     private static Path dataDirectory; // Directory blobs get saved to.

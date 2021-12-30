@@ -11,7 +11,7 @@ import li.cil.oc2.common.bus.device.item.HardDriveVMDeviceWithInitialData;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.item.HardDriveWithExternalDataItem;
 import li.cil.oc2.common.util.LocationSupplierUtils;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Optional;
 

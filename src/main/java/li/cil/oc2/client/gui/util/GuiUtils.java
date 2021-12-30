@@ -1,15 +1,15 @@
 package li.cil.oc2.client.gui.util;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.gui.widget.Sprite;
 import li.cil.oc2.common.container.TypedSlotItemHandler;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,8 +19,8 @@ import java.util.Optional;
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class GuiUtils {
-    private static final Map<DeviceType, ITextComponent> WARNING_BY_DEVICE_TYPE = Util.make(() -> {
-        final HashMap<DeviceType, ITextComponent> map = new HashMap<>();
+    private static final Map<DeviceType, Component> WARNING_BY_DEVICE_TYPE = Util.make(() -> {
+        final HashMap<DeviceType, Component> map = new HashMap<>();
 
         map.put(DeviceTypes.FLASH_MEMORY, text("tooltip.{mod}.flash_memory_missing"));
         map.put(DeviceTypes.MEMORY, text("tooltip.{mod}.memory_missing"));
@@ -35,18 +35,18 @@ public final class GuiUtils {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static <TContainer extends Container> void renderMissingDeviceInfoIcon(final MatrixStack matrixStack, final ContainerScreen<TContainer> screen, final DeviceType type, final Sprite icon) {
+    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoIcon(final PoseStack matrixStack, final AbstractContainerScreen<TContainer> screen, final DeviceType type, final Sprite icon) {
         findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> icon.draw(matrixStack,
                 screen.getGuiLeft() + slot.x - 1 + RELATIVE_ICON_POSITION,
                 screen.getGuiTop() + slot.y - 1 + RELATIVE_ICON_POSITION));
     }
 
-    public static <TContainer extends Container> void renderMissingDeviceInfoTooltip(final MatrixStack matrixStack, final ContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type) {
+    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final PoseStack matrixStack, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type) {
         renderMissingDeviceInfoTooltip(matrixStack, screen, mouseX, mouseY, type, Objects.requireNonNull(WARNING_BY_DEVICE_TYPE.get(type)));
     }
 
-    public static <TContainer extends Container> void renderMissingDeviceInfoTooltip(final MatrixStack matrixStack, final ContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final ITextComponent tooltip) {
-        final boolean isCursorHoldingStack = !screen.getMinecraft().player.inventory.getCarried().isEmpty();
+    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final PoseStack matrixStack, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final Component tooltip) {
+        final boolean isCursorHoldingStack = !screen.getMinecraft().player.inventoryMenu.getCarried().isEmpty();
         if (isCursorHoldingStack) {
             return;
         }
@@ -65,7 +65,7 @@ public final class GuiUtils {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static Optional<TypedSlotItemHandler> findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(final Container container, final DeviceType type) {
+    private static Optional<TypedSlotItemHandler> findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(final AbstractContainerMenu container, final DeviceType type) {
         TypedSlotItemHandler firstSlot = null;
         for (final Slot slot : container.slots) {
             if (slot instanceof TypedSlotItemHandler) {

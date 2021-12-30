@@ -1,19 +1,19 @@
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 
-public final class MachineTerminalWidget extends AbstractGui {
+public final class MachineTerminalWidget extends GuiComponent {
     public static final int TERMINAL_WIDTH = Terminal.WIDTH * Terminal.CHAR_WIDTH / 2;
     public static final int TERMINAL_HEIGHT = Terminal.HEIGHT * Terminal.CHAR_HEIGHT / 2;
 
@@ -40,7 +40,7 @@ public final class MachineTerminalWidget extends AbstractGui {
         this.terminal = this.container.getTerminal();
     }
 
-    public void renderBackground(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
+    public void renderBackground(final PoseStack matrixStack, final int mouseX, final int mouseY) {
         isMouseOverTerminal = isMouseOverTerminal(mouseX, mouseY);
 
         Sprites.TERMINAL_SCREEN.draw(matrixStack, leftPos, topPos);
@@ -50,14 +50,14 @@ public final class MachineTerminalWidget extends AbstractGui {
         }
     }
 
-    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, @Nullable final ITextComponent error) {
+    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, @Nullable final Component error) {
         if (container.getVirtualMachine().isRunning()) {
-            final MatrixStack stack = new MatrixStack();
+            final PoseStack stack = new PoseStack();
             stack.translate(leftPos + TERMINAL_X, topPos + TERMINAL_Y, getClient().getItemRenderer().blitOffset);
             stack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
             terminal.render(stack);
         } else {
-            final FontRenderer font = getClient().font;
+            final Font font = getClient().font;
             if (error != null) {
                 final int textWidth = font.width(error);
                 final int textOffsetX = (TERMINAL_WIDTH - textWidth) / 2;

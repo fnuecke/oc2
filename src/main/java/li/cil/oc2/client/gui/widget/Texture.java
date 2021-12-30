@@ -1,8 +1,8 @@
 package li.cil.oc2.client.gui.widget;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.api.API;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 public final class Texture {
     public final ResourceLocation location;
@@ -19,6 +19,6 @@ public final class Texture {
     }
 
     public void bind() {
-        Minecraft.getInstance().getTextureManager().bind(location);
+        RenderSystem.setShaderTexture(0, location);
     }
 }

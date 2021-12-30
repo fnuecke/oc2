@@ -1,9 +1,9 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.common.ConfigManager.Path;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraftforge.common.ToolType;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Tiers;
+import net.minecraftforge.common.TierSortingRegistry;
 
 import java.util.UUID;
 
@@ -33,7 +33,7 @@ public final class Config {
     @Path("energy.items") public static int blockOperationsModuleEnergyPerTick = 2;
     @Path("energy.items") public static int inventoryOperationsModuleEnergyPerTick = 1;
 
-    @Path("gameplay") public static int blockOperationsModuleToolLevel = Items.DIAMOND_PICKAXE.getHarvestLevel(new ItemStack(Items.DIAMOND_PICKAXE), ToolType.PICKAXE, null, null);
+    @Path("gameplay") public static ResourceLocation blockOperationsModuleToolTier = TierSortingRegistry.getName(Tiers.DIAMOND);
 
     @Path("admin") public static UUID fakePlayerUUID = UUID.fromString("e39dd9a7-514f-4a2d-aa5e-b6030621416d");
 

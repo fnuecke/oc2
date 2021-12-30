@@ -1,1 +1,2 @@
-rootProject.name = 'oc2-1.16.5-forge'
+apply from: 'minecraft.gradle'
+rootProject.name = "oc2-${minecraft_version}-${minecraft_sdk}"

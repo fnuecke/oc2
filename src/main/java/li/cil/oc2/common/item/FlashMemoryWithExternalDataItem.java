@@ -3,13 +3,13 @@ package li.cil.oc2.common.item;
 import li.cil.oc2.api.bus.device.data.Firmware;
 import li.cil.oc2.common.bus.device.data.Firmwares;
 import li.cil.oc2.common.util.ItemStackUtils;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.ResourceLocationException;
-import net.minecraft.util.StringUtils;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.ResourceLocationException;
+import net.minecraft.util.StringUtil;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 
 import javax.annotation.Nullable;
 
@@ -39,7 +39,7 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
         final String registryName = ItemStackUtils.getModDataTag(stack).getString(FIRMWARE_TAG_NAME);
 
         ResourceLocation location = defaultData;
-        if (!StringUtils.isNullOrEmpty(registryName)) {
+        if (!StringUtil.isNullOrEmpty(registryName)) {
             try {
                 location = new ResourceLocation(registryName);
             } catch (final ResourceLocationException ignored) {
@@ -69,10 +69,10 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
     }
 
     @Override
-    public ITextComponent getName(final ItemStack stack) {
+    public Component getName(final ItemStack stack) {
         final Firmware firmware = getFirmware(stack);
         if (firmware != null) {
-            return new StringTextComponent("")
+            return new TextComponent("")
                     .append(super.getName(stack))
                     .append(" (")
                     .append(firmware.getDisplayName())

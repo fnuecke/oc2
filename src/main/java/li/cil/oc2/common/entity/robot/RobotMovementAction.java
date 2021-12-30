@@ -5,12 +5,12 @@ import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
-import net.minecraft.entity.MoverType;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -33,7 +33,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
     @Nullable private BlockPos origin;
     @Nullable private BlockPos start;
     @Nullable private BlockPos target;
-    @Nullable private Vector3d targetPos;
+    @Nullable private Vec3 targetPos;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -42,19 +42,19 @@ public final class RobotMovementAction extends AbstractRobotAction {
         this.direction = direction.resolve();
     }
 
-    RobotMovementAction(final CompoundNBT tag) {
+    RobotMovementAction(final CompoundTag tag) {
         super(RobotActions.MOVEMENT);
         deserialize(tag);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static Vector3d getTargetPositionInBlock(final BlockPos position) {
-        return Vector3d.atBottomCenterOf(position).add(0, 0.5f * (1 - Entities.ROBOT.get().getHeight()), 0);
+    public static Vec3 getTargetPositionInBlock(final BlockPos position) {
+        return Vec3.atBottomCenterOf(position).add(0, 0.5f * (1 - Entities.ROBOT.get().getHeight()), 0);
     }
 
-    public static void moveTowards(final RobotEntity robot, final Vector3d targetPosition) {
-        Vector3d delta = targetPosition.subtract(robot.position());
+    public static void moveTowards(final RobotEntity robot, final Vec3 targetPosition) {
+        Vec3 delta = targetPosition.subtract(robot.position());
         if (delta.lengthSqr() > MOVEMENT_SPEED * MOVEMENT_SPEED) {
             delta = delta.normalize().scale(MOVEMENT_SPEED);
         }
@@ -112,38 +112,38 @@ public final class RobotMovementAction extends AbstractRobotAction {
     }
 
     @Override
-    public CompoundNBT serialize() {
-        final CompoundNBT tag = super.serialize();
+    public CompoundTag serialize() {
+        final CompoundTag tag = super.serialize();
 
         NBTUtils.putEnum(tag, DIRECTION_TAG_NAME, direction);
         if (origin != null) {
-            tag.put(ORIGIN_TAG_NAME, NBTUtil.writeBlockPos(origin));
+            tag.put(ORIGIN_TAG_NAME, NbtUtils.writeBlockPos(origin));
         }
         if (start != null) {
-            tag.put(START_TAG_NAME, NBTUtil.writeBlockPos(start));
+            tag.put(START_TAG_NAME, NbtUtils.writeBlockPos(start));
         }
         if (target != null) {
-            tag.put(TARGET_TAG_NAME, NBTUtil.writeBlockPos(target));
+            tag.put(TARGET_TAG_NAME, NbtUtils.writeBlockPos(target));
         }
 
         return tag;
     }
 
     @Override
-    public void deserialize(final CompoundNBT tag) {
+    public void deserialize(final CompoundTag tag) {
         super.deserialize(tag);
 
         direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, MovementDirection.class);
         if (direction == null) direction = MovementDirection.FORWARD;
         direction = direction.resolve();
         if (tag.contains(ORIGIN_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            origin = NBTUtil.readBlockPos(tag.getCompound(ORIGIN_TAG_NAME));
+            origin = NbtUtils.readBlockPos(tag.getCompound(ORIGIN_TAG_NAME));
         }
         if (tag.contains(START_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            start = NBTUtil.readBlockPos(tag.getCompound(START_TAG_NAME));
+            start = NbtUtils.readBlockPos(tag.getCompound(START_TAG_NAME));
         }
         if (tag.contains(TARGET_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            target = NBTUtil.readBlockPos(tag.getCompound(TARGET_TAG_NAME));
+            target = NbtUtils.readBlockPos(tag.getCompound(TARGET_TAG_NAME));
             targetPos = getTargetPositionInBlock(target);
         }
     }

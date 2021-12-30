@@ -5,7 +5,7 @@ import li.cil.oc2.common.util.Location;
 import li.cil.oc2.common.util.SoundEvents;
 import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 import java.io.IOException;
 import java.nio.MappedByteBuffer;

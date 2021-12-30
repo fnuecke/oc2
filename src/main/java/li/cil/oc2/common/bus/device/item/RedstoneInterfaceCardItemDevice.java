@@ -8,14 +8,14 @@ import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
@@ -34,13 +34,13 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
 
     ///////////////////////////////////////////////////////////////////
 
-    private final TileEntity tileEntity;
+    private final BlockEntity tileEntity;
     private final RedstoneEmitter[] capabilities;
     private final byte[] output = new byte[Constants.BLOCK_FACE_COUNT];
 
     ///////////////////////////////////////////////////////////////////
 
-    public RedstoneInterfaceCardItemDevice(final ItemStack identity, final TileEntity tileEntity) {
+    public RedstoneInterfaceCardItemDevice(final ItemStack identity, final BlockEntity tileEntity) {
         super(identity, "redstone");
         this.tileEntity = tileEntity;
 
@@ -64,14 +64,14 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        final CompoundTag tag = new CompoundTag();
         tag.putByteArray(OUTPUT_TAG_NAME, output);
         return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT tag) {
+    public void deserializeNBT(final CompoundTag tag) {
         final byte[] serializedOutput = tag.getByteArray(OUTPUT_TAG_NAME);
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
     }
@@ -80,7 +80,7 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
     public int getRedstoneInput(@Parameter(SIDE) @Nullable final Side side) {
         if (side == null) throw new IllegalArgumentException();
 
-        final World world = tileEntity.getLevel();
+        final Level world = tileEntity.getLevel();
         if (world == null) {
             return 0;
         }
@@ -109,7 +109,7 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
     public void setRedstoneOutput(@Parameter(SIDE) @Nullable final Side side, @Parameter(VALUE) final int value) {
         if (side == null) throw new IllegalArgumentException();
 
-        final byte clampedValue = (byte) MathHelper.clamp(value, 0, 15);
+        final byte clampedValue = (byte) Mth.clamp(value, 0, 15);
         if (clampedValue == output[side.get3DDataValue()]) {
             return;
         }
@@ -151,7 +151,7 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
     ///////////////////////////////////////////////////////////////////
 
     private void notifyNeighbor(final Direction direction) {
-        final World world = tileEntity.getLevel();
+        final Level world = tileEntity.getLevel();
         if (world == null) {
             return;
         }

@@ -5,14 +5,14 @@ import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -187,24 +187,24 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     }
 
     private Stream<IItemHandler> getItemStackHandlersInDirection(final Direction direction) {
-        return getItemStackHandlersAt(Vector3d.atCenterOf(entity.blockPosition().relative(direction)), direction.getOpposite());
+        return getItemStackHandlersAt(Vec3.atCenterOf(entity.blockPosition().relative(direction)), direction.getOpposite());
     }
 
-    private Stream<IItemHandler> getItemStackHandlersAt(final Vector3d position, final Direction side) {
+    private Stream<IItemHandler> getItemStackHandlersAt(final Vec3 position, final Direction side) {
         return Stream.concat(getEntityItemHandlersAt(position, side), getBlockItemHandlersAt(position, side));
     }
 
-    private Stream<IItemHandler> getEntityItemHandlersAt(final Vector3d position, final Direction side) {
-        final AxisAlignedBB bounds = AxisAlignedBB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
+    private Stream<IItemHandler> getEntityItemHandlersAt(final Vec3 position, final Direction side) {
+        final AABB bounds = AABB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
         return entity.level.getEntities(entity, bounds).stream()
                 .map(e -> e.getCapability(Capabilities.ITEM_HANDLER, side))
                 .filter(LazyOptional::isPresent)
                 .map(c -> c.orElseThrow(AssertionError::new));
     }
 
-    private Stream<IItemHandler> getBlockItemHandlersAt(final Vector3d position, final Direction side) {
+    private Stream<IItemHandler> getBlockItemHandlersAt(final Vec3 position, final Direction side) {
         final BlockPos pos = new BlockPos(position);
-        final TileEntity tileEntity = entity.level.getBlockEntity(pos);
+        final BlockEntity tileEntity = entity.level.getBlockEntity(pos);
         if (tileEntity == null) {
             return Stream.empty();
         }

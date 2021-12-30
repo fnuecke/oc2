@@ -4,8 +4,8 @@ import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,7 +38,7 @@ public final class BuildrootBlockDeviceData extends ForgeRegistryEntry<BlockDevi
     }
 
     @Override
-    public ITextComponent getDisplayName() {
-        return new StringTextComponent("Linux");
+    public Component getDisplayName() {
+        return new TextComponent("Linux");
     }
 }

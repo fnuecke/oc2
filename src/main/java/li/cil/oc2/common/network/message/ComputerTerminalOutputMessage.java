@@ -2,8 +2,8 @@ package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.nio.ByteBuffer;
 
@@ -12,7 +12,7 @@ public final class ComputerTerminalOutputMessage extends AbstractTerminalBlockMe
         super(tileEntity, data);
     }
 
-    public ComputerTerminalOutputMessage(final PacketBuffer buffer) {
+    public ComputerTerminalOutputMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 

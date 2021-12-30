@@ -27,9 +27,9 @@ public final class Callbacks {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final HashMap<Class<?>, List<Method>> METHOD_BY_TYPE = new HashMap<>();
-    private static final HashMap<Method, RPCParameter[]> PARAMETERS_BY_METHOD = new HashMap<>();
-    private static final HashMap<Method, CallbackDocumentation> DOCUMENTATION_BY_METHOD = new HashMap<>();
+    private static final Map<Class<?>, List<Method>> METHOD_BY_TYPE = Collections.synchronizedMap(new HashMap<>());
+    private static final Map<Method, RPCParameter[]> PARAMETERS_BY_METHOD = Collections.synchronizedMap(new HashMap<>());
+    private static final Map<Method, CallbackDocumentation> DOCUMENTATION_BY_METHOD = Collections.synchronizedMap(new HashMap<>());
 
     ///////////////////////////////////////////////////////////////////
 
@@ -171,8 +171,7 @@ public final class Callbacks {
                     String returnValueDescription = hasReturnValueDescription ? annotation.returnValueDescription() : null;
                     final HashMap<String, String> parameterDescriptions = new HashMap<>();
 
-                    if (target instanceof DocumentedDevice) {
-                        final DocumentedDevice documentedDevice = (DocumentedDevice) target;
+                    if (target instanceof final DocumentedDevice documentedDevice) {
                         final DeviceVisitorImpl visitor = new DeviceVisitorImpl();
                         documentedDevice.getDeviceDocumentation(visitor);
 

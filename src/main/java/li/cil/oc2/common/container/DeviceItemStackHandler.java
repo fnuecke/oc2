@@ -2,10 +2,9 @@ package li.cil.oc2.common.container;
 
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.bus.ItemHandlerDeviceBusElement;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.util.NonNullList;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.NonNullList;
 
 import javax.annotation.Nonnull;
 import java.util.function.Function;
@@ -37,28 +36,28 @@ public class DeviceItemStackHandler extends FixedSizeItemStackHandler {
     }
 
     @Override
-    public final CompoundNBT serializeNBT() {
+    public final CompoundTag serializeNBT() {
         throw new UnsupportedOperationException("Use saveItems and saveDevices instead.");
     }
 
     @Override
-    public final void deserializeNBT(final CompoundNBT tag) {
+    public final void deserializeNBT(final CompoundTag tag) {
         throw new UnsupportedOperationException("Use loadItems and loadDevices instead.");
     }
 
-    public CompoundNBT saveItems() {
+    public CompoundTag saveItems() {
         return super.serializeNBT();
     }
 
-    public CompoundNBT saveDevices() {
+    public CompoundTag saveDevices() {
         return busElement.save();
     }
 
-    public void loadItems(final CompoundNBT tag) {
+    public void loadItems(final CompoundTag tag) {
         super.deserializeNBT(tag);
     }
 
-    public void loadDevices(final CompoundNBT tag) {
+    public void loadDevices(final CompoundTag tag) {
         busElement.load(tag);
         for (int slot = 0; slot < getSlots(); slot++) {
             busElement.updateDevices(slot, getStackInSlot(slot));

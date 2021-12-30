@@ -1,18 +1,18 @@
 package li.cil.oc2.client.audio;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.ITickableSound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.client.resources.sounds.TickableSoundInstance;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.sounds.SoundEvent;
 
 import java.util.WeakHashMap;
 
 public final class LoopingSoundManager {
-    private static final WeakHashMap<TileEntity, ITickableSound> TILE_ENTITY_SOUNDS = new WeakHashMap<>();
+    private static final WeakHashMap<BlockEntity, TickableSoundInstance> TILE_ENTITY_SOUNDS = new WeakHashMap<>();
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void play(final TileEntity tileEntity, final SoundEvent sound, final int delay) {
+    public static void play(final BlockEntity tileEntity, final SoundEvent sound, final int delay) {
         stop(tileEntity);
 
         final LoopingTileEntitySound instance = new LoopingTileEntitySound(tileEntity, sound);
@@ -20,15 +20,15 @@ public final class LoopingSoundManager {
         Minecraft.getInstance().getSoundManager().playDelayed(instance, delay);
     }
 
-    public static void stop(final TileEntity tileEntity) {
-        final ITickableSound instance = TILE_ENTITY_SOUNDS.remove(tileEntity);
+    public static void stop(final BlockEntity tileEntity) {
+        final TickableSoundInstance instance = TILE_ENTITY_SOUNDS.remove(tileEntity);
         if (instance != null) {
             Minecraft.getInstance().getSoundManager().stop(instance);
         }
     }
 
-    public static boolean isPlaying(final TileEntity tileEntity) {
-        final ITickableSound instance = TILE_ENTITY_SOUNDS.get(tileEntity);
+    public static boolean isPlaying(final BlockEntity tileEntity) {
+        final TickableSoundInstance instance = TILE_ENTITY_SOUNDS.get(tileEntity);
         return instance != null && !instance.isStopped();
     }
 }

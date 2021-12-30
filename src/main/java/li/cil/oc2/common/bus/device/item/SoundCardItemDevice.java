@@ -4,12 +4,12 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.Location;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
@@ -41,12 +41,12 @@ public final class SoundCardItemDevice extends AbstractItemRPCDevice {
         if (name == null) throw new IllegalArgumentException();
 
         location.get().ifPresent(location -> {
-            final IWorld level = location.world;
-            if (!(level instanceof ServerWorld)) {
+            final LevelAccessor level = location.world;
+            if (!(level instanceof ServerLevel)) {
                 return;
             }
 
-            final long gameTime = ((ServerWorld) level).getGameTime();
+            final long gameTime = ((ServerLevel) level).getGameTime();
             if (gameTime < gameTimeCooldownExpiresAt) {
                 return;
             }
@@ -54,7 +54,7 @@ public final class SoundCardItemDevice extends AbstractItemRPCDevice {
 
             final SoundEvent soundEvent = ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation(name));
             if (soundEvent == null) throw new IllegalArgumentException("Sound not found.");
-            level.playSound(null, location.pos, soundEvent, SoundCategory.BLOCKS, 1, 1);
+            level.playSound(null, location.pos, soundEvent, SoundSource.BLOCKS, 1, 1);
         });
     }
 

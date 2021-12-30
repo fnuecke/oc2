@@ -11,45 +11,43 @@ import li.cil.oc2.common.entity.robot.RobotActions;
 import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.WorldUtils;
-import net.minecraft.block.SoundType;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.client.IItemRenderProperties;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static li.cil.oc2.common.Constants.*;
 import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
 
 public final class RobotItem extends ModItem {
-    public RobotItem() {
-        super(createProperties().setISTER(() -> RobotItemStackRenderer::new));
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
     @Override
-    public void fillItemCategory(final ItemGroup group, final NonNullList<ItemStack> items) {
+    public void fillItemCategory(final CreativeModeTab group, final NonNullList<ItemStack> items) {
         if (allowdedIn(group)) {
             items.add(getRobotWithFlash());
         }
     }
 
     @Override
-    public void appendHoverText(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
+    public void appendHoverText(final ItemStack stack, @Nullable final Level world, final List<Component> tooltip, final TooltipFlag flag) {
         super.appendHoverText(stack, world, tooltip, flag);
         TooltipUtils.addEnergyConsumption(Config.robotEnergyPerTick, tooltip);
         TooltipUtils.addEntityEnergyInformation(stack, tooltip);
@@ -58,7 +56,7 @@ public final class RobotItem extends ModItem {
 
     @Nullable
     @Override
-    public ICapabilityProvider initCapabilities(final ItemStack stack, @Nullable final CompoundNBT nbt) {
+    public ICapabilityProvider initCapabilities(final ItemStack stack, @Nullable final CompoundTag nbt) {
         if (Config.robotsUseEnergy()) {
             return new EnergyStorageItemStack(stack, Config.robotEnergyStorage, MOD_TAG_NAME, ENERGY_TAG_NAME);
         } else {
@@ -67,20 +65,20 @@ public final class RobotItem extends ModItem {
     }
 
     @Override
-    public ActionResultType useOn(final ItemUseContext context) {
-        final World world = context.getLevel();
+    public InteractionResult useOn(final UseOnContext context) {
+        final Level world = context.getLevel();
         final BlockPos pos = context.getClickedPos();
 
-        final Vector3d position;
-        if (world.getBlockState(pos).canBeReplaced(new BlockItemUseContext(context))) {
-            position = Vector3d.atCenterOf(pos);
+        final Vec3 position;
+        if (world.getBlockState(pos).canBeReplaced(new BlockPlaceContext(context))) {
+            position = Vec3.atCenterOf(pos);
         } else {
-            position = Vector3d.atCenterOf(pos.relative(context.getClickedFace()));
+            position = Vec3.atCenterOf(pos.relative(context.getClickedFace()));
         }
 
         final RobotEntity robot = Entities.ROBOT.get().create(context.getLevel());
         robot.moveTo(position.x, position.y - robot.getBbHeight() * 0.5f, position.z,
-                Direction.fromYRot(context.getRotation()).getOpposite().toYRot(), 0);
+            Direction.fromYRot(context.getRotation()).getOpposite().toYRot(), 0);
         if (!world.noCollision(robot)) {
             return super.useOn(context);
         }
@@ -99,7 +97,19 @@ public final class RobotItem extends ModItem {
 
         context.getPlayer().awardStat(Stats.ITEM_USED.get(this));
 
-        return ActionResultType.sidedSuccess(world.isClientSide());
+        return InteractionResult.sidedSuccess(world.isClientSide());
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    public void initializeClient(final Consumer<IItemRenderProperties> consumer) {
+        consumer.accept(new IItemRenderProperties() {
+            @Override
+            public BlockEntityWithoutLevelRenderer getItemStackRenderer() {
+                return new RobotItemStackRenderer(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());
+            }
+        });
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -107,9 +117,9 @@ public final class RobotItem extends ModItem {
     private ItemStack getRobotWithFlash() {
         final ItemStack robot = new ItemStack(this);
 
-        final CompoundNBT itemsTag = NBTUtils.getOrCreateChildTag(robot.getOrCreateTag(), API.MOD_ID, ITEMS_TAG_NAME);
+        final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(robot.getOrCreateTag(), API.MOD_ID, ITEMS_TAG_NAME);
         itemsTag.put(DeviceTypes.FLASH_MEMORY.getRegistryName().toString(), makeInventoryTag(
-                new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
+            new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
         ));
 
         return robot;

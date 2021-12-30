@@ -1,0 +1,4 @@
+ext {
+    minecraft_version = '1.18.1'
+    minecraft_sdk = 'forge'
+}

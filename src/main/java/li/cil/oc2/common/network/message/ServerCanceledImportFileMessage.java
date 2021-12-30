@@ -1,8 +1,8 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
@@ -15,19 +15,19 @@ public final class ServerCanceledImportFileMessage extends AbstractMessage {
         this.id = id;
     }
 
-    public ServerCanceledImportFileMessage(final PacketBuffer buffer) {
+    public ServerCanceledImportFileMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         id = buffer.readVarInt();
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeVarInt(id);
     }
 

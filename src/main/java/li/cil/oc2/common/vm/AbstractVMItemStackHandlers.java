@@ -9,8 +9,8 @@ import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.container.TypedDeviceItemStackHandler;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -114,7 +114,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         }
     }
 
-    public void saveItems(final CompoundNBT tag) {
+    public void saveItems(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) -> {
             if (!handler.isEmpty()) {
                 tag.put(deviceType.getRegistryName().toString(), handler.saveItems());
@@ -122,29 +122,29 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         });
     }
 
-    public CompoundNBT saveItems() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag saveItems() {
+        final CompoundTag tag = new CompoundTag();
         saveItems(tag);
         return tag;
     }
 
-    public void loadItems(final CompoundNBT tag) {
+    public void loadItems(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
                 handler.loadItems(tag.getCompound(deviceType.getRegistryName().toString())));
     }
 
-    public void saveDevices(final CompoundNBT tag) {
+    public void saveDevices(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
                 tag.put(deviceType.getRegistryName().toString(), handler.saveDevices()));
     }
 
-    public CompoundNBT saveDevices() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag saveDevices() {
+        final CompoundTag tag = new CompoundTag();
         saveDevices(tag);
         return tag;
     }
 
-    public void loadDevices(final CompoundNBT tag) {
+    public void loadDevices(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
                 handler.loadDevices(tag.getCompound(deviceType.getRegistryName().toString())));
     }

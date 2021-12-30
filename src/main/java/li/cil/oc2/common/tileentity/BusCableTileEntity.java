@@ -12,17 +12,18 @@ import li.cil.oc2.common.network.message.BusCableFacadeMessage;
 import li.cil.oc2.common.network.message.BusInterfaceNameMessage;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.StringUtils;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants.BlockFlags;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.core.Direction;
+import net.minecraft.util.StringUtil;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -47,8 +48,8 @@ public final class BusCableTileEntity extends AbstractTileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    public BusCableTileEntity() {
-        super(TileEntities.BUS_CABLE_TILE_ENTITY.get());
+    public BusCableTileEntity(final BlockPos pos, final BlockState state) {
+        super(TileEntities.BUS_CABLE_TILE_ENTITY.get(), pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -81,9 +82,9 @@ public final class BusCableTileEntity extends AbstractTileEntity {
             return FacadeType.NOT_A_BLOCK;
         }
 
-        if (state.getRenderShape() != BlockRenderType.MODEL ||
+        if (state.getRenderShape() != RenderShape.MODEL ||
             !state.isSolidRender(level, getBlockPos()) ||
-            state.getBlock().hasTileEntity(state)) {
+            state.getBlock() instanceof EntityBlock) {
             return FacadeType.INVALID_BLOCK;
         }
 
@@ -109,7 +110,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         BusCableBlock.setHasFacade(level, getBlockPos(), getBlockState(), facadeState, true);
 
         setChanged();
-        level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), BlockFlags.DEFAULT);
+        level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_ALL);
 
         if (!level.isClientSide()) {
             final BusCableFacadeMessage message = new BusCableFacadeMessage(getBlockPos(), facade);
@@ -123,7 +124,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         BusCableBlock.setHasFacade(level, getBlockPos(), getBlockState(), facadeState, false);
 
         setChanged();
-        level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), BlockFlags.DEFAULT);
+        level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_ALL);
 
         if (!level.isClientSide()) {
             final BusCableFacadeMessage message = new BusCableFacadeMessage(getBlockPos(), facade);
@@ -160,8 +161,8 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public CompoundNBT getUpdateTag() {
-        final CompoundNBT tag = super.getUpdateTag();
+    public CompoundTag getUpdateTag() {
+        final CompoundTag tag = super.getUpdateTag();
 
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
         tag.put(FACADE_TAG_NAME, facade.serializeNBT());
@@ -170,24 +171,23 @@ public final class BusCableTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public void handleUpdateTag(final BlockState state, final CompoundNBT tag) {
+    public void handleUpdateTag(final CompoundTag tag) {
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
         setFacade(ItemStack.of(tag.getCompound(FACADE_TAG_NAME)));
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT tag) {
-        tag = super.save(tag);
+    protected void saveAdditional(final CompoundTag tag) {
+        super.saveAdditional(tag);
+
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.save());
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
         tag.put(FACADE_TAG_NAME, facade.serializeNBT());
-
-        return tag;
     }
 
     @Override
-    public void load(final BlockState state, final CompoundNBT tag) {
-        super.load(state, tag);
+    public void load(final CompoundTag tag) {
+        super.load(tag);
         busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
         facade = ItemStack.of(tag.getCompound(FACADE_TAG_NAME));
@@ -211,15 +211,15 @@ public final class BusCableTileEntity extends AbstractTileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    private ListNBT serializeInterfaceNames() {
-        final ListNBT tag = new ListNBT();
+    private ListTag serializeInterfaceNames() {
+        final ListTag tag = new ListTag();
         for (int i = 0; i < Constants.BLOCK_FACE_COUNT; i++) {
-            tag.add(StringNBT.valueOf(getInterfaceName(Direction.from3DDataValue(i))));
+            tag.add(StringTag.valueOf(getInterfaceName(Direction.from3DDataValue(i))));
         }
         return tag;
     }
 
-    private void deserializeInterfaceNames(final ListNBT tag) {
+    private void deserializeInterfaceNames(final ListTag tag) {
         for (int i = 0; i < Constants.BLOCK_FACE_COUNT; i++) {
             final String name = tag.getString(i).trim();
             interfaceNames[i] = name.substring(0, Math.min(32, name.length()));
@@ -242,7 +242,7 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         public boolean canScanContinueTowards(@Nullable final Direction direction) {
             final BusCableBlock.ConnectionType connectionType = BusCableBlock.getConnectionType(getBlockState(), direction);
             return connectionType == BusCableBlock.ConnectionType.CABLE ||
-                   connectionType == BusCableBlock.ConnectionType.INTERFACE;
+                connectionType == BusCableBlock.ConnectionType.INTERFACE;
         }
 
         @Override
@@ -252,11 +252,11 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         }
 
         @Override
-        protected void collectSyntheticDevices(final World world, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockDeviceInfo> devices) {
+        protected void collectSyntheticDevices(final Level world, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockDeviceInfo> devices) {
             super.collectSyntheticDevices(world, pos, direction, devices);
             if (direction != null) {
                 final String interfaceName = interfaceNames[direction.get3DDataValue()];
-                if (!StringUtils.isNullOrEmpty(interfaceName)) {
+                if (!StringUtil.isNullOrEmpty(interfaceName)) {
                     devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)));
                 }
             }
@@ -265,8 +265,8 @@ public final class BusCableTileEntity extends AbstractTileEntity {
         @Override
         public double getEnergyConsumption() {
             return super.getEnergyConsumption()
-                   + Config.busCableEnergyPerTick
-                   + BusCableBlock.getInterfaceCount(getBlockState()) * Config.busInterfaceEnergyPerTick;
+                + Config.busCableEnergyPerTick
+                + BusCableBlock.getInterfaceCount(getBlockState()) * Config.busInterfaceEnergyPerTick;
         }
     }
 }

@@ -9,11 +9,10 @@ import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ExportedFileMessage;
 import li.cil.oc2.common.network.message.RequestImportedFileMessage;
 import li.cil.oc2.common.network.message.ServerCanceledImportFileMessage;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.StringUtils;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.util.StringUtil;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -24,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
+
+import net.minecraftforge.network.PacketDistributor;
 
 public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice implements DocumentedDevice {
     public static final int MAX_TRANSFERRED_FILE_SIZE = 512 * 1024;
@@ -80,7 +81,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
     }
 
     private static final class ImportFileRequest {
-        public final Set<ServerPlayerEntity> PendingPlayers = Collections.newSetFromMap(new WeakHashMap<>());
+        public final Set<ServerPlayer> PendingPlayers = Collections.newSetFromMap(new WeakHashMap<>());
         public final WeakReference<FileImportExportCardItemDevice> Device;
 
         private ImportFileRequest(final FileImportExportCardItemDevice device) {
@@ -116,7 +117,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
                 if (device != null) {
                     device.importedFile = new ImportedFile(name, data);
                     final ServerCanceledImportFileMessage message = new ServerCanceledImportFileMessage(id);
-                    for (final ServerPlayerEntity player : request.PendingPlayers) {
+                    for (final ServerPlayer player : request.PendingPlayers) {
                         Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
                     }
                 }
@@ -124,7 +125,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         }
     }
 
-    public static void cancelImport(final ServerPlayerEntity player, final int id) {
+    public static void cancelImport(final ServerPlayer player, final int id) {
         synchronized (importingDevices) {
             final ImportFileRequest request = importingDevices.get(id);
             if (request != null) {
@@ -153,7 +154,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
             throw new IllegalStateException("invalid state");
         }
 
-        if (StringUtils.isNullOrEmpty(name)) {
+        if (StringUtil.isNullOrEmpty(name)) {
             throw new IllegalArgumentException("name must not be empty");
         }
 
@@ -186,10 +187,10 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         }
 
         try {
-            for (final PlayerEntity player : userProvider.getTerminalUsers()) {
-                if (player instanceof ServerPlayerEntity) {
+            for (final Player player : userProvider.getTerminalUsers()) {
+                if (player instanceof ServerPlayer) {
                     final ExportedFileMessage message = new ExportedFileMessage(exportedFile.name, exportedFile.data.toByteArray());
-                    Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), message);
+                    Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), message);
                 }
             }
         } finally {
@@ -203,10 +204,10 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
             throw new IllegalStateException("invalid state");
         }
 
-        final ArrayList<ServerPlayerEntity> players = new ArrayList<>();
-        for (final PlayerEntity player : userProvider.getTerminalUsers()) {
-            if (player instanceof ServerPlayerEntity) {
-                players.add((ServerPlayerEntity) player);
+        final ArrayList<ServerPlayer> players = new ArrayList<>();
+        for (final Player player : userProvider.getTerminalUsers()) {
+            if (player instanceof ServerPlayer) {
+                players.add((ServerPlayer) player);
             }
         }
 
@@ -220,7 +221,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
             importingDevices.put(importingId, new ImportFileRequest(this));
         }
 
-        for (final ServerPlayerEntity player : players) {
+        for (final ServerPlayer player : players) {
             final RequestImportedFileMessage message = new RequestImportedFileMessage(importingId);
             Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
         }

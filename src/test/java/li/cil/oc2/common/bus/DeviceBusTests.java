@@ -3,7 +3,7 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.util.registry.Bootstrap;
+import net.minecraft.server.Bootstrap;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import org.junit.jupiter.api.BeforeAll;

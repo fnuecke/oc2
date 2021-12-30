@@ -1,13 +1,18 @@
 package li.cil.oc2.data;
 
 import li.cil.oc2.common.item.Items;
-import net.minecraft.advancements.criterion.InventoryChangeTrigger;
+import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.data.*;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.IItemProvider;
+import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.Tags;
 
 import java.util.function.Consumer;
+
+import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 
 public final class ModRecipesProvider extends RecipeProvider {
     public ModRecipesProvider(final DataGenerator generator) {
@@ -15,7 +20,7 @@ public final class ModRecipesProvider extends RecipeProvider {
     }
 
     @Override
-    protected void buildShapelessRecipes(final Consumer<IFinishedRecipe> consumer) {
+    protected void buildCraftingRecipes(Consumer<FinishedRecipe> consumer) {
         ShapedRecipeBuilder
                 .shaped(Items.COMPUTER.get())
                 .pattern("ICI")
@@ -91,7 +96,7 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .define('B', ItemTags.BUTTONS)
                 .define('T', Items.TRANSISTOR.get())
                 .define('X', Items.BUS_INTERFACE.get())
-                .define('D', net.minecraft.item.Items.DISPENSER)
+                .define('D', net.minecraft.world.item.Items.DISPENSER)
                 .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
                 .save(consumer);
 
@@ -101,7 +106,7 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .pattern("XTX")
                 .pattern("IRI")
                 .define('I', Tags.Items.INGOTS_IRON)
-                .define('P', net.minecraft.item.Items.LIGHT_WEIGHTED_PRESSURE_PLATE)
+                .define('P', net.minecraft.world.item.Items.LIGHT_WEIGHTED_PRESSURE_PLATE)
                 .define('T', Items.TRANSISTOR.get())
                 .define('X', Items.BUS_INTERFACE.get())
                 .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
@@ -121,8 +126,8 @@ public final class ModRecipesProvider extends RecipeProvider {
 
         WrenchRecipeBuilder
                 .wrenchRecipe(Items.MANUAL.get())
-                .requires(net.minecraft.item.Items.BOOK)
-                .unlockedBy("has_book", inventoryChange(net.minecraft.item.Items.BOOK))
+                .requires(net.minecraft.world.item.Items.BOOK)
+                .unlockedBy("has_book", inventoryChange(net.minecraft.world.item.Items.BOOK))
                 .unlockedBy("has_wrench", inventoryChange(Items.WRENCH.get()))
                 .save(consumer);
 
@@ -145,7 +150,7 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .pattern("IBI")
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('C', Tags.Items.CHESTS_WOODEN)
-                .define('P', net.minecraft.item.Items.PISTON)
+                .define('P', net.minecraft.world.item.Items.PISTON)
                 .define('T', Items.TRANSISTOR.get())
                 .define('B', Items.CIRCUIT_BOARD.get())
                 .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
@@ -251,7 +256,7 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .shaped(Items.REDSTONE_INTERFACE_CARD.get())
                 .pattern("IRT")
                 .pattern(" B ")
-                .define('R', net.minecraft.item.Items.REDSTONE_TORCH)
+                .define('R', net.minecraft.world.item.Items.REDSTONE_TORCH)
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('T', Items.TRANSISTOR.get())
                 .define('B', Items.CIRCUIT_BOARD.get())
@@ -273,7 +278,7 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .shaped(Items.FILE_IMPORT_EXPORT_CARD.get())
                 .pattern("IET")
                 .pattern(" B ")
-                .define('E', net.minecraft.item.Items.PAPER)
+                .define('E', net.minecraft.world.item.Items.PAPER)
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('T', Items.TRANSISTOR.get())
                 .define('B', Items.CIRCUIT_BOARD.get())
@@ -284,7 +289,7 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .shaped(Items.SOUND_CARD.get())
                 .pattern("IST")
                 .pattern(" B ")
-                .define('S', net.minecraft.item.Items.NOTE_BLOCK)
+                .define('S', net.minecraft.world.item.Items.NOTE_BLOCK)
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('T', Items.TRANSISTOR.get())
                 .define('B', Items.CIRCUIT_BOARD.get())
@@ -319,7 +324,7 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .pattern("TPG")
                 .pattern(" B ")
                 .define('T', Items.TRANSISTOR.get())
-                .define('P', net.minecraft.item.Items.DIAMOND_PICKAXE)
+                .define('P', net.minecraft.world.item.Items.DIAMOND_PICKAXE)
                 .define('G', Tags.Items.INGOTS_GOLD)
                 .define('B', Items.CIRCUIT_BOARD.get())
                 .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
@@ -332,20 +337,20 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .pattern("III")
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('R', Tags.Items.DUSTS_REDSTONE)
-                .define('C', net.minecraft.item.Items.COMPARATOR)
-                .unlockedBy("has_gold", inventoryChange(net.minecraft.item.Items.GOLD_INGOT))
+                .define('C', net.minecraft.world.item.Items.COMPARATOR)
+                .unlockedBy("has_gold", inventoryChange(net.minecraft.world.item.Items.GOLD_INGOT))
                 .save(consumer);
 
         ShapelessRecipeBuilder
                 .shapeless(Items.CIRCUIT_BOARD.get(), 4)
                 .requires(Tags.Items.INGOTS_GOLD)
-                .requires(net.minecraft.item.Items.CLAY_BALL)
+                .requires(net.minecraft.world.item.Items.CLAY_BALL)
                 .requires(Items.TRANSISTOR.get())
                 .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
                 .save(consumer);
     }
 
-    private static InventoryChangeTrigger.Instance inventoryChange(final IItemProvider item) {
-        return InventoryChangeTrigger.Instance.hasItems(item);
+    private static InventoryChangeTrigger.TriggerInstance inventoryChange(final ItemLike item) {
+        return InventoryChangeTrigger.TriggerInstance.hasItems(item);
     }
 }

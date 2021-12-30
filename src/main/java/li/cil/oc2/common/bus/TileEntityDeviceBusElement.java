@@ -11,12 +11,12 @@ import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.util.WorldUtils;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
@@ -28,11 +28,11 @@ import java.util.Optional;
 import static java.util.Objects.requireNonNull;
 
 public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusElement implements BlockDeviceBusElement {
-    private final TileEntity tileEntity;
+    private final BlockEntity tileEntity;
 
     ///////////////////////////////////////////////////////////////////
 
-    public TileEntityDeviceBusElement(final TileEntity tileEntity) {
+    public TileEntityDeviceBusElement(final BlockEntity tileEntity) {
         super(Constants.BLOCK_FACE_COUNT);
         this.tileEntity = tileEntity;
     }
@@ -40,7 +40,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public IWorld getLevel() {
+    public LevelAccessor getLevel() {
         return tileEntity.getLevel();
     }
 
@@ -51,7 +51,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
 
     @Override
     public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
-        final World world = tileEntity.getLevel();
+        final Level world = tileEntity.getLevel();
         if (world == null || world.isClientSide()) {
             return Optional.empty();
         }
@@ -69,7 +69,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
                 return Optional.empty();
             }
 
-            final TileEntity tileEntity = world.getBlockEntity(neighborPos);
+            final BlockEntity tileEntity = world.getBlockEntity(neighborPos);
             if (tileEntity == null) {
                 continue;
             }
@@ -84,7 +84,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     }
 
     public void handleNeighborChanged(final BlockPos pos) {
-        final World world = tileEntity.getLevel();
+        final Level world = tileEntity.getLevel();
         if (world == null || world.isClientSide()) {
             return;
         }
@@ -102,7 +102,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     }
 
     public void initialize() {
-        final World world = requireNonNull(tileEntity.getLevel());
+        final Level world = requireNonNull(tileEntity.getLevel());
         ServerScheduler.schedule(world, () -> {
             if (tileEntity.isRemoved()) {
                 return;
@@ -123,7 +123,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
         return canScanContinueTowards(direction);
     }
 
-    protected HashSet<BlockDeviceInfo> collectDevices(final World world, final BlockPos pos, @Nullable final Direction direction) {
+    protected HashSet<BlockDeviceInfo> collectDevices(final Level world, final BlockPos pos, @Nullable final Direction direction) {
         final HashSet<BlockDeviceInfo> newDevices = new HashSet<>();
         if (canDetectDevicesTowards(direction)) {
             final BlockDeviceQuery query = Devices.makeQuery(world, pos, direction);
@@ -138,7 +138,7 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
         return newDevices;
     }
 
-    protected void collectSyntheticDevices(final World world, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockDeviceInfo> devices) {
+    protected void collectSyntheticDevices(final Level world, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockDeviceInfo> devices) {
         final String blockName = WorldUtils.getBlockName(world, pos);
         if (blockName != null) {
             devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(blockName)));
@@ -154,11 +154,11 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     }
 
     private void scheduleBusScanInAdjacentBusElements() {
-        final World world = requireNonNull(tileEntity.getLevel());
+        final Level world = requireNonNull(tileEntity.getLevel());
         final BlockPos pos = tileEntity.getBlockPos();
         for (final Direction direction : Constants.DIRECTIONS) {
             final BlockPos neighborPos = pos.relative(direction);
-            final TileEntity tileEntity = WorldUtils.getBlockEntityIfChunkExists(world, neighborPos);
+            final BlockEntity tileEntity = WorldUtils.getBlockEntityIfChunkExists(world, neighborPos);
             if (tileEntity == null) {
                 continue;
             }

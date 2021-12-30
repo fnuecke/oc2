@@ -1,15 +1,15 @@
 package li.cil.oc2.common.container;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tags.ITag;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.tags.Tag;
 
 public class TypedItemStackHandler extends FixedSizeItemStackHandler {
-    private final ITag<Item> deviceType;
+    private final Tag<Item> deviceType;
 
     ///////////////////////////////////////////////////////////////////
 
-    public TypedItemStackHandler(final int size, final ITag<Item> deviceType) {
+    public TypedItemStackHandler(final int size, final Tag<Item> deviceType) {
         super(size);
         this.deviceType = deviceType;
     }

@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[36,)"
+loaderVersion = "[39,)"
 issueTrackerURL = "https://github.com/fnuecke/oc2/issues"
 license = "MIT"
 
@@ -17,19 +17,19 @@ This mod uses the Terminus Font under the Open Font License.
 [[dependencies.oc2]]
 modId = "forge"
 mandatory = true
-versionRange = "[36.1.0,)"
+versionRange = "[39.0.4,)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.16.5,1.17)"
+versionRange = "[1.18.1,1.19)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]
 modId = "sedna"
 mandatory = true
-versionRange = "[0.0.1,)"
+versionRange = "[1.0.0,)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]

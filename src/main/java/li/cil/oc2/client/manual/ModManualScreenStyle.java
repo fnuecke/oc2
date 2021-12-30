@@ -2,8 +2,8 @@ package li.cil.oc2.client.manual;
 
 import li.cil.manual.api.ManualScreenStyle;
 import li.cil.oc2.api.API;
-import net.minecraft.client.renderer.Rectangle2d;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -27,28 +27,28 @@ public final class ModManualScreenStyle implements ManualScreenStyle {
     }
 
     @Override
-    public Rectangle2d getDocumentRect() {
-        return new Rectangle2d(12, 12, 216, 232);
+    public Rect2i getDocumentRect() {
+        return new Rect2i(12, 12, 216, 232);
     }
 
     @Override
-    public Rectangle2d getScrollBarRect() {
-        return new Rectangle2d(236, 8, 12, 240);
+    public Rect2i getScrollBarRect() {
+        return new Rect2i(236, 8, 12, 240);
     }
 
     @Override
-    public Rectangle2d getScrollButtonRect() {
-        return new Rectangle2d(0, 0, 12, 12);
+    public Rect2i getScrollButtonRect() {
+        return new Rect2i(0, 0, 12, 12);
     }
 
     @Override
-    public Rectangle2d getTabAreaRect() {
-        return new Rectangle2d(-52, 12, 52, 232);
+    public Rect2i getTabAreaRect() {
+        return new Rect2i(-52, 12, 52, 232);
     }
 
     @Override
-    public Rectangle2d getTabRect() {
-        return new Rectangle2d(0, 0, 64, 24);
+    public Rect2i getTabRect() {
+        return new Rect2i(0, 0, 64, 24);
     }
 
     @Override

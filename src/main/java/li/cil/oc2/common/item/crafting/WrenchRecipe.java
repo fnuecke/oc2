@@ -2,13 +2,13 @@ package li.cil.oc2.common.item.crafting;
 
 import com.google.gson.JsonObject;
 import li.cil.oc2.common.integration.Wrenches;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.ShapelessRecipe;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.ShapelessRecipe;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +18,7 @@ public final class WrenchRecipe extends ShapelessRecipe {
     }
 
     @Override
-    public NonNullList<ItemStack> getRemainingItems(final CraftingInventory inventory) {
+    public NonNullList<ItemStack> getRemainingItems(final CraftingContainer inventory) {
         final NonNullList<ItemStack> result = NonNullList.withSize(inventory.getContainerSize(), ItemStack.EMPTY);
 
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
@@ -36,11 +36,11 @@ public final class WrenchRecipe extends ShapelessRecipe {
     }
 
     @Override
-    public IRecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<?> getSerializer() {
         return Serializer.INSTANCE;
     }
 
-    public static final class Serializer extends ForgeRegistryEntry<IRecipeSerializer<?>> implements IRecipeSerializer<WrenchRecipe> {
+    public static final class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>> implements RecipeSerializer<WrenchRecipe> {
         public static final Serializer INSTANCE = new Serializer();
 
         @Override
@@ -50,12 +50,12 @@ public final class WrenchRecipe extends ShapelessRecipe {
 
         @Nullable
         @Override
-        public WrenchRecipe fromNetwork(final ResourceLocation location, final PacketBuffer buffer) {
+        public WrenchRecipe fromNetwork(final ResourceLocation location, final FriendlyByteBuf buffer) {
             return new WrenchRecipe(SHAPELESS_RECIPE.fromNetwork(location, buffer));
         }
 
         @Override
-        public void toNetwork(final PacketBuffer buffer, final WrenchRecipe recipe) {
+        public void toNetwork(final FriendlyByteBuf buffer, final WrenchRecipe recipe) {
             SHAPELESS_RECIPE.toNetwork(buffer, recipe);
         }
     }

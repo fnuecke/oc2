@@ -4,22 +4,22 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.tileentity.BusCableTileEntity;
 import li.cil.oc2.common.util.ItemStackUtils;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockModelShapes;
+import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
-import net.minecraft.client.renderer.model.BakedQuad;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ItemOverrideList;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockDisplayReader;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.model.data.IDynamicBakedModel;
 import net.minecraftforge.client.model.data.IModelData;
@@ -37,13 +37,13 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
     private static final ModelProperty<BusCableSupportSide> BUS_CABLE_SUPPORT_PROPERTY = new ModelProperty<>();
     private static final ModelProperty<BusCableFacade> BUS_CABLE_FACADE_PROPERTY = new ModelProperty<>();
 
-    private final IBakedModel proxy;
-    private final IBakedModel[] straightModelByAxis;
-    private final IBakedModel[] supportModelByFace;
+    private final BakedModel proxy;
+    private final BakedModel[] straightModelByAxis;
+    private final BakedModel[] supportModelByFace;
 
     ///////////////////////////////////////////////////////////////////
 
-    public BusCableBakedModel(final IBakedModel proxy, final IBakedModel[] straightModelByAxis, final IBakedModel[] supportModelByFace) {
+    public BusCableBakedModel(final BakedModel proxy, final BakedModel[] straightModelByAxis, final BakedModel[] supportModelByFace) {
         this.proxy = proxy;
         this.straightModelByAxis = straightModelByAxis;
         this.supportModelByFace = supportModelByFace;
@@ -54,11 +54,11 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
     @Override
     @Nonnull
     public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, final Random rand, final IModelData extraData) {
-        final RenderType layer = MinecraftForgeClient.getRenderLayer();
+        final RenderType layer = MinecraftForgeClient.getRenderType();
 
         if (extraData.hasProperty(BUS_CABLE_FACADE_PROPERTY)) {
             final BusCableFacade facade = extraData.getData(BUS_CABLE_FACADE_PROPERTY);
-            if (layer == null || RenderTypeLookup.canRenderInLayer(facade.blockState, layer)) {
+            if (layer == null || ItemBlockRenderTypes.canRenderInLayer(facade.blockState, layer)) {
                 return facade.model.getQuads(facade.blockState, side, rand, facade.data);
             } else {
                 return Collections.emptyList();
@@ -113,15 +113,15 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
     }
 
     @Override
-    public ItemOverrideList getOverrides() {
+    public ItemOverrides getOverrides() {
         return proxy.getOverrides();
     }
 
     @Override
     @Nonnull
-    public IModelData getModelData(final IBlockDisplayReader world, final BlockPos pos, final BlockState state, final IModelData tileData) {
+    public IModelData getModelData(final BlockAndTintGetter world, final BlockPos pos, final BlockState state, final IModelData tileData) {
         if (state.hasProperty(BusCableBlock.HAS_FACADE) && state.getValue(BusCableBlock.HAS_FACADE)) {
-            final TileEntity tileEntity = world.getBlockEntity(pos);
+            final BlockEntity tileEntity = world.getBlockEntity(pos);
 
             BlockState facadeState = null;
             if (tileEntity instanceof BusCableTileEntity) {
@@ -132,8 +132,8 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
                 facadeState = Blocks.IRON_BLOCK.defaultBlockState();
             }
 
-            final BlockModelShapes shapes = Minecraft.getInstance().getBlockRenderer().getBlockModelShaper();
-            final IBakedModel model = shapes.getBlockModel(facadeState);
+            final BlockModelShaper shapes = Minecraft.getInstance().getBlockRenderer().getBlockModelShaper();
+            final BakedModel model = shapes.getBlockModel(facadeState);
             final IModelData data = model.getModelData(world, pos, facadeState, tileData);
 
             return new ModelDataMap.Builder()
@@ -166,7 +166,7 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static boolean isNeighborInDirectionSolid(final IBlockDisplayReader world, final BlockPos pos, final Direction direction) {
+    private static boolean isNeighborInDirectionSolid(final BlockAndTintGetter world, final BlockPos pos, final Direction direction) {
         final BlockPos neighborPos = pos.relative(direction);
         return world.getBlockState(neighborPos).isFaceSturdy(world, neighborPos, direction.getOpposite());
     }
@@ -200,10 +200,10 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
 
     private static final class BusCableFacade {
         public final BlockState blockState;
-        public final IBakedModel model;
+        public final BakedModel model;
         public final IModelData data;
 
-        public BusCableFacade(final BlockState blockState, final IBakedModel model, final IModelData data) {
+        public BusCableFacade(final BlockState blockState, final BakedModel model, final IModelData data) {
             this.blockState = blockState;
             this.model = model;
             this.data = data;

@@ -1,14 +1,15 @@
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.gui.widget.list.ExtendedList;
-import net.minecraft.util.text.Color;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -33,13 +34,13 @@ public final class FileChooserScreen extends Screen {
     private static final int BUTTON_HEIGHT = 20;
     private static final int LIST_ENTRY_HEIGHT = 12;
 
-    private static final ITextComponent OPEN_TITLE_TEXT = text("gui.{mod}.file_chooser.title.load");
-    private static final ITextComponent SAVE_TITLE_TEXT = text("gui.{mod}.file_chooser.title.save");
-    private static final ITextComponent FILE_NAME_TEXT = text("gui.{mod}.file_chooser.text_field.filename");
-    private static final ITextComponent LOAD_TEXT = text("gui.{mod}.file_chooser.confirm_button.load");
-    private static final ITextComponent SAVE_TEXT = text("gui.{mod}.file_chooser.confirm_button.save");
-    private static final ITextComponent OVERWRITE_TEXT = text("gui.{mod}.file_chooser.confirm_button.overwrite");
-    private static final ITextComponent CANCEL_TEXT = text("gui.{mod}.file_chooser.cancel_button");
+    private static final Component OPEN_TITLE_TEXT = text("gui.{mod}.file_chooser.title.load");
+    private static final Component SAVE_TITLE_TEXT = text("gui.{mod}.file_chooser.title.save");
+    private static final Component FILE_NAME_TEXT = text("gui.{mod}.file_chooser.text_field.filename");
+    private static final Component LOAD_TEXT = text("gui.{mod}.file_chooser.confirm_button.load");
+    private static final Component SAVE_TEXT = text("gui.{mod}.file_chooser.confirm_button.save");
+    private static final Component OVERWRITE_TEXT = text("gui.{mod}.file_chooser.confirm_button.overwrite");
+    private static final Component CANCEL_TEXT = text("gui.{mod}.file_chooser.cancel_button");
 
     ///////////////////////////////////////////////////////////////////
 
@@ -53,7 +54,7 @@ public final class FileChooserScreen extends Screen {
     private final Screen previousScreen;
 
     private FileList fileList;
-    private TextFieldWidget fileNameTextField;
+    private EditBox fileNameTextField;
     private Button okButton;
 
     private boolean isComplete;
@@ -117,7 +118,7 @@ public final class FileChooserScreen extends Screen {
     }
 
     @Override
-    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
+    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
         super.renderBackground(matrixStack);
         fileList.render(matrixStack, mouseX, mouseY, partialTicks);
         fileNameTextField.render(matrixStack, mouseX, mouseY, partialTicks);
@@ -142,7 +143,7 @@ public final class FileChooserScreen extends Screen {
         addWidget(fileList);
 
         final int fileNameTop = MARGIN + listHeight + WIDGET_SPACING;
-        fileNameTextField = new TextFieldWidget(font, MARGIN, fileNameTop, widgetsWidth, TEXT_FIELD_HEIGHT, FILE_NAME_TEXT);
+        fileNameTextField = new EditBox(font, MARGIN, fileNameTop, widgetsWidth, TEXT_FIELD_HEIGHT, FILE_NAME_TEXT);
         fileNameTextField.setResponder(s -> {
             fileList.setSelected(null);
             updateButtons();
@@ -153,8 +154,8 @@ public final class FileChooserScreen extends Screen {
         final int buttonTop = fileNameTop + TEXT_FIELD_HEIGHT + WIDGET_SPACING;
         final int buttonCount = 2;
         final int buttonWidth = widgetsWidth / buttonCount - (buttonCount - 1) * WIDGET_SPACING;
-        okButton = addButton(new Button(MARGIN, buttonTop, buttonWidth, BUTTON_HEIGHT, StringTextComponent.EMPTY, this::handleOkPressed));
-        addButton(new Button(MARGIN + buttonWidth + WIDGET_SPACING, buttonTop, buttonWidth, BUTTON_HEIGHT, CANCEL_TEXT, this::handleCancelPressed));
+        okButton = addRenderableWidget(new Button(MARGIN, buttonTop, buttonWidth, BUTTON_HEIGHT, TextComponent.EMPTY, this::handleOkPressed));
+        addRenderableWidget(new Button(MARGIN + buttonWidth + WIDGET_SPACING, buttonTop, buttonWidth, BUTTON_HEIGHT, CANCEL_TEXT, this::handleCancelPressed));
 
         fileList.refreshFiles(directory);
 
@@ -273,7 +274,7 @@ public final class FileChooserScreen extends Screen {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final class FileList extends ExtendedList<FileList.FileEntry> {
+    private final class FileList extends ObjectSelectionList<FileList.FileEntry> {
         public FileList(final int y, final int height, final int slotHeight) {
             super(FileChooserScreen.this.minecraft, FileChooserScreen.this.width, FileChooserScreen.this.height, y, y + height, slotHeight);
         }
@@ -345,7 +346,7 @@ public final class FileChooserScreen extends Screen {
         }
 
         private FileList.FileEntry createFileEntry(final Path file) {
-            return new FileList.FileEntry(file, new StringTextComponent(file.getFileName().toString()));
+            return new FileList.FileEntry(file, new TextComponent(file.getFileName().toString()));
         }
 
         private FileList.FileEntry createDirectoryEntry(final Path path) {
@@ -353,23 +354,23 @@ public final class FileChooserScreen extends Screen {
         }
 
         private FileList.FileEntry createDirectoryEntry(final Path path, final String displayName) {
-            return new FileList.FileEntry(path, new StringTextComponent(displayName)
-                    .withStyle(s -> s.withColor(Color.fromRgb(0xA0A0FF))));
+            return new FileList.FileEntry(path, new TextComponent(displayName)
+                    .withStyle(s -> s.withColor(TextColor.fromRgb(0xA0A0FF))));
         }
 
-        private final class FileEntry extends ExtendedList.AbstractListEntry<FileEntry> {
+        private final class FileEntry extends ObjectSelectionList.Entry<FileEntry> {
             private final Path file;
-            private final ITextComponent displayName;
+            private final Component displayName;
 
             private long lastEntryClickTime = 0;
 
-            public FileEntry(final Path file, final ITextComponent displayName) {
+            public FileEntry(final Path file, final Component displayName) {
                 this.file = file;
                 this.displayName = displayName;
             }
 
             @Override
-            public void render(final MatrixStack stack, final int index, final int top, final int left, final int width, final int height,
+            public void render(final PoseStack stack, final int index, final int top, final int left, final int width, final int height,
                                final int mouseX, final int mouseY, final boolean isHovered, final float deltaTime) {
                 font.drawShadow(stack, displayName, left, top, 0xFFFFFFFF);
             }
@@ -401,6 +402,11 @@ public final class FileChooserScreen extends Screen {
                 fileNameTextField.moveCursorToStart();
                 fileNameTextField.setHighlightPos(0);
                 setSelected(this);
+            }
+
+            @Override
+            public Component getNarration() {
+                return new TranslatableComponent("narrator.select", displayName);
             }
         }
     }

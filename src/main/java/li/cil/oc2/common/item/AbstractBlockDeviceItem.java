@@ -3,12 +3,12 @@ package li.cil.oc2.common.item;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
 import li.cil.oc2.common.util.ItemStackUtils;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.ResourceLocationException;
-import net.minecraft.util.StringUtils;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.ResourceLocationException;
+import net.minecraft.util.StringUtil;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 
 import javax.annotation.Nullable;
 
@@ -41,7 +41,7 @@ public abstract class AbstractBlockDeviceItem extends ModItem {
         final String registryName = ItemStackUtils.getModDataTag(stack).getString(DATA_TAG_NAME);
 
         ResourceLocation location = defaultData;
-        if (!StringUtils.isNullOrEmpty(registryName)) {
+        if (!StringUtil.isNullOrEmpty(registryName)) {
             try {
                 location = new ResourceLocation(registryName);
             } catch (final ResourceLocationException ignored) {
@@ -71,10 +71,10 @@ public abstract class AbstractBlockDeviceItem extends ModItem {
     }
 
     @Override
-    public ITextComponent getName(final ItemStack stack) {
+    public Component getName(final ItemStack stack) {
         final BlockDeviceData data = getData(stack);
         if (data != null) {
-            return new StringTextComponent("")
+            return new TextComponent("")
                     .append(super.getName(stack))
                     .append(" (")
                     .append(data.getDisplayName())

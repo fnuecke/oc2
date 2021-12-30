@@ -2,11 +2,11 @@ package li.cil.oc2.client.item;
 
 import li.cil.oc2.common.item.Items;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.color.ItemColors;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.IDyeableArmorItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.color.item.ItemColors;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeableLeatherItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 public final class CustomItemColors {
     public static final int BLACK = 0xFF404040;
@@ -84,8 +84,8 @@ public final class CustomItemColors {
 
     public static int getColor(final ItemStack stack) {
         final Item item = stack.getItem();
-        if (item instanceof IDyeableArmorItem) {
-            final IDyeableArmorItem coloredItem = (IDyeableArmorItem) item;
+        if (item instanceof DyeableLeatherItem) {
+            final DyeableLeatherItem coloredItem = (DyeableLeatherItem) item;
             return coloredItem.getColor(stack);
         }
         return GREY;
@@ -97,8 +97,8 @@ public final class CustomItemColors {
 
     public static ItemStack withColor(final ItemStack stack, final int color) {
         final Item item = stack.getItem();
-        if (item instanceof IDyeableArmorItem) {
-            final IDyeableArmorItem coloredItem = (IDyeableArmorItem) item;
+        if (item instanceof DyeableLeatherItem) {
+            final DyeableLeatherItem coloredItem = (DyeableLeatherItem) item;
             coloredItem.setColor(stack, color);
         }
         return stack;

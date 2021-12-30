@@ -2,8 +2,8 @@ package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.network.MessageUtils;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.nio.ByteBuffer;
 
@@ -12,7 +12,7 @@ public final class RobotTerminalOutputMessage extends AbstractTerminalEntityMess
         super(robot, data);
     }
 
-    public RobotTerminalOutputMessage(final PacketBuffer buffer) {
+    public RobotTerminalOutputMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 

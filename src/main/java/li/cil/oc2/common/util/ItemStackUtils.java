@@ -1,14 +1,14 @@
 package li.cil.oc2.common.util;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -17,11 +17,11 @@ import java.util.Random;
 import static li.cil.oc2.common.Constants.MOD_TAG_NAME;
 
 public final class ItemStackUtils {
-    public static CompoundNBT getModDataTag(final ItemStack stack) {
+    public static CompoundTag getModDataTag(final ItemStack stack) {
         return NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME);
     }
 
-    public static CompoundNBT getOrCreateModDataTag(final ItemStack stack) {
+    public static CompoundTag getOrCreateModDataTag(final ItemStack stack) {
         return NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME);
     }
 
@@ -32,18 +32,18 @@ public final class ItemStackUtils {
         }
 
         final Block block = Block.byItem(stack.getItem());
-        if (block == null || block == net.minecraft.block.Blocks.AIR) {
+        if (block == null || block == net.minecraft.world.level.block.Blocks.AIR) {
             return null;
         }
 
         return block.defaultBlockState();
     }
 
-    public static Optional<ItemEntity> spawnAsEntity(final World world, final BlockPos pos, final ItemStack stack) {
-        return spawnAsEntity(world, Vector3d.atCenterOf(pos), stack);
+    public static Optional<ItemEntity> spawnAsEntity(final Level world, final BlockPos pos, final ItemStack stack) {
+        return spawnAsEntity(world, Vec3.atCenterOf(pos), stack);
     }
 
-    public static Optional<ItemEntity> spawnAsEntity(final World world, final Vector3d pos, final ItemStack stack) {
+    public static Optional<ItemEntity> spawnAsEntity(final Level world, final Vec3 pos, final ItemStack stack) {
         if (world.isClientSide() || stack.isEmpty()) {
             return Optional.empty();
         }
@@ -64,11 +64,11 @@ public final class ItemStackUtils {
         return Optional.of(entity);
     }
 
-    public static Optional<ItemEntity> spawnAsEntity(final World world, final BlockPos pos, final ItemStack stack, @Nullable final Direction direction) {
-        return spawnAsEntity(world, Vector3d.atCenterOf(pos), stack, direction);
+    public static Optional<ItemEntity> spawnAsEntity(final Level world, final BlockPos pos, final ItemStack stack, @Nullable final Direction direction) {
+        return spawnAsEntity(world, Vec3.atCenterOf(pos), stack, direction);
     }
 
-    public static Optional<ItemEntity> spawnAsEntity(final World world, final Vector3d pos, final ItemStack stack, @Nullable final Direction direction) {
+    public static Optional<ItemEntity> spawnAsEntity(final Level world, final Vec3 pos, final ItemStack stack, @Nullable final Direction direction) {
         if (direction == null) {
             return spawnAsEntity(world, pos, stack);
         }

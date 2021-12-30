@@ -1,8 +1,8 @@
 package li.cil.oc2.common.util;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import javax.annotation.Nullable;
@@ -13,11 +13,11 @@ public final class ItemDeviceUtils {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static CompoundNBT getItemDeviceData(final ItemStack stack) {
+    public static CompoundTag getItemDeviceData(final ItemStack stack) {
         return ItemStackUtils.getModDataTag(stack).getCompound(ITEM_DEVICE_DATA_TAG_NAME);
     }
 
-    public static void setItemDeviceData(final ItemStack stack, final CompoundNBT data) {
+    public static void setItemDeviceData(final ItemStack stack, final CompoundTag data) {
         ItemStackUtils.getOrCreateModDataTag(stack).put(ITEM_DEVICE_DATA_TAG_NAME, data);
     }
 

@@ -11,18 +11,16 @@ import li.cil.oc2.common.network.message.NetworkConnectorConnectionsMessage;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.ServerScheduler;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.*;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.LazyOptional;
@@ -33,7 +31,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public final class NetworkConnectorTileEntity extends AbstractTileEntity implements ITickableTileEntity {
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+
+public final class NetworkConnectorTileEntity extends AbstractTileEntity {
     public enum ConnectionResult {
         SUCCESS,
         FAILURE,
@@ -68,8 +73,8 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
 
     ///////////////////////////////////////////////////////////////////
 
-    public NetworkConnectorTileEntity() {
-        super(TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get());
+    public NetworkConnectorTileEntity(final BlockPos pos, final BlockState state) {
+        super(TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -79,7 +84,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             return ConnectionResult.FAILURE;
         }
 
-        final World world = connectorA.level;
+        final Level world = connectorA.level;
         if (world == null || world.isClientSide()) {
             return ConnectionResult.FAILURE;
         }
@@ -135,7 +140,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
 
         if (ownedCables.remove(pos)) {
             if (level != null) {
-                final Vector3d middle = Vector3d.atCenterOf(getBlockPos().offset(pos)).scale(0.5f);
+                final Vec3 middle = Vec3.atCenterOf(getBlockPos().offset(pos)).scale(0.5f);
                 ItemStackUtils.spawnAsEntity(level, middle, new ItemStack(Items.NETWORK_CABLE.get()));
             }
         }
@@ -168,8 +173,11 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
         NetworkCableRenderer.invalidateConnections();
     }
 
-    @Override
-    public void tick() {
+    public static void serverTick(final Level level, final BlockPos pos, final BlockState state, final NetworkConnectorTileEntity tileEntity) {
+        tileEntity.serverTick();
+    }
+
+    private void serverTick() {
         if (isLocalConnectionDirty) {
             isLocalConnectionDirty = false;
             resolveLocalInterface();
@@ -194,12 +202,12 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     }
 
     @Override
-    public CompoundNBT getUpdateTag() {
-        final CompoundNBT tag = super.getUpdateTag();
+    public CompoundTag getUpdateTag() {
+        final CompoundTag tag = super.getUpdateTag();
 
-        final ListNBT connections = new ListNBT();
+        final ListTag connections = new ListTag();
         for (final BlockPos position : connectorPositions) {
-            final CompoundNBT connectionTag = NBTUtil.writeBlockPos(position);
+            final CompoundTag connectionTag = NbtUtils.writeBlockPos(position);
             connections.add(connectionTag);
         }
         tag.put(CONNECTIONS_TAG_NAME, connections);
@@ -208,43 +216,41 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     }
 
     @Override
-    public void handleUpdateTag(final BlockState state, final CompoundNBT tag) {
-        super.handleUpdateTag(state, tag);
+    public void handleUpdateTag(final CompoundTag tag) {
+        super.handleUpdateTag(tag);
 
-        final ListNBT connections = tag.getList(CONNECTIONS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
+        final ListTag connections = tag.getList(CONNECTIONS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
         for (int i = 0; i < Math.min(connections.size(), MAX_CONNECTION_COUNT); i++) {
-            final CompoundNBT connectionTag = connections.getCompound(i);
-            final BlockPos position = NBTUtil.readBlockPos(connectionTag);
+            final CompoundTag connectionTag = connections.getCompound(i);
+            final BlockPos position = NbtUtils.readBlockPos(connectionTag);
             connectorPositions.add(position);
             dirtyConnectors.add(position);
         }
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT tag) {
-        tag = super.save(tag);
+    protected void saveAdditional(final CompoundTag tag) {
+        super.saveAdditional(tag);
 
-        final ListNBT connections = new ListNBT();
+        final ListTag connections = new ListTag();
         for (final BlockPos position : connectorPositions) {
-            final CompoundNBT connectionTag = NBTUtil.writeBlockPos(position);
+            final CompoundTag connectionTag = NbtUtils.writeBlockPos(position);
             if (ownedCables.contains(position)) {
                 connectionTag.putBoolean(IS_OWNER_TAG_NAME, true);
             }
             connections.add(connectionTag);
         }
         tag.put(CONNECTIONS_TAG_NAME, connections);
-
-        return tag;
     }
 
     @Override
-    public void load(final BlockState state, final CompoundNBT tag) {
-        super.load(state, tag);
+    public void load(final CompoundTag tag) {
+        super.load(tag);
 
-        final ListNBT connections = tag.getList(CONNECTIONS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
+        final ListTag connections = tag.getList(CONNECTIONS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
         for (int i = 0; i < Math.min(connections.size(), MAX_CONNECTION_COUNT); i++) {
-            final CompoundNBT connectionTag = connections.getCompound(i);
-            final BlockPos position = NBTUtil.readBlockPos(connectionTag);
+            final CompoundTag connectionTag = connections.getCompound(i);
+            final BlockPos position = NbtUtils.readBlockPos(connectionTag);
             connectorPositions.add(position);
             dirtyConnectors.add(position);
             if (connectionTag.getBoolean(IS_OWNER_TAG_NAME)) {
@@ -290,9 +296,9 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
     }
 
     @Override
-    public AxisAlignedBB getRenderBoundingBox() {
+    public AABB getRenderBoundingBox() {
         if (Minecraft.useShaderTransparency()) {
-            return new AxisAlignedBB(
+            return new AABB(
                     getBlockPos().offset(-MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE),
                     getBlockPos().offset(1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE)
             );
@@ -319,10 +325,6 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             return;
         }
 
-        if (level == null || level.isClientSide()) {
-            return;
-        }
-
         final Direction facing = NetworkConnectorBlock.getFacing(getBlockState());
         final BlockPos sourcePos = getBlockPos().relative(facing.getOpposite());
 
@@ -332,7 +334,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             return;
         }
 
-        final TileEntity tileEntity = level.getBlockEntity(sourcePos);
+        final BlockEntity tileEntity = level.getBlockEntity(sourcePos);
         if (tileEntity == null) {
             return;
         }
@@ -360,7 +362,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
             return;
         }
 
-        final TileEntity tileEntity = level.getBlockEntity(connectedPosition);
+        final BlockEntity tileEntity = level.getBlockEntity(connectedPosition);
         if (!(tileEntity instanceof NetworkConnectorTileEntity)) {
             disconnectFrom(connectedPosition);
             return;
@@ -383,31 +385,31 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity impleme
         connectors.put(connectedPosition, connector);
     }
 
-    private static boolean isObstructed(final World world, final BlockPos a, final BlockPos b) {
-        final Vector3d va = Vector3d.atCenterOf(a);
-        final Vector3d vb = Vector3d.atCenterOf(b);
-        final Vector3d ab = vb.subtract(va).normalize().scale(0.5);
+    private static boolean isObstructed(final Level world, final BlockPos a, final BlockPos b) {
+        final Vec3 va = Vec3.atCenterOf(a);
+        final Vec3 vb = Vec3.atCenterOf(b);
+        final Vec3 ab = vb.subtract(va).normalize().scale(0.5);
 
         // Because of floating point inaccuracies the raytrace is not necessarily
         // symmetric. In particular when grazing corners perfectly, e.g. two connectors
         // attached to the same block at a 90 degree angle. So we check both ways.
-        final BlockRayTraceResult hitAB = world.clip(new RayTraceContext(
+        final BlockHitResult hitAB = world.clip(new ClipContext(
                 va.add(ab),
                 vb.subtract(ab),
-                RayTraceContext.BlockMode.COLLIDER,
-                RayTraceContext.FluidMode.NONE,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
                 null
         ));
-        final BlockRayTraceResult hitBA = world.clip(new RayTraceContext(
+        final BlockHitResult hitBA = world.clip(new ClipContext(
                 vb.subtract(ab),
                 va.add(ab),
-                RayTraceContext.BlockMode.COLLIDER,
-                RayTraceContext.FluidMode.NONE,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
                 null
         ));
 
-        return hitAB.getType() != RayTraceResult.Type.MISS ||
-               hitBA.getType() != RayTraceResult.Type.MISS;
+        return hitAB.getType() != HitResult.Type.MISS ||
+               hitBA.getType() != HitResult.Type.MISS;
     }
 
     private void onConnectedPositionsChanged() {

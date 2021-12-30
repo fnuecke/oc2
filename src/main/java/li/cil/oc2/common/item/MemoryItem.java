@@ -1,8 +1,8 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.API;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Util;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.Util;
 
 import javax.annotation.Nullable;
 

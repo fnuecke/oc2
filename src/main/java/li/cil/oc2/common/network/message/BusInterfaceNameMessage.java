@@ -2,10 +2,10 @@ package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.tileentity.BusCableTileEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.network.NetworkEvent;
 
 public abstract class BusInterfaceNameMessage extends AbstractMessage {
     protected BlockPos pos;
@@ -20,21 +20,21 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
         this.value = value;
     }
 
-    protected BusInterfaceNameMessage(final PacketBuffer buffer) {
+    protected BusInterfaceNameMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         side = buffer.readEnum(Direction.class);
         value = buffer.readUtf(32);
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeEnum(side);
         buffer.writeUtf(value, 32);
@@ -47,7 +47,7 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
             super(tileEntity, side, value);
         }
 
-        public ToClient(final PacketBuffer buffer) {
+        public ToClient(final FriendlyByteBuf buffer) {
             super(buffer);
         }
 
@@ -63,7 +63,7 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
             super(tileEntity, side, value);
         }
 
-        public ToServer(final PacketBuffer buffer) {
+        public ToServer(final FriendlyByteBuf buffer) {
             super(buffer);
         }
 

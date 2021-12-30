@@ -1,7 +1,7 @@
 package li.cil.oc2.common.serialization.serializers;
 
 import com.google.gson.*;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;

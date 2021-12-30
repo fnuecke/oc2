@@ -1,34 +1,34 @@
 package li.cil.oc2.common.tileentity;
 
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
-public final class CreativeEnergyTileEntity extends TileEntity implements ITickableTileEntity {
+public final class CreativeEnergyTileEntity extends BlockEntity {
     private final Direction[] SIDES = Direction.values();
 
     ///////////////////////////////////////////////////////////////////
 
-    public CreativeEnergyTileEntity() {
-        super(TileEntities.CREATIVE_ENERGY_TILE_ENTITY.get());
+    public CreativeEnergyTileEntity(final BlockPos pos, final BlockState state) {
+        super(TileEntities.CREATIVE_ENERGY_TILE_ENTITY.get(), pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    @Override
-    public void tick() {
-        if (level.isClientSide()) {
-            return;
-        }
+    public static void serverTick(final Level level, final BlockPos pos, final BlockState state, final CreativeEnergyTileEntity tileEntity) {
+        tileEntity.serverTick();
+    }
 
+    private void serverTick() {
         for (final Direction side : SIDES) {
             final BlockPos neighborPos = getBlockPos().relative(side);
             final ChunkPos neighborChunkPos = new ChunkPos(neighborPos);
             if (level.hasChunk(neighborChunkPos.x, neighborChunkPos.z)) {
-                final TileEntity tileEntity = level.getBlockEntity(neighborPos);
+                final BlockEntity tileEntity = level.getBlockEntity(neighborPos);
                 if (tileEntity != null) {
                     tileEntity.getCapability(Capabilities.ENERGY_STORAGE, side.getOpposite()).ifPresent(energy -> {
                         energy.receiveEnergy(Integer.MAX_VALUE, false);

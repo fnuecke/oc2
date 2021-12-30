@@ -1,8 +1,8 @@
 package li.cil.oc2.common.tags;
 
 import li.cil.oc2.api.API;
-import net.minecraft.block.Block;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.Tags;
 
 public final class BlockTags {

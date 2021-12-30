@@ -2,20 +2,23 @@ package li.cil.oc2.common.block;
 
 import li.cil.oc2.common.tileentity.RedstoneInterfaceTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.material.Material;
 
-public final class RedstoneInterfaceBlock extends HorizontalBlock {
+import javax.annotation.Nullable;
+
+public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public RedstoneInterfaceBlock() {
         super(Properties
                 .of(Material.METAL)
@@ -27,18 +30,8 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public BlockState getStateForPlacement(final BlockItemUseContext context) {
+    public BlockState getStateForPlacement(final BlockPlaceContext context) {
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-    }
-
-    @Override
-    public boolean hasTileEntity(final BlockState state) {
-        return true;
-    }
-
-    @Override
-    public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
-        return TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get().create();
     }
 
     @SuppressWarnings("deprecation")
@@ -49,8 +42,8 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getSignal(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
-        final TileEntity tileEntity = world.getBlockEntity(pos);
+    public int getSignal(final BlockState state, final BlockGetter world, final BlockPos pos, final Direction side) {
+        final BlockEntity tileEntity = world.getBlockEntity(pos);
         if (tileEntity instanceof RedstoneInterfaceTileEntity) {
             final RedstoneInterfaceTileEntity redstoneInterface = (RedstoneInterfaceTileEntity) tileEntity;
             // Redstone requests info for faces with external perspective. We treat
@@ -62,20 +55,29 @@ public final class RedstoneInterfaceBlock extends HorizontalBlock {
     }
 
     @Override
-    public boolean shouldCheckWeakPower(final BlockState state, final IWorldReader world, final BlockPos pos, final Direction side) {
+    public boolean shouldCheckWeakPower(final BlockState state, final LevelReader world, final BlockPos pos, final Direction side) {
         return false;
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getDirectSignal(final BlockState state, final IBlockReader world, final BlockPos pos, final Direction side) {
+    public int getDirectSignal(final BlockState state, final BlockGetter world, final BlockPos pos, final Direction side) {
         return getSignal(state, world, pos, side);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+    // EntityBlock
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
+        return TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get().create(pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(FACING);
     }

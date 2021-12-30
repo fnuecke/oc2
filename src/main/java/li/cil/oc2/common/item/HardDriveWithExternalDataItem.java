@@ -1,15 +1,16 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.API;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.IDyeableArmorItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Util;
+import li.cil.oc2.common.util.ColorUtils;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeableLeatherItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.Util;
 
 import javax.annotation.Nullable;
 
-public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem implements IDyeableArmorItem {
+public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem implements DyeableLeatherItem {
     private final int defaultColor;
     @Nullable private String descriptionId;
 
@@ -17,14 +18,14 @@ public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem
 
     public HardDriveWithExternalDataItem(final ResourceLocation defaultData, final DyeColor defaultColor) {
         super(defaultData);
-        this.defaultColor = defaultColor.getColorValue();
+        this.defaultColor = ColorUtils.textureDiffuseColorsToRGB(defaultColor.getTextureDiffuseColors());
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     public int getColor(final ItemStack stack) {
-        return hasCustomColor(stack) ? IDyeableArmorItem.super.getColor(stack) : defaultColor;
+        return hasCustomColor(stack) ? DyeableLeatherItem.super.getColor(stack) : defaultColor;
     }
 
     ///////////////////////////////////////////////////////////////////

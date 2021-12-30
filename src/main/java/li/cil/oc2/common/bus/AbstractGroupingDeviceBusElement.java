@@ -4,8 +4,8 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.common.bus.device.util.AbstractDeviceInfo;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.NBTTagIds;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import java.util.*;
@@ -23,7 +23,7 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
     ///////////////////////////////////////////////////////////////////
 
     protected final UUID[] groupIds;
-    protected final CompoundNBT[] groupData;
+    protected final CompoundTag[] groupData;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -31,12 +31,12 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         this.groupCount = groupCount;
         this.groups = new ArrayList<>(groupCount);
         this.groupIds = new UUID[groupCount];
-        this.groupData = new CompoundNBT[groupCount];
+        this.groupData = new CompoundTag[groupCount];
 
         for (int i = 0; i < groupCount; i++) {
             groups.add(new HashSet<>());
             groupIds[i] = UUID.randomUUID();
-            groupData[i] = new CompoundNBT();
+            groupData[i] = new CompoundTag();
         }
     }
 
@@ -46,12 +46,12 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         return groups.get(index);
     }
 
-    public CompoundNBT save() {
-        final ListNBT listTag = new ListNBT();
+    public CompoundTag save() {
+        final ListTag listTag = new ListTag();
         for (int i = 0; i < groupCount; i++) {
             saveGroup(i);
 
-            final CompoundNBT sideTag = new CompoundNBT();
+            final CompoundTag sideTag = new CompoundTag();
 
             sideTag.putUUID(GROUP_ID_TAG_NAME, groupIds[i]);
             sideTag.put(GROUP_DATA_TAG_NAME, groupData[i]);
@@ -59,17 +59,17 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
             listTag.add(sideTag);
         }
 
-        final CompoundNBT tag = new CompoundNBT();
+        final CompoundTag tag = new CompoundTag();
         tag.put(GROUPS_TAG_NAME, listTag);
         return tag;
     }
 
-    public void load(final CompoundNBT tag) {
-        final ListNBT listTag = tag.getList(GROUPS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
+    public void load(final CompoundTag tag) {
+        final ListTag listTag = tag.getList(GROUPS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
 
         final int count = Math.min(groupCount, listTag.size());
         for (int i = 0; i < count; i++) {
-            final CompoundNBT sideTag = listTag.getCompound(i);
+            final CompoundTag sideTag = listTag.getCompound(i);
 
             if (sideTag.hasUUID(GROUP_ID_TAG_NAME)) {
                 groupIds[i] = sideTag.getUUID(GROUP_ID_TAG_NAME);
@@ -116,7 +116,7 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         oldDevices.removeAll(removedDevices);
         oldDevices.addAll(newDevices);
 
-        final CompoundNBT devicesTag = groupData[index];
+        final CompoundTag devicesTag = groupData[index];
         for (final TDeviceInfo deviceInfo : removedDevices) {
             ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(devicesTag::remove);
         }
@@ -134,10 +134,10 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
     ///////////////////////////////////////////////////////////////////
 
     private void saveGroup(final int index) {
-        final CompoundNBT devicesTag = new CompoundNBT();
+        final CompoundTag devicesTag = new CompoundTag();
         for (final TDeviceInfo deviceInfo : groups.get(index)) {
             ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(key -> {
-                final CompoundNBT deviceTag = deviceInfo.device.serializeNBT();
+                final CompoundTag deviceTag = deviceInfo.device.serializeNBT();
                 if (!deviceTag.isEmpty()) {
                     devicesTag.put(key, deviceTag);
                 }

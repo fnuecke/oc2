@@ -13,13 +13,13 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.RegistryUtils;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
 
 @OnlyIn(Dist.CLIENT)
 public final class Manuals {
@@ -40,16 +40,16 @@ public final class Manuals {
         contentProviders.register("content_provider", () -> new NamespaceDocumentProvider(API.MOD_ID, "doc"));
 
         tabs.register("home", () -> new TextureTab(
-                ManualModel.LANGUAGE_KEY + "/index.md",
-                new TranslationTextComponent("manual." + API.MOD_ID + ".home"),
-                new ResourceLocation(API.MOD_ID, "textures/gui/manual/home.png")));
+            ManualModel.LANGUAGE_KEY + "/index.md",
+            new TranslatableComponent("manual." + API.MOD_ID + ".home"),
+            new ResourceLocation(API.MOD_ID, "textures/gui/manual/home.png")));
         tabs.register("blocks", () -> new ItemStackTab(
-                ManualModel.LANGUAGE_KEY + "/block/index.md",
-                new TranslationTextComponent("manual." + API.MOD_ID + ".blocks"),
-                new ItemStack(Blocks.COMPUTER.get())));
+            ManualModel.LANGUAGE_KEY + "/block/index.md",
+            new TranslatableComponent("manual." + API.MOD_ID + ".blocks"),
+            new ItemStack(Blocks.COMPUTER.get())));
         tabs.register("modules", () -> new ItemStackTab(
-                ManualModel.LANGUAGE_KEY + "/item/index.md",
-                new TranslationTextComponent("manual." + API.MOD_ID + ".items"),
-                new ItemStack(Items.TRANSISTOR.get())));
+            ManualModel.LANGUAGE_KEY + "/item/index.md",
+            new TranslatableComponent("manual." + API.MOD_ID + ".items"),
+            new ItemStack(Items.TRANSISTOR.get())));
     }
 }

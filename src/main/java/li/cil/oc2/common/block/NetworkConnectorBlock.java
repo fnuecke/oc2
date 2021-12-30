@@ -2,24 +2,30 @@ package li.cil.oc2.common.block;
 
 import li.cil.oc2.common.tileentity.NetworkConnectorTileEntity;
 import li.cil.oc2.common.tileentity.TileEntities;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalFaceBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.AttachFace;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import li.cil.oc2.common.util.BlockEntityUtils;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 
 import java.util.Objects;
 
-public final class NetworkConnectorBlock extends HorizontalFaceBlock {
+import javax.annotation.Nullable;
+
+public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirectionalBlock implements EntityBlock {
     private static final VoxelShape NEG_Z_SHAPE = Block.box(5, 5, 7, 11, 11, 16);
     private static final VoxelShape POS_Z_SHAPE = Block.box(5, 5, 0, 11, 11, 9);
     private static final VoxelShape NEG_X_SHAPE = Block.box(7, 5, 5, 16, 11, 11);
@@ -31,35 +37,25 @@ public final class NetworkConnectorBlock extends HorizontalFaceBlock {
 
     public NetworkConnectorBlock() {
         super(Properties
-                .of(Material.METAL)
-                .sound(SoundType.METAL)
-                .strength(1.5f, 6.0f));
+            .of(Material.METAL)
+            .sound(SoundType.METAL)
+            .strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any()
-                .setValue(FACING, Direction.NORTH)
-                .setValue(FACE, AttachFace.WALL));
+            .setValue(FACING, Direction.NORTH)
+            .setValue(FACE, AttachFace.WALL));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     public static Direction getFacing(final BlockState state) {
-        return HorizontalFaceBlock.getConnectedDirection(state);
-    }
-
-    @Override
-    public boolean hasTileEntity(final BlockState state) {
-        return true;
-    }
-
-    @Override
-    public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
-        return TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get().create();
+        return FaceAttachedHorizontalDirectionalBlock.getConnectedDirection(state);
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public void neighborChanged(final BlockState state, final World world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
+    public void neighborChanged(final BlockState state, final Level world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
         if (Objects.equals(changedBlockPos, pos.relative(getFacing(state).getOpposite()))) {
-            final TileEntity tileEntity = world.getBlockEntity(pos);
+            final BlockEntity tileEntity = world.getBlockEntity(pos);
             if (tileEntity instanceof NetworkConnectorTileEntity) {
                 final NetworkConnectorTileEntity connector = (NetworkConnectorTileEntity) tileEntity;
                 connector.setLocalInterfaceChanged();
@@ -69,7 +65,7 @@ public final class NetworkConnectorBlock extends HorizontalFaceBlock {
 
     @SuppressWarnings("deprecation")
     @Override
-    public VoxelShape getShape(final BlockState state, final IBlockReader world, final BlockPos pos, final ISelectionContext context) {
+    public VoxelShape getShape(final BlockState state, final BlockGetter world, final BlockPos pos, final CollisionContext context) {
         switch (state.getValue(FACE)) {
             case WALL:
                 switch (state.getValue(FACING)) {
@@ -92,8 +88,23 @@ public final class NetworkConnectorBlock extends HorizontalFaceBlock {
     }
 
     ///////////////////////////////////////////////////////////////////
+    // EntityBlock
 
-    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
+        return TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get().create(pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(final Level level, final BlockState state, final BlockEntityType<T> type) {
+        return level.isClientSide ? null : BlockEntityUtils.createTicker(type, TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), NetworkConnectorTileEntity::serverTick);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACE, FACING);
     }
 }

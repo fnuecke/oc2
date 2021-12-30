@@ -3,16 +3,16 @@ package li.cil.oc2.common.bus.device.provider.util;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.common.util.WorldUtils;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.common.util.LazyOptional;
 
-public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> extends AbstractBlockDeviceProvider {
-    private final TileEntityType<T> tileEntityType;
+public abstract class AbstractTileEntityDeviceProvider<T extends BlockEntity> extends AbstractBlockDeviceProvider {
+    private final BlockEntityType<T> tileEntityType;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractTileEntityDeviceProvider(final TileEntityType<T> tileEntityType) {
+    protected AbstractTileEntityDeviceProvider(final BlockEntityType<T> tileEntityType) {
         this.tileEntityType = tileEntityType;
     }
 
@@ -25,7 +25,7 @@ public abstract class AbstractTileEntityDeviceProvider<T extends TileEntity> ext
     @SuppressWarnings("unchecked")
     @Override
     public final LazyOptional<Device> getDevice(final BlockDeviceQuery query) {
-        final TileEntity tileEntity = WorldUtils.getBlockEntityIfChunkExists(query.getLevel(), query.getQueryPosition());
+        final BlockEntity tileEntity = WorldUtils.getBlockEntityIfChunkExists(query.getLevel(), query.getQueryPosition());
         if (tileEntity == null) {
             return LazyOptional.empty();
         }

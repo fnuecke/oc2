@@ -13,9 +13,9 @@ import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.riscv.R5Board;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
@@ -56,7 +56,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     public SerializedState state = new SerializedState();
     public AbstractTerminalVMRunner runner;
     private VMRunState runState = VMRunState.STOPPED;
-    private ITextComponent bootError;
+    private Component bootError;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -119,15 +119,15 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     @Override
     @Nullable
-    public ITextComponent getBootError() {
+    public Component getBootError() {
         switch (busState) {
             case SCAN_PENDING:
             case INCOMPLETE:
-                return new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_INCOMPLETE);
+                return new TranslatableComponent(Constants.COMPUTER_BUS_STATE_INCOMPLETE);
             case TOO_COMPLEX:
-                return new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_TOO_COMPLEX);
+                return new TranslatableComponent(Constants.COMPUTER_BUS_STATE_TOO_COMPLEX);
             case MULTIPLE_CONTROLLERS:
-                return new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS);
+                return new TranslatableComponent(Constants.COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS);
             case READY:
                 switch (runState) {
                     case STOPPED:
@@ -141,7 +141,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void setBootErrorClient(final ITextComponent value) {
+    public void setBootErrorClient(final Component value) {
         bootError = value;
     }
 
@@ -229,10 +229,10 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
     }
 
-    public CompoundNBT serialize() {
+    public CompoundTag serialize() {
         joinWorkerThread();
 
-        final CompoundNBT tag = new CompoundNBT();
+        final CompoundTag tag = new CompoundTag();
 
         if (runner != null) {
             tag.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
@@ -245,7 +245,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         return tag;
     }
 
-    public void deserialize(final CompoundNBT tag) {
+    public void deserialize(final CompoundTag tag) {
         joinWorkerThread();
 
         if (tag.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
@@ -278,14 +278,14 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     protected void handleRunStateChanged(final VMRunState value) {
     }
 
-    protected void handleBootErrorChanged(@Nullable final ITextComponent value) {
+    protected void handleBootErrorChanged(@Nullable final Component value) {
     }
 
-    protected void error(@Nullable final ITextComponent message) {
+    protected void error(@Nullable final Component message) {
         error(message, true);
     }
 
-    protected void error(@Nullable final ITextComponent message, final boolean reset) {
+    protected void error(@Nullable final Component message, final boolean reset) {
         if (reset) {
             stopRunnerAndReset();
         }
@@ -302,7 +302,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
         if (!consumeEnergy(busController.getEnergyConsumption(), true)) {
             // Don't even start running if we couldn't keep running.
-            error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
+            error(new TranslatableComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
             return;
         }
 
@@ -311,14 +311,14 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
             if (loadResult.getErrorMessage() != null) {
                 error(loadResult.getErrorMessage(), false);
             } else {
-                error(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN), false);
+                error(new TranslatableComponent(Constants.COMPUTER_ERROR_UNKNOWN), false);
             }
             loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
             return;
         }
 
         if (busController.getDevices().stream().noneMatch(device -> device instanceof FirmwareLoader)) {
-            error(new TranslationTextComponent(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
+            error(new TranslatableComponent(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
             return;
         }
 
@@ -334,11 +334,11 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
                 // a program that only uses registers. But not supporting that esoteric
                 // use-case loses out against avoiding people getting confused for having
                 // forgotten to add some RAM modules.
-                error(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
+                error(new TranslatableComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
                 return;
             } catch (final MemoryAccessException e) {
                 LOGGER.error(e);
-                error(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
+                error(new TranslatableComponent(Constants.COMPUTER_ERROR_UNKNOWN));
                 return;
             }
 
@@ -352,7 +352,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     }
 
     private void run() {
-        final ITextComponent runtimeError = runner.getRuntimeError();
+        final Component runtimeError = runner.getRuntimeError();
         if (runtimeError != null) {
             error(runtimeError);
             return;
@@ -364,7 +364,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
 
         if (!consumeEnergy(busController.getEnergyConsumption(), false)) {
-            error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
+            error(new TranslatableComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
             return;
         }
 
@@ -391,7 +391,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         handleRunStateChanged(value);
     }
 
-    private void setBootError(@Nullable final ITextComponent value) {
+    private void setBootError(@Nullable final Component value) {
         if (Objects.equals(value, bootError)) {
             return;
         }

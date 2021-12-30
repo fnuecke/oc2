@@ -7,21 +7,20 @@ import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
-import net.minecraft.block.BlockState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.util.Mth;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 
 import static java.util.Collections.singletonList;
 
-public final class RedstoneInterfaceTileEntity extends TileEntity implements NamedDevice, DocumentedDevice {
+public final class RedstoneInterfaceTileEntity extends BlockEntity implements NamedDevice, DocumentedDevice {
     private static final String OUTPUT_TAG_NAME = "output";
 
     private static final String GET_REDSTONE_INPUT = "getRedstoneInput";
@@ -36,23 +35,23 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
 
     ///////////////////////////////////////////////////////////////////
 
-    public RedstoneInterfaceTileEntity() {
-        super(TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get());
+    public RedstoneInterfaceTileEntity(final BlockPos pos, final BlockState state) {
+        super(TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get(), pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public CompoundNBT save(CompoundNBT compound) {
-        compound = super.save(compound);
-        compound.putByteArray(OUTPUT_TAG_NAME, output);
-        return compound;
+    protected void saveAdditional(final CompoundTag tag) {
+        super.saveAdditional(tag);
+
+        tag.putByteArray(OUTPUT_TAG_NAME, output);
     }
 
     @Override
-    public void load(final BlockState state, final CompoundNBT compound) {
-        super.load(state, compound);
-        final byte[] serializedOutput = compound.getByteArray(OUTPUT_TAG_NAME);
+    public void load(final CompoundTag tag) {
+        super.load(tag);
+        final byte[] serializedOutput = tag.getByteArray(OUTPUT_TAG_NAME);
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
     }
 
@@ -95,7 +94,7 @@ public final class RedstoneInterfaceTileEntity extends TileEntity implements Nam
     public void setRedstoneOutput(@Parameter(SIDE) @Nullable final Side side, @Parameter(VALUE) final int value) {
         if (side == null) throw new IllegalArgumentException();
 
-        final byte clampedValue = (byte) MathHelper.clamp(value, 0, 15);
+        final byte clampedValue = (byte) Mth.clamp(value, 0, 15);
         if (clampedValue == output[side.get3DDataValue()]) {
             return;
         }

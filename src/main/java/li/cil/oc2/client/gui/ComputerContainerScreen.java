@@ -1,13 +1,14 @@
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.common.container.ComputerInventoryContainer;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.network.chat.Component;
 
 public final class ComputerContainerScreen extends AbstractMachineInventoryScreen<ComputerInventoryContainer> {
-    public ComputerContainerScreen(final ComputerInventoryContainer container, final PlayerInventory inventory, final ITextComponent title) {
+    public ComputerContainerScreen(final ComputerInventoryContainer container, final Inventory inventory, final Component title) {
         super(container, inventory, title);
         imageWidth = Sprites.COMPUTER_CONTAINER.width;
         imageHeight = Sprites.COMPUTER_CONTAINER.height;
@@ -17,7 +18,7 @@ public final class ComputerContainerScreen extends AbstractMachineInventoryScree
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
+    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
         super.render(matrixStack, mouseX, mouseY, partialTicks);
 
         renderMissingDeviceInfo(matrixStack, mouseX, mouseY);
@@ -28,8 +29,10 @@ public final class ComputerContainerScreen extends AbstractMachineInventoryScree
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void renderBg(final MatrixStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
-        RenderSystem.color4f(1f, 1f, 1f, 1f);
+    protected void renderBg(final PoseStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1, 1, 1, 1);
+
         Sprites.COMPUTER_CONTAINER.draw(matrixStack, leftPos, topPos);
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
     }

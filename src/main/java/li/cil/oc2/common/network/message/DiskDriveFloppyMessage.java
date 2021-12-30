@@ -2,15 +2,15 @@ package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.tileentity.DiskDriveTileEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.network.NetworkEvent;
 
 public final class DiskDriveFloppyMessage extends AbstractMessage {
     private BlockPos pos;
-    private CompoundNBT data;
+    private CompoundTag data;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -19,20 +19,20 @@ public final class DiskDriveFloppyMessage extends AbstractMessage {
         this.data = diskDrive.getFloppy().serializeNBT();
     }
 
-    public DiskDriveFloppyMessage(final PacketBuffer buffer) {
+    public DiskDriveFloppyMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         data = buffer.readNbt();
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeNbt(data);
     }

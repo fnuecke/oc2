@@ -1,12 +1,12 @@
 package li.cil.oc2.client.gui;
 
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 
-public abstract class AbstractContainerScreen<T extends Container> extends ContainerScreen<T> {
-    public AbstractContainerScreen(final T container, final PlayerInventory playerInventory, final ITextComponent title) {
+public abstract class AbstractModContainerScreen<T extends AbstractContainerMenu> extends AbstractContainerScreen<T> {
+    public AbstractModContainerScreen(final T container, final Inventory playerInventory, final Component title) {
         super(container, playerInventory, title);
     }
 

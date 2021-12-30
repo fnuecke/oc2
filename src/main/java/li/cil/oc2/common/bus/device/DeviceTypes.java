@@ -4,7 +4,7 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.common.bus.device.util.DeviceTypeImpl;
 import li.cil.oc2.common.util.RegistryUtils;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryBuilder;

@@ -3,9 +3,10 @@ package li.cil.oc2.common.tileentity;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
@@ -20,8 +21,8 @@ public final class NetworkHubTileEntity extends AbstractTileEntity implements Ne
 
     ///////////////////////////////////////////////////////////////////
 
-    public NetworkHubTileEntity() {
-        super(TileEntities.NETWORK_HUB_TILE_ENTITY.get());
+    public NetworkHubTileEntity(final BlockPos pos, final BlockState state) {
+        super(TileEntities.NETWORK_HUB_TILE_ENTITY.get(), pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -70,7 +71,7 @@ public final class NetworkHubTileEntity extends AbstractTileEntity implements Ne
         for (final Direction side : Constants.DIRECTIONS) {
             adjacentInterfaces[side.get3DDataValue()] = null;
 
-            final TileEntity neighborTileEntity = level.getBlockEntity(pos.relative(side));
+            final BlockEntity neighborTileEntity = level.getBlockEntity(pos.relative(side));
             if (neighborTileEntity != null) {
                 final LazyOptional<NetworkInterface> capability = neighborTileEntity.getCapability(Capabilities.NETWORK_INTERFACE, side.getOpposite());
                 capability.ifPresent(adjacentInterface -> {

@@ -1,13 +1,13 @@
 package li.cil.oc2.common.item.crafting;
 
 import li.cil.oc2.common.util.RegistryUtils;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 public final class RecipeSerializers {
-    private static final DeferredRegister<IRecipeSerializer<?>> RECIPE_SERIALIZERS = RegistryUtils.create(ForgeRegistries.RECIPE_SERIALIZERS);
+    private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = RegistryUtils.create(ForgeRegistries.RECIPE_SERIALIZERS);
 
     ///////////////////////////////////////////////////////////////////
 

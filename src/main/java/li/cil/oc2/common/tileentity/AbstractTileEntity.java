@@ -1,9 +1,11 @@
 package li.cil.oc2.common.tileentity;
 
 import li.cil.oc2.common.util.ServerScheduler;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
@@ -13,15 +15,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
-public abstract class AbstractTileEntity extends TileEntity {
+public abstract class AbstractTileEntity extends BlockEntity {
     private final Runnable onWorldUnloaded = this::onWorldUnloaded;
     private final HashMap<CapabilityCacheKey, LazyOptional<?>> capabilityCache = new HashMap<>();
     private boolean needsWorldUnloadEvent;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractTileEntity(final TileEntityType<?> tileEntityType) {
-        super(tileEntityType);
+    protected AbstractTileEntity(final BlockEntityType<?> tileEntityType, final BlockPos pos, final BlockState state) {
+        super(tileEntityType, pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -112,7 +114,7 @@ public abstract class AbstractTileEntity extends TileEntity {
     }
 
     @Override
-    protected void invalidateCaps() {
+    public void invalidateCaps() {
         super.invalidateCaps();
 
         // Copy values because invalidate callback will modify map (removes invalidated entry).

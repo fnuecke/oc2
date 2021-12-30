@@ -1,11 +1,13 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.api.API;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,6 +66,7 @@ public final class ConfigManager {
         PARSERS.put(double.class, ConfigManager::parseDoubleField);
         PARSERS.put(String.class, ConfigManager::parseStringField);
         PARSERS.put(UUID.class, ConfigManager::parseUUIDField);
+        PARSERS.put(ResourceLocation.class, ConfigManager::parseResourceLocationField);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -89,7 +92,7 @@ public final class ConfigManager {
     ///////////////////////////////////////////////////////////////////
 
     @SubscribeEvent
-    public static void handleModConfigEvent(final ModConfig.ModConfigEvent event) {
+    public static void handleModConfigEvent(final ModConfigEvent event) {
         final ConfigDefinition config = CONFIGS.get(event.getConfig().getSpec());
         if (config != null) {
             config.apply();
@@ -162,6 +165,14 @@ public final class ConfigManager {
         final ForgeConfigSpec.ConfigValue<String> configValue = builder.define(path, defaultValue.toString());
 
         return new ConfigFieldPair<>(field, configValue, UUID::fromString);
+    }
+
+    private static ConfigFieldPair<?> parseResourceLocationField(final Object instance, final Field field, final String path, final ForgeConfigSpec.Builder builder) throws IllegalAccessException {
+        final ResourceLocation defaultValue = (ResourceLocation) field.get(instance);
+
+        final ForgeConfigSpec.ConfigValue<String> configValue = builder.define(path, defaultValue.toString());
+
+        return new ConfigFieldPair<>(field, configValue, ResourceLocation::new);
     }
 
     private static String getPath(@Nullable final String prefix, final Field field) {

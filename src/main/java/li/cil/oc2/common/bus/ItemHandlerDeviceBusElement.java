@@ -7,9 +7,9 @@ import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.NBTTagIds;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -42,10 +42,10 @@ public final class ItemHandlerDeviceBusElement extends AbstractGroupingItemDevic
             return;
         }
 
-        final CompoundNBT exportedTag = new CompoundNBT();
+        final CompoundTag exportedTag = new CompoundTag();
         for (final ItemDeviceInfo info : groups.get(slot)) {
             ItemDeviceUtils.getItemDeviceDataKey(info.provider).ifPresent(key -> {
-                final CompoundNBT deviceTag = new CompoundNBT();
+                final CompoundTag deviceTag = new CompoundTag();
                 info.device.exportToItemStack(deviceTag);
                 if (!deviceTag.isEmpty()) {
                     exportedTag.put(key, deviceTag);
@@ -61,7 +61,7 @@ public final class ItemHandlerDeviceBusElement extends AbstractGroupingItemDevic
     ///////////////////////////////////////////////////////////////////
 
     private void importDeviceDataFromItemStack(final ItemStack stack, final HashSet<ItemDeviceInfo> devices) {
-        final CompoundNBT exportedTag = ItemDeviceUtils.getItemDeviceData(stack);
+        final CompoundTag exportedTag = ItemDeviceUtils.getItemDeviceData(stack);
         if (!exportedTag.isEmpty()) {
             for (final ItemDeviceInfo info : devices) {
                 ItemDeviceUtils.getItemDeviceDataKey(info.provider).ifPresent(key -> {

@@ -1,7 +1,7 @@
 package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.entity.RobotEntity;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 
 public abstract class AbstractRobotActionType {
     private final int id;
@@ -27,5 +27,5 @@ public abstract class AbstractRobotActionType {
     public void performClient(final RobotEntity robot) {
     }
 
-    public abstract AbstractRobotAction deserialize(final CompoundNBT tag);
+    public abstract AbstractRobotAction deserialize(final CompoundTag tag);
 }

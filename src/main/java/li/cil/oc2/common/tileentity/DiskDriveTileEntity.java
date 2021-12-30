@@ -18,13 +18,14 @@ import li.cil.oc2.common.util.SoundEvents;
 import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
@@ -54,8 +55,8 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    public DiskDriveTileEntity() {
-        super(TileEntities.DISK_DRIVE_TILE_ENTITY.get());
+    public DiskDriveTileEntity(final BlockPos pos, final BlockState state) {
+        super(TileEntities.DISK_DRIVE_TILE_ENTITY.get(), pos, state);
 
         this.accessSoundEmitter = new ThrottledSoundEmitter(LocationSupplierUtils.of(this),
                 SoundEvents.FLOPPY_ACCESS.get()).withMinInterval(Duration.ofSeconds(1));
@@ -75,7 +76,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         return !stack.isEmpty() && ItemTags.DEVICES_FLOPPY.contains(stack.getItem());
     }
 
-    public ItemStack insert(final ItemStack stack, @Nullable final PlayerEntity player) {
+    public ItemStack insert(final ItemStack stack, @Nullable final Player player) {
         if (stack.isEmpty() || !ItemTags.DEVICES_FLOPPY.contains(stack.getItem())) {
             return stack;
         }
@@ -90,7 +91,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         return !itemHandler.extractItem(0, 1, true).isEmpty();
     }
 
-    public void eject(@Nullable final PlayerEntity player) {
+    public void eject(@Nullable final Player player) {
         final ItemStack stack = itemHandler.extractItem(0, 1, false);
         if (!stack.isEmpty()) {
             final Direction facing = getBlockState().getValue(DiskDriveBlock.FACING);
@@ -119,30 +120,28 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     }
 
     @Override
-    public CompoundNBT getUpdateTag() {
-        final CompoundNBT tag = super.getUpdateTag();
+    public CompoundTag getUpdateTag() {
+        final CompoundTag tag = super.getUpdateTag();
         tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
         return tag;
     }
 
     @Override
-    public void handleUpdateTag(final BlockState state, final CompoundNBT tag) {
-        super.handleUpdateTag(state, tag);
+    public void handleUpdateTag(final CompoundTag tag) {
+        super.handleUpdateTag(tag);
         itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT tag) {
-        tag = super.save(tag);
+    protected void saveAdditional(final CompoundTag tag) {
+        super.saveAdditional(tag);
 
         tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
-
-        return tag;
     }
 
     @Override
-    public void load(final BlockState state, final CompoundNBT tag) {
-        super.load(state, tag);
+    public void load(final CompoundTag tag) {
+        super.load(tag);
 
         itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
     }
@@ -193,7 +192,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
             if (stack.isEmpty()) {
                 device.removeBlockDevice();
             } else {
-                final CompoundNBT tag = ItemStackUtils.getOrCreateModDataTag(stack).getCompound(DATA_TAG_NAME);
+                final CompoundTag tag = ItemStackUtils.getOrCreateModDataTag(stack).getCompound(DATA_TAG_NAME);
                 device.updateBlockDevice(tag);
             }
 
@@ -209,18 +208,18 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
                 return;
             }
 
-            final CompoundNBT tag = new CompoundNBT();
+            final CompoundTag tag = new CompoundTag();
             device.exportToItemStack(tag);
             ItemStackUtils.getOrCreateModDataTag(stack).put(DATA_TAG_NAME, tag);
         }
     }
 
-    private final class DiskDriveVMDevice extends AbstractBlockDeviceVMDevice<BlockDevice, TileEntity> {
+    private final class DiskDriveVMDevice extends AbstractBlockDeviceVMDevice<BlockDevice, BlockEntity> {
         public DiskDriveVMDevice() {
             super(DiskDriveTileEntity.this);
         }
 
-        public void updateBlockDevice(final CompoundNBT tag) {
+        public void updateBlockDevice(final CompoundTag tag) {
             if (device == null) {
                 return;
             }
@@ -264,7 +263,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
             }
 
             final FloppyItem item = (FloppyItem) stack.getItem();
-            final int capacity = MathHelper.clamp(item.getCapacity(stack), 0, Config.maxFloppySize);
+            final int capacity = Mth.clamp(item.getCapacity(stack), 0, Config.maxFloppySize);
             if (capacity <= 0) {
                 return EMPTY_BLOCK_DEVICE;
             }

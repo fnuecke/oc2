@@ -7,11 +7,11 @@ import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.common.bus.device.provider.util.AbstractTileEntityCapabilityDeviceProvider;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 
-public final class EnergyStorageBlockDeviceProvider extends AbstractTileEntityCapabilityDeviceProvider<IEnergyStorage, TileEntity> {
+public final class EnergyStorageBlockDeviceProvider extends AbstractTileEntityCapabilityDeviceProvider<IEnergyStorage, BlockEntity> {
     public EnergyStorageBlockDeviceProvider() {
         super(() -> Capabilities.ENERGY_STORAGE);
     }

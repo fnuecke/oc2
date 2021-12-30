@@ -1,7 +1,7 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.api.API;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 
 import static li.cil.oc2.common.util.TranslationUtils.key;
 

@@ -3,7 +3,7 @@ package li.cil.oc2.client.renderer.font;
 import li.cil.manual.api.prefab.renderer.BitmapFontRenderer;
 import li.cil.manual.api.render.FontRenderer;
 import li.cil.oc2.api.API;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 public final class MonospaceFontRenderer extends BitmapFontRenderer {
     public static final FontRenderer INSTANCE = new MonospaceFontRenderer();

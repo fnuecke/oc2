@@ -1,13 +1,13 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.vm.Terminal;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.util.IIntArray;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.ContainerData;
 
 import java.nio.ByteBuffer;
 
 public abstract class AbstractMachineTerminalContainer extends AbstractMachineContainer {
-    protected AbstractMachineTerminalContainer(final ContainerType<?> type, final int id, final IIntArray energyInfo) {
+    protected AbstractMachineTerminalContainer(final MenuType<?> type, final int id, final ContainerData energyInfo) {
         super(type, id, energyInfo);
     }
 

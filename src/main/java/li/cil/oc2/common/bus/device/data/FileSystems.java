@@ -7,11 +7,11 @@ import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import li.cil.oc2.common.vm.fs.LayeredFileSystem;
 import li.cil.sedna.fs.FileSystem;
 import li.cil.sedna.fs.ZipStreamFileSystem;
-import net.minecraft.profiler.IProfiler;
-import net.minecraft.resources.IFutureReloadListener;
-import net.minecraft.resources.IResource;
-import net.minecraft.resources.IResourceManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import org.apache.logging.log4j.LogManager;
@@ -49,7 +49,7 @@ public final class FileSystems {
         event.addListener(ReloadListener.INSTANCE);
     }
 
-    private static void reload(final IResourceManager resourceManager) {
+    private static void reload(final ResourceManager resourceManager) {
         reset();
 
         LOGGER.info("Searching for datapack filesystems...");
@@ -62,7 +62,7 @@ public final class FileSystems {
         for (final ResourceLocation fileSystemDescriptorLocation : fileSystemDescriptorLocations) {
             LOGGER.info("Found [{}]", fileSystemDescriptorLocation);
             try {
-                final IResource fileSystemDescriptor = resourceManager.getResource(fileSystemDescriptorLocation);
+                final Resource fileSystemDescriptor = resourceManager.getResource(fileSystemDescriptorLocation);
                 final JsonObject json = new JsonParser().parse(new InputStreamReader(fileSystemDescriptor.getInputStream())).getAsJsonObject();
                 final String type = json.getAsJsonPrimitive("type").getAsString();
                 switch (type) {
@@ -110,11 +110,11 @@ public final class FileSystems {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final class ReloadListener implements IFutureReloadListener {
+    private static final class ReloadListener implements PreparableReloadListener {
         public static final ReloadListener INSTANCE = new ReloadListener();
 
         @Override
-        public CompletableFuture<Void> reload(final IFutureReloadListener.IStage stage, final IResourceManager resourceManager, final IProfiler preparationsProfiler, final IProfiler reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
+        public CompletableFuture<Void> reload(final PreparableReloadListener.PreparationBarrier stage, final ResourceManager resourceManager, final ProfilerFiller preparationsProfiler, final ProfilerFiller reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
             return CompletableFuture
                     .runAsync(() -> FileSystems.reload(resourceManager), backgroundExecutor)
                     .thenCompose(stage::wait);

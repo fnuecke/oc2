@@ -2,15 +2,15 @@ package li.cil.oc2.common.network;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.network.message.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.PacketDistributor;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.util.function.Function;
 
@@ -67,12 +67,12 @@ public final class Network {
         registerMessage(BusCableFacadeMessage.class, BusCableFacadeMessage::new, NetworkDirection.PLAY_TO_CLIENT);
     }
 
-    public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {
+    public static <T> void sendToClientsTrackingChunk(final T message, final LevelChunk chunk) {
         Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
     }
 
-    public static <T> void sendToClientsTrackingTileEntity(final T message, final TileEntity tileEntity) {
-        final Chunk chunk = tileEntity.getLevel().getChunkAt(tileEntity.getBlockPos());
+    public static <T> void sendToClientsTrackingTileEntity(final T message, final BlockEntity tileEntity) {
+        final LevelChunk chunk = tileEntity.getLevel().getChunkAt(tileEntity.getBlockPos());
         Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
     }
 
@@ -82,7 +82,7 @@ public final class Network {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static <T extends AbstractMessage> void registerMessage(final Class<T> type, final Function<PacketBuffer, T> decoder, final NetworkDirection direction) {
+    private static <T extends AbstractMessage> void registerMessage(final Class<T> type, final Function<FriendlyByteBuf, T> decoder, final NetworkDirection direction) {
         INSTANCE.messageBuilder(type, getNextPacketId(), direction)
                 .encoder(AbstractMessage::toBytes)
                 .decoder(decoder)

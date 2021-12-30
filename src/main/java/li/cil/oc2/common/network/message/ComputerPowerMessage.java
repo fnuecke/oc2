@@ -2,9 +2,9 @@ package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.network.NetworkEvent;
 
 public final class ComputerPowerMessage extends AbstractMessage {
     private BlockPos pos;
@@ -17,20 +17,20 @@ public final class ComputerPowerMessage extends AbstractMessage {
         this.power = power;
     }
 
-    public ComputerPowerMessage(final PacketBuffer buffer) {
+    public ComputerPowerMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         power = buffer.readBoolean();
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeBoolean(power);
     }

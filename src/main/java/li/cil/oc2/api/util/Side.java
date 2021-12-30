@@ -1,6 +1,6 @@
 package li.cil.oc2.api.util;
 
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 
 import javax.annotation.Nullable;
 

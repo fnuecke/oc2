@@ -1,8 +1,8 @@
 package li.cil.oc2.client.gui.widget;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.util.math.MathHelper;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.util.Mth;
 
 public final class Sprite {
     public final Texture texture;
@@ -29,21 +29,21 @@ public final class Sprite {
 
     ///////////////////////////////////////////////////////////////////
 
-    public void draw(final MatrixStack stack, final int x, final int y) {
+    public void draw(final PoseStack stack, final int x, final int y) {
         draw(stack, x, y, 0, 0);
     }
 
-    public void draw(final MatrixStack stack, final int x, final int y, final int uOffset, final int vOffset) {
+    public void draw(final PoseStack stack, final int x, final int y, final int uOffset, final int vOffset) {
         blit(stack, x, y, u0 + uOffset, v0 + vOffset, width, height);
     }
 
-    public void drawFillY(final MatrixStack stack, final int x, final int y, final float value) {
-        final int h = (int) (this.height * MathHelper.clamp(value, 0, 1));
+    public void drawFillY(final PoseStack stack, final int x, final int y, final float value) {
+        final int h = (int) (this.height * Mth.clamp(value, 0, 1));
         blit(stack, x, y + (height - h), u0, v0 + (height - h), width, h);
     }
 
-    private void blit(final MatrixStack stack, final int x, final int y, final int u0, final int v0, final int width, final int height) {
+    private void blit(final PoseStack stack, final int x, final int y, final int u0, final int v0, final int width, final int height) {
         texture.bind();
-        AbstractGui.blit(stack, x, y, u0, v0, width, height, texture.width, texture.height);
+        GuiComponent.blit(stack, x, y, u0, v0, width, height, texture.width, texture.height);
     }
 }

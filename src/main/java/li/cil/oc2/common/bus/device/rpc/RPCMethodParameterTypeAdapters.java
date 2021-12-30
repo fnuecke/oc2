@@ -4,8 +4,8 @@ import com.google.gson.GsonBuilder;
 import li.cil.oc2.api.imc.RPCMethodParameterTypeAdapter;
 import li.cil.oc2.common.serialization.serializers.DirectionJsonSerializer;
 import li.cil.oc2.common.serialization.serializers.ItemStackJsonSerializer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Direction;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
 
 import java.util.ArrayList;
 

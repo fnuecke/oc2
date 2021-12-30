@@ -10,8 +10,8 @@ import li.cil.oc2.common.bus.device.item.HardDriveVMDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.item.HardDriveItem;
 import li.cil.oc2.common.util.LocationSupplierUtils;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.util.Mth;
 
 import java.util.Optional;
 
@@ -42,6 +42,6 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
     private static int getCapacity(final ItemDeviceQuery query) {
         final ItemStack stack = query.getItemStack();
         final HardDriveItem item = (HardDriveItem) stack.getItem();
-        return MathHelper.clamp(item.getCapacity(stack), 0, Config.maxHardDriveSize);
+        return Mth.clamp(item.getCapacity(stack), 0, Config.maxHardDriveSize);
     }
 }

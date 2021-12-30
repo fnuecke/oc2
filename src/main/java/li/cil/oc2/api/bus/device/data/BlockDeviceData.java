@@ -2,8 +2,8 @@ package li.cil.oc2.api.bus.device.data;
 
 import li.cil.oc2.api.API;
 import li.cil.sedna.api.device.BlockDevice;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**
@@ -44,5 +44,5 @@ public interface BlockDeviceData extends IForgeRegistryEntry<BlockDeviceData> {
      *
      * @return the display name of this block device.
      */
-    ITextComponent getDisplayName();
+    Component getDisplayName();
 }

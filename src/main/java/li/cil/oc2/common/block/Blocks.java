@@ -1,10 +1,10 @@
 package li.cil.oc2.common.block;
 
 import li.cil.oc2.common.util.RegistryUtils;
-import net.minecraft.block.Block;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 public final class Blocks {
     private static final DeferredRegister<Block> BLOCKS = RegistryUtils.create(ForgeRegistries.BLOCKS);

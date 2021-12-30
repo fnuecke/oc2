@@ -6,7 +6,7 @@ import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
 import li.cil.oc2.common.util.Location;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,7 +20,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
-@SuppressWarnings("UnstableApiUsage")
 public final class HardDriveVMDeviceWithInitialData extends HardDriveVMDevice {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final ExecutorService WORKERS = Executors.newCachedThreadPool(r -> {

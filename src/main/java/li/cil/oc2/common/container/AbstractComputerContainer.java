@@ -10,10 +10,10 @@ import li.cil.oc2.common.network.message.OpenComputerTerminalMessage;
 import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.util.IIntArray;
-import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraftforge.energy.IEnergyStorage;
 
 import java.nio.ByteBuffer;
@@ -23,7 +23,7 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractComputerContainer(final ContainerType<?> type, final int id, final PlayerEntity player, final ComputerTileEntity computer, final IIntArray energyInfo) {
+    protected AbstractComputerContainer(final MenuType<?> type, final int id, final Player player, final ComputerTileEntity computer, final ContainerData energyInfo) {
         super(type, id, energyInfo);
         this.computer = computer;
 
@@ -63,12 +63,12 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
     }
 
     @Override
-    public boolean stillValid(final PlayerEntity player) {
-        return !computer.isRemoved() && stillValid(IWorldPosCallable.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER.get());
+    public boolean stillValid(final Player player) {
+        return !computer.isRemoved() && stillValid(ContainerLevelAccess.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER.get());
     }
 
     @Override
-    public void removed(final PlayerEntity player) {
+    public void removed(final Player player) {
         super.removed(player);
 
         this.computer.removeTerminalUser(player);
@@ -76,8 +76,8 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
 
     ///////////////////////////////////////////////////////////////////
 
-    protected static IIntArray createEnergyInfo(final IEnergyStorage energy, final CommonDeviceBusController busController) {
-        return new IIntArray() {
+    protected static ContainerData createEnergyInfo(final IEnergyStorage energy, final CommonDeviceBusController busController) {
+        return new ContainerData() {
             @Override
             public int get(final int index) {
                 switch (index) {

@@ -1,7 +1,7 @@
 package li.cil.oc2.api.bus.device.vm;
 
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nullable;
 
@@ -28,7 +28,7 @@ public final class VMDeviceLoadResult {
     }
 
     private final boolean wasSuccessful;
-    @Nullable private ITextComponent message;
+    @Nullable private Component message;
 
     private VMDeviceLoadResult(final boolean wasSuccessful) {
         this.wasSuccessful = wasSuccessful;
@@ -51,7 +51,7 @@ public final class VMDeviceLoadResult {
      * @param value the error message.
      * @return this load result, with the message set to the specified value.
      */
-    public VMDeviceLoadResult withErrorMessage(final ITextComponent value) {
+    public VMDeviceLoadResult withErrorMessage(final Component value) {
         message = value;
         return this;
     }
@@ -62,7 +62,7 @@ public final class VMDeviceLoadResult {
      * @return the error message.
      */
     @Nullable
-    public ITextComponent getErrorMessage() {
+    public Component getErrorMessage() {
         return message;
     }
 }

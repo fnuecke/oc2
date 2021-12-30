@@ -3,8 +3,8 @@ package li.cil.oc2.common.network.message;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.entity.RobotEntity;
 import li.cil.oc2.common.network.MessageUtils;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 public final class RobotBusStateMessage extends AbstractMessage {
     private int entityId;
@@ -17,20 +17,20 @@ public final class RobotBusStateMessage extends AbstractMessage {
         this.value = robot.getVirtualMachine().getBusState();
     }
 
-    public RobotBusStateMessage(final PacketBuffer buffer) {
+    public RobotBusStateMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         entityId = buffer.readVarInt();
         value = buffer.readEnum(CommonDeviceBusController.BusState.class);
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeVarInt(entityId);
         buffer.writeEnum(value);
     }

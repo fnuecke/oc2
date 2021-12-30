@@ -10,9 +10,9 @@ import li.cil.oc2.common.network.message.RobotPowerMessage;
 import li.cil.oc2.common.network.message.RobotTerminalInputMessage;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.util.IIntArray;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.ContainerData;
 
 import java.nio.ByteBuffer;
 
@@ -21,7 +21,7 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
 
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractRobotContainer(final ContainerType<?> type, final int id, final RobotEntity robot, final IIntArray energyInfo) {
+    public AbstractRobotContainer(final MenuType<?> type, final int id, final RobotEntity robot, final ContainerData energyInfo) {
         super(type, id, energyInfo);
         this.robot = robot;
     }
@@ -63,14 +63,14 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
     }
 
     @Override
-    public boolean stillValid(final PlayerEntity player) {
+    public boolean stillValid(final Player player) {
         return robot.isAlive() && robot.closerThan(player, 8);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    protected static IIntArray createEnergyInfo(final FixedEnergyStorage energy, final CommonDeviceBusController busController) {
-        return new IIntArray() {
+    protected static ContainerData createEnergyInfo(final FixedEnergyStorage energy, final CommonDeviceBusController busController) {
+        return new ContainerData() {
             @Override
             public int get(final int index) {
                 switch (index) {

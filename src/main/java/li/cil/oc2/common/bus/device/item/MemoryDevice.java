@@ -11,8 +11,8 @@ import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.device.memory.ByteBufferMemory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -92,8 +92,8 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        final CompoundTag tag = new CompoundTag();
 
         if (blobHandle != null) {
             tag.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
@@ -106,7 +106,7 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     }
 
     @Override
-    public void deserializeNBT(final CompoundNBT tag) {
+    public void deserializeNBT(final CompoundTag tag) {
         if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
             blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
         }
@@ -126,7 +126,7 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
             blobHandle = BlobStorage.validateHandle(blobHandle);
             final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
             final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, size);
-            device = new ByteBufferMemory(buffer);
+            device = new ByteBufferMemory(size, buffer);
         } catch (final IOException e) {
             return false;
         }

@@ -1,7 +1,7 @@
 package li.cil.oc2.data;
 
 import li.cil.oc2.api.API;
-import net.minecraft.data.BlockTagsProvider;
+import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.data.ExistingFileHelper;
 

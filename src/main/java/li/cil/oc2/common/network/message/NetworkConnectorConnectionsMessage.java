@@ -2,9 +2,9 @@ package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.tileentity.NetworkConnectorTileEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 
@@ -19,14 +19,14 @@ public final class NetworkConnectorConnectionsMessage extends AbstractMessage {
         this.connectedPositions = new ArrayList<>(connector.getConnectedPositions());
     }
 
-    public NetworkConnectorConnectionsMessage(final PacketBuffer buffer) {
+    public NetworkConnectorConnectionsMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         connectedPositions = new ArrayList<>();
         final int positionCount = buffer.readVarInt();
@@ -37,7 +37,7 @@ public final class NetworkConnectorConnectionsMessage extends AbstractMessage {
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeVarInt(connectedPositions.size());
         for (final BlockPos pos : connectedPositions) {

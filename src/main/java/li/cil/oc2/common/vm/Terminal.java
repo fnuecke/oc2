@@ -634,7 +634,7 @@ public final class Terminal {
             }
 
             RenderSystem.depthMask(false);
-            RenderSystem.disableTexture();
+            RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
             stack.pushPose();
             stack.translate(terminal.x * CHAR_WIDTH, terminal.y * CHAR_HEIGHT, 0);
@@ -658,7 +658,6 @@ public final class Terminal {
 
             stack.popPose();
 
-            RenderSystem.enableTexture();
             RenderSystem.depthMask(true);
         }
 

@@ -43,8 +43,8 @@ final class GlobalEventBus implements VMLifecycleEventBus, EventManager {
     ///////////////////////////////////////////////////////////////////
 
     private void handleEventBusException(final Throwable throwable, final SubscriberExceptionContext context) {
-        if (throwable instanceof VMInitializationException) {
-            initializationException = (VMInitializationException) throwable;
+        if (throwable instanceof final VMInitializationException exception) {
+            initializationException = exception;
         } else {
             LOGGER.error(throwable);
         }

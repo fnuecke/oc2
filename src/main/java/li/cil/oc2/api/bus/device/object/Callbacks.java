@@ -79,8 +79,8 @@ public final class Callbacks {
      * @return {@code true} if any methods were found on the object; {@code false} otherwise.
      */
     public static boolean hasMethods(final Object object) {
-        if (object instanceof Class<?>) {
-            return !getMethods((Class<?>) object).isEmpty();
+        if (object instanceof final Class<?> clazz) {
+            return !getMethods(clazz).isEmpty();
         } else {
             return !getMethods(object.getClass()).isEmpty();
         }

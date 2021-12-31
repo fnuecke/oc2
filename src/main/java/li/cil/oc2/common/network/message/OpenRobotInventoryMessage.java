@@ -33,13 +33,12 @@ public final class OpenRobotInventoryMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
         final ServerPlayer player = context.getSender();
         if (player != null) {
             MessageUtils.withNearbyServerEntity(context, entityId, RobotEntity.class,
-                (robot) -> robot.openInventoryScreen(player));
+                robot -> robot.openInventoryScreen(player));
         }
     }
 }

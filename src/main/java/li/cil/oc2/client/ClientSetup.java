@@ -56,7 +56,7 @@ public final class ClientSetup {
             MenuScreens.register(Containers.ROBOT.get(), RobotContainerScreen::new);
             MenuScreens.register(Containers.ROBOT_TERMINAL.get(), RobotTerminalScreen::new);
 
-            ItemBlockRenderTypes.setRenderLayer(Blocks.BUS_CABLE.get(), (RenderType) -> true);
+            ItemBlockRenderTypes.setRenderLayer(Blocks.BUS_CABLE.get(), renderType -> true);
             Minecraft.getInstance().getBlockColors().register(new BusCableBlockColor(), Blocks.BUS_CABLE.get());
         });
     }

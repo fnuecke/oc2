@@ -22,8 +22,8 @@ public final class BusCableBlockColor implements BlockColor {
         }
 
         final BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof BusCableBlockEntity) {
-            final BlockState facade = ItemStackUtils.getBlockState(((BusCableBlockEntity) blockEntity).getFacade());
+        if (blockEntity instanceof final BusCableBlockEntity busCable) {
+            final BlockState facade = ItemStackUtils.getBlockState(busCable.getFacade());
             if (facade != null) {
                 return Minecraft.getInstance().getBlockColors().getColor(facade, level, pos, tintIndex);
             }

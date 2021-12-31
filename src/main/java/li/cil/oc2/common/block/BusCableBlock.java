@@ -81,7 +81,7 @@ public final class BusCableBlock extends BaseEntityBlock {
     public static final EnumProperty<ConnectionType> CONNECTION_UP = EnumProperty.create("connection_up", ConnectionType.class);
     public static final EnumProperty<ConnectionType> CONNECTION_DOWN = EnumProperty.create("connection_down", ConnectionType.class);
 
-    public static final Map<Direction, EnumProperty<ConnectionType>> FACING_TO_CONNECTION_MAP = Util.make(Maps.newEnumMap(Direction.class), (directions) -> {
+    public static final Map<Direction, EnumProperty<ConnectionType>> FACING_TO_CONNECTION_MAP = Util.make(Maps.newEnumMap(Direction.class), directions -> {
         directions.put(Direction.NORTH, CONNECTION_NORTH);
         directions.put(Direction.EAST, CONNECTION_EAST);
         directions.put(Direction.SOUTH, CONNECTION_SOUTH);
@@ -270,7 +270,7 @@ public final class BusCableBlock extends BaseEntityBlock {
 
         if (state.getValue(HAS_FACADE)) {
             final BlockEntity blockEntity = builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
-            if (blockEntity instanceof BusCableBlockEntity busCable) {
+            if (blockEntity instanceof final BusCableBlockEntity busCable) {
                 final ItemStack stack = busCable.getFacade();
                 if (!stack.isEmpty()) {
                     drops.add(stack);
@@ -355,8 +355,8 @@ public final class BusCableBlock extends BaseEntityBlock {
             return facadeItem;
         }
 
-        if (hit instanceof BlockHitResult) {
-            final Direction side = getHitSide(pos, (BlockHitResult) hit);
+        if (hit instanceof final BlockHitResult blockHit) {
+            final Direction side = getHitSide(pos, blockHit);
             if (getConnectionType(state, side) == ConnectionType.INTERFACE) {
                 return new ItemStack(Items.BUS_INTERFACE.get());
             }

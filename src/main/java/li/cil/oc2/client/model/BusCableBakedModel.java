@@ -124,8 +124,8 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
             final BlockEntity blockEntity = level.getBlockEntity(pos);
 
             BlockState facadeState = null;
-            if (blockEntity instanceof BusCableBlockEntity) {
-                final ItemStack facadeItem = ((BusCableBlockEntity) blockEntity).getFacade();
+            if (blockEntity instanceof final BusCableBlockEntity busCable) {
+                final ItemStack facadeItem = busCable.getFacade();
                 facadeState = ItemStackUtils.getBlockState(facadeItem);
             }
             if (facadeState == null) {

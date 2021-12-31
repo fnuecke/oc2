@@ -82,7 +82,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         beginCooldown();
 
         final Level level = entity.level;
-        if (!(level instanceof ServerLevel)) {
+        if (!(level instanceof final ServerLevel serverLevel)) {
             return false;
         }
 
@@ -92,7 +92,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         final List<ItemEntity> oldItems = getItemsInRange();
 
         final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
-        if (!tryHarvestBlock(level, entity.blockPosition().relative(direction))) {
+        if (!tryHarvestBlock(serverLevel, entity.blockPosition().relative(direction))) {
             return false;
         }
 
@@ -117,7 +117,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         beginCooldown();
 
         final Level level = entity.level;
-        if (!(level instanceof ServerLevel)) {
+        if (!(level instanceof final ServerLevel serverLevel)) {
             return false;
         }
 
@@ -125,7 +125,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         final ItemStackHandler inventory = robot.getInventory();
 
         final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);
-        if (extracted.isEmpty() || !(extracted.getItem() instanceof BlockItem)) {
+        if (extracted.isEmpty() || !(extracted.getItem() instanceof final BlockItem blockItem)) {
             return false;
         }
 
@@ -139,8 +139,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
             false);
 
         final ItemStack itemStack = extracted.copy();
-        final BlockItem blockItem = (BlockItem) itemStack.getItem();
-        final ServerPlayer player = FakePlayerUtils.getFakePlayer((ServerLevel) level, entity);
+        final ServerPlayer player = FakePlayerUtils.getFakePlayer(serverLevel, entity);
         final BlockPlaceContext context = new BlockPlaceContext(player, InteractionHand.MAIN_HAND, itemStack, hit);
 
         final InteractionResult result = blockItem.place(context);
@@ -211,14 +210,14 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         return entity.level.getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(2));
     }
 
-    private boolean tryHarvestBlock(final Level level, final BlockPos blockPos) {
+    private boolean tryHarvestBlock(final ServerLevel level, final BlockPos blockPos) {
         // This method is based on PlayerInteractionManager::tryHarvestBlock. Simplified for our needs.
         final BlockState blockState = level.getBlockState(blockPos);
         if (blockState.isAir()) {
             return false;
         }
 
-        final ServerPlayer player = FakePlayerUtils.getFakePlayer((ServerLevel) level, entity);
+        final ServerPlayer player = FakePlayerUtils.getFakePlayer(level, entity);
         final int experience = net.minecraftforge.common.ForgeHooks.onBlockBreakEvent(level, GameType.DEFAULT_MODE, player, blockPos);
         if (experience == -1) {
             return false;
@@ -264,7 +263,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
             return null;
         }
 
-        if (stack.getItem() instanceof TieredItem tieredItem) {
+        if (stack.getItem() instanceof final TieredItem tieredItem) {
             return tieredItem.getTier();
         }
 

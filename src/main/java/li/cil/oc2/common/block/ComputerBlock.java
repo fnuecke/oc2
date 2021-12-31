@@ -156,8 +156,8 @@ public final class ComputerBlock extends ImmutableHorizontalBlock implements Ent
         final ItemStack heldItem = player.getItemInHand(hand);
         if (Wrenches.isWrench(heldItem)) {
             if (!player.isShiftKeyDown()) {
-                if (!level.isClientSide() && player instanceof ServerPlayer) {
-                    computer.openInventoryScreen((ServerPlayer) player);
+                if (!level.isClientSide() && player instanceof final ServerPlayer serverPlayer) {
+                    computer.openInventoryScreen(serverPlayer);
                 }
                 return InteractionResult.sidedSuccess(level.isClientSide());
             }
@@ -165,8 +165,8 @@ public final class ComputerBlock extends ImmutableHorizontalBlock implements Ent
             if (!level.isClientSide()) {
                 if (player.isShiftKeyDown()) {
                     computer.start();
-                } else if (player instanceof ServerPlayer) {
-                    computer.openTerminalScreen((ServerPlayer) player);
+                } else if (player instanceof final ServerPlayer serverPlayer) {
+                    computer.openTerminalScreen(serverPlayer);
                 }
             }
             return InteractionResult.sidedSuccess(level.isClientSide());

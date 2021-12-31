@@ -42,11 +42,11 @@ public final class SoundCardItemDevice extends AbstractItemRPCDevice {
 
         location.get().ifPresent(location -> {
             final LevelAccessor level = location.level();
-            if (!(level instanceof ServerLevel)) {
+            if (!(level instanceof final ServerLevel serverLevel)) {
                 return;
             }
 
-            final long gameTime = ((ServerLevel) level).getGameTime();
+            final long gameTime = serverLevel.getGameTime();
             if (gameTime < gameTimeCooldownExpiresAt) {
                 return;
             }

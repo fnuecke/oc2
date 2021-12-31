@@ -52,21 +52,21 @@ public final class NetworkCableItem extends ModItem {
         final BlockPos currentPos = context.getClickedPos();
 
         final BlockEntity currentBlockEntity = level.getBlockEntity(currentPos);
-        if (!(currentBlockEntity instanceof NetworkConnectorBlockEntity currentConnector)) {
+        if (!(currentBlockEntity instanceof final NetworkConnectorBlockEntity currentConnector)) {
             return super.useOn(context);
         }
 
-        if (!level.isClientSide() && player instanceof ServerPlayer) {
+        if (!level.isClientSide() && player instanceof final ServerPlayer serverPlayer) {
             final BlockPos startPos = LINK_STARTS.remove(player);
             if (startPos == null || Objects.equals(startPos, currentPos)) {
                 if (currentConnector.canConnectMore()) {
-                    LINK_STARTS.put((ServerPlayer) player, currentPos);
+                    LINK_STARTS.put(serverPlayer, currentPos);
                 } else {
                     player.displayClientMessage(new TranslatableComponent(Constants.CONNECTOR_ERROR_FULL), true);
                 }
             } else {
                 final BlockEntity startBlockEntity = level.getBlockEntity(startPos);
-                if (!(startBlockEntity instanceof NetworkConnectorBlockEntity startConnector)) {
+                if (!(startBlockEntity instanceof final NetworkConnectorBlockEntity startConnector)) {
                     // Starting connector was removed in the meantime.
                     return super.useOn(context);
                 }

@@ -64,8 +64,8 @@ public final class BusCableItem extends ModBlockItem {
         final Player player = context.getPlayer();
         final ItemStack stack = context.getItemInHand();
 
-        if (player instanceof ServerPlayer) {
-            CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayer) player, pos, stack);
+        if (player instanceof final ServerPlayer serverPlayer) {
+            CriteriaTriggers.PLACED_BLOCK.trigger(serverPlayer, pos, stack);
         }
 
         LevelUtils.playSound(level, pos, state.getSoundType(level, pos, player), SoundType::getPlaceSound);

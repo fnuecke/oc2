@@ -40,6 +40,6 @@ public final class RobotBusStateMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
         MessageUtils.withClientEntity(entityId, RobotEntity.class,
-            (robot) -> robot.getVirtualMachine().setBusStateClient(value));
+            robot -> robot.getVirtualMachine().setBusStateClient(value));
     }
 }

@@ -7,6 +7,8 @@ insert_final_newline = true
 [*.java]
 trim_trailing_whitespace = true
 max_line_length = 120
+ij_java_generate_final_locals = true
+ij_java_generate_final_parameters = true
 
 [*.yml]
 indent_size = 2

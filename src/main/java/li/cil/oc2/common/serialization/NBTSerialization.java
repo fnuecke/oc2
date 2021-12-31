@@ -311,12 +311,12 @@ public final class NBTSerialization {
                 final ListTag listTag;
                 final int[] nulls;
                 int nullsIndex = 0;
-                if (tag instanceof ListTag) {
-                    listTag = (ListTag) tag;
+                if (tag instanceof final ListTag plainListTag) {
+                    listTag = plainListTag;
                     nulls = new int[0];
-                } else if (tag instanceof CompoundTag) {
-                    listTag = (ListTag) ((CompoundTag) tag).get("value");
-                    nulls = ((CompoundTag) tag).getIntArray("nulls");
+                } else if (tag instanceof final CompoundTag compoundTag) {
+                    listTag = (ListTag) compoundTag.get("value");
+                    nulls = compoundTag.getIntArray("nulls");
                 } else {
                     return data;
                 }
@@ -381,8 +381,8 @@ public final class NBTSerialization {
         @Override
         public Object deserialize(final Tag tag, final Class<?> type, @Nullable final Object into) {
             boolean[] data = (boolean[]) into;
-            if (tag instanceof ByteArrayTag) {
-                final byte[] convertedData = ((ByteArrayTag) tag).getAsByteArray();
+            if (tag instanceof final ByteArrayTag byteArrayTag) {
+                final byte[] convertedData = byteArrayTag.getAsByteArray();
                 if (data == null || data.length != convertedData.length) {
                     data = new boolean[convertedData.length];
                 }
@@ -403,8 +403,8 @@ public final class NBTSerialization {
         @Override
         public Object deserialize(final Tag tag, final Class<?> type, @Nullable final Object into) {
             final byte[] data = (byte[]) into;
-            if (tag instanceof ByteArrayTag) {
-                final byte[] serializedData = ((ByteArrayTag) tag).getAsByteArray();
+            if (tag instanceof final ByteArrayTag byteArrayTag) {
+                final byte[] serializedData = byteArrayTag.getAsByteArray();
                 if (data == null || data.length != serializedData.length) {
                     return serializedData;
                 }
@@ -428,8 +428,8 @@ public final class NBTSerialization {
         @Override
         public Object deserialize(final Tag tag, final Class<?> type, @Nullable final Object into) {
             char[] data = (char[]) into;
-            if (tag instanceof IntArrayTag) {
-                final int[] convertedData = ((IntArrayTag) tag).getAsIntArray();
+            if (tag instanceof final IntArrayTag intArrayTag) {
+                final int[] convertedData = intArrayTag.getAsIntArray();
                 if (data == null || data.length != convertedData.length) {
                     data = new char[convertedData.length];
                 }
@@ -455,8 +455,8 @@ public final class NBTSerialization {
         @Override
         public Object deserialize(final Tag tag, final Class<?> type, @Nullable final Object into) {
             short[] data = (short[]) into;
-            if (tag instanceof IntArrayTag) {
-                final int[] convertedData = ((IntArrayTag) tag).getAsIntArray();
+            if (tag instanceof final IntArrayTag intArrayTag) {
+                final int[] convertedData = intArrayTag.getAsIntArray();
                 if (data == null || data.length != convertedData.length) {
                     data = new short[convertedData.length];
                 }
@@ -477,8 +477,8 @@ public final class NBTSerialization {
         @Override
         public Object deserialize(final Tag tag, final Class<?> type, @Nullable final Object into) {
             final int[] data = (int[]) into;
-            if (tag instanceof IntArrayTag) {
-                final int[] serializedData = ((IntArrayTag) tag).getAsIntArray();
+            if (tag instanceof final IntArrayTag intArrayTag) {
+                final int[] serializedData = intArrayTag.getAsIntArray();
                 if (data == null || data.length != serializedData.length) {
                     return serializedData;
                 }
@@ -497,8 +497,8 @@ public final class NBTSerialization {
         @Override
         public Object deserialize(final Tag tag, final Class<?> type, @Nullable final Object into) {
             final long[] data = (long[]) into;
-            if (tag instanceof LongArrayTag) {
-                final long[] serializedData = ((LongArrayTag) tag).getAsLongArray();
+            if (tag instanceof final LongArrayTag longArrayTag) {
+                final long[] serializedData = longArrayTag.getAsLongArray();
                 if (data == null || data.length != serializedData.length) {
                     return serializedData;
                 }
@@ -522,8 +522,8 @@ public final class NBTSerialization {
         @Override
         public Object deserialize(final Tag tag, final Class<?> type, @Nullable final Object into) {
             float[] data = (float[]) into;
-            if (tag instanceof IntArrayTag) {
-                final int[] convertedData = ((IntArrayTag) tag).getAsIntArray();
+            if (tag instanceof final IntArrayTag intArrayTag) {
+                final int[] convertedData = intArrayTag.getAsIntArray();
                 if (data == null || data.length != convertedData.length) {
                     data = new float[convertedData.length];
                 }
@@ -549,8 +549,8 @@ public final class NBTSerialization {
         @Override
         public Object deserialize(final Tag tag, final Class<?> type, @Nullable final Object into) {
             double[] data = (double[]) into;
-            if (tag instanceof LongArrayTag) {
-                final long[] convertedData = ((LongArrayTag) tag).getAsLongArray();
+            if (tag instanceof final LongArrayTag longArrayTag) {
+                final long[] convertedData = longArrayTag.getAsLongArray();
                 if (data == null || data.length != convertedData.length) {
                     data = new double[convertedData.length];
                 }
@@ -580,8 +580,8 @@ public final class NBTSerialization {
             final Object[] enumConstants = componentType.getEnumConstants();
 
             Enum[] data = (Enum[]) into;
-            if (tag instanceof IntArrayTag) {
-                final int[] serializedData = ((IntArrayTag) tag).getAsIntArray();
+            if (tag instanceof final IntArrayTag intArrayTag) {
+                final int[] serializedData = intArrayTag.getAsIntArray();
                 if (data == null || data.length != serializedData.length) {
                     data = (Enum[]) Array.newInstance(componentType, serializedData.length);
                 }
@@ -607,8 +607,7 @@ public final class NBTSerialization {
         @Override
         public Object deserialize(final Tag tag, final Class<?> type, @Nullable final Object into) {
             String[] data = (String[]) into;
-            if (tag instanceof ListTag) {
-                final ListTag serializedData = (ListTag) tag;
+            if (tag instanceof final ListTag serializedData) {
                 if (serializedData.isEmpty() || serializedData.getElementType() == NBTTagIds.TAG_STRING) {
                     if (data == null || data.length != serializedData.size()) {
                         data = new String[serializedData.size()];
@@ -636,8 +635,7 @@ public final class NBTSerialization {
         @Override
         public Object deserialize(final Tag tag, final Class<?> type, @Nullable final Object into) {
             UUID[] data = (UUID[]) into;
-            if (tag instanceof ListTag) {
-                final ListTag serializedData = (ListTag) tag;
+            if (tag instanceof final ListTag serializedData) {
                 if (serializedData.isEmpty() || serializedData.getElementType() == NBTTagIds.TAG_STRING) {
                     if (data == null || data.length != serializedData.size()) {
                         data = new UUID[serializedData.size()];

@@ -154,8 +154,8 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         final Direction localSide = HorizontalBlockUtils.toLocal(getBlockState(), side);
         for (final Device device : virtualMachine.busController.getDevices()) {
-            if (device instanceof ICapabilityProvider) {
-                final LazyOptional<T> value = ((ICapabilityProvider) device).getCapability(capability, localSide);
+            if (device instanceof final ICapabilityProvider capabilityProvider) {
+                final LazyOptional<T> value = capabilityProvider.getCapability(capability, localSide);
                 if (value.isPresent()) {
                     return value;
                 }

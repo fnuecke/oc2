@@ -36,10 +36,11 @@ public final class ComputerInventoryContainer extends AbstractComputerContainer 
     public static ComputerInventoryContainer createClient(final int id, final Inventory playerInventory, final FriendlyByteBuf data) {
         final BlockPos pos = data.readBlockPos();
         final BlockEntity blockEntity = playerInventory.player.level.getBlockEntity(pos);
-        if (!(blockEntity instanceof ComputerBlockEntity computer)) {
-            throw new IllegalArgumentException();
+        if (blockEntity instanceof final ComputerBlockEntity computer) {
+            return new ComputerInventoryContainer(id, computer, playerInventory.player, createEnergyInfo());
         }
-        return new ComputerInventoryContainer(id, computer, playerInventory.player, createEnergyInfo());
+
+        throw new IllegalArgumentException();
     }
 
     ///////////////////////////////////////////////////////////////////

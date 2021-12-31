@@ -40,6 +40,6 @@ public final class RobotBootErrorMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
         MessageUtils.withClientEntity(entityId, RobotEntity.class,
-            (robot) -> robot.getVirtualMachine().setBootErrorClient(value));
+            robot -> robot.getVirtualMachine().setBootErrorClient(value));
     }
 }

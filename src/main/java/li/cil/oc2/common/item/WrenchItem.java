@@ -54,8 +54,8 @@ public final class WrenchItem extends ModItem {
 
         if (level.isClientSide()) {
             Minecraft.getInstance().gameMode.destroyBlock(pos);
-        } else if (player instanceof ServerPlayer) {
-            ((ServerPlayer) player).gameMode.destroyBlock(pos);
+        } else if (player instanceof final ServerPlayer serverPlayer) {
+            serverPlayer.gameMode.destroyBlock(pos);
         }
 
         return InteractionResult.sidedSuccess(level.isClientSide());

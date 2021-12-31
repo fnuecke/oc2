@@ -187,9 +187,9 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
 
         try {
             for (final Player player : userProvider.getTerminalUsers()) {
-                if (player instanceof ServerPlayer) {
+                if (player instanceof final ServerPlayer serverPlayer) {
                     final ExportedFileMessage message = new ExportedFileMessage(exportedFile.name, exportedFile.data.toByteArray());
-                    Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), message);
+                    Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> serverPlayer), message);
                 }
             }
         } finally {
@@ -205,8 +205,8 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
 
         final ArrayList<ServerPlayer> players = new ArrayList<>();
         for (final Player player : userProvider.getTerminalUsers()) {
-            if (player instanceof ServerPlayer) {
-                players.add((ServerPlayer) player);
+            if (player instanceof final ServerPlayer serverPlayer) {
+                players.add(serverPlayer);
             }
         }
 

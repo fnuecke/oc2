@@ -40,7 +40,7 @@ public final class ComputerPowerMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
         MessageUtils.withNearbyServerBlockEntityAt(context, pos, ComputerBlockEntity.class,
-            (computer) -> {
+            computer -> {
                 if (power) {
                     computer.start();
                 } else {

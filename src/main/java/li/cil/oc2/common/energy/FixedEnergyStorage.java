@@ -22,7 +22,7 @@ public final class FixedEnergyStorage extends EnergyStorage {
 
     @Override
     public void deserializeNBT(final Tag tag) {
-        if (tag instanceof CompoundTag compoundTag) {
+        if (tag instanceof final CompoundTag compoundTag) {
             energy = compoundTag.getInt(STORED_TAG_NAME);
         }
     }

@@ -185,8 +185,8 @@ public final class RobotEntity extends Entity implements Robot {
         }
 
         for (final Device device : virtualMachine.busController.getDevices()) {
-            if (device instanceof ICapabilityProvider) {
-                final LazyOptional<T> value = ((ICapabilityProvider) device).getCapability(capability, side);
+            if (device instanceof final ICapabilityProvider capabilityProvider) {
+                final LazyOptional<T> value = capabilityProvider.getCapability(capability, side);
                 if (value.isPresent()) {
                     return value;
                 }
@@ -261,7 +261,7 @@ public final class RobotEntity extends Entity implements Robot {
 
         actionProcessor.tick();
 
-        if (!isClient && level instanceof ServerLevel) {
+        if (!isClient && level instanceof final ServerLevel serverLevel) {
             final VoxelShape shape = Shapes.create(getBoundingBox());
             final Cursor3D iterator = getBlockPosIterator();
             while (iterator.advance()) {
@@ -269,27 +269,27 @@ public final class RobotEntity extends Entity implements Robot {
                 final int y = iterator.nextY();
                 final int z = iterator.nextZ();
                 mutablePosition.set(x, y, z);
-                final BlockState blockState = level.getBlockState(mutablePosition);
+                final BlockState blockState = serverLevel.getBlockState(mutablePosition);
                 if (blockState.isAir() ||
                     blockState.is(Blocks.MOVING_PISTON) ||
                     blockState.is(Blocks.PISTON_HEAD)) {
                     continue;
                 }
 
-                final VoxelShape blockShape = blockState.getCollisionShape(level, mutablePosition);
+                final VoxelShape blockShape = blockState.getCollisionShape(serverLevel, mutablePosition);
                 if (Shapes.joinIsNotEmpty(shape, blockShape.move(x, y, z), BooleanOp.AND)) {
-                    final BlockEntity blockEntity = level.getBlockEntity(mutablePosition);
-                    final LootContext.Builder builder = new LootContext.Builder((ServerLevel) level)
-                        .withRandom(level.random)
+                    final BlockEntity blockEntity = serverLevel.getBlockEntity(mutablePosition);
+                    final LootContext.Builder builder = new LootContext.Builder(serverLevel)
+                        .withRandom(serverLevel.random)
                         .withParameter(LootContextParams.THIS_ENTITY, this)
                         .withParameter(LootContextParams.ORIGIN, position())
                         .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
                         .withParameter(LootContextParams.BLOCK_STATE, blockState)
                         .withOptionalParameter(LootContextParams.BLOCK_ENTITY, blockEntity);
                     final List<ItemStack> drops = blockState.getDrops(builder);
-                    level.setBlockAndUpdate(mutablePosition, Blocks.AIR.defaultBlockState());
+                    serverLevel.setBlockAndUpdate(mutablePosition, Blocks.AIR.defaultBlockState());
                     for (final ItemStack drop : drops) {
-                        Block.popResource(level, mutablePosition, drop);
+                        Block.popResource(serverLevel, mutablePosition, drop);
                     }
                 }
             }
@@ -303,14 +303,14 @@ public final class RobotEntity extends Entity implements Robot {
             if (Wrenches.isWrench(stack)) {
                 if (player.isShiftKeyDown()) {
                     dropSelf();
-                } else if (player instanceof ServerPlayer) {
-                    openInventoryScreen((ServerPlayer) player);
+                } else if (player instanceof final ServerPlayer serverPlayer) {
+                    openInventoryScreen(serverPlayer);
                 }
             } else {
                 if (player.isShiftKeyDown()) {
                     start();
-                } else if (player instanceof ServerPlayer) {
-                    openTerminalScreen((ServerPlayer) player);
+                } else if (player instanceof final ServerPlayer serverPlayer) {
+                    openTerminalScreen(serverPlayer);
                 }
             }
         }

@@ -31,6 +31,7 @@ public final class MachineTerminalWidget extends GuiComponent {
     private final Terminal terminal;
     private int leftPos, topPos;
     private boolean isMouseOverTerminal;
+    private Terminal.RendererView rendererView;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -55,7 +56,12 @@ public final class MachineTerminalWidget extends GuiComponent {
             final PoseStack terminalStack = new PoseStack();
             terminalStack.translate(leftPos + TERMINAL_X, topPos + TERMINAL_Y, getClient().getItemRenderer().blitOffset);
             terminalStack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
-            terminal.render(terminalStack);
+
+            if (rendererView == null) {
+                rendererView = terminal.getRenderer();
+            }
+
+            rendererView.render(terminalStack);
         } else {
             final Font font = getClient().font;
             if (error != null) {
@@ -96,7 +102,7 @@ public final class MachineTerminalWidget extends GuiComponent {
         } else {
             final byte[] sequence = TerminalInput.getSequence(keyCode, modifiers);
             if (sequence != null) {
-                for (byte b : sequence) {
+                for (final byte b : sequence) {
                     terminal.putInput(b);
                 }
             }
@@ -114,6 +120,10 @@ public final class MachineTerminalWidget extends GuiComponent {
 
     public void onClose() {
         getClient().keyboardHandler.setSendRepeatsToGui(false);
+        if (rendererView != null) {
+            terminal.releaseRenderer(rendererView);
+            rendererView = null;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////

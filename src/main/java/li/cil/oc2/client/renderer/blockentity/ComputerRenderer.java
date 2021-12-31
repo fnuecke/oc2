@@ -39,6 +39,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     ///////////////////////////////////////////////////////////////////
 
     private final BlockEntityRenderDispatcher renderer;
+    private Terminal.RendererView rendererView;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -141,8 +142,12 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
             // TODO Make terminal renderer use buffer+rendertype.
             RenderSystem.enableBlend();
             RenderSystem.enableDepthTest();
-            RenderSystem.depthMask(false);
-            terminal.render(stack);
+
+            if (rendererView == null) {
+                rendererView = terminal.getRenderer();
+            }
+
+            rendererView.render(stack);
 
             stack.popPose();
         } else {

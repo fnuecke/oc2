@@ -28,14 +28,14 @@ public final class TerminalInput {
 
         for (int i = 'A'; i <= 'Z'; i++) {
             addSequence(GLFW.GLFW_MOD_CONTROL,
-                    GLFW.GLFW_KEY_A + (i - 'A'),
-                    (byte) (1 + i - 'A'));
+                GLFW.GLFW_KEY_A + (i - 'A'),
+                (byte) (1 + i - 'A'));
             addSequence(GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_ALT,
-                    GLFW.GLFW_KEY_A + (i - 'A'),
-                    (byte) 27, (byte) ('a' + i - 'A'));
+                GLFW.GLFW_KEY_A + (i - 'A'),
+                (byte) 27, (byte) ('a' + i - 'A'));
             addSequence(GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SHIFT,
-                    GLFW.GLFW_KEY_A + (i - 'A'),
-                    (byte) 27, (byte) i);
+                GLFW.GLFW_KEY_A + (i - 'A'),
+                (byte) 27, (byte) i);
         }
 
         addSequence(GLFW.GLFW_MOD_CONTROL, GLFW.GLFW_KEY_LEFT_BRACKET, (byte) 27);
@@ -84,7 +84,7 @@ public final class TerminalInput {
 
     private static void addSequence(final int modifiers, final int keyCode, final byte... sequence) {
         KEYCODE_SEQUENCES
-                .computeIfAbsent(modifiers, i -> new Int2ObjectArrayMap<>())
-                .put(keyCode, sequence);
+            .computeIfAbsent(modifiers, i -> new Int2ObjectArrayMap<>())
+            .put(keyCode, sequence);
     }
 }

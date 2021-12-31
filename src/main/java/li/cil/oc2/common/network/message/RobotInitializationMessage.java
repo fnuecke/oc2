@@ -56,11 +56,11 @@ public final class RobotInitializationMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
         MessageUtils.withClientEntity(entityId, RobotEntity.class,
-                (robot) -> {
-                    robot.getVirtualMachine().setBusStateClient(busState);
-                    robot.getVirtualMachine().setRunStateClient(runState);
-                    robot.getVirtualMachine().setBootErrorClient(bootError);
-                    NBTSerialization.deserialize(terminal, robot.getTerminal());
-                });
+            (robot) -> {
+                robot.getVirtualMachine().setBusStateClient(busState);
+                robot.getVirtualMachine().setRunStateClient(runState);
+                robot.getVirtualMachine().setBootErrorClient(bootError);
+                NBTSerialization.deserialize(terminal, robot.getTerminal());
+            });
     }
 }

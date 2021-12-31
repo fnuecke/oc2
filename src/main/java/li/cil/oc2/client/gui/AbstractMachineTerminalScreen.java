@@ -1,19 +1,19 @@
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.client.gui.widget.ImageButton;
 import li.cil.oc2.client.gui.widget.ToggleImageButton;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
-import com.mojang.blaze3d.platform.InputConstants;
 import li.cil.oc2.common.util.TooltipUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.entity.player.Inventory;
 
 import java.util.List;
 
@@ -58,8 +58,8 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
 
             if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
                 final List<? extends FormattedText> tooltip = asList(
-                        new TranslatableComponent(Constants.TOOLTIP_ENERGY, withColor(energyStored + "/" + energyCapacity, ChatFormatting.GREEN)),
-                        new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(String.valueOf(energyConsumption), ChatFormatting.GREEN))
+                    new TranslatableComponent(Constants.TOOLTIP_ENERGY, withColor(energyStored + "/" + energyCapacity, ChatFormatting.GREEN)),
+                    new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(String.valueOf(energyConsumption), ChatFormatting.GREEN))
                 );
                 TooltipUtils.drawTooltip(stack, tooltip, mouseX, mouseY, 200);
             }
@@ -76,7 +76,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     @Override
     public boolean charTyped(final char ch, final int modifiers) {
         return terminalWidget.charTyped(ch, modifiers) ||
-               super.charTyped(ch, modifiers);
+            super.charTyped(ch, modifiers);
     }
 
     @Override
@@ -101,13 +101,13 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         terminalWidget.init();
 
         addRenderableWidget(new ToggleImageButton(
-                this, leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4,
-                12, 12,
-                new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
-                new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION),
-                Sprites.POWER_BUTTON_BASE,
-                Sprites.POWER_BUTTON_PRESSED,
-                Sprites.POWER_BUTTON_ACTIVE
+            this, leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4,
+            12, 12,
+            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
+            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION),
+            Sprites.POWER_BUTTON_BASE,
+            Sprites.POWER_BUTTON_PRESSED,
+            Sprites.POWER_BUTTON_ACTIVE
         ) {
             @Override
             public void onPress() {
@@ -122,13 +122,13 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         });
 
         addRenderableWidget(new ToggleImageButton(
-                this, leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14,
-                12, 12,
-                new TranslatableComponent(Constants.TERMINAL_CAPTURE_INPUT_CAPTION),
-                new TranslatableComponent(Constants.TERMINAL_CAPTURE_INPUT_DESCRIPTION),
-                Sprites.INPUT_BUTTON_BASE,
-                Sprites.INPUT_BUTTON_PRESSED,
-                Sprites.INPUT_BUTTON_ACTIVE
+            this, leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14,
+            12, 12,
+            new TranslatableComponent(Constants.TERMINAL_CAPTURE_INPUT_CAPTION),
+            new TranslatableComponent(Constants.TERMINAL_CAPTURE_INPUT_DESCRIPTION),
+            Sprites.INPUT_BUTTON_BASE,
+            Sprites.INPUT_BUTTON_PRESSED,
+            Sprites.INPUT_BUTTON_ACTIVE
         ) {
             @Override
             public void onPress() {
@@ -143,12 +143,12 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         });
 
         addRenderableWidget(new ImageButton(
-                this, leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14 + 14,
-                12, 12,
-                new TranslatableComponent(Constants.MACHINE_OPEN_INVENTORY_CAPTION),
-                null,
-                Sprites.INVENTORY_BUTTON_INACTIVE,
-                Sprites.INVENTORY_BUTTON_ACTIVE
+            this, leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14 + 14,
+            12, 12,
+            new TranslatableComponent(Constants.MACHINE_OPEN_INVENTORY_CAPTION),
+            null,
+            Sprites.INVENTORY_BUTTON_INACTIVE,
+            Sprites.INVENTORY_BUTTON_ACTIVE
         ) {
             @Override
             public void onPress() {

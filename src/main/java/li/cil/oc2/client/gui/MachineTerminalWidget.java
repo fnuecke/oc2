@@ -5,8 +5,8 @@ import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
@@ -63,10 +63,10 @@ public final class MachineTerminalWidget extends GuiComponent {
                 final int textOffsetX = (TERMINAL_WIDTH - textWidth) / 2;
                 final int textOffsetY = (TERMINAL_HEIGHT - font.lineHeight) / 2;
                 font.drawShadow(stack,
-                        error,
-                        leftPos + TERMINAL_X + textOffsetX,
-                        topPos + TERMINAL_Y + textOffsetY,
-                        0xEE3322);
+                    error,
+                    leftPos + TERMINAL_X + textOffsetX,
+                    topPos + TERMINAL_Y + textOffsetY,
+                    0xEE3322);
             }
         }
     }
@@ -124,12 +124,12 @@ public final class MachineTerminalWidget extends GuiComponent {
 
     private boolean shouldCaptureInput() {
         return isMouseOverTerminal && AbstractMachineTerminalScreen.isInputCaptureEnabled() &&
-               container.getVirtualMachine().isRunning();
+            container.getVirtualMachine().isRunning();
     }
 
     private boolean isMouseOverTerminal(final int mouseX, final int mouseY) {
         return parent.isMouseOver(mouseX, mouseY,
-                MachineTerminalWidget.TERMINAL_X, MachineTerminalWidget.TERMINAL_Y,
-                MachineTerminalWidget.TERMINAL_WIDTH, MachineTerminalWidget.TERMINAL_HEIGHT);
+            MachineTerminalWidget.TERMINAL_X, MachineTerminalWidget.TERMINAL_Y,
+            MachineTerminalWidget.TERMINAL_WIDTH, MachineTerminalWidget.TERMINAL_HEIGHT);
     }
 }

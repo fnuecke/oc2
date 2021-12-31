@@ -9,14 +9,14 @@ import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.util.LevelUtils;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.Direction;
+import li.cil.oc2.common.util.ServerScheduler;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
@@ -165,7 +165,7 @@ public class BlockEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusE
             }
 
             final LazyOptional<DeviceBusElement> capability = blockEntity
-                    .getCapability(Capabilities.DEVICE_BUS_ELEMENT, direction.getOpposite());
+                .getCapability(Capabilities.DEVICE_BUS_ELEMENT, direction.getOpposite());
             capability.ifPresent(DeviceBus::scheduleScan);
         }
     }

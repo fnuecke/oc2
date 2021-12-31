@@ -2,8 +2,8 @@ package li.cil.oc2.api.bus.device.data;
 
 import li.cil.oc2.api.API;
 import li.cil.sedna.api.memory.MemoryMap;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**

@@ -1,7 +1,7 @@
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.common.blockentity.NetworkHubBlockEntity;
 import li.cil.oc2.common.blockentity.BlockEntities;
+import li.cil.oc2.common.blockentity.NetworkHubBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -20,9 +20,9 @@ import javax.annotation.Nullable;
 public final class NetworkHubBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public NetworkHubBlock() {
         super(Properties
-                .of(Material.METAL)
-                .sound(SoundType.METAL)
-                .strength(1.5f, 6.0f));
+            .of(Material.METAL)
+            .sound(SoundType.METAL)
+            .strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 

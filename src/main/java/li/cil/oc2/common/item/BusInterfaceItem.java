@@ -4,35 +4,34 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.block.BusCableBlock.ConnectionType;
-import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.LevelUtils;
+import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
-
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.item.context.UseOnContext;
 
 public final class BusInterfaceItem extends ModBlockItem {
     public BusInterfaceItem() {
@@ -93,10 +92,10 @@ public final class BusInterfaceItem extends ModBlockItem {
         }
 
         final EnumProperty<ConnectionType> connectionTypeProperty =
-                BusCableBlock.FACING_TO_CONNECTION_MAP.get(context.getClickedFace().getOpposite());
+            BusCableBlock.FACING_TO_CONNECTION_MAP.get(context.getClickedFace().getOpposite());
         return state
-                .setValue(BusCableBlock.HAS_CABLE, false)
-                .setValue(connectionTypeProperty, ConnectionType.INTERFACE);
+            .setValue(BusCableBlock.HAS_CABLE, false)
+            .setValue(connectionTypeProperty, ConnectionType.INTERFACE);
     }
 
     ///////////////////////////////////////////////////////////////////

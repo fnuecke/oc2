@@ -3,12 +3,12 @@ package li.cil.oc2.common.bus.device.rpc;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import org.apache.logging.log4j.LogManager;
@@ -49,8 +49,8 @@ public final class RPCItemStackTagFilters {
 
     private static final class ReloadListener extends SimpleJsonResourceReloadListener {
         private static final Gson GSON = new GsonBuilder()
-                .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
-                .create();
+            .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
+            .create();
 
         public static final ReloadListener INSTANCE = new ReloadListener();
 

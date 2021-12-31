@@ -1,7 +1,7 @@
 package li.cil.oc2.common.util;
 
-import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class VoxelShapeUtils {
     private static final ThreadLocal<VoxelShape> TEMP_SHAPE = new ThreadLocal<>();

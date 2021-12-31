@@ -12,14 +12,14 @@ public final class CustomItemModelProperties {
 
     public static void initialize() {
         ItemProperties.register(Items.HARD_DRIVE_SMALL.get(), CustomItemModelProperties.COLOR_PROPERTY,
-                (stack, level, entity, seed) -> CustomItemColors.getColor(stack));
+            (stack, level, entity, seed) -> CustomItemColors.getColor(stack));
         ItemProperties.register(Items.HARD_DRIVE_MEDIUM.get(), CustomItemModelProperties.COLOR_PROPERTY,
-                (stack, level, entity, seed) -> CustomItemColors.getColor(stack));
+            (stack, level, entity, seed) -> CustomItemColors.getColor(stack));
         ItemProperties.register(Items.HARD_DRIVE_LARGE.get(), CustomItemModelProperties.COLOR_PROPERTY,
-                (stack, leve, entity, seed) -> CustomItemColors.getColor(stack));
+            (stack, leve, entity, seed) -> CustomItemColors.getColor(stack));
         ItemProperties.register(Items.HARD_DRIVE_CUSTOM.get(), CustomItemModelProperties.COLOR_PROPERTY,
-                (stack, level, entity, seed) -> CustomItemColors.getColor(stack));
+            (stack, level, entity, seed) -> CustomItemColors.getColor(stack));
         ItemProperties.register(Items.FLOPPY.get(), CustomItemModelProperties.COLOR_PROPERTY,
-                (stack, level, entity, seed) -> CustomItemColors.getColor(stack));
+            (stack, level, entity, seed) -> CustomItemColors.getColor(stack));
     }
 }

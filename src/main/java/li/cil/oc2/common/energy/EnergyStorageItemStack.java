@@ -2,8 +2,8 @@ package li.cil.oc2.common.energy;
 
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.NBTUtils;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
@@ -32,7 +32,7 @@ public final class EnergyStorageItemStack implements IEnergyStorage, ICapability
         final int receive = Math.min(maxReceive, receiveLimit);
         if (!simulate) {
             NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), tagPath)
-                    .putInt(FixedEnergyStorage.STORED_TAG_NAME, stored + receive);
+                .putInt(FixedEnergyStorage.STORED_TAG_NAME, stored + receive);
         }
         return receive;
     }

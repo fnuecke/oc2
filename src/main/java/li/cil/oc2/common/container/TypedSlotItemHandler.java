@@ -2,8 +2,8 @@ package li.cil.oc2.common.container;
 
 import com.mojang.datafixers.util.Pair;
 import li.cil.oc2.api.bus.device.DeviceType;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 

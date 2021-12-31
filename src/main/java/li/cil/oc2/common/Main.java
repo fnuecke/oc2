@@ -5,6 +5,7 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.client.ClientSetup;
 import li.cil.oc2.client.manual.Manuals;
 import li.cil.oc2.common.block.Blocks;
+import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
 import li.cil.oc2.common.bus.device.data.Firmwares;
@@ -16,7 +17,6 @@ import li.cil.oc2.common.item.crafting.RecipeSerializers;
 import li.cil.oc2.common.serialization.serializers.Serializers;
 import li.cil.oc2.common.tags.BlockTags;
 import li.cil.oc2.common.tags.ItemTags;
-import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.util.RegistryUtils;
 import li.cil.oc2.common.util.SoundEvents;
 import li.cil.sedna.Sedna;
@@ -58,6 +58,6 @@ public final class Main {
 
         FMLJavaModLoadingContext.get().getModEventBus().register(CommonSetup.class);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                FMLJavaModLoadingContext.get().getModEventBus().register(ClientSetup.class));
+            FMLJavaModLoadingContext.get().getModEventBus().register(ClientSetup.class));
     }
 }

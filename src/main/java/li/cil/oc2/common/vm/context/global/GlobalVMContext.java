@@ -28,10 +28,12 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     // or memory ranges previously used by other devices. Only claiming interrupts and
     // memory ranges explicitly will allow grabbing reserved ones.
 
-    @Serialized @SuppressWarnings("FieldMayBeFinal")
+    @Serialized
+    @SuppressWarnings("FieldMayBeFinal")
     private BitSet reservedInterrupts = new BitSet();
 
-    @Serialized @SuppressWarnings("FieldMayBeFinal")
+    @Serialized
+    @SuppressWarnings("FieldMayBeFinal")
     private MemoryRangeList reservedMemoryRanges = new MemoryRangeList();
 
     ///////////////////////////////////////////////////////////////////

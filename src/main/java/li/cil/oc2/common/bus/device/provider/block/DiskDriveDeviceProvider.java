@@ -2,9 +2,9 @@ package li.cil.oc2.common.bus.device.provider.block;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import li.cil.oc2.common.bus.device.provider.util.AbstractBlockEntityDeviceProvider;
-import li.cil.oc2.common.blockentity.DiskDriveBlockEntity;
 import li.cil.oc2.common.blockentity.BlockEntities;
+import li.cil.oc2.common.blockentity.DiskDriveBlockEntity;
+import li.cil.oc2.common.bus.device.provider.util.AbstractBlockEntityDeviceProvider;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraftforge.common.util.LazyOptional;
 

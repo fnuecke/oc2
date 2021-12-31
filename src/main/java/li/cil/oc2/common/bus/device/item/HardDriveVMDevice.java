@@ -26,7 +26,7 @@ public class HardDriveVMDevice extends AbstractBlockDeviceVMDevice<ByteBufferBlo
         this.size = size;
         this.readonly = readonly;
         this.soundEmitter = new ThrottledSoundEmitter(location, SoundEvents.HDD_ACCESS.get())
-                .withMinInterval(Duration.ofSeconds(1));
+            .withMinInterval(Duration.ofSeconds(1));
     }
 
     ///////////////////////////////////////////////////////////////////

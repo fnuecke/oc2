@@ -36,11 +36,11 @@ public final class CustomItemColors {
     public static void initialize() {
         final ItemColors itemColors = Minecraft.getInstance().getItemColors();
         itemColors.register((stack, layer) -> layer == 1 ? getColor(stack) : NO_TINT,
-                Items.HARD_DRIVE_SMALL.get(),
-                Items.HARD_DRIVE_MEDIUM.get(),
-                Items.HARD_DRIVE_LARGE.get(),
-                Items.HARD_DRIVE_CUSTOM.get(),
-                Items.FLOPPY.get());
+            Items.HARD_DRIVE_SMALL.get(),
+            Items.HARD_DRIVE_MEDIUM.get(),
+            Items.HARD_DRIVE_LARGE.get(),
+            Items.HARD_DRIVE_CUSTOM.get(),
+            Items.FLOPPY.get());
     }
 
     public static int getColorByDye(final DyeColor dye) {

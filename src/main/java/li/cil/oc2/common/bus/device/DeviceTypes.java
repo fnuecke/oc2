@@ -35,8 +35,8 @@ public final class DeviceTypes {
 
     private static void register(final String name) {
         DEVICE_TYPES.register(name, () -> new DeviceTypeImpl(
-                new ResourceLocation(API.MOD_ID, "gui/icon/" + name),
-                text("gui.{mod}.device_type." + name)
+            new ResourceLocation(API.MOD_ID, "gui/icon/" + name),
+            text("gui.{mod}.device_type." + name)
         ));
     }
 }

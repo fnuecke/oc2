@@ -1,9 +1,9 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
-import net.minecraft.network.FriendlyByteBuf;
+import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
 public final class ComputerPowerMessage extends AbstractMessage {
@@ -40,12 +40,12 @@ public final class ComputerPowerMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
         MessageUtils.withNearbyServerBlockEntityAt(context, pos, ComputerBlockEntity.class,
-                (computer) -> {
-                    if (power) {
-                        computer.start();
-                    } else {
-                        computer.stop();
-                    }
-                });
+            (computer) -> {
+                if (power) {
+                    computer.start();
+                } else {
+                    computer.stop();
+                }
+            });
     }
 }

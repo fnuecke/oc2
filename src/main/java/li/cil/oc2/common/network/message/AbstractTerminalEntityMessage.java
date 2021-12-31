@@ -1,7 +1,7 @@
 package li.cil.oc2.common.network.message;
 
-import net.minecraft.world.entity.Entity;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.Entity;
 
 import java.nio.ByteBuffer;
 

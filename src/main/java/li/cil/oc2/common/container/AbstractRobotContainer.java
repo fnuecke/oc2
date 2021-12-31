@@ -11,8 +11,8 @@ import li.cil.oc2.common.network.message.RobotTerminalInputMessage;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.MenuType;
 
 import java.nio.ByteBuffer;
 

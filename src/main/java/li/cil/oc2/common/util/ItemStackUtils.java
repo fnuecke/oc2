@@ -1,14 +1,14 @@
 package li.cil.oc2.common.util;
 
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.core.Direction;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -93,9 +93,9 @@ public final class ItemStackUtils {
         final ItemEntity entity = new ItemEntity(level, px, py, pz, stack);
 
         entity.setDeltaMovement(
-                0.0125 * (rng.nextDouble() - 0.5) + ox * 0.03,
-                0.0125 * (rng.nextDouble() - 0.5) + oy * 0.08 + (ox + oz) * 0.03,
-                0.0125 * (rng.nextDouble() - 0.5) + oz * 0.03
+            0.0125 * (rng.nextDouble() - 0.5) + ox * 0.03,
+            0.0125 * (rng.nextDouble() - 0.5) + oy * 0.08 + (ox + oz) * 0.03,
+            0.0125 * (rng.nextDouble() - 0.5) + oz * 0.03
         );
 
         entity.setDefaultPickUpDelay();

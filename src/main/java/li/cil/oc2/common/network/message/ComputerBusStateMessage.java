@@ -1,10 +1,10 @@
 package li.cil.oc2.common.network.message;
 
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.blockentity.ComputerBlockEntity;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
 public final class ComputerBusStateMessage extends AbstractMessage {

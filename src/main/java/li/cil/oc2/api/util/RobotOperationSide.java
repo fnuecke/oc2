@@ -1,7 +1,7 @@
 package li.cil.oc2.api.util;
 
-import net.minecraft.world.entity.Entity;
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
 
 import javax.annotation.Nullable;
 
@@ -38,8 +38,8 @@ public enum RobotOperationSide {
 
     public static Direction getAdjustedDirection(@Nullable final RobotOperationSide side, final Entity entity) {
         Direction direction = side == null
-                ? RobotOperationSide.FRONT.getDirection()
-                : side.getDirection();
+            ? RobotOperationSide.FRONT.getDirection()
+            : side.getDirection();
         if (direction.getAxis().isHorizontal()) {
             final int horizontalIndex = entity.getDirection().get2DDataValue();
             for (int i = 0; i < horizontalIndex; i++) {

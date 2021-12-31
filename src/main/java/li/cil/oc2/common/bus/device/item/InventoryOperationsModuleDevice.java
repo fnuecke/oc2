@@ -5,13 +5,13 @@ import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.capabilities.Capabilities;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
@@ -169,7 +169,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
         final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
         return getItemStackHandlersInDirection(direction).findFirst().map(handler ->
-                takeFromInventory(count, handler, fromSlot)).orElse(0);
+            takeFromInventory(count, handler, fromSlot)).orElse(0);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -197,9 +197,9 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     private Stream<IItemHandler> getEntityItemHandlersAt(final Vec3 position, final Direction side) {
         final AABB bounds = AABB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
         return entity.level.getEntities(entity, bounds).stream()
-                .map(e -> e.getCapability(Capabilities.ITEM_HANDLER, side))
-                .filter(LazyOptional::isPresent)
-                .map(c -> c.orElseThrow(AssertionError::new));
+            .map(e -> e.getCapability(Capabilities.ITEM_HANDLER, side))
+            .filter(LazyOptional::isPresent)
+            .map(c -> c.orElseThrow(AssertionError::new));
     }
 
     private Stream<IItemHandler> getBlockItemHandlersAt(final Vec3 position, final Direction side) {

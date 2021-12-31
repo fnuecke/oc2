@@ -36,6 +36,6 @@ public final class RobotInitializationRequestMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
         MessageUtils.withServerEntity(context, entityId, RobotEntity.class,
-                (robot) -> Network.INSTANCE.reply(new RobotInitializationMessage(robot), context));
+            (robot) -> Network.INSTANCE.reply(new RobotInitializationMessage(robot), context));
     }
 }

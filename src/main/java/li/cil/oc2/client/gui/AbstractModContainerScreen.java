@@ -16,8 +16,8 @@ public abstract class AbstractModContainerScreen<T extends AbstractContainerMenu
         final int localMouseX = mouseX - leftPos;
         final int localMouseY = mouseY - topPos;
         return localMouseX >= x &&
-               localMouseX < x + width &&
-               localMouseY >= y &&
-               localMouseY < y + height;
+            localMouseX < x + width &&
+            localMouseY >= y &&
+            localMouseY < y + height;
     }
 }

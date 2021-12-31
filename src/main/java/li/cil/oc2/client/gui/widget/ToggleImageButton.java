@@ -2,13 +2,13 @@ package li.cil.oc2.client.gui.widget;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.common.util.TooltipUtils;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.ChatFormatting;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -34,14 +34,14 @@ public abstract class ToggleImageButton extends AbstractButton {
     ///////////////////////////////////////////////////////////////////
 
     public ToggleImageButton(
-            final Screen parent,
-            final int x, final int y,
-            final int width, final int height,
-            final Component caption,
-            @Nullable final Component description,
-            final Sprite baseImage,
-            final Sprite pressedImage,
-            final Sprite activeImage) {
+        final Screen parent,
+        final int x, final int y,
+        final int width, final int height,
+        final Component caption,
+        @Nullable final Component description,
+        final Sprite baseImage,
+        final Sprite pressedImage,
+        final Sprite activeImage) {
         super(x, y, width, height, caption);
         this.parent = parent;
         if (description == null) {

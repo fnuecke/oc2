@@ -1,7 +1,7 @@
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.common.blockentity.CreativeEnergyBlockEntity;
 import li.cil.oc2.common.blockentity.BlockEntities;
+import li.cil.oc2.common.blockentity.CreativeEnergyBlockEntity;
 import li.cil.oc2.common.util.BlockEntityUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;

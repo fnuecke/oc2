@@ -1,8 +1,8 @@
 package li.cil.oc2.common.container;
 
+import net.minecraft.tags.Tag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.tags.Tag;
 
 public class TypedItemStackHandler extends FixedSizeItemStackHandler {
     private final Tag<Item> deviceType;

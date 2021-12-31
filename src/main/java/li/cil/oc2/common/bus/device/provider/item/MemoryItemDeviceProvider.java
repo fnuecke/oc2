@@ -9,8 +9,8 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.item.MemoryDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.item.MemoryItem;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Optional;
 

@@ -21,18 +21,18 @@ public final class RPCDeviceList implements RPCDevice {
     @Override
     public List<String> getTypeNames() {
         return devices.stream()
-                .map(RPCDevice::getTypeNames)
-                .flatMap(Collection::stream)
-                .distinct()
-                .collect(Collectors.toList());
+            .map(RPCDevice::getTypeNames)
+            .flatMap(Collection::stream)
+            .distinct()
+            .collect(Collectors.toList());
     }
 
     @Override
     public List<RPCMethod> getMethods() {
         return devices.stream()
-                .map(RPCDevice::getMethods)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+            .map(RPCDevice::getMethods)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
     }
 
     @Override

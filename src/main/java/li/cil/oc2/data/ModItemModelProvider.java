@@ -4,8 +4,8 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.world.item.Item;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -27,17 +27,17 @@ public final class ModItemModelProvider extends ItemModelProvider {
         simple(Items.MEMORY_MEDIUM);
         simple(Items.MEMORY_LARGE);
         simple(Items.HARD_DRIVE_SMALL, "item/hard_drive_base")
-                .texture("layer1", "item/hard_drive_tint");
+            .texture("layer1", "item/hard_drive_tint");
         simple(Items.HARD_DRIVE_MEDIUM, "item/hard_drive_base")
-                .texture("layer1", "item/hard_drive_tint");
+            .texture("layer1", "item/hard_drive_tint");
         simple(Items.HARD_DRIVE_LARGE, "item/hard_drive_base")
-                .texture("layer1", "item/hard_drive_tint");
+            .texture("layer1", "item/hard_drive_tint");
         simple(Items.HARD_DRIVE_CUSTOM, "item/hard_drive_base")
-                .texture("layer1", "item/hard_drive_tint");
+            .texture("layer1", "item/hard_drive_tint");
         simple(Items.FLASH_MEMORY);
         simple(Items.FLASH_MEMORY_CUSTOM, "item/flash_memory");
         simple(Items.FLOPPY, "item/floppy_base")
-                .texture("layer1", "item/floppy_tint");
+            .texture("layer1", "item/floppy_tint");
 
         simple(Items.REDSTONE_INTERFACE_CARD);
         simple(Items.NETWORK_INTERFACE_CARD);
@@ -59,8 +59,8 @@ public final class ModItemModelProvider extends ItemModelProvider {
 
     private <T extends Item> ItemModelBuilder simple(final RegistryObject<T> item, final String texturePath) {
         return singleTexture(item.getId().getPath(),
-                new ResourceLocation("item/generated"),
-                "layer0",
-                new ResourceLocation(API.MOD_ID, texturePath));
+            new ResourceLocation("item/generated"),
+            "layer0",
+            new ResourceLocation(API.MOD_ID, texturePath));
     }
 }

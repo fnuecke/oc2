@@ -59,12 +59,12 @@ public final class RPCDeviceBusAdapter implements Steppable {
         this.serialDevice = serialDevice;
         this.transmitBuffer = ByteBuffer.allocate(maxMessageSize);
         this.gson = RPCMethodParameterTypeAdapters.beginBuildGson()
-                .registerTypeAdapter(byte[].class, new UnsignedByteArrayJsonSerializer())
-                .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
-                .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
-                .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
-                .registerTypeHierarchyAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
-                .create();
+            .registerTypeAdapter(byte[].class, new UnsignedByteArrayJsonSerializer())
+            .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
+            .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
+            .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
+            .registerTypeHierarchyAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
+            .create();
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -122,8 +122,8 @@ public final class RPCDeviceBusAdapter implements Steppable {
                 final Set<UUID> identifiers = controller.getDeviceIdentifiers(device);
                 for (final UUID identifier : identifiers) {
                     devicesByIdentifier
-                            .computeIfAbsent(identifier, unused -> new ArrayList<>())
-                            .add(rpcDevice);
+                        .computeIfAbsent(identifier, unused -> new ArrayList<>())
+                        .add(rpcDevice);
                 }
             }
         }
@@ -140,8 +140,8 @@ public final class RPCDeviceBusAdapter implements Steppable {
             }
 
             identifiersByDevice
-                    .computeIfAbsent(device, unused -> new ArrayList<>())
-                    .add(identifier);
+                .computeIfAbsent(device, unused -> new ArrayList<>())
+                .add(identifier);
         });
 
         identifiersByDevice.forEach((device, identifiers) -> {

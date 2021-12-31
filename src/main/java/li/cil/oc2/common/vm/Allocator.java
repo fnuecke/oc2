@@ -77,7 +77,7 @@ public final class Allocator {
             for (final Allocation allocation : ALLOCATIONS.values()) {
                 // Skip first three: Allocator::claimMemory, Allocation::new, Throwable::getStacktrace
                 LOGGER.error(Arrays.stream(allocation.stacktrace).skip(3).map(StackTraceElement::toString)
-                        .collect(Collectors.joining("\n  ", "Leaked memory allocation:\n  ", "")));
+                    .collect(Collectors.joining("\n  ", "Leaked memory allocation:\n  ", "")));
             }
         }
 

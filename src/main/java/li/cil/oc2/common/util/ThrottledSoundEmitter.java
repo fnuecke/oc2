@@ -1,7 +1,7 @@
 package li.cil.oc2.common.util;
 
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.LevelAccessor;
 

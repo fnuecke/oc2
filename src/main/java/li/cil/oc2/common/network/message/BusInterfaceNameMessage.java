@@ -1,10 +1,10 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.blockentity.BusCableBlockEntity;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.core.Direction;
+import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
 public abstract class BusInterfaceNameMessage extends AbstractMessage {

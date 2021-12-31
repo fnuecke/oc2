@@ -5,13 +5,13 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.Config;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.Entity;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
 
@@ -26,7 +26,7 @@ public final class FakePlayerUtils {
         final ServerPlayer player = getFakePlayer(level);
         player.copyPosition(entity);
         player.xRotO = player.getXRot();
-        player.yRotO  = player.getYRot();
+        player.yRotO = player.getYRot();
         player.yHeadRot = player.getYRot();
         player.yHeadRotO = player.getYRot();
         return player;

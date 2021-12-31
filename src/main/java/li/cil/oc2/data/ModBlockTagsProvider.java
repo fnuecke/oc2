@@ -1,8 +1,8 @@
 package li.cil.oc2.data;
 
 import li.cil.oc2.api.API;
-import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 
 import javax.annotation.Nullable;
@@ -18,21 +18,21 @@ public final class ModBlockTagsProvider extends BlockTagsProvider {
     @Override
     protected void addTags() {
         tag(DEVICES).add(
-                COMPUTER.get(),
-                REDSTONE_INTERFACE.get(),
-                DISK_DRIVE.get()
+            COMPUTER.get(),
+            REDSTONE_INTERFACE.get(),
+            DISK_DRIVE.get()
         );
         tag(CABLES).add(
-                BUS_CABLE.get()
+            BUS_CABLE.get()
         );
         tag(WRENCH_BREAKABLE).add(
-                COMPUTER.get(),
-                BUS_CABLE.get(),
-                NETWORK_CONNECTOR.get(),
-                NETWORK_HUB.get(),
-                REDSTONE_INTERFACE.get(),
-                DISK_DRIVE.get(),
-                CHARGER.get()
+            COMPUTER.get(),
+            BUS_CABLE.get(),
+            NETWORK_CONNECTOR.get(),
+            NETWORK_HUB.get(),
+            REDSTONE_INTERFACE.get(),
+            DISK_DRIVE.get(),
+            CHARGER.get()
         );
     }
 }

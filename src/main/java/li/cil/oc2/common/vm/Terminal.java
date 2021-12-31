@@ -2,7 +2,6 @@ package li.cil.oc2.common.vm;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Matrix4f;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
@@ -465,16 +464,16 @@ public final class Terminal {
 
         private void renderBuffer() {
             RenderSystem.depthMask(false);
-            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
             RenderSystem.setShaderTexture(0, LOCATION_FONT_TEXTURE);
 
-            final BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+            final BufferBuilder builder = Tesselator.getInstance().getBuilder();
             for (final Object line : lines) {
-                @SuppressWarnings("unchecked") Pair<BufferBuilder.DrawState, ByteBuffer> pair = (Pair<BufferBuilder.DrawState, ByteBuffer>) line;
-                buffer.begin(pair.getFirst().mode(), pair.getFirst().format());
-                buffer.putBulkData(pair.getSecond());
-                buffer.end();
-                BufferUploader.end(buffer);
+                final ByteBuffer buffer = (ByteBuffer) line;
+                builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
+                builder.putBulkData(buffer);
+                builder.end();
+                BufferUploader.end(builder);
             }
 
             RenderSystem.depthMask(true);
@@ -490,7 +489,7 @@ public final class Terminal {
                 return;
             }
 
-            final BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+            final BufferBuilder builder = Tesselator.getInstance().getBuilder();
 
             final int mask = dirty.getAndSet(0);
             for (int row = 0; row < lines.length; row++) {
@@ -502,14 +501,20 @@ public final class Terminal {
                 stack.translate(0, row * CHAR_HEIGHT, 0);
                 final Matrix4f matrix = stack.last().pose();
 
-                buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
+                builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
 
-                renderBackground(matrix, buffer, row);
-                renderForeground(matrix, buffer, row);
+                renderBackground(matrix, builder, row);
+                renderForeground(matrix, builder, row);
 
-                buffer.end();
+                builder.end();
 
-                lines[row] = buffer.popNextBuffer();
+                final ByteBuffer buffer = builder.popNextBuffer().getSecond();
+                final ByteBuffer bufferCopy = ByteBuffer.allocate(buffer.limit());
+                bufferCopy.put(buffer);
+                bufferCopy.flip();
+                lines[row] = bufferCopy;
+
+                builder.clear();
 
                 stack.popPose();
             }

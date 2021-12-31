@@ -29,7 +29,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
     ///////////////////////////////////////////////////////////////////
 
-    private MovementDirection direction;
+    @Nullable private MovementDirection direction;
     @Nullable private BlockPos origin;
     @Nullable private BlockPos start;
     @Nullable private BlockPos target;
@@ -70,19 +70,13 @@ public final class RobotMovementAction extends AbstractRobotAction {
             origin = robot.blockPosition();
             start = origin;
             target = start;
-            switch (direction) {
-                case UPWARD:
-                    target = target.relative(Direction.UP);
-                    break;
-                case DOWNWARD:
-                    target = target.relative(Direction.DOWN);
-                    break;
-                case FORWARD:
-                    target = target.relative(robot.getDirection());
-                    break;
-                case BACKWARD:
-                    target = target.relative(robot.getDirection().getOpposite());
-                    break;
+            if (direction != null) {
+                switch (direction) {
+                    case UPWARD -> target = target.relative(Direction.UP);
+                    case DOWNWARD -> target = target.relative(Direction.DOWN);
+                    case FORWARD -> target = target.relative(robot.getDirection());
+                    case BACKWARD -> target = target.relative(robot.getDirection().getOpposite());
+                }
             }
         }
 
@@ -149,6 +143,10 @@ public final class RobotMovementAction extends AbstractRobotAction {
     }
 
     private void moveAndResolveCollisions(final RobotEntity robot) {
+        if (start == null || target == null || targetPos == null) {
+            return;
+        }
+
         moveTowards(robot, targetPos);
 
         final boolean didCollide = robot.horizontalCollision || robot.verticalCollision;
@@ -165,7 +163,8 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
     private void validateTarget(final RobotEntity robot) {
         final BlockPos currentPosition = robot.blockPosition();
-        if (Objects.equals(currentPosition, start) || Objects.equals(currentPosition, target)) {
+        if (start == null || Objects.equals(currentPosition, start) ||
+            target == null || Objects.equals(currentPosition, target)) {
             return;
         }
 

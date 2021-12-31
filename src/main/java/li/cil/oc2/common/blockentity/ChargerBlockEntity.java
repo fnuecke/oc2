@@ -1,4 +1,4 @@
-package li.cil.oc2.common.tileentity;
+package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
@@ -7,14 +7,14 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.EntitySelector;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.energy.IEnergyStorage;
@@ -27,7 +27,7 @@ import java.util.function.Predicate;
 
 import static java.util.Collections.singletonList;
 
-public final class ChargerTileEntity extends AbstractTileEntity implements NamedDevice {
+public final class ChargerBlockEntity extends ModBlockEntity implements NamedDevice {
     private static final Predicate<Entity> ENTITY_PREDICATE =
         EntitySelector.NO_SPECTATORS
             .and(EntitySelector.ENTITY_STILL_ALIVE);
@@ -39,17 +39,21 @@ public final class ChargerTileEntity extends AbstractTileEntity implements Named
 
     ///////////////////////////////////////////////////////////////////
 
-    ChargerTileEntity(final BlockPos pos, final BlockState state) {
-        super(TileEntities.CHARGER_TILE_ENTITY.get(), pos, state);
+    ChargerBlockEntity(final BlockPos pos, final BlockState state) {
+        super(BlockEntities.CHARGER.get(), pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void tick(final Level level, final BlockPos pos, final BlockState state, final ChargerTileEntity tileEntity) {
-        tileEntity.tick();
+    public static void tick(final Level level, final BlockPos pos, final BlockState state, final ChargerBlockEntity charger) {
+        charger.tick();
     }
 
     private void tick() {
+        if (level == null) {
+            return;
+        }
+
         isCharging = false;
         chargeBlock();
         chargeEntities();
@@ -89,17 +93,21 @@ public final class ChargerTileEntity extends AbstractTileEntity implements Named
     ///////////////////////////////////////////////////////////////////
 
     private void chargeBlock() {
+        assert level != null;
+
         if (energy.getEnergyStored() == 0) {
             return;
         }
 
-        final BlockEntity tileEntity = level.getBlockEntity(getBlockPos().above());
-        if (tileEntity != null) {
-            chargeCapabilityProvider(tileEntity);
+        final BlockEntity blockEntity = level.getBlockEntity(getBlockPos().above());
+        if (blockEntity != null) {
+            chargeCapabilityProvider(blockEntity);
         }
     }
 
     private void chargeEntities() {
+        assert level != null;
+
         if (energy.getEnergyStored() == 0) {
             return;
         }
@@ -125,6 +133,8 @@ public final class ChargerTileEntity extends AbstractTileEntity implements Named
     }
 
     private void charge(final IEnergyStorage energyStorage) {
+        assert level != null;
+
         final int amount = Math.min(energy.getEnergyStored(), Config.chargerEnergyPerTick);
         final boolean simulate = level.isClientSide;
         if (energy.extractEnergy(energyStorage.receiveEnergy(amount, simulate), simulate) > 0) {

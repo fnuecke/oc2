@@ -1,7 +1,7 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.DiskDriveTileEntity;
+import li.cil.oc2.common.blockentity.DiskDriveBlockEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -14,7 +14,7 @@ public final class DiskDriveFloppyMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public DiskDriveFloppyMessage(final DiskDriveTileEntity diskDrive) {
+    public DiskDriveFloppyMessage(final DiskDriveBlockEntity diskDrive) {
         this.pos = diskDrive.getBlockPos();
         this.data = diskDrive.getFloppy().serializeNBT();
     }
@@ -41,7 +41,7 @@ public final class DiskDriveFloppyMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientTileEntityAt(pos, DiskDriveTileEntity.class,
+        MessageUtils.withClientBlockEntityAt(pos, DiskDriveBlockEntity.class,
                 (diskDrive) -> diskDrive.setFloppyClient(ItemStack.of(data)));
     }
 }

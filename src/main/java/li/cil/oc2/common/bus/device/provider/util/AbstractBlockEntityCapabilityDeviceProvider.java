@@ -9,27 +9,27 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.function.Supplier;
 
-public abstract class AbstractTileEntityCapabilityDeviceProvider<TCapability, TTileEntity extends BlockEntity> extends AbstractTileEntityDeviceProvider<TTileEntity> {
+public abstract class AbstractBlockEntityCapabilityDeviceProvider<TCapability, TBlockEntity extends BlockEntity> extends AbstractBlockEntityDeviceProvider<TBlockEntity> {
     private final Supplier<Capability<TCapability>> capabilitySupplier;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractTileEntityCapabilityDeviceProvider(final BlockEntityType<TTileEntity> tileEntityType, final Supplier<Capability<TCapability>> capabilitySupplier) {
-        super(tileEntityType);
+    protected AbstractBlockEntityCapabilityDeviceProvider(final BlockEntityType<TBlockEntity> blockEntityType, final Supplier<Capability<TCapability>> capabilitySupplier) {
+        super(blockEntityType);
         this.capabilitySupplier = capabilitySupplier;
     }
 
-    protected AbstractTileEntityCapabilityDeviceProvider(final Supplier<Capability<TCapability>> capabilitySupplier) {
+    protected AbstractBlockEntityCapabilityDeviceProvider(final Supplier<Capability<TCapability>> capabilitySupplier) {
         this.capabilitySupplier = capabilitySupplier;
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected final LazyOptional<Device> getBlockDevice(final BlockDeviceQuery blockQuery, final BlockEntity tileEntity) {
+    protected final LazyOptional<Device> getBlockDevice(final BlockDeviceQuery blockQuery, final BlockEntity blockEntity) {
         final Capability<TCapability> capability = capabilitySupplier.get();
         if (capability == null) throw new IllegalStateException();
-        final LazyOptional<TCapability> optional = tileEntity.getCapability(capability, blockQuery.getQuerySide());
+        final LazyOptional<TCapability> optional = blockEntity.getCapability(capability, blockQuery.getQuerySide());
         if (!optional.isPresent()) {
             return LazyOptional.empty();
         }

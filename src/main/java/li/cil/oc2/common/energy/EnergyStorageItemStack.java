@@ -65,7 +65,7 @@ public final class EnergyStorageItemStack implements IEnergyStorage, ICapability
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
-        if (Capabilities.ENERGY_STORAGE != null && capability != null) {
+        if (Capabilities.ENERGY_STORAGE != null) {
             return Capabilities.ENERGY_STORAGE.orEmpty(capability, optional);
         } else {
             return LazyOptional.empty();

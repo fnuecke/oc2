@@ -2,13 +2,13 @@ package li.cil.oc2.common.item.crafting;
 
 import com.google.gson.JsonObject;
 import li.cil.oc2.common.integration.Wrenches;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +51,12 @@ public final class WrenchRecipe extends ShapelessRecipe {
         @Nullable
         @Override
         public WrenchRecipe fromNetwork(final ResourceLocation location, final FriendlyByteBuf buffer) {
-            return new WrenchRecipe(SHAPELESS_RECIPE.fromNetwork(location, buffer));
+            ShapelessRecipe recipe = SHAPELESS_RECIPE.fromNetwork(location, buffer);
+            if (recipe == null) {
+                return null;
+            }
+
+            return new WrenchRecipe(recipe);
         }
 
         @Override

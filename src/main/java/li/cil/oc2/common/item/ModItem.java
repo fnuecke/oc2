@@ -25,8 +25,8 @@ public class ModItem extends Item {
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void appendHoverText(final ItemStack stack, @Nullable final Level world, final List<Component> tooltip, final TooltipFlag flag) {
-        super.appendHoverText(stack, world, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, @Nullable final Level level, final List<Component> tooltip, final TooltipFlag flag) {
+        super.appendHoverText(stack, level, tooltip, flag);
         TooltipUtils.tryAddDescription(stack, tooltip);
     }
 

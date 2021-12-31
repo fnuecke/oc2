@@ -1,7 +1,7 @@
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.common.tileentity.NetworkConnectorTileEntity;
-import li.cil.oc2.common.tileentity.TileEntities;
+import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
+import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.util.BlockEntityUtils;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -53,38 +53,28 @@ public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirection
 
     @SuppressWarnings("deprecation")
     @Override
-    public void neighborChanged(final BlockState state, final Level world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
+    public void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
         if (Objects.equals(changedBlockPos, pos.relative(getFacing(state).getOpposite()))) {
-            final BlockEntity tileEntity = world.getBlockEntity(pos);
-            if (tileEntity instanceof NetworkConnectorTileEntity) {
-                final NetworkConnectorTileEntity connector = (NetworkConnectorTileEntity) tileEntity;
-                connector.setLocalInterfaceChanged();
+            final BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof final NetworkConnectorBlockEntity networkConnector) {
+                networkConnector.setLocalInterfaceChanged();
             }
         }
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public VoxelShape getShape(final BlockState state, final BlockGetter world, final BlockPos pos, final CollisionContext context) {
-        switch (state.getValue(FACE)) {
-            case WALL:
-                switch (state.getValue(FACING)) {
-                    case EAST:
-                        return POS_X_SHAPE;
-                    case WEST:
-                        return NEG_X_SHAPE;
-                    case SOUTH:
-                        return POS_Z_SHAPE;
-                    case NORTH:
-                    default:
-                        return NEG_Z_SHAPE;
-                }
-            case CEILING:
-                return POS_Y_SHAPE;
-            case FLOOR:
-            default:
-                return NEG_Y_SHAPE;
-        }
+    public VoxelShape getShape(final BlockState state, final BlockGetter level, final BlockPos pos, final CollisionContext context) {
+        return switch (state.getValue(FACE)) {
+            case WALL -> switch (state.getValue(FACING)) {
+                case EAST -> POS_X_SHAPE;
+                case WEST -> NEG_X_SHAPE;
+                case SOUTH -> POS_Z_SHAPE;
+                default /* NORTH */ -> NEG_Z_SHAPE;
+            };
+            case CEILING -> POS_Y_SHAPE;
+            default /* FLOOR */ -> NEG_Y_SHAPE;
+        };
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -93,13 +83,13 @@ public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirection
     @Nullable
     @Override
     public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
-        return TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get().create(pos, state);
+        return BlockEntities.NETWORK_CONNECTOR.get().create(pos, state);
     }
 
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(final Level level, final BlockState state, final BlockEntityType<T> type) {
-        return level.isClientSide ? null : BlockEntityUtils.createTicker(type, TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), NetworkConnectorTileEntity::serverTick);
+        return level.isClientSide ? null : BlockEntityUtils.createTicker(type, BlockEntities.NETWORK_CONNECTOR.get(), NetworkConnectorBlockEntity::serverTick);
     }
 
     ///////////////////////////////////////////////////////////////////

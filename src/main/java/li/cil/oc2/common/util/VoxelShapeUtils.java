@@ -9,9 +9,8 @@ public final class VoxelShapeUtils {
     public static VoxelShape rotateHorizontalClockwise(final VoxelShape shape) {
         TEMP_SHAPE.set(Shapes.empty());
         shape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
-            TEMP_SHAPE.set(Shapes.or(TEMP_SHAPE.get(),
-                    Shapes.box(minZ, minY, 1.0 - maxX, maxZ, maxY, 1.0 - minX)
-            ));
+            final VoxelShape rotatedBox = Shapes.box(minZ, minY, 1.0 - maxX, maxZ, maxY, 1.0 - minX);
+            TEMP_SHAPE.set(Shapes.or(TEMP_SHAPE.get(), rotatedBox));
         });
         return TEMP_SHAPE.get();
     }

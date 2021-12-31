@@ -1,6 +1,6 @@
 package li.cil.oc2.client.renderer.color;
 
-import li.cil.oc2.common.tileentity.BusCableTileEntity;
+import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.util.ItemStackUtils;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
@@ -22,8 +22,8 @@ public final class BusCableBlockColor implements BlockColor {
         }
 
         final BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof BusCableTileEntity) {
-            final BlockState facade = ItemStackUtils.getBlockState(((BusCableTileEntity) blockEntity).getFacade());
+        if (blockEntity instanceof BusCableBlockEntity) {
+            final BlockState facade = ItemStackUtils.getBlockState(((BusCableBlockEntity) blockEntity).getFacade());
             if (facade != null) {
                 return Minecraft.getInstance().getBlockColors().getColor(facade, level, pos, tintIndex);
             }

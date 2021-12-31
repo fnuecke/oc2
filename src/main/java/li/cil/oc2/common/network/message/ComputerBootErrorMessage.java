@@ -1,7 +1,7 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -13,9 +13,9 @@ public final class ComputerBootErrorMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerBootErrorMessage(final ComputerTileEntity tileEntity) {
-        this.pos = tileEntity.getBlockPos();
-        this.value = tileEntity.getVirtualMachine().getBootError();
+    public ComputerBootErrorMessage(final ComputerBlockEntity computer) {
+        this.pos = computer.getBlockPos();
+        this.value = computer.getVirtualMachine().getBootError();
     }
 
     public ComputerBootErrorMessage(final FriendlyByteBuf buffer) {
@@ -40,7 +40,7 @@ public final class ComputerBootErrorMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientTileEntityAt(pos, ComputerTileEntity.class,
-                (tileEntity) -> tileEntity.getVirtualMachine().setBootErrorClient(value));
+        MessageUtils.withClientBlockEntityAt(pos, ComputerBlockEntity.class,
+            computer -> computer.getVirtualMachine().setBootErrorClient(value));
     }
 }

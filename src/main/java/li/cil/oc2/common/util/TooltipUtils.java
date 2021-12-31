@@ -3,23 +3,24 @@ package li.cil.oc2.common.util;
 import com.mojang.blaze3d.vertex.PoseStack;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import li.cil.manual.api.render.FontRenderer;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.tags.ItemTags;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.*;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.*;
 import net.minecraft.tags.Tag;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
@@ -27,12 +28,8 @@ import net.minecraftforge.registries.RegistryManager;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static li.cil.oc2.common.Constants.*;
-
-import net.minecraft.ChatFormatting;
-import net.minecraft.locale.Language;
 
 public final class TooltipUtils {
     private static final MutableComponent DEVICE_NEEDS_REBOOT =
@@ -102,7 +99,7 @@ public final class TooltipUtils {
         }
     }
 
-    public static void addTileEntityInventoryInformation(final ItemStack stack, final List<Component> tooltip) {
+    public static void addBlockEntityInventoryInformation(final ItemStack stack, final List<Component> tooltip) {
         addInventoryInformation(NBTUtils.getChildTag(stack.getTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME), tooltip);
     }
 
@@ -170,8 +167,7 @@ public final class TooltipUtils {
     private static String[] getDeviceTypeNames() {
         final ForgeRegistry<DeviceType> registry = RegistryManager.ACTIVE.getRegistry(DeviceType.REGISTRY);
         if (registry != null) {
-            return registry.getValues().stream().map(deviceType ->
-                deviceType.getRegistryName().toString()).toArray(String[]::new);
+            return registry.getValues().stream().map(RegistryUtils::key).toArray(String[]::new);
         } else {
             return new String[0];
         }

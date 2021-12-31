@@ -9,23 +9,23 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
-public final class LoopingTileEntitySound extends AbstractTickableSoundInstance {
+public final class LoopingBlockEntitySound extends AbstractTickableSoundInstance {
     private static final float FADE_IN_DURATION_IN_SECONDS = 2.0f;
     private static final float FADE_IN_DURATION_IN_TICKS = FADE_IN_DURATION_IN_SECONDS * Constants.SECONDS_TO_TICKS;
     private static final float FADE_IN_PER_TICK = 1f / FADE_IN_DURATION_IN_TICKS;
 
     ///////////////////////////////////////////////////////////////////
 
-    private final BlockEntity tileEntity;
+    private final BlockEntity blockEntity;
 
     ///////////////////////////////////////////////////////////////////
 
-    public LoopingTileEntitySound(final BlockEntity tileEntity, final SoundEvent sound) {
+    public LoopingBlockEntitySound(final BlockEntity blockEntity, final SoundEvent sound) {
         super(sound, SoundSource.BLOCKS);
-        this.tileEntity = tileEntity;
+        this.blockEntity = blockEntity;
         this.volume = 0;
 
-        final Vec3 position = Vec3.atCenterOf(tileEntity.getBlockPos());
+        final Vec3 position = Vec3.atCenterOf(blockEntity.getBlockPos());
         x = position.x;
         y = position.y;
         z = position.z;
@@ -38,8 +38,8 @@ public final class LoopingTileEntitySound extends AbstractTickableSoundInstance 
     @Override
     public void tick() {
         volume = Mth.clamp(volume + FADE_IN_PER_TICK, 0, 1);
-        final ChunkPos chunkPos = new ChunkPos(tileEntity.getBlockPos());
-        if (tileEntity.isRemoved() || !tileEntity.getLevel().hasChunk(chunkPos.x, chunkPos.z)) {
+        final ChunkPos chunkPos = new ChunkPos(blockEntity.getBlockPos());
+        if (blockEntity.isRemoved() || blockEntity.getLevel() == null || !blockEntity.getLevel().hasChunk(chunkPos.x, chunkPos.z)) {
             stop();
         }
     }

@@ -9,8 +9,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public final class LocationSupplierUtils {
-    public static Supplier<Optional<Location>> of(final BlockEntity tileEntity) {
-        return () -> Location.of(tileEntity);
+    public static Supplier<Optional<Location>> of(final BlockEntity blockEntity) {
+        return () -> Location.of(blockEntity);
     }
 
     public static Supplier<Optional<Location>> of(final Entity entity) {
@@ -23,9 +23,9 @@ public final class LocationSupplierUtils {
     }
 
     public static Supplier<Optional<Location>> of(final ItemDeviceQuery query) {
-        final Optional<BlockEntity> tileEntity = query.getContainerTileEntity();
-        if (tileEntity.isPresent()) {
-            return () -> Location.of(tileEntity.get());
+        final Optional<BlockEntity> blockEntity = query.getContainerBlockEntity();
+        if (blockEntity.isPresent()) {
+            return () -> Location.of(blockEntity.get());
         }
 
         final Optional<Entity> entity = query.getContainerEntity();

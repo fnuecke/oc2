@@ -18,8 +18,8 @@ public final class RedstoneInterfaceCardItemDeviceProvider extends AbstractItemD
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
-        return query.getContainerTileEntity().map(tileEntity ->
-                new RedstoneInterfaceCardItemDevice(query.getItemStack(), tileEntity));
+        return query.getContainerBlockEntity().map(blockEntity ->
+                new RedstoneInterfaceCardItemDevice(query.getItemStack(), blockEntity));
     }
 
     @Override

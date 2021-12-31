@@ -1,8 +1,8 @@
 package li.cil.oc2.common.tags;
 
 import li.cil.oc2.api.API;
-import net.minecraft.world.item.Item;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.common.Tags;
 
 public final class ItemTags {
@@ -13,14 +13,6 @@ public final class ItemTags {
     public static final Tags.IOptionalNamedTag<Item> DEVICES_CARD = tag("devices/card");
     public static final Tags.IOptionalNamedTag<Item> DEVICES_ROBOT_MODULE = tag("devices/robot_module");
     public static final Tags.IOptionalNamedTag<Item> DEVICES_FLOPPY = tag("devices/floppy");
-
-    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIALS = tag("tool_materials");
-    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIAL_WOOD = tag("tool_materials/wood");
-    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIAL_STONE = tag("tool_materials/stone");
-    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIAL_IRON = tag("tool_materials/iron");
-    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIAL_GOLD = tag("tool_materials/gold");
-    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIAL_DIAMOND = tag("tool_materials/diamond");
-    public static final Tags.IOptionalNamedTag<Item> TOOL_MATERIAL_NETHERITE = tag("tool_materials/netherite");
 
     public static final Tags.IOptionalNamedTag<Item> CABLES = tag("cables");
     public static final Tags.IOptionalNamedTag<Item> WRENCHES = tag("wrenches");

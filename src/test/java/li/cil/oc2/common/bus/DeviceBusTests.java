@@ -47,7 +47,7 @@ public class DeviceBusTests {
     }
 
     @Test
-    public void scanPendingWhenTileEntityNotLoaded() {
+    public void scanPendingWhenBlockEntityNotLoaded() {
         busController.scan();
         assertEquals(CommonDeviceBusController.BusState.INCOMPLETE, busController.getState());
     }

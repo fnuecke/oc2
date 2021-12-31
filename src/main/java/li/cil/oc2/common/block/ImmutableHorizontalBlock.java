@@ -1,11 +1,9 @@
 package li.cil.oc2.common.block;
 
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
-
-import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class ImmutableHorizontalBlock extends HorizontalDirectionalBlock {
     public ImmutableHorizontalBlock(final Properties properties) {

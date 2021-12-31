@@ -18,19 +18,19 @@ public final class RobotTerminalScreen extends AbstractMachineTerminalScreen<Rob
     }
 
     @Override
-    protected void renderBg(final PoseStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
+    protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1, 1, 1, 1);
 
-        Sprites.HOTBAR.draw(matrixStack, leftPos + SLOTS_X, topPos + SLOTS_Y);
+        Sprites.HOTBAR.draw(stack, leftPos + SLOTS_X, topPos + SLOTS_Y);
 
-        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
+        super.renderBg(stack, partialTicks, mouseX, mouseY);
     }
 
     @Override
-    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
-        RobotContainerScreen.renderSelection(matrixStack, menu.getRobot().getSelectedSlot(), leftPos + SLOTS_X + 4, topPos + SLOTS_Y + 4, 12);
-        renderTooltip(matrixStack, mouseX, mouseY);
+    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
+        super.render(stack, mouseX, mouseY, partialTicks);
+        RobotContainerScreen.renderSelection(stack, menu.getRobot().getSelectedSlot(), leftPos + SLOTS_X + 4, topPos + SLOTS_Y + 4, 12);
+        renderTooltip(stack, mouseX, mouseY);
     }
 }

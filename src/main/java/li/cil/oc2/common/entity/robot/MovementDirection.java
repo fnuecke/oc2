@@ -34,6 +34,7 @@ public enum MovementDirection {
         this.parent = resolve(parent);
     }
 
+    @Nullable
     public MovementDirection resolve() {
         return resolve(this);
     }

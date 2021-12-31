@@ -1,9 +1,10 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 
 public final class OpenComputerInventoryMessage extends AbstractMessage {
@@ -11,7 +12,7 @@ public final class OpenComputerInventoryMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public OpenComputerInventoryMessage(final ComputerTileEntity computer) {
+    public OpenComputerInventoryMessage(final ComputerBlockEntity computer) {
         this.pos = computer.getBlockPos();
     }
 
@@ -34,7 +35,10 @@ public final class OpenComputerInventoryMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withNearbyServerTileEntityAt(context, pos, ComputerTileEntity.class,
-                (computer) -> computer.openInventoryScreen(context.getSender()));
+        final ServerPlayer player = context.getSender();
+        if (player != null) {
+            MessageUtils.withNearbyServerBlockEntityAt(context, pos, ComputerBlockEntity.class,
+                computer -> computer.openInventoryScreen(player));
+        }
     }
 }

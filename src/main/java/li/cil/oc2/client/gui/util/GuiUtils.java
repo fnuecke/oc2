@@ -5,11 +5,12 @@ import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.gui.widget.Sprite;
 import li.cil.oc2.common.container.TypedSlotItemHandler;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.Util;
-import net.minecraft.network.chat.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,18 +36,23 @@ public final class GuiUtils {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoIcon(final PoseStack matrixStack, final AbstractContainerScreen<TContainer> screen, final DeviceType type, final Sprite icon) {
-        findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> icon.draw(matrixStack,
-                screen.getGuiLeft() + slot.x - 1 + RELATIVE_ICON_POSITION,
-                screen.getGuiTop() + slot.y - 1 + RELATIVE_ICON_POSITION));
+    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoIcon(final PoseStack stack, final AbstractContainerScreen<TContainer> screen, final DeviceType type, final Sprite icon) {
+        findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> icon.draw(stack,
+            screen.getGuiLeft() + slot.x - 1 + RELATIVE_ICON_POSITION,
+            screen.getGuiTop() + slot.y - 1 + RELATIVE_ICON_POSITION));
     }
 
-    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final PoseStack matrixStack, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type) {
-        renderMissingDeviceInfoTooltip(matrixStack, screen, mouseX, mouseY, type, Objects.requireNonNull(WARNING_BY_DEVICE_TYPE.get(type)));
+    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final PoseStack stack, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type) {
+        renderMissingDeviceInfoTooltip(stack, screen, mouseX, mouseY, type, Objects.requireNonNull(WARNING_BY_DEVICE_TYPE.get(type)));
     }
 
-    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final PoseStack matrixStack, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final Component tooltip) {
-        final boolean isCursorHoldingStack = !screen.getMinecraft().player.inventoryMenu.getCarried().isEmpty();
+    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final PoseStack stack, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final Component tooltip) {
+        Minecraft minecraft = screen.getMinecraft();
+        if (minecraft.player == null) {
+            return;
+        }
+
+        final boolean isCursorHoldingStack = !minecraft.player.inventoryMenu.getCarried().isEmpty();
         if (isCursorHoldingStack) {
             return;
         }
@@ -58,7 +64,7 @@ public final class GuiUtils {
 
         findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> {
             if (slot == hoveredSlot) {
-                screen.renderTooltip(matrixStack, tooltip, mouseX, mouseY);
+                screen.renderTooltip(stack, tooltip, mouseX, mouseY);
             }
         });
     }
@@ -68,8 +74,7 @@ public final class GuiUtils {
     private static Optional<TypedSlotItemHandler> findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(final AbstractContainerMenu container, final DeviceType type) {
         TypedSlotItemHandler firstSlot = null;
         for (final Slot slot : container.slots) {
-            if (slot instanceof TypedSlotItemHandler) {
-                final TypedSlotItemHandler typedSlot = (TypedSlotItemHandler) slot;
+            if (slot instanceof final TypedSlotItemHandler typedSlot) {
                 final DeviceType slotType = typedSlot.getDeviceType();
                 if (slotType == type) {
                     if (slot.hasItem()) {

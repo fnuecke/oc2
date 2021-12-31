@@ -163,7 +163,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
     }
 
     @Callback(name = WRITE_EXPORT_FILE, synchronize = false)
-    public void writeExportFile(@Parameter(DATA) final byte[] data) throws IOException {
+    public void writeExportFile(@Parameter(DATA) @Nullable final byte[] data) throws IOException {
         if (state != State.EXPORTING) {
             throw new IllegalStateException("invalid state");
         }

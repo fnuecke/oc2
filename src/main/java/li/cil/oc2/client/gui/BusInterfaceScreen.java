@@ -7,7 +7,7 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.BusInterfaceNameMessage;
-import li.cil.oc2.common.tileentity.BusCableTileEntity;
+import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.core.Direction;
@@ -25,7 +25,7 @@ public final class BusInterfaceScreen extends Screen {
     private static final int CANCEL_LEFT = 219;
     private static final int CANCEL_TOP = 9;
 
-    private final BusCableTileEntity tileEntity;
+    private final BusCableBlockEntity busCable;
     private final Direction side;
 
     private EditBox nameField;
@@ -34,9 +34,9 @@ public final class BusInterfaceScreen extends Screen {
 
     ///////////////////////////////////////////////////////////////////
 
-    public BusInterfaceScreen(final BusCableTileEntity tileEntity, final Direction side) {
+    public BusInterfaceScreen(final BusCableBlockEntity busCable, final Direction side) {
         super(Items.BUS_INTERFACE.get().getDescription());
-        this.tileEntity = tileEntity;
+        this.busCable = busCable;
         this.side = side;
     }
 
@@ -56,18 +56,18 @@ public final class BusInterfaceScreen extends Screen {
         nameField.setTextColor(0xFFFFFFFF);
         nameField.setBordered(false);
         nameField.setMaxLength(32);
-        nameField.setValue(tileEntity.getInterfaceName(side));
+        nameField.setValue(busCable.getInterfaceName(side));
         addWidget(nameField);
         setInitialFocus(nameField);
 
         addRenderableWidget(new ImageButton(
-                this,
-                left + CONFIRM_LEFT, top + CONFIRM_TOP,
-                Sprites.CONFIRM_BASE.width, Sprites.CONFIRM_BASE.height,
-                new TranslatableComponent(Constants.TOOLTIP_CONFIRM),
-                null,
-                Sprites.CONFIRM_BASE,
-                Sprites.CONFIRM_PRESSED
+            this,
+            left + CONFIRM_LEFT, top + CONFIRM_TOP,
+            Sprites.CONFIRM_BASE.width, Sprites.CONFIRM_BASE.height,
+            new TranslatableComponent(Constants.TOOLTIP_CONFIRM),
+            null,
+            Sprites.CONFIRM_BASE,
+            Sprites.CONFIRM_PRESSED
         ) {
             @Override
             public void onPress() {
@@ -77,13 +77,13 @@ public final class BusInterfaceScreen extends Screen {
             }
         });
         addRenderableWidget(new ImageButton(
-                this,
-                left + CANCEL_LEFT, top + CANCEL_TOP,
-                Sprites.CANCEL_BASE.width, Sprites.CANCEL_BASE.height,
-                new TranslatableComponent(Constants.TOOLTIP_CANCEL),
-                null,
-                Sprites.CANCEL_BASE,
-                Sprites.CANCEL_PRESSED
+            this,
+            left + CANCEL_LEFT, top + CANCEL_TOP,
+            Sprites.CANCEL_BASE.width, Sprites.CANCEL_BASE.height,
+            new TranslatableComponent(Constants.TOOLTIP_CANCEL),
+            null,
+            Sprites.CANCEL_BASE,
+            Sprites.CANCEL_PRESSED
         ) {
             @Override
             public void onPress() {
@@ -105,8 +105,8 @@ public final class BusInterfaceScreen extends Screen {
         super.tick();
         nameField.tick();
 
-        final Vec3 busCableCenter = Vec3.atCenterOf(tileEntity.getBlockPos());
-        if (getMinecraft().player.distanceToSqr(busCableCenter) > 8 * 8) {
+        final Vec3 busCableCenter = Vec3.atCenterOf(busCable.getBlockPos());
+        if (getMinecraft().player == null || getMinecraft().player.distanceToSqr(busCableCenter) > 8 * 8) {
             onClose();
         }
     }
@@ -124,14 +124,14 @@ public final class BusInterfaceScreen extends Screen {
     }
 
     @Override
-    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground(matrixStack);
-        Sprites.BUS_INTERFACE_SCREEN.draw(matrixStack, left, top);
+    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
+        renderBackground(stack);
+        Sprites.BUS_INTERFACE_SCREEN.draw(stack, left, top);
 
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
+        super.render(stack, mouseX, mouseY, partialTicks);
 
         RenderSystem.disableBlend();
-        nameField.render(matrixStack, mouseX, mouseY, partialTicks);
+        nameField.render(stack, mouseX, mouseY, partialTicks);
     }
 
     @Override
@@ -142,6 +142,6 @@ public final class BusInterfaceScreen extends Screen {
     ///////////////////////////////////////////////////////////////////
 
     private void setInterfaceName(final String name) {
-        Network.INSTANCE.sendToServer(new BusInterfaceNameMessage.ToServer(tileEntity, side, name));
+        Network.INSTANCE.sendToServer(new BusInterfaceNameMessage.ToServer(busCable, side, name));
     }
 }

@@ -22,7 +22,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
 
     ///////////////////////////////////////////////////////////////////
 
-    private RotationDirection direction;
+    @Nullable private RotationDirection direction;
     @Nullable private Direction target;
 
     ///////////////////////////////////////////////////////////////////
@@ -49,13 +49,11 @@ public final class RobotRotationAction extends AbstractRobotAction {
     public void initialize(final RobotEntity robot) {
         if (target == null) {
             target = robot.getDirection();
-            switch (direction) {
-                case LEFT:
-                    target = target.getCounterClockWise();
-                    break;
-                case RIGHT:
-                    target = target.getClockWise();
-                    break;
+            if (direction != null) {
+                switch (direction) {
+                    case LEFT -> target = target.getCounterClockWise();
+                    case RIGHT -> target = target.getClockWise();
+                }
             }
         }
 

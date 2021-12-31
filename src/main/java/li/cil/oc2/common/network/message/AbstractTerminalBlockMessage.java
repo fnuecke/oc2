@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
 
@@ -12,8 +12,8 @@ public abstract class AbstractTerminalBlockMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractTerminalBlockMessage(final ComputerTileEntity tileEntity, final ByteBuffer data) {
-        this.pos = tileEntity.getBlockPos();
+    protected AbstractTerminalBlockMessage(final ComputerBlockEntity computer, final ByteBuffer data) {
+        this.pos = computer.getBlockPos();
         this.data = data.array();
     }
 

@@ -34,15 +34,15 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
 
     ///////////////////////////////////////////////////////////////////
 
-    private final BlockEntity tileEntity;
+    private final BlockEntity blockEntity;
     private final RedstoneEmitter[] capabilities;
     private final byte[] output = new byte[Constants.BLOCK_FACE_COUNT];
 
     ///////////////////////////////////////////////////////////////////
 
-    public RedstoneInterfaceCardItemDevice(final ItemStack identity, final BlockEntity tileEntity) {
+    public RedstoneInterfaceCardItemDevice(final ItemStack identity, final BlockEntity blockEntity) {
         super(identity, "redstone");
-        this.tileEntity = tileEntity;
+        this.blockEntity = blockEntity;
 
         capabilities = new RedstoneEmitter[Constants.BLOCK_FACE_COUNT];
         for (int i = 0; i < Constants.BLOCK_FACE_COUNT; i++) {
@@ -80,22 +80,22 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
     public int getRedstoneInput(@Parameter(SIDE) @Nullable final Side side) {
         if (side == null) throw new IllegalArgumentException();
 
-        final Level world = tileEntity.getLevel();
-        if (world == null) {
+        final Level level = blockEntity.getLevel();
+        if (level == null) {
             return 0;
         }
 
-        final BlockPos pos = tileEntity.getBlockPos();
-        final Direction direction = HorizontalBlockUtils.toGlobal(tileEntity.getBlockState(), side);
+        final BlockPos pos = blockEntity.getBlockPos();
+        final Direction direction = HorizontalBlockUtils.toGlobal(blockEntity.getBlockState(), side);
         assert direction != null;
 
         final BlockPos neighborPos = pos.relative(direction);
         final ChunkPos chunkPos = new ChunkPos(neighborPos.getX(), neighborPos.getZ());
-        if (!world.hasChunk(chunkPos.x, chunkPos.z)) {
+        if (!level.hasChunk(chunkPos.x, chunkPos.z)) {
             return 0;
         }
 
-        return world.getSignal(neighborPos, direction);
+        return level.getSignal(neighborPos, direction);
     }
 
     @Callback(name = GET_REDSTONE_OUTPUT, synchronize = false)
@@ -116,7 +116,7 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
 
         output[side.get3DDataValue()] = clampedValue;
 
-        final Direction direction = HorizontalBlockUtils.toGlobal(tileEntity.getBlockState(), side);
+        final Direction direction = HorizontalBlockUtils.toGlobal(blockEntity.getBlockState(), side);
         if (direction != null) {
             notifyNeighbor(direction);
         }
@@ -151,12 +151,12 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
     ///////////////////////////////////////////////////////////////////
 
     private void notifyNeighbor(final Direction direction) {
-        final Level world = tileEntity.getLevel();
-        if (world == null) {
+        final Level level = blockEntity.getLevel();
+        if (level == null) {
             return;
         }
 
-        world.updateNeighborsAt(tileEntity.getBlockPos(), tileEntity.getBlockState().getBlock());
-        world.updateNeighborsAt(tileEntity.getBlockPos().relative(direction), tileEntity.getBlockState().getBlock());
+        level.updateNeighborsAt(blockEntity.getBlockPos(), blockEntity.getBlockState().getBlock());
+        level.updateNeighborsAt(blockEntity.getBlockPos().relative(direction), blockEntity.getBlockState().getBlock());
     }
 }

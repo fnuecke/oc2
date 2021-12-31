@@ -47,7 +47,7 @@ public interface RPCDevice extends Device {
     /**
      * Called when the device is suspended.
      * <p>
-     * This can happen when the world area containing the context the device was loaded in is unloaded,
+     * This can happen when the level area containing the context the device was loaded in is unloaded,
      * e.g. due to player moving too far away from the area.
      * <p>
      * Intended for soft-releasing unmanaged resource, i.e. non-persisted unmanaged resources.

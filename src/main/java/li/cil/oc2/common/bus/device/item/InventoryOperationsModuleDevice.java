@@ -81,7 +81,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
         final int originalStackSize = stack.getCount();
         final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
-        final List<IItemHandler> itemHandlers = getItemStackHandlersInDirection(direction).collect(Collectors.toList());
+        final List<IItemHandler> itemHandlers = getItemStackHandlersInDirection(direction).toList();
         for (final IItemHandler handler : itemHandlers) {
             stack = ItemHandlerHelper.insertItemStacked(handler, stack, false);
 
@@ -204,12 +204,12 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
     private Stream<IItemHandler> getBlockItemHandlersAt(final Vec3 position, final Direction side) {
         final BlockPos pos = new BlockPos(position);
-        final BlockEntity tileEntity = entity.level.getBlockEntity(pos);
-        if (tileEntity == null) {
+        final BlockEntity blockEntity = entity.level.getBlockEntity(pos);
+        if (blockEntity == null) {
             return Stream.empty();
         }
 
-        final LazyOptional<IItemHandler> capability = tileEntity.getCapability(Capabilities.ITEM_HANDLER, side);
+        final LazyOptional<IItemHandler> capability = blockEntity.getCapability(Capabilities.ITEM_HANDLER, side);
         if (capability.isPresent()) {
             return Stream.of(capability.orElseThrow(AssertionError::new));
         }
@@ -264,7 +264,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
                 remaining -= delta;
 
-                // Do actual run, take as many as we know we can based on simulation.
+                // Do actual run, take as many as we know we can, based on simulation.
                 extracted = handler.extractItem(fromSlot, delta, false);
                 overflow = insertStartingAt(inventory, extracted, selectedSlot, false);
 
@@ -297,7 +297,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
         int taken = extracted.getCount() - overflow.getCount();
 
-        // Do actual run, take as many as we know we can based on simulation.
+        // Do actual run, take as many as we know we can, based on simulation.
         extracted = handler.extractItem(slot, taken, false);
         overflow = insertStartingAt(inventory, extracted, selectedSlot, false);
 

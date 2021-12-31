@@ -1,4 +1,4 @@
-package li.cil.oc2.client.renderer.tileentity;
+package li.cil.oc2.client.renderer.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -11,12 +11,12 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemStack;
 
-public final class RobotItemStackRenderer extends BlockEntityWithoutLevelRenderer {
+public final class RobotWithoutLevelRenderer extends BlockEntityWithoutLevelRenderer {
     private final RobotModel model;
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotItemStackRenderer(final BlockEntityRenderDispatcher dispatcher, final EntityModelSet modelSet) {
+    public RobotWithoutLevelRenderer(final BlockEntityRenderDispatcher dispatcher, final EntityModelSet modelSet) {
         super(dispatcher, modelSet);
         model = new RobotModel(modelSet.bakeLayer(RobotModel.ROBOT_MODEL_LAYER));
     }
@@ -24,14 +24,14 @@ public final class RobotItemStackRenderer extends BlockEntityWithoutLevelRendere
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void renderByItem(final ItemStack stack, final ItemTransforms.TransformType transformType, final PoseStack matrixStack, final MultiBufferSource buffer, final int combinedLight, final int combinedOverlay) {
-        matrixStack.pushPose();
+    public void renderByItem(final ItemStack itemStack, final ItemTransforms.TransformType transformType, final PoseStack poseStack, final MultiBufferSource bufferSource, final int combinedLight, final int combinedOverlay) {
+        poseStack.pushPose();
 
-        matrixStack.translate(0.5, 0, 0.5);
+        poseStack.translate(0.5, 0, 0.5);
 
-        final VertexConsumer builder = buffer.getBuffer(model.renderType(RobotModel.ROBOT_ENTITY_TEXTURE));
-        model.renderToBuffer(matrixStack, builder, combinedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
+        final VertexConsumer consumer = bufferSource.getBuffer(model.renderType(RobotModel.ROBOT_ENTITY_TEXTURE));
+        model.renderToBuffer(poseStack, consumer, combinedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
 
-        matrixStack.popPose();
+        poseStack.popPose();
     }
 }

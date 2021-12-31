@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network;
 
-import li.cil.oc2.common.util.WorldUtils;
+import li.cil.oc2.common.util.LevelUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.Entity;
@@ -14,16 +14,16 @@ import java.util.function.Consumer;
 
 public final class MessageUtils {
     @SuppressWarnings("unchecked")
-    public static <T extends BlockEntity> void withNearbyServerTileEntityAt(final NetworkEvent.Context context, final BlockPos pos, final Class<T> type, final Consumer<T> callback) {
+    public static <T extends BlockEntity> void withNearbyServerBlockEntityAt(final NetworkEvent.Context context, final BlockPos pos, final Class<T> type, final Consumer<T> callback) {
         final ServerPlayer player = context.getSender();
         if (player == null || !pos.closerThan(player.position(), 8)) {
             return;
         }
 
-        final ServerLevel world = player.getLevel();
-        final BlockEntity tileEntity = WorldUtils.getBlockEntityIfChunkExists(world, pos);
-        if (type.isInstance(tileEntity)) {
-            callback.accept((T) tileEntity);
+        final ServerLevel level = player.getLevel();
+        final BlockEntity blockEntity = LevelUtils.getBlockEntityIfChunkExists(level, pos);
+        if (type.isInstance(blockEntity)) {
+            callback.accept((T) blockEntity);
         }
     }
 
@@ -34,8 +34,8 @@ public final class MessageUtils {
             return;
         }
 
-        final ServerLevel world = player.getLevel();
-        final Entity entity = world.getEntity(id);
+        final ServerLevel level = player.getLevel();
+        final Entity entity = level.getEntity(id);
         if (type.isInstance(entity)) {
             callback.accept((T) entity);
         }
@@ -48,34 +48,34 @@ public final class MessageUtils {
             return;
         }
 
-        final ServerLevel world = player.getLevel();
-        final Entity entity = world.getEntity(id);
+        final ServerLevel level = player.getLevel();
+        final Entity entity = level.getEntity(id);
         if (type.isInstance(entity) && entity.closerThan(player, 8)) {
             callback.accept((T) entity);
         }
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends BlockEntity> void withClientTileEntityAt(final BlockPos pos, final Class<T> type, final Consumer<T> callback) {
-        final ClientLevel world = Minecraft.getInstance().level;
-        if (world == null) {
+    public static <T extends BlockEntity> void withClientBlockEntityAt(final BlockPos pos, final Class<T> type, final Consumer<T> callback) {
+        final ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
             return;
         }
 
-        final BlockEntity tileEntity = world.getBlockEntity(pos);
-        if (type.isInstance(tileEntity)) {
-            callback.accept((T) tileEntity);
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (type.isInstance(blockEntity)) {
+            callback.accept((T) blockEntity);
         }
     }
 
     @SuppressWarnings("unchecked")
     public static <T extends Entity> void withClientEntity(final int id, final Class<T> type, final Consumer<T> callback) {
-        final ClientLevel world = Minecraft.getInstance().level;
-        if (world == null) {
+        final ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
             return;
         }
 
-        final Entity entity = world.getEntity(id);
+        final Entity entity = level.getEntity(id);
         if (type.isInstance(entity)) {
             callback.accept((T) entity);
         }

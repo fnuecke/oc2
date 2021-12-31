@@ -12,5 +12,4 @@ import li.cil.oc2.api.bus.device.vm.context.VMContext;
  * from a saved state as well as when continuing to run after being paused for
  * a save. It is intended for awaiting asynchronous load and store operations.
  */
-public final class VMResumingRunningEvent {
-}
+public final class VMResumingRunningEvent { }

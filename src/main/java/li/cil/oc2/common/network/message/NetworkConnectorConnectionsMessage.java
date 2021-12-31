@@ -1,7 +1,7 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.NetworkConnectorTileEntity;
+import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraftforge.network.NetworkEvent;
@@ -14,9 +14,9 @@ public final class NetworkConnectorConnectionsMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public NetworkConnectorConnectionsMessage(final NetworkConnectorTileEntity connector) {
-        this.pos = connector.getBlockPos();
-        this.connectedPositions = new ArrayList<>(connector.getConnectedPositions());
+    public NetworkConnectorConnectionsMessage(final NetworkConnectorBlockEntity networkConnector) {
+        this.pos = networkConnector.getBlockPos();
+        this.connectedPositions = new ArrayList<>(networkConnector.getConnectedPositions());
     }
 
     public NetworkConnectorConnectionsMessage(final FriendlyByteBuf buffer) {
@@ -49,7 +49,7 @@ public final class NetworkConnectorConnectionsMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientTileEntityAt(pos, NetworkConnectorTileEntity.class,
-                (tileEntity) -> tileEntity.setConnectedPositionsClient(connectedPositions));
+        MessageUtils.withClientBlockEntityAt(pos, NetworkConnectorBlockEntity.class,
+            networkConnector -> networkConnector.setConnectedPositionsClient(connectedPositions));
     }
 }

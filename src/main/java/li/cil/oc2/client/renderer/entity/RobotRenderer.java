@@ -12,12 +12,12 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
-public final class RobotEntityRenderer extends EntityRenderer<RobotEntity> {
+public final class RobotRenderer extends EntityRenderer<RobotEntity> {
     private final RobotModel model;
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotEntityRenderer(final EntityRendererProvider.Context context) {
+    public RobotRenderer(final EntityRendererProvider.Context context) {
         super(context);
         model = new RobotModel(context.bakeLayer(RobotModel.ROBOT_MODEL_LAYER));
     }
@@ -30,24 +30,24 @@ public final class RobotEntityRenderer extends EntityRenderer<RobotEntity> {
     }
 
     @Override
-    public void render(final RobotEntity entity, final float entityYaw, final float partialTicks, final PoseStack matrixStack, final MultiBufferSource buffer, final int packedLight) {
+    public void render(final RobotEntity entity, final float entityYaw, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int packedLight) {
         final RobotEntity.AnimationState state = entity.getAnimationState();
         state.update(partialTicks, entity.level.random);
 
-        matrixStack.pushPose();
+        stack.pushPose();
         // NB: we don't entityYaw given to use because that uses a plain lerp which can lead to ugly
         //     jumps in case we get a wrapped rotationYaw synced from the server (leading to ~360
         //     degree delta to the last known previous rotation). Haven't figured out where to
         //     alternatively prevent this wrapping or patch the prev value instead.
         final float partialRotation = Mth.degreesDifferenceAbs(entity.yRotO, entity.getYRot()) * partialTicks;
         final float rotation = Mth.approachDegrees(entity.yRotO, entity.getYRot(), partialRotation);
-        matrixStack.mulPose(Vector3f.YN.rotationDegrees(rotation));
+        stack.mulPose(Vector3f.YN.rotationDegrees(rotation));
 
         model.setupAnim(entity, 0, 0, 0, 0, 0);
 
-        final VertexConsumer builder = buffer.getBuffer(model.renderType(getTextureLocation(entity)));
-        model.renderToBuffer(matrixStack, builder, packedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
+        final VertexConsumer consumer = bufferSource.getBuffer(model.renderType(getTextureLocation(entity)));
+        model.renderToBuffer(stack, consumer, packedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
 
-        matrixStack.popPose();
+        stack.popPose();
     }
 }

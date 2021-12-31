@@ -56,7 +56,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     public SerializedState state = new SerializedState();
     public AbstractTerminalVMRunner runner;
     private VMRunState runState = VMRunState.STOPPED;
-    private Component bootError;
+    @Nullable private Component bootError;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -92,7 +92,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     @Override
     public boolean isRunning() {
         return getBusState() == CommonDeviceBusController.BusState.READY &&
-               getRunState() == VMRunState.RUNNING;
+            getRunState() == VMRunState.RUNNING;
     }
 
     @Override
@@ -141,7 +141,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void setBootErrorClient(final Component value) {
+    public void setBootErrorClient(@Nullable final Component value) {
         bootError = value;
     }
 
@@ -159,12 +159,8 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     @Override
     public void stop() {
         switch (runState) {
-            case LOADING_DEVICES:
-                setRunState(VMRunState.STOPPED);
-                break;
-            case RUNNING:
-                stopRunnerAndReset();
-                break;
+            case LOADING_DEVICES -> setRunState(VMRunState.STOPPED);
+            case RUNNING -> stopRunnerAndReset();
         }
     }
 
@@ -220,12 +216,8 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
 
         switch (runState) {
-            case LOADING_DEVICES:
-                load();
-                break;
-            case RUNNING:
-                run();
-                break;
+            case LOADING_DEVICES -> load();
+            case RUNNING -> run();
         }
     }
 
@@ -406,14 +398,14 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     }
 
     private void handleAfterDeviceScan(final CommonDeviceBusController.AfterDeviceScanEvent event) {
-        resume(event.didDevicesChange);
+        resume(event.didDevicesChange());
     }
 
     private void handleDevicesAdded(final CommonDeviceBusController.DevicesChangedEvent event) {
-        state.vmAdapter.addDevices(event.devices);
+        state.vmAdapter.addDevices(event.devices());
     }
 
     private void handleDevicesRemoved(final CommonDeviceBusController.DevicesChangedEvent event) {
-        state.vmAdapter.removeDevices(event.devices);
+        state.vmAdapter.removeDevices(event.devices());
     }
 }

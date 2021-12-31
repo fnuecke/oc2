@@ -6,24 +6,32 @@ import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.FakePlayerUtils;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.*;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.TieredItem;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.CommandBlock;
+import net.minecraft.world.level.block.JigsawBlock;
+import net.minecraft.world.level.block.StructureBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.TierSortingRegistry;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.items.IItemHandler;
@@ -31,13 +39,6 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 import java.util.List;
-
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.CommandBlock;
-import net.minecraft.world.level.block.JigsawBlock;
-import net.minecraft.world.level.block.StructureBlock;
-import net.minecraft.world.level.block.state.BlockState;
 
 public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
     private static final String LAST_OPERATION_TAG_NAME = "cooldown";
@@ -132,10 +133,10 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         final BlockPos blockPos = entity.blockPosition().relative(direction);
         final Direction oppositeDirection = direction.getOpposite();
         final BlockHitResult hit = new BlockHitResult(
-                Vec3.atCenterOf(blockPos).add(Vec3.atCenterOf(oppositeDirection.getNormal()).scale(0.5)),
-                oppositeDirection,
-                blockPos,
-                false);
+            Vec3.atCenterOf(blockPos).add(Vec3.atCenterOf(oppositeDirection.getNormal()).scale(0.5)),
+            oppositeDirection,
+            blockPos,
+            false);
 
         final ItemStack itemStack = extracted.copy();
         final BlockItem blockItem = (BlockItem) itemStack.getItem();
@@ -176,7 +177,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
         final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);
 
-        final Tiers tier = getRepairItemTier(extracted);
+        final Tier tier = getRepairItemTier(extracted);
         if (tier == null) {
             return false;
         }
@@ -210,27 +211,27 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         return entity.level.getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(2));
     }
 
-    private boolean tryHarvestBlock(final Level world, final BlockPos blockPos) {
+    private boolean tryHarvestBlock(final Level level, final BlockPos blockPos) {
         // This method is based on PlayerInteractionManager::tryHarvestBlock. Simplified for our needs.
-        final BlockState blockState = world.getBlockState(blockPos);
+        final BlockState blockState = level.getBlockState(blockPos);
         if (blockState.isAir()) {
             return false;
         }
 
-        final ServerPlayer player = FakePlayerUtils.getFakePlayer((ServerLevel) world, entity);
-        final int experience = net.minecraftforge.common.ForgeHooks.onBlockBreakEvent(world, GameType.DEFAULT_MODE, player, blockPos);
+        final ServerPlayer player = FakePlayerUtils.getFakePlayer((ServerLevel) level, entity);
+        final int experience = net.minecraftforge.common.ForgeHooks.onBlockBreakEvent(level, GameType.DEFAULT_MODE, player, blockPos);
         if (experience == -1) {
             return false;
         }
 
-        final BlockEntity tileEntity = world.getBlockEntity(blockPos);
+        final BlockEntity blockEntity = level.getBlockEntity(blockPos);
         final Block block = blockState.getBlock();
         final boolean isCommandBlock = block instanceof CommandBlock || block instanceof StructureBlock || block instanceof JigsawBlock;
         if (isCommandBlock && !player.canUseGameMasterBlocks()) {
             return false;
         }
 
-        if (player.blockActionRestricted(world, blockPos, GameType.DEFAULT_MODE)) {
+        if (player.blockActionRestricted(level, blockPos, GameType.DEFAULT_MODE)) {
             return false;
         }
 
@@ -243,39 +244,28 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
             return false;
         }
 
-        if (identity.hurt(1, world.random, null)) {
+        if (identity.hurt(1, level.random, null)) {
             return false;
         }
 
-        if (!blockState.onDestroyedByPlayer(world, blockPos, player, true, world.getFluidState(blockPos))) {
+        if (!blockState.onDestroyedByPlayer(level, blockPos, player, true, level.getFluidState(blockPos))) {
             return false;
         }
 
-        block.destroy(world, blockPos, blockState);
-        block.playerDestroy(world, player, blockPos, blockState, tileEntity, ItemStack.EMPTY);
+        block.destroy(level, blockPos, blockState);
+        block.playerDestroy(level, player, blockPos, blockState, blockEntity, ItemStack.EMPTY);
 
         return true;
     }
 
     @Nullable
-    private Tiers getRepairItemTier(final ItemStack stack) {
+    private Tier getRepairItemTier(final ItemStack stack) {
         if (stack.isEmpty()) {
             return null;
         }
 
-        final Item item = stack.getItem();
-        if (ItemTags.TOOL_MATERIAL_NETHERITE.contains(item)) {
-            return Tiers.NETHERITE;
-        } else if (ItemTags.TOOL_MATERIAL_GOLD.contains(item)) {
-            return Tiers.DIAMOND;
-        } else if (ItemTags.TOOL_MATERIAL_DIAMOND.contains(item)) {
-            return Tiers.GOLD;
-        } else if (ItemTags.TOOL_MATERIAL_IRON.contains(item)) {
-            return Tiers.IRON;
-        } else if (ItemTags.TOOL_MATERIAL_STONE.contains(item)) {
-            return Tiers.STONE;
-        } else if (ItemTags.TOOL_MATERIAL_WOOD.contains(item)) {
-            return Tiers.WOOD;
+        if (stack.getItem() instanceof TieredItem tieredItem) {
+            return tieredItem.getTier();
         }
 
         return null;

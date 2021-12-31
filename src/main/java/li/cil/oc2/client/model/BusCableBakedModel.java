@@ -2,7 +2,7 @@ package li.cil.oc2.client.model;
 
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.BusCableBlock;
-import li.cil.oc2.common.tileentity.BusCableTileEntity;
+import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.util.ItemStackUtils;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
@@ -58,7 +58,7 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
 
         if (extraData.hasProperty(BUS_CABLE_FACADE_PROPERTY)) {
             final BusCableFacade facade = extraData.getData(BUS_CABLE_FACADE_PROPERTY);
-            if (layer == null || ItemBlockRenderTypes.canRenderInLayer(facade.blockState, layer)) {
+            if (facade != null && (layer == null || ItemBlockRenderTypes.canRenderInLayer(facade.blockState, layer))) {
                 return facade.model.getQuads(facade.blockState, side, rand, facade.data);
             } else {
                 return Collections.emptyList();
@@ -119,13 +119,13 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
 
     @Override
     @Nonnull
-    public IModelData getModelData(final BlockAndTintGetter world, final BlockPos pos, final BlockState state, final IModelData tileData) {
+    public IModelData getModelData(final BlockAndTintGetter level, final BlockPos pos, final BlockState state, final IModelData blockEntityData) {
         if (state.hasProperty(BusCableBlock.HAS_FACADE) && state.getValue(BusCableBlock.HAS_FACADE)) {
-            final BlockEntity tileEntity = world.getBlockEntity(pos);
+            final BlockEntity blockEntity = level.getBlockEntity(pos);
 
             BlockState facadeState = null;
-            if (tileEntity instanceof BusCableTileEntity) {
-                final ItemStack facadeItem = ((BusCableTileEntity) tileEntity).getFacade();
+            if (blockEntity instanceof BusCableBlockEntity) {
+                final ItemStack facadeItem = ((BusCableBlockEntity) blockEntity).getFacade();
                 facadeState = ItemStackUtils.getBlockState(facadeItem);
             }
             if (facadeState == null) {
@@ -134,19 +134,19 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
 
             final BlockModelShaper shapes = Minecraft.getInstance().getBlockRenderer().getBlockModelShaper();
             final BakedModel model = shapes.getBlockModel(facadeState);
-            final IModelData data = model.getModelData(world, pos, facadeState, tileData);
+            final IModelData data = model.getModelData(level, pos, facadeState, blockEntityData);
 
             return new ModelDataMap.Builder()
-                    .withInitial(BUS_CABLE_FACADE_PROPERTY, new BusCableFacade(facadeState, model, data))
-                    .build();
+                .withInitial(BUS_CABLE_FACADE_PROPERTY, new BusCableFacade(facadeState, model, data))
+                .build();
         }
 
         Direction supportSide = null;
         for (final Direction direction : Constants.DIRECTIONS) {
-            if (isNeighborInDirectionSolid(world, pos, direction)) {
+            if (isNeighborInDirectionSolid(level, pos, direction)) {
                 final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(direction);
                 if (state.hasProperty(property) && state.getValue(property) == BusCableBlock.ConnectionType.INTERFACE) {
-                    return tileData; // Plug is already supporting us, bail.
+                    return blockEntityData; // Plug is already supporting us, bail.
                 }
 
                 if (supportSide == null) { // Prefer vertical supports.
@@ -157,18 +157,18 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
 
         if (supportSide != null) {
             return new ModelDataMap.Builder()
-                    .withInitial(BUS_CABLE_SUPPORT_PROPERTY, new BusCableSupportSide(supportSide))
-                    .build();
+                .withInitial(BUS_CABLE_SUPPORT_PROPERTY, new BusCableSupportSide(supportSide))
+                .build();
         }
 
-        return tileData;
+        return blockEntityData;
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private static boolean isNeighborInDirectionSolid(final BlockAndTintGetter world, final BlockPos pos, final Direction direction) {
+    private static boolean isNeighborInDirectionSolid(final BlockAndTintGetter level, final BlockPos pos, final Direction direction) {
         final BlockPos neighborPos = pos.relative(direction);
-        return world.getBlockState(neighborPos).isFaceSturdy(world, neighborPos, direction.getOpposite());
+        return level.getBlockState(neighborPos).isFaceSturdy(level, neighborPos, direction.getOpposite());
     }
 
     private static boolean isStraightAlongAxis(final BlockState state, final Direction.Axis axis) {
@@ -190,23 +190,7 @@ public final class BusCableBakedModel implements IDynamicBakedModel {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final class BusCableSupportSide {
-        public final Direction value;
+    private record BusCableSupportSide(Direction value) { }
 
-        private BusCableSupportSide(final Direction value) {
-            this.value = value;
-        }
-    }
-
-    private static final class BusCableFacade {
-        public final BlockState blockState;
-        public final BakedModel model;
-        public final IModelData data;
-
-        public BusCableFacade(final BlockState blockState, final BakedModel model, final IModelData data) {
-            this.blockState = blockState;
-            this.model = model;
-            this.data = data;
-        }
-    }
+    private record BusCableFacade(BlockState blockState, BakedModel model, IModelData data) { }
 }

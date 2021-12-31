@@ -1,4 +1,4 @@
-package li.cil.oc2.common.tileentity;
+package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
@@ -20,7 +20,7 @@ import java.util.Collection;
 
 import static java.util.Collections.singletonList;
 
-public final class RedstoneInterfaceTileEntity extends BlockEntity implements NamedDevice, DocumentedDevice {
+public final class RedstoneInterfaceBlockEntity extends BlockEntity implements NamedDevice, DocumentedDevice {
     private static final String OUTPUT_TAG_NAME = "output";
 
     private static final String GET_REDSTONE_INPUT = "getRedstoneInput";
@@ -35,8 +35,8 @@ public final class RedstoneInterfaceTileEntity extends BlockEntity implements Na
 
     ///////////////////////////////////////////////////////////////////
 
-    public RedstoneInterfaceTileEntity(final BlockPos pos, final BlockState state) {
-        super(TileEntities.REDSTONE_INTERFACE_TILE_ENTITY.get(), pos, state);
+    public RedstoneInterfaceBlockEntity(final BlockPos pos, final BlockState state) {
+        super(BlockEntities.REDSTONE_INTERFACE.get(), pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////

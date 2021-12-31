@@ -17,7 +17,7 @@ public interface ItemDeviceQuery {
      *
      * @return the {@link BlockEntity} hosting the device, if any.
      */
-    Optional<BlockEntity> getContainerTileEntity();
+    Optional<BlockEntity> getContainerBlockEntity();
 
     /**
      * The {@link Entity} that holds the item this query is for.

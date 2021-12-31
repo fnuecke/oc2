@@ -91,8 +91,8 @@ public final class Callbacks {
     private static List<Method> getMethods(final Class<?> type) {
         synchronized (METHOD_BY_TYPE) {
             return METHOD_BY_TYPE.computeIfAbsent(type, c -> Arrays.stream(c.getMethods())
-                    .filter(m -> m.isAnnotationPresent(Callback.class))
-                    .collect(Collectors.toList()));
+                .filter(m -> m.isAnnotationPresent(Callback.class))
+                .collect(Collectors.toList()));
         }
     }
 
@@ -195,9 +195,9 @@ public final class Callbacks {
                 this.returnValueDescription = documentation.returnValueDescription;
 
                 this.parameters = PARAMETERS_BY_METHOD.computeIfAbsent(method,
-                        m -> Arrays.stream(m.getParameters())
-                                .map(parameter -> new ReflectionParameter(parameter, documentation.parameterDescriptions))
-                                .toArray(RPCParameter[]::new));
+                    m -> Arrays.stream(m.getParameters())
+                        .map(parameter -> new ReflectionParameter(parameter, documentation.parameterDescriptions))
+                        .toArray(RPCParameter[]::new));
             }
         }
 
@@ -241,17 +241,9 @@ public final class Callbacks {
         }
     }
 
-    private static final class CallbackDocumentation {
-        @Nullable public final String description;
-        @Nullable public final String returnValueDescription;
-        public final HashMap<String, String> parameterDescriptions;
-
-        private CallbackDocumentation(@Nullable final String description, @Nullable final String returnValueDescription, final HashMap<String, String> parameterDescriptions) {
-            this.description = description;
-            this.returnValueDescription = returnValueDescription;
-            this.parameterDescriptions = parameterDescriptions;
-        }
-    }
+    private record CallbackDocumentation(@Nullable String description,
+                                         @Nullable String returnValueDescription,
+                                         HashMap<String, String> parameterDescriptions) { }
 
     private static final class DeviceVisitorImpl implements DocumentedDevice.DeviceVisitor {
         public final HashMap<String, CallbackVisitorImpl> callbacks = new HashMap<>();

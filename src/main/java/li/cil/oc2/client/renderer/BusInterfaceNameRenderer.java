@@ -3,7 +3,7 @@ package li.cil.oc2.client.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.integration.Wrenches;
-import li.cil.oc2.common.tileentity.BusCableTileEntity;
+import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.Camera;
@@ -35,24 +35,26 @@ public enum BusInterfaceNameRenderer {
     public void handleRenderLastEvent(final RenderLevelLastEvent event) {
         final Minecraft mc = Minecraft.getInstance();
         final Player player = mc.player;
+        if (player == null) {
+            return;
+        }
+
         final Level level = player.level;
 
         if (!Wrenches.isHoldingWrench(player)) {
             return;
         }
 
-        if (!(mc.hitResult instanceof BlockHitResult)) {
+        if (!(mc.hitResult instanceof final BlockHitResult hit)) {
             return;
         }
 
-        final BlockHitResult hit = (BlockHitResult) mc.hitResult;
         final BlockPos blockPos = hit.getBlockPos();
-        final BlockEntity tileEntity = level.getBlockEntity(blockPos);
-        if (!(tileEntity instanceof BusCableTileEntity)) {
+        final BlockEntity blockEntity = level.getBlockEntity(blockPos);
+        if (!(blockEntity instanceof final BusCableBlockEntity busCable)) {
             return;
         }
 
-        final BusCableTileEntity busCable = (BusCableTileEntity) tileEntity;
         final Direction side = BusCableBlock.getHitSide(blockPos, hit);
         if (BusCableBlock.getConnectionType(level.getBlockState(blockPos), side) != BusCableBlock.ConnectionType.INTERFACE) {
             return;

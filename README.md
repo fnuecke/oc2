@@ -10,9 +10,9 @@ For documentation on how the to get computers up and running, and how to use the
 
 [OpenComputers]: https://github.com/MightyPirates/OpenComputers
 [RPC Device]: src/main/java/li/cil/oc2/api/bus/device/rpc/RPCDevice.java
-[redstone interface]: src/main/java/li/cil/oc2/common/tileentity/RedstoneInterfaceTileEntity.java
+[redstone interface]: src/main/java/li/cil/oc2/common/blockentity/RedstoneInterfaceBlockEntity.java
 [sound card]: src/main/java/li/cil/oc2/common/bus/device/item/SoundCardItemDevice.java
 [VM Device]: src/main/java/li/cil/oc2/api/bus/device/vm/VMDevice.java
-[disk drive]: src/main/java/li/cil/oc2/common/tileentity/DiskDriveTileEntity.java
+[disk drive]: src/main/java/li/cil/oc2/common/blockentity/DiskDriveBlockEntity.java
 [network card]: src/main/java/li/cil/oc2/common/bus/device/item/NetworkInterfaceCardItemDevice.java
 [documentation]: src/main/resources/assets/oc2/doc/en_us/index.md

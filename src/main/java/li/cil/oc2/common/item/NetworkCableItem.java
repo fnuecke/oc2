@@ -1,8 +1,8 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.tileentity.NetworkConnectorTileEntity;
-import li.cil.oc2.common.tileentity.NetworkConnectorTileEntity.ConnectionResult;
+import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
+import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity.ConnectionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -24,7 +24,7 @@ public final class NetworkCableItem extends ModItem {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public InteractionResultHolder<ItemStack> use(final Level world, final Player player, final InteractionHand hand) {
+    public InteractionResultHolder<ItemStack> use(final Level level, final Player player, final InteractionHand hand) {
         if (player.isShiftKeyDown()) {
             if (player instanceof ServerPlayer) {
                 LINK_STARTS.remove(player);
@@ -33,7 +33,7 @@ public final class NetworkCableItem extends ModItem {
             return InteractionResultHolder.success(player.getItemInHand(hand));
         }
 
-        return super.use(world, player, hand);
+        return super.use(level, player, hand);
     }
 
     @Override
@@ -51,30 +51,27 @@ public final class NetworkCableItem extends ModItem {
         final Level level = context.getLevel();
         final BlockPos currentPos = context.getClickedPos();
 
-        final BlockEntity currentTileEntity = level.getBlockEntity(currentPos);
-        if (!(currentTileEntity instanceof NetworkConnectorTileEntity)) {
+        final BlockEntity currentBlockEntity = level.getBlockEntity(currentPos);
+        if (!(currentBlockEntity instanceof NetworkConnectorBlockEntity currentConnector)) {
             return super.useOn(context);
         }
 
         if (!level.isClientSide() && player instanceof ServerPlayer) {
             final BlockPos startPos = LINK_STARTS.remove(player);
             if (startPos == null || Objects.equals(startPos, currentPos)) {
-                if (((NetworkConnectorTileEntity) currentTileEntity).canConnectMore()) {
+                if (currentConnector.canConnectMore()) {
                     LINK_STARTS.put((ServerPlayer) player, currentPos);
                 } else {
                     player.displayClientMessage(new TranslatableComponent(Constants.CONNECTOR_ERROR_FULL), true);
                 }
             } else {
-                final BlockEntity startTileEntity = level.getBlockEntity(startPos);
-                if (!(startTileEntity instanceof NetworkConnectorTileEntity)) {
+                final BlockEntity startBlockEntity = level.getBlockEntity(startPos);
+                if (!(startBlockEntity instanceof NetworkConnectorBlockEntity startConnector)) {
                     // Starting connector was removed in the meantime.
                     return super.useOn(context);
                 }
 
-                final NetworkConnectorTileEntity connectorA = (NetworkConnectorTileEntity) startTileEntity;
-                final NetworkConnectorTileEntity connectorB = (NetworkConnectorTileEntity) currentTileEntity;
-
-                final ConnectionResult connectionResult = NetworkConnectorTileEntity.connect(connectorA, connectorB);
+                final ConnectionResult connectionResult = NetworkConnectorBlockEntity.connect(startConnector, currentConnector);
                 switch (connectionResult) {
                     case SUCCESS:
                         if (!player.isCreative()) {

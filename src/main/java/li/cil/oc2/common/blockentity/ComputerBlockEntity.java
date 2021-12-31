@@ -1,4 +1,4 @@
-package li.cil.oc2.common.tileentity;
+package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
@@ -9,8 +9,8 @@ import li.cil.oc2.client.audio.LoopingSoundManager;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import li.cil.oc2.common.bus.TileEntityDeviceBusController;
-import li.cil.oc2.common.bus.TileEntityDeviceBusElement;
+import li.cil.oc2.common.bus.BlockEntityDeviceBusController;
+import li.cil.oc2.common.bus.BlockEntityDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -30,14 +30,14 @@ import li.cil.oc2.common.util.SoundEvents;
 import li.cil.oc2.common.util.TerminalUtils;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -50,7 +50,7 @@ import java.util.*;
 
 import static li.cil.oc2.common.Constants.*;
 
-public final class ComputerTileEntity extends AbstractTileEntity implements TerminalUserProvider {
+public final class ComputerBlockEntity extends ModBlockEntity implements TerminalUserProvider {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
     private static final String DEVICES_TAG_NAME = "devices";
     private static final String TERMINAL_TAG_NAME = "terminal";
@@ -75,16 +75,16 @@ public final class ComputerTileEntity extends AbstractTileEntity implements Term
     private final ComputerBusElement busElement = new ComputerBusElement();
     private final ComputerItemStackHandlers deviceItems = new ComputerItemStackHandlers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
-    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new TileEntityDeviceBusController(busElement, Config.computerEnergyPerTick, this), deviceItems::getDeviceAddressBase);
+    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockEntityDeviceBusController(busElement, Config.computerEnergyPerTick, this), deviceItems::getDeviceAddressBase);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerTileEntity(final BlockPos pos, final BlockState state) {
-        super(TileEntities.COMPUTER_TILE_ENTITY.get(), pos, state);
+    public ComputerBlockEntity(final BlockPos pos, final BlockState state) {
+        super(BlockEntities.COMPUTER.get(), pos, state);
 
-        // We want to unload devices even on world unload to free global resources.
-        setNeedsWorldUnloadEvent();
+        // We want to unload devices even on level unload to free global resources.
+        setNeedsLevelUnloadEvent();
     }
 
     public Terminal getTerminal() {
@@ -165,11 +165,15 @@ public final class ComputerTileEntity extends AbstractTileEntity implements Term
         return LazyOptional.empty();
     }
 
-    public static void serverTick(final Level level, final BlockPos pos, final BlockState state, final ComputerTileEntity tileEntity) {
-        tileEntity.serverTick();
+    public static void serverTick(final Level level, final BlockPos pos, final BlockState state, final ComputerBlockEntity computer) {
+        computer.serverTick();
     }
 
     private void serverTick() {
+        if (level == null) {
+            return;
+        }
+
         // Always add devices provided for the computer itself, even if there's no
         // adjacent cable. Because that would just be weird.
         if (!hasAddedOwnDevices) {
@@ -271,7 +275,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements Term
         super.loadServer();
 
         busElement.initialize();
-        virtualMachine.state.builtinDevices.rtcMinecraft.setWorld(level);
+        virtualMachine.state.builtinDevices.rtcMinecraft.setLevel(level);
     }
 
     @Override
@@ -293,16 +297,16 @@ public final class ComputerTileEntity extends AbstractTileEntity implements Term
     private final class ComputerItemStackHandlers extends AbstractVMItemStackHandlers {
         public ComputerItemStackHandlers() {
             super(
-                    GroupDefinition.of(DeviceTypes.MEMORY, MEMORY_SLOTS),
-                    GroupDefinition.of(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
-                    GroupDefinition.of(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS),
-                    GroupDefinition.of(DeviceTypes.CARD, CARD_SLOTS)
+                new GroupDefinition(DeviceTypes.MEMORY, MEMORY_SLOTS),
+                new GroupDefinition(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
+                new GroupDefinition(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS),
+                new GroupDefinition(DeviceTypes.CARD, CARD_SLOTS)
             );
         }
 
         @Override
         protected ItemDeviceQuery getDeviceQuery(final ItemStack stack) {
-            return Devices.makeQuery(ComputerTileEntity.this, stack);
+            return Devices.makeQuery(ComputerBlockEntity.this, stack);
         }
 
         @Override
@@ -313,17 +317,19 @@ public final class ComputerTileEntity extends AbstractTileEntity implements Term
         }
     }
 
-    private final class ComputerBusElement extends TileEntityDeviceBusElement {
+    private final class ComputerBusElement extends BlockEntityDeviceBusElement {
         private static final String DEVICE_ID_TAG_NAME = "device_id";
 
         private final HashSet<Device> devices = new HashSet<>();
         private UUID deviceId = UUID.randomUUID();
 
         public ComputerBusElement() {
-            super(ComputerTileEntity.this);
+            super(ComputerBlockEntity.this);
         }
 
         public void addOwnDevices() {
+            assert level != null;
+
             for (final BlockDeviceInfo info : collectDevices(level, getPosition(), null)) {
                 devices.add(info.device);
                 super.addDevice(info.device);
@@ -376,7 +382,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements Term
 
         @Override
         protected void sendTerminalUpdateToClient(final ByteBuffer output) {
-            Network.sendToClientsTrackingChunk(new ComputerTerminalOutputMessage(ComputerTileEntity.this, output), virtualMachine.chunk);
+            Network.sendToClientsTrackingChunk(new ComputerTerminalOutputMessage(ComputerBlockEntity.this, output), virtualMachine.chunk);
         }
     }
 
@@ -393,16 +399,18 @@ public final class ComputerTileEntity extends AbstractTileEntity implements Term
             super.setRunStateClient(value);
 
             if (value == VMRunState.RUNNING) {
-                if (!LoopingSoundManager.isPlaying(ComputerTileEntity.this)) {
-                    LoopingSoundManager.play(ComputerTileEntity.this, SoundEvents.COMPUTER_RUNNING.get(), level.getRandom().nextInt(MAX_RUNNING_SOUND_DELAY));
+                if (!LoopingSoundManager.isPlaying(ComputerBlockEntity.this) && level != null) {
+                    LoopingSoundManager.play(ComputerBlockEntity.this, SoundEvents.COMPUTER_RUNNING.get(), level.getRandom().nextInt(MAX_RUNNING_SOUND_DELAY));
                 }
             } else {
-                LoopingSoundManager.stop(ComputerTileEntity.this);
+                LoopingSoundManager.stop(ComputerBlockEntity.this);
             }
         }
 
         @Override
         public void tick() {
+            assert level != null;
+
             if (chunk == null) {
                 chunk = level.getChunkAt(getBlockPos());
             }
@@ -433,7 +441,7 @@ public final class ComputerTileEntity extends AbstractTileEntity implements Term
             super.stopRunnerAndReset();
 
             TerminalUtils.resetTerminal(terminal, output -> Network.sendToClientsTrackingChunk(
-                    new ComputerTerminalOutputMessage(ComputerTileEntity.this, output), chunk));
+                new ComputerTerminalOutputMessage(ComputerBlockEntity.this, output), chunk));
         }
 
         @Override
@@ -443,9 +451,9 @@ public final class ComputerTileEntity extends AbstractTileEntity implements Term
 
         @Override
         protected void handleBusStateChanged(final CommonDeviceBusController.BusState value) {
-            Network.sendToClientsTrackingChunk(new ComputerBusStateMessage(ComputerTileEntity.this), chunk);
+            Network.sendToClientsTrackingChunk(new ComputerBusStateMessage(ComputerBlockEntity.this), chunk);
 
-            if (value == CommonDeviceBusController.BusState.READY) {
+            if (value == CommonDeviceBusController.BusState.READY && level != null) {
                 // Bus just became ready, meaning new devices may be available, meaning new
                 // capabilities may be available, so we need to tell our neighbors.
                 level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
@@ -457,13 +465,13 @@ public final class ComputerTileEntity extends AbstractTileEntity implements Term
             // This method can be called from disposal logic, so if we are disposed quickly enough
             // chunk may not be initialized yet. Avoid resulting NRE in network logic.
             if (chunk != null) {
-                Network.sendToClientsTrackingChunk(new ComputerRunStateMessage(ComputerTileEntity.this), chunk);
+                Network.sendToClientsTrackingChunk(new ComputerRunStateMessage(ComputerBlockEntity.this), chunk);
             }
         }
 
         @Override
         protected void handleBootErrorChanged(@Nullable final Component value) {
-            Network.sendToClientsTrackingChunk(new ComputerBootErrorMessage(ComputerTileEntity.this), chunk);
+            Network.sendToClientsTrackingChunk(new ComputerBootErrorMessage(ComputerBlockEntity.this), chunk);
         }
     }
 }

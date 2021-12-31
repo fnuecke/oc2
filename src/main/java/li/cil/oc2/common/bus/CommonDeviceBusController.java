@@ -91,7 +91,7 @@ public class CommonDeviceBusController implements DeviceBusController {
             for (final Device device : element.getLocalDevices()) {
                 newDevices.add(device);
                 element.getDeviceIdentifier(device).ifPresent(identifier -> newDeviceIds
-                        .computeIfAbsent(device, unused -> new HashSet<>()).add(identifier));
+                    .computeIfAbsent(device, unused -> new HashSet<>()).add(identifier));
             }
         }
 
@@ -112,7 +112,7 @@ public class CommonDeviceBusController implements DeviceBusController {
             didDeviceIdsChange = true;
         } else {
             didDeviceIdsChange = deviceIds.entrySet().stream().anyMatch(entry ->
-                    !Objects.equals(entry.getValue(), newDeviceIds.get(entry.getKey())));
+                !Objects.equals(entry.getValue(), newDeviceIds.get(entry.getKey())));
         }
 
         if (didDeviceIdsChange) {
@@ -159,7 +159,7 @@ public class CommonDeviceBusController implements DeviceBusController {
             final DeviceBusElement element = open.pop();
 
             final Optional<Collection<LazyOptional<DeviceBusElement>>> elementNeighbors = element.getNeighbors();
-            if (!elementNeighbors.isPresent()) {
+            if (elementNeighbors.isEmpty()) {
                 scanDelay = INCOMPLETE_RETRY_INTERVAL;
                 state = BusState.INCOMPLETE;
                 return;
@@ -270,19 +270,7 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final class AfterDeviceScanEvent {
-        public final boolean didDevicesChange;
+    public record AfterDeviceScanEvent(boolean didDevicesChange) { }
 
-        public AfterDeviceScanEvent(final boolean didDevicesChange) {
-            this.didDevicesChange = didDevicesChange;
-        }
-    }
-
-    public static final class DevicesChangedEvent {
-        public final Collection<Device> devices;
-
-        public DevicesChangedEvent(final Collection<Device> devices) {
-            this.devices = devices;
-        }
-    }
+    public record DevicesChangedEvent(Collection<Device> devices) { }
 }

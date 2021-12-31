@@ -3,6 +3,8 @@ package li.cil.oc2.api.bus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelAccessor;
 
+import javax.annotation.Nullable;
+
 /**
  * Implementing this interface allows providing positional information to the {@link DeviceBusController}.
  * <p>
@@ -12,10 +14,11 @@ import net.minecraft.world.level.LevelAccessor;
  */
 public interface BlockDeviceBusElement extends DeviceBusElement {
     /**
-     * The world the bus lives in.
+     * The level the bus lives in.
      *
-     * @return the world the bus lives in.
+     * @return the level the bus lives in.
      */
+    @Nullable
     LevelAccessor getLevel();
 
     /**

@@ -19,7 +19,8 @@ public final class VMDeviceBusAdapter {
 
     ///////////////////////////////////////////////////////////////////
 
-    @Serialized @SuppressWarnings("FieldMayBeFinal")
+    @Serialized
+    @SuppressWarnings("FieldMayBeFinal")
     private GlobalVMContext globalContext;
 
     ///////////////////////////////////////////////////////////////////
@@ -39,7 +40,7 @@ public final class VMDeviceBusAdapter {
             final VMDevice device = incompleteLoads.get(i);
 
             final ManagedVMContext context = new ManagedVMContext(globalContext, globalContext,
-                    () -> baseAddressProvider.getBaseAddress(device));
+                () -> baseAddressProvider.getBaseAddress(device));
 
             deviceContexts.put(device, context);
 
@@ -79,9 +80,7 @@ public final class VMDeviceBusAdapter {
 
     public void addDevices(final Collection<Device> devices) {
         for (final Device device : devices) {
-            if (device instanceof VMDevice) {
-                final VMDevice vmDevice = (VMDevice) device;
-
+            if (device instanceof final VMDevice vmDevice) {
                 final ManagedVMContext context = deviceContexts.put(vmDevice, null);
                 if (context != null) {
                     context.invalidate();
@@ -94,9 +93,7 @@ public final class VMDeviceBusAdapter {
 
     public void removeDevices(final Collection<Device> devices) {
         for (final Device device : devices) {
-            if (device instanceof VMDevice) {
-                final VMDevice vmDevice = (VMDevice) device;
-
+            if (device instanceof final VMDevice vmDevice) {
                 vmDevice.unmount();
 
                 final ManagedVMContext context = deviceContexts.remove(vmDevice);

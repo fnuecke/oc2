@@ -1,4 +1,4 @@
-package li.cil.oc2.common.tileentity;
+package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.common.Config;
@@ -19,13 +19,13 @@ import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.Direction;
-import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
@@ -38,7 +38,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.time.Duration;
 
-public final class DiskDriveTileEntity extends AbstractTileEntity {
+public final class DiskDriveBlockEntity extends ModBlockEntity {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final String DATA_TAG_NAME = "data";
@@ -55,15 +55,15 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    public DiskDriveTileEntity(final BlockPos pos, final BlockState state) {
-        super(TileEntities.DISK_DRIVE_TILE_ENTITY.get(), pos, state);
+    public DiskDriveBlockEntity(final BlockPos pos, final BlockState state) {
+        super(BlockEntities.DISK_DRIVE.get(), pos, state);
 
         this.accessSoundEmitter = new ThrottledSoundEmitter(LocationSupplierUtils.of(this),
-                SoundEvents.FLOPPY_ACCESS.get()).withMinInterval(Duration.ofSeconds(1));
+            SoundEvents.FLOPPY_ACCESS.get()).withMinInterval(Duration.ofSeconds(1));
         this.insertSoundEmitter = new ThrottledSoundEmitter(LocationSupplierUtils.of(this),
-                SoundEvents.FLOPPY_INSERT.get()).withMinInterval(Duration.ofMillis(100));
+            SoundEvents.FLOPPY_INSERT.get()).withMinInterval(Duration.ofMillis(100));
         this.ejectSoundEmitter = new ThrottledSoundEmitter(LocationSupplierUtils.of(this),
-                SoundEvents.FLOPPY_EJECT.get()).withMinInterval(Duration.ofMillis(100));
+            SoundEvents.FLOPPY_EJECT.get()).withMinInterval(Duration.ofMillis(100));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -92,6 +92,10 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
     }
 
     public void eject(@Nullable final Player player) {
+        if (level == null) {
+            return;
+        }
+
         final ItemStack stack = itemHandler.extractItem(0, 1, false);
         if (!stack.isEmpty()) {
             final Direction facing = getBlockState().getValue(DiskDriveBlock.FACING);
@@ -196,7 +200,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
                 device.updateBlockDevice(tag);
             }
 
-            Network.sendToClientsTrackingTileEntity(new DiskDriveFloppyMessage(DiskDriveTileEntity.this), DiskDriveTileEntity.this);
+            Network.sendToClientsTrackingBlockEntity(new DiskDriveFloppyMessage(DiskDriveBlockEntity.this), DiskDriveBlockEntity.this);
         }
 
         private void exportDeviceDataToItemStack(final ItemStack stack) {
@@ -216,7 +220,7 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
 
     private final class DiskDriveVMDevice extends AbstractBlockDeviceVMDevice<BlockDevice, BlockEntity> {
         public DiskDriveVMDevice() {
-            super(DiskDriveTileEntity.this);
+            super(DiskDriveBlockEntity.this);
         }
 
         public void updateBlockDevice(final CompoundTag tag) {
@@ -258,12 +262,11 @@ public final class DiskDriveTileEntity extends AbstractTileEntity {
         @Override
         protected BlockDevice createBlockDevice() throws IOException {
             final ItemStack stack = itemHandler.getStackInSlotRaw(0);
-            if (stack.isEmpty() || !(stack.getItem() instanceof FloppyItem)) {
+            if (stack.isEmpty() || !(stack.getItem() instanceof final FloppyItem floppy)) {
                 return EMPTY_BLOCK_DEVICE;
             }
 
-            final FloppyItem item = (FloppyItem) stack.getItem();
-            final int capacity = Mth.clamp(item.getCapacity(stack), 0, Config.maxFloppySize);
+            final int capacity = Mth.clamp(floppy.getCapacity(stack), 0, Config.maxFloppySize);
             if (capacity <= 0) {
                 return EMPTY_BLOCK_DEVICE;
             }

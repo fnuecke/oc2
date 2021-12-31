@@ -21,6 +21,6 @@ public final class RobotTerminalInputMessage extends AbstractTerminalEntityMessa
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
         MessageUtils.withNearbyServerEntity(context, entityId, RobotEntity.class,
-                (tileEntity) -> tileEntity.getTerminal().putInput(ByteBuffer.wrap(data)));
+            robot -> robot.getTerminal().putInput(ByteBuffer.wrap(data)));
     }
 }

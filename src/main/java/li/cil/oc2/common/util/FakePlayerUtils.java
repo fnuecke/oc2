@@ -22,8 +22,8 @@ public final class FakePlayerUtils {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static ServerPlayer getFakePlayer(final ServerLevel world, final Entity entity) {
-        final ServerPlayer player = getFakePlayer(world);
+    public static ServerPlayer getFakePlayer(final ServerLevel level, final Entity entity) {
+        final ServerPlayer player = getFakePlayer(level);
         player.copyPosition(entity);
         player.xRotO = player.getXRot();
         player.yRotO  = player.getYRot();
@@ -32,8 +32,8 @@ public final class FakePlayerUtils {
         return player;
     }
 
-    public static ServerPlayer getFakePlayer(final ServerLevel world) {
-        final FakePlayer player = FakePlayerFactory.get(world, new GameProfile(Config.fakePlayerUUID, FAKE_PLAYER_NAME));
+    public static ServerPlayer getFakePlayer(final ServerLevel level) {
+        final FakePlayer player = FakePlayerFactory.get(level, new GameProfile(Config.fakePlayerUUID, FAKE_PLAYER_NAME));
 
         // We need to give our fake player a fake network handler because some events we want
         // to use the fake player with will unconditionally access this field.

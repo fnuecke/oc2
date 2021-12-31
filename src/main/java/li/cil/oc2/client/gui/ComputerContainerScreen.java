@@ -18,22 +18,22 @@ public final class ComputerContainerScreen extends AbstractMachineInventoryScree
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
+    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
+        super.render(stack, mouseX, mouseY, partialTicks);
 
-        renderMissingDeviceInfo(matrixStack, mouseX, mouseY);
+        renderMissingDeviceInfo(stack, mouseX, mouseY);
 
-        renderTooltip(matrixStack, mouseX, mouseY);
+        renderTooltip(stack, mouseX, mouseY);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void renderBg(final PoseStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
+    protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1, 1, 1, 1);
 
-        Sprites.COMPUTER_CONTAINER.draw(matrixStack, leftPos, topPos);
-        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
+        Sprites.COMPUTER_CONTAINER.draw(stack, leftPos, topPos);
+        super.renderBg(stack, partialTicks, mouseX, mouseY);
     }
 }

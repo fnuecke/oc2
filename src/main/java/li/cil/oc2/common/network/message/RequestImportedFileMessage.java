@@ -4,6 +4,7 @@ import li.cil.oc2.client.gui.FileChooserScreen;
 import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.network.Network;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -59,8 +60,8 @@ public final class RequestImportedFileMessage extends AbstractMessage {
                     final byte[] data = Files.readAllBytes(path);
                     if (data.length > FileImportExportCardItemDevice.MAX_TRANSFERRED_FILE_SIZE) {
                         Network.INSTANCE.sendToServer(new ClientCanceledImportFileMessage(id));
-                        Minecraft.getInstance().player.displayClientMessage(FILE_TOO_LARGE_TEXT
-                                .withStyle(s -> s.withColor(TextColor.fromRgb(0xFFA0A0))), false);
+                        Minecraft.getInstance().gui.getChat().addMessage(FILE_TOO_LARGE_TEXT
+                            .withStyle(s -> s.withColor(TextColor.fromRgb(0xFFA0A0))));
                     } else {
                         Network.INSTANCE.sendToServer(new ImportedFileMessage(id, fileName, data));
                     }

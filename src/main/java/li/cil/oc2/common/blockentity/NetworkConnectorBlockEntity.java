@@ -1,4 +1,4 @@
-package li.cil.oc2.common.tileentity;
+package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
@@ -11,16 +11,22 @@ import li.cil.oc2.common.network.message.NetworkConnectorConnectionsMessage;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.ServerScheduler;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.Direction;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.LazyOptional;
@@ -31,14 +37,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
-
-public final class NetworkConnectorTileEntity extends AbstractTileEntity {
+public final class NetworkConnectorBlockEntity extends ModBlockEntity {
     public enum ConnectionResult {
         SUCCESS,
         FAILURE,
@@ -69,27 +68,27 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity {
     private final HashSet<BlockPos> connectorPositions = new HashSet<>();
     private final HashSet<BlockPos> ownedCables = new HashSet<>();
     private final HashSet<BlockPos> dirtyConnectors = new HashSet<>();
-    private final HashMap<BlockPos, NetworkConnectorTileEntity> connectors = new HashMap<>();
+    private final HashMap<BlockPos, NetworkConnectorBlockEntity> connectors = new HashMap<>();
 
     ///////////////////////////////////////////////////////////////////
 
-    public NetworkConnectorTileEntity(final BlockPos pos, final BlockState state) {
-        super(TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), pos, state);
+    public NetworkConnectorBlockEntity(final BlockPos pos, final BlockState state) {
+        super(BlockEntities.NETWORK_CONNECTOR.get(), pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static ConnectionResult connect(final NetworkConnectorTileEntity connectorA, final NetworkConnectorTileEntity connectorB) {
+    public static ConnectionResult connect(final NetworkConnectorBlockEntity connectorA, final NetworkConnectorBlockEntity connectorB) {
         if (connectorA == connectorB || connectorA.isRemoved() || connectorB.isRemoved()) {
             return ConnectionResult.FAILURE;
         }
 
-        final Level world = connectorA.level;
-        if (world == null || world.isClientSide()) {
+        final Level level = connectorA.level;
+        if (level == null || level.isClientSide()) {
             return ConnectionResult.FAILURE;
         }
 
-        if (connectorB.level != world) {
+        if (connectorB.level != level) {
             return ConnectionResult.FAILURE;
         }
 
@@ -104,7 +103,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity {
             return ConnectionResult.FAILURE_TOO_FAR;
         }
 
-        if (isObstructed(world, posA, posB)) {
+        if (isObstructed(level, posA, posB)) {
             return ConnectionResult.FAILURE_OBSTRUCTED;
         }
 
@@ -173,11 +172,15 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity {
         NetworkCableRenderer.invalidateConnections();
     }
 
-    public static void serverTick(final Level level, final BlockPos pos, final BlockState state, final NetworkConnectorTileEntity tileEntity) {
-        tileEntity.serverTick();
+    public static void serverTick(final Level level, final BlockPos pos, final BlockState state, final NetworkConnectorBlockEntity networkConnector) {
+        networkConnector.serverTick();
     }
 
     private void serverTick() {
+        if (level == null) {
+            return;
+        }
+
         if (isLocalConnectionDirty) {
             isLocalConnectionDirty = false;
             resolveLocalInterface();
@@ -272,9 +275,9 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity {
 
         // When we're being removed we want to break the actual link to any connected
         // connectors. This will also cause cables to be dropped.
-        final ArrayList<NetworkConnectorTileEntity> list = new ArrayList<>(connectors.values());
+        final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(connectors.values());
         connectors.clear();
-        for (final NetworkConnectorTileEntity connector : list) {
+        for (final NetworkConnectorBlockEntity connector : list) {
             disconnectFrom(connector.getBlockPos());
             connector.disconnectFrom(getBlockPos());
         }
@@ -284,10 +287,10 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity {
     protected void unloadServer() {
         super.unloadServer();
 
-        // When unloading, we just want to remove the reference to this tile entity
+        // When unloading, we just want to remove the reference to this block entity
         // from connected connectors; we don't want to actually break the link.
         final BlockPos pos = getBlockPos();
-        for (final NetworkConnectorTileEntity connector : connectors.values()) {
+        for (final NetworkConnectorBlockEntity connector : connectors.values()) {
             connector.connectors.remove(pos);
             if (connector.connectorPositions.contains(pos)) {
                 connector.dirtyConnectors.add(pos);
@@ -299,8 +302,8 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity {
     public AABB getRenderBoundingBox() {
         if (Minecraft.useShaderTransparency()) {
             return new AABB(
-                    getBlockPos().offset(-MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE),
-                    getBlockPos().offset(1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE)
+                getBlockPos().offset(-MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE),
+                getBlockPos().offset(1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE)
             );
         } else {
             return super.getRenderBoundingBox();
@@ -319,6 +322,8 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity {
     ///////////////////////////////////////////////////////////////////
 
     private void resolveLocalInterface() {
+        assert level != null;
+
         localInterface = LazyOptional.empty();
 
         if (isRemoved()) {
@@ -334,12 +339,12 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity {
             return;
         }
 
-        final BlockEntity tileEntity = level.getBlockEntity(sourcePos);
-        if (tileEntity == null) {
+        final BlockEntity blockEntity = level.getBlockEntity(sourcePos);
+        if (blockEntity == null) {
             return;
         }
 
-        localInterface = tileEntity.getCapability(Capabilities.NETWORK_INTERFACE, facing);
+        localInterface = blockEntity.getCapability(Capabilities.NETWORK_INTERFACE, facing);
         if (localInterface.isPresent()) {
             localInterface.addListener(unused -> setLocalInterfaceChanged());
         }
@@ -362,30 +367,28 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity {
             return;
         }
 
-        final BlockEntity tileEntity = level.getBlockEntity(connectedPosition);
-        if (!(tileEntity instanceof NetworkConnectorTileEntity)) {
+        final BlockEntity blockEntity = level.getBlockEntity(connectedPosition);
+        if (!(blockEntity instanceof final NetworkConnectorBlockEntity networkConnector)) {
             disconnectFrom(connectedPosition);
             return;
         }
 
-        final NetworkConnectorTileEntity connector = (NetworkConnectorTileEntity) tileEntity;
-
         if (!connectedPosition.closerThan(getBlockPos(), MAX_CONNECTION_DISTANCE)) {
             disconnectFrom(connectedPosition);
-            connector.disconnectFrom(getBlockPos());
+            networkConnector.disconnectFrom(getBlockPos());
             return;
         }
 
         if (isObstructed(level, getBlockPos(), connectedPosition)) {
             disconnectFrom(connectedPosition);
-            connector.disconnectFrom(getBlockPos());
+            networkConnector.disconnectFrom(getBlockPos());
             return;
         }
 
-        connectors.put(connectedPosition, connector);
+        connectors.put(connectedPosition, networkConnector);
     }
 
-    private static boolean isObstructed(final Level world, final BlockPos a, final BlockPos b) {
+    private static boolean isObstructed(final Level level, final BlockPos a, final BlockPos b) {
         final Vec3 va = Vec3.atCenterOf(a);
         final Vec3 vb = Vec3.atCenterOf(b);
         final Vec3 ab = vb.subtract(va).normalize().scale(0.5);
@@ -393,29 +396,29 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity {
         // Because of floating point inaccuracies the raytrace is not necessarily
         // symmetric. In particular when grazing corners perfectly, e.g. two connectors
         // attached to the same block at a 90 degree angle. So we check both ways.
-        final BlockHitResult hitAB = world.clip(new ClipContext(
-                va.add(ab),
-                vb.subtract(ab),
-                ClipContext.Block.COLLIDER,
-                ClipContext.Fluid.NONE,
-                null
+        final BlockHitResult hitAB = level.clip(new ClipContext(
+            va.add(ab),
+            vb.subtract(ab),
+            ClipContext.Block.COLLIDER,
+            ClipContext.Fluid.NONE,
+            null
         ));
-        final BlockHitResult hitBA = world.clip(new ClipContext(
-                vb.subtract(ab),
-                va.add(ab),
-                ClipContext.Block.COLLIDER,
-                ClipContext.Fluid.NONE,
-                null
+        final BlockHitResult hitBA = level.clip(new ClipContext(
+            vb.subtract(ab),
+            va.add(ab),
+            ClipContext.Block.COLLIDER,
+            ClipContext.Fluid.NONE,
+            null
         ));
 
         return hitAB.getType() != HitResult.Type.MISS ||
-               hitBA.getType() != HitResult.Type.MISS;
+            hitBA.getType() != HitResult.Type.MISS;
     }
 
     private void onConnectedPositionsChanged() {
-        if (!level.isClientSide()) {
+        if (level != null && !level.isClientSide()) {
             final NetworkConnectorConnectionsMessage message = new NetworkConnectorConnectionsMessage(this);
-            Network.sendToClientsTrackingTileEntity(message, this);
+            Network.sendToClientsTrackingBlockEntity(message, this);
         }
     }
 
@@ -453,7 +456,7 @@ public final class NetworkConnectorTileEntity extends AbstractTileEntity {
                 dst.writeEthernetFrame(this, frame, timeToLive - TTL_COST);
             });
 
-            for (final NetworkConnectorTileEntity dst : connectors.values()) {
+            for (final NetworkConnectorBlockEntity dst : connectors.values()) {
                 if (dst.isRemoved() || dst.networkInterface == source) {
                     continue;
                 }

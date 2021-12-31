@@ -27,7 +27,7 @@ import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.TerminalUtils;
-import li.cil.oc2.common.util.WorldUtils;
+import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -130,7 +130,7 @@ public final class RobotEntity extends Entity implements Robot {
 
         final CommonDeviceBusController busController = new CommonDeviceBusController(busElement, Config.robotEnergyPerTick);
         virtualMachine = new RobotVirtualMachine(busController);
-        virtualMachine.state.builtinDevices.rtcMinecraft.setWorld(world);
+        virtualMachine.state.builtinDevices.rtcMinecraft.setLevel(world);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -235,7 +235,7 @@ public final class RobotEntity extends Entity implements Robot {
         spawnAtLocation(stack);
 
         discard();
-        WorldUtils.playSound(level, blockPosition(), SoundType.METAL, SoundType::getBreakSound);
+        LevelUtils.playSound(level, blockPosition(), SoundType.METAL, SoundType::getBreakSound);
     }
 
     @Override
@@ -279,14 +279,14 @@ public final class RobotEntity extends Entity implements Robot {
 
                 final VoxelShape blockShape = blockState.getCollisionShape(level, mutablePosition);
                 if (Shapes.joinIsNotEmpty(shape, blockShape.move(x, y, z), BooleanOp.AND)) {
-                    final BlockEntity tileEntity = level.getBlockEntity(mutablePosition);
+                    final BlockEntity blockEntity = level.getBlockEntity(mutablePosition);
                     final LootContext.Builder builder = new LootContext.Builder((ServerLevel) level)
-                            .withRandom(level.random)
-                            .withParameter(LootContextParams.THIS_ENTITY, this)
-                            .withParameter(LootContextParams.ORIGIN, position())
-                            .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
-                            .withParameter(LootContextParams.BLOCK_STATE, blockState)
-                            .withOptionalParameter(LootContextParams.BLOCK_ENTITY, tileEntity);
+                        .withRandom(level.random)
+                        .withParameter(LootContextParams.THIS_ENTITY, this)
+                        .withParameter(LootContextParams.ORIGIN, position())
+                        .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
+                        .withParameter(LootContextParams.BLOCK_STATE, blockState)
+                        .withOptionalParameter(LootContextParams.BLOCK_ENTITY, blockEntity);
                     final List<ItemStack> drops = blockState.getDrops(builder);
                     level.setBlockAndUpdate(mutablePosition, Blocks.AIR.defaultBlockState());
                     for (final ItemStack drop : drops) {
@@ -364,7 +364,7 @@ public final class RobotEntity extends Entity implements Robot {
         itemsTag.put(INVENTORY_TAG_NAME, inventory.serializeNBT()); // Won't show up in tooltip.
 
         NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME)
-                .put(ENERGY_TAG_NAME, energy.serializeNBT());
+            .put(ENERGY_TAG_NAME, energy.serializeNBT());
     }
 
     public void importFromItemStack(final ItemStack stack) {
@@ -470,8 +470,8 @@ public final class RobotEntity extends Entity implements Robot {
     private Cursor3D getBlockPosIterator() {
         final AABB bounds = getBoundingBox();
         return new Cursor3D(
-                Mth.floor(bounds.minX), Mth.floor(bounds.minY), Mth.floor(bounds.minZ),
-                Mth.floor(bounds.maxX), Mth.floor(bounds.maxY), Mth.floor(bounds.maxZ)
+            Mth.floor(bounds.minX), Mth.floor(bounds.minY), Mth.floor(bounds.minZ),
+            Mth.floor(bounds.maxX), Mth.floor(bounds.maxY), Mth.floor(bounds.maxZ)
         );
     }
 
@@ -702,10 +702,10 @@ public final class RobotEntity extends Entity implements Robot {
     private final class RobotItemStackHandlers extends AbstractVMItemStackHandlers {
         public RobotItemStackHandlers() {
             super(
-                    GroupDefinition.of(DeviceTypes.MEMORY, MEMORY_SLOTS),
-                    GroupDefinition.of(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
-                    GroupDefinition.of(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS),
-                    GroupDefinition.of(DeviceTypes.ROBOT_MODULE, MODULE_SLOTS)
+                new GroupDefinition(DeviceTypes.MEMORY, MEMORY_SLOTS),
+                new GroupDefinition(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
+                new GroupDefinition(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS),
+                new GroupDefinition(DeviceTypes.ROBOT_MODULE, MODULE_SLOTS)
             );
         }
 
@@ -793,7 +793,7 @@ public final class RobotEntity extends Entity implements Robot {
             super.stopRunnerAndReset();
 
             TerminalUtils.resetTerminal(terminal, output -> Network.sendToClientsTrackingEntity(
-                    new RobotTerminalOutputMessage(RobotEntity.this, output), RobotEntity.this));
+                new RobotTerminalOutputMessage(RobotEntity.this, output), RobotEntity.this));
 
             actionProcessor.clear();
         }

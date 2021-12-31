@@ -5,7 +5,7 @@ import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.block.BusCableBlock.ConnectionType;
 import li.cil.oc2.common.util.TooltipUtils;
-import li.cil.oc2.common.util.WorldUtils;
+import li.cil.oc2.common.util.LevelUtils;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -43,8 +43,8 @@ public final class BusInterfaceItem extends ModBlockItem {
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void appendHoverText(final ItemStack stack, final @Nullable Level world, final List<Component> tooltip, final TooltipFlag flag) {
-        super.appendHoverText(stack, world, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, final @Nullable Level level, final List<Component> tooltip, final TooltipFlag flag) {
+        super.appendHoverText(stack, level, tooltip, flag);
         TooltipUtils.addEnergyConsumption(Config.busInterfaceEnergyPerTick, tooltip);
     }
 
@@ -102,11 +102,11 @@ public final class BusInterfaceItem extends ModBlockItem {
     ///////////////////////////////////////////////////////////////////
 
     private static InteractionResult tryAddToBlock(final UseOnContext context, final Direction side) {
-        final Level world = context.getLevel();
+        final Level level = context.getLevel();
         final BlockPos pos = context.getClickedPos();
-        final BlockState state = world.getBlockState(pos);
+        final BlockState state = level.getBlockState(pos);
 
-        if (!BusCableBlock.addInterface(world, pos, state, side)) {
+        if (!BusCableBlock.addInterface(level, pos, state, side)) {
             return InteractionResult.PASS;
         }
 
@@ -117,12 +117,12 @@ public final class BusInterfaceItem extends ModBlockItem {
             CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayer) player, pos, stack);
         }
 
-        WorldUtils.playSound(world, pos, state.getSoundType(world, pos, player), SoundType::getPlaceSound);
+        LevelUtils.playSound(level, pos, state.getSoundType(level, pos, player), SoundType::getPlaceSound);
 
         if (player == null || !player.getAbilities().instabuild) {
             stack.shrink(1);
         }
 
-        return InteractionResult.sidedSuccess(world.isClientSide());
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 }

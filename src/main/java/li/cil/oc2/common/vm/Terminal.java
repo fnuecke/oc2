@@ -161,48 +161,29 @@ public final class Terminal {
     public void putOutput(final byte value) {
         final char ch = (char) value;
         switch (state) {
-            case NORMAL: {
+            case NORMAL -> {
                 switch (value) {
-                    case (byte) '\r': {
-                        setCursorPos(0, y);
-                        break;
-                    }
-                    case (byte) '\n': {
-                        putNewLine();
-                        break;
-                    }
-                    case (byte) '\t': {
+                    case (byte) '\r' -> setCursorPos(0, y);
+                    case (byte) '\n' -> putNewLine();
+                    case (byte) '\t' -> {
                         if (x + TAB_WIDTH > WIDTH) {
                             setCursorPos(0, y);
                             putNewLine();
                         } else {
                             setCursorPos(x + TAB_WIDTH - (x % TAB_WIDTH), y);
                         }
-                        break;
                     }
-                    case (byte) '\b': {
-                        setCursorPos(x - 1, y);
-                        break;
-                    }
-                    case 7: {
-                        hasPendingBell = true;
-                        break;
-                    }
-                    case 27: {
-                        state = State.ESCAPE;
-                        break;
-                    }
-                    default: {
+                    case (byte) '\b' -> setCursorPos(x - 1, y);
+                    case 7 -> hasPendingBell = true;
+                    case 27 -> state = State.ESCAPE;
+                    default -> {
                         if (!Character.isISOControl(ch)) {
                             putChar(ch);
                         }
-                        break;
                     }
                 }
-                break;
             }
-
-            case ESCAPE: {
+            case ESCAPE -> {
                 if (ch == '[') {
                     Arrays.fill(args, (byte) 0);
                     argCount = 0;
@@ -210,10 +191,8 @@ public final class Terminal {
                 } else {
                     state = State.NORMAL;
                 }
-                break;
             }
-
-            case SEQUENCE: {
+            case SEQUENCE -> {
                 if (ch >= '0' && ch <= '9') {
                     if (argCount < args.length) {
                         final int digit = ch - '0';
@@ -235,40 +214,24 @@ public final class Terminal {
                     state = State.NORMAL;
 
                     switch (ch) {
-                        case 'A': { // Cursor Up
+                        case 'A' -> // Cursor Up
                             setCursorPos(x, y - Math.max(1, args[0]));
-                            break;
-                        }
-                        case 'B': { // Cursor Down
+                        case 'B' -> // Cursor Down
                             setCursorPos(x, y + Math.max(1, args[0]));
-                            break;
-                        }
-                        case 'C': { // Cursor Forward
+                        case 'C' -> // Cursor Forward
                             setCursorPos(x + Math.max(1, args[0]), y);
-                            break;
-                        }
-                        case 'D': { // Cursor Back
+                        case 'D' -> // Cursor Back
                             setCursorPos(x - Math.max(1, args[0]), y);
-                            break;
-                        }
-                        case 'E': { // Cursor Next Line
+                        case 'E' -> // Cursor Next Line
                             setCursorPos(0, y + Math.min(1, args[0]));
-                            break;
-                        }
-                        case 'F': { // Cursor Previous Line
+                        case 'F' -> // Cursor Previous Line
                             setCursorPos(0, y - Math.min(1, args[0]));
-                            break;
-                        }
-                        case 'G': { // Cursor Horizontal Absolute
+                        case 'G' -> // Cursor Horizontal Absolute
                             setCursorPos(args[0] - 1, y);
-                            break;
-                        }
-                        case 'f': // Don't care about terminal mode fanciness so just alias.
-                        case 'H': { // Cursor Position
+                        // Don't care about terminal mode fanciness so just alias.
+                        case 'f', 'H' -> // Cursor Position
                             setCursorPos(args[1] - 1, args[0] - 1);
-                            break;
-                        }
-                        case 'J': { // Erase in Display
+                        case 'J' -> { // Erase in Display
                             if (args[0] == 0) { // Cursor and down
                                 clearLine(y, x, WIDTH);
                                 for (int iy = y + 1; iy < HEIGHT; iy++) {
@@ -282,9 +245,8 @@ public final class Terminal {
                             } else if (args[0] == 2) { // Everything
                                 clear();
                             }
-                            break;
                         }
-                        case 'K': { // Erase in Line
+                        case 'K' -> { // Erase in Line
                             if (args[0] == 0) { // Cursor and right
                                 clearLine(y, x, WIDTH);
                             } else if (args[0] == 1) { // Cursor and left
@@ -292,52 +254,45 @@ public final class Terminal {
                             } else if (args[0] == 2) { // ...entirely
                                 clearLine(y);
                             }
-                            break;
                         }
+
                         // S, T: Scroll Up/Down. We don't have scrollback.
-                        case 'm': { // Select Graphic Rendition
+                        case 'm' -> { // Select Graphic Rendition
                             for (int i = 0; i < argCount; i++) {
                                 final int arg = args[i];
                                 selectStyle(arg);
                             }
-                            break;
                         }
-                        case 'n': { // Device Status Report
+                        case 'n' -> { // Device Status Report
                             switch (args[0]) {
-                                case 5: { // Report console status
+                                case 5 -> { // Report console status
                                     if (!displayOnly) {
                                         putInput((byte) 27);
                                         for (final char i : "[0n".toCharArray()) {
                                             putInput((byte) i);
                                         }
                                     }
-                                    break;
                                 }
-                                case 6: { // Report cursor position
+                                case 6 -> { // Report cursor position
                                     if (!displayOnly) {
                                         putInput((byte) 27);
                                         for (final char i : String.format("[%d;%dR", (y % HEIGHT) + 1, x + 1).toCharArray()) {
                                             putInput((byte) i);
                                         }
                                     }
-                                    break;
                                 }
                             }
-                            break;
                         }
-                        case 's': { // Save Current Cursor Position
+                        case 's' -> { // Save Current Cursor Position
                             savedX = x;
                             savedY = y;
-                            break;
                         }
-                        case 'u': { // Restore Saved Cursor Position
+                        case 'u' -> { // Restore Saved Cursor Position
                             x = savedX;
                             y = savedY;
-                            break;
                         }
                     }
                 }
-                break;
             }
         }
     }
@@ -346,78 +301,39 @@ public final class Terminal {
 
     private void selectStyle(final int sgr) {
         switch (sgr) {
-            case 0: { // Reset / Normal
+            case 0 -> { // Reset / Normal
                 color = DEFAULT_COLORS;
                 style = DEFAULT_STYLE;
-                break;
             }
-            case 1: { // Bold or increased intensity
+            case 1 -> // Bold or increased intensity
                 style |= STYLE_BOLD_MASK;
-                break;
-            }
-            case 2: { // Faint or decreased intensity
+            case 2 -> // Faint or decreased intensity
                 style |= STYLE_DIM_MASK;
-                break;
-            }
-            case 4: { // Underline
+            case 4 -> // Underline
                 style |= STYLE_UNDERLINE_MASK;
-                break;
-            }
-            case 5: { // Slow Blink
+            case 5 -> // Slow Blink
                 style |= STYLE_BLINK_MASK;
-                break;
-            }
-            case 7: { // Reverse video
+            case 7 -> // Reverse video
                 style |= STYLE_INVERT_MASK;
-                break;
-            }
-            case 8: { // Conceal aka Hide
+            case 8 -> // Conceal aka Hide
                 style |= STYLE_HIDDEN_MASK;
-                break;
-            }
-            case 22: { // Normal color or intensity
+            case 22 -> // Normal color or intensity
                 style &= ~(STYLE_BOLD_MASK | STYLE_DIM_MASK);
-                break;
-            }
-            case 24: { // Underline off
+            case 24 -> // Underline off
                 style &= ~STYLE_UNDERLINE_MASK;
-                break;
-            }
-            case 25: { // Blink off
+            case 25 -> // Blink off
                 style &= ~STYLE_BLINK_MASK;
-                break;
-            }
-            case 27: { // Reverse/invert off
+            case 27 -> // Reverse/invert off
                 style &= ~STYLE_INVERT_MASK;
-                break;
-            }
-            case 28: { // Reveal conceal off
+            case 28 -> // Reveal conceal off
                 style &= ~STYLE_HIDDEN_MASK;
-                break;
-            }
-            case 30:
-            case 31:
-            case 32:
-            case 33:
-            case 34:
-            case 35:
-            case 36:
-            case 37: { // Set foreground color
+            case 30, 31, 32, 33, 34, 35, 36, 37 -> { // Set foreground color
                 final int color = sgr - 30;
                 this.color = (byte) ((this.color & ~(COLOR_MASK << COLOR_FOREGROUND_SHIFT)) | (color << COLOR_FOREGROUND_SHIFT));
-                break;
             }
-            case 40:
-            case 41:
-            case 42:
-            case 43:
-            case 44:
-            case 45:
-            case 46:
-            case 47: { //–47 Set background color
+            case 40, 41, 42, 43, 44, 45, 46, 47 -> { //–47 Set background color
                 final int color = sgr - 40;
                 this.color = (byte) ((this.color & ~COLOR_MASK) | color);
-                break;
             }
         }
     }
@@ -500,25 +416,25 @@ public final class Terminal {
         private static final int TEXTURE_BOLD_SHIFT = TEXTURE_COLUMNS; // Bold chars are in right half of texture.
 
         private static final int[] COLORS = {
-                0x010101, // Black
-                0xEE3322, // Red
-                0x33DD44, // Green
-                0xFFCC11, // Yellow
-                0x1188EE, // Blue
-                0xDD33CC, // Magenta
-                0x22CCDD, // Cyan
-                0xEEEEEE, // White
+            0x010101, // Black
+            0xEE3322, // Red
+            0x33DD44, // Green
+            0xFFCC11, // Yellow
+            0x1188EE, // Blue
+            0xDD33CC, // Magenta
+            0x22CCDD, // Cyan
+            0xEEEEEE, // White
         };
 
         private static final int[] DIM_COLORS = {
-                0x010101, // Black
-                0x772211, // Red
-                0x116622, // Green
-                0x886611, // Yellow
-                0x115588, // Blue
-                0x771177, // Magenta
-                0x116677, // Cyan
-                0x777777, // White
+            0x010101, // Black
+            0x772211, // Red
+            0x116622, // Green
+            0x886611, // Yellow
+            0x115588, // Blue
+            0x771177, // Magenta
+            0x116677, // Cyan
+            0x777777, // White
         };
 
         ///////////////////////////////////////////////////////////////
@@ -743,8 +659,8 @@ public final class Terminal {
 
         private static boolean isPrintableCharacter(final char ch) {
             return ch == 0 ||
-                   (ch > ' ' && ch <= '~') ||
-                   ch >= 177;
+                (ch > ' ' && ch <= '~') ||
+                ch >= 177;
         }
     }
 }

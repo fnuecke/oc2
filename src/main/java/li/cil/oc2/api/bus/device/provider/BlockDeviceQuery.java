@@ -1,8 +1,9 @@
 package li.cil.oc2.api.bus.device.provider;
 
-import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
 
@@ -13,9 +14,9 @@ import javax.annotation.Nullable;
  */
 public interface BlockDeviceQuery {
     /**
-     * The world containing the block this query is performed for.
+     * The level containing the block this query is performed for.
      *
-     * @return the world containing the block.
+     * @return the level containing the block.
      */
     Level getLevel();
 
@@ -29,7 +30,7 @@ public interface BlockDeviceQuery {
     /**
      * The side of the block this query is performed on, if any.
      * <p>
-     * May be {@code null} just as when requesting a capability from a tile entity.
+     * May be {@code null} just as when requesting a capability from a {@link BlockEntity}.
      *
      * @return the side of the block.
      */

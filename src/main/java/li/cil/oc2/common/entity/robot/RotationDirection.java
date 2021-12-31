@@ -21,6 +21,7 @@ public enum RotationDirection {
         this.parent = resolve(parent);
     }
 
+    @Nullable
     public RotationDirection resolve() {
         return resolve(this);
     }

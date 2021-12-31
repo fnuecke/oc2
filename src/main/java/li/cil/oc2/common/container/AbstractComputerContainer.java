@@ -7,7 +7,7 @@ import li.cil.oc2.common.network.message.ComputerPowerMessage;
 import li.cil.oc2.common.network.message.ComputerTerminalInputMessage;
 import li.cil.oc2.common.network.message.OpenComputerInventoryMessage;
 import li.cil.oc2.common.network.message.OpenComputerTerminalMessage;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
 import net.minecraft.world.entity.player.Player;
@@ -19,11 +19,11 @@ import net.minecraftforge.energy.IEnergyStorage;
 import java.nio.ByteBuffer;
 
 public abstract class AbstractComputerContainer extends AbstractMachineTerminalContainer {
-    private final ComputerTileEntity computer;
+    private final ComputerBlockEntity computer;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractComputerContainer(final MenuType<?> type, final int id, final Player player, final ComputerTileEntity computer, final ContainerData energyInfo) {
+    protected AbstractComputerContainer(final MenuType<?> type, final int id, final Player player, final ComputerBlockEntity computer, final ContainerData energyInfo) {
         super(type, id, energyInfo);
         this.computer = computer;
 

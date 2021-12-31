@@ -11,17 +11,17 @@ import li.cil.oc2.client.model.BusCableModelLoader;
 import li.cil.oc2.client.renderer.BusInterfaceNameRenderer;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.client.renderer.color.BusCableBlockColor;
-import li.cil.oc2.client.renderer.entity.RobotEntityRenderer;
+import li.cil.oc2.client.renderer.entity.RobotRenderer;
 import li.cil.oc2.client.renderer.entity.model.RobotModel;
-import li.cil.oc2.client.renderer.tileentity.ChargerTileEntityRenderer;
-import li.cil.oc2.client.renderer.tileentity.ComputerTileEntityRenderer;
-import li.cil.oc2.client.renderer.tileentity.DiskDriveTileEntityRenderer;
-import li.cil.oc2.client.renderer.tileentity.NetworkConnectorTileEntityRenderer;
+import li.cil.oc2.client.renderer.blockentity.ChargerRenderer;
+import li.cil.oc2.client.renderer.blockentity.ComputerRenderer;
+import li.cil.oc2.client.renderer.blockentity.DiskDriveRenderer;
+import li.cil.oc2.client.renderer.blockentity.NetworkConnectorRenderer;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.bus.device.DeviceTypes;
 import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
-import li.cil.oc2.common.tileentity.TileEntities;
+import li.cil.oc2.common.blockentity.BlockEntities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -42,10 +42,10 @@ public final class ClientSetup {
         NetworkCableRenderer.initialize();
         BusInterfaceNameRenderer.initialize();
 
-        BlockEntityRenderers.register(TileEntities.COMPUTER_TILE_ENTITY.get(), ComputerTileEntityRenderer::new);
-        BlockEntityRenderers.register(TileEntities.NETWORK_CONNECTOR_TILE_ENTITY.get(), NetworkConnectorTileEntityRenderer::new);
-        BlockEntityRenderers.register(TileEntities.DISK_DRIVE_TILE_ENTITY.get(), DiskDriveTileEntityRenderer::new);
-        BlockEntityRenderers.register(TileEntities.CHARGER_TILE_ENTITY.get(), ChargerTileEntityRenderer::new);
+        BlockEntityRenderers.register(BlockEntities.COMPUTER.get(), ComputerRenderer::new);
+        BlockEntityRenderers.register(BlockEntities.NETWORK_CONNECTOR.get(), NetworkConnectorRenderer::new);
+        BlockEntityRenderers.register(BlockEntities.DISK_DRIVE.get(), DiskDriveRenderer::new);
+        BlockEntityRenderers.register(BlockEntities.CHARGER.get(), ChargerRenderer::new);
 
         event.enqueueWork(() -> {
             CustomItemModelProperties.initialize();
@@ -76,16 +76,16 @@ public final class ClientSetup {
             event.addSprite(deviceType.getBackgroundIcon());
         }
 
-        event.addSprite(ComputerTileEntityRenderer.OVERLAY_POWER_LOCATION);
-        event.addSprite(ComputerTileEntityRenderer.OVERLAY_STATUS_LOCATION);
-        event.addSprite(ComputerTileEntityRenderer.OVERLAY_TERMINAL_LOCATION);
+        event.addSprite(ComputerRenderer.OVERLAY_POWER_LOCATION);
+        event.addSprite(ComputerRenderer.OVERLAY_STATUS_LOCATION);
+        event.addSprite(ComputerRenderer.OVERLAY_TERMINAL_LOCATION);
 
-        event.addSprite(ChargerTileEntityRenderer.EFFECT_LOCATION);
+        event.addSprite(ChargerRenderer.EFFECT_LOCATION);
     }
 
     @SubscribeEvent
     public static void handleEntityRendererRegisterEvent(final EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(Entities.ROBOT.get(), RobotEntityRenderer::new);
+        event.registerEntityRenderer(Entities.ROBOT.get(), RobotRenderer::new);
     }
 
     @SubscribeEvent

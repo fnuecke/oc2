@@ -3,28 +3,28 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.util.ServerScheduler;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 
-public final class TileEntityDeviceBusController extends CommonDeviceBusController {
+public final class BlockEntityDeviceBusController extends CommonDeviceBusController {
     private final Runnable onBusChunkLoadedStateChanged = this::scheduleBusScan;
     private final HashSet<TrackedChunk> trackedChunks = new HashSet<>();
-    private final BlockEntity tileEntity;
+    private final BlockEntity blockEntity;
 
     ///////////////////////////////////////////////////////////////////
 
-    public TileEntityDeviceBusController(final DeviceBusElement root, final int baseEnergyConsumption, final BlockEntity tileEntity) {
+    public BlockEntityDeviceBusController(final DeviceBusElement root, final int baseEnergyConsumption, final BlockEntity blockEntity) {
         super(root, baseEnergyConsumption);
-        this.tileEntity = tileEntity;
+        this.blockEntity = blockEntity;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -43,28 +43,27 @@ public final class TileEntityDeviceBusController extends CommonDeviceBusControll
     protected void onAfterBusScan() {
         super.onAfterBusScan();
 
-        final Level world = tileEntity.getLevel();
-        if (world == null) {
+        final Level level = blockEntity.getLevel();
+        if (level == null) {
             return;
         }
 
         final HashSet<TrackedChunk> newTrackedChunks = new HashSet<>();
         for (final DeviceBusElement element : getElements()) {
-            if (element instanceof BlockDeviceBusElement) {
-                final BlockDeviceBusElement blockElement = (BlockDeviceBusElement) element;
-                final LevelAccessor elementWorld = blockElement.getLevel();
+            if (element instanceof final BlockDeviceBusElement blockElement) {
+                final LevelAccessor elementLevel = blockElement.getLevel();
                 final BlockPos elementPosition = blockElement.getPosition();
-                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition));
-                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.relative(Direction.NORTH)));
-                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.relative(Direction.EAST)));
-                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.relative(Direction.SOUTH)));
-                newTrackedChunks.add(new TrackedChunk(elementWorld, elementPosition.relative(Direction.WEST)));
+                newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition));
+                newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition.relative(Direction.NORTH)));
+                newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition.relative(Direction.EAST)));
+                newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition.relative(Direction.SOUTH)));
+                newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition.relative(Direction.WEST)));
             }
         }
 
         // Do not track the chunk the controller itself is in -- this is unneeded because
         // we expect the controller to be disposed if its chunk is unloaded.
-        newTrackedChunks.remove(new TrackedChunk(world, tileEntity.getBlockPos()));
+        newTrackedChunks.remove(new TrackedChunk(level, blockEntity.getBlockPos()));
 
         final HashSet<TrackedChunk> removedChunks = new HashSet<>(trackedChunks);
         removedChunks.removeAll(newTrackedChunks);
@@ -82,28 +81,30 @@ public final class TileEntityDeviceBusController extends CommonDeviceBusControll
 
     private void addListeners(final Collection<TrackedChunk> trackedChunks) {
         for (final TrackedChunk trackedChunk : trackedChunks) {
-            final LevelAccessor world = trackedChunk.world.get();
-            ServerScheduler.scheduleOnLoad(world, trackedChunk.position, onBusChunkLoadedStateChanged);
-            ServerScheduler.scheduleOnUnload(world, trackedChunk.position, onBusChunkLoadedStateChanged);
+            final LevelAccessor level = trackedChunk.level.get();
+            if (level != null) {
+                ServerScheduler.scheduleOnLoad(level, trackedChunk.position, onBusChunkLoadedStateChanged);
+                ServerScheduler.scheduleOnUnload(level, trackedChunk.position, onBusChunkLoadedStateChanged);
+            }
         }
     }
 
     private void removeListeners(final Collection<TrackedChunk> trackedChunks) {
         for (final TrackedChunk trackedChunk : trackedChunks) {
-            final LevelAccessor world = trackedChunk.world.get();
-            if (world != null) {
-                ServerScheduler.cancelOnLoad(world, trackedChunk.position, onBusChunkLoadedStateChanged);
-                ServerScheduler.cancelOnUnload(world, trackedChunk.position, onBusChunkLoadedStateChanged);
+            final LevelAccessor level = trackedChunk.level.get();
+            if (level != null) {
+                ServerScheduler.cancelOnLoad(level, trackedChunk.position, onBusChunkLoadedStateChanged);
+                ServerScheduler.cancelOnUnload(level, trackedChunk.position, onBusChunkLoadedStateChanged);
             }
         }
     }
 
     private static final class TrackedChunk {
-        public final WeakReference<LevelAccessor> world;
+        public final WeakReference<LevelAccessor> level;
         public final ChunkPos position;
 
-        private TrackedChunk(final LevelAccessor world, final BlockPos position) {
-            this.world = new WeakReference<>(world);
+        private TrackedChunk(final LevelAccessor level, final BlockPos position) {
+            this.level = new WeakReference<>(level);
             this.position = new ChunkPos(position);
         }
 
@@ -112,12 +113,12 @@ public final class TileEntityDeviceBusController extends CommonDeviceBusControll
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             final TrackedChunk that = (TrackedChunk) o;
-            return world.equals(that.world) && position.equals(that.position);
+            return level.equals(that.level) && position.equals(that.position);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(world, position);
+            return Objects.hash(level, position);
         }
     }
 }

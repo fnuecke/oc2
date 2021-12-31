@@ -19,26 +19,4 @@ import li.cil.oc2.api.bus.device.vm.context.VMContext;
  * <p>
  * <em>This is invoked from the worker thread running the VM.</em>
  */
-public final class VMInitializingEvent {
-    private final long programStartAddress;
-
-    ///////////////////////////////////////////////////////////////
-
-    public VMInitializingEvent(final long programStartAddress) {
-        this.programStartAddress = programStartAddress;
-    }
-
-    ///////////////////////////////////////////////////////////////
-
-    /**
-     * The address where code execution will begin.
-     * <p>
-     * Some VM implementations may perform some early setup before jumping to this
-     * memory address.
-     *
-     * @return the memory address where code execution begins.
-     */
-    public long getProgramStartAddress() {
-        return programStartAddress;
-    }
-}
+public record VMInitializingEvent(long programStartAddress) { }

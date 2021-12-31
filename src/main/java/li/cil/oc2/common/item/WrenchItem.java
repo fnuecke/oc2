@@ -37,28 +37,32 @@ public final class WrenchItem extends ModItem {
     @Override
     public InteractionResult useOn(final UseOnContext context) {
         final Player player = context.getPlayer();
+        if (player == null) {
+            return InteractionResult.PASS;
+        }
+
         if (!player.isShiftKeyDown()) {
             return super.useOn(context);
         }
 
-        final Level world = context.getLevel();
+        final Level level = context.getLevel();
         final BlockPos pos = context.getClickedPos();
-        final BlockState state = world.getBlockState(pos);
+        final BlockState state = level.getBlockState(pos);
         if (!state.is(BlockTags.WRENCH_BREAKABLE)) {
             return super.useOn(context);
         }
 
-        if (world.isClientSide()) {
+        if (level.isClientSide()) {
             Minecraft.getInstance().gameMode.destroyBlock(pos);
         } else if (player instanceof ServerPlayer) {
             ((ServerPlayer) player).gameMode.destroyBlock(pos);
         }
 
-        return InteractionResult.sidedSuccess(world.isClientSide());
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     @Override
-    public boolean doesSneakBypassUse(final ItemStack stack, final LevelReader world, final BlockPos pos, final Player player) {
+    public boolean doesSneakBypassUse(final ItemStack stack, final LevelReader level, final BlockPos pos, final Player player) {
         return true;
     }
 }

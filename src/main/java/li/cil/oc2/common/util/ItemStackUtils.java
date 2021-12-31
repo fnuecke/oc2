@@ -32,6 +32,7 @@ public final class ItemStackUtils {
         }
 
         final Block block = Block.byItem(stack.getItem());
+        //noinspection ConstantConditions Block.byItem can return null.
         if (block == null || block == net.minecraft.world.level.block.Blocks.AIR) {
             return null;
         }
@@ -39,16 +40,16 @@ public final class ItemStackUtils {
         return block.defaultBlockState();
     }
 
-    public static Optional<ItemEntity> spawnAsEntity(final Level world, final BlockPos pos, final ItemStack stack) {
-        return spawnAsEntity(world, Vec3.atCenterOf(pos), stack);
+    public static Optional<ItemEntity> spawnAsEntity(final Level level, final BlockPos pos, final ItemStack stack) {
+        return spawnAsEntity(level, Vec3.atCenterOf(pos), stack);
     }
 
-    public static Optional<ItemEntity> spawnAsEntity(final Level world, final Vec3 pos, final ItemStack stack) {
-        if (world.isClientSide() || stack.isEmpty()) {
+    public static Optional<ItemEntity> spawnAsEntity(final Level level, final Vec3 pos, final ItemStack stack) {
+        if (level.isClientSide() || stack.isEmpty()) {
             return Optional.empty();
         }
 
-        final Random rng = world.random;
+        final Random rng = level.random;
 
         final float tx = 0.5f * (rng.nextFloat() - 1.0f);
         final float ty = 0.5f * (rng.nextFloat() - 1.0f);
@@ -57,27 +58,27 @@ public final class ItemStackUtils {
         final double py = pos.y + ty;
         final double pz = pos.z + tz;
 
-        final ItemEntity entity = new ItemEntity(world, px, py, pz, stack);
+        final ItemEntity entity = new ItemEntity(level, px, py, pz, stack);
         entity.setDefaultPickUpDelay();
-        world.addFreshEntity(entity);
+        level.addFreshEntity(entity);
 
         return Optional.of(entity);
     }
 
-    public static Optional<ItemEntity> spawnAsEntity(final Level world, final BlockPos pos, final ItemStack stack, @Nullable final Direction direction) {
-        return spawnAsEntity(world, Vec3.atCenterOf(pos), stack, direction);
+    public static Optional<ItemEntity> spawnAsEntity(final Level level, final BlockPos pos, final ItemStack stack, @Nullable final Direction direction) {
+        return spawnAsEntity(level, Vec3.atCenterOf(pos), stack, direction);
     }
 
-    public static Optional<ItemEntity> spawnAsEntity(final Level world, final Vec3 pos, final ItemStack stack, @Nullable final Direction direction) {
+    public static Optional<ItemEntity> spawnAsEntity(final Level level, final Vec3 pos, final ItemStack stack, @Nullable final Direction direction) {
         if (direction == null) {
-            return spawnAsEntity(world, pos, stack);
+            return spawnAsEntity(level, pos, stack);
         }
 
-        if (world.isClientSide || stack.isEmpty()) {
+        if (level.isClientSide || stack.isEmpty()) {
             return Optional.empty();
         }
 
-        final Random rng = world.random;
+        final Random rng = level.random;
 
         final float ox = direction.getStepX();
         final float oy = direction.getStepY();
@@ -89,7 +90,7 @@ public final class ItemStackUtils {
         final double py = pos.y + ty;
         final double pz = pos.z + tz;
 
-        final ItemEntity entity = new ItemEntity(world, px, py, pz, stack);
+        final ItemEntity entity = new ItemEntity(level, px, py, pz, stack);
 
         entity.setDeltaMovement(
                 0.0125 * (rng.nextDouble() - 0.5) + ox * 0.03,
@@ -98,7 +99,7 @@ public final class ItemStackUtils {
         );
 
         entity.setDefaultPickUpDelay();
-        world.addFreshEntity(entity);
+        level.addFreshEntity(entity);
 
         return Optional.of(entity);
     }

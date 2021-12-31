@@ -2,6 +2,7 @@ package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -35,6 +36,9 @@ public final class ClientCanceledImportFileMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final Supplier<NetworkEvent.Context> context) {
-        FileImportExportCardItemDevice.cancelImport(context.get().getSender(), id);
+        final ServerPlayer player = context.get().getSender();
+        if (player != null) {
+            FileImportExportCardItemDevice.cancelImport(player, id);
+        }
     }
 }

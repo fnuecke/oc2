@@ -2,7 +2,7 @@ package li.cil.oc2.common.container;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.vm.VMItemStackHandlers;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
@@ -19,7 +19,7 @@ import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.network.NetworkHooks;
 
 public final class ComputerInventoryContainer extends AbstractComputerContainer {
-    public static void createServer(final ComputerTileEntity computer, final IEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
+    public static void createServer(final ComputerBlockEntity computer, final IEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
         NetworkHooks.openGui(player, new MenuProvider() {
             @Override
             public Component getDisplayName() {
@@ -35,16 +35,16 @@ public final class ComputerInventoryContainer extends AbstractComputerContainer 
 
     public static ComputerInventoryContainer createClient(final int id, final Inventory playerInventory, final FriendlyByteBuf data) {
         final BlockPos pos = data.readBlockPos();
-        final BlockEntity tileEntity = playerInventory.player.level.getBlockEntity(pos);
-        if (!(tileEntity instanceof ComputerTileEntity)) {
+        final BlockEntity blockEntity = playerInventory.player.level.getBlockEntity(pos);
+        if (!(blockEntity instanceof ComputerBlockEntity computer)) {
             throw new IllegalArgumentException();
         }
-        return new ComputerInventoryContainer(id, (ComputerTileEntity) tileEntity, playerInventory.player, createEnergyInfo());
+        return new ComputerInventoryContainer(id, computer, playerInventory.player, createEnergyInfo());
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private ComputerInventoryContainer(final int id, final ComputerTileEntity computer, final Player player, final ContainerData energyInfo) {
+    private ComputerInventoryContainer(final int id, final ComputerBlockEntity computer, final Player player, final ContainerData energyInfo) {
         super(Containers.COMPUTER.get(), id, player, computer, energyInfo);
 
         final VMItemStackHandlers handlers = computer.getItemStackHandlers();

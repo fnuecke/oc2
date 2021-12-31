@@ -1,6 +1,6 @@
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package li.cil.oc2.common.tileentity;
+package li.cil.oc2.common.blockentity;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 

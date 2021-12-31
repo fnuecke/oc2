@@ -1,4 +1,4 @@
-package li.cil.oc2.client.renderer.tileentity;
+package li.cil.oc2.client.renderer.blockentity;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -9,7 +9,7 @@ import com.mojang.math.Vector3f;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -27,7 +27,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
-public final class ComputerTileEntityRenderer implements BlockEntityRenderer<ComputerTileEntity> {
+public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlockEntity> {
     public static final ResourceLocation OVERLAY_POWER_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_power");
     public static final ResourceLocation OVERLAY_STATUS_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_status");
     public static final ResourceLocation OVERLAY_TERMINAL_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_terminal");
@@ -42,88 +42,88 @@ public final class ComputerTileEntityRenderer implements BlockEntityRenderer<Com
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerTileEntityRenderer(final BlockEntityRendererProvider.Context context) {
+    public ComputerRenderer(final BlockEntityRendererProvider.Context context) {
         this.renderer = context.getBlockEntityRenderDispatcher();
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void render(final ComputerTileEntity tileEntity, final float partialTicks, final PoseStack matrixStack, final MultiBufferSource buffer, final int light, final int overlay) {
-        final Direction blockFacing = tileEntity.getBlockState().getValue(ComputerBlock.FACING);
+    public void render(final ComputerBlockEntity computer, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
+        final Direction blockFacing = computer.getBlockState().getValue(ComputerBlock.FACING);
         final Vec3 cameraPosition = renderer.camera.getEntity().getEyePosition(partialTicks);
 
-        // If viewer is not in front of the block we can skip all of the rest, it cannot be visible.
+        // If viewer is not in front of the block we can skip the rest, it cannot be visible.
         // We check against the center of the block instead of the actual relevant face for simplicity.
-        final Vec3 relativeCameraPosition = cameraPosition.subtract(Vec3.atCenterOf(tileEntity.getBlockPos()));
+        final Vec3 relativeCameraPosition = cameraPosition.subtract(Vec3.atCenterOf(computer.getBlockPos()));
         final double projectedCameraPosition = relativeCameraPosition.dot(Vec3.atLowerCornerOf(blockFacing.getNormal()));
         if (projectedCameraPosition <= 0) {
             return;
         }
 
-        matrixStack.pushPose();
+        stack.pushPose();
 
         // Align with front face of block.
         final Quaternion rotation = new Quaternion(Vector3f.YN, blockFacing.toYRot() + 180, true);
-        matrixStack.translate(0.5f, 0, 0.5f);
-        matrixStack.mulPose(rotation);
-        matrixStack.translate(-0.5f, 0, -0.5f);
+        stack.translate(0.5f, 0, 0.5f);
+        stack.mulPose(rotation);
+        stack.translate(-0.5f, 0, -0.5f);
 
         // Flip and align with top left corner.
-        matrixStack.translate(1, 1, 0);
-        matrixStack.scale(-1, -1, -1);
+        stack.translate(1, 1, 0);
+        stack.scale(-1, -1, -1);
 
         // Scale to make 1/16th of the block one unit and align with top left of terminal area.
         final float pixelScale = 1 / 16f;
-        matrixStack.scale(pixelScale, pixelScale, pixelScale);
+        stack.scale(pixelScale, pixelScale, pixelScale);
 
-        if (tileEntity.getVirtualMachine().isRunning()) {
-            renderTerminal(tileEntity, matrixStack, buffer, cameraPosition);
+        if (computer.getVirtualMachine().isRunning()) {
+            renderTerminal(computer, stack, bufferSource, cameraPosition);
         } else {
-            renderStatusText(tileEntity, matrixStack, cameraPosition);
+            renderStatusText(computer, stack, cameraPosition);
         }
 
-        matrixStack.translate(0, 0, -0.1f);
-        final Matrix4f matrix = matrixStack.last().pose();
+        stack.translate(0, 0, -0.1f);
+        final Matrix4f matrix = stack.last().pose();
 
-        switch (tileEntity.getVirtualMachine().getBusState()) {
+        switch (computer.getVirtualMachine().getBusState()) {
             case SCAN_PENDING:
             case INCOMPLETE:
-                renderStatus(matrix, buffer);
+                renderStatus(matrix, bufferSource);
                 break;
             case TOO_COMPLEX:
-                renderStatus(matrix, buffer, 1000);
+                renderStatus(matrix, bufferSource, 1000);
                 break;
             case MULTIPLE_CONTROLLERS:
-                renderStatus(matrix, buffer, 250);
+                renderStatus(matrix, bufferSource, 250);
                 break;
             case READY:
-                switch (tileEntity.getVirtualMachine().getRunState()) {
+                switch (computer.getVirtualMachine().getRunState()) {
                     case STOPPED:
                         break;
                     case LOADING_DEVICES:
-                        renderStatus(matrix, buffer);
+                        renderStatus(matrix, bufferSource);
                         break;
                     case RUNNING:
-                        renderPower(matrix, buffer);
+                        renderPower(matrix, bufferSource);
                         break;
                 }
                 break;
         }
 
-        matrixStack.popPose();
+        stack.popPose();
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private void renderTerminal(final ComputerTileEntity tileEntity, final PoseStack stack, final MultiBufferSource buffer, final Vec3 cameraPosition) {
+    private void renderTerminal(final ComputerBlockEntity computer, final PoseStack stack, final MultiBufferSource bufferSource, final Vec3 cameraPosition) {
         // Render terminal content if close enough.
-        if (Vec3.atCenterOf(tileEntity.getBlockPos()).closerThan(cameraPosition, 6f)) {
+        if (Vec3.atCenterOf(computer.getBlockPos()).closerThan(cameraPosition, 6f)) {
             stack.pushPose();
             stack.translate(2, 2, -0.9f);
 
             // Scale to make terminal fit fully.
-            final Terminal terminal = tileEntity.getTerminal();
+            final Terminal terminal = computer.getTerminal();
             final float textScaleX = 12f / terminal.getWidth();
             final float textScaleY = 7f / terminal.getHeight();
             final float scale = Math.min(textScaleX, textScaleY) * 0.95f;
@@ -150,18 +150,18 @@ public final class ComputerTileEntityRenderer implements BlockEntityRenderer<Com
             stack.translate(0, 0, -0.9f);
 
             final Matrix4f matrix = stack.last().pose();
-            renderQuad(matrix, TEXTURE_TERMINAL.buffer(buffer, ModRenderType::getUnlitBlock));
+            renderQuad(matrix, TEXTURE_TERMINAL.buffer(bufferSource, ModRenderType::getUnlitBlock));
 
             stack.popPose();
         }
     }
 
-    private void renderStatusText(final ComputerTileEntity tileEntity, final PoseStack stack, final Vec3 cameraPosition) {
-        if (!Vec3.atCenterOf(tileEntity.getBlockPos()).closerThan(cameraPosition, 12f)) {
+    private void renderStatusText(final ComputerBlockEntity computer, final PoseStack stack, final Vec3 cameraPosition) {
+        if (!Vec3.atCenterOf(computer.getBlockPos()).closerThan(cameraPosition, 12f)) {
             return;
         }
 
-        final Component bootError = tileEntity.getVirtualMachine().getBootError();
+        final Component bootError = computer.getVirtualMachine().getBootError();
         if (bootError == null) {
             return;
         }
@@ -194,39 +194,39 @@ public final class ComputerTileEntityRenderer implements BlockEntityRenderer<Com
         stack.popPose();
     }
 
-    private void renderStatus(final Matrix4f matrix, final MultiBufferSource buffer) {
-        renderStatus(matrix, buffer, 0);
+    private void renderStatus(final Matrix4f matrix, final MultiBufferSource bufferSource) {
+        renderStatus(matrix, bufferSource, 0);
     }
 
-    private void renderStatus(final Matrix4f matrix, final MultiBufferSource buffer, final int frequency) {
+    private void renderStatus(final Matrix4f matrix, final MultiBufferSource bufferSource, final int frequency) {
         if (frequency <= 0 || (((System.currentTimeMillis() + hashCode()) / frequency) % 2) == 1) {
-            renderQuad(matrix, TEXTURE_STATUS.buffer(buffer, ModRenderType::getUnlitBlock));
+            renderQuad(matrix, TEXTURE_STATUS.buffer(bufferSource, ModRenderType::getUnlitBlock));
         }
     }
 
-    private void renderPower(final Matrix4f matrix, final MultiBufferSource buffer) {
-        renderQuad(matrix, TEXTURE_POWER.buffer(buffer, ModRenderType::getUnlitBlock));
+    private void renderPower(final Matrix4f matrix, final MultiBufferSource bufferSource) {
+        renderQuad(matrix, TEXTURE_POWER.buffer(bufferSource, ModRenderType::getUnlitBlock));
     }
 
-    private static void renderQuad(final Matrix4f matrix, final VertexConsumer builder) {
+    private static void renderQuad(final Matrix4f matrix, final VertexConsumer consumer) {
         // NB: We may get a SpriteAwareVertexBuilder here. Sadly, its chaining is broken,
         //     because methods may return the underlying vertex builder, so e.g. calling
         //     buffer.pos(...).tex(...) will not actually call SpriteAwareVertexBuilder.tex(...)
         //     but SpriteAwareVertexBuilder.vertexBuilder.tex(...), skipping the UV remapping.
-        builder.vertex(matrix, 0, 0, 0);
-        builder.uv(0, 0);
-        builder.endVertex();
+        consumer.vertex(matrix, 0, 0, 0);
+        consumer.uv(0, 0);
+        consumer.endVertex();
 
-        builder.vertex(matrix, 0, 16, 0);
-        builder.uv(0, 1);
-        builder.endVertex();
+        consumer.vertex(matrix, 0, 16, 0);
+        consumer.uv(0, 1);
+        consumer.endVertex();
 
-        builder.vertex(matrix, 16, 16, 0);
-        builder.uv(1, 1);
-        builder.endVertex();
+        consumer.vertex(matrix, 16, 16, 0);
+        consumer.uv(1, 1);
+        consumer.endVertex();
 
-        builder.vertex(matrix, 16, 0, 0);
-        builder.uv(1, 0);
-        builder.endVertex();
+        consumer.vertex(matrix, 16, 0, 0);
+        consumer.uv(1, 0);
+        consumer.endVertex();
     }
 }

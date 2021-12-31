@@ -1,15 +1,15 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.nio.ByteBuffer;
 
 public final class ComputerTerminalInputMessage extends AbstractTerminalBlockMessage {
-    public ComputerTerminalInputMessage(final ComputerTileEntity tileEntity, final ByteBuffer data) {
-        super(tileEntity, data);
+    public ComputerTerminalInputMessage(final ComputerBlockEntity computer, final ByteBuffer data) {
+        super(computer, data);
     }
 
     public ComputerTerminalInputMessage(final FriendlyByteBuf buffer) {
@@ -20,7 +20,7 @@ public final class ComputerTerminalInputMessage extends AbstractTerminalBlockMes
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withNearbyServerTileEntityAt(context, pos, ComputerTileEntity.class,
-                (tileEntity) -> tileEntity.getTerminal().putInput(ByteBuffer.wrap(data)));
+        MessageUtils.withNearbyServerBlockEntityAt(context, pos, ComputerBlockEntity.class,
+            computer -> computer.getTerminal().putInput(ByteBuffer.wrap(data)));
     }
 }

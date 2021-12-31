@@ -10,7 +10,7 @@ import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.ServerScheduler;
-import li.cil.oc2.common.util.WorldUtils;
+import li.cil.oc2.common.util.LevelUtils;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
@@ -27,32 +27,33 @@ import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
-public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusElement implements BlockDeviceBusElement {
-    private final BlockEntity tileEntity;
+public class BlockEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusElement implements BlockDeviceBusElement {
+    private final BlockEntity blockEntity;
 
     ///////////////////////////////////////////////////////////////////
 
-    public TileEntityDeviceBusElement(final BlockEntity tileEntity) {
+    public BlockEntityDeviceBusElement(final BlockEntity blockEntity) {
         super(Constants.BLOCK_FACE_COUNT);
-        this.tileEntity = tileEntity;
+        this.blockEntity = blockEntity;
     }
 
     ///////////////////////////////////////////////////////////////////
 
+    @Nullable
     @Override
     public LevelAccessor getLevel() {
-        return tileEntity.getLevel();
+        return blockEntity.getLevel();
     }
 
     @Override
     public BlockPos getPosition() {
-        return tileEntity.getBlockPos();
+        return blockEntity.getBlockPos();
     }
 
     @Override
     public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
-        final Level world = tileEntity.getLevel();
-        if (world == null || world.isClientSide()) {
+        final Level level = blockEntity.getLevel();
+        if (level == null || level.isClientSide()) {
             return Optional.empty();
         }
 
@@ -62,19 +63,19 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
                 continue;
             }
 
-            final BlockPos neighborPos = tileEntity.getBlockPos().relative(neighborDirection);
+            final BlockPos neighborPos = blockEntity.getBlockPos().relative(neighborDirection);
 
             final ChunkPos chunkPos = new ChunkPos(neighborPos);
-            if (!world.hasChunk(chunkPos.x, chunkPos.z)) {
+            if (!level.hasChunk(chunkPos.x, chunkPos.z)) {
                 return Optional.empty();
             }
 
-            final BlockEntity tileEntity = world.getBlockEntity(neighborPos);
-            if (tileEntity == null) {
+            final BlockEntity blockEntity = level.getBlockEntity(neighborPos);
+            if (blockEntity == null) {
                 continue;
             }
 
-            final LazyOptional<DeviceBusElement> capability = tileEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT, neighborDirection.getOpposite());
+            final LazyOptional<DeviceBusElement> capability = blockEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT, neighborDirection.getOpposite());
             if (capability.isPresent()) {
                 neighbors.add(capability);
             }
@@ -84,27 +85,27 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
     }
 
     public void handleNeighborChanged(final BlockPos pos) {
-        final Level world = tileEntity.getLevel();
-        if (world == null || world.isClientSide()) {
+        final Level level = blockEntity.getLevel();
+        if (level == null || level.isClientSide()) {
             return;
         }
 
-        final BlockPos toPos = pos.subtract(tileEntity.getBlockPos());
+        final BlockPos toPos = pos.subtract(blockEntity.getBlockPos());
         final Direction direction = Direction.fromNormal(toPos.getX(), toPos.getY(), toPos.getZ());
         if (direction == null) {
             return;
         }
 
-        final HashSet<BlockDeviceInfo> newDevices = collectDevices(world, pos, direction);
+        final HashSet<BlockDeviceInfo> newDevices = collectDevices(level, pos, direction);
 
         final int index = direction.get3DDataValue();
         setDevicesForGroup(index, newDevices);
     }
 
     public void initialize() {
-        final Level world = requireNonNull(tileEntity.getLevel());
-        ServerScheduler.schedule(world, () -> {
-            if (tileEntity.isRemoved()) {
+        final Level level = requireNonNull(blockEntity.getLevel());
+        ServerScheduler.schedule(level, () -> {
+            if (blockEntity.isRemoved()) {
                 return;
             }
 
@@ -123,23 +124,23 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
         return canScanContinueTowards(direction);
     }
 
-    protected HashSet<BlockDeviceInfo> collectDevices(final Level world, final BlockPos pos, @Nullable final Direction direction) {
+    protected HashSet<BlockDeviceInfo> collectDevices(final Level level, final BlockPos pos, @Nullable final Direction direction) {
         final HashSet<BlockDeviceInfo> newDevices = new HashSet<>();
         if (canDetectDevicesTowards(direction)) {
-            final BlockDeviceQuery query = Devices.makeQuery(world, pos, direction);
+            final BlockDeviceQuery query = Devices.makeQuery(level, pos, direction);
             for (final LazyOptional<BlockDeviceInfo> deviceInfo : Devices.getDevices(query)) {
                 deviceInfo.ifPresent(newDevices::add);
                 deviceInfo.addListener(unused -> handleNeighborChanged(pos));
             }
         }
 
-        collectSyntheticDevices(world, pos, direction, newDevices);
+        collectSyntheticDevices(level, pos, direction, newDevices);
 
         return newDevices;
     }
 
-    protected void collectSyntheticDevices(final Level world, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockDeviceInfo> devices) {
-        final String blockName = WorldUtils.getBlockName(world, pos);
+    protected void collectSyntheticDevices(final Level level, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockDeviceInfo> devices) {
+        final String blockName = LevelUtils.getBlockName(level, pos);
         if (blockName != null) {
             devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(blockName)));
         }
@@ -149,21 +150,21 @@ public class TileEntityDeviceBusElement extends AbstractGroupingBlockDeviceBusEl
 
     private void scanNeighborsForDevices() {
         for (final Direction direction : Constants.DIRECTIONS) {
-            handleNeighborChanged(tileEntity.getBlockPos().relative(direction));
+            handleNeighborChanged(blockEntity.getBlockPos().relative(direction));
         }
     }
 
     private void scheduleBusScanInAdjacentBusElements() {
-        final Level world = requireNonNull(tileEntity.getLevel());
-        final BlockPos pos = tileEntity.getBlockPos();
+        final Level level = requireNonNull(blockEntity.getLevel());
+        final BlockPos pos = blockEntity.getBlockPos();
         for (final Direction direction : Constants.DIRECTIONS) {
             final BlockPos neighborPos = pos.relative(direction);
-            final BlockEntity tileEntity = WorldUtils.getBlockEntityIfChunkExists(world, neighborPos);
-            if (tileEntity == null) {
+            final BlockEntity blockEntity = LevelUtils.getBlockEntityIfChunkExists(level, neighborPos);
+            if (blockEntity == null) {
                 continue;
             }
 
-            final LazyOptional<DeviceBusElement> capability = tileEntity
+            final LazyOptional<DeviceBusElement> capability = blockEntity
                     .getCapability(Capabilities.DEVICE_BUS_ELEMENT, direction.getOpposite());
             capability.ifPresent(DeviceBus::scheduleScan);
         }

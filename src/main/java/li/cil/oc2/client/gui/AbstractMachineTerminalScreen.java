@@ -44,24 +44,24 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     }
 
     @Override
-    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground(matrixStack);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
-        terminalWidget.render(matrixStack, mouseX, mouseY, menu.getVirtualMachine().getBootError());
+    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
+        renderBackground(stack);
+        super.render(stack, mouseX, mouseY, partialTicks);
+        terminalWidget.render(stack, mouseX, mouseY, menu.getVirtualMachine().getBootError());
 
         final int energyCapacity = menu.getEnergyCapacity();
         if (energyCapacity > 0) {
             final int energyStored = menu.getEnergy();
             final int energyConsumption = menu.getEnergyConsumption();
 
-            Sprites.ENERGY_BAR.drawFillY(matrixStack, leftPos - Sprites.SIDEBAR_2.width + 4, topPos + ENERGY_TOP + 4, energyStored / (float) energyCapacity);
+            Sprites.ENERGY_BAR.drawFillY(stack, leftPos - Sprites.SIDEBAR_2.width + 4, topPos + ENERGY_TOP + 4, energyStored / (float) energyCapacity);
 
             if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
                 final List<? extends FormattedText> tooltip = asList(
                         new TranslatableComponent(Constants.TOOLTIP_ENERGY, withColor(energyStored + "/" + energyCapacity, ChatFormatting.GREEN)),
                         new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(String.valueOf(energyConsumption), ChatFormatting.GREEN))
                 );
-                TooltipUtils.drawTooltip(matrixStack, tooltip, mouseX, mouseY, 200);
+                TooltipUtils.drawTooltip(stack, tooltip, mouseX, mouseY, 200);
             }
         }
     }
@@ -88,7 +88,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         // Don't close with inventory binding since we usually want to use that as terminal input
         // even without input capture enabled.
         final InputConstants.Key input = InputConstants.getKey(keyCode, scanCode);
-        if (minecraft.options.keyInventory.isActiveAndMatches(input)) {
+        if (getMinecraft().options.keyInventory.isActiveAndMatches(input)) {
             return true;
         }
 
@@ -166,24 +166,24 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void renderBg(final PoseStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
+    protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1, 1, 1, 1);
 
-        Sprites.SIDEBAR_3.draw(matrixStack, leftPos - Sprites.SIDEBAR_2.width, topPos + CONTROLS_TOP);
+        Sprites.SIDEBAR_3.draw(stack, leftPos - Sprites.SIDEBAR_2.width, topPos + CONTROLS_TOP);
 
         if (menu.getEnergyCapacity() > 0) {
             final int x = leftPos - Sprites.SIDEBAR_2.width;
             final int y = topPos + ENERGY_TOP;
-            Sprites.SIDEBAR_2.draw(matrixStack, x, y);
-            Sprites.ENERGY_BASE.draw(matrixStack, x + 4, y + 4);
+            Sprites.SIDEBAR_2.draw(stack, x, y);
+            Sprites.ENERGY_BASE.draw(stack, x + 4, y + 4);
         }
 
-        terminalWidget.renderBackground(matrixStack, mouseX, mouseY);
+        terminalWidget.renderBackground(stack, mouseX, mouseY);
     }
 
     @Override
-    protected void renderLabels(final PoseStack matrixStack, final int mouseX, final int mouseY) {
+    protected void renderLabels(final PoseStack stack, final int mouseX, final int mouseY) {
         // This is required to prevent the labels from being rendered
     }
 }

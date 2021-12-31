@@ -8,27 +8,27 @@ import net.minecraft.sounds.SoundEvent;
 import java.util.WeakHashMap;
 
 public final class LoopingSoundManager {
-    private static final WeakHashMap<BlockEntity, TickableSoundInstance> TILE_ENTITY_SOUNDS = new WeakHashMap<>();
+    private static final WeakHashMap<BlockEntity, TickableSoundInstance> BLOCK_ENTITY_SOUNDS = new WeakHashMap<>();
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void play(final BlockEntity tileEntity, final SoundEvent sound, final int delay) {
-        stop(tileEntity);
+    public static void play(final BlockEntity blockEntity, final SoundEvent sound, final int delay) {
+        stop(blockEntity);
 
-        final LoopingTileEntitySound instance = new LoopingTileEntitySound(tileEntity, sound);
-        TILE_ENTITY_SOUNDS.put(tileEntity, instance);
+        final LoopingBlockEntitySound instance = new LoopingBlockEntitySound(blockEntity, sound);
+        BLOCK_ENTITY_SOUNDS.put(blockEntity, instance);
         Minecraft.getInstance().getSoundManager().playDelayed(instance, delay);
     }
 
-    public static void stop(final BlockEntity tileEntity) {
-        final TickableSoundInstance instance = TILE_ENTITY_SOUNDS.remove(tileEntity);
+    public static void stop(final BlockEntity blockEntity) {
+        final TickableSoundInstance instance = BLOCK_ENTITY_SOUNDS.remove(blockEntity);
         if (instance != null) {
             Minecraft.getInstance().getSoundManager().stop(instance);
         }
     }
 
-    public static boolean isPlaying(final BlockEntity tileEntity) {
-        final TickableSoundInstance instance = TILE_ENTITY_SOUNDS.get(tileEntity);
+    public static boolean isPlaying(final BlockEntity blockEntity) {
+        final TickableSoundInstance instance = BLOCK_ENTITY_SOUNDS.get(blockEntity);
         return instance != null && !instance.isStopped();
     }
 }

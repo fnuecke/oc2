@@ -118,8 +118,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
         final HashMap<UUID, ArrayList<RPCDevice>> devicesByIdentifier = new HashMap<>();
         for (final Device device : controller.getDevices()) {
-            if (device instanceof RPCDevice) {
-                final RPCDevice rpcDevice = (RPCDevice) device;
+            if (device instanceof final RPCDevice rpcDevice) {
                 final Set<UUID> identifiers = controller.getDeviceIdentifiers(device);
                 for (final UUID identifier : identifiers) {
                     devicesByIdentifier
@@ -247,30 +246,22 @@ public final class RPCDeviceBusAdapter implements Steppable {
         try {
             final Message message = gson.fromJson(stream, Message.class);
             switch (message.type) {
-                case Message.MESSAGE_TYPE_LIST: {
-                    writeDeviceList();
-                    break;
-                }
-                case Message.MESSAGE_TYPE_METHODS: {
+                case Message.MESSAGE_TYPE_LIST -> writeDeviceList();
+                case Message.MESSAGE_TYPE_METHODS -> {
                     if (message.data != null) {
                         writeDeviceMethods((UUID) message.data);
                     } else {
                         writeError("missing device id");
                     }
-                    break;
                 }
-                case Message.MESSAGE_TYPE_INVOKE_METHOD: {
+                case Message.MESSAGE_TYPE_INVOKE_METHOD -> {
                     if (message.data != null) {
                         processMethodInvocation((MethodInvocation) message.data, false);
                     } else {
                         writeError("missing invocation data");
                     }
-                    break;
                 }
-                default: {
-                    writeError(ERROR_UNKNOWN_MESSAGE_TYPE);
-                    break;
-                }
+                default -> writeError(ERROR_UNKNOWN_MESSAGE_TYPE);
             }
         } catch (final Throwable e) {
             writeError(e.getMessage());

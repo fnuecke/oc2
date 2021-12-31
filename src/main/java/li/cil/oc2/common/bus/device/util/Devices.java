@@ -23,22 +23,22 @@ import java.util.*;
 import static java.util.Objects.requireNonNull;
 
 public final class Devices {
-    public static BlockDeviceQuery makeQuery(final BlockEntity tileEntity, @Nullable final Direction side) {
-        final Level world = requireNonNull(tileEntity.getLevel());
-        final BlockPos pos = tileEntity.getBlockPos();
-        return new BlockQuery(world, pos, side);
+    public static BlockDeviceQuery makeQuery(final BlockEntity blockEntity, @Nullable final Direction side) {
+        final Level level = requireNonNull(blockEntity.getLevel());
+        final BlockPos pos = blockEntity.getBlockPos();
+        return new BlockQuery(level, pos, side);
     }
 
-    public static BlockDeviceQuery makeQuery(final Level world, final BlockPos pos, @Nullable final Direction side) {
-        return new BlockQuery(world, pos, side);
+    public static BlockDeviceQuery makeQuery(final Level level, final BlockPos pos, @Nullable final Direction side) {
+        return new BlockQuery(level, pos, side);
     }
 
     public static ItemDeviceQuery makeQuery(final ItemStack stack) {
         return new ItemQuery(stack);
     }
 
-    public static ItemDeviceQuery makeQuery(final BlockEntity tileEntity, final ItemStack stack) {
-        return new ItemQuery(tileEntity, stack);
+    public static ItemDeviceQuery makeQuery(final BlockEntity blockEntity, final ItemStack stack) {
+        return new ItemQuery(blockEntity, stack);
     }
 
     public static ItemDeviceQuery makeQuery(final Entity entity, final ItemStack stack) {
@@ -95,19 +95,19 @@ public final class Devices {
     ///////////////////////////////////////////////////////////////////
 
     private static class BlockQuery implements BlockDeviceQuery {
-        private final Level world;
+        private final Level level;
         private final BlockPos pos;
         @Nullable private final Direction side;
 
-        public BlockQuery(final Level world, final BlockPos pos, @Nullable final Direction side) {
-            this.world = world;
+        public BlockQuery(final Level level, final BlockPos pos, @Nullable final Direction side) {
+            this.level = level;
             this.pos = pos;
             this.side = side;
         }
 
         @Override
         public Level getLevel() {
-            return world;
+            return level;
         }
 
         @Override
@@ -123,31 +123,31 @@ public final class Devices {
     }
 
     private static final class ItemQuery implements ItemDeviceQuery {
-        @Nullable private final BlockEntity tileEntity;
+        @Nullable private final BlockEntity blockEntity;
         @Nullable private final Entity entity;
         private final ItemStack stack;
 
         public ItemQuery(final ItemStack stack) {
-            tileEntity = null;
+            blockEntity = null;
             entity = null;
             this.stack = stack;
         }
 
-        public ItemQuery(final BlockEntity tileEntity, final ItemStack stack) {
-            this.tileEntity = tileEntity;
+        public ItemQuery(final BlockEntity blockEntity, final ItemStack stack) {
+            this.blockEntity = blockEntity;
             entity = null;
             this.stack = stack;
         }
 
         public ItemQuery(final Entity entity, final ItemStack stack) {
-            tileEntity = null;
+            blockEntity = null;
             this.entity = entity;
             this.stack = stack;
         }
 
         @Override
-        public Optional<BlockEntity> getContainerTileEntity() {
-            return Optional.ofNullable(tileEntity);
+        public Optional<BlockEntity> getContainerBlockEntity() {
+            return Optional.ofNullable(blockEntity);
         }
 
         @Override

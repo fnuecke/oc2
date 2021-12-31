@@ -12,14 +12,14 @@ public final class RobotContainerScreen extends AbstractMachineInventoryScreen<R
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void renderSelection(final PoseStack matrixStack, final int selectedSlot, final int x, final int y, final int columns) {
+    public static void renderSelection(final PoseStack stack, final int selectedSlot, final int x, final int y, final int columns) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1, 1, 1, 1);
 
         final int slotX = (selectedSlot % columns) * SLOT_SIZE;
         final int slotY = (selectedSlot / columns) * SLOT_SIZE;
         final int offset = SLOT_SIZE * (int) (15 * (System.currentTimeMillis() % 1000) / 1000);
-        Sprites.SLOT_SELECTION.draw(matrixStack, x + slotX, y + slotY, 0, offset);
+        Sprites.SLOT_SELECTION.draw(stack, x + slotX, y + slotY, 0, offset);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -32,30 +32,30 @@ public final class RobotContainerScreen extends AbstractMachineInventoryScreen<R
     }
 
     @Override
-    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
+    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
+        super.render(stack, mouseX, mouseY, partialTicks);
 
-        renderSelection(matrixStack);
+        renderSelection(stack);
 
-        renderMissingDeviceInfo(matrixStack, mouseX, mouseY);
+        renderMissingDeviceInfo(stack, mouseX, mouseY);
 
-        renderTooltip(matrixStack, mouseX, mouseY);
+        renderTooltip(stack, mouseX, mouseY);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void renderBg(final PoseStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
+    protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1, 1, 1, 1);
 
-        Sprites.ROBOT_CONTAINER.draw(matrixStack, leftPos, topPos);
-        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
+        Sprites.ROBOT_CONTAINER.draw(stack, leftPos, topPos);
+        super.renderBg(stack, partialTicks, mouseX, mouseY);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private void renderSelection(final PoseStack matrixStack) {
-        renderSelection(matrixStack, menu.getRobot().getSelectedSlot(), leftPos + 115, topPos + 23, 2);
+    private void renderSelection(final PoseStack stack) {
+        renderSelection(stack, menu.getRobot().getSelectedSlot(), leftPos + 115, topPos + 23, 2);
     }
 }

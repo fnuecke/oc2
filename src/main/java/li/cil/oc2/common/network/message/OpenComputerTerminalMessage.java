@@ -1,9 +1,10 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 
 public final class OpenComputerTerminalMessage extends AbstractMessage {
@@ -11,7 +12,7 @@ public final class OpenComputerTerminalMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public OpenComputerTerminalMessage(final ComputerTileEntity computer) {
+    public OpenComputerTerminalMessage(final ComputerBlockEntity computer) {
         this.pos = computer.getBlockPos();
     }
 
@@ -35,7 +36,10 @@ public final class OpenComputerTerminalMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withNearbyServerTileEntityAt(context, pos, ComputerTileEntity.class,
-                (computer) -> computer.openTerminalScreen(context.getSender()));
+        final ServerPlayer player = context.getSender();
+        if (player != null) {
+            MessageUtils.withNearbyServerBlockEntityAt(context, pos, ComputerBlockEntity.class,
+                computer -> computer.openTerminalScreen(player));
+        }
     }
 }

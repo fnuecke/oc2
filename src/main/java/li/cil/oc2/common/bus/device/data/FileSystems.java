@@ -7,11 +7,11 @@ import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import li.cil.oc2.common.vm.fs.LayeredFileSystem;
 import li.cil.sedna.fs.FileSystem;
 import li.cil.sedna.fs.ZipStreamFileSystem;
-import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import org.apache.logging.log4j.LogManager;
@@ -54,7 +54,7 @@ public final class FileSystems {
 
         LOGGER.info("Searching for datapack filesystems...");
         final Collection<ResourceLocation> fileSystemDescriptorLocations = resourceManager
-                .listResources("file_systems", s -> s.endsWith(".json"));
+            .listResources("file_systems", s -> s.endsWith(".json"));
 
         final ArrayList<ZipStreamFileSystem> fileSystems = new ArrayList<>();
         final Object2IntArrayMap<ZipStreamFileSystem> fileSystemOrder = new Object2IntArrayMap<>();
@@ -63,10 +63,10 @@ public final class FileSystems {
             LOGGER.info("Found [{}]", fileSystemDescriptorLocation);
             try {
                 final Resource fileSystemDescriptor = resourceManager.getResource(fileSystemDescriptorLocation);
-                final JsonObject json = new JsonParser().parse(new InputStreamReader(fileSystemDescriptor.getInputStream())).getAsJsonObject();
+                final JsonObject json = JsonParser.parseReader(new InputStreamReader(fileSystemDescriptor.getInputStream())).getAsJsonObject();
                 final String type = json.getAsJsonPrimitive("type").getAsString();
                 switch (type) {
-                    case "layer": {
+                    case "layer" -> {
                         final ResourceLocation location = new ResourceLocation(json.getAsJsonPrimitive("location").getAsString());
 
                         final ZipStreamFileSystem fileSystem;
@@ -88,16 +88,9 @@ public final class FileSystems {
                         } else {
                             fileSystemOrder.put(fileSystem, 0);
                         }
-                        break;
                     }
-                    case "block": {
-                        LOGGER.error("Not yet implemented.");
-                        break;
-                    }
-                    default: {
-                        LOGGER.error("Unsupported file system type [{}].", type);
-                        break;
-                    }
+                    case "block" -> LOGGER.error("Not yet implemented.");
+                    default -> LOGGER.error("Unsupported file system type [{}].", type);
                 }
             } catch (final Throwable e) {
                 LOGGER.error(e);
@@ -116,8 +109,8 @@ public final class FileSystems {
         @Override
         public CompletableFuture<Void> reload(final PreparableReloadListener.PreparationBarrier stage, final ResourceManager resourceManager, final ProfilerFiller preparationsProfiler, final ProfilerFiller reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
             return CompletableFuture
-                    .runAsync(() -> FileSystems.reload(resourceManager), backgroundExecutor)
-                    .thenCompose(stage::wait);
+                .runAsync(() -> FileSystems.reload(resourceManager), backgroundExecutor)
+                .thenCompose(stage::wait);
         }
     }
 }

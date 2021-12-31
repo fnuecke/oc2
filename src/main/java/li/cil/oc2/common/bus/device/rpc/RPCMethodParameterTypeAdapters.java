@@ -31,7 +31,7 @@ public final class RPCMethodParameterTypeAdapters {
         final GsonBuilder builder = new GsonBuilder();
 
         for (final RPCMethodParameterTypeAdapter value : TYPE_ADAPTERS) {
-            builder.registerTypeAdapter(value.getType(), value.getTypeAdapter());
+            builder.registerTypeAdapter(value.type(), value.typeAdapter());
         }
 
         return builder;

@@ -41,7 +41,7 @@ public final class SoundCardItemDevice extends AbstractItemRPCDevice {
         if (name == null) throw new IllegalArgumentException();
 
         location.get().ifPresent(location -> {
-            final LevelAccessor level = location.world;
+            final LevelAccessor level = location.level();
             if (!(level instanceof ServerLevel)) {
                 return;
             }
@@ -54,7 +54,7 @@ public final class SoundCardItemDevice extends AbstractItemRPCDevice {
 
             final SoundEvent soundEvent = ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation(name));
             if (soundEvent == null) throw new IllegalArgumentException("Sound not found.");
-            level.playSound(null, location.pos, soundEvent, SoundSource.BLOCKS, 1, 1);
+            level.playSound(null, location.pos(), soundEvent, SoundSource.BLOCKS, 1, 1);
         });
     }
 

@@ -1,7 +1,7 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.BusCableTileEntity;
+import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
@@ -40,7 +40,7 @@ public final class BusCableFacadeMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientTileEntityAt(pos, BusCableTileEntity.class,
-                (tileEntity) -> tileEntity.setFacade(stack));
+        MessageUtils.withClientBlockEntityAt(pos, BusCableBlockEntity.class,
+            busCable -> busCable.setFacade(stack));
     }
 }

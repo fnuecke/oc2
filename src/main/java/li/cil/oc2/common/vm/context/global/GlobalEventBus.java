@@ -8,7 +8,6 @@ import li.cil.oc2.common.vm.context.EventManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@SuppressWarnings("UnstableApiUsage")
 final class GlobalEventBus implements VMLifecycleEventBus, EventManager {
     private static final Logger LOGGER = LogManager.getLogger();
 

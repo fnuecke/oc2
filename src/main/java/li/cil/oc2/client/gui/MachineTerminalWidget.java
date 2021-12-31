@@ -40,29 +40,29 @@ public final class MachineTerminalWidget extends GuiComponent {
         this.terminal = this.container.getTerminal();
     }
 
-    public void renderBackground(final PoseStack matrixStack, final int mouseX, final int mouseY) {
+    public void renderBackground(final PoseStack stack, final int mouseX, final int mouseY) {
         isMouseOverTerminal = isMouseOverTerminal(mouseX, mouseY);
 
-        Sprites.TERMINAL_SCREEN.draw(matrixStack, leftPos, topPos);
+        Sprites.TERMINAL_SCREEN.draw(stack, leftPos, topPos);
 
         if (shouldCaptureInput()) {
-            Sprites.TERMINAL_FOCUSED.draw(matrixStack, leftPos, topPos);
+            Sprites.TERMINAL_FOCUSED.draw(stack, leftPos, topPos);
         }
     }
 
-    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, @Nullable final Component error) {
+    public void render(final PoseStack stack, final int mouseX, final int mouseY, @Nullable final Component error) {
         if (container.getVirtualMachine().isRunning()) {
-            final PoseStack stack = new PoseStack();
-            stack.translate(leftPos + TERMINAL_X, topPos + TERMINAL_Y, getClient().getItemRenderer().blitOffset);
-            stack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
-            terminal.render(stack);
+            final PoseStack terminalStack = new PoseStack();
+            terminalStack.translate(leftPos + TERMINAL_X, topPos + TERMINAL_Y, getClient().getItemRenderer().blitOffset);
+            terminalStack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
+            terminal.render(terminalStack);
         } else {
             final Font font = getClient().font;
             if (error != null) {
                 final int textWidth = font.width(error);
                 final int textOffsetX = (TERMINAL_WIDTH - textWidth) / 2;
                 final int textOffsetY = (TERMINAL_HEIGHT - font.lineHeight) / 2;
-                font.drawShadow(matrixStack,
+                font.drawShadow(stack,
                         error,
                         leftPos + TERMINAL_X + textOffsetX,
                         topPos + TERMINAL_Y + textOffsetY,
@@ -96,8 +96,8 @@ public final class MachineTerminalWidget extends GuiComponent {
         } else {
             final byte[] sequence = TerminalInput.getSequence(keyCode, modifiers);
             if (sequence != null) {
-                for (int i = 0; i < sequence.length; i++) {
-                    terminal.putInput(sequence[i]);
+                for (byte b : sequence) {
+                    terminal.putInput(b);
                 }
             }
         }

@@ -1,7 +1,7 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.vm.VMRunState;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
@@ -13,9 +13,9 @@ public final class ComputerRunStateMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerRunStateMessage(final ComputerTileEntity tileEntity) {
-        this.pos = tileEntity.getBlockPos();
-        this.value = tileEntity.getVirtualMachine().getRunState();
+    public ComputerRunStateMessage(final ComputerBlockEntity computer) {
+        this.pos = computer.getBlockPos();
+        this.value = computer.getVirtualMachine().getRunState();
     }
 
     public ComputerRunStateMessage(final FriendlyByteBuf buffer) {
@@ -40,7 +40,7 @@ public final class ComputerRunStateMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientTileEntityAt(pos, ComputerTileEntity.class,
-                (tileEntity) -> tileEntity.getVirtualMachine().setRunStateClient(value));
+        MessageUtils.withClientBlockEntityAt(pos, ComputerBlockEntity.class,
+            computer -> computer.getVirtualMachine().setRunStateClient(value));
     }
 }

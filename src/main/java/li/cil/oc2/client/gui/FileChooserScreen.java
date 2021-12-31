@@ -2,23 +2,22 @@ package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
-import net.minecraft.network.chat.TextColor;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
@@ -113,16 +112,16 @@ public final class FileChooserScreen extends Screen {
         }
 
         if (previousScreen != null) {
-            minecraft.tell(() -> minecraft.setScreen(previousScreen));
+            getMinecraft().tell(() -> getMinecraft().setScreen(previousScreen));
         }
     }
 
     @Override
-    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
-        super.renderBackground(matrixStack);
-        fileList.render(matrixStack, mouseX, mouseY, partialTicks);
-        fileNameTextField.render(matrixStack, mouseX, mouseY, partialTicks);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
+    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
+        super.renderBackground(stack);
+        fileList.render(stack, mouseX, mouseY, partialTicks);
+        fileNameTextField.render(stack, mouseX, mouseY, partialTicks);
+        super.render(stack, mouseX, mouseY, partialTicks);
     }
 
     @Override
@@ -135,7 +134,7 @@ public final class FileChooserScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        minecraft.keyboardHandler.setSendRepeatsToGui(true);
+        getMinecraft().keyboardHandler.setSendRepeatsToGui(true);
 
         final int widgetsWidth = width - MARGIN * 2;
         final int listHeight = height - MARGIN - WIDGET_SPACING - TEXT_FIELD_HEIGHT - WIDGET_SPACING - BUTTON_HEIGHT - MARGIN;
@@ -182,18 +181,17 @@ public final class FileChooserScreen extends Screen {
 
         final FileList.FileEntry selected = fileList.getSelected();
         if (selected != null) {
-            return selected.file == null || selected.file.equals(directory.getParent());
+            return selected.file.equals(directory.getParent());
         }
 
         final String selectedFileEntry = fileNameTextField.getValue();
         return "..".equals(selectedFileEntry);
     }
 
-    @Nullable
     private Optional<Path> getPath() {
         final FileList.FileEntry selected = fileList.getSelected();
         if (selected != null) {
-            return Optional.ofNullable(selected.file);
+            return Optional.of(selected.file);
         }
 
         if (directory == null) {
@@ -201,7 +199,7 @@ public final class FileChooserScreen extends Screen {
         }
 
         final String selectedFileEntry = fileNameTextField.getValue();
-        if (selectedFileEntry == null || "".equals(selectedFileEntry) || ".".equals(selectedFileEntry)) {
+        if ("".equals(selectedFileEntry) || ".".equals(selectedFileEntry)) {
             return Optional.empty();
         }
 
@@ -219,7 +217,7 @@ public final class FileChooserScreen extends Screen {
         }
 
         getPath().ifPresent(path -> {
-            if (path == null || Files.isDirectory(path)) {
+            if (Files.isDirectory(path)) {
                 fileList.refreshFiles(path);
                 return;
             }
@@ -276,10 +274,10 @@ public final class FileChooserScreen extends Screen {
 
     private final class FileList extends ObjectSelectionList<FileList.FileEntry> {
         public FileList(final int y, final int height, final int slotHeight) {
-            super(FileChooserScreen.this.minecraft, FileChooserScreen.this.width, FileChooserScreen.this.height, y, y + height, slotHeight);
+            super(FileChooserScreen.this.getMinecraft(), FileChooserScreen.this.width, FileChooserScreen.this.height, y, y + height, slotHeight);
         }
 
-        public void refreshFiles(final Path directory) {
+        public void refreshFiles(@Nullable Path directory) {
             FileChooserScreen.directory = directory;
 
             setScrollAmount(0);
@@ -290,16 +288,15 @@ public final class FileChooserScreen extends Screen {
 
                 try {
                     final List<Path> files = Files.list(directory)
-                            .sorted((p1, p2) -> {
-                                if (Files.isDirectory(p1) && !Files.isDirectory(p2)) {
-                                    return -1;
-                                }
-                                if (!Files.isDirectory(p1) && Files.isDirectory(p2)) {
-                                    return 1;
-                                }
-                                return p1.getFileName().compareTo(p2.getFileName());
-                            })
-                            .collect(Collectors.toList());
+                        .sorted((p1, p2) -> {
+                            if (Files.isDirectory(p1) && !Files.isDirectory(p2)) {
+                                return -1;
+                            }
+                            if (!Files.isDirectory(p1) && Files.isDirectory(p2)) {
+                                return 1;
+                            }
+                            return p1.getFileName().compareTo(p2.getFileName());
+                        }).toList();
                     for (final Path path : files) {
                         try {
                             if (Files.isHidden(path)) {
@@ -332,10 +329,10 @@ public final class FileChooserScreen extends Screen {
             } else {
                 refreshFiles(path.getParent());
                 children().stream().filter(entry -> entry.file.equals(path))
-                        .findFirst().ifPresent(entry -> {
-                            entry.select();
-                            centerScrollOn(entry);
-                        });
+                    .findFirst().ifPresent(entry -> {
+                        entry.select();
+                        centerScrollOn(entry);
+                    });
             }
         }
 
@@ -355,7 +352,7 @@ public final class FileChooserScreen extends Screen {
 
         private FileList.FileEntry createDirectoryEntry(final Path path, final String displayName) {
             return new FileList.FileEntry(path, new TextComponent(displayName)
-                    .withStyle(s -> s.withColor(TextColor.fromRgb(0xA0A0FF))));
+                .withStyle(s -> s.withColor(TextColor.fromRgb(0xA0A0FF))));
         }
 
         private final class FileEntry extends ObjectSelectionList.Entry<FileEntry> {
@@ -393,7 +390,7 @@ public final class FileChooserScreen extends Screen {
             }
 
             public void select() {
-                if (file == null || (directory != null && file.equals(directory.getParent()))) {
+                if (directory != null && file.equals(directory.getParent())) {
                     fileNameTextField.setValue("..");
                 } else {
                     final Path fileName = file.getFileName();

@@ -9,8 +9,8 @@ import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.container.TypedDeviceItemStackHandler;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -20,20 +20,10 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static li.cil.oc2.common.util.RegistryUtils.key;
+
 public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers {
-    public static final class GroupDefinition {
-        public final DeviceType deviceType;
-        public final int count;
-
-        public static GroupDefinition of(final DeviceType deviceType, final int count) {
-            return new GroupDefinition(deviceType, count);
-        }
-
-        private GroupDefinition(final DeviceType deviceType, final int count) {
-            this.deviceType = deviceType;
-            this.count = count;
-        }
-    }
+    public record GroupDefinition(DeviceType deviceType, int count) { }
 
     ///////////////////////////////////////////////////////////////////
 
@@ -117,7 +107,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
     public void saveItems(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) -> {
             if (!handler.isEmpty()) {
-                tag.put(deviceType.getRegistryName().toString(), handler.saveItems());
+                tag.put(key(deviceType), handler.saveItems());
             }
         });
     }
@@ -130,12 +120,12 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     public void loadItems(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
-                handler.loadItems(tag.getCompound(deviceType.getRegistryName().toString())));
+            handler.loadItems(tag.getCompound(key(deviceType))));
     }
 
     public void saveDevices(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
-                tag.put(deviceType.getRegistryName().toString(), handler.saveDevices()));
+            tag.put(key(deviceType), handler.saveDevices()));
     }
 
     public CompoundTag saveDevices() {
@@ -146,7 +136,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     public void loadDevices(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
-                handler.loadDevices(tag.getCompound(deviceType.getRegistryName().toString())));
+            handler.loadDevices(tag.getCompound(key(deviceType))));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -174,8 +164,8 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         @Override
         public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
             return Optional.of(itemHandlers.values().stream()
-                    .map(h -> LazyOptional.of(() -> (DeviceBusElement) h.getBusElement()))
-                    .collect(Collectors.toList()));
+                .map(h -> LazyOptional.of(() -> (DeviceBusElement) h.getBusElement()))
+                .collect(Collectors.toList()));
         }
     }
 }

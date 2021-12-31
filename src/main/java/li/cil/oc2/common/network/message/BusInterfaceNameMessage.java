@@ -1,7 +1,7 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.BusCableTileEntity;
+import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
@@ -14,8 +14,8 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    protected BusInterfaceNameMessage(final BusCableTileEntity tileEntity, final Direction side, final String value) {
-        this.pos = tileEntity.getBlockPos();
+    protected BusInterfaceNameMessage(final BusCableBlockEntity busCable, final Direction side, final String value) {
+        this.pos = busCable.getBlockPos();
         this.side = side;
         this.value = value;
     }
@@ -43,8 +43,8 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static final class ToClient extends BusInterfaceNameMessage {
-        public ToClient(final BusCableTileEntity tileEntity, final Direction side, final String value) {
-            super(tileEntity, side, value);
+        public ToClient(final BusCableBlockEntity busCable, final Direction side, final String value) {
+            super(busCable, side, value);
         }
 
         public ToClient(final FriendlyByteBuf buffer) {
@@ -53,14 +53,14 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
 
         @Override
         protected void handleMessage(final NetworkEvent.Context context) {
-            MessageUtils.withClientTileEntityAt(pos, BusCableTileEntity.class,
-                    (tileEntity) -> tileEntity.setInterfaceName(side, value));
+            MessageUtils.withClientBlockEntityAt(pos, BusCableBlockEntity.class,
+                busCable -> busCable.setInterfaceName(side, value));
         }
     }
 
     public static final class ToServer extends BusInterfaceNameMessage {
-        public ToServer(final BusCableTileEntity tileEntity, final Direction side, final String value) {
-            super(tileEntity, side, value);
+        public ToServer(final BusCableBlockEntity busCable, final Direction side, final String value) {
+            super(busCable, side, value);
         }
 
         public ToServer(final FriendlyByteBuf buffer) {
@@ -69,8 +69,8 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
 
         @Override
         protected void handleMessage(final NetworkEvent.Context context) {
-            MessageUtils.withNearbyServerTileEntityAt(context, pos, BusCableTileEntity.class,
-                    (tileEntity) -> tileEntity.setInterfaceName(side, value));
+            MessageUtils.withNearbyServerBlockEntityAt(context, pos, BusCableBlockEntity.class,
+                busCable -> busCable.setInterfaceName(side, value));
         }
     }
 }

@@ -1,7 +1,7 @@
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.common.tileentity.NetworkHubTileEntity;
-import li.cil.oc2.common.tileentity.TileEntities;
+import li.cil.oc2.common.blockentity.NetworkHubBlockEntity;
+import li.cil.oc2.common.blockentity.BlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -35,11 +35,10 @@ public final class NetworkHubBlock extends HorizontalDirectionalBlock implements
 
     @SuppressWarnings("deprecation")
     @Override
-    public void neighborChanged(final BlockState state, final Level world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
-        final BlockEntity tileEntity = world.getBlockEntity(pos);
-        if (tileEntity instanceof NetworkHubTileEntity) {
-            final NetworkHubTileEntity hub = (NetworkHubTileEntity) tileEntity;
-            hub.handleNeighborChanged();
+    public void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof final NetworkHubBlockEntity networkHub) {
+            networkHub.handleNeighborChanged();
         }
     }
 
@@ -49,7 +48,7 @@ public final class NetworkHubBlock extends HorizontalDirectionalBlock implements
     @Nullable
     @Override
     public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
-        return TileEntities.NETWORK_HUB_TILE_ENTITY.get().create(pos, state);
+        return BlockEntities.NETWORK_HUB.get().create(pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -8,6 +8,7 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class RegistryUtils {
     private enum Phase {
@@ -49,6 +50,10 @@ public abstract class RegistryUtils {
         }
 
         ENTRIES.clear();
+    }
+
+    public static <T> String key(final IForgeRegistryEntry<T> registryEntry) {
+        return Objects.requireNonNull(registryEntry.getRegistryName()).toString();
     }
 
     private RegistryUtils() {

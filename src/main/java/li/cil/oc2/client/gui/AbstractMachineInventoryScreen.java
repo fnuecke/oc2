@@ -72,23 +72,23 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
     }
 
     @Override
-    public void render(final PoseStack matrixStack, final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground(matrixStack);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
+    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
+        renderBackground(stack);
+        super.render(stack, mouseX, mouseY, partialTicks);
 
         final int energyCapacity = menu.getEnergyCapacity();
         if (energyCapacity > 0) {
             final int energyStored = menu.getEnergy();
             final int energyConsumption = menu.getEnergyConsumption();
 
-            Sprites.ENERGY_BAR.drawFillY(matrixStack, leftPos - Sprites.SIDEBAR_2.width + 4, topPos + ENERGY_TOP + 4, energyStored / (float) energyCapacity);
+            Sprites.ENERGY_BAR.drawFillY(stack, leftPos - Sprites.SIDEBAR_2.width + 4, topPos + ENERGY_TOP + 4, energyStored / (float) energyCapacity);
 
             if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
                 final List<? extends FormattedText> tooltip = asList(
                         new TranslatableComponent(Constants.TOOLTIP_ENERGY, withColor(energyStored + "/" + energyCapacity, ChatFormatting.GREEN)),
                         new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(String.valueOf(energyConsumption), ChatFormatting.GREEN))
                 );
-                TooltipUtils.drawTooltip(matrixStack, tooltip, mouseX, mouseY, 200);
+                TooltipUtils.drawTooltip(stack, tooltip, mouseX, mouseY, 200);
             }
         }
     }
@@ -96,24 +96,24 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void renderBg(final PoseStack matrixStack, final float partialTicks, final int mouseX, final int mouseY) {
-        Sprites.SIDEBAR_2.draw(matrixStack, leftPos - Sprites.SIDEBAR_2.width, topPos + CONTROLS_TOP);
+    protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
+        Sprites.SIDEBAR_2.draw(stack, leftPos - Sprites.SIDEBAR_2.width, topPos + CONTROLS_TOP);
 
         if (menu.getEnergyCapacity() > 0) {
             final int x = leftPos - Sprites.SIDEBAR_2.width;
             final int y = topPos + ENERGY_TOP;
-            Sprites.SIDEBAR_2.draw(matrixStack, x, y);
-            Sprites.ENERGY_BASE.draw(matrixStack, x + 4, y + 4);
+            Sprites.SIDEBAR_2.draw(stack, x, y);
+            Sprites.ENERGY_BASE.draw(stack, x + 4, y + 4);
         }
     }
 
-    protected void renderMissingDeviceInfo(final PoseStack matrixStack, final int mouseX, final int mouseY) {
-        GuiUtils.renderMissingDeviceInfoIcon(matrixStack, this, DeviceTypes.FLASH_MEMORY, Sprites.WARN_ICON);
-        GuiUtils.renderMissingDeviceInfoIcon(matrixStack, this, DeviceTypes.MEMORY, Sprites.WARN_ICON);
-        GuiUtils.renderMissingDeviceInfoIcon(matrixStack, this, DeviceTypes.HARD_DRIVE, Sprites.INFO_ICON);
+    protected void renderMissingDeviceInfo(final PoseStack stack, final int mouseX, final int mouseY) {
+        GuiUtils.renderMissingDeviceInfoIcon(stack, this, DeviceTypes.FLASH_MEMORY, Sprites.WARN_ICON);
+        GuiUtils.renderMissingDeviceInfoIcon(stack, this, DeviceTypes.MEMORY, Sprites.WARN_ICON);
+        GuiUtils.renderMissingDeviceInfoIcon(stack, this, DeviceTypes.HARD_DRIVE, Sprites.INFO_ICON);
 
-        GuiUtils.renderMissingDeviceInfoTooltip(matrixStack, this, mouseX, mouseY, DeviceTypes.FLASH_MEMORY);
-        GuiUtils.renderMissingDeviceInfoTooltip(matrixStack, this, mouseX, mouseY, DeviceTypes.MEMORY);
-        GuiUtils.renderMissingDeviceInfoTooltip(matrixStack, this, mouseX, mouseY, DeviceTypes.HARD_DRIVE);
+        GuiUtils.renderMissingDeviceInfoTooltip(stack, this, mouseX, mouseY, DeviceTypes.FLASH_MEMORY);
+        GuiUtils.renderMissingDeviceInfoTooltip(stack, this, mouseX, mouseY, DeviceTypes.MEMORY);
+        GuiUtils.renderMissingDeviceInfoTooltip(stack, this, mouseX, mouseY, DeviceTypes.HARD_DRIVE);
     }
 }

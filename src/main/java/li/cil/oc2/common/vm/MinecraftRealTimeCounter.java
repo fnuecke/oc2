@@ -11,17 +11,17 @@ public final class MinecraftRealTimeCounter implements RealTimeCounter {
 
     ///////////////////////////////////////////////////////////////////
 
-    private Level world;
+    private Level level;
 
     ///////////////////////////////////////////////////////////////////
 
-    public void setWorld(@Nullable final Level world) {
-        this.world = world;
+    public void setLevel(@Nullable final Level level) {
+        this.level = level;
     }
 
     @Override
     public long getTime() {
-        final long ticks = world != null ? world.getGameTime() : 0;
+        final long ticks = level != null ? level.getGameTime() : 0;
         final long days = ticks; // / TICKS_PER_DAY
         final long hours = days * 24;
         final long minutes = hours * 60;

@@ -81,7 +81,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
 
     @Subscribe
     public void handleInitializingEvent(final VMInitializingEvent event) {
-        copyDataToMemory(event.getProgramStartAddress());
+        copyDataToMemory(event.programStartAddress());
     }
 
     @Override

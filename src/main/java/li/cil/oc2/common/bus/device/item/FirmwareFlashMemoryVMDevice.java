@@ -49,7 +49,7 @@ public final class FirmwareFlashMemoryVMDevice extends IdentityProxy<ItemStack> 
 
     @Subscribe
     public void handleInitializingEvent(final VMInitializingEvent event) {
-        copyDataToMemory(event.getProgramStartAddress());
+        copyDataToMemory(event.programStartAddress());
     }
 
     ///////////////////////////////////////////////////////////////

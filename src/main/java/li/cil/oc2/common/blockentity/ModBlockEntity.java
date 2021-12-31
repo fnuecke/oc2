@@ -1,4 +1,4 @@
-package li.cil.oc2.common.tileentity;
+package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.common.util.ServerScheduler;
 import net.minecraft.core.BlockPos;
@@ -15,15 +15,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
-public abstract class AbstractTileEntity extends BlockEntity {
+public abstract class ModBlockEntity extends BlockEntity {
     private final Runnable onWorldUnloaded = this::onWorldUnloaded;
     private final HashMap<CapabilityCacheKey, LazyOptional<?>> capabilityCache = new HashMap<>();
     private boolean needsWorldUnloadEvent;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractTileEntity(final BlockEntityType<?> tileEntityType, final BlockPos pos, final BlockState state) {
-        super(tileEntityType, pos, state);
+    protected ModBlockEntity(final BlockEntityType<?> blockEntityType, final BlockPos pos, final BlockState state) {
+        super(blockEntityType, pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -130,7 +130,7 @@ public abstract class AbstractTileEntity extends BlockEntity {
         }
     }
 
-    protected void setNeedsWorldUnloadEvent() {
+    protected void setNeedsLevelUnloadEvent() {
         needsWorldUnloadEvent = true;
     }
 

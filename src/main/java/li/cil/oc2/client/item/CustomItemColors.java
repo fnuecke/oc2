@@ -44,48 +44,29 @@ public final class CustomItemColors {
     }
 
     public static int getColorByDye(final DyeColor dye) {
-        switch (dye) {
-            case WHITE:
-                return WHITE;
-            case ORANGE:
-                return ORANGE;
-            case MAGENTA:
-                return MAGENTA;
-            case LIGHT_BLUE:
-                return LIGHT_BLUE;
-            case YELLOW:
-                return YELLOW;
-            case LIME:
-                return LIME;
-            case PINK:
-                return PINK;
-            case GRAY:
-                return GREY;
-            case LIGHT_GRAY:
-                return LIGHT_GREY;
-            case CYAN:
-                return CYAN;
-            case PURPLE:
-                return PURPLE;
-            case BLUE:
-                return BLUE;
-            case BROWN:
-                return BROWN;
-            case GREEN:
-                return GREEN;
-            case RED:
-                return RED;
-            case BLACK:
-                return BLACK;
-        }
-
-        return GREY;
+        return switch (dye) {
+            case WHITE -> WHITE;
+            case ORANGE -> ORANGE;
+            case MAGENTA -> MAGENTA;
+            case LIGHT_BLUE -> LIGHT_BLUE;
+            case YELLOW -> YELLOW;
+            case LIME -> LIME;
+            case PINK -> PINK;
+            case GRAY -> GREY;
+            case LIGHT_GRAY -> LIGHT_GREY;
+            case CYAN -> CYAN;
+            case PURPLE -> PURPLE;
+            case BLUE -> BLUE;
+            case BROWN -> BROWN;
+            case GREEN -> GREEN;
+            case RED -> RED;
+            case BLACK -> BLACK;
+        };
     }
 
     public static int getColor(final ItemStack stack) {
         final Item item = stack.getItem();
-        if (item instanceof DyeableLeatherItem) {
-            final DyeableLeatherItem coloredItem = (DyeableLeatherItem) item;
+        if (item instanceof final DyeableLeatherItem coloredItem) {
             return coloredItem.getColor(stack);
         }
         return GREY;
@@ -97,8 +78,7 @@ public final class CustomItemColors {
 
     public static ItemStack withColor(final ItemStack stack, final int color) {
         final Item item = stack.getItem();
-        if (item instanceof DyeableLeatherItem) {
-            final DyeableLeatherItem coloredItem = (DyeableLeatherItem) item;
+        if (item instanceof final DyeableLeatherItem coloredItem) {
             coloredItem.setColor(stack, color);
         }
         return stack;

@@ -1,6 +1,7 @@
 package li.cil.oc2.common.bus.device.rpc;
 
 import li.cil.oc2.common.util.NBTTagIds;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -63,11 +64,12 @@ public final class RPCItemStackTagFilter {
             }
         }
 
-        if (!currentSource.contains(path[path.length - 1])) {
+        final Tag tag = currentSource.get(path[path.length - 1]);
+        if (tag == null) {
             return null; // Cannot find tag at path.
         }
 
-        currentTarget.put(path[path.length - 1], currentSource.get(path[path.length - 1]));
+        currentTarget.put(path[path.length - 1], tag);
 
         return result;
     }

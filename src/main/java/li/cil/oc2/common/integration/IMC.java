@@ -49,7 +49,7 @@ public final class IMC {
             try {
                 RPCMethodParameterTypeAdapters.addTypeAdapter(value);
             } catch (final IllegalArgumentException e) {
-                LOGGER.error("Received invalid type adapter registration [{}] for type [{}] from mod [{}].", value.getTypeAdapter(), value.getType(), message.senderModId());
+                LOGGER.error("Received invalid type adapter registration [{}] for type [{}] from mod [{}].", value.typeAdapter(), value.type(), message.senderModId());
             }
         });
     }

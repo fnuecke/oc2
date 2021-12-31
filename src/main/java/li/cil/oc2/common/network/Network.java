@@ -4,6 +4,7 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.common.network.message.*;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -18,10 +19,10 @@ public final class Network {
     private static final String PROTOCOL_VERSION = "1";
 
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
-            new ResourceLocation(API.MOD_ID, "main"),
-            () -> PROTOCOL_VERSION,
-            PROTOCOL_VERSION::equals,
-            PROTOCOL_VERSION::equals
+        new ResourceLocation(API.MOD_ID, "main"),
+        () -> PROTOCOL_VERSION,
+        PROTOCOL_VERSION::equals,
+        PROTOCOL_VERSION::equals
     );
 
     ///////////////////////////////////////////////////////////////////
@@ -71,9 +72,12 @@ public final class Network {
         Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
     }
 
-    public static <T> void sendToClientsTrackingTileEntity(final T message, final BlockEntity tileEntity) {
-        final LevelChunk chunk = tileEntity.getLevel().getChunkAt(tileEntity.getBlockPos());
-        Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
+    public static <T> void sendToClientsTrackingBlockEntity(final T message, final BlockEntity blockEntity) {
+        final Level level = blockEntity.getLevel();
+        if (level != null) {
+            final LevelChunk chunk = level.getChunkAt(blockEntity.getBlockPos());
+            Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
+        }
     }
 
     public static <T> void sendToClientsTrackingEntity(final T message, final Entity entity) {
@@ -84,10 +88,10 @@ public final class Network {
 
     private static <T extends AbstractMessage> void registerMessage(final Class<T> type, final Function<FriendlyByteBuf, T> decoder, final NetworkDirection direction) {
         INSTANCE.messageBuilder(type, getNextPacketId(), direction)
-                .encoder(AbstractMessage::toBytes)
-                .decoder(decoder)
-                .consumer(AbstractMessage::handleMessage)
-                .add();
+            .encoder(AbstractMessage::toBytes)
+            .decoder(decoder)
+            .consumer(AbstractMessage::handleMessage)
+            .add();
     }
 
     private static int getNextPacketId() {

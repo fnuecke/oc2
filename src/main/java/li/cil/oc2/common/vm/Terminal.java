@@ -464,6 +464,7 @@ public final class Terminal {
 
         @Override
         public void render(final PoseStack stack) {
+            // TODO Right now we'll trigger multiple sounds if screen is open.
             if (hasPendingBell) {
                 hasPendingBell = false;
                 final Minecraft client = Minecraft.getInstance();

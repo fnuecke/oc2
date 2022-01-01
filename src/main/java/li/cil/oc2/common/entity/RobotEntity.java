@@ -255,6 +255,10 @@ public final class RobotEntity extends Entity implements Robot {
 
         super.tick();
 
+        if (isClient) {
+            terminal.clientTick();
+        }
+
         if (!isClient) {
             virtualMachine.tick();
         }

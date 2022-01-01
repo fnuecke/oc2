@@ -1,5 +1,8 @@
 package li.cil.oc2.client.renderer.blockentity;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalNotification;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -24,8 +27,13 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
+import org.apache.logging.log4j.core.util.Throwables;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlockEntity> {
     public static final ResourceLocation OVERLAY_POWER_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_power");
@@ -36,15 +44,21 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     private static final Material TEXTURE_STATUS = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_STATUS_LOCATION);
     private static final Material TEXTURE_TERMINAL = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_TERMINAL_LOCATION);
 
+    private static final Cache<Terminal, Terminal.RendererView> rendererViews = CacheBuilder.newBuilder()
+        .expireAfterAccess(Duration.ofSeconds(5))
+        .removalListener(ComputerRenderer::handleNoLongerRendering)
+        .build();
+
     ///////////////////////////////////////////////////////////////////
 
     private final BlockEntityRenderDispatcher renderer;
-    private Terminal.RendererView rendererView;
 
     ///////////////////////////////////////////////////////////////////
 
     public ComputerRenderer(final BlockEntityRendererProvider.Context context) {
         this.renderer = context.getBlockEntityRenderDispatcher();
+
+        MinecraftForge.EVENT_BUS.addListener(ComputerRenderer::updateCache);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -143,11 +157,11 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
             RenderSystem.enableBlend();
             RenderSystem.enableDepthTest();
 
-            if (rendererView == null) {
-                rendererView = terminal.getRenderer();
+            try {
+                rendererViews.get(terminal, terminal::getRenderer).render(stack, RenderSystem.getProjectionMatrix());
+            } catch (final ExecutionException e) {
+                Throwables.rethrow(e);
             }
-
-            rendererView.render(stack);
 
             stack.popPose();
         } else {
@@ -233,5 +247,17 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         consumer.vertex(matrix, 16, 0, 0);
         consumer.uv(1, 0);
         consumer.endVertex();
+    }
+
+    private static void updateCache(final TickEvent.ClientTickEvent event) {
+        rendererViews.cleanUp();
+    }
+
+    private static void handleNoLongerRendering(final RemovalNotification<Terminal, Terminal.RendererView> notification) {
+        final Terminal key = notification.getKey();
+        final Terminal.RendererView value = notification.getValue();
+        if (key != null && value != null) {
+            key.releaseRenderer(value);
+        }
     }
 }

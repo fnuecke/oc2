@@ -8,6 +8,7 @@ import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.API;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
@@ -16,7 +17,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // Implements a couple of control sequences from here: https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
@@ -60,7 +64,7 @@ public final class Terminal {
     }
 
     public interface RendererView {
-        void render(final PoseStack stack);
+        void render(final PoseStack stack, final Matrix4f projectionMatrix);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -85,6 +89,7 @@ public final class Terminal {
     // Rendering data for client
     private final transient Set<RendererModel> renderers = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private transient boolean displayOnly; // Set on client to not send responses to status requests.
+    private transient boolean hasPendingBell;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -117,7 +122,17 @@ public final class Terminal {
     @OnlyIn(Dist.CLIENT)
     public void releaseRenderer(final RendererView renderer) {
         if (renderer instanceof final RendererModel rendererModel) {
+            rendererModel.close();
             renderers.remove(rendererModel);
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void clientTick() {
+        if (hasPendingBell) {
+            hasPendingBell = false;
+            final Minecraft client = Minecraft.getInstance();
+            client.execute(() -> client.getSoundManager().play(SimpleSoundInstance.forUI(NoteBlockInstrument.PLING.getSoundEvent(), 1)));
         }
     }
 
@@ -175,7 +190,7 @@ public final class Terminal {
                         }
                     }
                     case (byte) '\b' -> setCursorPos(x - 1, y);
-                    case 7 -> renderers.forEach(RendererModel::setBell);
+                    case 7 -> hasPendingBell = true;
                     case 27 -> state = State.ESCAPE;
                     default -> {
                         if (!Character.isISOControl(ch)) {
@@ -411,7 +426,7 @@ public final class Terminal {
     private interface RendererModel {
         AtomicInteger getDirtyMask();
 
-        void setBell();
+        void close();
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -447,12 +462,9 @@ public final class Terminal {
         ///////////////////////////////////////////////////////////////
 
         private final Terminal terminal;
+        private final VertexBuffer[] lines = new VertexBuffer[HEIGHT];
 
-        private final transient AtomicInteger dirty = new AtomicInteger(-1);
-        private transient boolean hasPendingBell;
-
-        private final Object[] lines = new Object[HEIGHT]; // Cached vertex buffers for rendering, untyped for server.
-        private Object lastMatrix; // Untyped for server.
+        private final AtomicInteger dirty = new AtomicInteger(-1);
 
         ///////////////////////////////////////////////////////////////
 
@@ -463,16 +475,9 @@ public final class Terminal {
         ///////////////////////////////////////////////////////////////
 
         @Override
-        public void render(final PoseStack stack) {
-            // TODO Right now we'll trigger multiple sounds if screen is open.
-            if (hasPendingBell) {
-                hasPendingBell = false;
-                final Minecraft client = Minecraft.getInstance();
-                client.execute(() -> client.getSoundManager().play(SimpleSoundInstance.forUI(NoteBlockInstrument.PLING.getSoundEvent(), 1)));
-            }
-
-            validateLineCache(dirty, stack);
-            renderBuffer();
+        public void render(final PoseStack stack, final Matrix4f projectionMatrix) {
+            validateLineCache();
+            renderBuffer(stack, projectionMatrix);
 
             if ((System.currentTimeMillis() + terminal.hashCode()) % 1000 > 500) {
                 renderCursor(stack);
@@ -485,36 +490,35 @@ public final class Terminal {
         }
 
         @Override
-        public void setBell() {
-            hasPendingBell = true;
+        public void close() {
+            for (int i = 0; i < lines.length; i++) {
+                final VertexBuffer line = lines[i];
+                if (line != null) {
+                    line.close();
+                    lines[i] = null;
+                }
+            }
         }
 
         ///////////////////////////////////////////////////////////////
 
-        private void renderBuffer() {
+        private void renderBuffer(final PoseStack stack, final Matrix4f projectionMatrix) {
+            final ShaderInstance shader = GameRenderer.getPositionColorTexShader();
+            if (shader == null) {
+                return;
+            }
+
             RenderSystem.depthMask(false);
-            RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
             RenderSystem.setShaderTexture(0, LOCATION_FONT_TEXTURE);
 
-            final BufferBuilder builder = Tesselator.getInstance().getBuilder();
-            for (final Object line : lines) {
-                final ByteBuffer buffer = ((ByteBuffer) line).rewind();
-
-                builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
-                builder.putBulkData(buffer);
-                builder.end();
-                BufferUploader.end(builder);
+            for (final VertexBuffer line : lines) {
+                line.drawWithShader(stack.last().pose(), projectionMatrix, shader);
             }
 
             RenderSystem.depthMask(true);
         }
 
-        private void validateLineCache(final AtomicInteger dirty, final PoseStack stack) {
-            if (!Objects.equals(lastMatrix, stack.last().pose())) {
-                lastMatrix = stack.last().pose();
-                dirty.set(-1);
-            }
-
+        private void validateLineCache() {
             if (dirty.get() == 0) {
                 return;
             }
@@ -527,9 +531,7 @@ public final class Terminal {
                     continue;
                 }
 
-                stack.pushPose();
-                stack.translate(0, row * CHAR_HEIGHT, 0);
-                final Matrix4f matrix = stack.last().pose();
+                final Matrix4f matrix = Matrix4f.createTranslateMatrix(0, row * CHAR_HEIGHT, 0);
 
                 builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
 
@@ -538,12 +540,11 @@ public final class Terminal {
 
                 builder.end();
 
-                final ByteBuffer buffer = builder.popNextBuffer().getSecond();
-                lines[row] = ByteBuffer.allocate(buffer.limit()).put(buffer);
+                if (lines[row] == null) {
+                    lines[row] = new VertexBuffer();
+                }
 
-                builder.clear();
-
-                stack.popPose();
+                lines[row].upload(builder);
             }
         }
 

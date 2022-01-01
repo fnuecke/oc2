@@ -210,7 +210,7 @@ public final class ComputerBlock extends ImmutableHorizontalBlock implements Ent
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(final Level level, final BlockState state, final BlockEntityType<T> type) {
-        return level.isClientSide ? null : BlockEntityUtils.createTicker(type, BlockEntities.COMPUTER.get(), ComputerBlockEntity::serverTick);
+        return BlockEntityUtils.createTicker(type, BlockEntities.COMPUTER.get(), ComputerBlockEntity::tick);
     }
 
     ///////////////////////////////////////////////////////////////////

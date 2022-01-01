@@ -5,6 +5,7 @@ import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.gui.widget.Sprite;
 import li.cil.oc2.common.container.TypedSlotItemHandler;
+import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -12,10 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
@@ -37,9 +35,12 @@ public final class GuiUtils {
     ///////////////////////////////////////////////////////////////////
 
     public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoIcon(final PoseStack stack, final AbstractContainerScreen<TContainer> screen, final DeviceType type, final Sprite icon) {
+        stack.pushPose();
+        stack.translate(0, 0, 100);
         findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> icon.draw(stack,
             screen.getGuiLeft() + slot.x - 1 + RELATIVE_ICON_POSITION,
             screen.getGuiTop() + slot.y - 1 + RELATIVE_ICON_POSITION));
+        stack.popPose();
     }
 
     public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final PoseStack stack, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type) {
@@ -47,7 +48,7 @@ public final class GuiUtils {
     }
 
     public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final PoseStack stack, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final Component tooltip) {
-        Minecraft minecraft = screen.getMinecraft();
+        final Minecraft minecraft = screen.getMinecraft();
         if (minecraft.player == null) {
             return;
         }
@@ -64,7 +65,7 @@ public final class GuiUtils {
 
         findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> {
             if (slot == hoveredSlot) {
-                screen.renderTooltip(stack, tooltip, mouseX, mouseY);
+                TooltipUtils.drawTooltip(stack, Collections.singletonList(tooltip), mouseX, mouseY);
             }
         });
     }

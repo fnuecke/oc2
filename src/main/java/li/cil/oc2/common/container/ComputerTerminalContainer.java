@@ -11,7 +11,6 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.network.NetworkHooks;
@@ -43,7 +42,7 @@ public final class ComputerTerminalContainer extends AbstractComputerContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    private ComputerTerminalContainer(final int id, final Player player, final ComputerBlockEntity computer, final ContainerData energyInfo) {
+    private ComputerTerminalContainer(final int id, final Player player, final ComputerBlockEntity computer, final IntPrecisionContainerData energyInfo) {
         super(Containers.COMPUTER_TERMINAL.get(), id, player, computer, energyInfo);
     }
 }

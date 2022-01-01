@@ -13,7 +13,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.network.NetworkHooks;
@@ -45,7 +44,7 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    private RobotInventoryContainer(final int id, final RobotEntity robot, final Player player, final ContainerData energyInfo) {
+    private RobotInventoryContainer(final int id, final RobotEntity robot, final Player player, final IntPrecisionContainerData energyInfo) {
         super(Containers.ROBOT.get(), id, robot, energyInfo);
 
         final VMItemStackHandlers handlers = robot.getItemStackHandlers();

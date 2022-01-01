@@ -13,7 +13,6 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.network.NetworkHooks;
@@ -45,7 +44,7 @@ public final class ComputerInventoryContainer extends AbstractComputerContainer 
 
     ///////////////////////////////////////////////////////////////////
 
-    private ComputerInventoryContainer(final int id, final ComputerBlockEntity computer, final Player player, final ContainerData energyInfo) {
+    private ComputerInventoryContainer(final int id, final ComputerBlockEntity computer, final Player player, final IntPrecisionContainerData energyInfo) {
         super(Containers.COMPUTER.get(), id, player, computer, energyInfo);
 
         final VMItemStackHandlers handlers = computer.getItemStackHandlers();

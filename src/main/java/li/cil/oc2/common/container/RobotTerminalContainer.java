@@ -12,7 +12,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.network.NetworkHooks;
@@ -44,7 +43,7 @@ public final class RobotTerminalContainer extends AbstractRobotContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    private RobotTerminalContainer(final int id, final RobotEntity robot, final ContainerData energyInfo) {
+    private RobotTerminalContainer(final int id, final RobotEntity robot, final IntPrecisionContainerData energyInfo) {
         super(Containers.ROBOT_TERMINAL.get(), id, robot, energyInfo);
 
         // It's kinda dumb we need to access technically-client-side stuff here, but that's the nature of containers

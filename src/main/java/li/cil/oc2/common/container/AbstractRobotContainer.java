@@ -11,7 +11,6 @@ import li.cil.oc2.common.network.message.RobotTerminalInputMessage;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.MenuType;
 
 import java.nio.ByteBuffer;
@@ -21,7 +20,7 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
 
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractRobotContainer(final MenuType<?> type, final int id, final RobotEntity robot, final ContainerData energyInfo) {
+    public AbstractRobotContainer(final MenuType<?> type, final int id, final RobotEntity robot, final IntPrecisionContainerData energyInfo) {
         super(type, id, energyInfo);
         this.robot = robot;
     }
@@ -69,10 +68,10 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
 
     ///////////////////////////////////////////////////////////////////
 
-    protected static ContainerData createEnergyInfo(final FixedEnergyStorage energy, final CommonDeviceBusController busController) {
-        return new ContainerData() {
+    protected static IntPrecisionContainerData createEnergyInfo(final FixedEnergyStorage energy, final CommonDeviceBusController busController) {
+        return new IntPrecisionContainerData() {
             @Override
-            public int get(final int index) {
+            public int getInt(final int index) {
                 return switch (index) {
                     case AbstractMachineContainer.ENERGY_STORED_INDEX -> energy.getEnergyStored();
                     case AbstractMachineContainer.ENERGY_CAPACITY_INDEX -> energy.getMaxEnergyStored();
@@ -82,11 +81,7 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
             }
 
             @Override
-            public void set(final int index, final int value) {
-            }
-
-            @Override
-            public int getCount() {
+            public int getIntCount() {
                 return ENERGY_INFO_SIZE;
             }
         };

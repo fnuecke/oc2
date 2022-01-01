@@ -1,9 +1,7 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.vm.VirtualMachine;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.inventory.SimpleContainerData;
 
 public abstract class AbstractMachineContainer extends AbstractContainer {
     protected static final int ENERGY_INFO_SIZE = 3;
@@ -14,11 +12,11 @@ public abstract class AbstractMachineContainer extends AbstractContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final ContainerData energyInfo;
+    private final IntPrecisionContainerData energyInfo;
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractMachineContainer(final MenuType<?> type, final int id, final ContainerData energyInfo) {
+    protected AbstractMachineContainer(final MenuType<?> type, final int id, final IntPrecisionContainerData energyInfo) {
         super(type, id);
         this.energyInfo = energyInfo;
 
@@ -35,20 +33,20 @@ public abstract class AbstractMachineContainer extends AbstractContainer {
     public abstract void sendPowerStateToServer(final boolean value);
 
     public int getEnergy() {
-        return energyInfo.get(ENERGY_STORED_INDEX);
+        return energyInfo.getInt(ENERGY_STORED_INDEX);
     }
 
     public int getEnergyCapacity() {
-        return energyInfo.get(ENERGY_CAPACITY_INDEX);
+        return energyInfo.getInt(ENERGY_CAPACITY_INDEX);
     }
 
     public int getEnergyConsumption() {
-        return energyInfo.get(ENERGY_CONSUMPTION_INDEX);
+        return energyInfo.getInt(ENERGY_CONSUMPTION_INDEX);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    protected static ContainerData createEnergyInfo() {
-        return new SimpleContainerData(ENERGY_INFO_SIZE);
+    protected static IntPrecisionContainerData createEnergyInfo() {
+        return new SimpleIntPrecisionContainerData(ENERGY_INFO_SIZE);
     }
 }

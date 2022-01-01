@@ -11,7 +11,6 @@ import li.cil.oc2.common.network.message.OpenComputerTerminalMessage;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.energy.IEnergyStorage;
@@ -23,7 +22,7 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
 
     ///////////////////////////////////////////////////////////////////
 
-    protected AbstractComputerContainer(final MenuType<?> type, final int id, final Player player, final ComputerBlockEntity computer, final ContainerData energyInfo) {
+    protected AbstractComputerContainer(final MenuType<?> type, final int id, final Player player, final ComputerBlockEntity computer, final IntPrecisionContainerData energyInfo) {
         super(type, id, energyInfo);
         this.computer = computer;
 
@@ -76,28 +75,20 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
 
     ///////////////////////////////////////////////////////////////////
 
-    protected static ContainerData createEnergyInfo(final IEnergyStorage energy, final CommonDeviceBusController busController) {
-        return new ContainerData() {
+    protected static IntPrecisionContainerData createEnergyInfo(final IEnergyStorage energy, final CommonDeviceBusController busController) {
+        return new IntPrecisionContainerData() {
             @Override
-            public int get(final int index) {
-                switch (index) {
-                    case AbstractMachineContainer.ENERGY_STORED_INDEX:
-                        return energy.getEnergyStored();
-                    case AbstractMachineContainer.ENERGY_CAPACITY_INDEX:
-                        return energy.getMaxEnergyStored();
-                    case AbstractMachineContainer.ENERGY_CONSUMPTION_INDEX:
-                        return busController.getEnergyConsumption();
-                    default:
-                        return 0;
-                }
+            public int getInt(final int index) {
+                return switch (index) {
+                    case AbstractMachineContainer.ENERGY_STORED_INDEX -> energy.getEnergyStored();
+                    case AbstractMachineContainer.ENERGY_CAPACITY_INDEX -> energy.getMaxEnergyStored();
+                    case AbstractMachineContainer.ENERGY_CONSUMPTION_INDEX -> busController.getEnergyConsumption();
+                    default -> 0;
+                };
             }
 
             @Override
-            public void set(final int index, final int value) {
-            }
-
-            @Override
-            public int getCount() {
+            public int getIntCount() {
                 return ENERGY_INFO_SIZE;
             }
         };

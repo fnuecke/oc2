@@ -17,6 +17,11 @@ public final class ItemStackJsonSerializer implements JsonSerializer<ItemStack> 
             return JsonNull.INSTANCE;
         }
 
-        return NBTToJsonConverter.convert(RPCItemStackTagFilters.getFilteredTag(src, src.serializeNBT()));
+        final JsonElement json = NBTToJsonConverter.convert(RPCItemStackTagFilters.getFilteredTag(src, src.serializeNBT()));
+
+        // Manually patch the count: the NBT conversion truncates it to byte, but some mods use larger stack sizes.
+        json.getAsJsonObject().addProperty("Count", src.getCount());
+
+        return json;
     }
 }

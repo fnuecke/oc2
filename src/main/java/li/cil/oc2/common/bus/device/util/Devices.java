@@ -46,6 +46,10 @@ public final class Devices {
     }
 
     public static List<LazyOptional<BlockDeviceInfo>> getDevices(final BlockDeviceQuery query) {
+        if (!query.getLevel().isLoaded(query.getQueryPosition())) {
+            return Collections.emptyList();
+        }
+
         final IForgeRegistry<BlockDeviceProvider> registry = Providers.BLOCK_DEVICE_PROVIDER_REGISTRY.get();
         final ArrayList<LazyOptional<BlockDeviceInfo>> devices = new ArrayList<>();
         for (final BlockDeviceProvider provider : registry.getValues()) {

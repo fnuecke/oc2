@@ -8,18 +8,21 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.network.chat.Component;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 
+@OnlyIn(Dist.CLIENT)
 public final class MachineTerminalWidget extends GuiComponent {
-    public static final int TERMINAL_WIDTH = Terminal.WIDTH * Terminal.CHAR_WIDTH / 2;
-    public static final int TERMINAL_HEIGHT = Terminal.HEIGHT * Terminal.CHAR_HEIGHT / 2;
+    private static final int TERMINAL_WIDTH = Terminal.WIDTH * Terminal.CHAR_WIDTH / 2;
+    private static final int TERMINAL_HEIGHT = Terminal.HEIGHT * Terminal.CHAR_HEIGHT / 2;
 
-    public static final int MARGIN_SIZE = 8;
-    public static final int TERMINAL_X = MARGIN_SIZE;
-    public static final int TERMINAL_Y = MARGIN_SIZE;
+    private static final int MARGIN_SIZE = 8;
+    private static final int TERMINAL_X = MARGIN_SIZE;
+    private static final int TERMINAL_Y = MARGIN_SIZE;
 
     public static final int WIDTH = Sprites.TERMINAL_SCREEN.width;
     public static final int HEIGHT = Sprites.TERMINAL_SCREEN.height;

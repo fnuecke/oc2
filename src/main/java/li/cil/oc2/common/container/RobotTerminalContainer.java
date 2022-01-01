@@ -1,6 +1,6 @@
 package li.cil.oc2.common.container;
 
-import li.cil.oc2.client.gui.MachineTerminalWidget;
+import li.cil.oc2.client.gui.Sprites;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.entity.RobotEntity;
@@ -47,10 +47,15 @@ public final class RobotTerminalContainer extends AbstractRobotContainer {
     private RobotTerminalContainer(final int id, final RobotEntity robot, final ContainerData energyInfo) {
         super(Containers.ROBOT_TERMINAL.get(), id, robot, energyInfo);
 
+        // It's kinda dumb we need to access technically-client-side stuff here, but that's the nature of containers
+        // needing to specify display positions for some reason.
+        final int terminalScreenWidth = Sprites.TERMINAL_SCREEN.width;
+        final int terminalScreenHeight = Sprites.TERMINAL_SCREEN.height;
+
         final ItemStackHandler inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
-            final int x = (MachineTerminalWidget.WIDTH - inventory.getSlots() * SLOT_SIZE) / 2 + 1 + slot * SLOT_SIZE;
-            addSlot(new SlotItemHandler(inventory, slot, x, MachineTerminalWidget.HEIGHT + 4));
+            final int x = (terminalScreenWidth - inventory.getSlots() * SLOT_SIZE) / 2 + 1 + slot * SLOT_SIZE;
+            addSlot(new SlotItemHandler(inventory, slot, x, terminalScreenHeight + 4));
         }
     }
 }

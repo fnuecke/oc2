@@ -1,9 +1,12 @@
 package li.cil.oc2.common.item;
 
+import li.cil.oc2.api.API;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity.ConnectionResult;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -16,18 +19,18 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.Objects;
-import java.util.WeakHashMap;
 
 public final class NetworkCableItem extends ModItem {
-    private static final WeakHashMap<ServerPlayer, BlockPos> LINK_STARTS = new WeakHashMap<>();
+    private static final String LINK_START_TAG_NAME = API.MOD_ID + ":" + "network_cable_link_start";
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     public InteractionResultHolder<ItemStack> use(final Level level, final Player player, final InteractionHand hand) {
         if (player.isShiftKeyDown()) {
-            if (player instanceof ServerPlayer) {
-                LINK_STARTS.remove(player);
+            if (player instanceof final ServerPlayer serverPlayer) {
+                final CompoundTag persistentData = serverPlayer.getPersistentData();
+                persistentData.remove(LINK_START_TAG_NAME);
             }
 
             return InteractionResultHolder.success(player.getItemInHand(hand));
@@ -57,10 +60,13 @@ public final class NetworkCableItem extends ModItem {
         }
 
         if (!level.isClientSide() && player instanceof final ServerPlayer serverPlayer) {
-            final BlockPos startPos = LINK_STARTS.remove(player);
-            if (startPos == null || Objects.equals(startPos, currentPos)) {
+            final CompoundTag persistentData = serverPlayer.getPersistentData();
+            final CompoundTag startPosTag = persistentData.getCompound(LINK_START_TAG_NAME);
+            final BlockPos startPos = NbtUtils.readBlockPos(startPosTag);
+            persistentData.remove(LINK_START_TAG_NAME);
+            if (startPosTag.isEmpty() || Objects.equals(startPos, currentPos)) {
                 if (currentConnector.canConnectMore()) {
-                    LINK_STARTS.put(serverPlayer, currentPos);
+                    persistentData.put(LINK_START_TAG_NAME, NbtUtils.writeBlockPos(currentPos));
                 } else {
                     player.displayClientMessage(new TranslatableComponent(Constants.CONNECTOR_ERROR_FULL), true);
                 }
@@ -80,18 +86,18 @@ public final class NetworkCableItem extends ModItem {
                         break;
 
                     case FAILURE:
-                        LINK_STARTS.put((ServerPlayer) player, startPos);
+                        persistentData.put(LINK_START_TAG_NAME, NbtUtils.writeBlockPos(startPos));
                         break;
                     case FAILURE_FULL:
-                        LINK_STARTS.put((ServerPlayer) player, startPos);
+                        persistentData.put(LINK_START_TAG_NAME, NbtUtils.writeBlockPos(startPos));
                         player.displayClientMessage(new TranslatableComponent(Constants.CONNECTOR_ERROR_FULL), true);
                         break;
                     case FAILURE_TOO_FAR:
-                        LINK_STARTS.put((ServerPlayer) player, startPos);
+                        persistentData.put(LINK_START_TAG_NAME, NbtUtils.writeBlockPos(startPos));
                         player.displayClientMessage(new TranslatableComponent(Constants.CONNECTOR_ERROR_TOO_FAR), true);
                         break;
                     case FAILURE_OBSTRUCTED:
-                        LINK_STARTS.put((ServerPlayer) player, startPos);
+                        persistentData.put(LINK_START_TAG_NAME, NbtUtils.writeBlockPos(startPos));
                         player.displayClientMessage(new TranslatableComponent(Constants.CONNECTOR_ERROR_OBSTRUCTED), true);
                         break;
                 }

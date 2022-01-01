@@ -2,15 +2,9 @@ package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.server.Bootstrap;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -22,23 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class DeviceBusTests {
-    @Mock
-    private Capability<DeviceBusElement> busElementCapability;
     private CommonDeviceBusController busController;
     private DeviceBusElement busControllerBusElement;
 
-    @BeforeAll
-    public static void setup() {
-        // Gotta go through regular MC bootstrapping first because otherwise class
-        // load order may lead to errors because static fields reference each other.
-        Bootstrap.bootStrap();
-    }
-
     @BeforeEach
     public void setupEach() {
-        MockitoAnnotations.initMocks(this);
-        Capabilities.DEVICE_BUS_ELEMENT = busElementCapability;
-
         busControllerBusElement = mock(DeviceBusElement.class);
         when(busControllerBusElement.getLocalDevices()).thenReturn(emptyList());
         when(busControllerBusElement.getNeighbors()).thenReturn(Optional.empty());

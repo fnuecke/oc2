@@ -7,6 +7,7 @@ import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.bus.device.provider.Providers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -14,7 +15,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.registries.IForgeRegistry;
 
 import javax.annotation.Nullable;
@@ -45,19 +45,17 @@ public final class Devices {
         return new ItemQuery(entity, stack);
     }
 
-    public static List<LazyOptional<BlockDeviceInfo>> getDevices(final BlockDeviceQuery query) {
+    public static List<Invalidatable<BlockDeviceInfo>> getDevices(final BlockDeviceQuery query) {
         if (!query.getLevel().isLoaded(query.getQueryPosition())) {
             return Collections.emptyList();
         }
 
         final IForgeRegistry<BlockDeviceProvider> registry = Providers.BLOCK_DEVICE_PROVIDER_REGISTRY.get();
-        final ArrayList<LazyOptional<BlockDeviceInfo>> devices = new ArrayList<>();
+        final ArrayList<Invalidatable<BlockDeviceInfo>> devices = new ArrayList<>();
         for (final BlockDeviceProvider provider : registry.getValues()) {
-            final LazyOptional<Device> device = provider.getDevice(query);
+            final Invalidatable<Device> device = provider.getDevice(query);
             if (device.isPresent()) {
-                final LazyOptional<BlockDeviceInfo> info = device.lazyMap(d -> new BlockDeviceInfo(provider, d));
-                device.addListener(unused -> info.invalidate());
-                devices.add(info);
+                devices.add(device.mapWithDependency(d -> new BlockDeviceInfo(provider, d)));
             }
         }
         return devices;

@@ -9,6 +9,7 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.NetworkConnectorConnectionsMessage;
 import li.cil.oc2.common.util.ItemStackUtils;
+import li.cil.oc2.common.util.LazyOptionalUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.ServerScheduler;
 import net.minecraft.client.Minecraft;
@@ -62,8 +63,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
 
     private final NetworkConnectorNetworkInterface networkInterface = new NetworkConnectorNetworkInterface();
 
-    private LazyOptional<NetworkInterface> localInterface = LazyOptional.empty();
-    private boolean isLocalConnectionDirty = true;
+    private LazyOptional<NetworkInterface> adjacentInterface = LazyOptional.empty();
+    private boolean isAdjacentInterfaceDirty = true;
 
     private final HashSet<BlockPos> connectorPositions = new HashSet<>();
     private final HashSet<BlockPos> ownedCables = new HashSet<>();
@@ -161,8 +162,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
         return connectorPositions;
     }
 
-    public void setLocalInterfaceChanged() {
-        isLocalConnectionDirty = true;
+    public void setNeighborChanged() {
+        isAdjacentInterfaceDirty = true;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -181,8 +182,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
             return;
         }
 
-        if (isLocalConnectionDirty) {
-            isLocalConnectionDirty = false;
+        if (isAdjacentInterfaceDirty) {
+            isAdjacentInterfaceDirty = false;
             resolveLocalInterface();
         }
 
@@ -194,7 +195,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
             }
         }
 
-        final NetworkInterface src = localInterface.orElse(NullNetworkInterface.INSTANCE);
+        final NetworkInterface src = adjacentInterface.orElse(NullNetworkInterface.INSTANCE);
 
         int byteBudget = BYTES_PER_TICK;
         byte[] frame;
@@ -324,7 +325,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
     private void resolveLocalInterface() {
         assert level != null;
 
-        localInterface = LazyOptional.empty();
+        adjacentInterface = LazyOptional.empty();
 
         if (isRemoved()) {
             return;
@@ -333,9 +334,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
         final Direction facing = NetworkConnectorBlock.getFacing(getBlockState());
         final BlockPos sourcePos = getBlockPos().relative(facing.getOpposite());
 
-        final ChunkPos sourceChunk = new ChunkPos(sourcePos);
-        if (!level.hasChunk(sourceChunk.x, sourceChunk.z)) {
-            ServerScheduler.schedule(level, this::setLocalInterfaceChanged, RETRY_UNLOADED_CHUNK_INTERVAL);
+        if (!level.isLoaded(sourcePos)) {
+            ServerScheduler.schedule(level, this::setNeighborChanged, RETRY_UNLOADED_CHUNK_INTERVAL);
             return;
         }
 
@@ -344,9 +344,9 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
             return;
         }
 
-        localInterface = blockEntity.getCapability(Capabilities.NETWORK_INTERFACE, facing);
-        if (localInterface.isPresent()) {
-            localInterface.addListener(unused -> setLocalInterfaceChanged());
+        adjacentInterface = blockEntity.getCapability(Capabilities.NETWORK_INTERFACE, facing);
+        if (adjacentInterface.isPresent()) {
+            LazyOptionalUtils.addWeakListener(adjacentInterface, this, (connector, unused) -> connector.setNeighborChanged());
         }
     }
 
@@ -449,7 +449,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
                 return;
             }
 
-            localInterface.ifPresent(dst -> {
+            adjacentInterface.ifPresent(dst -> {
                 if (dst == source) {
                     return;
                 }

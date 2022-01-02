@@ -56,7 +56,7 @@ public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirection
         if (Objects.equals(changedBlockPos, pos.relative(getFacing(state).getOpposite()))) {
             final BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof final NetworkConnectorBlockEntity networkConnector) {
-                networkConnector.setLocalInterfaceChanged();
+                networkConnector.setNeighborChanged();
             }
         }
     }

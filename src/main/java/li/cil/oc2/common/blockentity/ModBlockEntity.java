@@ -1,5 +1,6 @@
 package li.cil.oc2.common.blockentity;
 
+import li.cil.oc2.common.util.LazyOptionalUtils;
 import li.cil.oc2.common.util.ServerScheduler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,10 +37,14 @@ public abstract class ModBlockEntity extends BlockEntity {
         }
 
         final CapabilityCacheKey key = new CapabilityCacheKey(capability, side);
-        final LazyOptional<?> value;
+        LazyOptional<?> value;
         if (capabilityCache.containsKey(key)) {
             value = capabilityCache.get(key);
         } else {
+            value = LazyOptional.empty();
+        }
+
+        if (!value.isPresent()) {
             final ArrayList<T> list = new ArrayList<>();
             collectCapabilities(new CapabilityCollector() {
                 @SuppressWarnings("unchecked")
@@ -60,7 +65,7 @@ public abstract class ModBlockEntity extends BlockEntity {
 
             if (value.isPresent()) {
                 capabilityCache.put(key, value);
-                value.addListener(optional -> capabilityCache.remove(key, optional));
+                LazyOptionalUtils.addWeakListener(value, capabilityCache, (map, optional) -> map.remove(key, optional));
             }
         }
 

@@ -1,7 +1,7 @@
 package li.cil.oc2.api.bus.device.provider;
 
 import li.cil.oc2.api.bus.device.Device;
-import net.minecraftforge.common.util.LazyOptional;
+import li.cil.oc2.api.util.Invalidatable;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**
@@ -47,5 +47,5 @@ public interface BlockDeviceProvider extends IForgeRegistryEntry<BlockDeviceProv
      * @param query the query describing the object to get a {@link Device} for.
      * @return a device for the specified query, if available.
      */
-    LazyOptional<Device> getDevice(BlockDeviceQuery query);
+    Invalidatable<Device> getDevice(BlockDeviceQuery query);
 }

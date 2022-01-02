@@ -11,7 +11,6 @@ import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.BlockEntityDeviceBusController;
 import li.cil.oc2.common.bus.BlockEntityDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ComputerInventoryContainer;
@@ -338,9 +337,9 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         public void addOwnDevices() {
             assert level != null;
 
-            for (final BlockDeviceInfo info : collectDevices(level, getPosition(), null)) {
-                devices.add(info.device);
-                super.addDevice(info.device);
+            for (final BlockEntry info : collectDevices(level, getPosition(), null)) {
+                devices.add(info.getDevice());
+                super.addDevice(info.getDevice());
             }
         }
 

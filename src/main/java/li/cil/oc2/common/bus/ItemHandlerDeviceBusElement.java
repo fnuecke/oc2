@@ -1,5 +1,7 @@
 package li.cil.oc2.common.bus;
 
+import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
@@ -11,11 +13,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.function.Function;
 
-public final class ItemHandlerDeviceBusElement extends AbstractGroupingItemDeviceBusElement {
+import static li.cil.oc2.common.util.RegistryUtils.optionalKey;
+
+public final class ItemHandlerDeviceBusElement extends AbstractGroupingDeviceBusElement<ItemHandlerDeviceBusElement.ItemEntry> {
     private final Function<ItemStack, ItemDeviceQuery> queryFactory;
 
     public ItemHandlerDeviceBusElement(final int slotCount, final Function<ItemStack, ItemDeviceQuery> queryFactory) {
@@ -25,15 +28,25 @@ public final class ItemHandlerDeviceBusElement extends AbstractGroupingItemDevic
 
     ///////////////////////////////////////////////////////////////////
 
+    public boolean groupContains(final int groupIndex, final Device device) {
+        for (final ItemEntry entry : groups.get(groupIndex)) {
+            if (Objects.equals(entry.getDevice(), device)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void updateDevices(final int slot, final ItemStack stack) {
         if (!stack.isEmpty()) {
             final ItemDeviceQuery query = queryFactory.apply(stack);
-            final HashSet<ItemDeviceInfo> newDevices = new HashSet<>(Devices.getDevices(query));
+            final HashSet<ItemEntry> newDevices = new HashSet<>(Devices.getDevices(query).stream().map(ItemEntry::new).toList());
             insertItemNameDevice(stack, newDevices);
             importDeviceDataFromItemStack(stack, newDevices);
-            setDevicesForGroup(slot, newDevices);
+            setEntriesForGroup(slot, newDevices);
         } else {
-            setDevicesForGroup(slot, Collections.emptySet());
+            setEntriesForGroup(slot, Collections.emptySet());
         }
     }
 
@@ -43,10 +56,10 @@ public final class ItemHandlerDeviceBusElement extends AbstractGroupingItemDevic
         }
 
         final CompoundTag exportedTag = new CompoundTag();
-        for (final ItemDeviceInfo info : groups.get(slot)) {
-            ItemDeviceUtils.getItemDeviceDataKey(info.provider).ifPresent(key -> {
+        for (final ItemEntry entry : groups.get(slot)) {
+            entry.getDeviceDataKey().ifPresent(key -> {
                 final CompoundTag deviceTag = new CompoundTag();
-                info.device.exportToItemStack(deviceTag);
+                entry.getDevice().exportToItemStack(deviceTag);
                 if (!deviceTag.isEmpty()) {
                     exportedTag.put(key, deviceTag);
                 }
@@ -60,25 +73,44 @@ public final class ItemHandlerDeviceBusElement extends AbstractGroupingItemDevic
 
     ///////////////////////////////////////////////////////////////////
 
-    private void importDeviceDataFromItemStack(final ItemStack stack, final HashSet<ItemDeviceInfo> devices) {
+    private void importDeviceDataFromItemStack(final ItemStack stack, final HashSet<ItemEntry> entries) {
         final CompoundTag exportedTag = ItemDeviceUtils.getItemDeviceData(stack);
         if (!exportedTag.isEmpty()) {
-            for (final ItemDeviceInfo info : devices) {
-                ItemDeviceUtils.getItemDeviceDataKey(info.provider).ifPresent(key -> {
+            for (final ItemEntry entry : entries) {
+                entry.getDeviceDataKey().ifPresent(key -> {
                     if (exportedTag.contains(key, NBTTagIds.TAG_COMPOUND)) {
-                        info.device.importFromItemStack(exportedTag.getCompound(key));
+                        entry.deviceInfo.device.importFromItemStack(exportedTag.getCompound(key));
                     }
                 });
             }
         }
     }
 
-    private void insertItemNameDevice(final ItemStack stack, final HashSet<ItemDeviceInfo> devices) {
-        if (devices.stream().anyMatch(info -> info.device instanceof RPCDevice)) {
+    private void insertItemNameDevice(final ItemStack stack, final HashSet<ItemEntry> entries) {
+        if (entries.stream().anyMatch(entry -> entry.getDevice() instanceof RPCDevice)) {
             final ResourceLocation registryName = stack.getItem().getRegistryName();
             if (registryName != null) {
-                devices.add(new ItemDeviceInfo(null, new TypeNameRPCDevice(registryName.toString()), 0));
+                entries.add(new ItemEntry(new ItemDeviceInfo(null, new TypeNameRPCDevice(registryName.toString()), 0)));
             }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected record ItemEntry(ItemDeviceInfo deviceInfo) implements Entry {
+        @Override
+        public Optional<String> getDeviceDataKey() {
+            return optionalKey(deviceInfo.provider);
+        }
+
+        @Override
+        public OptionalInt getDeviceEnergyConsumption() {
+            return OptionalInt.of(deviceInfo.getEnergyConsumption());
+        }
+
+        @Override
+        public ItemDevice getDevice() {
+            return deviceInfo.device;
         }
     }
 }

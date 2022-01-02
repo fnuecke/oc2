@@ -1,24 +1,29 @@
 package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.common.bus.device.util.AbstractDeviceInfo;
-import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import java.util.*;
 
-public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeRegistryEntry<TProvider>, TDeviceInfo extends AbstractDeviceInfo<TProvider, ?>> extends AbstractDeviceBusElement {
+public abstract class AbstractGroupingDeviceBusElement<T extends AbstractGroupingDeviceBusElement.Entry> extends AbstractDeviceBusElement {
     private static final String GROUPS_TAG_NAME = "groups";
     private static final String GROUP_ID_TAG_NAME = "groupId";
     private static final String GROUP_DATA_TAG_NAME = "groupData";
 
+    protected interface Entry {
+        Optional<String> getDeviceDataKey();
+
+        OptionalInt getDeviceEnergyConsumption();
+
+        Device getDevice();
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     protected final int groupCount;
-    protected final ArrayList<HashSet<TDeviceInfo>> groups;
+    protected final ArrayList<HashSet<T>> groups;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -41,10 +46,6 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
     }
 
     ///////////////////////////////////////////////////////////////////
-
-    public Collection<TDeviceInfo> getDeviceGroup(final int index) {
-        return groups.get(index);
-    }
 
     public CompoundTag save() {
         final ListTag listTag = new ListTag();
@@ -83,9 +84,9 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
     @Override
     public Optional<UUID> getDeviceIdentifier(final Device device) {
         for (int i = 0; i < groupCount; i++) {
-            final HashSet<TDeviceInfo> group = groups.get(i);
-            for (final TDeviceInfo deviceInfo : group) {
-                if (Objects.equals(device, deviceInfo.device)) {
+            final HashSet<T> group = groups.get(i);
+            for (final T deviceInfo : group) {
+                if (Objects.equals(device, deviceInfo.getDevice())) {
                     return Optional.of(groupIds[i]);
                 }
             }
@@ -95,35 +96,37 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
 
     ///////////////////////////////////////////////////////////////////
 
-    protected final void setDevicesForGroup(final int index, final Set<TDeviceInfo> newDevices) {
-        final HashSet<TDeviceInfo> oldDevices = groups.get(index);
-        if (Objects.equals(newDevices, oldDevices)) {
+    protected final void setEntriesForGroup(final int index, final Set<T> newEntries) {
+        final HashSet<T> oldEntries = groups.get(index);
+        if (Objects.equals(newEntries, oldEntries)) {
             return;
         }
 
-        final HashSet<TDeviceInfo> removedDevices = new HashSet<>(oldDevices);
-        removedDevices.removeAll(newDevices);
-        for (final TDeviceInfo info : removedDevices) {
-            devices.removeInt(info.device);
+        final HashSet<T> removedEntries = new HashSet<>(oldEntries);
+        removedEntries.removeAll(newEntries);
+        for (final T entry : removedEntries) {
+            devices.removeInt(entry.getDevice());
+            onEntryRemoved(entry);
         }
 
-        final HashSet<TDeviceInfo> addedDevices = new HashSet<>(newDevices);
-        addedDevices.removeAll(oldDevices);
-        for (final TDeviceInfo info : addedDevices) {
-            devices.put(info.device, info.getEnergyConsumption());
+        final HashSet<T> addedEntries = new HashSet<>(newEntries);
+        addedEntries.removeAll(oldEntries);
+        for (final T entry : addedEntries) {
+            devices.put(entry.getDevice(), entry.getDeviceEnergyConsumption().orElse(0));
+            onEntryAdded(entry);
         }
 
-        oldDevices.removeAll(removedDevices);
-        oldDevices.addAll(newDevices);
+        oldEntries.removeAll(removedEntries);
+        oldEntries.addAll(newEntries);
 
         final CompoundTag devicesTag = groupData[index];
-        for (final TDeviceInfo deviceInfo : removedDevices) {
-            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(devicesTag::remove);
+        for (final T entry : removedEntries) {
+            entry.getDeviceDataKey().ifPresent(devicesTag::remove);
         }
-        for (final TDeviceInfo deviceInfo : addedDevices) {
-            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(key -> {
+        for (final T entry : addedEntries) {
+            entry.getDeviceDataKey().ifPresent(key -> {
                 if (devicesTag.contains(key, NBTTagIds.TAG_COMPOUND)) {
-                    deviceInfo.device.deserializeNBT(devicesTag.getCompound(key));
+                    entry.getDevice().deserializeNBT(devicesTag.getCompound(key));
                 }
             });
         }
@@ -131,13 +134,19 @@ public abstract class AbstractGroupingDeviceBusElement<TProvider extends IForgeR
         scanDevices();
     }
 
+    protected void onEntryRemoved(final T entry) {
+    }
+
+    protected void onEntryAdded(final T entry) {
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     private void saveGroup(final int index) {
         final CompoundTag devicesTag = new CompoundTag();
-        for (final TDeviceInfo deviceInfo : groups.get(index)) {
-            ItemDeviceUtils.getItemDeviceDataKey(deviceInfo.provider).ifPresent(key -> {
-                final CompoundTag deviceTag = deviceInfo.device.serializeNBT();
+        for (final T entry : groups.get(index)) {
+            entry.getDeviceDataKey().ifPresent(key -> {
+                final CompoundTag deviceTag = entry.getDevice().serializeNBT();
                 if (!deviceTag.isEmpty()) {
                     devicesTag.put(key, deviceTag);
                 }

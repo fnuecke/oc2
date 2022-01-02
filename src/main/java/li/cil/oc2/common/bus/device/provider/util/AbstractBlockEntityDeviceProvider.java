@@ -2,10 +2,9 @@ package li.cil.oc2.common.bus.device.provider.util;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import li.cil.oc2.common.util.LevelUtils;
+import li.cil.oc2.api.util.Invalidatable;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.common.util.LazyOptional;
 
 public abstract class AbstractBlockEntityDeviceProvider<T extends BlockEntity> extends AbstractBlockDeviceProvider {
     private final BlockEntityType<T> blockEntityType;
@@ -24,14 +23,14 @@ public abstract class AbstractBlockEntityDeviceProvider<T extends BlockEntity> e
 
     @SuppressWarnings("unchecked")
     @Override
-    public final LazyOptional<Device> getDevice(final BlockDeviceQuery query) {
-        final BlockEntity blockEntity = LevelUtils.getBlockEntityIfChunkExists(query.getLevel(), query.getQueryPosition());
+    public final Invalidatable<Device> getDevice(final BlockDeviceQuery query) {
+        final BlockEntity blockEntity = query.getLevel().getBlockEntity(query.getQueryPosition());
         if (blockEntity == null) {
-            return LazyOptional.empty();
+            return Invalidatable.empty();
         }
 
         if (blockEntityType != null && blockEntity.getType() != blockEntityType) {
-            return LazyOptional.empty();
+            return Invalidatable.empty();
         }
 
         return getBlockDevice(query, (T) blockEntity);
@@ -39,5 +38,5 @@ public abstract class AbstractBlockEntityDeviceProvider<T extends BlockEntity> e
 
     ///////////////////////////////////////////////////////////////////
 
-    protected abstract LazyOptional<Device> getBlockDevice(final BlockDeviceQuery query, final T blockEntity);
+    protected abstract Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final T blockEntity);
 }

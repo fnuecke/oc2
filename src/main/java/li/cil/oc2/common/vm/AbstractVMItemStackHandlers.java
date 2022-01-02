@@ -6,7 +6,6 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
-import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.container.TypedDeviceItemStackHandler;
 import net.minecraft.nbt.CompoundTag;
@@ -76,17 +75,14 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
             final DeviceItemStackHandler handler = entry.getValue();
 
             for (int i = 0; i < handler.getSlots(); i++) {
-                final Collection<ItemDeviceInfo> devices = handler.getBusElement().getDeviceGroup(i);
-                for (final ItemDeviceInfo info : devices) {
-                    if (Objects.equals(info.device, wrapper)) {
-                        // Ahhh, such special casing, much wow. Honestly I don't expect this
-                        // special case to ever be needed for anything other than physical
-                        // memory, so it's fine. Prove me wrong.
-                        if (deviceType == DeviceTypes.MEMORY) {
-                            return OptionalLong.empty();
-                        } else {
-                            return OptionalLong.of(address);
-                        }
+                if (handler.getBusElement().groupContains(i, wrapper)) {
+                    // Ahhh, such special casing, much wow. Honestly I don't expect this
+                    // special case to ever be needed for anything other than physical
+                    // memory, so it's fine. Prove me wrong.
+                    if (deviceType == DeviceTypes.MEMORY) {
+                        return OptionalLong.empty();
+                    } else {
+                        return OptionalLong.of(address);
                     }
                 }
 

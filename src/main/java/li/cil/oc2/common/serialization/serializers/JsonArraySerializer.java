@@ -37,7 +37,7 @@ public final class JsonArraySerializer implements Serializer<JsonArray> {
             array.remove(array.size() - 1);
         }
 
-        array.addAll(new JsonParser().parse(jsonString).getAsJsonArray());
+        array.addAll(JsonParser.parseString(jsonString).getAsJsonArray());
 
         return array;
     }

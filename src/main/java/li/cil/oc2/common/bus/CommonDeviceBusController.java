@@ -5,6 +5,7 @@ import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.Event;
+import li.cil.oc2.common.util.LazyOptionalUtils;
 import li.cil.oc2.common.util.ParameterizedEvent;
 import net.minecraftforge.common.util.LazyOptional;
 
@@ -207,7 +208,9 @@ public class CommonDeviceBusController implements DeviceBusController {
         // Rescan if any bus element gets invalidated.
         for (final LazyOptional<DeviceBusElement> optional : optionals) {
             assert optional.isPresent();
-            optional.addListener(unused -> scheduleBusScan());
+
+            // Don't have bus elements keep this instance alive, only notify us on change if we still exist.
+            LazyOptionalUtils.addWeakListener(optional, this, (controller, unused) -> controller.scheduleBusScan());
         }
 
         onAfterBusScan();

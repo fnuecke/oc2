@@ -265,12 +265,12 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
 
         @Override
-        protected void collectSyntheticDevices(final Level level, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockDeviceInfo> devices) {
-            super.collectSyntheticDevices(level, pos, direction, devices);
+        protected void collectSyntheticDevices(final Level level, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockEntry> entries) {
+            super.collectSyntheticDevices(level, pos, direction, entries);
             if (direction != null) {
                 final String interfaceName = interfaceNames[direction.get3DDataValue()];
                 if (!StringUtil.isNullOrEmpty(interfaceName)) {
-                    devices.add(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)));
+                    entries.add(new BlockEntry(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)), pos));
                 }
             }
         }

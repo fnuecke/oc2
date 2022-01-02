@@ -3,6 +3,8 @@ package li.cil.oc2.common.blockentity;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.util.LazyOptionalUtils;
+import li.cil.oc2.common.util.LevelUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -61,6 +63,10 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
             return;
         }
 
+        for (final Direction side : Constants.DIRECTIONS) {
+            adjacentInterfaces[side.get3DDataValue()] = null;
+        }
+
         areAdjacentInterfacesDirty = false;
 
         if (level == null || level.isClientSide()) {
@@ -69,14 +75,12 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
 
         final BlockPos pos = getBlockPos();
         for (final Direction side : Constants.DIRECTIONS) {
-            adjacentInterfaces[side.get3DDataValue()] = null;
-
-            final BlockEntity neighborBlockEntity = level.getBlockEntity(pos.relative(side));
+            final BlockEntity neighborBlockEntity = LevelUtils.getBlockEntityIfChunkExists(level, pos.relative(side));
             if (neighborBlockEntity != null) {
-                final LazyOptional<NetworkInterface> capability = neighborBlockEntity.getCapability(Capabilities.NETWORK_INTERFACE, side.getOpposite());
-                capability.ifPresent(adjacentInterface -> {
+                final LazyOptional<NetworkInterface> optional = neighborBlockEntity.getCapability(Capabilities.NETWORK_INTERFACE, side.getOpposite());
+                optional.ifPresent(adjacentInterface -> {
                     adjacentInterfaces[side.get3DDataValue()] = adjacentInterface;
-                    capability.addListener(unused -> handleNeighborChanged());
+                    LazyOptionalUtils.addWeakListener(optional, this, (hub, unused) -> hub.handleNeighborChanged());
                 });
             }
         }

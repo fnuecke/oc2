@@ -2,6 +2,8 @@ package li.cil.oc2.common.bus.device.provider.util;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
+import li.cil.oc2.api.util.Invalidatable;
+import li.cil.oc2.common.util.LazyOptionalUtils;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.common.capabilities.Capability;
@@ -26,19 +28,22 @@ public abstract class AbstractBlockEntityCapabilityDeviceProvider<TCapability, T
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected final LazyOptional<Device> getBlockDevice(final BlockDeviceQuery blockQuery, final BlockEntity blockEntity) {
+    protected final Invalidatable<Device> getBlockDevice(final BlockDeviceQuery blockQuery, final BlockEntity blockEntity) {
         final Capability<TCapability> capability = capabilitySupplier.get();
         if (capability == null) throw new IllegalStateException();
         final LazyOptional<TCapability> optional = blockEntity.getCapability(capability, blockQuery.getQuerySide());
         if (!optional.isPresent()) {
-            return LazyOptional.empty();
+            return Invalidatable.empty();
         }
 
         final TCapability value = optional.orElseThrow(AssertionError::new);
-        final LazyOptional<Device> device = getBlockDevice(blockQuery, value);
-        optional.addListener(ignored -> device.invalidate());
+        final Invalidatable<Device> device = getBlockDevice(blockQuery, value);
+
+        // When capability gets invalidated, invalidate device. But don't keep device alive via capability.
+        LazyOptionalUtils.addWeakListener(optional, device, (invalidatable, unused) -> invalidatable.invalidate());
+
         return device;
     }
 
-    protected abstract LazyOptional<Device> getBlockDevice(final BlockDeviceQuery query, final TCapability value);
+    protected abstract Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final TCapability value);
 }

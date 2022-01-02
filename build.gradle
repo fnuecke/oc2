@@ -58,7 +58,7 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    implementation "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.2"
+    implementation "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.3"
 
     implementation fg.deobf("curse.maven:markdownmanual-502485:3565800")
 

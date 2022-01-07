@@ -8,6 +8,7 @@ import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.Robot;
+import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
@@ -82,7 +83,7 @@ import java.util.function.Consumer;
 import static java.util.Collections.singleton;
 import static li.cil.oc2.common.Constants.*;
 
-public final class RobotEntity extends Entity implements Robot {
+public final class RobotEntity extends Entity implements Robot, TerminalUserProvider {
     public static final EntityDataAccessor<BlockPos> TARGET_POSITION = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.BLOCK_POS);
     public static final EntityDataAccessor<Direction> TARGET_DIRECTION = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.DIRECTION);
     public static final EntityDataAccessor<Byte> SELECTED_SLOT = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.BYTE);
@@ -118,6 +119,7 @@ public final class RobotEntity extends Entity implements Robot {
     private final RobotItemStackHandlers deviceItems = new RobotItemStackHandlers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.robotEnergyStorage);
     private final ItemStackHandler inventory = new FixedSizeItemStackHandler(INVENTORY_SIZE);
+    private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
     private long lastPistonMovement;
 
     ///////////////////////////////////////////////////////////////////
@@ -222,6 +224,19 @@ public final class RobotEntity extends Entity implements Robot {
 
     public void openInventoryScreen(final ServerPlayer player) {
         RobotInventoryContainer.createServer(this, energy, virtualMachine.busController, player);
+    }
+
+    public void addTerminalUser(final Player player) {
+        terminalUsers.add(player);
+    }
+
+    public void removeTerminalUser(final Player player) {
+        terminalUsers.remove(player);
+    }
+
+    @Override
+    public Iterable<Player> getTerminalUsers() {
+        return terminalUsers;
     }
 
     public void dropSelf() {

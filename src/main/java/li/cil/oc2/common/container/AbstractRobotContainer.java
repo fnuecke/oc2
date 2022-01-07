@@ -20,9 +20,11 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
 
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractRobotContainer(final MenuType<?> type, final int id, final RobotEntity robot, final IntPrecisionContainerData energyInfo) {
+    public AbstractRobotContainer(final MenuType<?> type, final int id, final Player player, final RobotEntity robot, final IntPrecisionContainerData energyInfo) {
         super(type, id, energyInfo);
         this.robot = robot;
+
+        this.robot.addTerminalUser(player);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -64,6 +66,13 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
     @Override
     public boolean stillValid(final Player player) {
         return robot.isAlive() && robot.closerThan(player, 8);
+    }
+
+    @Override
+    public void removed(final Player player) {
+        super.removed(player);
+
+        this.robot.removeTerminalUser(player);
     }
 
     ///////////////////////////////////////////////////////////////////

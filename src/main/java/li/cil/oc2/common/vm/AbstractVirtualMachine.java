@@ -173,6 +173,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
             } catch (final Throwable e) {
                 LOGGER.error(e);
                 runner = null;
+                setRunState(VMRunState.STOPPED);
             }
         }
     }

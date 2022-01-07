@@ -28,7 +28,7 @@ public interface BlockDeviceQuery {
     BlockPos getQueryPosition();
 
     /**
-     * The side of the block this query is performed on, if any.
+     * The world-space side of the block this query is performed on, if any.
      * <p>
      * May be {@code null} just as when requesting a capability from a {@link BlockEntity}.
      *

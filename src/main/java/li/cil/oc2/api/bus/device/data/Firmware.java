@@ -31,7 +31,7 @@ public interface Firmware extends IForgeRegistryEntry<Firmware> {
      * <p>
      * This will usually load machine code into memory at the specified start address.
      * <p>
-     * Typically only returns {@code false} when there was not enough memory to fit the firmware.
+     * Typically, only returns {@code false} when there was not enough memory to fit the firmware.
      *
      * @param memory       access to the memory map of the machine.
      * @param startAddress the memory address where execution will commence.

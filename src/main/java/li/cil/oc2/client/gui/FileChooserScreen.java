@@ -352,9 +352,12 @@ public final class FileChooserScreen extends Screen {
             return createDirectoryEntry(path, path.getFileName().toString() + path.getFileSystem().getSeparator());
         }
 
-        private FileList.FileEntry createDirectoryEntry(final Path path, final String displayName) {
+        private FileList.FileEntry createDirectoryEntry(@Nullable final Path path, final String displayName) {
+            final TextColor color = path != null && Files.exists(path)
+                ? TextColor.fromRgb(0xA0A0FF)
+                : TextColor.fromLegacyFormat(ChatFormatting.GRAY);
             return new FileList.FileEntry(path, new TextComponent(displayName)
-                .withStyle(s -> s.withColor(TextColor.fromRgb(0xA0A0FF))));
+                .withStyle(s -> s.withColor(color)));
         }
 
         private final class FileEntry extends ObjectSelectionList.Entry<FileEntry> {

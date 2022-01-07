@@ -90,7 +90,9 @@ public final class MachineTerminalWidget extends GuiComponent {
     }
 
     public boolean charTyped(final char ch, final int modifier) {
-        terminal.putInput((byte) ch);
+        if (modifier == 0 || modifier == GLFW.GLFW_MOD_SHIFT) {
+            terminal.putInput((byte) ch);
+        }
         return true;
     }
 

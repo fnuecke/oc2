@@ -381,7 +381,7 @@ public final class FileChooserScreen extends Screen {
                     select();
 
                     final boolean isDoubleClick = System.currentTimeMillis() - lastEntryClickTime < 250;
-                    if (isDoubleClick) {
+                    if (isDoubleClick && okButton.active) {
                         confirm();
                     }
 

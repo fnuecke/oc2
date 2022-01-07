@@ -57,7 +57,8 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull final Capability<T> capability, @Nullable final Direction side) {
         if (capability == Capabilities.REDSTONE_EMITTER && side != null) {
-            return LazyOptional.of(() -> capabilities[side.get3DDataValue()]).cast();
+            final int index = side.get3DDataValue();
+            return LazyOptional.of(() -> capabilities[index]).cast();
         }
 
         return LazyOptional.empty();
@@ -101,20 +102,22 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
     @Callback(name = GET_REDSTONE_OUTPUT, synchronize = false)
     public int getRedstoneOutput(@Parameter(SIDE) @Nullable final Side side) {
         if (side == null) throw new IllegalArgumentException();
+        final int index = side.getDirection().get3DDataValue();
 
-        return output[side.get3DDataValue()];
+        return output[index];
     }
 
     @Callback(name = SET_REDSTONE_OUTPUT)
     public void setRedstoneOutput(@Parameter(SIDE) @Nullable final Side side, @Parameter(VALUE) final int value) {
         if (side == null) throw new IllegalArgumentException();
+        final int index = side.getDirection().get3DDataValue();
 
         final byte clampedValue = (byte) Mth.clamp(value, 0, 15);
-        if (clampedValue == output[side.get3DDataValue()]) {
+        if (clampedValue == output[index]) {
             return;
         }
 
-        output[side.get3DDataValue()] = clampedValue;
+        output[index] = clampedValue;
 
         final Direction direction = HorizontalBlockUtils.toGlobal(blockEntity.getBlockState(), side);
         if (direction != null) {

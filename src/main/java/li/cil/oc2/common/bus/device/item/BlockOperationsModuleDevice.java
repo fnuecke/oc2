@@ -91,7 +91,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
         final List<ItemEntity> oldItems = getItemsInRange();
 
-        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        final Direction direction = RobotOperationSide.toGlobal(entity, side);
         if (!tryHarvestBlock(serverLevel, entity.blockPosition().relative(direction))) {
             return false;
         }
@@ -129,7 +129,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
             return false;
         }
 
-        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        final Direction direction = RobotOperationSide.toGlobal(entity, side);
         final BlockPos blockPos = entity.blockPosition().relative(direction);
         final Direction oppositeDirection = direction.getOpposite();
         final BlockHitResult hit = new BlockHitResult(

@@ -8,7 +8,7 @@ start() {
     then
         echo "TERMINFO=/usr/lib/terminfo/v/vt100" > $TERMINFO_PROFILE
         echo "COLUMNS=80" >> $TERMINFO_PROFILE
-        echo "ROWS=24" >> $TERMINFO_PROFILE
+        echo "LINES=24" >> $TERMINFO_PROFILE
     fi
 }
 

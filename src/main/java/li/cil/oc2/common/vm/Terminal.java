@@ -366,7 +366,7 @@ public final class Terminal {
         style = DEFAULT_STYLE;
         clear();
         Arrays.fill(tabs, false);
-        for (int i = 0; i < WIDTH; i++) {
+        for (int i = 1; i < WIDTH; i++) {
             if (i % TAB_WIDTH == 0) {
                 tabs[i] = true;
             }

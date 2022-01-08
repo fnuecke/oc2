@@ -1,0 +1,27 @@
+#!/bin/sh
+
+TERMINFO_PROFILE="/etc/profile.d/02_init_terminfo.sh"
+
+# Registers terminfo environment variables in global profile config if they don't exist yet
+start() {
+    if [ ! -f $TERMINFO_PROFILE ]
+    then
+        echo "TERMINFO=/usr/lib/terminfo/v/vt100" > $TERMINFO_PROFILE
+        echo "COLUMNS=80" >> $TERMINFO_PROFILE
+        echo "ROWS=24" >> $TERMINFO_PROFILE
+    fi
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        exit 0
+        ;;
+    *)
+        echo "Usage: $0 {start}"
+        exit 1
+esac
+
+exit $?

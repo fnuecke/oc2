@@ -1,10 +1,7 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
-import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
-import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
-import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
-import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
+import li.cil.oc2.api.bus.device.vm.event.*;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
@@ -40,7 +37,7 @@ public class VMRunner implements Runnable {
 
     ///////////////////////////////////////////////////////////////////
 
-    private boolean firedResumeEvent;
+    private boolean firedResumedRunningEvent;
     @Serialized private boolean firedInitializationEvent;
     @Serialized private Component runtimeError;
 
@@ -56,10 +53,6 @@ public class VMRunner implements Runnable {
     }
 
     ///////////////////////////////////////////////////////////////////
-
-    public void scheduleResumeEvent() {
-        firedResumeEvent = false;
-    }
 
     @Nullable
     public Component getRuntimeError() {
@@ -79,14 +72,20 @@ public class VMRunner implements Runnable {
     }
 
     public void join() throws Throwable {
-        if (lastSchedule != null) {
-            try {
-                lastSchedule.get();
-            } catch (final InterruptedException e) {
-                // We do not mind this.
-            } catch (final ExecutionException e) {
-                throw e.getCause();
+        context.postEvent(new VMPausingEvent());
+        try {
+            if (lastSchedule != null) {
+                try {
+                    lastSchedule.get();
+                } catch (final InterruptedException e) {
+                    // We do not mind this.
+                } catch (final ExecutionException e) {
+                    throw e.getCause();
+                }
             }
+        } finally {
+            context.postEvent(new VMResumingRunningEvent());
+            firedResumedRunningEvent = false;
         }
     }
 
@@ -136,9 +135,8 @@ public class VMRunner implements Runnable {
             }
         }
 
-        if (!firedResumeEvent) {
-            firedResumeEvent = true;
-            context.postEvent(new VMResumingRunningEvent());
+        if (!firedResumedRunningEvent) {
+            firedResumedRunningEvent = true;
             context.postEvent(new VMResumedRunningEvent());
         }
     }

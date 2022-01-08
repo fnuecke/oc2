@@ -2,7 +2,7 @@ package li.cil.oc2.common.bus.device.item;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.ByteStreams;
-import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
+import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
 import li.cil.oc2.common.util.Location;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
@@ -39,7 +39,7 @@ public final class HardDriveVMDeviceWithInitialData extends HardDriveVMDevice {
     }
 
     @Subscribe
-    public void handleResumingRunningEvent(final VMResumingRunningEvent event) {
+    public void handleResumedRunningEvent(final VMResumedRunningEvent event) {
         if (copyJob != null) {
             try {
                 copyJob.get();

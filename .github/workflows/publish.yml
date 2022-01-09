@@ -2,11 +2,10 @@ name: publish
 
 on:
   release:
-    types: [ published ]
+    types: [published]
 
 jobs:
-  build:
-    name: publish
+  publish-github:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -54,10 +53,49 @@ jobs:
           GITHUB_MAVEN_URL: 'https://maven.pkg.github.com/${{ github.repository }}'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-#      - name: Publish to Curseforge
-#        run: ./gradlew -Psemver='${{ steps.split_tag.outputs._1 }}' curseforge
-#        env:
-#          GPR_USER: ${{ secrets.GPR_USER }}
-#          GPR_KEY: ${{ secrets.GPR_KEY }}
-#          CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-#          CHANGELOG: ${{ github.event.release.body }}
+  publish-curse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Extract Version from Tag
+        uses: rishabhgupta/split-by@v1
+        id: split_tag
+        with:
+          string: ${{ github.event.release.tag_name }}
+          split-by: '/'
+
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ubuntu-latest-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: ubuntu-latest-gradle-
+
+      # Set Curseforge release type based on pre-release flag.
+      - name: Set release type to 'release'
+        run: |
+          echo "CURSEFORGE_RELEASE_TYPE=release" >> $GITHUB_ENV
+        if: github.event.release.prerelease == false
+      - name: Set release type to 'alpha'
+        run: |
+          echo "CURSEFORGE_RELEASE_TYPE=alpha" >> $GITHUB_ENV
+        if: github.event.release.prerelease == true
+
+      - name: Publish to Curseforge
+        run: ./gradlew -Psemver='${{ steps.split_tag.outputs._1 }}' curseforge
+        env:
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_KEY: ${{ secrets.GPR_KEY }}
+          CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+          CURSEFORGE_RELEASE_TYPE: ${{ env.CURSEFORGE_RELEASE_TYPE }}
+          CHANGELOG: ${{ github.event.release.body }}

@@ -184,7 +184,7 @@ curseforge {
     apiKey = System.getenv('CURSEFORGE_API_KEY') ?: ""
     project {
         id = curse_project_id
-        releaseType = curse_project_releaseType
+        releaseType = System.getenv('CURSEFORGE_RELEASE_TYPE') ?: "alpha"
         changelogType = 'markdown'
         changelog = System.getenv("CHANGELOG") ?: "Changelog not available."
         addGameVersion 'Forge'

@@ -55,13 +55,13 @@ public class DeviceItemStackHandler extends FixedSizeItemStackHandler {
 
     public void loadItems(final CompoundTag tag) {
         super.deserializeNBT(tag);
+        for (int slot = 0; slot < getSlots(); slot++) {
+            busElement.updateDevices(slot, getStackInSlot(slot));
+        }
     }
 
     public void loadDevices(final CompoundTag tag) {
         busElement.load(tag);
-        for (int slot = 0; slot < getSlots(); slot++) {
-            busElement.updateDevices(slot, getStackInSlot(slot));
-        }
     }
 
     @Override

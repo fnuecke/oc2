@@ -40,15 +40,7 @@ public final class HardDriveVMDeviceWithInitialData extends HardDriveVMDevice {
 
     @Subscribe
     public void handleResumedRunningEvent(final VMResumedRunningEvent event) {
-        if (copyJob != null) {
-            try {
-                copyJob.get();
-            } catch (final Throwable e) {
-                LOGGER.error(e);
-            } finally {
-                copyJob = null;
-            }
-        }
+        joinCopyJob();
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -70,5 +62,29 @@ public final class HardDriveVMDeviceWithInitialData extends HardDriveVMDevice {
             }, WORKERS);
         }
         return device;
+    }
+
+    @Override
+    protected void closeBlockDevice() {
+        // Join the copy job before releasing the device to avoid writes from thread to closed device.
+        // Since we use memory mapped memory, closing the device leads to it holding a dead pointer, meaning
+        // further access to it will hard-crash the JVM.
+        joinCopyJob();
+
+        super.closeBlockDevice();
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private void joinCopyJob() {
+        if (copyJob != null) {
+            try {
+                copyJob.get();
+            } catch (final Throwable e) {
+                LOGGER.error(e);
+            } finally {
+                copyJob = null;
+            }
+        }
     }
 }

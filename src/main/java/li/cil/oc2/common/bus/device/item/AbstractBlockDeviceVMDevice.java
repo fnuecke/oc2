@@ -89,19 +89,11 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
 
     @Override
     public void suspend() {
-        if (device != null) {
-            try {
-                device.close();
-            } catch (final IOException e) {
-                LOGGER.error(e);
-            }
-        }
+        closeBlockDevice();
 
         if (blobHandle != null) {
             BlobStorage.close(blobHandle);
         }
-
-        device = null;
     }
 
     @Override
@@ -162,6 +154,20 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
     ///////////////////////////////////////////////////////////////
 
     protected abstract TBlock createBlockDevice() throws IOException;
+
+    protected void closeBlockDevice() {
+        if (device == null) {
+            return;
+        }
+
+        try {
+            device.close();
+        } catch (final IOException e) {
+            LOGGER.error(e);
+        }
+
+        device = null;
+    }
 
     protected void handleDataAccess() {
     }

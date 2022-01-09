@@ -216,8 +216,10 @@ public final class Terminal {
                         }
                     }
                     case (byte) '\t' /* 011 */ -> {
-                        while (x < WIDTH && !tabs[x]) {
-                            x++;
+                        if (x < WIDTH) {
+                            do {
+                                x++;
+                            } while (x < WIDTH && !tabs[x]);
                         }
                     }
                     case (byte) '\b' /* 010 */ -> setCursorPos(Math.min(x, WIDTH - 1) - 1, y);

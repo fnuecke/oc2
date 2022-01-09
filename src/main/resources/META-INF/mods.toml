@@ -11,7 +11,7 @@ authors = "Sangar"
 description = '''
 Modern computers for the modern player.
 
-This mod uses the Terminus Font under the Open Font License.
+This mod uses the Terminus Font under the Open Font License. The full license can be found in the JAR of this mod.
 '''
 
 [[dependencies.oc2]]
@@ -29,7 +29,7 @@ side = "BOTH"
 [[dependencies.oc2]]
 modId = "sedna"
 mandatory = true
-versionRange = "[1.0.0,)"
+versionRange = "[1.0.5,)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]

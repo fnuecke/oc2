@@ -15,7 +15,7 @@ public final class Entities {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final RegistryObject<EntityType<RobotEntity>> ROBOT = register("robot", RobotEntity::new, MobCategory.MISC, b -> b.sized(14f / 16f, 14f / 16f).fireImmune().noSummon());
+    public static final RegistryObject<EntityType<Robot>> ROBOT = register("robot", Robot::new, MobCategory.MISC, b -> b.sized(14f / 16f, 14f / 16f).fireImmune().noSummon());
 
     ///////////////////////////////////////////////////////////////////
 

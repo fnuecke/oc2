@@ -1,6 +1,6 @@
 package li.cil.oc2.common.entity.robot;
 
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nullable;
@@ -19,19 +19,19 @@ public final class RobotActions {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void initializeData(final RobotEntity robot) {
+    public static void initializeData(final Robot robot) {
         for (final AbstractRobotActionType type : ACTIONS) {
             type.initializeData(robot);
         }
     }
 
-    public static void performServer(final RobotEntity robot, final AbstractRobotAction currentAction) {
+    public static void performServer(final Robot robot, final AbstractRobotAction currentAction) {
         for (final AbstractRobotActionType type : ACTIONS) {
             type.performServer(robot, currentAction);
         }
     }
 
-    public static void performClient(final RobotEntity robot) {
+    public static void performClient(final Robot robot) {
         for (final AbstractRobotActionType type : ACTIONS) {
             type.performClient(robot);
         }

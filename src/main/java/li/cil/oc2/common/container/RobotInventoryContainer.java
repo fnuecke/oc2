@@ -3,7 +3,7 @@ package li.cil.oc2.common.container;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.vm.VMItemStackHandlers;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -18,7 +18,7 @@ import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.network.NetworkHooks;
 
 public final class RobotInventoryContainer extends AbstractRobotContainer {
-    public static void createServer(final RobotEntity robot, final FixedEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
+    public static void createServer(final Robot robot, final FixedEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
         NetworkHooks.openGui(player, new MenuProvider() {
             @Override
             public Component getDisplayName() {
@@ -35,7 +35,7 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
     public static RobotInventoryContainer createClient(final int id, final Inventory inventory, final FriendlyByteBuf data) {
         final int entityId = data.readVarInt();
         final Entity entity = inventory.player.level.getEntity(entityId);
-        if (entity instanceof final RobotEntity robot) {
+        if (entity instanceof final Robot robot) {
             return new RobotInventoryContainer(id, robot, inventory.player, createEnergyInfo());
         }
 
@@ -44,7 +44,7 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    private RobotInventoryContainer(final int id, final RobotEntity robot, final Player player, final IntPrecisionContainerData energyInfo) {
+    private RobotInventoryContainer(final int id, final Robot robot, final Player player, final IntPrecisionContainerData energyInfo) {
         super(Containers.ROBOT.get(), id, player, robot, energyInfo);
 
         final VMItemStackHandlers handlers = robot.getItemStackHandlers();

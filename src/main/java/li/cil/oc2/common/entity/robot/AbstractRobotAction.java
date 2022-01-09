@@ -1,6 +1,6 @@
 package li.cil.oc2.common.entity.robot;
 
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import net.minecraft.nbt.CompoundTag;
 
 public abstract class AbstractRobotAction {
@@ -36,10 +36,10 @@ public abstract class AbstractRobotAction {
         id = value;
     }
 
-    public void initialize(final RobotEntity robot) {
+    public void initialize(final Robot robot) {
     }
 
-    public abstract RobotActionResult perform(RobotEntity robot);
+    public abstract RobotActionResult perform(Robot robot);
 
     public CompoundTag serialize() {
         final CompoundTag tag = new CompoundTag();

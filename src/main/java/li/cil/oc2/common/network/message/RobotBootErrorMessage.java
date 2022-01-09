@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -12,7 +12,7 @@ public final class RobotBootErrorMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotBootErrorMessage(final RobotEntity robot) {
+    public RobotBootErrorMessage(final Robot robot) {
         this.entityId = robot.getId();
         this.value = robot.getVirtualMachine().getBootError();
     }
@@ -39,7 +39,7 @@ public final class RobotBootErrorMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientEntity(entityId, RobotEntity.class,
+        MessageUtils.withClientEntity(entityId, Robot.class,
             robot -> robot.getVirtualMachine().setBootErrorClient(value));
     }
 }

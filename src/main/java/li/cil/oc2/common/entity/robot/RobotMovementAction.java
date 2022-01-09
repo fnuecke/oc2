@@ -2,7 +2,7 @@ package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.entity.Entities;
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import net.minecraft.core.BlockPos;
@@ -53,7 +53,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
         return Vec3.atBottomCenterOf(position).add(0, 0.5f * (1 - Entities.ROBOT.get().getHeight()), 0);
     }
 
-    public static void moveTowards(final RobotEntity robot, final Vec3 targetPosition) {
+    public static void moveTowards(final Robot robot, final Vec3 targetPosition) {
         Vec3 delta = targetPosition.subtract(robot.position());
         if (delta.lengthSqr() > MOVEMENT_SPEED * MOVEMENT_SPEED) {
             delta = delta.normalize().scale(MOVEMENT_SPEED);
@@ -65,7 +65,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void initialize(final RobotEntity robot) {
+    public void initialize(final Robot robot) {
         if (origin == null || start == null || target == null) {
             origin = robot.blockPosition();
             start = origin;
@@ -81,11 +81,11 @@ public final class RobotMovementAction extends AbstractRobotAction {
         }
 
         targetPos = getTargetPositionInBlock(target);
-        robot.getEntityData().set(RobotEntity.TARGET_POSITION, target);
+        robot.getEntityData().set(Robot.TARGET_POSITION, target);
     }
 
     @Override
-    public RobotActionResult perform(final RobotEntity robot) {
+    public RobotActionResult perform(final Robot robot) {
         if (targetPos == null) {
             throw new IllegalStateException();
         }
@@ -142,7 +142,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
         }
     }
 
-    private void moveAndResolveCollisions(final RobotEntity robot) {
+    private void moveAndResolveCollisions(final Robot robot) {
         if (start == null || target == null || targetPos == null) {
             return;
         }
@@ -157,11 +157,11 @@ public final class RobotMovementAction extends AbstractRobotAction {
             target = start;
             start = newStart;
             targetPos = getTargetPositionInBlock(target);
-            robot.getEntityData().set(RobotEntity.TARGET_POSITION, target);
+            robot.getEntityData().set(Robot.TARGET_POSITION, target);
         }
     }
 
-    private void validateTarget(final RobotEntity robot) {
+    private void validateTarget(final Robot robot) {
         final BlockPos currentPosition = robot.blockPosition();
         if (start == null || Objects.equals(currentPosition, start) ||
             target == null || Objects.equals(currentPosition, target)) {
@@ -184,6 +184,6 @@ public final class RobotMovementAction extends AbstractRobotAction {
         }
 
         targetPos = getTargetPositionInBlock(target);
-        robot.getEntityData().set(RobotEntity.TARGET_POSITION, target);
+        robot.getEntityData().set(Robot.TARGET_POSITION, target);
     }
 }

@@ -1,7 +1,7 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
@@ -12,7 +12,7 @@ public final class RobotBusStateMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotBusStateMessage(final RobotEntity robot) {
+    public RobotBusStateMessage(final Robot robot) {
         this.entityId = robot.getId();
         this.value = robot.getVirtualMachine().getBusState();
     }
@@ -39,7 +39,7 @@ public final class RobotBusStateMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientEntity(entityId, RobotEntity.class,
+        MessageUtils.withClientEntity(entityId, Robot.class,
             robot -> robot.getVirtualMachine().setBusStateClient(value));
     }
 }

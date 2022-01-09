@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.network.Network;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,7 +11,7 @@ public final class RobotInitializationRequestMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotInitializationRequestMessage(final RobotEntity robot) {
+    public RobotInitializationRequestMessage(final Robot robot) {
         this.entityId = robot.getId();
     }
 
@@ -35,7 +35,7 @@ public final class RobotInitializationRequestMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withServerEntity(context, entityId, RobotEntity.class,
+        MessageUtils.withServerEntity(context, entityId, Robot.class,
             robot -> Network.INSTANCE.reply(new RobotInitializationMessage(robot), context));
     }
 }

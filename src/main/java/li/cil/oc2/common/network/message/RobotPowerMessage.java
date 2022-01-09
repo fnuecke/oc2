@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
@@ -11,7 +11,7 @@ public final class RobotPowerMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotPowerMessage(final RobotEntity robot, final boolean power) {
+    public RobotPowerMessage(final Robot robot, final boolean power) {
         this.entityId = robot.getId();
         this.power = power;
     }
@@ -38,7 +38,7 @@ public final class RobotPowerMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withNearbyServerEntity(context, entityId, RobotEntity.class,
+        MessageUtils.withNearbyServerEntity(context, entityId, Robot.class,
             robot -> {
                 if (power) {
                     robot.start();

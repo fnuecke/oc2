@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
  * This enum indicates a side of a block device.
  * <p>
  * It is intended to be used by {@link li.cil.oc2.api.bus.device.rpc.RPCDevice} APIs,
- * providing both convenience for the called by providing a range of aliases, and also
+ * providing both convenience for the caller by providing a range of aliases, and also
  * stability, in case Mojang decide to rename the enum fields of the {@link Direction}
  * enum at some time in the future.
  */
@@ -65,14 +65,6 @@ public enum Side {
 
     public Direction getDirection() {
         return direction;
-    }
-
-    public int get2DDataValue() {
-        return direction.get2DDataValue();
-    }
-
-    public int get3DDataValue() {
-        return direction.get3DDataValue();
     }
 
     @Override

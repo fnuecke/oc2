@@ -1,6 +1,7 @@
 package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -17,6 +18,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static li.cil.oc2.common.util.TranslationUtils.text;
@@ -181,7 +183,7 @@ public final class FileChooserScreen extends Screen {
 
         final FileList.FileEntry selected = fileList.getSelected();
         if (selected != null) {
-            return selected.file.equals(directory.getParent());
+            return Objects.equals(selected.file, directory.getParent());
         }
 
         final String selectedFileEntry = fileNameTextField.getValue();
@@ -191,7 +193,7 @@ public final class FileChooserScreen extends Screen {
     private Optional<Path> getPath() {
         final FileList.FileEntry selected = fileList.getSelected();
         if (selected != null) {
-            return Optional.of(selected.file);
+            return Optional.ofNullable(selected.file);
         }
 
         if (directory == null) {
@@ -277,7 +279,7 @@ public final class FileChooserScreen extends Screen {
             super(FileChooserScreen.this.getMinecraft(), FileChooserScreen.this.width, FileChooserScreen.this.height, y, y + height, slotHeight);
         }
 
-        public void refreshFiles(@Nullable Path directory) {
+        public void refreshFiles(@Nullable final Path directory) {
             FileChooserScreen.directory = directory;
 
             setScrollAmount(0);
@@ -328,7 +330,7 @@ public final class FileChooserScreen extends Screen {
                 refreshFiles(path);
             } else {
                 refreshFiles(path.getParent());
-                children().stream().filter(entry -> entry.file.equals(path))
+                children().stream().filter(entry -> path.equals(entry.file))
                     .findFirst().ifPresent(entry -> {
                         entry.select();
                         centerScrollOn(entry);
@@ -350,18 +352,21 @@ public final class FileChooserScreen extends Screen {
             return createDirectoryEntry(path, path.getFileName().toString() + path.getFileSystem().getSeparator());
         }
 
-        private FileList.FileEntry createDirectoryEntry(final Path path, final String displayName) {
+        private FileList.FileEntry createDirectoryEntry(@Nullable final Path path, final String displayName) {
+            final TextColor color = path != null && Files.exists(path)
+                ? TextColor.fromRgb(0xA0A0FF)
+                : TextColor.fromLegacyFormat(ChatFormatting.GRAY);
             return new FileList.FileEntry(path, new TextComponent(displayName)
-                .withStyle(s -> s.withColor(TextColor.fromRgb(0xA0A0FF))));
+                .withStyle(s -> s.withColor(color)));
         }
 
         private final class FileEntry extends ObjectSelectionList.Entry<FileEntry> {
-            private final Path file;
+            @Nullable private final Path file;
             private final Component displayName;
 
             private long lastEntryClickTime = 0;
 
-            public FileEntry(final Path file, final Component displayName) {
+            public FileEntry(@Nullable final Path file, final Component displayName) {
                 this.file = file;
                 this.displayName = displayName;
             }
@@ -379,7 +384,7 @@ public final class FileChooserScreen extends Screen {
                     select();
 
                     final boolean isDoubleClick = System.currentTimeMillis() - lastEntryClickTime < 250;
-                    if (isDoubleClick) {
+                    if (isDoubleClick && okButton.active) {
                         confirm();
                     }
 
@@ -390,11 +395,13 @@ public final class FileChooserScreen extends Screen {
             }
 
             public void select() {
-                if (directory != null && file.equals(directory.getParent())) {
+                if (directory != null && Objects.equals(directory.getParent(), file)) {
                     fileNameTextField.setValue("..");
-                } else {
+                } else if (file != null) {
                     final Path fileName = file.getFileName();
                     fileNameTextField.setValue(fileName != null ? fileName.toString() : file.toString());
+                } else {
+                    return;
                 }
                 fileNameTextField.moveCursorToStart();
                 fileNameTextField.setHighlightPos(0);

@@ -80,7 +80,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         }
 
         final int originalStackSize = stack.getCount();
-        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        final Direction direction = RobotOperationSide.toGlobal(entity, side);
         final List<IItemHandler> itemHandlers = getItemStackHandlersInDirection(direction).toList();
         for (final IItemHandler handler : itemHandlers) {
             stack = ItemHandlerHelper.insertItemStacked(handler, stack, false);
@@ -122,7 +122,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         }
 
         final int originalStackSize = stack.getCount();
-        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        final Direction direction = RobotOperationSide.toGlobal(entity, side);
         final Optional<IItemHandler> optional = getItemStackHandlersInDirection(direction).findFirst();
         if (optional.isPresent()) {
             stack = optional.get().insertItem(intoSlot, stack, false);
@@ -150,7 +150,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
             return 0;
         }
 
-        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        final Direction direction = RobotOperationSide.toGlobal(entity, side);
         final List<IItemHandler> handlers = getItemStackHandlersInDirection(direction).collect(Collectors.toList());
         if (handlers.isEmpty()) {
             return takeFromWorld(count);
@@ -167,7 +167,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
             return 0;
         }
 
-        final Direction direction = RobotOperationSide.getAdjustedDirection(side, entity);
+        final Direction direction = RobotOperationSide.toGlobal(entity, side);
         return getItemStackHandlersInDirection(direction).findFirst().map(handler ->
             takeFromInventory(count, handler, fromSlot)).orElse(0);
     }

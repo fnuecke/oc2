@@ -9,10 +9,8 @@ public final class TerminalUtils {
     private static final ByteBuffer TERMINAL_RESET_SEQUENCE = ByteBuffer.wrap(new byte[]{
         // Make sure we're in normal mode.
         'J',
-        // Reset color and style.
-        '\033', '[', '0', 'm',
-        // Clear screen.
-        '\033', '[', '2', 'J'
+        // Reset.
+        '\033', 'c',
     });
 
     ///////////////////////////////////////////////////////////////////

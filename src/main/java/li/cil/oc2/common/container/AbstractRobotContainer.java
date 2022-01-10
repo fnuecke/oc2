@@ -2,7 +2,7 @@ package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.OpenRobotInventoryMessage;
 import li.cil.oc2.common.network.message.OpenRobotTerminalMessage;
@@ -16,13 +16,15 @@ import net.minecraft.world.inventory.MenuType;
 import java.nio.ByteBuffer;
 
 public abstract class AbstractRobotContainer extends AbstractMachineTerminalContainer {
-    private final RobotEntity robot;
+    private final Robot robot;
 
     ///////////////////////////////////////////////////////////////////
 
-    public AbstractRobotContainer(final MenuType<?> type, final int id, final RobotEntity robot, final IntPrecisionContainerData energyInfo) {
+    public AbstractRobotContainer(final MenuType<?> type, final int id, final Player player, final Robot robot, final IntPrecisionContainerData energyInfo) {
         super(type, id, energyInfo);
         this.robot = robot;
+
+        this.robot.addTerminalUser(player);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -37,7 +39,7 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
         Network.INSTANCE.sendToServer(new OpenRobotTerminalMessage(robot));
     }
 
-    public RobotEntity getRobot() {
+    public Robot getRobot() {
         return robot;
     }
 
@@ -64,6 +66,13 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
     @Override
     public boolean stillValid(final Player player) {
         return robot.isAlive() && robot.closerThan(player, 8);
+    }
+
+    @Override
+    public void removed(final Player player) {
+        super.removed(player);
+
+        this.robot.removeTerminalUser(player);
     }
 
     ///////////////////////////////////////////////////////////////////

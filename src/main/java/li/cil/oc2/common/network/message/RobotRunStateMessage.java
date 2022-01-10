@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.vm.VMRunState;
 import net.minecraft.network.FriendlyByteBuf;
@@ -12,7 +12,7 @@ public final class RobotRunStateMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotRunStateMessage(final RobotEntity robot) {
+    public RobotRunStateMessage(final Robot robot) {
         this.entityId = robot.getId();
         this.value = robot.getVirtualMachine().getRunState();
     }
@@ -39,7 +39,7 @@ public final class RobotRunStateMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientEntity(entityId, RobotEntity.class,
+        MessageUtils.withClientEntity(entityId, Robot.class,
             robot -> robot.getVirtualMachine().setRunStateClient(value));
     }
 }

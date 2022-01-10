@@ -3,7 +3,7 @@ package li.cil.oc2.common.container;
 import li.cil.oc2.client.gui.Sprites;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,7 +17,7 @@ import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.network.NetworkHooks;
 
 public final class RobotTerminalContainer extends AbstractRobotContainer {
-    public static void createServer(final RobotEntity robot, final FixedEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
+    public static void createServer(final Robot robot, final FixedEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
         NetworkHooks.openGui(player, new MenuProvider() {
             @Override
             public Component getDisplayName() {
@@ -26,7 +26,7 @@ public final class RobotTerminalContainer extends AbstractRobotContainer {
 
             @Override
             public AbstractContainerMenu createMenu(final int id, final Inventory inventory, final Player player) {
-                return new RobotTerminalContainer(id, robot, createEnergyInfo(energy, busController));
+                return new RobotTerminalContainer(id, player, robot, createEnergyInfo(energy, busController));
             }
         }, b -> b.writeVarInt(robot.getId()));
     }
@@ -34,8 +34,8 @@ public final class RobotTerminalContainer extends AbstractRobotContainer {
     public static RobotTerminalContainer createClient(final int id, final Inventory inventory, final FriendlyByteBuf data) {
         final int entityId = data.readVarInt();
         final Entity entity = inventory.player.level.getEntity(entityId);
-        if (entity instanceof final RobotEntity robot) {
-            return new RobotTerminalContainer(id, robot, createEnergyInfo());
+        if (entity instanceof final Robot robot) {
+            return new RobotTerminalContainer(id, inventory.player, robot, createEnergyInfo());
         }
 
         throw new IllegalArgumentException();
@@ -43,8 +43,8 @@ public final class RobotTerminalContainer extends AbstractRobotContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    private RobotTerminalContainer(final int id, final RobotEntity robot, final IntPrecisionContainerData energyInfo) {
-        super(Containers.ROBOT_TERMINAL.get(), id, robot, energyInfo);
+    private RobotTerminalContainer(final int id, final Player player, final Robot robot, final IntPrecisionContainerData energyInfo) {
+        super(Containers.ROBOT_TERMINAL.get(), id, player, robot, energyInfo);
 
         // It's kinda dumb we need to access technically-client-side stuff here, but that's the nature of containers
         // needing to specify display positions for some reason.

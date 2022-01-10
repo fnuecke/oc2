@@ -2,7 +2,7 @@ package li.cil.oc2.common.bus.device.item;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.ByteStreams;
-import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
+import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
 import li.cil.oc2.common.util.Location;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
@@ -39,16 +39,8 @@ public final class HardDriveVMDeviceWithInitialData extends HardDriveVMDevice {
     }
 
     @Subscribe
-    public void handleResumingRunningEvent(final VMResumingRunningEvent event) {
-        if (copyJob != null) {
-            try {
-                copyJob.get();
-            } catch (final Throwable e) {
-                LOGGER.error(e);
-            } finally {
-                copyJob = null;
-            }
-        }
+    public void handleResumedRunningEvent(final VMResumedRunningEvent event) {
+        joinCopyJob();
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -70,5 +62,29 @@ public final class HardDriveVMDeviceWithInitialData extends HardDriveVMDevice {
             }, WORKERS);
         }
         return device;
+    }
+
+    @Override
+    protected void closeBlockDevice() {
+        // Join the copy job before releasing the device to avoid writes from thread to closed device.
+        // Since we use memory mapped memory, closing the device leads to it holding a dead pointer, meaning
+        // further access to it will hard-crash the JVM.
+        joinCopyJob();
+
+        super.closeBlockDevice();
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private void joinCopyJob() {
+        if (copyJob != null) {
+            try {
+                copyJob.get();
+            } catch (final Throwable e) {
+                LOGGER.error(e);
+            } finally {
+                copyJob = null;
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,7 +11,7 @@ public final class OpenRobotInventoryMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public OpenRobotInventoryMessage(final RobotEntity robot) {
+    public OpenRobotInventoryMessage(final Robot robot) {
         this.entityId = robot.getId();
     }
 
@@ -37,7 +37,7 @@ public final class OpenRobotInventoryMessage extends AbstractMessage {
     protected void handleMessage(final NetworkEvent.Context context) {
         final ServerPlayer player = context.getSender();
         if (player != null) {
-            MessageUtils.withNearbyServerEntity(context, entityId, RobotEntity.class,
+            MessageUtils.withNearbyServerEntity(context, entityId, Robot.class,
                 robot -> robot.openInventoryScreen(player));
         }
     }

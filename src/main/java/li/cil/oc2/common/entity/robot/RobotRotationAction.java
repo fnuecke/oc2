@@ -1,7 +1,7 @@
 package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import net.minecraft.core.Direction;
@@ -39,14 +39,14 @@ public final class RobotRotationAction extends AbstractRobotAction {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void rotateTowards(final RobotEntity robot, final Direction targetRotation) {
+    public static void rotateTowards(final Robot robot, final Direction targetRotation) {
         robot.setYRot(Mth.approachDegrees(robot.getYRot(), targetRotation.toYRot(), ROTATION_SPEED));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void initialize(final RobotEntity robot) {
+    public void initialize(final Robot robot) {
         if (target == null) {
             target = robot.getDirection();
             if (direction != null) {
@@ -57,11 +57,11 @@ public final class RobotRotationAction extends AbstractRobotAction {
             }
         }
 
-        robot.getEntityData().set(RobotEntity.TARGET_DIRECTION, target);
+        robot.getEntityData().set(Robot.TARGET_DIRECTION, target);
     }
 
     @Override
-    public RobotActionResult perform(final RobotEntity robot) {
+    public RobotActionResult perform(final Robot robot) {
         if (target == null) {
             throw new IllegalStateException();
         }

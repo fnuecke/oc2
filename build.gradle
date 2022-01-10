@@ -58,7 +58,7 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    implementation "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.3"
+    implementation "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.5"
 
     implementation fg.deobf("curse.maven:markdownmanual-502485:3565800")
 
@@ -184,7 +184,7 @@ curseforge {
     apiKey = System.getenv('CURSEFORGE_API_KEY') ?: ""
     project {
         id = curse_project_id
-        releaseType = curse_project_releaseType
+        releaseType = System.getenv('CURSEFORGE_RELEASE_TYPE') ?: "alpha"
         changelogType = 'markdown'
         changelog = System.getenv("CHANGELOG") ?: "Changelog not available."
         addGameVersion 'Forge'

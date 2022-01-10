@@ -18,18 +18,17 @@ public final class HorizontalBlockUtils {
             return null;
         }
 
-        final int index = direction.get2DDataValue();
-        if (index < 0) {
+        if (direction.getAxis().isVertical()) {
             return direction;
         }
-
         if (!blockState.hasProperty(HorizontalDirectionalBlock.FACING)) {
             return direction;
         }
 
         final Direction facing = blockState.getValue(HorizontalDirectionalBlock.FACING);
-        final int toLocal = HORIZONTAL_DIRECTION_COUNT - facing.get2DDataValue();
-        final int rotatedIndex = (index + toLocal) % HORIZONTAL_DIRECTION_COUNT;
+        final int index = direction.get2DDataValue();
+        final int toLocal = -facing.get2DDataValue();
+        final int rotatedIndex = (index + toLocal + HORIZONTAL_DIRECTION_COUNT) % HORIZONTAL_DIRECTION_COUNT;
         return Direction.from2DDataValue(rotatedIndex);
     }
 
@@ -39,16 +38,16 @@ public final class HorizontalBlockUtils {
             return null;
         }
 
-        final int index = side.get2DDataValue();
-        if (index < 0) {
-            return side.getDirection();
+        final Direction direction = side.getDirection();
+        if (direction.getAxis().isVertical()) {
+            return direction;
         }
-
         if (!blockState.hasProperty(HorizontalDirectionalBlock.FACING)) {
-            return side.getDirection();
+            return direction;
         }
 
         final Direction facing = blockState.getValue(HorizontalDirectionalBlock.FACING);
+        final int index = direction.get2DDataValue();
         final int toGlobal = facing.get2DDataValue();
         final int rotatedIndex = (index + toGlobal) % HORIZONTAL_DIRECTION_COUNT;
         return Direction.from2DDataValue(rotatedIndex);

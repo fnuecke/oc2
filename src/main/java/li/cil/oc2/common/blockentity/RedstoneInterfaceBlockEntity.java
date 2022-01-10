@@ -86,20 +86,22 @@ public final class RedstoneInterfaceBlockEntity extends BlockEntity implements N
     @Callback(name = GET_REDSTONE_OUTPUT, synchronize = false)
     public int getRedstoneOutput(@Parameter(SIDE) @Nullable final Side side) {
         if (side == null) throw new IllegalArgumentException();
+        final int index = side.getDirection().get3DDataValue();
 
-        return output[side.get3DDataValue()];
+        return output[index];
     }
 
     @Callback(name = SET_REDSTONE_OUTPUT)
     public void setRedstoneOutput(@Parameter(SIDE) @Nullable final Side side, @Parameter(VALUE) final int value) {
         if (side == null) throw new IllegalArgumentException();
+        final int index = side.getDirection().get3DDataValue();
 
         final byte clampedValue = (byte) Mth.clamp(value, 0, 15);
-        if (clampedValue == output[side.get3DDataValue()]) {
+        if (clampedValue == output[index]) {
             return;
         }
 
-        output[side.get3DDataValue()] = clampedValue;
+        output[index] = clampedValue;
 
         final Direction direction = HorizontalBlockUtils.toGlobal(getBlockState(), side);
         if (direction != null) {

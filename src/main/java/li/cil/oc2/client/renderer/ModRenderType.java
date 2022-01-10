@@ -47,6 +47,24 @@ public abstract class ModRenderType extends RenderType {
             state);
     }
 
+    public static RenderType getOverlay(final ResourceLocation location) {
+        final TextureStateShard texture = new TextureStateShard(location, false, true);
+        final RenderType.CompositeState state = RenderType.CompositeState.builder()
+            .setShaderState(RenderStateShard.POSITION_TEX_SHADER)
+            .setTextureState(texture)
+            .setOutputState(TRANSLUCENT_TARGET)
+            .setTransparencyState(ADDITIVE_TRANSPARENCY)
+            .createCompositeState(false);
+        return create(
+            API.MOD_ID + "/overlay",
+            DefaultVertexFormat.POSITION_TEX,
+            VertexFormat.Mode.QUADS,
+            256,
+            false,
+            true,
+            state);
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     private ModRenderType(final String name, final VertexFormat format, final VertexFormat.Mode drawMode, final int bufferSize, final boolean useDelegate, final boolean needsSorting, final Runnable setupTask, final Runnable clearTask) {

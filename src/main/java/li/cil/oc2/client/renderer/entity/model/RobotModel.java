@@ -3,7 +3,7 @@ package li.cil.oc2.client.renderer.entity.model;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.model.TransformationHelper;
 
-public final class RobotModel extends EntityModel<RobotEntity> {
+public final class RobotModel extends EntityModel<Robot> {
     public static final ModelLayerLocation ROBOT_MODEL_LAYER = new ModelLayerLocation(new ResourceLocation(API.MOD_ID, "robot"), "main");
     public static final ResourceLocation ROBOT_ENTITY_TEXTURE = new ResourceLocation(API.MOD_ID, "textures/entity/robot/robot.png");
 
@@ -57,8 +57,8 @@ public final class RobotModel extends EntityModel<RobotEntity> {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void setupAnim(final RobotEntity entity, final float limbSwing, final float limbSwingAmount, final float ageInTicks, final float netHeadYaw, final float headPitch) {
-        final RobotEntity.AnimationState state = entity.getAnimationState();
+    public void setupAnim(final Robot entity, final float limbSwing, final float limbSwingAmount, final float ageInTicks, final float netHeadYaw, final float headPitch) {
+        final Robot.AnimationState state = entity.getAnimationState();
         baseY = state.baseRenderOffsetY;
         topY = state.topRenderOffsetY;
         topRotation[1] = state.topRenderRotationY;

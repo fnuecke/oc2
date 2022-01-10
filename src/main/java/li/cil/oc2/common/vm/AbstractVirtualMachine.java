@@ -167,12 +167,11 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     private void joinWorkerThread() {
         if (runner != null) {
             try {
-                state.context.postEvent(new VMPausingEvent());
                 runner.join();
-                runner.scheduleResumeEvent();
             } catch (final Throwable e) {
                 LOGGER.error(e);
                 runner = null;
+                setRunState(VMRunState.STOPPED);
             }
         }
     }

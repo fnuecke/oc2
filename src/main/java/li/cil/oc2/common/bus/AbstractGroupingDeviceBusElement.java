@@ -78,6 +78,16 @@ public abstract class AbstractGroupingDeviceBusElement<T extends AbstractGroupin
             if (sideTag.contains(GROUP_DATA_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
                 groupData[i] = sideTag.getCompound(GROUP_DATA_TAG_NAME);
             }
+
+            // Immediately load data into devices, if we already have some.
+            for (final T entry : groups.get(i)) {
+                final CompoundTag devicesTag = groupData[i];
+                entry.getDeviceDataKey().ifPresent(key -> {
+                    if (devicesTag.contains(key, NBTTagIds.TAG_COMPOUND)) {
+                        entry.getDevice().deserializeNBT(devicesTag.getCompound(key));
+                    }
+                });
+            }
         }
     }
 

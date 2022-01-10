@@ -6,7 +6,7 @@ import li.cil.oc2.client.renderer.entity.RobotWithoutLevelRenderer;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.energy.EnergyStorageItemStack;
 import li.cil.oc2.common.entity.Entities;
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.entity.robot.RobotActions;
 import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.NBTUtils;
@@ -77,7 +77,7 @@ public final class RobotItem extends ModItem {
             position = Vec3.atCenterOf(pos.relative(context.getClickedFace()));
         }
 
-        final RobotEntity robot = Entities.ROBOT.get().create(context.getLevel());
+        final Robot robot = Entities.ROBOT.get().create(context.getLevel());
         if (robot == null) {
             return InteractionResult.FAIL;
         }

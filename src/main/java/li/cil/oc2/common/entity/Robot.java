@@ -7,7 +7,7 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import li.cil.oc2.api.capabilities.Robot;
+import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
@@ -82,10 +82,10 @@ import java.util.function.Consumer;
 import static java.util.Collections.singleton;
 import static li.cil.oc2.common.Constants.*;
 
-public final class RobotEntity extends Entity implements Robot {
-    public static final EntityDataAccessor<BlockPos> TARGET_POSITION = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.BLOCK_POS);
-    public static final EntityDataAccessor<Direction> TARGET_DIRECTION = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.DIRECTION);
-    public static final EntityDataAccessor<Byte> SELECTED_SLOT = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.BYTE);
+public final class Robot extends Entity implements li.cil.oc2.api.capabilities.Robot, TerminalUserProvider {
+    public static final EntityDataAccessor<BlockPos> TARGET_POSITION = SynchedEntityData.defineId(Robot.class, EntityDataSerializers.BLOCK_POS);
+    public static final EntityDataAccessor<Direction> TARGET_DIRECTION = SynchedEntityData.defineId(Robot.class, EntityDataSerializers.DIRECTION);
+    public static final EntityDataAccessor<Byte> SELECTED_SLOT = SynchedEntityData.defineId(Robot.class, EntityDataSerializers.BYTE);
 
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String STATE_TAG_NAME = "state";
@@ -118,11 +118,12 @@ public final class RobotEntity extends Entity implements Robot {
     private final RobotItemStackHandlers deviceItems = new RobotItemStackHandlers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.robotEnergyStorage);
     private final ItemStackHandler inventory = new FixedSizeItemStackHandler(INVENTORY_SIZE);
+    private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
     private long lastPistonMovement;
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotEntity(final EntityType<?> type, final Level world) {
+    public Robot(final EntityType<?> type, final Level world) {
         super(type, world);
         this.blocksBuilding = true;
         setNoGravity(true);
@@ -222,6 +223,19 @@ public final class RobotEntity extends Entity implements Robot {
 
     public void openInventoryScreen(final ServerPlayer player) {
         RobotInventoryContainer.createServer(this, energy, virtualMachine.busController, player);
+    }
+
+    public void addTerminalUser(final Player player) {
+        terminalUsers.add(player);
+    }
+
+    public void removeTerminalUser(final Player player) {
+        terminalUsers.remove(player);
+    }
+
+    @Override
+    public Iterable<Player> getTerminalUsers() {
+        return terminalUsers;
     }
 
     public void dropSelf() {
@@ -599,10 +613,10 @@ public final class RobotEntity extends Entity implements Robot {
 
         public void tick() {
             if (level.isClientSide()) {
-                RobotActions.performClient(RobotEntity.this);
+                RobotActions.performClient(Robot.this);
             } else {
                 if (action != null) {
-                    final RobotActionResult result = action.perform(RobotEntity.this);
+                    final RobotActionResult result = action.perform(Robot.this);
                     if (result != RobotActionResult.INCOMPLETE) {
                         synchronized (results) {
                             if (results.size() == MAX_QUEUED_RESULTS) {
@@ -618,10 +632,10 @@ public final class RobotEntity extends Entity implements Robot {
                 if (action == null) {
                     action = queue.poll();
                     if (action != null) {
-                        action.initialize(RobotEntity.this);
+                        action.initialize(Robot.this);
                     }
                 }
-                RobotActions.performServer(RobotEntity.this, action);
+                RobotActions.performServer(Robot.this, action);
             }
         }
 
@@ -714,7 +728,7 @@ public final class RobotEntity extends Entity implements Robot {
 
         @Override
         protected ItemDeviceQuery getDeviceQuery(final ItemStack stack) {
-            return Devices.makeQuery(RobotEntity.this, stack);
+            return Devices.makeQuery(Robot.this, stack);
         }
 
         @Override
@@ -767,7 +781,7 @@ public final class RobotEntity extends Entity implements Robot {
 
         @Override
         protected void sendTerminalUpdateToClient(final ByteBuffer output) {
-            Network.sendToClientsTrackingEntity(new RobotTerminalOutputMessage(RobotEntity.this, output), RobotEntity.this);
+            Network.sendToClientsTrackingEntity(new RobotTerminalOutputMessage(Robot.this, output), Robot.this);
         }
     }
 
@@ -796,7 +810,7 @@ public final class RobotEntity extends Entity implements Robot {
             super.stopRunnerAndReset();
 
             TerminalUtils.resetTerminal(terminal, output -> Network.sendToClientsTrackingEntity(
-                new RobotTerminalOutputMessage(RobotEntity.this, output), RobotEntity.this));
+                new RobotTerminalOutputMessage(Robot.this, output), Robot.this));
 
             actionProcessor.clear();
         }
@@ -808,17 +822,17 @@ public final class RobotEntity extends Entity implements Robot {
 
         @Override
         protected void handleBusStateChanged(final CommonDeviceBusController.BusState value) {
-            Network.sendToClientsTrackingEntity(new RobotBusStateMessage(RobotEntity.this), RobotEntity.this);
+            Network.sendToClientsTrackingEntity(new RobotBusStateMessage(Robot.this), Robot.this);
         }
 
         @Override
         protected void handleRunStateChanged(final VMRunState value) {
-            Network.sendToClientsTrackingEntity(new RobotRunStateMessage(RobotEntity.this), RobotEntity.this);
+            Network.sendToClientsTrackingEntity(new RobotRunStateMessage(Robot.this), Robot.this);
         }
 
         @Override
         protected void handleBootErrorChanged(@Nullable final Component value) {
-            Network.sendToClientsTrackingEntity(new RobotBootErrorMessage(RobotEntity.this), RobotEntity.this);
+            Network.sendToClientsTrackingEntity(new RobotBootErrorMessage(Robot.this), Robot.this);
         }
     }
 
@@ -835,12 +849,12 @@ public final class RobotEntity extends Entity implements Robot {
 
         @Callback(synchronize = false)
         public int getSelectedSlot() {
-            return RobotEntity.this.getSelectedSlot();
+            return Robot.this.getSelectedSlot();
         }
 
         @Callback(synchronize = false)
         public void setSelectedSlot(@Parameter("slot") final int slot) {
-            RobotEntity.this.setSelectedSlot(slot);
+            Robot.this.setSelectedSlot(slot);
         }
 
         @Callback

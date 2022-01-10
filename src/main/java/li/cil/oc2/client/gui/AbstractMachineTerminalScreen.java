@@ -9,9 +9,11 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
@@ -103,6 +105,10 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         super.init();
         terminalWidget.init();
 
+        final EditBox focusIndicatorEditBox = new EditBox(font, 0, 0, 0, 0, TextComponent.EMPTY);
+        focusIndicatorEditBox.setFocus(true);
+        setFocusIndicatorEditBox(focusIndicatorEditBox);
+
         addRenderableWidget(new ToggleImageButton(
             this, leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4,
             12, 12,
@@ -167,6 +173,11 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    // We use this text box to indicate to Forge that we want all input, and event handlers should not be allowed
+    // to steal input from us (e.g. via custom key bindings). Since Forge is lazy and just uses getDeclaredFields
+    // to get private fields, which completely skips fields in base classes, we require subclasses to hold the field...
+    protected abstract void setFocusIndicatorEditBox(final EditBox editBox);
 
     @Override
     protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {

@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Vector3f;
 import li.cil.oc2.client.renderer.entity.model.RobotModel;
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
-public final class RobotRenderer extends EntityRenderer<RobotEntity> {
+public final class RobotRenderer extends EntityRenderer<Robot> {
     private final RobotModel model;
 
     ///////////////////////////////////////////////////////////////////
@@ -25,13 +25,13 @@ public final class RobotRenderer extends EntityRenderer<RobotEntity> {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public ResourceLocation getTextureLocation(final RobotEntity entity) {
+    public ResourceLocation getTextureLocation(final Robot entity) {
         return RobotModel.ROBOT_ENTITY_TEXTURE;
     }
 
     @Override
-    public void render(final RobotEntity entity, final float entityYaw, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int packedLight) {
-        final RobotEntity.AnimationState state = entity.getAnimationState();
+    public void render(final Robot entity, final float entityYaw, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int packedLight) {
+        final Robot.AnimationState state = entity.getAnimationState();
         state.update(partialTicks, entity.level.random);
 
         stack.pushPose();

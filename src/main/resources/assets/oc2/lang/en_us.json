@@ -27,6 +27,7 @@
   "item.oc2.flash_memory": "Flash Memory",
   "item.oc2.redstone_interface_card": "Redstone Interface Card",
   "item.oc2.network_interface_card": "Network Interface Card",
+  "item.oc2.network_interface_card.is_configured": "Has connectivity configuration.",
   "item.oc2.file_import_export_card": "File Import/Export Card",
   "item.oc2.file_import_export_card.desc": "Provides an API to import and export files into and out of a virtual computer from and into your real file system.",
   "item.oc2.robot": "Robot",
@@ -71,6 +72,11 @@
   "gui.oc2.file_chooser.confirm_button.save": "Save",
   "gui.oc2.file_chooser.confirm_button.overwrite": "Overwrite",
   "gui.oc2.file_chooser.cancel_button": "Cancel",
+
+  "gui.oc2.network_interface_card.side_state": "Connectivity: %s",
+  "gui.oc2.network_interface_card.connectivity.enabled": "Enabled",
+  "gui.oc2.network_interface_card.connectivity.disabled": "Disabled",
+  "gui.oc2.network_interface_card.info": "Drag to rotate. Click faces to toggle connectivity.",
 
   "manual.oc2.home": "Home",
   "manual.oc2.blocks": "Blocks",

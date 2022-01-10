@@ -12,6 +12,7 @@ import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.bus.device.util.OptionalInterrupt;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.item.NetworkInterfaceCardItem;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.device.virtio.VirtIONetworkDevice;
@@ -51,7 +52,7 @@ public final class NetworkInterfaceCardItemDevice extends IdentityProxy<ItemStac
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(final Capability<T> cap, @Nullable final Direction side) {
-        if (cap == Capabilities.NETWORK_INTERFACE && side != null) {
+        if (cap == Capabilities.NETWORK_INTERFACE && NetworkInterfaceCardItem.getSideConfiguration(identity, side)) {
             return LazyOptional.of(() -> networkInterface).cast();
         }
 

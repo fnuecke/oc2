@@ -8,10 +8,7 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.NetworkConnectorConnectionsMessage;
-import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.LazyOptionalUtils;
-import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.util.ServerScheduler;
+import li.cil.oc2.common.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,6 +30,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -51,7 +49,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
     private static final String CONNECTIONS_TAG_NAME = "connections";
     private static final String IS_OWNER_TAG_NAME = "is_owner";
 
-    private static final int RETRY_UNLOADED_CHUNK_INTERVAL = 5 * Constants.SECONDS_TO_TICKS;
+    private static final int RETRY_UNLOADED_CHUNK_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(5));
     private static final int MAX_CONNECTION_COUNT = 2;
     private static final int MAX_CONNECTION_DISTANCE = 16;
     private static final int INITIAL_PACKET_TIME_TO_LIVE = 12;

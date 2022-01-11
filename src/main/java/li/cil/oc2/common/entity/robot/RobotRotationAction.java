@@ -1,21 +1,22 @@
 package li.cil.oc2.common.entity.robot;
 
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 
 public final class RobotRotationAction extends AbstractRobotAction {
     public static final float TARGET_EPSILON = 0.0001f;
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final float ROTATION_SPEED = 90f / Constants.SECONDS_TO_TICKS; // degrees / sec -> degrees / tick
+    private static final float ROTATION_SPEED = 90f / TickUtils.toTicks(Duration.ofSeconds(1)); // degrees per tick
 
     private static final String DIRECTION_TAG_NAME = "direction";
     private static final String TARGET_TAG_NAME = "start";

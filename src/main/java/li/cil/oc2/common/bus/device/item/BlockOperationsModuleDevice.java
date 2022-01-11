@@ -5,8 +5,8 @@ import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.FakePlayerUtils;
+import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -38,12 +38,13 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.List;
 
 public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
     private static final String LAST_OPERATION_TAG_NAME = "cooldown";
 
-    private static final int COOLDOWN = Constants.SECONDS_TO_TICKS;
+    private static final int COOLDOWN = TickUtils.toTicks(Duration.ofSeconds(1));
 
     ///////////////////////////////////////////////////////////////////
 

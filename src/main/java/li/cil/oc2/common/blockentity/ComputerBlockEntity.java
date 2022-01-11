@@ -23,10 +23,7 @@ import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.ComputerTerminalOutputMessage;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.util.HorizontalBlockUtils;
-import li.cil.oc2.common.util.NBTUtils;
-import li.cil.oc2.common.util.SoundEvents;
-import li.cil.oc2.common.util.TerminalUtils;
+import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -45,9 +42,11 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.*;
 
-import static li.cil.oc2.common.Constants.*;
+import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
+import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 
 public final class ComputerBlockEntity extends ModBlockEntity implements TerminalUserProvider {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
@@ -61,7 +60,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private static final int FLASH_MEMORY_SLOTS = 1;
     private static final int CARD_SLOTS = 4;
 
-    private static final int MAX_RUNNING_SOUND_DELAY = SECONDS_TO_TICKS * 2;
+    private static final int MAX_RUNNING_SOUND_DELAY = TickUtils.toTicks(Duration.ofSeconds(2));
 
     ///////////////////////////////////////////////////////////////////
 

@@ -1,10 +1,10 @@
 package li.cil.oc2.common.entity.robot;
 
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -13,6 +13,7 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Objects;
 
 public final class RobotMovementAction extends AbstractRobotAction {
@@ -20,7 +21,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final float MOVEMENT_SPEED = 1f / Constants.SECONDS_TO_TICKS; // block / sec -> block / tick.
+    private static final float MOVEMENT_SPEED = 1f / TickUtils.toTicks(Duration.ofSeconds(1)); // blocks per tick
 
     private static final String DIRECTION_TAG_NAME = "direction";
     private static final String ORIGIN_TAG_NAME = "origin";

@@ -3,12 +3,13 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.Event;
 import li.cil.oc2.common.util.LazyOptionalUtils;
 import li.cil.oc2.common.util.ParameterizedEvent;
+import li.cil.oc2.common.util.TickUtils;
 import net.minecraftforge.common.util.LazyOptional;
 
+import java.time.Duration;
 import java.util.*;
 
 import static java.util.Collections.emptySet;
@@ -25,8 +26,8 @@ public class CommonDeviceBusController implements DeviceBusController {
     ///////////////////////////////////////////////////////////////////
 
     private static final int MAX_BUS_ELEMENT_COUNT = 128;
-    private static final int INCOMPLETE_RETRY_INTERVAL = 10 * Constants.SECONDS_TO_TICKS;
-    private static final int BAD_CONFIGURATION_RETRY_INTERVAL = 5 * Constants.SECONDS_TO_TICKS;
+    private static final int INCOMPLETE_RETRY_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(10));
+    private static final int BAD_CONFIGURATION_RETRY_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(5));
 
     ///////////////////////////////////////////////////////////////////
 

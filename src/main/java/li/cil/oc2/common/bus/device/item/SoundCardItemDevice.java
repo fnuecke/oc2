@@ -2,8 +2,8 @@ package li.cil.oc2.common.bus.device.item;
 
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.Location;
+import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -13,13 +13,14 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public final class SoundCardItemDevice extends AbstractItemRPCDevice {
-    private static final int COOLDOWN_IN_TICKS = 2 * Constants.SECONDS_TO_TICKS;
+    private static final int COOLDOWN_IN_TICKS = TickUtils.toTicks(Duration.ofSeconds(2));
     private static final int MAX_FIND_RESULTS = 25;
 
     ///////////////////////////////////////////////////////////////////

@@ -3,13 +3,13 @@ package li.cil.oc2.common.vm;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.vm.FirmwareLoader;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
-import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.TickUtils;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.riscv.R5Board;
@@ -22,6 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Objects;
 
 public abstract class AbstractVirtualMachine implements VirtualMachine {
@@ -36,7 +37,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     public static final String RUN_STATE_TAG_NAME = "runState";
     public static final String BOOT_ERROR_TAG_NAME = "bootError";
 
-    private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * Constants.SECONDS_TO_TICKS;
+    private static final int DEVICE_LOAD_RETRY_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(10));
 
     ///////////////////////////////////////////////////////////////////
 

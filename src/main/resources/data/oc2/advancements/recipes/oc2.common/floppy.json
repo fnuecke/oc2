@@ -11,7 +11,9 @@
       "conditions": {
         "items": [
           {
-            "item": "oc2:disk_drive"
+            "items": [
+              "oc2:disk_drive"
+            ]
           }
         ]
       }

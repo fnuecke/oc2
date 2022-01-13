@@ -12,14 +12,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 public final class NetworkHubBlockEntity extends ModBlockEntity implements NetworkInterface {
     private static final int TTL_COST = 1;
 
     ///////////////////////////////////////////////////////////////////
 
-    private final NetworkInterface[] adjacentInterfaces = new NetworkInterface[Constants.BLOCK_FACE_COUNT];
-    private boolean areAdjacentInterfacesDirty = true;
+    private final NetworkInterface[] adjacentBlockInterfaces = new NetworkInterface[Constants.BLOCK_FACE_COUNT];
+    private boolean haveAdjacentBlocksChanged = true;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -30,7 +33,7 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
     ///////////////////////////////////////////////////////////////////
 
     public void handleNeighborChanged() {
-        areAdjacentInterfacesDirty = true;
+        haveAdjacentBlocksChanged = true;
     }
 
     @Override
@@ -40,13 +43,11 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
 
     @Override
     public void writeEthernetFrame(final NetworkInterface source, final byte[] frame, final int timeToLive) {
-        validateAdjacentInterfaces();
-
-        for (final NetworkInterface adjacentInterface : adjacentInterfaces) {
-            if (adjacentInterface != null && adjacentInterface != source) {
+        getAdjacentInterfaces().forEach(adjacentInterface -> {
+            if (adjacentInterface != source) {
                 adjacentInterface.writeEthernetFrame(this, frame, timeToLive - TTL_COST);
             }
-        }
+        });
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -58,16 +59,21 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
 
     ///////////////////////////////////////////////////////////////////
 
-    private void validateAdjacentInterfaces() {
-        if (!areAdjacentInterfacesDirty || isRemoved()) {
+    private Stream<NetworkInterface> getAdjacentInterfaces() {
+        validateAdjacentBlocks();
+        return Arrays.stream(adjacentBlockInterfaces).filter(Objects::nonNull);
+    }
+
+    private void validateAdjacentBlocks() {
+        if (isRemoved() || !haveAdjacentBlocksChanged) {
             return;
         }
 
         for (final Direction side : Constants.DIRECTIONS) {
-            adjacentInterfaces[side.get3DDataValue()] = null;
+            adjacentBlockInterfaces[side.get3DDataValue()] = null;
         }
 
-        areAdjacentInterfacesDirty = false;
+        haveAdjacentBlocksChanged = false;
 
         if (level == null || level.isClientSide()) {
             return;
@@ -79,7 +85,7 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
             if (neighborBlockEntity != null) {
                 final LazyOptional<NetworkInterface> optional = neighborBlockEntity.getCapability(Capabilities.NETWORK_INTERFACE, side.getOpposite());
                 optional.ifPresent(adjacentInterface -> {
-                    adjacentInterfaces[side.get3DDataValue()] = adjacentInterface;
+                    adjacentBlockInterfaces[side.get3DDataValue()] = adjacentInterface;
                     LazyOptionalUtils.addWeakListener(optional, this, (hub, unused) -> hub.handleNeighborChanged());
                 });
             }

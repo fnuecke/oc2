@@ -18,8 +18,7 @@ public final class NetworkInterfaceCardItemDeviceProvider extends AbstractItemDe
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
-        return query.getContainerBlockEntity().map(blockEntity ->
-            new NetworkInterfaceCardItemDevice(query.getItemStack()));
+        return Optional.of(new NetworkInterfaceCardItemDevice(query.getItemStack()));
     }
 
     @Override

@@ -11,6 +11,8 @@
 - [Память](memory.md)
 - [Сетевой кабель](network_cable.md)
 - [Сетевая интерфейсная карта](network_interface_card.md)
+- [Сетевая туннельная карта](network_tunnel_card.md)
+- [Сетевой туннельный модуль](network_tunnel_module.md)
 - [Красная интерфейсная карта](redstone_interface_card.md)
 - [Робот](robot.md)
 - [Ключ](wrench.md)

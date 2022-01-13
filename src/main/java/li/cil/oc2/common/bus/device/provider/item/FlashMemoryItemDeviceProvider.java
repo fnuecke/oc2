@@ -1,7 +1,5 @@
 package li.cil.oc2.common.bus.device.provider.item;
 
-import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Config;
@@ -27,10 +25,5 @@ public final class FlashMemoryItemDeviceProvider extends AbstractItemDeviceProvi
 
         final int capacity = Mth.clamp(item.getCapacity(stack), 0, Config.maxFlashMemorySize);
         return Optional.of(new ByteBufferFlashMemoryVMDevice(stack, capacity));
-    }
-
-    @Override
-    protected Optional<DeviceType> getItemDeviceType(final ItemDeviceQuery query) {
-        return Optional.of(DeviceTypes.FLASH_MEMORY);
     }
 }

@@ -1,7 +1,6 @@
 package li.cil.oc2.common.bus.device.util;
 
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
@@ -18,7 +17,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.registries.IForgeRegistry;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
@@ -69,16 +71,6 @@ public final class Devices {
             device.ifPresent(d -> devices.add(new ItemDeviceInfo(provider, d, provider.getEnergyConsumption(query))));
         }
         return devices;
-    }
-
-    public static Collection<DeviceType> getDeviceTypes(final ItemDeviceQuery query) {
-        final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
-        final HashSet<DeviceType> deviceTypes = new HashSet<>();
-        for (final ItemDeviceProvider provider : registry.getValues()) {
-            final Optional<DeviceType> device = provider.getDeviceType(query);
-            device.ifPresent(deviceTypes::add);
-        }
-        return deviceTypes;
     }
 
     public static int getEnergyConsumption(final ItemDeviceQuery query) {

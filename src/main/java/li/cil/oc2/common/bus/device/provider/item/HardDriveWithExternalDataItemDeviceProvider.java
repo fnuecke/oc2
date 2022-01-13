@@ -1,7 +1,5 @@
 package li.cil.oc2.common.bus.device.provider.item;
 
-import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
@@ -32,11 +30,6 @@ public final class HardDriveWithExternalDataItemDeviceProvider extends AbstractI
         }
 
         return Optional.of(new HardDriveVMDeviceWithInitialData(stack, data.getBlockDevice(), false, LocationSupplierUtils.of(query)));
-    }
-
-    @Override
-    protected Optional<DeviceType> getItemDeviceType(final ItemDeviceQuery query) {
-        return Optional.of(DeviceTypes.HARD_DRIVE);
     }
 
     @Override

@@ -1,7 +1,5 @@
 package li.cil.oc2.common.bus.device.provider.item;
 
-import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.data.Firmware;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
@@ -30,10 +28,5 @@ public final class FlashMemoryWithExternalDataItemDeviceProvider extends Abstrac
         }
 
         return Optional.of(new FirmwareFlashMemoryVMDevice(stack, firmware));
-    }
-
-    @Override
-    protected Optional<DeviceType> getItemDeviceType(final ItemDeviceQuery query) {
-        return Optional.of(DeviceTypes.FLASH_MEMORY);
     }
 }

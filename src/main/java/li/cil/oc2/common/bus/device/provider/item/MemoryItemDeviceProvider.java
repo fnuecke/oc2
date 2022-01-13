@@ -1,7 +1,5 @@
 package li.cil.oc2.common.bus.device.provider.item;
 
-import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Config;
@@ -27,11 +25,6 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
         final MemoryItem item = (MemoryItem) stack.getItem();
         final int capacity = Mth.clamp(item.getCapacity(stack), 0, Config.maxMemorySize);
         return Optional.of(new MemoryDevice(query.getItemStack(), capacity));
-    }
-
-    @Override
-    protected Optional<DeviceType> getItemDeviceType(final ItemDeviceQuery query) {
-        return Optional.of(DeviceTypes.MEMORY);
     }
 
     @Override

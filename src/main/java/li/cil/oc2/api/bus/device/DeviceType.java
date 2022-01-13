@@ -3,6 +3,8 @@ package li.cil.oc2.api.bus.device;
 import li.cil.oc2.api.API;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.Tag;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**
@@ -17,6 +19,13 @@ public interface DeviceType extends IForgeRegistryEntry<DeviceType> {
      * The registry name of the registry holding device types.
      */
     ResourceLocation REGISTRY = new ResourceLocation(API.MOD_ID, "device_type");
+
+    /**
+     * The tag representing this device type.
+     *
+     * @return the item tag.
+     */
+    Tag<Item> getTag();
 
     /**
      * An icon rendered as background of empty slots, visually indicating the

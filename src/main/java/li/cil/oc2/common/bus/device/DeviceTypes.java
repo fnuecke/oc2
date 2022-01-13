@@ -3,8 +3,11 @@ package li.cil.oc2.common.bus.device;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.common.bus.device.util.DeviceTypeImpl;
+import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryBuilder;
@@ -18,25 +21,27 @@ public final class DeviceTypes {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final Supplier<IForgeRegistry<DeviceType>> DEVICE_TYPE_REGISTRY = DEVICE_TYPES.makeRegistry(DeviceType.REGISTRY.getPath(), RegistryBuilder::new);
+    public static final Supplier<IForgeRegistry<DeviceType>> DEVICE_TYPE_REGISTRY = DEVICE_TYPES.makeRegistry("device_type", RegistryBuilder::new);
 
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        register("memory");
-        register("hard_drive");
-        register("flash_memory");
-        register("card");
-        register("robot_module");
-        register("floppy");
+        register(ItemTags.DEVICES_MEMORY);
+        register(ItemTags.DEVICES_HARD_DRIVE);
+        register(ItemTags.DEVICES_FLASH_MEMORY);
+        register(ItemTags.DEVICES_CARD);
+        register(ItemTags.DEVICES_ROBOT_MODULE);
+        register(ItemTags.DEVICES_FLOPPY);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private static void register(final String name) {
-        DEVICE_TYPES.register(name, () -> new DeviceTypeImpl(
-            new ResourceLocation(API.MOD_ID, "gui/icon/" + name),
-            text("gui.{mod}.device_type." + name)
+    private static void register(final Tags.IOptionalNamedTag<Item> tag) {
+        final String id = tag.getName().getPath().replaceFirst("^devices/", "");
+        DEVICE_TYPES.register(id, () -> new DeviceTypeImpl(
+            tag,
+            new ResourceLocation(API.MOD_ID, "gui/icon/" + id),
+            text("gui.{mod}.device_type." + id)
         ));
     }
 }

@@ -1,7 +1,5 @@
 package li.cil.oc2.api.bus.device.provider;
 
-import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
@@ -46,18 +44,6 @@ public interface ItemDeviceProvider extends IForgeRegistryEntry<ItemDeviceProvid
      * @return a device for the specified query, if available.
      */
     Optional<ItemDevice> getDevice(ItemDeviceQuery query);
-
-    /**
-     * Get the type of a device that would be obtained from {@link #getDevice(ItemDeviceQuery)}
-     * if called with the same query. The device type controls which slot devices may be
-     * inserted in in item device containers.
-     *
-     * @param query the query describing the object to get the {@link DeviceType} for.
-     * @return the device type for the specified type, if available.
-     */
-    default Optional<DeviceType> getDeviceType(final ItemDeviceQuery query) {
-        return Optional.of(DeviceTypes.CARD);
-    }
 
     /**
      * The amount of energy the device that would be returned by {@link #getDevice(ItemDeviceQuery)}

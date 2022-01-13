@@ -9,10 +9,10 @@ import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nullable;
 
-public final class TypedSlotItemHandler extends SlotItemHandler {
+public final class DeviceTypeSlotItemHandler extends SlotItemHandler {
     private final DeviceType deviceType;
 
-    public TypedSlotItemHandler(final IItemHandler itemHandler, final DeviceType deviceType, final int index, final int xPosition, final int yPosition) {
+    public DeviceTypeSlotItemHandler(final IItemHandler itemHandler, final DeviceType deviceType, final int index, final int xPosition, final int yPosition) {
         super(itemHandler, index, xPosition, yPosition);
         this.deviceType = deviceType;
     }

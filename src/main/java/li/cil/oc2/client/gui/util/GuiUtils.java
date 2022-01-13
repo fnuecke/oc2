@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.gui.widget.Sprite;
-import li.cil.oc2.common.container.TypedSlotItemHandler;
+import li.cil.oc2.common.container.DeviceTypeSlotItemHandler;
 import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -72,10 +72,10 @@ public final class GuiUtils {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static Optional<TypedSlotItemHandler> findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(final AbstractContainerMenu container, final DeviceType type) {
-        TypedSlotItemHandler firstSlot = null;
+    private static Optional<DeviceTypeSlotItemHandler> findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(final AbstractContainerMenu container, final DeviceType type) {
+        DeviceTypeSlotItemHandler firstSlot = null;
         for (final Slot slot : container.slots) {
-            if (slot instanceof final TypedSlotItemHandler typedSlot) {
+            if (slot instanceof final DeviceTypeSlotItemHandler typedSlot) {
                 final DeviceType slotType = typedSlot.getDeviceType();
                 if (slotType == type) {
                     if (slot.hasItem()) {

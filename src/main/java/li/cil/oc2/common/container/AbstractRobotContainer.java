@@ -31,12 +31,12 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
 
     @Override
     public void switchToInventory() {
-        Network.INSTANCE.sendToServer(new OpenRobotInventoryMessage(robot));
+        Network.sendToServer(new OpenRobotInventoryMessage(robot));
     }
 
     @Override
     public void switchToTerminal() {
-        Network.INSTANCE.sendToServer(new OpenRobotTerminalMessage(robot));
+        Network.sendToServer(new OpenRobotTerminalMessage(robot));
     }
 
     public Robot getRobot() {
@@ -50,7 +50,7 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
 
     @Override
     public void sendPowerStateToServer(final boolean value) {
-        Network.INSTANCE.sendToServer(new RobotPowerMessage(robot, value));
+        Network.sendToServer(new RobotPowerMessage(robot, value));
     }
 
     @Override
@@ -60,7 +60,7 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
 
     @Override
     public void sendTerminalInputToServer(final ByteBuffer input) {
-        Network.INSTANCE.sendToServer(new RobotTerminalInputMessage(robot, input));
+        Network.sendToServer(new RobotTerminalInputMessage(robot, input));
     }
 
     @Override

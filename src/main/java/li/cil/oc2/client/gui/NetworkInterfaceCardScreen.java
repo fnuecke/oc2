@@ -113,7 +113,7 @@ public final class NetworkInterfaceCardScreen extends Screen {
             isDraggingBlock = false;
             if (!hasDraggedBlock && focusedSide != null) {
                 final NetworkInterfaceCardConfigurationMessage message = new NetworkInterfaceCardConfigurationMessage(hand, focusedSide, !getConfiguration(focusedSide));
-                Network.INSTANCE.sendToServer(message);
+                Network.sendToServer(message);
                 Minecraft.getInstance().getSoundManager()
                     .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1));
             }

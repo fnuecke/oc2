@@ -4,6 +4,7 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.common.network.message.*;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -69,6 +70,14 @@ public final class Network {
 
         registerMessage(NetworkInterfaceCardConfigurationMessage.class, NetworkInterfaceCardConfigurationMessage::new, NetworkDirection.PLAY_TO_SERVER);
         registerMessage(NetworkTunnelLinkMessage.class, NetworkTunnelLinkMessage::new, NetworkDirection.PLAY_TO_SERVER);
+    }
+
+    public static <T> void sendToServer(final T message) {
+        Network.INSTANCE.sendToServer(message);
+    }
+
+    public static <T> void sendToClient(final T message, final ServerPlayer player) {
+        Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
     }
 
     public static <T> void sendToClientsTrackingChunk(final T message, final LevelChunk chunk) {

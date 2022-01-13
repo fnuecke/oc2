@@ -448,7 +448,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     @OnlyIn(Dist.CLIENT)
     private void requestInitialState() {
-        Network.INSTANCE.sendToServer(new RobotInitializationRequestMessage(this));
+        Network.sendToServer(new RobotInitializationRequestMessage(this));
     }
 
     private void registerListeners() {

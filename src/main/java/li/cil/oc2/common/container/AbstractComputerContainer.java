@@ -33,12 +33,12 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
 
     @Override
     public void switchToInventory() {
-        Network.INSTANCE.sendToServer(new OpenComputerInventoryMessage(computer));
+        Network.sendToServer(new OpenComputerInventoryMessage(computer));
     }
 
     @Override
     public void switchToTerminal() {
-        Network.INSTANCE.sendToServer(new OpenComputerTerminalMessage(computer));
+        Network.sendToServer(new OpenComputerTerminalMessage(computer));
     }
 
     @Override
@@ -48,7 +48,7 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
 
     @Override
     public void sendPowerStateToServer(final boolean value) {
-        Network.INSTANCE.sendToServer(new ComputerPowerMessage(computer, value));
+        Network.sendToServer(new ComputerPowerMessage(computer, value));
     }
 
     @Override
@@ -58,7 +58,7 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
 
     @Override
     public void sendTerminalInputToServer(final ByteBuffer input) {
-        Network.INSTANCE.sendToServer(new ComputerTerminalInputMessage(computer, input));
+        Network.sendToServer(new ComputerTerminalInputMessage(computer, input));
     }
 
     @Override

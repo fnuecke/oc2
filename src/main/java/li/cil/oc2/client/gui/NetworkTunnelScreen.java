@@ -73,6 +73,6 @@ public final class NetworkTunnelScreen extends AbstractModContainerScreen<Networ
 
     private void createTunnel() {
         final NetworkTunnelLinkMessage message = new NetworkTunnelLinkMessage(getMenu().containerId);
-        Network.INSTANCE.sendToServer(message);
+        Network.sendToServer(message);
     }
 }

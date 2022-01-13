@@ -1,5 +1,6 @@
 package li.cil.oc2.common.network.message;
 
+import li.cil.oc2.common.network.Network;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import org.apache.commons.lang3.NotImplementedException;
@@ -40,5 +41,9 @@ public abstract class AbstractMessage {
 
     protected void handleMessage(final NetworkEvent.Context context) {
         throw new NotImplementedException("Message implements neither asynchronous nor synchronous handleMessage() method.");
+    }
+
+    protected <T> void reply(final T message, final NetworkEvent.Context context) {
+        Network.INSTANCE.reply(message, context);
     }
 }

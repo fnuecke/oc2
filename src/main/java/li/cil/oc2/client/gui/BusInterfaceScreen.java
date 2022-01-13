@@ -137,6 +137,6 @@ public final class BusInterfaceScreen extends Screen {
     ///////////////////////////////////////////////////////////////////
 
     private void setInterfaceName(final String name) {
-        Network.INSTANCE.sendToServer(new BusInterfaceNameMessage.ToServer(busCable, side, name));
+        Network.sendToServer(new BusInterfaceNameMessage.ToServer(busCable, side, name));
     }
 }

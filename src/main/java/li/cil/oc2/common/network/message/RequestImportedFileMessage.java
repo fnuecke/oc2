@@ -58,11 +58,11 @@ public final class RequestImportedFileMessage extends AbstractMessage {
                     final String fileName = path.getFileName().toString();
                     final byte[] data = Files.readAllBytes(path);
                     if (data.length > FileImportExportCardItemDevice.MAX_TRANSFERRED_FILE_SIZE) {
-                        Network.INSTANCE.sendToServer(new ClientCanceledImportFileMessage(id));
+                        Network.sendToServer(new ClientCanceledImportFileMessage(id));
                         Minecraft.getInstance().gui.getChat().addMessage(FILE_TOO_LARGE_TEXT
                             .withStyle(s -> s.withColor(TextColor.fromRgb(0xFFA0A0))));
                     } else {
-                        Network.INSTANCE.sendToServer(new ImportedFileMessage(id, fileName, data));
+                        Network.sendToServer(new ImportedFileMessage(id, fileName, data));
                     }
                 } catch (final IOException e) {
                     LOGGER.error(e);
@@ -71,7 +71,7 @@ public final class RequestImportedFileMessage extends AbstractMessage {
 
             @Override
             public void onCanceled() {
-                Network.INSTANCE.sendToServer(new ClientCanceledImportFileMessage(id));
+                Network.sendToServer(new ClientCanceledImportFileMessage(id));
             }
         });
     }

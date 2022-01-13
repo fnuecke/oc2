@@ -13,7 +13,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -116,8 +115,8 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
                 if (device != null) {
                     device.importedFile = new ImportedFile(name, data);
                     final ServerCanceledImportFileMessage message = new ServerCanceledImportFileMessage(id);
-                    for (final ServerPlayer player : request.PendingPlayers) {
-                        Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
+                    for (final ServerPlayer serverPlayer : request.PendingPlayers) {
+                        Network.sendToClient(message, serverPlayer);
                     }
                 }
             }
@@ -189,7 +188,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
             for (final Player player : userProvider.getTerminalUsers()) {
                 if (player instanceof final ServerPlayer serverPlayer) {
                     final ExportedFileMessage message = new ExportedFileMessage(exportedFile.name, exportedFile.data.toByteArray());
-                    Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> serverPlayer), message);
+                    Network.sendToClient(message, serverPlayer);
                 }
             }
         } finally {
@@ -220,9 +219,9 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
             importingDevices.put(importingId, new ImportFileRequest(this));
         }
 
-        for (final ServerPlayer player : players) {
+        for (final ServerPlayer serverPlayer : players) {
             final RequestImportedFileMessage message = new RequestImportedFileMessage(importingId);
-            Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
+            Network.sendToClient(message, serverPlayer);
         }
 
         return true;

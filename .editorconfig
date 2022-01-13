@@ -1,3 +1,5 @@
+root = true
+
 [*]
 charset = utf-8
 indent_style = space
@@ -12,6 +14,11 @@ ij_java_generate_final_parameters = true
 
 [*.yml]
 indent_size = 2
+tab_width = 2
 
 [*.properties]
 ij_properties_keep_blank_lines = true
+
+[*.json]
+indent_size = 2
+tab_width = 2

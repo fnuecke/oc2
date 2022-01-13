@@ -110,10 +110,8 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         setFocusIndicatorEditBox(focusIndicatorEditBox);
 
         addRenderableWidget(new ToggleImageButton(
-            this, leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4,
+            leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4,
             12, 12,
-            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
-            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION),
             Sprites.POWER_BUTTON_BASE,
             Sprites.POWER_BUTTON_PRESSED,
             Sprites.POWER_BUTTON_ACTIVE
@@ -128,13 +126,14 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
             public boolean isToggled() {
                 return menu.getVirtualMachine().isRunning();
             }
-        });
+        }).withTooltip(
+            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
+            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION)
+        );
 
         addRenderableWidget(new ToggleImageButton(
-            this, leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14,
+            leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14,
             12, 12,
-            new TranslatableComponent(Constants.TERMINAL_CAPTURE_INPUT_CAPTION),
-            new TranslatableComponent(Constants.TERMINAL_CAPTURE_INPUT_DESCRIPTION),
             Sprites.INPUT_BUTTON_BASE,
             Sprites.INPUT_BUTTON_PRESSED,
             Sprites.INPUT_BUTTON_ACTIVE
@@ -149,13 +148,14 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
             public boolean isToggled() {
                 return isInputCaptureEnabled;
             }
-        });
+        }).withTooltip(
+            new TranslatableComponent(Constants.TERMINAL_CAPTURE_INPUT_CAPTION),
+            new TranslatableComponent(Constants.TERMINAL_CAPTURE_INPUT_DESCRIPTION)
+        );
 
         addRenderableWidget(new ImageButton(
-            this, leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14 + 14,
+            leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14 + 14,
             12, 12,
-            new TranslatableComponent(Constants.MACHINE_OPEN_INVENTORY_CAPTION),
-            null,
             Sprites.INVENTORY_BUTTON_INACTIVE,
             Sprites.INVENTORY_BUTTON_ACTIVE
         ) {
@@ -163,7 +163,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
             public void onPress() {
                 menu.switchToInventory();
             }
-        });
+        }).withTooltip(new TranslatableComponent(Constants.MACHINE_OPEN_INVENTORY_CAPTION));
     }
 
     @Override

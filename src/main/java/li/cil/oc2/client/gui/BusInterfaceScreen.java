@@ -61,11 +61,8 @@ public final class BusInterfaceScreen extends Screen {
         setInitialFocus(nameField);
 
         addRenderableWidget(new ImageButton(
-            this,
             left + CONFIRM_LEFT, top + CONFIRM_TOP,
             Sprites.CONFIRM_BASE.width, Sprites.CONFIRM_BASE.height,
-            new TranslatableComponent(Constants.TOOLTIP_CONFIRM),
-            null,
             Sprites.CONFIRM_BASE,
             Sprites.CONFIRM_PRESSED
         ) {
@@ -75,13 +72,11 @@ public final class BusInterfaceScreen extends Screen {
                 setInterfaceName(nameField.getValue());
                 onClose();
             }
-        });
+        }).withTooltip(new TranslatableComponent(Constants.TOOLTIP_CONFIRM));
+
         addRenderableWidget(new ImageButton(
-            this,
             left + CANCEL_LEFT, top + CANCEL_TOP,
             Sprites.CANCEL_BASE.width, Sprites.CANCEL_BASE.height,
-            new TranslatableComponent(Constants.TOOLTIP_CANCEL),
-            null,
             Sprites.CANCEL_BASE,
             Sprites.CANCEL_PRESSED
         ) {
@@ -90,7 +85,7 @@ public final class BusInterfaceScreen extends Screen {
                 super.onPress();
                 onClose();
             }
-        });
+        }).withTooltip(new TranslatableComponent(Constants.TOOLTIP_CANCEL));
     }
 
     @Override

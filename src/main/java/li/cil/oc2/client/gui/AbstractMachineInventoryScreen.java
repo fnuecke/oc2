@@ -39,10 +39,8 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
         super.init();
 
         addRenderableWidget(new ToggleImageButton(
-            this, leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4,
+            leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4,
             12, 12,
-            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
-            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION),
             Sprites.POWER_BUTTON_BASE,
             Sprites.POWER_BUTTON_PRESSED,
             Sprites.POWER_BUTTON_ACTIVE
@@ -57,13 +55,14 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
             public boolean isToggled() {
                 return menu.getVirtualMachine().isRunning();
             }
-        });
+        }).withTooltip(
+            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
+            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION)
+        );
 
         addRenderableWidget(new ImageButton(
-            this, leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14,
+            leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14,
             12, 12,
-            new TranslatableComponent(Constants.MACHINE_OPEN_TERMINAL_CAPTION),
-            null,
             Sprites.INVENTORY_BUTTON_ACTIVE,
             Sprites.INVENTORY_BUTTON_INACTIVE
         ) {
@@ -71,7 +70,7 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
             public void onPress() {
                 menu.switchToTerminal();
             }
-        });
+        }.withTooltip(new TranslatableComponent(Constants.MACHINE_OPEN_TERMINAL_CAPTION)));
     }
 
     @Override

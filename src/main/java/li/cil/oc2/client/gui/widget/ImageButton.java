@@ -1,20 +1,22 @@
 package li.cil.oc2.client.gui.widget;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.util.Mth;
 
-import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.emptyList;
+import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
 
 public abstract class ImageButton extends AbstractButton {
     private static final long PRESS_DURATION = 200;
@@ -22,34 +24,35 @@ public abstract class ImageButton extends AbstractButton {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final Screen parent;
-    private final List<? extends Component> tooltip;
     private final Sprite baseImage;
     private final Sprite pressedImage;
+    private List<Component> tooltip = emptyList();
     private long lastPressedAt;
     private long hoveringStartedAt;
 
     ///////////////////////////////////////////////////////////////////
 
-    public ImageButton(final Screen parent,
-                       final int x, final int y,
-                       final int width, final int height,
-                       final Component caption,
-                       @Nullable final Component description,
-                       final Sprite baseImage,
-                       final Sprite pressedImage) {
-        super(x, y, width, height, caption);
-        this.parent = parent;
-        if (description == null) {
-            this.tooltip = singletonList(caption);
-        } else {
-            this.tooltip = asList(caption, new TextComponent("").withStyle(style -> style.withColor(TextColor.fromLegacyFormat(ChatFormatting.GRAY))).append(description));
-        }
+    protected ImageButton(final int x, final int y, final int width, final int height, final Sprite baseImage, final Sprite pressedImage) {
+        super(x, y, width, height, TextComponent.EMPTY);
         this.baseImage = baseImage;
         this.pressedImage = pressedImage;
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    public ImageButton withMessage(final Component component) {
+        setMessage(component);
+        return this;
+    }
+
+    public ImageButton withTooltip(final Component... components) {
+        tooltip = Arrays.asList(components);
+        for (int i = 1; i < tooltip.size(); i++) {
+            final Component component = tooltip.get(i);
+            tooltip.set(i, withFormat(component, ChatFormatting.GRAY));
+        }
+        return this;
+    }
 
     @Override
     public void onPress() {
@@ -58,12 +61,16 @@ public abstract class ImageButton extends AbstractButton {
 
     @Override
     public void renderButton(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
-        Sprite background = baseImage;
-        if ((System.currentTimeMillis() - lastPressedAt) < PRESS_DURATION) {
-            background = pressedImage;
-        }
+        renderBackground(stack, mouseX, mouseY, partialTicks);
 
-        background.draw(stack, x, y);
+        renderToolTip(stack, mouseX, mouseY);
+    }
+
+    @Override
+    public void renderToolTip(final PoseStack stack, final int mouseX, final int mouseY) {
+        if (tooltip.isEmpty()) {
+            return;
+        }
 
         if (isHoveredOrFocused()) {
             if (hoveringStartedAt == 0) {
@@ -71,7 +78,7 @@ public abstract class ImageButton extends AbstractButton {
             }
 
             if ((System.currentTimeMillis() - hoveringStartedAt) > TOOLTIP_DELAY) {
-                renderToolTip(stack, mouseX, mouseY);
+                TooltipUtils.drawTooltip(stack, tooltip, mouseX, mouseY, 200);
             }
         } else {
             hoveringStartedAt = 0;
@@ -79,12 +86,26 @@ public abstract class ImageButton extends AbstractButton {
     }
 
     @Override
-    public void renderToolTip(final PoseStack stack, final int mouseX, final int mouseY) {
-        TooltipUtils.drawTooltip(stack, tooltip, mouseX, mouseY, 200);
-    }
-
-    @Override
     public void updateNarration(final NarrationElementOutput element) {
         this.defaultButtonNarrationText(element);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected void renderBackground(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
+        RenderSystem.enableDepthTest();
+
+        Sprite background = baseImage;
+        if ((System.currentTimeMillis() - lastPressedAt) < PRESS_DURATION) {
+            background = pressedImage;
+        }
+
+        background.draw(stack, x, y);
+
+        if (!Objects.equals(getMessage(), TextComponent.EMPTY)) {
+            drawCenteredString(stack, Minecraft.getInstance().font, getMessage(),
+                x + width / 2, y + (height - 8) / 2,
+                getFGColor() | Mth.ceil(alpha * 255) << 24);
+        }
     }
 }

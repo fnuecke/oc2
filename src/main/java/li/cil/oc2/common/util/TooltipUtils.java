@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static li.cil.oc2.common.Constants.*;
+import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
+import static net.minecraft.tags.ItemTags.getAllTags;
 
 public final class TooltipUtils {
     private static final MutableComponent DEVICE_NEEDS_REBOOT =
@@ -80,13 +82,13 @@ public final class TooltipUtils {
         final Language languagemap = Language.getInstance();
         if (languagemap.has(translationKey)) {
             final TranslatableComponent description = new TranslatableComponent(translationKey);
-            tooltip.add(withColor(description, ChatFormatting.GRAY));
+            tooltip.add(withFormat(description, ChatFormatting.GRAY));
         }
 
         // Tooltips get queried very early in Minecraft initialization, meaning tags may not
         // have been initialized. Trying to directly use our tag would lead to an exception
         // in that case, so we do the detour through the collection instead.
-        final Tag<Item> tag = net.minecraft.tags.ItemTags.getAllTags().getTag(ItemTags.DEVICE_NEEDS_REBOOT.getName());
+        final Tag<Item> tag = getAllTags().getTag(ItemTags.DEVICE_NEEDS_REBOOT.getName());
         if (tag != null && tag.contains(stack.getItem())) {
             tooltip.add(DEVICE_NEEDS_REBOOT);
         }
@@ -94,8 +96,8 @@ public final class TooltipUtils {
         final ItemDeviceQuery query = Devices.makeQuery(stack);
         final int energyConsumption = Devices.getEnergyConsumption(query);
         if (energyConsumption > 0) {
-            final MutableComponent energy = withColor(String.valueOf(energyConsumption), ChatFormatting.GREEN);
-            tooltip.add(withColor(new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, energy), ChatFormatting.GRAY));
+            final MutableComponent energy = withFormat(String.valueOf(energyConsumption), ChatFormatting.GREEN);
+            tooltip.add(withFormat(new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, energy), ChatFormatting.GRAY));
         }
     }
 
@@ -143,23 +145,15 @@ public final class TooltipUtils {
                 return;
             }
 
-            final MutableComponent value = withColor(energy.getEnergyStored() + "/" + energy.getMaxEnergyStored(), ChatFormatting.GREEN);
-            tooltip.add(withColor(new TranslatableComponent(Constants.TOOLTIP_ENERGY, value), ChatFormatting.GRAY));
+            final MutableComponent value = withFormat(energy.getEnergyStored() + "/" + energy.getMaxEnergyStored(), ChatFormatting.GREEN);
+            tooltip.add(withFormat(new TranslatableComponent(Constants.TOOLTIP_ENERGY, value), ChatFormatting.GRAY));
         });
     }
 
     public static void addEnergyConsumption(final double value, final List<Component> tooltip) {
         if (value > 0) {
-            tooltip.add(withColor(new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(new DecimalFormat("#.##").format(value), ChatFormatting.GREEN)), ChatFormatting.GRAY));
+            tooltip.add(withFormat(new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withFormat(new DecimalFormat("#.##").format(value), ChatFormatting.GREEN)), ChatFormatting.GRAY));
         }
-    }
-
-    public static MutableComponent withColor(final String value, final ChatFormatting formatting) {
-        return withColor(new TextComponent(value), formatting);
-    }
-
-    public static MutableComponent withColor(final MutableComponent text, final ChatFormatting formatting) {
-        return text.withStyle(s -> s.withColor(TextColor.fromLegacyFormat(formatting)));
     }
 
     ///////////////////////////////////////////////////////////////////

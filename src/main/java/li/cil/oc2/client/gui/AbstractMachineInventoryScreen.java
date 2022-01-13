@@ -19,7 +19,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static li.cil.oc2.common.util.TooltipUtils.withColor;
+import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
 
 @OnlyIn(Dist.CLIENT)
 public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTerminalContainer> extends AbstractModContainerScreen<T> {
@@ -88,8 +88,8 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
 
             if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
                 final List<? extends FormattedText> tooltip = asList(
-                    new TranslatableComponent(Constants.TOOLTIP_ENERGY, withColor(energyStored + "/" + energyCapacity, ChatFormatting.GREEN)),
-                    new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withColor(String.valueOf(energyConsumption), ChatFormatting.GREEN))
+                    new TranslatableComponent(Constants.TOOLTIP_ENERGY, withFormat(energyStored + "/" + energyCapacity, ChatFormatting.GREEN)),
+                    new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withFormat(String.valueOf(energyConsumption), ChatFormatting.GREEN))
                 );
                 TooltipUtils.drawTooltip(stack, tooltip, mouseX, mouseY, 200);
             }

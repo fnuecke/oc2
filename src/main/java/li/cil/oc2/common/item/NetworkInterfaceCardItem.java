@@ -22,12 +22,12 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
-import static li.cil.oc2.common.util.TooltipUtils.withColor;
+import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class NetworkInterfaceCardItem extends ModItem {
     private static final String SIDE_CONFIGURATION_TAG_NAME = "sides";
-    private static final Component IS_CONFIGURED_TEXT = withColor(text("item.{mod}.network_interface_card.is_configured"), ChatFormatting.GREEN);
+    private static final Component IS_CONFIGURED_TEXT = withFormat(text("item.{mod}.network_interface_card.is_configured"), ChatFormatting.GREEN);
 
     ///////////////////////////////////////////////////////////////////
 

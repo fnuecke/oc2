@@ -17,7 +17,7 @@ This mod uses the Terminus Font under the Open Font License. The full license ca
 [[dependencies.oc2]]
 modId = "forge"
 mandatory = true
-versionRange = "[39.0.4,)"
+versionRange = "[39.0.19,)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]

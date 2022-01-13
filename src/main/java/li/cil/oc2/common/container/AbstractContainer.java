@@ -121,7 +121,15 @@ public abstract class AbstractContainer extends AbstractContainerMenu {
                 final int index = startIndex + row * PLAYER_INVENTORY_COLUMNS + column;
                 final int x = startX + column * SLOT_SIZE;
                 final int y = startY + row * SLOT_SIZE;
-                this.addSlot(new Slot(inventory, index, x, y));
+
+                final Slot slot;
+                if (isSlotLocked(inventory, index)) {
+                    slot = new LockedSlot(inventory, index, x, y);
+                } else {
+                    slot = new Slot(inventory, index, x, y);
+                }
+
+                this.addSlot(slot);
             }
         }
 
@@ -130,8 +138,23 @@ public abstract class AbstractContainer extends AbstractContainerMenu {
 
     protected int createHotbarSlots(final Inventory inventory, final int startIndex, final int startX, final int startY) {
         for (int i = 0; i < HOTBAR_SIZE; ++i) {
-            this.addSlot(new Slot(inventory, startIndex + i, startX + i * SLOT_SIZE, startY));
+            final int index = startIndex + i;
+            final int x = startX + i * SLOT_SIZE;
+
+            final Slot slot;
+            if (isSlotLocked(inventory, index)) {
+                slot = new LockedSlot(inventory, index, x, startY);
+            } else {
+                slot = new Slot(inventory, index, x, startY);
+            }
+
+            this.addSlot(slot);
         }
+
         return startIndex + HOTBAR_SIZE;
+    }
+
+    protected boolean isSlotLocked(final Inventory inventory, final int slot) {
+        return false;
     }
 }

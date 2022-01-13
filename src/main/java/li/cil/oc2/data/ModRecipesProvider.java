@@ -274,6 +274,17 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ShapedRecipeBuilder
+            .shaped(Items.NETWORK_TUNNEL_CARD.get())
+            .pattern("IET")
+            .pattern(" B ")
+            .define('E', Tags.Items.ENDER_PEARLS)
+            .define('I', Tags.Items.INGOTS_IRON)
+            .define('T', Items.TRANSISTOR.get())
+            .define('B', Items.CIRCUIT_BOARD.get())
+            .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+            .save(consumer);
+
+        ShapedRecipeBuilder
             .shaped(Items.FILE_IMPORT_EXPORT_CARD.get())
             .pattern("IET")
             .pattern(" B ")
@@ -324,6 +335,17 @@ public final class ModRecipesProvider extends RecipeProvider {
             .pattern(" B ")
             .define('T', Items.TRANSISTOR.get())
             .define('P', net.minecraft.world.item.Items.DIAMOND_PICKAXE)
+            .define('G', Tags.Items.INGOTS_GOLD)
+            .define('B', Items.CIRCUIT_BOARD.get())
+            .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+            .save(consumer);
+
+        ShapedRecipeBuilder
+            .shaped(Items.NETWORK_TUNNEL_MODULE.get())
+            .pattern("TEG")
+            .pattern(" B ")
+            .define('T', Items.TRANSISTOR.get())
+            .define('E', Tags.Items.ENDER_PEARLS)
             .define('G', Tags.Items.INGOTS_GOLD)
             .define('B', Items.CIRCUIT_BOARD.get())
             .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))

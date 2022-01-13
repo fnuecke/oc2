@@ -14,4 +14,5 @@ public final class DeviceTypes {
     @ObjectHolder("card") public static DeviceType CARD = null;
     @ObjectHolder("robot_module") public static DeviceType ROBOT_MODULE = null;
     @ObjectHolder("floppy") public static DeviceType FLOPPY = null;
+    @ObjectHolder("network_tunnel") public static DeviceType NETWORK_TUNNEL = null;
 }

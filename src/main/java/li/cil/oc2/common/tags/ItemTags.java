@@ -15,6 +15,7 @@ public final class ItemTags {
     public static final Tags.IOptionalNamedTag<Item> DEVICES_CARD = tag("devices/card");
     public static final Tags.IOptionalNamedTag<Item> DEVICES_ROBOT_MODULE = tag("devices/robot_module");
     public static final Tags.IOptionalNamedTag<Item> DEVICES_FLOPPY = tag("devices/floppy");
+    public static final Tags.IOptionalNamedTag<Item> DEVICES_NETWORK_TUNNEL = tag("devices/network_tunnel");
 
     public static final Tags.IOptionalNamedTag<Item> CABLES = tag("cables");
     public static final Tags.IOptionalNamedTag<Item> WRENCHES = tag("wrenches");

@@ -53,11 +53,17 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
             Items.REDSTONE_INTERFACE_CARD.get(),
             Items.NETWORK_INTERFACE_CARD.get(),
             Items.FILE_IMPORT_EXPORT_CARD.get(),
-            Items.SOUND_CARD.get()
+            Items.SOUND_CARD.get(),
+            Items.NETWORK_TUNNEL_CARD.get()
         );
         tag(DEVICES_ROBOT_MODULE).add(
             Items.INVENTORY_OPERATIONS_MODULE.get(),
-            Items.BLOCK_OPERATIONS_MODULE.get()
+            Items.BLOCK_OPERATIONS_MODULE.get(),
+            Items.NETWORK_TUNNEL_MODULE.get()
+        );
+        tag(DEVICES_NETWORK_TUNNEL).add(
+            Items.NETWORK_TUNNEL_CARD.get(),
+            Items.NETWORK_TUNNEL_MODULE.get()
         );
 
         tag(WRENCHES).add(Items.WRENCH.get());
@@ -73,7 +79,9 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
             Items.FLASH_MEMORY.get(),
             Items.FLASH_MEMORY_CUSTOM.get(),
             Items.NETWORK_INTERFACE_CARD.get(),
-            Items.DISK_DRIVE.get()
+            Items.DISK_DRIVE.get(),
+            Items.NETWORK_TUNNEL_CARD.get(),
+            Items.NETWORK_TUNNEL_MODULE.get()
         );
     }
 }

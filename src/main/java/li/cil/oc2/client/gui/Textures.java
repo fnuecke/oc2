@@ -8,6 +8,7 @@ public final class Textures {
     public static final Texture TERMINAL_SCREEN_TEXTURE = new Texture("textures/gui/widget/terminal_screen.png", 336, 208);
     public static final Texture BUS_INTERFACE_SCREEN_TEXTURE = new Texture("textures/gui/widget/bus_interface_screen.png", 240, 30);
     public static final Texture NETWORK_INTERFACE_CARD_SCREEN_TEXTURE = new Texture("textures/gui/widget/network_interface_card_screen.png", 176, 130);
+    public static final Texture NETWORK_TUNNEL_SCREEN_TEXTURE = new Texture("textures/gui/widget/network_tunnel_screen.png", 176, 197);
 
     public static final Texture TERMINAL_FOCUSED_TEXTURE = new Texture("textures/gui/overlay/terminal_focused.png", 336, 208);
     public static final Texture SLOT_SELECTION_TEXTURE = new Texture("textures/gui/overlay/slot_selection.png", 18, 270);
@@ -27,4 +28,5 @@ public final class Textures {
     public static final Texture POWER_BUTTON_TEXTURE = new Texture("textures/gui/widget/power_button.png", 42, 14);
     public static final Texture INPUT_BUTTON_TEXTURE = new Texture("textures/gui/widget/input_button.png", 42, 14);
     public static final Texture INVENTORY_BUTTON_TEXTURE = new Texture("textures/gui/widget/inventory_button.png", 28, 14);
+    public static final Texture NETWORK_TUNNEL_LINK_BUTTON_TEXTURE = new Texture("textures/gui/widget/network_tunnel_link_button.png", 80, 40);
 }

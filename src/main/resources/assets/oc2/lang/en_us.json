@@ -40,6 +40,8 @@
   "item.oc2.network_interface_card": "Network Interface Card",
   "item.oc2.network_interface_card.desc": "Sends and receives network packets via attached Network Connectors.",
   "item.oc2.network_interface_card.is_configured": "Has connectivity configuration.",
+  "item.oc2.network_tunnel_card": "Network Tunnel Card",
+  "item.oc2.network_tunnel_card.desc": "Sends and receives network packets to a linked device.",
   "item.oc2.file_import_export_card": "File Import/Export Card",
   "item.oc2.file_import_export_card.desc": "Imports and exports files from and into your real file system.",
   "item.oc2.robot": "Robot",
@@ -50,6 +52,8 @@
   "item.oc2.block_operations_module.desc": "Breaks and places blocks.",
   "item.oc2.sound_card": "Sound Card",
   "item.oc2.sound_card.desc": "Plays various sounds from its highly realistic sound bank.",
+  "item.oc2.network_tunnel_module": "Network Tunnel Module",
+  "item.oc2.network_tunnel_module.desc": "Sends and receives network packets to a linked device.",
 
   "item.oc2.transistor": "Transistor",
   "item.oc2.transistor.desc": "Crafting material.",
@@ -92,6 +96,8 @@
   "gui.oc2.network_interface_card.connectivity.disabled": "Disabled",
   "gui.oc2.network_interface_card.info": "Drag to rotate. Click faces to toggle connectivity.",
 
+  "gui.oc2.network_tunnel.link": "Link",
+
   "manual.oc2.home": "Home",
   "manual.oc2.blocks": "Blocks",
   "manual.oc2.items": "Items",
@@ -110,6 +116,7 @@
   "tooltip.oc2.energyConsumption": "Energy Consumption: %s/t",
   "tooltip.oc2.confirm": "Confirm",
   "tooltip.oc2.cancel": "Cancel",
+  "tooltip.oc2.network_tunnel_id": "Tunnel: %s",
 
   "subtitles.oc2.computer": "Computer fans running",
   "subtitles.oc2.floppy": "Floppy access",

@@ -10,6 +10,7 @@ public final class Sprites {
     public static final Sprite TERMINAL_SCREEN = new Sprite(TERMINAL_SCREEN_TEXTURE);
     public static final Sprite BUS_INTERFACE_SCREEN = new Sprite(BUS_INTERFACE_SCREEN_TEXTURE);
     public static final Sprite NETWORK_INTERFACE_CARD_SCREEN = new Sprite(NETWORK_INTERFACE_CARD_SCREEN_TEXTURE);
+    public static final Sprite NETWORK_TUNNEL_SCREEN = new Sprite(NETWORK_TUNNEL_SCREEN_TEXTURE);
 
     public static final Sprite TERMINAL_FOCUSED = new Sprite(TERMINAL_FOCUSED_TEXTURE);
     public static final Sprite SLOT_SELECTION = new Sprite(SLOT_SELECTION_TEXTURE, 18, 18, 0, 0);
@@ -33,6 +34,9 @@ public final class Sprites {
 
     public static final Sprite INVENTORY_BUTTON_INACTIVE = new Sprite(INVENTORY_BUTTON_TEXTURE, 12, 12, 1, 1);
     public static final Sprite INVENTORY_BUTTON_ACTIVE = new Sprite(INVENTORY_BUTTON_TEXTURE, 12, 12, 15, 1);
+
+    public static final Sprite NETWORK_TUNNEL_LINK_BUTTON_INACTIVE = new Sprite(NETWORK_TUNNEL_LINK_BUTTON_TEXTURE, 80, 20, 0, 0);
+    public static final Sprite NETWORK_TUNNEL_LINK_BUTTON_ACTIVE = new Sprite(NETWORK_TUNNEL_LINK_BUTTON_TEXTURE, 80, 20, 0, 20);
 
     public static final Sprite CONFIRM_PRESSED = new Sprite(CONFIRM_BUTTON_TEXTURE, 12, 12, 14, 1);
     public static final Sprite CONFIRM_BASE = new Sprite(CONFIRM_BUTTON_TEXTURE, 12, 12, 1, 1);

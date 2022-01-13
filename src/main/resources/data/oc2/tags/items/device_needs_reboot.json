@@ -11,6 +11,8 @@
     "oc2:flash_memory",
     "oc2:flash_memory_buildroot",
     "oc2:network_interface_card",
-    "oc2:disk_drive"
+    "oc2:disk_drive",
+    "oc2:network_tunnel_card",
+    "oc2:network_tunnel_module"
   ]
 }

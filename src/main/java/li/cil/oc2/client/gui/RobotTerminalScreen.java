@@ -21,8 +21,8 @@ public final class RobotTerminalScreen extends AbstractMachineTerminalScreen<Rob
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotTerminalScreen(final RobotTerminalContainer container, final Inventory playerInventory, final Component title) {
-        super(container, playerInventory, title);
+    public RobotTerminalScreen(final RobotTerminalContainer container, final Inventory inventory, final Component title) {
+        super(container, inventory, title);
     }
 
     @Override

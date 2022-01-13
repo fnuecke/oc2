@@ -19,7 +19,7 @@ public final class ModRecipesProvider extends RecipeProvider {
     }
 
     @Override
-    protected void buildCraftingRecipes(Consumer<FinishedRecipe> consumer) {
+    protected void buildCraftingRecipes(final Consumer<FinishedRecipe> consumer) {
         ShapedRecipeBuilder
             .shaped(Items.COMPUTER.get())
             .pattern("ICI")

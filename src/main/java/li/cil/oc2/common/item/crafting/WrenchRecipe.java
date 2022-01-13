@@ -51,7 +51,7 @@ public final class WrenchRecipe extends ShapelessRecipe {
         @Nullable
         @Override
         public WrenchRecipe fromNetwork(final ResourceLocation location, final FriendlyByteBuf buffer) {
-            ShapelessRecipe recipe = SHAPELESS_RECIPE.fromNetwork(location, buffer);
+            final ShapelessRecipe recipe = SHAPELESS_RECIPE.fromNetwork(location, buffer);
             if (recipe == null) {
                 return null;
             }

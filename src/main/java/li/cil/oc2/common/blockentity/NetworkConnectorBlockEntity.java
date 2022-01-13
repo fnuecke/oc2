@@ -2,7 +2,6 @@ package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.NetworkConnectorBlock;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
@@ -53,7 +52,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
     private static final int MAX_CONNECTION_COUNT = 2;
     private static final int MAX_CONNECTION_DISTANCE = 16;
     private static final int INITIAL_PACKET_TIME_TO_LIVE = 12;
-    private static final int BYTES_PER_TICK = 64 * 1024 / Constants.SECONDS_TO_TICKS; // bytes / sec -> bytes / tick
+    private static final int BYTES_PER_TICK = 64 * 1024 / TickUtils.toTicks(Duration.ofSeconds(1)); // bytes / sec -> bytes / tick
     private static final int MIN_ETHERNET_FRAME_SIZE = 42;
     private static final int TTL_COST = 1;
 
@@ -193,13 +192,13 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
             }
         }
 
-        final NetworkInterface src = adjacentInterface.orElse(NullNetworkInterface.INSTANCE);
+        final NetworkInterface source = adjacentInterface.orElse(NullNetworkInterface.INSTANCE);
 
         int byteBudget = BYTES_PER_TICK;
         byte[] frame;
-        while ((frame = src.readEthernetFrame()) != null && byteBudget > 0) {
+        while ((frame = source.readEthernetFrame()) != null && byteBudget > 0) {
             byteBudget -= Math.max(frame.length, MIN_ETHERNET_FRAME_SIZE); // Avoid bogus packets messing with us.
-            networkInterface.writeEthernetFrame(src, frame, INITIAL_PACKET_TIME_TO_LIVE);
+            networkInterface.writeEthernetFrame(source, frame, INITIAL_PACKET_TIME_TO_LIVE);
         }
     }
 

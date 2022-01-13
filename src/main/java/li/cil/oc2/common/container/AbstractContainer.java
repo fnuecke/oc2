@@ -50,11 +50,15 @@ public abstract class AbstractContainer extends AbstractContainerMenu {
                     continue;
                 }
 
-                final ItemStack intoStack = into.getItem();
-                if (intoStack.isEmpty()) {
+                if (!into.mayPlace(fromStack)) {
                     continue;
                 }
 
+                if (!into.hasItem()) {
+                    continue;
+                }
+
+                final ItemStack intoStack = into.getItem();
                 final boolean itemsAreEqual = fromStack.sameItem(intoStack) && ItemStack.tagMatches(fromStack, intoStack);
                 if (!itemsAreEqual) {
                     continue;
@@ -90,11 +94,11 @@ public abstract class AbstractContainer extends AbstractContainerMenu {
                 continue;
             }
 
-            if (into.hasItem()) {
+            if (!into.mayPlace(fromStack)) {
                 continue;
             }
 
-            if (!into.mayPlace(fromStack)) {
+            if (into.hasItem()) {
                 continue;
             }
 

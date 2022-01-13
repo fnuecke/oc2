@@ -63,6 +63,8 @@ public final class VMDeviceBusAdapter {
     }
 
     public void unmount() {
+        globalContext.joinWorkerThread();
+
         for (final VMDevice device : deviceContexts.keySet()) {
             device.unmount();
         }
@@ -71,6 +73,8 @@ public final class VMDeviceBusAdapter {
     }
 
     public void suspend() {
+        globalContext.joinWorkerThread();
+
         for (final VMDevice device : deviceContexts.keySet()) {
             device.suspend();
         }
@@ -79,6 +83,8 @@ public final class VMDeviceBusAdapter {
     }
 
     public void addDevices(final Collection<Device> devices) {
+        globalContext.joinWorkerThread();
+
         for (final Device device : devices) {
             if (device instanceof final VMDevice vmDevice) {
                 final ManagedVMContext context = deviceContexts.put(vmDevice, null);
@@ -92,6 +98,8 @@ public final class VMDeviceBusAdapter {
     }
 
     public void removeDevices(final Collection<Device> devices) {
+        globalContext.joinWorkerThread();
+
         for (final Device device : devices) {
             if (device instanceof final VMDevice vmDevice) {
                 vmDevice.unmount();

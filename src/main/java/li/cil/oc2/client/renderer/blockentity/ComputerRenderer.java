@@ -13,6 +13,7 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
+import li.cil.oc2.common.util.ChainableVertexConsumer;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -228,25 +229,22 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     }
 
     private static void renderQuad(final Matrix4f matrix, final VertexConsumer consumer) {
-        // NB: We may get a SpriteAwareVertexBuilder here. Sadly, its chaining is broken,
-        //     because methods may return the underlying vertex builder, so e.g. calling
-        //     buffer.pos(...).tex(...) will not actually call SpriteAwareVertexBuilder.tex(...)
-        //     but SpriteAwareVertexBuilder.vertexBuilder.tex(...), skipping the UV remapping.
-        consumer.vertex(matrix, 0, 0, 0);
-        consumer.uv(0, 0);
-        consumer.endVertex();
+        final VertexConsumer wrapper = new ChainableVertexConsumer(consumer);
+        wrapper.vertex(matrix, 0, 0, 0)
+            .uv(0, 0)
+            .endVertex();
 
-        consumer.vertex(matrix, 0, 16, 0);
-        consumer.uv(0, 1);
-        consumer.endVertex();
+        wrapper.vertex(matrix, 0, 16, 0)
+            .uv(0, 1)
+            .endVertex();
 
-        consumer.vertex(matrix, 16, 16, 0);
-        consumer.uv(1, 1);
-        consumer.endVertex();
+        wrapper.vertex(matrix, 16, 16, 0)
+            .uv(1, 1)
+            .endVertex();
 
-        consumer.vertex(matrix, 16, 0, 0);
-        consumer.uv(1, 0);
-        consumer.endVertex();
+        wrapper.vertex(matrix, 16, 0, 0)
+            .uv(1, 0)
+            .endVertex();
     }
 
     private static void updateCache(final TickEvent.ClientTickEvent event) {

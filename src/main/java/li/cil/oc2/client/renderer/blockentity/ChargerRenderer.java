@@ -6,6 +6,7 @@ import com.mojang.math.Matrix4f;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.common.blockentity.ChargerBlockEntity;
+import li.cil.oc2.common.util.ChainableVertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -31,7 +32,7 @@ public final class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEn
 
     ///////////////////////////////////////////////////////////////////
 
-    public ChargerRenderer(final BlockEntityRendererProvider.Context ignored) {
+    public ChargerRenderer(final BlockEntityRendererProvider.Context ignoredContext) {
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -67,24 +68,21 @@ public final class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEn
     }
 
     private static void renderQuad(final Matrix4f matrix, final VertexConsumer consumer) {
-        // NB: We may get a SpriteAwareVertexBuilder here. Sadly, its chaining is broken,
-        //     because methods may return the underlying vertex builder, so e.g. calling
-        //     buffer.pos(...).tex(...) will not actually call SpriteAwareVertexBuilder.tex(...)
-        //     but SpriteAwareVertexBuilder.vertexBuilder.tex(...), skipping the UV remapping.
-        consumer.vertex(matrix, -0.5f, 0, -0.5f);
-        consumer.uv(0, 0);
-        consumer.endVertex();
+        final VertexConsumer wrapper = new ChainableVertexConsumer(consumer);
+        wrapper.vertex(matrix, -0.5f, 0, -0.5f)
+            .uv(0, 0)
+            .endVertex();
 
-        consumer.vertex(matrix, -0.5f, 0, 0.5f);
-        consumer.uv(0, 1);
-        consumer.endVertex();
+        wrapper.vertex(matrix, -0.5f, 0, 0.5f)
+            .uv(0, 1)
+            .endVertex();
 
-        consumer.vertex(matrix, 0.5f, 0, 0.5f);
-        consumer.uv(1, 1);
-        consumer.endVertex();
+        wrapper.vertex(matrix, 0.5f, 0, 0.5f)
+            .uv(1, 1)
+            .endVertex();
 
-        consumer.vertex(matrix, 0.5f, 0, -0.5f);
-        consumer.uv(1, 0);
-        consumer.endVertex();
+        wrapper.vertex(matrix, 0.5f, 0, -0.5f)
+            .uv(1, 0)
+            .endVertex();
     }
 }

@@ -87,6 +87,27 @@ public final class ObjectDevice implements RPCDevice {
     }
 
     @Override
+    public void mount() {
+        if (object instanceof LifecycleAwareDevice device) {
+            device.onDeviceMounted();
+        }
+    }
+
+    @Override
+    public void unmount() {
+        if (object instanceof LifecycleAwareDevice device) {
+            device.onDeviceUnmounted();
+        }
+    }
+
+    @Override
+    public void suspend() {
+        if (object instanceof LifecycleAwareDevice device) {
+            device.onDeviceSuspended();
+        }
+    }
+
+    @Override
     public boolean equals(@Nullable final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

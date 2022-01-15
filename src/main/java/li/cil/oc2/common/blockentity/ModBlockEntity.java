@@ -14,7 +14,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
 
 public abstract class ModBlockEntity extends BlockEntity {
     private final Runnable onWorldUnloaded = this::onWorldUnloaded;
@@ -160,26 +159,5 @@ public abstract class ModBlockEntity extends BlockEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final class CapabilityCacheKey {
-        public final Capability<?> capability;
-        @Nullable public final Direction direction;
-
-        public CapabilityCacheKey(final Capability<?> capability, @Nullable final Direction direction) {
-            this.capability = capability;
-            this.direction = direction;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            final CapabilityCacheKey that = (CapabilityCacheKey) o;
-            return capability.equals(that.capability) && direction == that.direction;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(capability, direction);
-        }
-    }
+    private record CapabilityCacheKey(Capability<?> capability, @Nullable Direction direction) { }
 }

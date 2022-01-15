@@ -18,19 +18,9 @@ import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
-public final class BusCableModel implements IModelGeometry<BusCableModel> {
+public record BusCableModel(ModelLoaderRegistry.VanillaProxy proxy) implements IModelGeometry<BusCableModel> {
     private static final ResourceLocation BUS_CABLE_STRAIGHT_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_straight");
     private static final ResourceLocation BUS_CABLE_SUPPORT_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_support");
-
-    ///////////////////////////////////////////////////////////////////
-
-    private final ModelLoaderRegistry.VanillaProxy proxy;
-
-    ///////////////////////////////////////////////////////////////////
-
-    public BusCableModel(final ModelLoaderRegistry.VanillaProxy proxy) {
-        this.proxy = proxy;
-    }
 
     ///////////////////////////////////////////////////////////////////
 

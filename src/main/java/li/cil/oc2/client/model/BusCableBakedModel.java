@@ -33,21 +33,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public final class BusCableBakedModel implements IDynamicBakedModel {
+public record BusCableBakedModel(
+    BakedModel proxy,
+    BakedModel[] straightModelByAxis,
+    BakedModel[] supportModelByFace
+) implements IDynamicBakedModel {
     private static final ModelProperty<BusCableSupportSide> BUS_CABLE_SUPPORT_PROPERTY = new ModelProperty<>();
     private static final ModelProperty<BusCableFacade> BUS_CABLE_FACADE_PROPERTY = new ModelProperty<>();
-
-    private final BakedModel proxy;
-    private final BakedModel[] straightModelByAxis;
-    private final BakedModel[] supportModelByFace;
-
-    ///////////////////////////////////////////////////////////////////
-
-    public BusCableBakedModel(final BakedModel proxy, final BakedModel[] straightModelByAxis, final BakedModel[] supportModelByFace) {
-        this.proxy = proxy;
-        this.straightModelByAxis = straightModelByAxis;
-        this.supportModelByFace = supportModelByFace;
-    }
 
     ///////////////////////////////////////////////////////////////////
 

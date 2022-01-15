@@ -49,7 +49,9 @@ public final class VMDeviceBusAdapter {
 
             if (!result.wasSuccessful()) {
                 for (; i >= 0; i--) {
-                    deviceContexts.get(incompleteLoads.get(i)).invalidate();
+                    final VMDevice otherDevice = incompleteLoads.get(i);
+                    otherDevice.unmount();
+                    deviceContexts.get(otherDevice).invalidate();
                 }
                 return result;
             }

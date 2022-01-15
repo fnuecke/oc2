@@ -4,16 +4,10 @@ import li.cil.oc2.common.network.Network;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.function.Supplier;
 
 public abstract class AbstractMessage {
-    protected static final Logger LOGGER = LogManager.getLogger();
-
-    ///////////////////////////////////////////////////////////////////
-
     protected AbstractMessage() {
     }
 

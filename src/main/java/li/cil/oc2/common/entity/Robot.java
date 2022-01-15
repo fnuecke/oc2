@@ -345,10 +345,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     public void setRemoved(final RemovalReason reason) {
         super.setRemoved(reason);
 
-        virtualMachine.suspend();
-
         // Full unload to release out-of-nbt persisted runtime-only data such as ram.
         virtualMachine.stop();
+        virtualMachine.dispose();
     }
 
     @Override
@@ -473,6 +472,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         unregisterListeners();
         virtualMachine.suspend();
+        virtualMachine.dispose();
     }
 
     private void handleWorldUnload(final WorldEvent.Unload event) {
@@ -482,6 +482,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         unregisterListeners();
         virtualMachine.suspend();
+        virtualMachine.dispose();
     }
 
     private Cursor3D getBlockPosIterator() {

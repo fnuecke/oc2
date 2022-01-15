@@ -82,12 +82,16 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     ///////////////////////////////////////////////////////////////////
 
+    public void dispose() {
+        joinWorkerThread();
+        state.context.invalidate();
+        busController.dispose();
+    }
+
     public void suspend() {
         joinWorkerThread();
         state.vmAdapter.suspend();
         state.rpcAdapter.suspend();
-        state.context.invalidate();
-        busController.dispose();
     }
 
     @Override

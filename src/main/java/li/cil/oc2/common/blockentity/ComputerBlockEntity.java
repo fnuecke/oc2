@@ -196,13 +196,6 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     }
 
     @Override
-    public void setRemoved() {
-        super.setRemoved();
-
-        virtualMachine.stop();
-    }
-
-    @Override
     public CompoundTag getUpdateTag() {
         final CompoundTag tag = super.getUpdateTag();
 
@@ -282,10 +275,16 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     }
 
     @Override
-    protected void unloadServer() {
-        super.unloadServer();
+    protected void unloadServer(final boolean isRemove) {
+        super.unloadServer(isRemove);
 
-        virtualMachine.suspend();
+        if (isRemove) {
+            virtualMachine.stop();
+        } else {
+            virtualMachine.suspend();
+        }
+
+        virtualMachine.dispose();
 
         // This is necessary in case some other controller found us before our controller
         // did its scan, which can happen because the scan can happen with a delay. In

@@ -261,42 +261,6 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
     }
 
     @Override
-    protected void loadClient() {
-        super.loadClient();
-
-        NetworkCableRenderer.addNetworkConnector(this);
-    }
-
-    @Override
-    public void setRemoved() {
-        super.setRemoved();
-
-        // When we're being removed we want to break the actual link to any connected
-        // connectors. This will also cause cables to be dropped.
-        final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(connectors.values());
-        connectors.clear();
-        for (final NetworkConnectorBlockEntity connector : list) {
-            disconnectFrom(connector.getBlockPos());
-            connector.disconnectFrom(getBlockPos());
-        }
-    }
-
-    @Override
-    protected void unloadServer() {
-        super.unloadServer();
-
-        // When unloading, we just want to remove the reference to this block entity
-        // from connected connectors; we don't want to actually break the link.
-        final BlockPos pos = getBlockPos();
-        for (final NetworkConnectorBlockEntity connector : connectors.values()) {
-            connector.connectors.remove(pos);
-            if (connector.connectorPositions.contains(pos)) {
-                connector.dirtyConnectors.add(pos);
-            }
-        }
-    }
-
-    @Override
     public AABB getRenderBoundingBox() {
         if (Minecraft.useShaderTransparency()) {
             return new AABB(
@@ -314,6 +278,39 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         if (direction == NetworkConnectorBlock.getFacing(getBlockState()).getOpposite()) {
             collector.offer(Capabilities.NETWORK_INTERFACE, networkInterface);
+        }
+    }
+
+    @Override
+    protected void loadClient() {
+        super.loadClient();
+
+        NetworkCableRenderer.addNetworkConnector(this);
+    }
+
+    @Override
+    protected void unloadServer(final boolean isRemove) {
+        super.unloadServer(isRemove);
+
+        if (isRemove) {
+            // When we're being removed we want to break the actual link to any connected
+            // connectors. This will also cause cables to be dropped.
+            final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(connectors.values());
+            connectors.clear();
+            for (final NetworkConnectorBlockEntity connector : list) {
+                disconnectFrom(connector.getBlockPos());
+                connector.disconnectFrom(getBlockPos());
+            }
+        } else {
+            // When unloading, we just want to remove the reference to this block entity
+            // from connected connectors; we don't want to actually break the link.
+            final BlockPos pos = getBlockPos();
+            for (final NetworkConnectorBlockEntity connector : connectors.values()) {
+                connector.connectors.remove(pos);
+                if (connector.connectorPositions.contains(pos)) {
+                    connector.dirtyConnectors.add(pos);
+                }
+            }
         }
     }
 

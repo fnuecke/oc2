@@ -94,18 +94,18 @@ public abstract class ModBlockEntity extends BlockEntity {
     @Override
     public void onChunkUnloaded() {
         super.onChunkUnloaded(); // -> invalidateCaps()
-        onUnload();
+        onUnload(false);
     }
 
     public void onWorldUnloaded() {
         invalidateCaps();
-        onUnload();
+        onUnload(false);
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved(); // -> invalidateCaps()
-        onUnload();
+        onUnload(true);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -128,9 +128,9 @@ public abstract class ModBlockEntity extends BlockEntity {
         }
     }
 
-    protected void onUnload() {
+    protected void onUnload(final boolean isRemove) {
         if (level != null && !level.isClientSide()) {
-            unloadServer();
+            unloadServer(isRemove);
             ServerScheduler.cancelOnUnload(level, onWorldUnloaded);
         }
     }
@@ -148,7 +148,7 @@ public abstract class ModBlockEntity extends BlockEntity {
     protected void loadServer() {
     }
 
-    protected void unloadServer() {
+    protected void unloadServer(final boolean isRemove) {
     }
 
     ///////////////////////////////////////////////////////////////////

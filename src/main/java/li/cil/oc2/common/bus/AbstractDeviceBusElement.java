@@ -63,7 +63,7 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     @Override
     public Collection<Device> getDevices() {
         if (!controllers.isEmpty()) {
-            return controllers.stream().flatMap(controller -> getDevices().stream()).collect(Collectors.toList());
+            return controllers.stream().flatMap(controller -> getDevices().stream()).collect(Collectors.toSet());
         } else {
             return getLocalDevices();
         }

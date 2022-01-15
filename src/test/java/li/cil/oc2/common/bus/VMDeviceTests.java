@@ -60,7 +60,7 @@ public final class VMDeviceTests {
     }
 
     @Test
-    public void addedDevicesHaveLoadCalled() {
+    public void addedDevicesHaveMountCalled() {
         final VMDevice device1 = mock(VMDevice.class);
         final VMDevice device2 = mock(VMDevice.class);
         when(device1.mount(any())).thenReturn(VMDeviceLoadResult.success());
@@ -72,13 +72,12 @@ public final class VMDeviceTests {
 
         adapter.addDevices(Collections.singleton(device2));
         assertTrue(adapter.mount().wasSuccessful());
-
         verifyNoMoreInteractions(device1);
         verify(device2).mount(any());
     }
 
     @Test
-    public void removedDevicesHaveUnloadCalled() {
+    public void removedDevicesHaveUnmountCalled() {
         final VMDevice device = mock(VMDevice.class);
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
@@ -90,7 +89,7 @@ public final class VMDeviceTests {
     }
 
     @Test
-    public void devicesHaveUnloadCalledOnGlobalUnload() {
+    public void devicesHaveUnloadCalledOnGlobalUnmount() {
         final VMDevice device = mock(VMDevice.class);
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
@@ -102,7 +101,7 @@ public final class VMDeviceTests {
     }
 
     @Test
-    public void devicesHaveLoadCalledAfterGlobalUnload() {
+    public void devicesHaveMountCalledAfterGlobalUnmount() {
         final VMDevice device = mock(VMDevice.class);
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
@@ -193,7 +192,7 @@ public final class VMDeviceTests {
     }
 
     @Test
-    public void unloadLowersClaimedInterrupts() {
+    public void unmountLowersClaimedInterrupts() {
         final DeviceData deviceData = new DeviceData();
         final VMDevice device = mock(VMDevice.class);
         when(device.mount(any())).thenAnswer(invocation -> {
@@ -259,7 +258,7 @@ public final class VMDeviceTests {
     }
 
     @Test
-    public void addedDevicesGetRemovedOnUnload() {
+    public void addedDevicesGetRemovedOnUnmount() {
         final DeviceData deviceData = new DeviceData();
         final VMDevice device = mock(VMDevice.class);
         when(device.mount(any())).thenAnswer(invocation -> {

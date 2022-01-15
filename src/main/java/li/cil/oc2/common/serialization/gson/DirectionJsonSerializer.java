@@ -1,4 +1,4 @@
-package li.cil.oc2.common.serialization.serializers;
+package li.cil.oc2.common.serialization.gson;
 
 import com.google.gson.*;
 import net.minecraft.core.Direction;
@@ -32,10 +32,6 @@ public final class DirectionJsonSerializer implements JsonDeserializer<Direction
 
     @Override
     public JsonElement serialize(final Direction src, final Type typeOfSrc, final JsonSerializationContext context) {
-        if (src == null) {
-            return JsonNull.INSTANCE;
-        } else {
-            return new JsonPrimitive(src.toString());
-        }
+        return new JsonPrimitive(src.toString());
     }
 }

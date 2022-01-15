@@ -1,6 +1,6 @@
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package li.cil.oc2.common.serialization.serializers;
+package li.cil.oc2.common.serialization.gson;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 

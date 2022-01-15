@@ -1,4 +1,4 @@
-package li.cil.oc2.common.serialization.serializers;
+package li.cil.oc2.common.serialization.gson;
 
 import com.google.gson.*;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
@@ -9,10 +9,6 @@ import java.lang.reflect.Type;
 public final class RPCMethodJsonSerializer implements JsonSerializer<RPCMethod> {
     @Override
     public JsonElement serialize(final RPCMethod method, final Type typeOfMethod, final JsonSerializationContext context) {
-        if (method == null) {
-            return JsonNull.INSTANCE;
-        }
-
         final JsonObject methodJson = new JsonObject();
         methodJson.addProperty("name", method.getName());
         methodJson.addProperty("returnType", method.getReturnType().getSimpleName());

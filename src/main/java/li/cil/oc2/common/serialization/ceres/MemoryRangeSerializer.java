@@ -1,4 +1,4 @@
-package li.cil.oc2.common.serialization.serializers;
+package li.cil.oc2.common.serialization.ceres;
 
 import li.cil.ceres.api.DeserializationVisitor;
 import li.cil.ceres.api.SerializationException;
@@ -16,6 +16,7 @@ public final class MemoryRangeSerializer implements Serializer<MemoryRange> {
         visitor.putLong("end", range.end);
     }
 
+    @Nullable
     @Override
     public MemoryRange deserialize(final DeserializationVisitor visitor, final Class<MemoryRange> type, @Nullable final Object value) throws SerializationException {
         if (!visitor.exists("start") || !visitor.exists("end")) {

@@ -14,7 +14,7 @@ import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.RecipeSerializers;
-import li.cil.oc2.common.serialization.serializers.Serializers;
+import li.cil.oc2.common.serialization.ceres.Serializers;
 import li.cil.oc2.common.tags.BlockTags;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.RegistryUtils;

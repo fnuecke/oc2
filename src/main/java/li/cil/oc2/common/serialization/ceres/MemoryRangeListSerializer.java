@@ -1,4 +1,4 @@
-package li.cil.oc2.common.serialization.serializers;
+package li.cil.oc2.common.serialization.ceres;
 
 import li.cil.ceres.api.DeserializationVisitor;
 import li.cil.ceres.api.SerializationException;

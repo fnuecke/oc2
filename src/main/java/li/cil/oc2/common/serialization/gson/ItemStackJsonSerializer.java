@@ -1,4 +1,4 @@
-package li.cil.oc2.common.serialization.serializers;
+package li.cil.oc2.common.serialization.gson;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -13,7 +13,7 @@ import java.lang.reflect.Type;
 public final class ItemStackJsonSerializer implements JsonSerializer<ItemStack> {
     @Override
     public JsonElement serialize(final ItemStack src, final Type typeOfSrc, final JsonSerializationContext context) {
-        if (src == null || src.isEmpty()) {
+        if (src.isEmpty()) {
             return JsonNull.INSTANCE;
         }
 

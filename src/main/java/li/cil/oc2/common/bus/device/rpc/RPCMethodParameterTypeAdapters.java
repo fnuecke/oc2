@@ -2,8 +2,8 @@ package li.cil.oc2.common.bus.device.rpc;
 
 import com.google.gson.GsonBuilder;
 import li.cil.oc2.api.imc.RPCMethodParameterTypeAdapter;
-import li.cil.oc2.common.serialization.serializers.DirectionJsonSerializer;
-import li.cil.oc2.common.serialization.serializers.ItemStackJsonSerializer;
+import li.cil.oc2.common.serialization.gson.DirectionJsonSerializer;
+import li.cil.oc2.common.serialization.gson.ItemStackJsonSerializer;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 

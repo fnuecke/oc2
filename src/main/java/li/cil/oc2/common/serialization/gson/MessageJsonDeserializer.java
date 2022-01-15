@@ -1,4 +1,4 @@
-package li.cil.oc2.common.serialization.serializers;
+package li.cil.oc2.common.serialization.gson;
 
 import com.google.gson.*;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;

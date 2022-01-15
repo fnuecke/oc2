@@ -1,4 +1,4 @@
-package li.cil.oc2.common.serialization.serializers;
+package li.cil.oc2.common.serialization.ceres;
 
 import li.cil.ceres.api.DeserializationVisitor;
 import li.cil.ceres.api.SerializationException;
@@ -23,6 +23,10 @@ public final class TextComponentSerializer implements Serializer<Component> {
         }
 
         final String json = (String) visitor.getObject("value", String.class, null);
+        if (json == null) {
+            return (Component) value;
+        }
+
         return Component.Serializer.fromJson(json);
     }
 }

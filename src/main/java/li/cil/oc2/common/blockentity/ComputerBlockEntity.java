@@ -199,10 +199,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     public void setRemoved() {
         super.setRemoved();
 
-        // super.remove() calls onUnload. This in turn only suspends, but we want to do
-        // a full clean-up when we get destroyed, so stuff inside us can delete out-of-nbt
-        // persisted runtime-only data such as ram.
-        virtualMachine.state.vmAdapter.unmount();
+        virtualMachine.stop();
     }
 
     @Override

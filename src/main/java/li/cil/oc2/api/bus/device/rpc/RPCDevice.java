@@ -45,6 +45,24 @@ public interface RPCDevice extends Device {
     List<RPCMethod> getMethods();
 
     /**
+     * Called to initialize this device.
+     * <p>
+     * This is called when the connected virtual machine starts, or when the device is added to an already running
+     * virtual machine.
+     */
+    default void mount() {
+    }
+
+    /**
+     * Called to dispose this device.
+     * <p>
+     * Called when the connected virtual machine stops, or when the device is removed from a currently running
+     * virtual machine.
+     */
+    default void unmount() {
+    }
+
+    /**
      * Called when the device is suspended.
      * <p>
      * This can happen when the level area containing the context the device was loaded in is unloaded,

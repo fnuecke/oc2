@@ -40,6 +40,8 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     private final ArrayList<RPCDeviceWithIdentifier> devices = new ArrayList<>();
     private final HashMap<UUID, RPCDeviceList> devicesById = new HashMap<>();
+    private final Set<RPCDevice> unmountedDevices = new HashSet<>();
+    private final Set<RPCDevice> mountedDevices = new HashSet<>();
     private final Lock pauseLock = new ReentrantLock();
     private boolean isPaused;
 
@@ -68,6 +70,22 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    public void mount() {
+        for (final RPCDevice device : unmountedDevices) {
+            device.mount();
+        }
+        mountedDevices.addAll(unmountedDevices);
+        unmountedDevices.clear();
+    }
+
+    public void unmount() {
+        for (final RPCDevice device : mountedDevices) {
+            device.unmount();
+        }
+        unmountedDevices.addAll(mountedDevices);
+        mountedDevices.clear();
+    }
 
     public void suspend() {
         for (final RPCDeviceWithIdentifier info : devices) {
@@ -100,6 +118,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
         devices.clear();
         devicesById.clear();
+        unmountedDevices.clear();
 
         // How device grouping works:
         // Each device can have multiple UUIDs due to being attached to multiple bus elements.
@@ -144,11 +163,31 @@ public final class RPCDeviceBusAdapter implements Steppable {
                 .add(identifier);
         });
 
+        final Set<RPCDevice> newDevices = new HashSet<>();
         identifiersByDevice.forEach((device, identifiers) -> {
             final UUID identifier = selectIdentifierDeterministically(identifiers);
             devices.add(new RPCDeviceWithIdentifier(identifier, device));
             devicesById.put(identifier, device);
+            newDevices.add(device);
         });
+
+        // Add new devices to list of unmounted devices. List was cleared, so removed devices previously in
+        // list of unmounted devices are already gone.
+        for (final RPCDevice newDevice : newDevices) {
+            if (!mountedDevices.contains(newDevice)) {
+                unmountedDevices.add(newDevice);
+            }
+        }
+
+        // Remove removed devices from list of mounted devices.
+        final Iterator<RPCDevice> mountedDeviceIterator = mountedDevices.iterator();
+        while (mountedDeviceIterator.hasNext()) {
+            final RPCDevice device = mountedDeviceIterator.next();
+            if (!newDevices.contains(device)) {
+                device.unmount();
+                mountedDeviceIterator.remove();
+            }
+        }
     }
 
     public void tick() {

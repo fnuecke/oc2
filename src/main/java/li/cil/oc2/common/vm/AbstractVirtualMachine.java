@@ -198,6 +198,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
         state.board.reset();
         state.rpcAdapter.reset();
+        state.rpcAdapter.unmount();
         state.vmAdapter.unmount();
 
         runner = null;
@@ -336,6 +337,8 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
             runner = createRunner();
         }
+
+        state.rpcAdapter.mount();
 
         setRunState(VMRunState.RUNNING);
 

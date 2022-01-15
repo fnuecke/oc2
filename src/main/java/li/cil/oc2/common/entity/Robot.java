@@ -348,7 +348,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         virtualMachine.suspend();
 
         // Full unload to release out-of-nbt persisted runtime-only data such as ram.
-        virtualMachine.state.vmAdapter.unmount();
+        virtualMachine.stop();
     }
 
     @Override

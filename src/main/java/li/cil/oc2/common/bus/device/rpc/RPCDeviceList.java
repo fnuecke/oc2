@@ -36,6 +36,20 @@ public final class RPCDeviceList implements RPCDevice {
     }
 
     @Override
+    public void mount() {
+        for (final RPCDevice device : devices) {
+            device.mount();
+        }
+    }
+
+    @Override
+    public void unmount() {
+        for (final RPCDevice device : devices) {
+            device.unmount();
+        }
+    }
+
+    @Override
     public void suspend() {
         for (final RPCDevice device : devices) {
             device.suspend();

@@ -9,13 +9,13 @@ import java.util.List;
  * Provides an interface for an RPC device, describing the methods that can be
  * called on it and the type names it can be detected by/is compatible with.
  * <p>
- * A {@link RPCDevice} may represent a single view onto some device or be a
+ * A {@link RPCDevice} may represent a single view onto some device, or be a
  * collection of multiple aggregated {@link RPCDevice}s. One underlying device
- * may have multiple {@link RPCDevice}s providing different methods for the
- * device. This allows specifying general purpose interfaces which provide logic
- * for some aspect of an underlying device which may be shared with other devices.
+ * may have multiple {@link RPCDevice}s, providing different methods for the
+ * device. This allows specifying general purpose interfaces, which provide logic
+ * for some aspect of an underlying device, which may be shared with other devices.
  * <p>
- * The easiest and hence recommended way of implementing this interface is to use
+ * The easiest, and hence recommended, way of implementing this interface, is to use
  * the {@link ObjectDevice} class.
  *
  * @see ObjectDevice

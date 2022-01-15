@@ -36,6 +36,13 @@ public final class RPCDeviceList implements RPCDevice {
     }
 
     @Override
+    public void suspend() {
+        for (final RPCDevice device : devices) {
+            device.suspend();
+        }
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

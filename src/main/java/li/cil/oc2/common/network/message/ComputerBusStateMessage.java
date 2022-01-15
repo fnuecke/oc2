@@ -13,9 +13,9 @@ public final class ComputerBusStateMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerBusStateMessage(final ComputerBlockEntity computer) {
+    public ComputerBusStateMessage(final ComputerBlockEntity computer, final CommonDeviceBusController.BusState value) {
         this.pos = computer.getBlockPos();
-        this.value = computer.getVirtualMachine().getBusState();
+        this.value = value;
     }
 
     public ComputerBusStateMessage(final FriendlyByteBuf buffer) {

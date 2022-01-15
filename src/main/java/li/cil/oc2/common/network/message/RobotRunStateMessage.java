@@ -12,9 +12,9 @@ public final class RobotRunStateMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotRunStateMessage(final Robot robot) {
+    public RobotRunStateMessage(final Robot robot, final VMRunState value) {
         this.entityId = robot.getId();
-        this.value = robot.getVirtualMachine().getRunState();
+        this.value = value;
     }
 
     public RobotRunStateMessage(final FriendlyByteBuf buffer) {

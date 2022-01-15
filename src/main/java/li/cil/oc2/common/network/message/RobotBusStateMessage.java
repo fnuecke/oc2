@@ -12,9 +12,9 @@ public final class RobotBusStateMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotBusStateMessage(final Robot robot) {
+    public RobotBusStateMessage(final Robot robot, final CommonDeviceBusController.BusState value) {
         this.entityId = robot.getId();
-        this.value = robot.getVirtualMachine().getBusState();
+        this.value = value;
     }
 
     public RobotBusStateMessage(final FriendlyByteBuf buffer) {

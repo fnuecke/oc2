@@ -453,7 +453,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         @Override
         protected void handleBusStateChanged(final CommonDeviceBusController.BusState value) {
-            Network.sendToClientsTrackingChunk(new ComputerBusStateMessage(ComputerBlockEntity.this), chunk);
+            Network.sendToClientsTrackingChunk(new ComputerBusStateMessage(ComputerBlockEntity.this, value), chunk);
 
             if (value == CommonDeviceBusController.BusState.READY && level != null) {
                 // Bus just became ready, meaning new devices may be available, meaning new
@@ -467,13 +467,13 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
             // This method can be called from disposal logic, so if we are disposed quickly enough
             // chunk may not be initialized yet. Avoid resulting NRE in network logic.
             if (chunk != null) {
-                Network.sendToClientsTrackingChunk(new ComputerRunStateMessage(ComputerBlockEntity.this), chunk);
+                Network.sendToClientsTrackingChunk(new ComputerRunStateMessage(ComputerBlockEntity.this, value), chunk);
             }
         }
 
         @Override
         protected void handleBootErrorChanged(@Nullable final Component value) {
-            Network.sendToClientsTrackingChunk(new ComputerBootErrorMessage(ComputerBlockEntity.this), chunk);
+            Network.sendToClientsTrackingChunk(new ComputerBootErrorMessage(ComputerBlockEntity.this, value), chunk);
         }
     }
 }

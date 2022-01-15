@@ -13,9 +13,9 @@ public final class ComputerRunStateMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerRunStateMessage(final ComputerBlockEntity computer) {
+    public ComputerRunStateMessage(final ComputerBlockEntity computer, final VMRunState value) {
         this.pos = computer.getBlockPos();
-        this.value = computer.getVirtualMachine().getRunState();
+        this.value = value;
     }
 
     public ComputerRunStateMessage(final FriendlyByteBuf buffer) {

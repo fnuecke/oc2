@@ -823,17 +823,17 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         @Override
         protected void handleBusStateChanged(final CommonDeviceBusController.BusState value) {
-            Network.sendToClientsTrackingEntity(new RobotBusStateMessage(Robot.this), Robot.this);
+            Network.sendToClientsTrackingEntity(new RobotBusStateMessage(Robot.this, value), Robot.this);
         }
 
         @Override
         protected void handleRunStateChanged(final VMRunState value) {
-            Network.sendToClientsTrackingEntity(new RobotRunStateMessage(Robot.this), Robot.this);
+            Network.sendToClientsTrackingEntity(new RobotRunStateMessage(Robot.this, value), Robot.this);
         }
 
         @Override
         protected void handleBootErrorChanged(@Nullable final Component value) {
-            Network.sendToClientsTrackingEntity(new RobotBootErrorMessage(Robot.this), Robot.this);
+            Network.sendToClientsTrackingEntity(new RobotBootErrorMessage(Robot.this, value), Robot.this);
         }
     }
 

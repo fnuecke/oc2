@@ -7,15 +7,17 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.network.NetworkEvent;
 
+import javax.annotation.Nullable;
+
 public final class ComputerBootErrorMessage extends AbstractMessage {
     private BlockPos pos;
     private Component value;
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerBootErrorMessage(final ComputerBlockEntity computer) {
+    public ComputerBootErrorMessage(final ComputerBlockEntity computer, @Nullable final Component value) {
         this.pos = computer.getBlockPos();
-        this.value = computer.getVirtualMachine().getBootError();
+        this.value = value;
     }
 
     public ComputerBootErrorMessage(final FriendlyByteBuf buffer) {

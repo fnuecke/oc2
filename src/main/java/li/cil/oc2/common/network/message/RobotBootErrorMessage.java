@@ -6,15 +6,17 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.network.NetworkEvent;
 
+import javax.annotation.Nullable;
+
 public final class RobotBootErrorMessage extends AbstractMessage {
     private int entityId;
     private Component value;
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotBootErrorMessage(final Robot robot) {
+    public RobotBootErrorMessage(final Robot robot, @Nullable final Component value) {
         this.entityId = robot.getId();
-        this.value = robot.getVirtualMachine().getBootError();
+        this.value = value;
     }
 
     public RobotBootErrorMessage(final FriendlyByteBuf buffer) {

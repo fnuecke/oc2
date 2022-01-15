@@ -16,6 +16,56 @@ import li.cil.sedna.api.device.MemoryMappedDevice;
  * <p>
  * To listen to lifecycle events of the VM and the device, register to the event
  * bus provided via {@link VMContext#getEventBus()} in {@link #mount(VMContext)}.
+ * <p>
+ * The lifecycle for VMDevices can be depicted as such:
+ * <pre>
+ *    ┌──────────────────────────────────┐
+ *    │VirtualMachine.isRunning() = false◄────────────────────────┐
+ *    └────────────────┬─────────────────┘                        │
+ *                     │                                          │
+ *          ┌──────────▼───────────┐                              │
+ *          │VirtualMachine.start()│                              │
+ *          └──────────┬───────────┘                              │
+ *                     │                                          │
+ *                     │   ┌──────────┐                           │
+ *                     │   │Chunk Load│  ┌──────────────────┐     │
+ *                     ├───┼──────────◄──┤VMDevice.suspend()◄───┐ │
+ *                     │   │World Load│  └──────────────────┘   │ │
+ *                     │   └──────────┘                         │ │
+ *                     │                                        │ │
+ *            ┌────────▼───────┐       ┌────┐                   │ │
+ * ┌──────────►VMDevice.mount()◄───────┤Wait◄─────────┐         │ │
+ * │          └────────┬───────┘       └──▲─┘         │         │ │
+ * │                   │                  │           │         │ │
+ * │                   │  ┌───────────────┴─────────┐ │         │ │
+ * │                   ├──►VMDeviceLoadResult.fail()│ │         │ │
+ * │                   │  └─────────────────────────┘ │         │ │
+ * │                   │                              │         │ │
+ * │    ┌──────────────▼─────────────┐ ┌──────────────┴───┐     │ │
+ * │    │VMDeviceLoadResult.success()│ │VMDevice.unmount()│     │ │
+ * │    └──────────────┬─────────────┘ └──────────────▲───┘     │ │
+ * │                   │                              │         │ │
+ * │                   │        ┌─────────────────────┴───┐     │ │
+ * │                   ├────────►     Other VMDevice:     │     │ │
+ * │                   │        │VMDeviceLoadResult.fail()│     │ │
+ * │                   │        └─────────────────────────┘     │ │
+ * │                   │                                        │ │
+ * │                   │                     ┌────────────┐     │ │
+ * │                   │                     │Chunk Unload│     │ │
+ * │                   │                   ┌─►────────────┼─────┘ │
+ * │                   │                   │ │World Unload│       │
+ * │ ┌─────────────────▼───────────────┐   │ └────────────┘       │
+ * │ │VirtualMachine.isRunning() = true├───┤                      │
+ * │ └─────┬───────────────────┬───────┘   │ ┌──────────────────┐ │
+ * │       │                   │           │ │Computer Shutdown │ │
+ * │ ┌─────▼──────┐     ┌──────▼───────┐   └─►──────────────────┤ │
+ * └─┤Device Added│     │Device Removed│     │Computer Destroyed│ │
+ *   └────────────┘     └──────┬───────┘     └─────────┬────────┘ │
+ *                             │                       │          │
+ *                    ┌────────▼─────────┐   ┌─────────▼────────┐ │
+ *                    │VMDevice.unmount()│   │VMDevice.unmount()├─┘
+ *                    └──────────────────┘   └──────────────────┘
+ * </pre>
  *
  * @see li.cil.oc2.api.bus.device.provider.BlockDeviceProvider
  * @see li.cil.oc2.api.bus.device.provider.ItemDeviceProvider

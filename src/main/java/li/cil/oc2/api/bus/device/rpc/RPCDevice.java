@@ -17,6 +17,39 @@ import java.util.List;
  * <p>
  * The easiest, and hence recommended, way of implementing this interface, is to use
  * the {@link ObjectDevice} class.
+ * <p>
+ * The lifecycle for {@link RPCDevice}s is as follows:
+ * <pre>
+ *    ┌──────────────────────────────────┐
+ *    │VirtualMachine.isRunning() = false◄──────────────────────┐
+ *    └────────────────┬─────────────────┘                      │
+ *                     │                                        │
+ *          ┌──────────▼───────────┐                            │
+ *          │VirtualMachine.start()│                            │
+ *          └──────────┬───────────┘                            │
+ *                     │                                        │
+ *                     │   ┌──────────┐                         │
+ *                     │   │Chunk Load│    ┌──────────────────┐ │
+ *                     ├───┼──────────◄────┤VMDevice.suspend()│ │
+ *                     │   │World Load│    └─────▲────────────┘ │
+ *                     │   └──────────┘          │              │
+ *                     │                         │              │
+ *            ┌────────▼───────┐           ┌─────┴──────┐       │
+ * ┌──────────►VMDevice.mount()│           │Chunk Unload│       │
+ * │          └────────┬───────┘         ┌─►────────────┤       │
+ * │                   │                 │ │World Unload│       │
+ * │ ┌─────────────────▼───────────────┐ │ └────────────┘       │
+ * │ │VirtualMachine.isRunning() = true├─┤                      │
+ * │ └─────┬───────────────────┬───────┘ │ ┌──────────────────┐ │
+ * │       │                   │         │ │Computer Shutdown │ │
+ * │ ┌─────▼──────┐     ┌──────▼───────┐ └─►──────────────────┤ │
+ * └─┤Device Added│     │Device Removed│   │Computer Destroyed│ │
+ *   └────────────┘     └──────┬───────┘   └─────┬────────────┘ │
+ *                             │                 │              │
+ *                    ┌────────▼─────────┐ ┌─────▼────────────┐ │
+ *                    │VMDevice.unmount()│ │VMDevice.unmount()├─┘
+ *                    └──────────────────┘ └──────────────────┘
+ * </pre>
  *
  * @see ObjectDevice
  * @see li.cil.oc2.api.bus.device.provider.BlockDeviceProvider

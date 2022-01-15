@@ -13,6 +13,7 @@ import li.cil.oc2.common.vm.VirtualMachine;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.energy.IEnergyStorage;
 
 import java.nio.ByteBuffer;
@@ -63,7 +64,9 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
 
     @Override
     public boolean stillValid(final Player player) {
-        return !computer.isRemoved() && stillValid(ContainerLevelAccess.create(computer.getLevel(), computer.getBlockPos()), player, Blocks.COMPUTER.get());
+        if (computer.isRemoved()) { return false; }
+        final Level level = computer.getLevel();
+        return level != null && stillValid(ContainerLevelAccess.create(level, computer.getBlockPos()), player, Blocks.COMPUTER.get());
     }
 
     @Override
@@ -76,7 +79,7 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
     ///////////////////////////////////////////////////////////////////
 
     protected static IntPrecisionContainerData createEnergyInfo(final IEnergyStorage energy, final CommonDeviceBusController busController) {
-        return new IntPrecisionContainerData() {
+        return new IntPrecisionContainerData.Server() {
             @Override
             public int getInt(final int index) {
                 return switch (index) {

@@ -88,17 +88,7 @@ public final class Devices {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static class BlockQuery implements BlockDeviceQuery {
-        private final Level level;
-        private final BlockPos pos;
-        @Nullable private final Direction side;
-
-        public BlockQuery(final Level level, final BlockPos pos, @Nullable final Direction side) {
-            this.level = level;
-            this.pos = pos;
-            this.side = side;
-        }
-
+    private record BlockQuery(Level level, BlockPos pos, @Nullable Direction side) implements BlockDeviceQuery {
         @Override
         public Level getLevel() {
             return level;
@@ -116,27 +106,21 @@ public final class Devices {
         }
     }
 
-    private static final class ItemQuery implements ItemDeviceQuery {
-        @Nullable private final BlockEntity blockEntity;
-        @Nullable private final Entity entity;
-        private final ItemStack stack;
-
+    private record ItemQuery(
+        @Nullable BlockEntity blockEntity,
+        @Nullable Entity entity,
+        ItemStack stack
+    ) implements ItemDeviceQuery {
         public ItemQuery(final ItemStack stack) {
-            blockEntity = null;
-            entity = null;
-            this.stack = stack;
+            this(null, null, stack);
         }
 
         public ItemQuery(final BlockEntity blockEntity, final ItemStack stack) {
-            this.blockEntity = blockEntity;
-            entity = null;
-            this.stack = stack;
+            this(blockEntity, null, stack);
         }
 
         public ItemQuery(final Entity entity, final ItemStack stack) {
-            blockEntity = null;
-            this.entity = entity;
-            this.stack = stack;
+            this(null, entity, stack);
         }
 
         @Override

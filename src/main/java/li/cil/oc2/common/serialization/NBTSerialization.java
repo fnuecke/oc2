@@ -70,13 +70,7 @@ public final class NBTSerialization {
         ARRAY_SERIALIZERS.put(UUID.class, new UUIDArraySerializer());
     }
 
-    private static final class Serializer implements SerializationVisitor {
-        private final CompoundTag tag;
-
-        private Serializer(final CompoundTag tag) {
-            this.tag = tag;
-        }
-
+    private record Serializer(CompoundTag tag) implements SerializationVisitor {
         @Override
         public void putBoolean(final String name, final boolean value) {
             tag.putBoolean(name, value);
@@ -208,13 +202,7 @@ public final class NBTSerialization {
         }
     }
 
-    private static final class Deserializer implements DeserializationVisitor {
-        private final CompoundTag tag;
-
-        private Deserializer(final CompoundTag tag) {
-            this.tag = tag;
-        }
-
+    private record Deserializer(CompoundTag tag) implements DeserializationVisitor {
         @Override
         public boolean getBoolean(final String name) {
             return tag.getBoolean(name);

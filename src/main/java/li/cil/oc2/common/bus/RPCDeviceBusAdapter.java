@@ -454,17 +454,9 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final class RPCDeviceWithIdentifier {
-        public final UUID identifier;
-        public final RPCDevice device;
+    public record RPCDeviceWithIdentifier(UUID identifier, RPCDevice device) { }
 
-        private RPCDeviceWithIdentifier(final UUID identifier, final RPCDevice device) {
-            this.identifier = identifier;
-            this.device = device;
-        }
-    }
-
-    public static final class Message {
+    public record Message(String type, @Nullable Object data) {
         // Device -> VM
         public static final String MESSAGE_TYPE_LIST = "list";
         public static final String MESSAGE_TYPE_METHODS = "methods";
@@ -473,14 +465,6 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
         // VM -> Device
         public static final String MESSAGE_TYPE_INVOKE_METHOD = "invoke";
-
-        public final String type;
-        @Nullable public final Object data;
-
-        public Message(final String type, @Nullable final Object data) {
-            this.type = type;
-            this.data = data;
-        }
     }
 
     @Serialized

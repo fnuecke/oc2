@@ -68,15 +68,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         }
     }
 
-    private static final class ImportedFileInfo {
-        public String name;
-        public int size;
-
-        public ImportedFileInfo(final String name, final int size) {
-            this.name = name;
-            this.size = size;
-        }
-    }
+    private record ImportedFileInfo(String name, int size) { }
 
     private static final class ImportFileRequest {
         public final Set<ServerPlayer> PendingPlayers = Collections.newSetFromMap(new WeakHashMap<>());

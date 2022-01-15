@@ -78,7 +78,7 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
     ///////////////////////////////////////////////////////////////////
 
     protected static IntPrecisionContainerData createEnergyInfo(final FixedEnergyStorage energy, final CommonDeviceBusController busController) {
-        return new IntPrecisionContainerData() {
+        return new IntPrecisionContainerData.Server() {
             @Override
             public int getInt(final int index) {
                 return switch (index) {

@@ -36,7 +36,7 @@ public final class ComputerInventoryContainer extends AbstractComputerContainer 
         final BlockPos pos = data.readBlockPos();
         final BlockEntity blockEntity = playerInventory.player.level.getBlockEntity(pos);
         if (blockEntity instanceof final ComputerBlockEntity computer) {
-            return new ComputerInventoryContainer(id, computer, playerInventory.player, createEnergyInfo());
+            return new ComputerInventoryContainer(id, computer, playerInventory.player, createClientEnergyInfo());
         }
 
         throw new IllegalArgumentException();

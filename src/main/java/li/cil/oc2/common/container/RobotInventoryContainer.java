@@ -36,7 +36,7 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
         final int entityId = data.readVarInt();
         final Entity entity = inventory.player.level.getEntity(entityId);
         if (entity instanceof final Robot robot) {
-            return new RobotInventoryContainer(id, robot, inventory.player, createEnergyInfo());
+            return new RobotInventoryContainer(id, robot, inventory.player, createClientEnergyInfo());
         }
 
         throw new IllegalArgumentException();

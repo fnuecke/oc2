@@ -46,7 +46,7 @@ public abstract class AbstractMachineContainer extends AbstractContainer {
 
     ///////////////////////////////////////////////////////////////////
 
-    protected static IntPrecisionContainerData createEnergyInfo() {
-        return new SimpleIntPrecisionContainerData(ENERGY_INFO_SIZE);
+    protected static IntPrecisionContainerData createClientEnergyInfo() {
+        return new IntPrecisionContainerData.Client(ENERGY_INFO_SIZE);
     }
 }

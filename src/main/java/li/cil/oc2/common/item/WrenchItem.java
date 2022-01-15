@@ -2,6 +2,7 @@ package li.cil.oc2.common.item;
 
 import li.cil.oc2.common.tags.BlockTags;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -53,7 +54,10 @@ public final class WrenchItem extends ModItem {
         }
 
         if (level.isClientSide()) {
-            Minecraft.getInstance().gameMode.destroyBlock(pos);
+            final MultiPlayerGameMode gameMode = Minecraft.getInstance().gameMode;
+            if (gameMode != null) {
+                gameMode.destroyBlock(pos);
+            }
         } else if (player instanceof final ServerPlayer serverPlayer) {
             serverPlayer.gameMode.destroyBlock(pos);
         }

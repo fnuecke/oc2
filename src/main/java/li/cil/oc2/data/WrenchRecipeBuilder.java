@@ -13,6 +13,7 @@ import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.Tag;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -84,7 +85,10 @@ public final class WrenchRecipeBuilder {
     }
 
     public void save(final Consumer<FinishedRecipe> consumerIn) {
-        this.save(consumerIn, ForgeRegistries.ITEMS.getKey(this.result));
+        final ResourceLocation key = ForgeRegistries.ITEMS.getKey(this.result);
+        if (key != null) {
+            this.save(consumerIn, key);
+        }
     }
 
     public void save(final Consumer<FinishedRecipe> consumerIn, final String save) {
@@ -99,7 +103,10 @@ public final class WrenchRecipeBuilder {
     public void save(final Consumer<FinishedRecipe> consumerIn, final ResourceLocation id) {
         this.validate(id);
         this.advancementBuilder.parent(new ResourceLocation("recipes/root")).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id)).rewards(AdvancementRewards.Builder.recipe(id)).requirements(RequirementsStrategy.OR);
-        consumerIn.accept(new WrenchRecipeBuilder.Result(id, this.result, this.count, this.group == null ? "" : this.group, this.ingredients, this.advancementBuilder, new ResourceLocation(id.getNamespace(), "recipes/" + this.result.getItemCategory().getRecipeFolderName() + "/" + id.getPath())));
+        final CreativeModeTab itemCategory = this.result.getItemCategory();
+        if (itemCategory != null) {
+            consumerIn.accept(new WrenchRecipeBuilder.Result(id, this.result, this.count, this.group == null ? "" : this.group, this.ingredients, this.advancementBuilder, new ResourceLocation(id.getNamespace(), "recipes/" + itemCategory.getRecipeFolderName() + "/" + id.getPath())));
+        }
     }
 
     private void validate(final ResourceLocation id) {
@@ -140,7 +147,10 @@ public final class WrenchRecipeBuilder {
 
             json.add("ingredients", jsonarray);
             final JsonObject jsonobject = new JsonObject();
-            jsonobject.addProperty("item", ForgeRegistries.ITEMS.getKey(this.result).toString());
+            final ResourceLocation key = ForgeRegistries.ITEMS.getKey(this.result);
+            if (key != null) {
+                jsonobject.addProperty("item", key.toString());
+            }
             if (this.count > 1) {
                 jsonobject.addProperty("count", this.count);
             }

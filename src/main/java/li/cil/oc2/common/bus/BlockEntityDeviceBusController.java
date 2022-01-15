@@ -53,11 +53,13 @@ public final class BlockEntityDeviceBusController extends CommonDeviceBusControl
             if (element instanceof final BlockDeviceBusElement blockElement) {
                 final LevelAccessor elementLevel = blockElement.getLevel();
                 final BlockPos elementPosition = blockElement.getPosition();
-                newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition));
-                newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition.relative(Direction.NORTH)));
-                newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition.relative(Direction.EAST)));
-                newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition.relative(Direction.SOUTH)));
-                newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition.relative(Direction.WEST)));
+                if (elementLevel != null) {
+                    newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition));
+                    newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition.relative(Direction.NORTH)));
+                    newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition.relative(Direction.EAST)));
+                    newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition.relative(Direction.SOUTH)));
+                    newTrackedChunks.add(new TrackedChunk(elementLevel, elementPosition.relative(Direction.WEST)));
+                }
             }
         }
 

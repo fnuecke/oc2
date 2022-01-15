@@ -11,9 +11,6 @@ public class FixedSizeItemStackHandler extends ItemStackHandler {
 
     ///////////////////////////////////////////////////////////////////
 
-    public FixedSizeItemStackHandler() {
-    }
-
     public FixedSizeItemStackHandler(final int size) {
         super(size);
     }

@@ -44,8 +44,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
     }
 
     RobotMovementAction(final CompoundTag tag) {
-        super(RobotActions.MOVEMENT);
-        deserialize(tag);
+        super(RobotActions.MOVEMENT, tag);
     }
 
     ///////////////////////////////////////////////////////////////////

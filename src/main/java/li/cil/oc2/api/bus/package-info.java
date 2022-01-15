@@ -14,15 +14,15 @@
  * {@link li.cil.oc2.api.bus.DeviceBusElement}s are responsible for
  * providing a list of devices connected to them. Whether they play an
  * active role and seek out devices, or passively expect devices to be
- * registered with them depends on the implementation implementation.
+ * registered with them depends on the implementation.
  * <p>
  * After a scan {@link li.cil.oc2.api.bus.DeviceBusController}s then
  * collect all devices from all bus elements to build a global set
  * of devices on the bus.
  * <p>
  * There can be various types of devices on a bus, but which types are
- * supported will depend on the context of the controller. Currently two
- * types of devices are are defined in this API, {@link li.cil.oc2.api.bus.device.rpc.RPCDevice}
+ * supported will depend on the context of the controller. Currently, two
+ * types of devices are defined in this API, {@link li.cil.oc2.api.bus.device.rpc.RPCDevice}
  * and {@link li.cil.oc2.api.bus.device.vm.VMDevice}.
  * <ul>
  * <li>

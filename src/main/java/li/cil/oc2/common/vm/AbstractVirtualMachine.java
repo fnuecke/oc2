@@ -54,7 +54,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         public VMDeviceBusAdapter vmAdapter;
     }
 
-    public SerializedState state = new SerializedState();
+    public final SerializedState state = new SerializedState();
     public AbstractTerminalVMRunner runner;
     private VMRunState runState = VMRunState.STOPPED;
     @Nullable private Component bootError;
@@ -346,7 +346,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
         setRunState(VMRunState.RUNNING);
 
-        // Only start running next tick. This gives loaded devices one tick to do async
+        // Only start running next tick. Doing so gives loaded devices one tick to do async
         // initialization. This is used by devices to restore data from disk, for example.
     }
 

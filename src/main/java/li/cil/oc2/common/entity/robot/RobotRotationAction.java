@@ -34,8 +34,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
     }
 
     RobotRotationAction(final CompoundTag tag) {
-        super(RobotActions.ROTATION);
-        deserialize(tag);
+        super(RobotActions.ROTATION, tag);
     }
 
     ///////////////////////////////////////////////////////////////////

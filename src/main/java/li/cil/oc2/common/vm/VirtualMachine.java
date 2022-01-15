@@ -22,7 +22,7 @@ public interface VirtualMachine {
     Component getBootError();
 
     @OnlyIn(Dist.CLIENT)
-    void setBootErrorClient(Component value);
+    void setBootErrorClient(@Nullable Component value);
 
     boolean isRunning();
 

@@ -163,7 +163,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         return LazyOptional.empty();
     }
 
-    public static void tick(final Level level, final BlockPos pos, final BlockState state, final ComputerBlockEntity computer) {
+    public static void tick(final Level level, final BlockPos ignoredPos, final BlockState ignoredState, final ComputerBlockEntity computer) {
         if (level.isClientSide()) {
             computer.clientTick();
         } else {

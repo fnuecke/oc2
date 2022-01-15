@@ -194,7 +194,7 @@ public class CommonDeviceBusController implements DeviceBusController {
         controllers.remove(this); // Just in case...
         elements.addAll(closed);
 
-        // If there's any controllers on the bus that are not us, enter error state and
+        // If there's any controllers on the bus that are not this one, enter error state and
         // trigger a scan for those controllers, too, so they may enter error state.
         if (!controllers.isEmpty()) {
             for (final DeviceBusController controller : controllers) {

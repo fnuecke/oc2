@@ -45,7 +45,7 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void tick(final Level level, final BlockPos pos, final BlockState state, final ChargerBlockEntity charger) {
+    public static void tick(final Level ignoredLevel, final BlockPos ignoredPos, final BlockState ignoredState, final ChargerBlockEntity charger) {
         charger.tick();
     }
 

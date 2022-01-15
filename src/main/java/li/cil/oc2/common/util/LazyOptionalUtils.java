@@ -22,7 +22,7 @@ public final class LazyOptionalUtils {
      * @param <U>       the type of the listener context.
      */
     public static <T, U> void addWeakListener(final LazyOptional<T> optional, final U weakValue, final BiConsumer<U, LazyOptional<T>> listener) {
-        optional.addListener(buildListener(new WeakReference<U>(weakValue), listener));
+        optional.addListener(buildListener(new WeakReference<>(weakValue), listener));
     }
 
     private static <T, U> NonNullConsumer<LazyOptional<T>> buildListener(final WeakReference<U> weakValue, final BiConsumer<U, LazyOptional<T>> listener) {

@@ -19,7 +19,7 @@ public final class CreativeEnergyBlockEntity extends BlockEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void serverTick(final Level level, final BlockPos pos, final BlockState state, final CreativeEnergyBlockEntity creativeEnergy) {
+    public static void serverTick(final Level ignoredLevel, final BlockPos ignoredPos, final BlockState ignoredState, final CreativeEnergyBlockEntity creativeEnergy) {
         creativeEnergy.serverTick();
     }
 
@@ -34,9 +34,8 @@ public final class CreativeEnergyBlockEntity extends BlockEntity {
             if (level.hasChunk(neighborChunkPos.x, neighborChunkPos.z)) {
                 final BlockEntity blockEntity = level.getBlockEntity(neighborPos);
                 if (blockEntity != null) {
-                    blockEntity.getCapability(Capabilities.ENERGY_STORAGE, side.getOpposite()).ifPresent(energy -> {
-                        energy.receiveEnergy(Integer.MAX_VALUE, false);
-                    });
+                    blockEntity.getCapability(Capabilities.ENERGY_STORAGE, side.getOpposite()).ifPresent(energy ->
+                        energy.receiveEnergy(Integer.MAX_VALUE, false));
                 }
             }
         }

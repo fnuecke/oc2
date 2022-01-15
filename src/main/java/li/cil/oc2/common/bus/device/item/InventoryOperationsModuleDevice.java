@@ -52,7 +52,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         ItemStack extracted = inventory.extractItem(fromSlot, count, true);
         ItemStack remaining = inventory.insertItem(intoSlot, extracted, true);
 
-        // Do actual run, move as many as we know we can based on simulation.
+        // Do actual run, move as many as we know we can, based on simulation.
         extracted = inventory.extractItem(fromSlot, extracted.getCount() - remaining.getCount(), false);
         remaining = inventory.insertItem(intoSlot, extracted, false);
 

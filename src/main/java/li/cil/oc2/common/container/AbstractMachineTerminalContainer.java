@@ -1,7 +1,6 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.vm.Terminal;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.MenuType;
 
 import java.nio.ByteBuffer;

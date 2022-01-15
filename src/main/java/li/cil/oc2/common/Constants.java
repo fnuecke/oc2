@@ -10,7 +10,7 @@ public final class Constants {
     public static final int MEGABYTE = 1024 * KILOBYTE;
     public static final int GIGABYTE = 1024 * MEGABYTE;
 
-    public static int PAGE_SIZE = 4 * 1024;
+    public static final int PAGE_SIZE = 4 * 1024;
 
     public static final int CPU_FREQUENCY = 25_000_000;
 

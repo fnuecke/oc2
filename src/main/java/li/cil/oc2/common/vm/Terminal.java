@@ -54,7 +54,7 @@ public final class Terminal {
         static final int DECSCNM = 5; // Screen
         static final int DECOM = 6;   // Origin
         static final int DECAWM = 7;  // Auto wrap
-        static final int DECARM = 8;  // Auto repeating
+        static final int DECARM = 8;  // Auto-repeating
         static final int DECINLM = 9; // Interlace
     }
 
@@ -75,7 +75,7 @@ public final class Terminal {
     ///////////////////////////////////////////////////////////////////
 
     public enum State { // Must be public for serialization.
-        NORMAL, // Currently reading characters normally.
+        NORMAL, // Reading characters normally.
         ESCAPE, // Last character was ESC, figure out what kind next.
         SHIFT_IN_CHARACTER_SET, // Shift in character set.
         SHIFT_OUT_CHARACTER_SET, // Shift out character set.

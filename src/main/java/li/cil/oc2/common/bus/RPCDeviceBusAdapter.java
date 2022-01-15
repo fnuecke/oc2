@@ -125,7 +125,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         // There is no guarantee that for each device D1 present on bus elements E1 and E2,
         // where device D2 is present on E1 it will also be present on E2. This is completely
         // up to the device providers.
-        // Therefore we must group all devices by their identifiers to then remove duplicate
+        // Therefore, we must group all devices by their identifiers to then remove duplicate
         // groups. This is fragile because it will depend on the order the devices appear in
         // the list. However, since we add devices to bus elements in the order of their
         // providers, then add devices to the controller in the order of their elements, this
@@ -200,7 +200,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
             processMethodInvocation(methodInvocation, true);
 
             // This is also used to prevent thread from processing messages, so only
-            // reset this when we're done. Otherwise we may get a race-condition when
+            // reset this when we're done. Otherwise, we may get a race-condition when
             // writing back data.
             synchronizedInvocation = null;
         }

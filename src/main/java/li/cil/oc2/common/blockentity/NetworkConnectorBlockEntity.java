@@ -170,7 +170,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
         NetworkCableRenderer.invalidateConnections();
     }
 
-    public static void serverTick(final Level level, final BlockPos pos, final BlockState state, final NetworkConnectorBlockEntity networkConnector) {
+    public static void serverTick(final Level ignoredLevel, final BlockPos ignoredPos, final BlockState ignoredState, final NetworkConnectorBlockEntity networkConnector) {
         networkConnector.serverTick();
     }
 
@@ -389,7 +389,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
 
         // Because of floating point inaccuracies the raytrace is not necessarily
         // symmetric. In particular when grazing corners perfectly, e.g. two connectors
-        // attached to the same block at a 90 degree angle. So we check both ways.
+        // attached to the same block at a 90-degree angle. So we check both ways.
         final BlockHitResult hitAB = level.clip(new ClipContext(
             va.add(ab),
             vb.subtract(ab),

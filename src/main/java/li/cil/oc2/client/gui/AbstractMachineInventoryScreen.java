@@ -1,5 +1,6 @@
 package li.cil.oc2.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.gui.util.GuiUtils;
@@ -9,6 +10,7 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -73,22 +75,53 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
         }.withTooltip(new TranslatableComponent(Constants.MACHINE_OPEN_TERMINAL_CAPTION)));
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
-    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground(stack);
-        super.render(stack, mouseX, mouseY, partialTicks);
+    protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1, 1, 1, 1);
 
-        final int energyCapacity = menu.getEnergyCapacity();
-        if (energyCapacity > 0) {
-            final int energyStored = menu.getEnergy();
-            final int energyConsumption = menu.getEnergyConsumption();
+        Sprites.SIDEBAR_2.draw(stack, leftPos - Sprites.SIDEBAR_2.width, topPos + CONTROLS_TOP);
 
-            Sprites.ENERGY_BAR.drawFillY(stack, leftPos - Sprites.SIDEBAR_2.width + 4, topPos + ENERGY_TOP + 4, energyStored / (float) energyCapacity);
+        if (shouldRenderEnergyBar()) {
+            final int x = leftPos - Sprites.SIDEBAR_2.width;
+            final int y = topPos + ENERGY_TOP;
+            Sprites.SIDEBAR_2.draw(stack, x, y);
+            Sprites.ENERGY_BASE.draw(stack, x + 4, y + 4);
+        }
+    }
 
+    @Override
+    protected void renderFg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
+        super.renderFg(stack, partialTicks, mouseX, mouseY);
+
+        GuiUtils.renderMissingDeviceInfoIcon(stack, this, DeviceTypes.FLASH_MEMORY, Sprites.WARN_ICON);
+        GuiUtils.renderMissingDeviceInfoIcon(stack, this, DeviceTypes.MEMORY, Sprites.WARN_ICON);
+        GuiUtils.renderMissingDeviceInfoIcon(stack, this, DeviceTypes.HARD_DRIVE, Sprites.INFO_ICON);
+
+        if (shouldRenderEnergyBar()) {
+            final int x = leftPos - Sprites.SIDEBAR_2.width + 4;
+            final int y = topPos + ENERGY_TOP + 4;
+            Sprites.ENERGY_BAR.drawFillY(stack, x, y, menu.getEnergy() / (float) menu.getEnergyCapacity());
+        }
+    }
+
+    @Override
+    protected void renderTooltip(final PoseStack stack, final int mouseX, final int mouseY) {
+        super.renderTooltip(stack, mouseX, mouseY);
+
+        GuiUtils.renderMissingDeviceInfoTooltip(stack, this, mouseX, mouseY, DeviceTypes.FLASH_MEMORY);
+        GuiUtils.renderMissingDeviceInfoTooltip(stack, this, mouseX, mouseY, DeviceTypes.MEMORY);
+        GuiUtils.renderMissingDeviceInfoTooltip(stack, this, mouseX, mouseY, DeviceTypes.HARD_DRIVE);
+
+        if (shouldRenderEnergyBar()) {
             if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
                 final List<? extends FormattedText> tooltip = asList(
-                    new TranslatableComponent(Constants.TOOLTIP_ENERGY, withFormat(energyStored + "/" + energyCapacity, ChatFormatting.GREEN)),
-                    new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withFormat(String.valueOf(energyConsumption), ChatFormatting.GREEN))
+                    new TranslatableComponent(Constants.TOOLTIP_ENERGY,
+                        withFormat(menu.getEnergy() + "/" + menu.getEnergyCapacity(), ChatFormatting.GREEN)),
+                    new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION,
+                        withFormat(String.valueOf(menu.getEnergyConsumption()), ChatFormatting.GREEN))
                 );
                 TooltipUtils.drawTooltip(stack, tooltip, mouseX, mouseY, 200);
             }
@@ -97,25 +130,7 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
 
     ///////////////////////////////////////////////////////////////////
 
-    @Override
-    protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
-        Sprites.SIDEBAR_2.draw(stack, leftPos - Sprites.SIDEBAR_2.width, topPos + CONTROLS_TOP);
-
-        if (menu.getEnergyCapacity() > 0) {
-            final int x = leftPos - Sprites.SIDEBAR_2.width;
-            final int y = topPos + ENERGY_TOP;
-            Sprites.SIDEBAR_2.draw(stack, x, y);
-            Sprites.ENERGY_BASE.draw(stack, x + 4, y + 4);
-        }
-    }
-
-    protected void renderMissingDeviceInfo(final PoseStack stack, final int mouseX, final int mouseY) {
-        GuiUtils.renderMissingDeviceInfoIcon(stack, this, DeviceTypes.FLASH_MEMORY, Sprites.WARN_ICON);
-        GuiUtils.renderMissingDeviceInfoIcon(stack, this, DeviceTypes.MEMORY, Sprites.WARN_ICON);
-        GuiUtils.renderMissingDeviceInfoIcon(stack, this, DeviceTypes.HARD_DRIVE, Sprites.INFO_ICON);
-
-        GuiUtils.renderMissingDeviceInfoTooltip(stack, this, mouseX, mouseY, DeviceTypes.FLASH_MEMORY);
-        GuiUtils.renderMissingDeviceInfoTooltip(stack, this, mouseX, mouseY, DeviceTypes.MEMORY);
-        GuiUtils.renderMissingDeviceInfoTooltip(stack, this, mouseX, mouseY, DeviceTypes.HARD_DRIVE);
+    private boolean shouldRenderEnergyBar() {
+        return menu.getEnergyCapacity() > 0;
     }
 }

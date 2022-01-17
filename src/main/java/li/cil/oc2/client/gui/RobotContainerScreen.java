@@ -34,31 +34,13 @@ public final class RobotContainerScreen extends AbstractMachineInventoryScreen<R
         inventoryLabelY = imageHeight - 94;
     }
 
-    @Override
-    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
-        super.render(stack, mouseX, mouseY, partialTicks);
-
-        renderSelection(stack);
-
-        renderMissingDeviceInfo(stack, mouseX, mouseY);
-
-        renderTooltip(stack, mouseX, mouseY);
-    }
-
     ///////////////////////////////////////////////////////////////////
 
     @Override
     protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1, 1, 1, 1);
+        super.renderBg(stack, partialTicks, mouseX, mouseY);
 
         Sprites.ROBOT_CONTAINER.draw(stack, leftPos, topPos);
-        super.renderBg(stack, partialTicks, mouseX, mouseY);
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    private void renderSelection(final PoseStack stack) {
-        renderSelection(stack, menu.getRobot().getSelectedSlot(), leftPos + 115, topPos + 23, 2);
+        renderSelection(stack, menu.getRobot().getSelectedSlot(), leftPos + 115, topPos + 23, 3);
     }
 }

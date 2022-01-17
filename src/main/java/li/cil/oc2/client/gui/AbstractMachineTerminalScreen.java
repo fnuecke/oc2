@@ -49,29 +49,6 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     }
 
     @Override
-    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground(stack);
-        super.render(stack, mouseX, mouseY, partialTicks);
-        terminalWidget.render(stack, mouseX, mouseY, menu.getVirtualMachine().getBootError());
-
-        final int energyCapacity = menu.getEnergyCapacity();
-        if (energyCapacity > 0) {
-            final int energyStored = menu.getEnergy();
-            final int energyConsumption = menu.getEnergyConsumption();
-
-            Sprites.ENERGY_BAR.drawFillY(stack, leftPos - Sprites.SIDEBAR_2.width + 4, topPos + ENERGY_TOP + 4, energyStored / (float) energyCapacity);
-
-            if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
-                final List<? extends FormattedText> tooltip = asList(
-                    new TranslatableComponent(Constants.TOOLTIP_ENERGY, withFormat(energyStored + "/" + energyCapacity, ChatFormatting.GREEN)),
-                    new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withFormat(String.valueOf(energyConsumption), ChatFormatting.GREEN))
-                );
-                TooltipUtils.drawTooltip(stack, tooltip, mouseX, mouseY, 200);
-            }
-        }
-    }
-
-    @Override
     public void containerTick() {
         super.containerTick();
 
@@ -180,13 +157,23 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     protected abstract void setFocusIndicatorEditBox(final EditBox editBox);
 
     @Override
-    protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1, 1, 1, 1);
+    protected void renderFg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
+        super.renderFg(stack, partialTicks, mouseX, mouseY);
 
+        if (shouldRenderEnergyBar()) {
+            final int x = leftPos - Sprites.SIDEBAR_2.width + 4;
+            final int y = topPos + ENERGY_TOP + 4;
+            Sprites.ENERGY_BAR.drawFillY(stack, x, y, menu.getEnergy() / (float) menu.getEnergyCapacity());
+        }
+
+        terminalWidget.render(stack, mouseX, mouseY, menu.getVirtualMachine().getBootError());
+    }
+
+    @Override
+    protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
         Sprites.SIDEBAR_3.draw(stack, leftPos - Sprites.SIDEBAR_2.width, topPos + CONTROLS_TOP);
 
-        if (menu.getEnergyCapacity() > 0) {
+        if (shouldRenderEnergyBar()) {
             final int x = leftPos - Sprites.SIDEBAR_2.width;
             final int y = topPos + ENERGY_TOP;
             Sprites.SIDEBAR_2.draw(stack, x, y);
@@ -197,7 +184,31 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     }
 
     @Override
+    protected void renderTooltip(final PoseStack stack, final int mouseX, final int mouseY) {
+        super.renderTooltip(stack, mouseX, mouseY);
+
+        if (shouldRenderEnergyBar()) {
+
+            if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
+                final List<? extends FormattedText> tooltip = asList(
+                    new TranslatableComponent(Constants.TOOLTIP_ENERGY,
+                        withFormat(menu.getEnergy() + "/" + menu.getEnergyCapacity(), ChatFormatting.GREEN)),
+                    new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION,
+                        withFormat(String.valueOf(menu.getEnergyConsumption()), ChatFormatting.GREEN))
+                );
+                TooltipUtils.drawTooltip(stack, tooltip, mouseX, mouseY, 200);
+            }
+        }
+    }
+
+    @Override
     protected void renderLabels(final PoseStack stack, final int mouseX, final int mouseY) {
         // This is required to prevent the labels from being rendered
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private boolean shouldRenderEnergyBar() {
+        return menu.getEnergyCapacity() > 0;
     }
 }

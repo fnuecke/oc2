@@ -1,6 +1,5 @@
 package li.cil.oc2.common.vm;
 
-import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
@@ -19,9 +18,7 @@ public final class VMDeviceBusAdapter {
 
     ///////////////////////////////////////////////////////////////////
 
-    @Serialized
-    @SuppressWarnings("FieldMayBeFinal")
-    private GlobalVMContext globalContext;
+    private final GlobalVMContext globalContext;
 
     ///////////////////////////////////////////////////////////////////
 

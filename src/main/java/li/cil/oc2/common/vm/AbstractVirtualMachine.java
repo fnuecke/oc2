@@ -51,7 +51,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         public GlobalVMContext context;
         public BuiltinDevices builtinDevices;
         public RPCDeviceBusAdapter rpcAdapter;
-        public VMDeviceBusAdapter vmAdapter;
+        public transient VMDeviceBusAdapter vmAdapter;
     }
 
     public final SerializedState state = new SerializedState();

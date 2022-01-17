@@ -1,0 +1,43 @@
+#!/bin/sh
+
+PROFILE_D_PATH="/etc/profile.d"
+INIT_SCRIPT_NAME="python_path.sh"
+
+start() {
+    INIT_SCRIPT_PATH="$PROFILE_D_PATH/$INIT_SCRIPT_NAME"
+    if [ ! -f "$INIT_SCRIPT_PATH" ]; then
+        THIS_SCRIPT_PATH=$(readlink -f "$0")
+        THIS_SCRIPT_DIR=$(dirname "$THIS_SCRIPT_PATH")
+        PYTHON_LIB_PATH=$(readlink -f "$THIS_SCRIPT_DIR/../lib/micropython")
+
+        echo 'if [ -z "$MICROPYPATH" ]; then' >>"$INIT_SCRIPT_PATH"
+        echo '    export MICROPYPATH="'$PYTHON_LIB_PATH'"' >>"$INIT_SCRIPT_PATH"
+        echo 'else' >>"$INIT_SCRIPT_PATH"
+        echo '    export MICROPYPATH="$MICROPYPATH:'$PYTHON_LIB_PATH'"' >>"$INIT_SCRIPT_PATH"
+        echo 'fi' >>"$INIT_SCRIPT_PATH"
+    fi
+    return 0
+}
+
+stop() {
+    return 0
+}
+
+reload() {
+    return 0
+}
+
+case "$1" in
+start | stop | reload)
+    "$1"
+    ;;
+restart)
+    reload
+    ;;
+*)
+    echo "Usage: $0 {start|stop|reload|restart}"
+    exit 1
+    ;;
+esac
+
+exit $?

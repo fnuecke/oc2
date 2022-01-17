@@ -13,7 +13,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.network.NetworkHooks;
 
 public final class RobotTerminalContainer extends AbstractRobotContainer {
@@ -54,7 +53,7 @@ public final class RobotTerminalContainer extends AbstractRobotContainer {
         final ItemStackHandler inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             final int x = (terminalScreenWidth - inventory.getSlots() * SLOT_SIZE) / 2 + 1 + slot * SLOT_SIZE;
-            addSlot(new SlotItemHandler(inventory, slot, x, terminalScreenHeight + 4));
+            addSlot(new RobotSlot(inventory, slot, x, terminalScreenHeight + 4));
         }
     }
 }

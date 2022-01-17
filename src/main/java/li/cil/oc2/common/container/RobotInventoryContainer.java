@@ -14,7 +14,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.network.NetworkHooks;
 
 public final class RobotInventoryContainer extends AbstractRobotContainer {
@@ -77,7 +76,7 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             final int x = 116 + (slot % 3) * SLOT_SIZE;
             final int y = 24 + (slot / 3) * SLOT_SIZE;
-            addSlot(new SlotItemHandler(inventory, slot, x, y));
+            addSlot(new RobotSlot(inventory, slot, x, y));
         }
 
         createPlayerInventoryAndHotbarSlots(player.getInventory(), 8, 115);

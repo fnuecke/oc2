@@ -107,6 +107,11 @@ public final class RobotItem extends ModItem {
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
+    @Override
+    public boolean canFitInsideContainerItems() {
+        return false;
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     @Override

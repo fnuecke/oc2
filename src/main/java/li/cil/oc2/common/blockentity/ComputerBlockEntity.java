@@ -221,9 +221,12 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     protected void saveAdditional(final CompoundTag tag) {
         super.saveAdditional(tag);
 
+        if (virtualMachine.getRunState() != VMRunState.STOPPED) {
+            tag.put(STATE_TAG_NAME, virtualMachine.serialize());
+            tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+        }
+
         tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
-        tag.put(STATE_TAG_NAME, virtualMachine.serialize());
-        tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.save());
         tag.put(ITEMS_TAG_NAME, deviceItems.saveItems());
         tag.put(DEVICES_TAG_NAME, deviceItems.saveDevices());

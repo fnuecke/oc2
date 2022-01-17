@@ -200,6 +200,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         joinWorkerThread();
         setRunState(VMRunState.STOPPED);
 
+        state.board.setRunning(false);
         state.board.reset();
         state.rpcAdapter.reset();
         state.rpcAdapter.unmount();

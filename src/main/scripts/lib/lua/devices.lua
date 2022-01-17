@@ -17,6 +17,24 @@ Device.__tostring = function(self)
   end
 
   for _, method in ipairs(self.methods) do
+    doc = doc .. method.name .. "("
+    if method.parameters then
+      local i = 1
+      for _, p in ipairs(method.parameters) do
+        if i > 1 then
+          doc = doc .. ", "
+        end
+        if p.name then
+          doc = doc .. p.name
+        else
+          doc = doc .. "arg" .. i
+        end
+        doc = doc .. ": " .. p.type
+        i = i + 1
+      end
+    end
+    doc = doc .. "): " .. method.returnType .. "\n"
+
     if method.description then
       doc = doc .. method.description .. "\n"
     end
@@ -37,24 +55,6 @@ Device.__tostring = function(self)
         i = i + 1
       end
     end
-
-    doc = doc .. method.name .. "("
-    if method.parameters then
-      local i = 1
-      for _, p in ipairs(method.parameters) do
-        if i > 1 then
-          doc = doc .. ", "
-        end
-        if p.name then
-          doc = doc .. p.name
-        else
-          doc = doc .. "arg" .. i
-        end
-        doc = doc .. ": " .. p.type
-        i = i + 1
-      end
-    end
-    doc = doc .. "): " .. method.returnType .. "\n"
   end
 
   return doc

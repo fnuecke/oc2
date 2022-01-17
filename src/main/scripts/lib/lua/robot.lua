@@ -15,11 +15,7 @@ local function waitForLastAction()
     result = robot:getActionResult(id)
   end
 
-  if result == "SUCCESS" then
-    return true
-  else
-    return false
-  end
+  return result == "SUCCESS"
 end
 
 local M = {}

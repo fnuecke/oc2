@@ -38,6 +38,9 @@ java.toolchain {
     vendor = JvmVendorSpec.ADOPTOPENJDK
 }
 
+compileJava.options.encoding = "utf-8"
+compileTestJava.options.encoding = "utf-8"
+
 repositories {
     mavenCentral()
     maven {

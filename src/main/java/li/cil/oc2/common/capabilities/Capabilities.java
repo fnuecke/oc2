@@ -1,6 +1,7 @@
 package li.cil.oc2.common.capabilities;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.api.capabilities.Robot;
@@ -20,6 +21,7 @@ public final class Capabilities {
     public static final Capability<IItemHandler> ITEM_HANDLER = CapabilityManager.get(new CapabilityToken<>() { });
 
     public static final Capability<DeviceBusElement> DEVICE_BUS_ELEMENT = CapabilityManager.get(new CapabilityToken<>() { });
+    public static final Capability<Device> DEVICE = CapabilityManager.get(new CapabilityToken<>() { });
     public static final Capability<RedstoneEmitter> REDSTONE_EMITTER = CapabilityManager.get(new CapabilityToken<>() { });
     public static final Capability<NetworkInterface> NETWORK_INTERFACE = CapabilityManager.get(new CapabilityToken<>() { });
     public static final Capability<TerminalUserProvider> TERMINAL_USER_PROVIDER = CapabilityManager.get(new CapabilityToken<>() { });
@@ -30,6 +32,7 @@ public final class Capabilities {
     @SubscribeEvent
     public static void initialize(final RegisterCapabilitiesEvent event) {
         event.register(DeviceBusElement.class);
+        event.register(Device.class);
         event.register(RedstoneEmitter.class);
         event.register(NetworkInterface.class);
         event.register(TerminalUserProvider.class);

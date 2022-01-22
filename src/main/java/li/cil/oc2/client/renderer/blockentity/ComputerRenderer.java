@@ -30,7 +30,6 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
-import org.apache.logging.log4j.core.util.Throwables;
 
 import java.time.Duration;
 import java.util.List;
@@ -161,7 +160,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
             try {
                 rendererViews.get(terminal, terminal::getRenderer).render(stack, RenderSystem.getProjectionMatrix());
             } catch (final ExecutionException e) {
-                Throwables.rethrow(e);
+                throw new RuntimeException(e);
             }
 
             stack.popPose();

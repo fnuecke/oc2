@@ -32,7 +32,7 @@ public final class FluidHandlerBlockDeviceProvider extends AbstractBlockEntityCa
         }
 
         @Callback
-        public int getTanks() {
+        public int getFluidTanks() {
             return identity.getTanks();
         }
 
@@ -42,7 +42,7 @@ public final class FluidHandlerBlockDeviceProvider extends AbstractBlockEntityCa
         }
 
         @Callback
-        public int getTankCapacity(final int tank) {
+        public int getFluidTankCapacity(final int tank) {
             return identity.getTankCapacity(tank);
         }
     }

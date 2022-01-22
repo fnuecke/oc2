@@ -41,12 +41,12 @@ public final class EnergyStorageBlockDeviceProvider extends AbstractBlockEntityC
         }
 
         @Callback
-        public boolean canExtract() {
+        public boolean canExtractEnergy() {
             return identity.canExtract();
         }
 
         @Callback
-        public boolean canReceive() {
+        public boolean canReceiveEnergy() {
             return identity.canReceive();
         }
     }

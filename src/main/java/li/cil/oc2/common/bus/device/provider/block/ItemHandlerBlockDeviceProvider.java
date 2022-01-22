@@ -32,17 +32,17 @@ public final class ItemHandlerBlockDeviceProvider extends AbstractBlockEntityCap
         }
 
         @Callback
-        public int getSlotCount() {
+        public int getItemSlotCount() {
             return identity.getSlots();
         }
 
         @Callback
-        public ItemStack getStackInSlot(final int slot) {
+        public ItemStack getItemStackInSlot(final int slot) {
             return identity.getStackInSlot(slot);
         }
 
         @Callback
-        public int getSlotLimit(final int slot) {
+        public int getItemSlotLimit(final int slot) {
             return identity.getSlotLimit(slot);
         }
     }

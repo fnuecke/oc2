@@ -1,5 +1,6 @@
 package li.cil.oc2.api.bus.device.rpc;
 
+import com.google.gson.JsonArray;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 
@@ -46,6 +47,10 @@ public interface RPCMethod {
 
     /**
      * The list of parameters this method accepts.
+     * <p>
+     * Special case: when returning {@link JsonArray} as the one and only parameter type, no automatic type
+     * deserialization will be performed prior to calling {@link #invoke(Object...)}. The received RPC parameters will
+     * instead be passed along directly, in form of a {@link JsonArray}.
      *
      * @return the list of parameters.
      */

@@ -11,10 +11,31 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public abstract class ModRenderType extends RenderType {
+    private static final RenderType NETWORK_CABLE = create(
+            API.MOD_ID + "/network_cable",
+            DefaultVertexFormat.POSITION_COLOR_LIGHTMAP,
+            VertexFormat.Mode.QUADS,
+            256,
+            false,
+            false,
+            CompositeState.builder()
+                    .setShaderState(POSITION_COLOR_LIGHTMAP_SHADER)
+                    .setTextureState(NO_TEXTURE)
+                    .setTransparencyState(NO_TRANSPARENCY)
+                    .setCullState(NO_CULL)
+                    .setLightmapState(LIGHTMAP)
+                    .createCompositeState(false));
+
+    ///////////////////////////////////////////////////////////////////
+
+    public static RenderType getNetworkCable() {
+        return NETWORK_CABLE;
+    }
+
     public static RenderType getUnlitBlock(final ResourceLocation location) {
         final TextureStateShard texture = new TextureStateShard(location, false, true);
         final RenderType.CompositeState state = RenderType.CompositeState.builder()
-            .setShaderState(RenderStateShard.POSITION_TEX_SHADER)
+            .setShaderState(POSITION_TEX_SHADER)
             .setTextureState(texture)
             .setOutputState(TRANSLUCENT_TARGET)
             .setTransparencyState(ADDITIVE_TRANSPARENCY)
@@ -30,27 +51,10 @@ public abstract class ModRenderType extends RenderType {
             state);
     }
 
-    public static RenderType getNetworkCable() {
-        final CompositeState state = CompositeState.builder()
-            .setShaderState(RenderStateShard.POSITION_COLOR_LIGHTMAP_SHADER)
-            .setTextureState(NO_TEXTURE)
-            .setTransparencyState(NO_TRANSPARENCY)
-            .setCullState(NO_CULL)
-            .setLightmapState(LIGHTMAP)
-            .createCompositeState(false);
-        return create(API.MOD_ID + "/network_cable",
-            DefaultVertexFormat.POSITION_COLOR_LIGHTMAP,
-            VertexFormat.Mode.QUADS,
-            256,
-            false,
-            false,
-            state);
-    }
-
     public static RenderType getOverlay(final ResourceLocation location) {
         final TextureStateShard texture = new TextureStateShard(location, false, true);
         final RenderType.CompositeState state = RenderType.CompositeState.builder()
-            .setShaderState(RenderStateShard.POSITION_TEX_SHADER)
+            .setShaderState(POSITION_TEX_SHADER)
             .setTextureState(texture)
             .setOutputState(TRANSLUCENT_TARGET)
             .setTransparencyState(ADDITIVE_TRANSPARENCY)

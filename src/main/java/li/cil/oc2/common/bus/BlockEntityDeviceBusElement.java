@@ -96,7 +96,7 @@ public class BlockEntityDeviceBusElement extends AbstractGroupingDeviceBusElemen
             return;
         }
 
-        final HashSet<BlockEntry> newDevices = collectDevices(level, pos, direction);
+        final HashSet<BlockEntry> newDevices = collectDevices(level, pos, direction.getOpposite());
 
         final int index = direction.get3DDataValue();
         setEntriesForGroup(index, newDevices);

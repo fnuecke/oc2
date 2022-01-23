@@ -17,7 +17,7 @@ public final class DiskDriveDeviceProvider extends AbstractBlockEntityDeviceProv
     protected Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final DiskDriveBlockEntity blockEntity) {
         // We only allow connecting to exactly one face of the disk drive to ensure only one
         // bus (and thus, one VM) will access the device at any single time.
-        if (query.getQuerySide() != blockEntity.getBlockState().getValue(HorizontalDirectionalBlock.FACING)) {
+        if (query.getQuerySide() == blockEntity.getBlockState().getValue(HorizontalDirectionalBlock.FACING)) {
             return Invalidatable.empty();
         }
 

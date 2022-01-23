@@ -96,7 +96,7 @@ public class BlockEntityDeviceBusElement extends AbstractGroupingDeviceBusElemen
             return;
         }
 
-        final HashSet<BlockEntry> newDevices = collectDevices(level, pos, direction.getOpposite());
+        final HashSet<BlockEntry> newDevices = collectDevices(level, pos, direction);
 
         final int index = direction.get3DDataValue();
         setEntriesForGroup(index, newDevices);
@@ -127,7 +127,7 @@ public class BlockEntityDeviceBusElement extends AbstractGroupingDeviceBusElemen
     protected HashSet<BlockEntry> collectDevices(final Level level, final BlockPos pos, @Nullable final Direction direction) {
         final HashSet<BlockEntry> entries = new HashSet<>();
         if (canDetectDevicesTowards(direction)) {
-            final BlockDeviceQuery query = Devices.makeQuery(level, pos, direction);
+            final BlockDeviceQuery query = Devices.makeQuery(level, pos, direction != null ? direction.getOpposite() : null);
             for (final Invalidatable<BlockDeviceInfo> deviceInfo : Devices.getDevices(query)) {
                 if (deviceInfo.isPresent()) {
                     entries.add(new BlockEntry(deviceInfo, pos));

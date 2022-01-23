@@ -20,7 +20,8 @@ public final class ModBlockTagsProvider extends BlockTagsProvider {
         tag(DEVICES).add(
             COMPUTER.get(),
             REDSTONE_INTERFACE.get(),
-            DISK_DRIVE.get()
+            DISK_DRIVE.get(),
+            PROJECTOR.get()
         );
         tag(CABLES).add(
             BUS_CABLE.get()
@@ -32,7 +33,8 @@ public final class ModBlockTagsProvider extends BlockTagsProvider {
             NETWORK_HUB.get(),
             REDSTONE_INTERFACE.get(),
             DISK_DRIVE.get(),
-            CHARGER.get()
+            CHARGER.get(),
+            PROJECTOR.get()
         );
     }
 }

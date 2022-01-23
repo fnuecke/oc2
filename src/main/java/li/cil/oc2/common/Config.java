@@ -20,6 +20,8 @@ public final class Config {
     @Path("energy.blocks") public static int computerEnergyStorage = 2000;
     @Path("energy.blocks") public static int chargerEnergyPerTick = 2500;
     @Path("energy.blocks") public static int chargerEnergyStorage = 10000;
+    @Path("energy.blocks") public static int projectorEnergyPerTick = 20;
+    @Path("energy.blocks") public static int projectorEnergyStorage = 2000;
 
     @Path("energy.entities") public static int robotEnergyPerTick = 5;
     @Path("energy.entities") public static int robotEnergyStorage = 750000;
@@ -37,10 +39,7 @@ public final class Config {
     @Path("gameplay") public static ResourceLocation blockOperationsModuleToolTier = TierSortingRegistry.getName(Tiers.DIAMOND);
 
     @Path("admin") public static UUID fakePlayerUUID = UUID.fromString("e39dd9a7-514f-4a2d-aa5e-b6030621416d");
-
-    public static boolean computersUseEnergy() {
-        return computerEnergyPerTick > 0 && computerEnergyStorage > 0;
-    }
+    @Path("admin.blocks") public static int projectorMaxBytesPerTick = 8192;
 
     public static boolean robotsUseEnergy() {
         return robotEnergyPerTick > 0 && robotEnergyStorage > 0;

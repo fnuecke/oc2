@@ -23,6 +23,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
     private static final ResourceLocation DISK_DRIVE_MODEL = new ResourceLocation(API.MOD_ID, "block/disk_drive");
     private static final ResourceLocation NETWORK_CONNECTOR_MODEL = new ResourceLocation(API.MOD_ID, "block/network_connector");
     private static final ResourceLocation NETWORK_HUB_MODEL = new ResourceLocation(API.MOD_ID, "block/network_hub");
+    private static final ResourceLocation PROJECTOR_MODEL = new ResourceLocation(API.MOD_ID, "block/projector");
     private static final ResourceLocation REDSTONE_INTERFACE_MODEL = new ResourceLocation(API.MOD_ID, "block/redstone_interface");
 
     public ModBlockStateProvider(final DataGenerator generator, final ExistingFileHelper existingFileHelper) {
@@ -50,6 +51,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
         horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE, DISK_DRIVE_MODEL);
         horizontalBlock(Blocks.CHARGER, Items.CHARGER, CHARGER_MODEL);
         simpleBlock(Blocks.CREATIVE_ENERGY, Items.CREATIVE_ENERGY);
+        horizontalBlock(Blocks.PROJECTOR, Items.PROJECTOR, PROJECTOR_MODEL);
 
         registerCableStates();
     }

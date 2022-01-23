@@ -81,7 +81,8 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
             Items.NETWORK_INTERFACE_CARD.get(),
             Items.DISK_DRIVE.get(),
             Items.NETWORK_TUNNEL_CARD.get(),
-            Items.NETWORK_TUNNEL_MODULE.get()
+            Items.NETWORK_TUNNEL_MODULE.get(),
+            Items.PROJECTOR.get()
         );
     }
 }

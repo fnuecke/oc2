@@ -54,6 +54,7 @@ public final class ModLootTableProvider extends LootTableProvider {
             dropSelf(Blocks.NETWORK_HUB.get());
             dropSelf(Blocks.DISK_DRIVE.get());
             dropSelf(Blocks.CHARGER.get());
+            dropSelf(Blocks.PROJECTOR.get());
 
             add(Blocks.COMPUTER.get(), ModBlockLootTables::droppingWithInventory);
         }

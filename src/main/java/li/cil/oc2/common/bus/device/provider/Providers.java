@@ -32,6 +32,7 @@ public final class Providers {
         BLOCK_DEVICE_PROVIDERS.register("item_handler", ItemHandlerBlockDeviceProvider::new);
 
         BLOCK_DEVICE_PROVIDERS.register("disk_drive", DiskDriveDeviceProvider::new);
+        BLOCK_DEVICE_PROVIDERS.register("projector", ProjectorDeviceProvider::new);
 
         ITEM_DEVICE_PROVIDERS.register("memory", MemoryItemDeviceProvider::new);
         ITEM_DEVICE_PROVIDERS.register("hard_drive", HardDriveItemDeviceProvider::new);

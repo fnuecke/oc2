@@ -7,10 +7,7 @@ import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.BusCableModelLoader;
 import li.cil.oc2.client.renderer.BusInterfaceNameRenderer;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
-import li.cil.oc2.client.renderer.blockentity.ChargerRenderer;
-import li.cil.oc2.client.renderer.blockentity.ComputerRenderer;
-import li.cil.oc2.client.renderer.blockentity.DiskDriveRenderer;
-import li.cil.oc2.client.renderer.blockentity.NetworkConnectorRenderer;
+import li.cil.oc2.client.renderer.blockentity.*;
 import li.cil.oc2.client.renderer.color.BusCableBlockColor;
 import li.cil.oc2.client.renderer.entity.RobotRenderer;
 import li.cil.oc2.client.renderer.entity.model.RobotModel;
@@ -43,6 +40,7 @@ public final class ClientSetup {
         BlockEntityRenderers.register(BlockEntities.NETWORK_CONNECTOR.get(), NetworkConnectorRenderer::new);
         BlockEntityRenderers.register(BlockEntities.DISK_DRIVE.get(), DiskDriveRenderer::new);
         BlockEntityRenderers.register(BlockEntities.CHARGER.get(), ChargerRenderer::new);
+        BlockEntityRenderers.register(BlockEntities.PROJECTOR.get(), ProjectorRenderer::new);
 
         event.enqueueWork(() -> {
             CustomItemModelProperties.initialize();

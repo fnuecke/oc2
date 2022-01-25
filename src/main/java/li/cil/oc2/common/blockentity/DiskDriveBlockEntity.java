@@ -185,6 +185,12 @@ public final class DiskDriveBlockEntity extends ModBlockEntity {
         }
 
         @Override
+        public CompoundTag serializeNBT() {
+            exportDeviceDataToItemStack(getStackInSlotRaw(0));
+            return super.serializeNBT();
+        }
+
+        @Override
         protected void onContentsChanged(final int slot) {
             super.onContentsChanged(slot);
 

@@ -139,9 +139,9 @@ public class BlockEntityDeviceBusElement extends AbstractGroupingDeviceBusElemen
                     entries.add(new BlockEntry(deviceInfo, pos));
                 }
             }
-        }
 
-        collectSyntheticDevices(level, pos, direction, entries);
+            collectSyntheticDevices(level, pos, direction, entries);
+        }
 
         return new BlockQueryResult(query, entries);
     }

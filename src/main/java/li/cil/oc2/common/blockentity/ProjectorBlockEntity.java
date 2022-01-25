@@ -147,7 +147,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity {
         void set(final int x, final int y, final int rgba);
     }
 
-    public boolean applyFramebufferChanges(final FramebufferPixelSetter setter) {
+    public boolean updateRenderTexture(final FramebufferPixelSetter setter) {
         if (dirtyLines.isEmpty()) {
             return false;
         }

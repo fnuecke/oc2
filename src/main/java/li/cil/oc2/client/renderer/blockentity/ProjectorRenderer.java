@@ -219,7 +219,7 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
 
         final NativeImage image = renderInfo.texture().getPixels();
         assert image != null;
-        if (projector.applyFramebufferChanges(image::setPixelRGBA)) {
+        if (projector.updateRenderTexture(image::setPixelRGBA)) {
             renderInfo.texture().upload();
         }
 

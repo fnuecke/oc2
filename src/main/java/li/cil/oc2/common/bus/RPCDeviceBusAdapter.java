@@ -40,8 +40,8 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     private final ArrayList<RPCDeviceWithIdentifier> devices = new ArrayList<>();
     private final HashMap<UUID, RPCDeviceList> devicesById = new HashMap<>();
-    private final Set<RPCDevice> unmountedDevices = new HashSet<>();
-    private final Set<RPCDevice> mountedDevices = new HashSet<>();
+    private final Set<RPCDeviceList> unmountedDevices = new HashSet<>();
+    private final Set<RPCDeviceList> mountedDevices = new HashSet<>();
     private final Lock pauseLock = new ReentrantLock();
     private boolean isPaused;
 
@@ -163,7 +163,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
                 .add(identifier);
         });
 
-        final Set<RPCDevice> newDevices = new HashSet<>();
+        final Set<RPCDeviceList> newDevices = new HashSet<>();
         identifiersByDevice.forEach((device, identifiers) -> {
             final UUID identifier = selectIdentifierDeterministically(identifiers);
             devices.add(new RPCDeviceWithIdentifier(identifier, device));
@@ -173,16 +173,16 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
         // Add new devices to list of unmounted devices. List was cleared, so removed devices previously in
         // list of unmounted devices are already gone.
-        for (final RPCDevice newDevice : newDevices) {
+        for (final RPCDeviceList newDevice : newDevices) {
             if (!mountedDevices.contains(newDevice)) {
                 unmountedDevices.add(newDevice);
             }
         }
 
         // Remove removed devices from list of mounted devices.
-        final Iterator<RPCDevice> mountedDeviceIterator = mountedDevices.iterator();
+        final Iterator<RPCDeviceList> mountedDeviceIterator = mountedDevices.iterator();
         while (mountedDeviceIterator.hasNext()) {
-            final RPCDevice device = mountedDeviceIterator.next();
+            final RPCDeviceList device = mountedDeviceIterator.next();
             if (!newDevices.contains(device)) {
                 device.unmount();
                 mountedDeviceIterator.remove();
@@ -315,9 +315,9 @@ public final class RPCDeviceBusAdapter implements Steppable {
         }
 
         // Yes, we could hashmap this lookup, but the expectation is that we'll generally
-        // have relatively few methods per object where the overhead of hashing would not
-        // be worth it. So we just do a linear search, which also gives us maximal
-        // flexibility for free (devices may dynamically change their methods).
+        // have relatively few methods per object, so the overhead of hashing would not
+        // be worth it. Instead, we just do a quick linear search, which also gives us
+        // a lot of flexibility for free (devices may dynamically change their methods).
         final List<RPCMethod> fallbacks = new ArrayList<>();
         String error = ERROR_UNKNOWN_METHOD;
         for (final RPCMethod method : device.getMethods()) {

@@ -115,8 +115,6 @@ public abstract class ModRenderType extends RenderType {
         public DynamicTextureStateShard(final DynamicTexture texture) {
             super(() -> {
                 RenderSystem.enableTexture();
-                RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL13.GL_CLAMP_TO_BORDER);
-                RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL13.GL_CLAMP_TO_BORDER);
                 // TODO client side setting
 //                texture.setFilter(true, false);
                 RenderSystem.setShaderTexture(0, texture.getId());

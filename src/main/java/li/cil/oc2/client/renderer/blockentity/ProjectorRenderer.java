@@ -130,10 +130,10 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
             final int x = index % discreteWidth;
             final int y = index / discreteWidth;
 
-            final float u0 = x / width - vOffset;
-            final float u1 = (x + 1) / width - vOffset;
-            final float v0 = y / height - uOffset;
-            final float v1 = (y + 1) / height - uOffset;
+            final float u0 = Math.max(0, x / width - vOffset);
+            final float u1 = Math.min(1, (x + 1) / width - vOffset);
+            final float v0 = Math.max(0, y / height - uOffset);
+            final float v1 = Math.min(1, (y + 1) / height - uOffset);
 
             consumer.vertex(matrix, u0, v0, 0).uv(1 - u0, 1 - v0).endVertex();
             consumer.vertex(matrix, u1, v0, 0).uv(1 - u1, 1 - v0).endVertex();

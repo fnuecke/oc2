@@ -30,4 +30,19 @@ public abstract class AbstractItemRPCDevice extends IdentityProxy<ItemStack> imp
     public List<RPCMethod> getMethods() {
         return device.getMethods();
     }
+
+    @Override
+    public void mount() {
+        device.mount();
+    }
+
+    @Override
+    public void unmount() {
+        device.unmount();
+    }
+
+    @Override
+    public void suspend() {
+        device.suspend();
+    }
 }

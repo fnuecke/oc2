@@ -154,7 +154,7 @@ public final class BusCableBlock extends BaseEntityBlock {
 
         level.setBlock(pos, state.setValue(property, ConnectionType.INTERFACE), Block.UPDATE_ALL_IMMEDIATE);
 
-        onConnectionTypeChanged(level, pos, side);
+        onConnectionTypeChanged(level, pos, side, false);
 
         return true;
     }
@@ -170,7 +170,7 @@ public final class BusCableBlock extends BaseEntityBlock {
 
         level.setBlock(pos, state.setValue(HAS_CABLE, true), Block.UPDATE_ALL_IMMEDIATE);
 
-        onConnectionTypeChanged(level, pos, null);
+        onConnectionTypeChanged(level, pos, null, false);
 
         return true;
     }
@@ -318,17 +318,21 @@ public final class BusCableBlock extends BaseEntityBlock {
     @SuppressWarnings("deprecation")
     @Override
     public BlockState updateShape(BlockState state, final Direction facing, final BlockState facingState, final LevelAccessor level, final BlockPos currentPos, final BlockPos facingPos) {
-        if (state.getValue(FACING_TO_CONNECTION_MAP.get(facing)) == ConnectionType.INTERFACE) {
+        final EnumProperty<ConnectionType> property = FACING_TO_CONNECTION_MAP.get(facing);
+        if (state.getValue(property) == ConnectionType.INTERFACE) {
             return state;
         }
 
+        final boolean neighborConnectionChanged;
         if (state.getValue(HAS_CABLE) && canHaveCableTo(facingState, facing.getOpposite())) {
-            state = state.setValue(FACING_TO_CONNECTION_MAP.get(facing), ConnectionType.CABLE);
+            neighborConnectionChanged = state.getValue(property) != ConnectionType.CABLE;
+            state = state.setValue(property, ConnectionType.CABLE);
         } else {
-            state = state.setValue(FACING_TO_CONNECTION_MAP.get(facing), ConnectionType.NONE);
+            neighborConnectionChanged = state.getValue(property) != ConnectionType.NONE;
+            state = state.setValue(property, ConnectionType.NONE);
         }
 
-        onConnectionTypeChanged(level, currentPos, facing);
+        onConnectionTypeChanged(level, currentPos, facing, neighborConnectionChanged);
 
         return state;
     }
@@ -438,7 +442,7 @@ public final class BusCableBlock extends BaseEntityBlock {
     }
 
     private static void handlePartRemoved(final BlockState state, final Level level, final BlockPos pos, @Nullable final Direction side, final Player player, final ItemStack drop) {
-        onConnectionTypeChanged(level, pos, side);
+        onConnectionTypeChanged(level, pos, side, false);
 
         if (!player.isCreative() && level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) {
             ItemStackUtils.spawnAsEntity(level, pos, drop, side).ifPresent(entity -> {
@@ -450,10 +454,10 @@ public final class BusCableBlock extends BaseEntityBlock {
         LevelUtils.playSound(level, pos, state.getSoundType(), SoundType::getBreakSound);
     }
 
-    private static void onConnectionTypeChanged(final LevelAccessor level, final BlockPos pos, @Nullable final Direction face) {
+    private static void onConnectionTypeChanged(final LevelAccessor level, final BlockPos pos, @Nullable final Direction face, final boolean neighborConnectionChanged) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof final BusCableBlockEntity busCable) {
-            busCable.handleConnectivityChanged(face);
+            busCable.handleConnectivityChanged(face, neighborConnectionChanged);
         }
     }
 

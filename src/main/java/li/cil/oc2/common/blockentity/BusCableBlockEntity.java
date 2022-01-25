@@ -149,17 +149,21 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         busElement.handleNeighborChanged(pos);
     }
 
-    public void handleConnectivityChanged(@Nullable final Direction side) {
+    public void handleConnectivityChanged(@Nullable final Direction side, final boolean neighborConnectionChanged) {
         if (side == null) {
             busElement.scheduleScan();
         } else {
-            // Whenever they type changes we can clear it. Technically only needed
+            // Whenever the type changes we can clear it. Technically only needed
             // for the interface->none transition, but all others are no-ops, so
             // we can just do this.
             setInterfaceName(side, "");
 
             invalidateCapability(Capabilities.DEVICE_BUS_ELEMENT, side);
             handleNeighborChanged(getBlockPos().relative(side));
+
+            if (neighborConnectionChanged) {
+                busElement.scheduleScan();
+            }
         }
     }
 

@@ -8,6 +8,7 @@ import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +53,7 @@ public class RPCAdapterTests {
         final String message = serialDevice.readMessageAsVM();
         assertNotNull(message);
 
-        final JsonObject json = new JsonParser().parse(message).getAsJsonObject();
+        final JsonObject json = JsonParser.parseString(message).getAsJsonObject();
 
         final JsonArray devicesJson = json.getAsJsonArray("data");
         assertEquals(1, devicesJson.size());
@@ -121,7 +122,7 @@ public class RPCAdapterTests {
 
         final String result = serialDevice.readMessageAsVM();
         assertNotNull(result);
-        final JsonObject resultJson = new JsonParser().parse(result).getAsJsonObject();
+        final JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
         assertEquals("result", resultJson.get("type").getAsString());
         return resultJson.get("data");
     }
@@ -233,7 +234,7 @@ public class RPCAdapterTests {
         }
 
         @Override
-        public List<RPCMethod> getMethods() {
+        public List<? extends RPCMethodGroup> getMethodGroups() {
             return singletonList(method);
         }
     }

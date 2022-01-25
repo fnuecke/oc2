@@ -4,9 +4,11 @@ import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
@@ -15,11 +17,14 @@ import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.ServerScheduler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.registries.IForgeRegistry;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -27,7 +32,7 @@ import java.util.*;
 import static java.util.Objects.requireNonNull;
 import static li.cil.oc2.common.util.RegistryUtils.optionalKey;
 
-public class BlockEntityDeviceBusElement extends AbstractGroupingDeviceBusElement<BlockEntityDeviceBusElement.BlockEntry> implements BlockDeviceBusElement {
+public class BlockEntityDeviceBusElement extends AbstractGroupingDeviceBusElement<BlockEntityDeviceBusElement.BlockEntry, BlockDeviceQuery> implements BlockDeviceBusElement {
     private final BlockEntity blockEntity;
 
     ///////////////////////////////////////////////////////////////////
@@ -96,10 +101,10 @@ public class BlockEntityDeviceBusElement extends AbstractGroupingDeviceBusElemen
             return;
         }
 
-        final HashSet<BlockEntry> newDevices = collectDevices(level, pos, direction);
+        final BlockQueryResult queryResult = collectDevices(level, pos, direction);
 
         final int index = direction.get3DDataValue();
-        setEntriesForGroup(index, newDevices);
+        setEntriesForGroup(index, queryResult);
     }
 
     public void initialize() {
@@ -124,10 +129,11 @@ public class BlockEntityDeviceBusElement extends AbstractGroupingDeviceBusElemen
         return canScanContinueTowards(direction);
     }
 
-    protected HashSet<BlockEntry> collectDevices(final Level level, final BlockPos pos, @Nullable final Direction direction) {
+    protected BlockQueryResult collectDevices(final Level level, final BlockPos pos, @Nullable final Direction direction) {
+        final BlockDeviceQuery query = Devices.makeQuery(level, pos, direction != null ? direction.getOpposite() : null);
         final HashSet<BlockEntry> entries = new HashSet<>();
+
         if (canDetectDevicesTowards(direction)) {
-            final BlockDeviceQuery query = Devices.makeQuery(level, pos, direction != null ? direction.getOpposite() : null);
             for (final Invalidatable<BlockDeviceInfo> deviceInfo : Devices.getDevices(query)) {
                 if (deviceInfo.isPresent()) {
                     entries.add(new BlockEntry(deviceInfo, pos));
@@ -137,7 +143,7 @@ public class BlockEntityDeviceBusElement extends AbstractGroupingDeviceBusElemen
 
         collectSyntheticDevices(level, pos, direction, entries);
 
-        return entries;
+        return new BlockQueryResult(query, entries);
     }
 
     protected void collectSyntheticDevices(final Level level, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockEntry> entries) {
@@ -157,6 +163,17 @@ public class BlockEntityDeviceBusElement extends AbstractGroupingDeviceBusElemen
     protected void onEntryRemoved(final BlockEntry entry) {
         super.onEntryRemoved(entry);
         entry.removeListener();
+    }
+
+    @Override
+    protected void onEntryRemoved(final String dataKey, final CompoundTag tag, @Nullable final BlockDeviceQuery query) {
+        assert query != null : "Passed null query for block device bus element.";
+        super.onEntryRemoved(dataKey, tag, query);
+        final IForgeRegistry<BlockDeviceProvider> registry = Providers.BLOCK_DEVICE_PROVIDER_REGISTRY.get();
+        final BlockDeviceProvider provider = registry.getValue(new ResourceLocation(dataKey));
+        if (provider != null) {
+            provider.unmount(query, tag);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -184,6 +201,25 @@ public class BlockEntityDeviceBusElement extends AbstractGroupingDeviceBusElemen
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    protected final class BlockQueryResult extends QueryResult {
+        private final BlockDeviceQuery query;
+        private final Set<BlockEntry> entries;
+
+        public BlockQueryResult(final BlockDeviceQuery query, final Set<BlockEntry> entries) {
+            this.query = query;
+            this.entries = entries;
+        }
+
+        public BlockDeviceQuery getQuery() {
+            return query;
+        }
+
+        @Override
+        public Set<BlockEntry> getEntries() {
+            return entries;
+        }
+    }
 
     protected final class BlockEntry implements Entry {
         private final Invalidatable<BlockDeviceInfo> deviceInfo;

@@ -9,13 +9,23 @@ import li.cil.oc2.common.bus.device.item.HardDriveVMDeviceWithInitialData;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.item.HardDriveWithExternalDataItem;
 import li.cil.oc2.common.util.LocationSupplierUtils;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public final class HardDriveWithExternalDataItemDeviceProvider extends AbstractItemDeviceProvider {
     public HardDriveWithExternalDataItemDeviceProvider() {
         super(HardDriveWithExternalDataItem.class);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    public void unmount(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
+        super.unmount(query, tag);
+        HardDriveVMDeviceWithInitialData.unmount(tag);
     }
 
     ///////////////////////////////////////////////////////////////////

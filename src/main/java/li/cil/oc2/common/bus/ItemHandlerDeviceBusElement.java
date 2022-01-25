@@ -2,8 +2,10 @@ package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.ItemDevice;
+import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
+import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
@@ -12,13 +14,15 @@ import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.IForgeRegistry;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Function;
 
 import static li.cil.oc2.common.util.RegistryUtils.optionalKey;
 
-public final class ItemHandlerDeviceBusElement extends AbstractGroupingDeviceBusElement<ItemHandlerDeviceBusElement.ItemEntry> {
+public final class ItemHandlerDeviceBusElement extends AbstractGroupingDeviceBusElement<ItemHandlerDeviceBusElement.ItemEntry, ItemDeviceQuery> {
     private final Function<ItemStack, ItemDeviceQuery> queryFactory;
 
     public ItemHandlerDeviceBusElement(final int slotCount, final Function<ItemStack, ItemDeviceQuery> queryFactory) {
@@ -44,9 +48,9 @@ public final class ItemHandlerDeviceBusElement extends AbstractGroupingDeviceBus
             final HashSet<ItemEntry> newDevices = new HashSet<>(Devices.getDevices(query).stream().map(ItemEntry::new).toList());
             insertItemNameDevice(stack, newDevices);
             importDeviceDataFromItemStack(stack, newDevices);
-            setEntriesForGroup(slot, newDevices);
+            setEntriesForGroup(slot, new ItemQueryResult(query, newDevices));
         } else {
-            setEntriesForGroup(slot, Collections.emptySet());
+            setEntriesForGroup(slot, new ItemQueryResult(null, Collections.emptySet()));
         }
     }
 
@@ -68,6 +72,18 @@ public final class ItemHandlerDeviceBusElement extends AbstractGroupingDeviceBus
 
         if (!exportedTag.isEmpty()) {
             ItemDeviceUtils.setItemDeviceData(stack, exportedTag);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void onEntryRemoved(final String dataKey, final CompoundTag tag, @Nullable final ItemDeviceQuery query) {
+        super.onEntryRemoved(dataKey, tag, query);
+        final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
+        final ItemDeviceProvider provider = registry.getValue(new ResourceLocation(dataKey));
+        if (provider != null) {
+            provider.unmount(query, tag);
         }
     }
 
@@ -96,6 +112,27 @@ public final class ItemHandlerDeviceBusElement extends AbstractGroupingDeviceBus
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    protected final class ItemQueryResult extends QueryResult {
+        @Nullable private final ItemDeviceQuery query;
+        private final Set<ItemEntry> entries;
+
+        public ItemQueryResult(@Nullable final ItemDeviceQuery query, final Set<ItemEntry> entries) {
+            this.query = query;
+            this.entries = entries;
+        }
+
+        @Nullable
+        @Override
+        public ItemDeviceQuery getQuery() {
+            return query;
+        }
+
+        @Override
+        public Set<ItemEntry> getEntries() {
+            return entries;
+        }
+    }
 
     protected record ItemEntry(ItemDeviceInfo deviceInfo) implements Entry {
         @Override

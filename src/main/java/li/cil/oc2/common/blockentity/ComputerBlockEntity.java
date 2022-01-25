@@ -335,7 +335,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         public void addOwnDevices() {
             assert level != null;
 
-            for (final BlockEntry info : collectDevices(level, getPosition(), null)) {
+            for (final BlockEntry info : collectDevices(level, getPosition(), null).getEntries()) {
                 devices.add(info.getDevice());
                 super.addDevice(info.getDevice());
             }

@@ -14,6 +14,12 @@ public final class DiskDriveDeviceProvider extends AbstractBlockEntityDeviceProv
         super(BlockEntities.DISK_DRIVE.get());
     }
 
+    ///////////////////////////////////////////////////////////////////
+
+    // NB: Does *not* need an unmount() implementation, because the blob UUID is stored on the item.
+
+    ///////////////////////////////////////////////////////////////////
+
     @Override
     protected Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final DiskDriveBlockEntity blockEntity) {
         // We only allow connecting to exactly one face of the disk drive to ensure only one

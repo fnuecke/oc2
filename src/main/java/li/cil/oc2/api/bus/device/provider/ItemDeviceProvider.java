@@ -1,6 +1,9 @@
 package li.cil.oc2.api.bus.device.provider;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
+import li.cil.oc2.api.bus.device.rpc.RPCDevice;
+import li.cil.oc2.api.bus.device.vm.VMDevice;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import java.util.Optional;
@@ -56,5 +59,23 @@ public interface ItemDeviceProvider extends IForgeRegistryEntry<ItemDeviceProvid
      */
     default int getEnergyConsumption(final ItemDeviceQuery query) {
         return 0;
+    }
+
+    /**
+     * Last-resort cleanup method for devices provided by this provider.
+     * <p>
+     * This is the equivalent of {@link RPCDevice#unmount()} or {@link VMDevice#unmount()},
+     * for devices that have gone missing unexpectedly, so this method could no longer be
+     * called on the actual device.
+     * <p>
+     * For item devices this is rather unlikely. It means an item disappeared while the
+     * block managing the item device was unloaded.
+     * <p>
+     * Implementing this is only necessary, if the device holds some out-of-NBT serialized
+     * data, or does something similar.
+     *
+     * @param tag the data last serialized by the device went missing.
+     */
+    default void unmount(final CompoundTag tag) {
     }
 }

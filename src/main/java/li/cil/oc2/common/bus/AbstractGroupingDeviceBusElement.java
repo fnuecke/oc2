@@ -5,12 +5,20 @@ import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
-public abstract class AbstractGroupingDeviceBusElement<T extends AbstractGroupingDeviceBusElement.Entry> extends AbstractDeviceBusElement {
+public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGroupingDeviceBusElement.Entry, TQuery> extends AbstractDeviceBusElement {
     private static final String GROUPS_TAG_NAME = "groups";
     private static final String GROUP_ID_TAG_NAME = "groupId";
     private static final String GROUP_DATA_TAG_NAME = "groupData";
+
+    protected abstract class QueryResult {
+        @Nullable
+        public abstract TQuery getQuery();
+
+        public abstract Set<TEntry> getEntries();
+    }
 
     protected interface Entry {
         Optional<String> getDeviceDataKey();
@@ -23,7 +31,7 @@ public abstract class AbstractGroupingDeviceBusElement<T extends AbstractGroupin
     ///////////////////////////////////////////////////////////////////
 
     protected final int groupCount;
-    protected final ArrayList<HashSet<T>> groups;
+    protected final ArrayList<HashSet<TEntry>> groups;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -80,7 +88,7 @@ public abstract class AbstractGroupingDeviceBusElement<T extends AbstractGroupin
             }
 
             // Immediately load data into devices, if we already have some.
-            for (final T entry : groups.get(i)) {
+            for (final TEntry entry : groups.get(i)) {
                 final CompoundTag devicesTag = groupData[i];
                 entry.getDeviceDataKey().ifPresent(key -> {
                     if (devicesTag.contains(key, NBTTagIds.TAG_COMPOUND)) {
@@ -94,8 +102,8 @@ public abstract class AbstractGroupingDeviceBusElement<T extends AbstractGroupin
     @Override
     public Optional<UUID> getDeviceIdentifier(final Device device) {
         for (int i = 0; i < groupCount; i++) {
-            final HashSet<T> group = groups.get(i);
-            for (final T deviceInfo : group) {
+            final HashSet<TEntry> group = groups.get(i);
+            for (final TEntry deviceInfo : group) {
                 if (Objects.equals(device, deviceInfo.getDevice())) {
                     return Optional.of(groupIds[i]);
                 }
@@ -106,22 +114,23 @@ public abstract class AbstractGroupingDeviceBusElement<T extends AbstractGroupin
 
     ///////////////////////////////////////////////////////////////////
 
-    protected final void setEntriesForGroup(final int index, final Set<T> newEntries) {
-        final HashSet<T> oldEntries = groups.get(index);
+    protected final void setEntriesForGroup(final int index, final QueryResult queryResult) {
+        final Set<TEntry> newEntries = queryResult.getEntries();
+        final HashSet<TEntry> oldEntries = groups.get(index);
         if (Objects.equals(newEntries, oldEntries)) {
             return;
         }
 
-        final HashSet<T> removedEntries = new HashSet<>(oldEntries);
+        final HashSet<TEntry> removedEntries = new HashSet<>(oldEntries);
         removedEntries.removeAll(newEntries);
-        for (final T entry : removedEntries) {
+        for (final TEntry entry : removedEntries) {
             devices.removeInt(entry.getDevice());
             onEntryRemoved(entry);
         }
 
-        final HashSet<T> addedEntries = new HashSet<>(newEntries);
+        final HashSet<TEntry> addedEntries = new HashSet<>(newEntries);
         addedEntries.removeAll(oldEntries);
-        for (final T entry : addedEntries) {
+        for (final TEntry entry : addedEntries) {
             devices.put(entry.getDevice(), entry.getDeviceEnergyConsumption().orElse(0));
             onEntryAdded(entry);
         }
@@ -130,31 +139,48 @@ public abstract class AbstractGroupingDeviceBusElement<T extends AbstractGroupin
         oldEntries.addAll(newEntries);
 
         final CompoundTag devicesTag = groupData[index];
-        for (final T entry : removedEntries) {
+        for (final TEntry entry : removedEntries) {
             entry.getDeviceDataKey().ifPresent(devicesTag::remove);
         }
-        for (final T entry : addedEntries) {
+
+        final HashSet<String> invalidDataKeys = new HashSet<>(devicesTag.getAllKeys());
+        for (final TEntry entry : addedEntries) {
             entry.getDeviceDataKey().ifPresent(key -> {
+                invalidDataKeys.remove(key);
                 if (devicesTag.contains(key, NBTTagIds.TAG_COMPOUND)) {
                     entry.getDevice().deserializeNBT(devicesTag.getCompound(key));
+                } else {
+                    devicesTag.remove(key);
                 }
             });
+        }
+
+        final TQuery query = queryResult.getQuery();
+        for (final String invalidDataKey : invalidDataKeys) {
+            if (devicesTag.contains(invalidDataKey, NBTTagIds.TAG_COMPOUND)) {
+                final CompoundTag tag = devicesTag.getCompound(invalidDataKey);
+                onEntryRemoved(invalidDataKey, tag, query);
+            }
+            devicesTag.remove(invalidDataKey);
         }
 
         scanDevices();
     }
 
-    protected void onEntryRemoved(final T entry) {
+    protected void onEntryAdded(final TEntry entry) {
     }
 
-    protected void onEntryAdded(final T entry) {
+    protected void onEntryRemoved(final TEntry entry) {
+    }
+
+    protected void onEntryRemoved(final String dataKey, final CompoundTag data, @Nullable final TQuery query) {
     }
 
     ///////////////////////////////////////////////////////////////////
 
     private void saveGroup(final int index) {
         final CompoundTag devicesTag = new CompoundTag();
-        for (final T entry : groups.get(index)) {
+        for (final TEntry entry : groups.get(index)) {
             entry.getDeviceDataKey().ifPresent(key -> {
                 final CompoundTag deviceTag = entry.getDevice().serializeNBT();
                 if (!deviceTag.isEmpty()) {

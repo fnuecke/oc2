@@ -151,6 +151,13 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
         }
     }
 
+    public static void unmount(final CompoundTag tag) {
+        if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
+            final UUID blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
+            BlobStorage.close(blobHandle);
+        }
+    }
+
     ///////////////////////////////////////////////////////////////
 
     protected abstract TBlock createBlockDevice() throws IOException;

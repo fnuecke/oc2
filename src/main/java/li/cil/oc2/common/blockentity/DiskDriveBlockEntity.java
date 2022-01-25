@@ -201,6 +201,8 @@ public final class DiskDriveBlockEntity extends ModBlockEntity {
             }
 
             Network.sendToClientsTrackingBlockEntity(new DiskDriveFloppyMessage(DiskDriveBlockEntity.this), DiskDriveBlockEntity.this);
+
+            setChanged();
         }
 
         private void exportDeviceDataToItemStack(final ItemStack stack) {

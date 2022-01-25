@@ -6,6 +6,7 @@ import li.cil.oc2.api.bus.device.vm.VMDevice;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
@@ -74,8 +75,9 @@ public interface ItemDeviceProvider extends IForgeRegistryEntry<ItemDeviceProvid
      * Implementing this is only necessary, if the device holds some out-of-NBT serialized
      * data, or does something similar.
      *
-     * @param tag the data last serialized by the device went missing.
+     * @param query the query that resulted in a missing device being detected, if available.
+     * @param tag   the data last serialized by the device went missing.
      */
-    default void unmount(final CompoundTag tag) {
+    default void unmount(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
     }
 }

@@ -66,7 +66,7 @@ public interface BlockDeviceProvider extends IForgeRegistryEntry<BlockDeviceProv
      * Implementing this is only necessary, if the device holds some out-of-NBT serialized
      * data, or does something similar.
      *
-     * @param query the query that resulted in the device when it still existed, if available.
+     * @param query the query that resulted in a missing device being detected.
      * @param tag   data last serialized by the device that went missing.
      */
     default void unmount(final BlockDeviceQuery query, final CompoundTag tag) {

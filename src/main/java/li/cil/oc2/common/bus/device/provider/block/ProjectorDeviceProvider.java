@@ -18,10 +18,10 @@ public final class ProjectorDeviceProvider extends AbstractBlockEntityDeviceProv
 
     @Override
     protected Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final ProjectorBlockEntity blockEntity) {
+        // We only allow connecting to exactly one face of the projector to ensure only one
+        // bus (and thus, one VM) will access the device at any single time.
         final Direction blockFacing = blockEntity.getBlockState().getValue(ProjectorBlock.FACING);
-        if (query.getQuerySide() != blockFacing &&
-            query.getQuerySide() != blockFacing.getClockWise() &&
-            query.getQuerySide() != blockFacing.getCounterClockWise()) {
+        if (query.getQuerySide() == blockFacing.getOpposite()) {
             return Invalidatable.of(blockEntity.getProjectorDevice());
         } else {
             return Invalidatable.empty();

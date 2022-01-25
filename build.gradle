@@ -82,7 +82,14 @@ task packageScripts(type: Zip) {
     from 'src/main/scripts'
 }
 
+task copyLicensesToResources(type: Copy) {
+    from '.'
+    into file("$buildDir/resources/main")
+    include "LICENSE*"
+}
+
 processResources.dependsOn(packageScripts)
+processResources.dependsOn(copyLicensesToResources)
 
 minecraft {
     mappings channel: 'official', version: minecraft_version

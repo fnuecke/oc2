@@ -6,12 +6,18 @@ import li.cil.oc2.common.bus.device.vm.ProjectorVMDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.network.Network;
-import li.cil.oc2.common.network.message.ProjectorFrameBufferTileMessage;
+import li.cil.oc2.common.network.message.ProjectorFramebufferMessage;
 import li.cil.oc2.common.network.message.ProjectorStateMessage;
-import li.cil.oc2.common.vm.device.SimpleFramebufferDevice;
+import li.cil.oc2.jcodec.codecs.h264.H264Decoder;
+import li.cil.oc2.jcodec.codecs.h264.H264Encoder;
+import li.cil.oc2.jcodec.codecs.h264.encode.CQPRateControl;
+import li.cil.oc2.jcodec.common.model.ColorSpace;
+import li.cil.oc2.jcodec.common.model.Picture;
+import li.cil.oc2.jcodec.scale.Yuv420jToRgb;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,17 +28,43 @@ import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
+// TODO Only send frames to watching clients (have clients send "keepalive" packets when rendering this).
+// TODO Throttle update speed by distance to closest player and max number any player watching this projector is watching in total.
 public final class ProjectorBlockEntity extends ModBlockEntity {
+    @FunctionalInterface
+    public interface FramebufferPixelSetter {
+        void set(final int x, final int y, final int rgba);
+    }
+
+    ///////////////////////////////////////////////////////////////
+
     private static final int MAX_RENDER_DISTANCE = 12;
     private static final int MAX_WIDTH = MAX_RENDER_DISTANCE + 1; // +1 To make it odd, so we can center.
     private static final int MAX_HEIGHT = (MAX_RENDER_DISTANCE * ProjectorVMDevice.HEIGHT / ProjectorVMDevice.WIDTH) + 1; // + 1 To match horizontal margin.
     private static final LayerSize[] LAYER_SIZES = computeLayerSizes();
 
+    private static final int FRAME_EVERY_N_TICKS = 5;
+
     private static final String ENERGY_TAG_NAME = "energy";
     private static final String IS_PROJECTING_TAG_NAME = "projecting";
+
+    private static final ExecutorService FRAME_WORKERS = Executors.newCachedThreadPool(r -> {
+        final Thread thread = new Thread(r);
+        thread.setDaemon(true);
+        thread.setName("Projector Frame Encoder/Decoder");
+        return thread;
+    });
 
     ///////////////////////////////////////////////////////////////
 
@@ -40,17 +72,31 @@ public final class ProjectorBlockEntity extends ModBlockEntity {
     private boolean isProjecting, hasEnergy;
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.projectorEnergyStorage);
 
+    // Video transfer.
+    private final H264Encoder encoder = new H264Encoder(new CQPRateControl(12));
+    private Future<?> runningEncode; // To allow waiting for previous frame to finish.
+    private final Picture picture = Picture.create(ProjectorVMDevice.WIDTH, ProjectorVMDevice.HEIGHT, ColorSpace.YUV420J);
+
+    private boolean needsIDR = true; // Whether we need to send a keyframe next.
+    private final AtomicInteger sendBudget = new AtomicInteger(); // Remaining accumulated bandwidth budget.
+    private int nextFrameIn = 0; // Remaining cooldown before sending next frame.
+
     // Client only data.
-    private final BitSet dirtyLines = new BitSet(ProjectorVMDevice.HEIGHT);
-    @Nullable private ByteBuffer buffer;
-    private final BitSet[] visibilities = new BitSet[MAX_RENDER_DISTANCE];
-    private AABB visibilityBounds;
-    private AABB renderBounds;
+    private final H264Decoder decoder = new H264Decoder();
+    private Future<?> runningDecode; // Current decoding operation, if any, to avoid race conditions.
+    private final ByteBuffer decoderBuffer = ByteBuffer.allocateDirect(1024 * 1024); // Re-used decompression buffer.
+    private volatile boolean isBufferDirty; // Whether buffer has changed and renderers need to update their texture.
+
+    private final BitSet[] visibilities = new BitSet[MAX_RENDER_DISTANCE]; // Index of blocks we're projecting onto.
+    private AABB visibilityBounds; // Bounds of all blocks we're projecting onto.
+    private AABB renderBounds; // Overall render bounds, disregarding projection surface, to allow growing if necessary.
 
     ///////////////////////////////////////////////////////////////
 
     public ProjectorBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.PROJECTOR.get(), pos, state);
+
+        encoder.setKeyInterval(100);
 
         for (int i = 0; i < visibilities.length; i++) {
             visibilities[i] = new BitSet(MAX_WIDTH * MAX_HEIGHT);
@@ -78,8 +124,11 @@ public final class ProjectorBlockEntity extends ModBlockEntity {
         isProjecting = value;
 
         if (!isProjecting) {
-            buffer = null;
-            dirtyLines.set(0, ProjectorVMDevice.HEIGHT);
+            Arrays.fill(picture.getPlaneData(0), (byte) -128);
+            Arrays.fill(picture.getPlaneData(1), (byte) 0);
+            Arrays.fill(picture.getPlaneData(2), (byte) 0);
+            needsIDR = true;
+            isBufferDirty = true;
         }
 
         sendRunningState();
@@ -90,7 +139,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity {
         final CompoundTag tag = super.getUpdateTag();
 
         tag.putBoolean(IS_PROJECTING_TAG_NAME, isProjecting);
-        projectorDevice.setAllDirty(); // todo is this good enough to be notified of new client observers?
+        needsIDR = true;
 
         return tag;
     }
@@ -142,38 +191,71 @@ public final class ProjectorBlockEntity extends ModBlockEntity {
         return new VisibilityData(visibilityBounds, visibilities);
     }
 
-    @FunctionalInterface
-    public interface FramebufferPixelSetter {
-        void set(final int x, final int y, final int rgba);
-    }
-
     public boolean updateRenderTexture(final FramebufferPixelSetter setter) {
-        if (dirtyLines.isEmpty()) {
+        assert level != null;
+        final ProfilerFiller profiler = level.getProfiler();
+        profiler.push("updateRenderTexture");
+
+        if (!isBufferDirty) {
+            profiler.pop();
             return false;
         }
 
-        final ByteBuffer buffer = getOrCreateBuffer();
-        for (int y = dirtyLines.nextSetBit(0); y >= 0; y = dirtyLines.nextSetBit(y + 1)) {
-            for (int x = 0; x < ProjectorVMDevice.WIDTH; x++) {
-                final int index = (x + y * ProjectorVMDevice.WIDTH) * Short.BYTES;
-                final int r5g6b5 = buffer.getShort(index) & 0xFFFF;
-                setter.set(x, y, ProjectorVMDevice.toRGBA(r5g6b5));
+        isBufferDirty = false;
+
+        final byte[] y = picture.getPlaneData(0);
+        final byte[] u = picture.getPlaneData(1);
+        final byte[] v = picture.getPlaneData(2);
+
+        // Convert in quads, based on the half resolution of UV. As such, skip every other row, since
+        // we're setting the current and the next.
+        int lumaIndex = 0, chromaIndex = 0;
+        for (int halfRow = 0; halfRow < ProjectorVMDevice.HEIGHT / 2; halfRow++, lumaIndex += ProjectorVMDevice.WIDTH * 2) {
+            final int row = halfRow * 2;
+            for (int halfCol = 0; halfCol < ProjectorVMDevice.WIDTH / 2; halfCol++, chromaIndex++) {
+                final int col = halfCol * 2;
+                final int yIndex = lumaIndex + col;
+                final byte cb = u[chromaIndex];
+                final byte cr = v[chromaIndex];
+                setFromYUV420(setter, col, row, y[yIndex], cb, cr);
+                setFromYUV420(setter, col + 1, row, y[yIndex + 1], cb, cr);
+                setFromYUV420(setter, col, row + 1, y[yIndex + ProjectorVMDevice.WIDTH], cb, cr);
+                setFromYUV420(setter, col + 1, row + 1, y[yIndex + ProjectorVMDevice.WIDTH + 1], cb, cr);
             }
         }
 
-        dirtyLines.clear();
+        profiler.pop();
+
         return true;
     }
 
-    public void applyFramebufferTile(final SimpleFramebufferDevice.Tile tile) {
-        tile.apply(ProjectorVMDevice.WIDTH, getOrCreateBuffer());
-        dirtyLines.set(tile.startPixelY(), tile.startPixelY() + SimpleFramebufferDevice.TILE_WIDTH);
+    public void applyNextFrame(final ByteBuffer frameData) {
+        final Future<?> lastDecode = runningDecode;
+        runningDecode = FRAME_WORKERS.submit(() -> {
+            try {
+                if (lastDecode != null) {
+                    lastDecode.get();
+                }
+
+                final Inflater inflater = new Inflater();
+                inflater.setInput(frameData);
+
+                decoderBuffer.clear();
+                inflater.inflate(decoderBuffer);
+                decoderBuffer.flip();
+
+                decoder.decodeFrame(decoderBuffer, picture.getData());
+
+                isBufferDirty = true;
+            } catch (final InterruptedException | ExecutionException | DataFormatException ignored) {
+            }
+        });
     }
 
     ///////////////////////////////////////////////////////////////
 
     @Override
-    protected void collectCapabilities(final CapabilityCollector collector, @org.jetbrains.annotations.Nullable final Direction direction) {
+    protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         if (projectorsUseEnergy()) {
             collector.offer(Capabilities.ENERGY_STORAGE, energy);
         }
@@ -201,13 +283,44 @@ public final class ProjectorBlockEntity extends ModBlockEntity {
             sendRunningState();
         }
 
-        int byteBudget = Config.projectorMaxBytesPerTick;
-        Optional<SimpleFramebufferDevice.Tile> tile;
-        while (byteBudget > 0 && (tile = projectorDevice.getNextDirtyTile()).isPresent()) {
-            final ProjectorFrameBufferTileMessage message = new ProjectorFrameBufferTileMessage(this, tile.get());
-            Network.sendToClientsTrackingBlockEntity(message, this);
-            byteBudget -= SimpleFramebufferDevice.TILE_SIZE_IN_BYTES;
+        sendBudget.updateAndGet(budget -> Math.min(Config.projectorMaxBytesPerTick * 10, budget + Config.projectorMaxBytesPerTick));
+        nextFrameIn = Math.max(0, nextFrameIn - 1);
+        if (sendBudget.get() < 0 || nextFrameIn > 0) {
+            return;
         }
+
+        if (runningEncode != null && !runningEncode.isDone()) {
+            return;
+        }
+
+        nextFrameIn = FRAME_EVERY_N_TICKS;
+
+        runningEncode = FRAME_WORKERS.submit(() -> {
+            final boolean hasChanges = projectorDevice.applyChanges(picture);
+            if (!hasChanges && !needsIDR) {
+                return;
+            }
+
+            final ByteBuffer frameData;
+            if (needsIDR) {
+                frameData = encoder.encodeIDRFrame(picture, ByteBuffer.allocateDirect(256 * 1024));
+                needsIDR = false;
+            } else {
+                frameData = encoder.encodeFrame(picture, ByteBuffer.allocateDirect(256 * 1024)).data();
+            }
+
+            final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
+            deflater.setInput(frameData);
+            deflater.finish();
+            final ByteBuffer compressedFrameData = ByteBuffer.allocateDirect(1024 * 1024);
+            deflater.deflate(compressedFrameData, Deflater.FULL_FLUSH);
+            deflater.end();
+            compressedFrameData.flip();
+
+            sendBudget.accumulateAndGet(compressedFrameData.limit(), (budget, packetSize) -> budget - packetSize);
+            final ProjectorFramebufferMessage message = new ProjectorFramebufferMessage(this, compressedFrameData);
+            Network.sendToClientsTrackingBlockEntity(message, this);
+        });
     }
 
     private void sendRunningState() {
@@ -311,11 +424,15 @@ public final class ProjectorBlockEntity extends ModBlockEntity {
         visibilityBounds = bounds;
     }
 
-    private ByteBuffer getOrCreateBuffer() {
-        if (buffer == null) {
-            buffer = projectorDevice.allocateBuffer();
-        }
-        return buffer;
+    private static final ThreadLocal<byte[]> rgb = ThreadLocal.withInitial(() -> new byte[3]);
+
+    private static void setFromYUV420(final FramebufferPixelSetter setter, final int col, final int row, final byte y, final byte cb, final byte cr) {
+        final byte[] bytes = rgb.get();
+        Yuv420jToRgb.YUVJtoRGB(y, cb, cr, bytes, 0);
+        final int r = bytes[0] + 128;
+        final int g = bytes[1] + 128;
+        final int b = bytes[2] + 128;
+        setter.set(col, row, r | (g << 8) | (b << 16) | (0xFF << 24));
     }
 
     private static LayerSize[] computeLayerSizes() {

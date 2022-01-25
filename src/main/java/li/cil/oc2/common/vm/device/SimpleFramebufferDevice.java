@@ -1,5 +1,7 @@
 package li.cil.oc2.common.vm.device;
 
+import li.cil.oc2.jcodec.common.model.Picture;
+import li.cil.oc2.jcodec.scale.RgbToYuv420j;
 import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.utils.DirectByteBufferUtils;
@@ -7,39 +9,18 @@ import li.cil.sedna.utils.DirectByteBufferUtils;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.BitSet;
-import java.util.Optional;
 
 public final class SimpleFramebufferDevice implements MemoryMappedDevice {
     public static final int STRIDE = 2;
-    public static final int TILE_WIDTH = 32;
-    public static final int TILE_SIZE = TILE_WIDTH * TILE_WIDTH;
-    public static final int TILE_SIZE_IN_BYTES = TILE_SIZE * STRIDE;
 
-    public record Tile(int startPixelX, int startPixelY, ByteBuffer data) {
-        public void apply(final int width, final ByteBuffer buffer) {
-            if (buffer.capacity() < TILE_SIZE * STRIDE) {
-                throw new IllegalArgumentException();
-            }
-
-            final int startIndex = (startPixelX + startPixelY * width) * STRIDE;
-            final int rowWidth = width * STRIDE;
-            final int tileRowBytes = TILE_WIDTH * STRIDE;
-            buffer.position(startIndex);
-            for (int i = 0; i < TILE_WIDTH; i++) {
-                buffer.slice(startIndex + i * rowWidth, tileRowBytes)
-                    .put(data.slice(i * tileRowBytes, tileRowBytes));
-            }
-        }
-    }
+    private static final ThreadLocal<int[][]> conversionBuffer = ThreadLocal.withInitial(() -> new int[4][3]);
 
     ///////////////////////////////////////////////////////////////
 
     private final int width, height;
     private final ByteBuffer buffer;
     private int length;
-    private final int tileCount;
-    private final BitSet dirty;
-    private int lastDirtyIndex;
+    private final BitSet dirtyLines;
 
     ///////////////////////////////////////////////////////////////
 
@@ -53,9 +34,7 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
         }
 
         this.buffer = buffer.order(ByteOrder.LITTLE_ENDIAN);
-        this.tileCount = width * height / TILE_SIZE;
-        this.dirty = new BitSet(tileCount);
-        setAllDirty();
+        this.dirtyLines = new BitSet(height / 2);
     }
 
     ///////////////////////////////////////////////////////////////
@@ -73,35 +52,38 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
         return height;
     }
 
-    public void setAllDirty() {
-        synchronized (dirty) {
-            dirty.clear();
-            dirty.flip(0, tileCount);
-        }
-    }
-
-    public Optional<Tile> getNextDirtyTile() {
-        final int index = dirty.nextSetBit(lastDirtyIndex);
-        if (index < 0) {
-            lastDirtyIndex = 0;
-            return Optional.empty();
+    public boolean applyChanges(final Picture picture) {
+        if (dirtyLines.isEmpty()) {
+            return false;
         }
 
-        synchronized (dirty) {
-            dirty.clear(index);
+        final int[][] quadrant = conversionBuffer.get();
+        final byte[][] pictureData = picture.getData();
+        for (int halfRow = dirtyLines.nextSetBit(0); halfRow >= 0; halfRow = dirtyLines.nextSetBit(halfRow + 1)) {
+            dirtyLines.clear(halfRow);
+
+            final int row = halfRow * 2;
+            int bufferIndex = row * width * STRIDE, lumaIndex = row * width, chromaIndex = halfRow * (width / 2);
+            for (int halfCol = 0; halfCol < width / 2; halfCol++, bufferIndex += STRIDE * 2, lumaIndex += 2, chromaIndex++) {
+                r5g6b5ToYuv420(this.buffer.getShort(bufferIndex) & 0xFFFF, quadrant[0]);
+                pictureData[0][lumaIndex] = (byte) quadrant[0][0];
+
+                r5g6b5ToYuv420(this.buffer.getShort(bufferIndex + STRIDE) & 0xFFFF, quadrant[1]);
+                pictureData[0][lumaIndex + 1] = (byte) quadrant[1][0];
+
+                r5g6b5ToYuv420(this.buffer.getShort(bufferIndex + width * STRIDE) & 0xFFFF, quadrant[2]);
+                pictureData[0][lumaIndex + width] = (byte) quadrant[2][0];
+
+                r5g6b5ToYuv420(this.buffer.getShort(bufferIndex + width * STRIDE + STRIDE) & 0xFFFF, quadrant[3]);
+                pictureData[0][lumaIndex + width + 1] = (byte) quadrant[3][0];
+
+                // Average chroma values for quadrant.
+                pictureData[1][chromaIndex] = (byte) ((quadrant[0][1] + quadrant[1][1] + quadrant[2][1] + quadrant[3][1] + 2) >> 2);
+                pictureData[2][chromaIndex] = (byte) ((quadrant[0][2] + quadrant[1][2] + quadrant[2][2] + quadrant[3][2] + 2) >> 2);
+            }
         }
 
-        lastDirtyIndex = index + 1;
-        if (lastDirtyIndex >= tileCount) {
-            lastDirtyIndex = 0;
-        }
-
-        final int tileCountX = width / TILE_WIDTH;
-        final int tileX = index % tileCountX;
-        final int tileY = index / tileCountX;
-        final int startPixelX = tileX * TILE_WIDTH;
-        final int startPixelY = tileY * TILE_WIDTH;
-        return Optional.of(new Tile(startPixelX, startPixelY, getTileData(startPixelX, startPixelY)));
+        return true;
     }
 
     @Override
@@ -140,36 +122,19 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
 
     ///////////////////////////////////////////////////////////////
 
-    private int getTileIndex(final int offset) {
-        final int pixelIndex = offset / STRIDE;
-        final int tileCountX = width / TILE_WIDTH;
-        final int pixelX = pixelIndex % width;
-        final int pixelY = pixelIndex / width;
-        final int tileX = pixelX / TILE_WIDTH;
-        final int tileY = pixelY / TILE_WIDTH;
-        return tileX + tileY * tileCountX;
-    }
+    private static void r5g6b5ToYuv420(final int r5g6b5, final int[] yuv) {
+        final int r5 = (r5g6b5 >>> 11) & 0b11111;
+        final int g6 = (r5g6b5 >>> 5) & 0b111111;
+        final int b5 = r5g6b5 & 0b11111;
+        final byte r = (byte) ((r5 * 255 / 0b11111) - 128);
+        final byte g = (byte) ((g6 * 255 / 0b111111) - 128);
+        final byte b = (byte) ((b5 * 255 / 0b11111) - 128);
+        RgbToYuv420j.rgb2yuv(r, g, b, yuv);
 
-    private ByteBuffer getTileData(final int startPixelX, final int startPixelY) {
-        final ByteBuffer result = ByteBuffer.allocate(TILE_SIZE_IN_BYTES).order(ByteOrder.LITTLE_ENDIAN);
-
-        final int startIndex = (startPixelX + startPixelY * width) * STRIDE;
-        final int rowWidth = width * STRIDE;
-        for (int i = 0; i < TILE_WIDTH; i++) {
-            result.put(buffer.slice(startIndex + i * rowWidth, TILE_WIDTH * 2));
-        }
-
-        result.flip();
-
-        return result;
     }
 
     private void setDirty(final int offset) {
-        final int tileIndex = getTileIndex(offset);
-        if (!dirty.get(tileIndex)) {
-            synchronized (dirty) {
-                dirty.set(tileIndex);
-            }
-        }
+        final int pixelY = offset / (width * STRIDE);
+        dirtyLines.set(pixelY / 2);
     }
 }

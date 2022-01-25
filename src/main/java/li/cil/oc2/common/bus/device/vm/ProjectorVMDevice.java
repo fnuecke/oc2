@@ -10,15 +10,13 @@ import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.vm.device.SimpleFramebufferDevice;
+import li.cil.oc2.jcodec.common.model.Picture;
 import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Optional;
 import java.util.UUID;
 
 public final class ProjectorVMDevice extends IdentityProxy<ProjectorBlockEntity> implements VMDevice {
@@ -31,6 +29,7 @@ public final class ProjectorVMDevice extends IdentityProxy<ProjectorBlockEntity>
     ///////////////////////////////////////////////////////////////
 
     @Nullable private SimpleFramebufferDevice device;
+    private final Object deviceLock = new Object();
 
     ///////////////////////////////////////////////////////////////
 
@@ -45,31 +44,13 @@ public final class ProjectorVMDevice extends IdentityProxy<ProjectorBlockEntity>
 
     ///////////////////////////////////////////////////////////////
 
-    public static int toRGBA(final int r5g6b5) {
-        final int r5 = (r5g6b5 >>> 11) & 0b11111;
-        final int g6 = (r5g6b5 >>> 5) & 0b111111;
-        final int b5 = r5g6b5 & 0b11111;
-        final int r = r5 * 255 / 0b11111;
-        final int g = g6 * 255 / 0b111111;
-        final int b = b5 * 255 / 0b11111;
-        return r | (g << 8) | (b << 16) | (0xFF << 24);
-    }
-
-    public ByteBuffer allocateBuffer() {
-        return ByteBuffer.allocate(WIDTH * HEIGHT * SimpleFramebufferDevice.STRIDE).order(ByteOrder.LITTLE_ENDIAN);
-    }
-
-    public void setAllDirty() {
-        if (device != null) {
-            device.setAllDirty();
-        }
-    }
-
-    public Optional<SimpleFramebufferDevice.Tile> getNextDirtyTile() {
-        if (device != null) {
-            return device.getNextDirtyTile();
-        } else {
-            return Optional.empty();
+    public boolean applyChanges(final Picture picture) {
+        synchronized (deviceLock) {
+            if (device != null) {
+                return device.applyChanges(picture);
+            } else {
+                return false;
+            }
         }
     }
 
@@ -99,7 +80,12 @@ public final class ProjectorVMDevice extends IdentityProxy<ProjectorBlockEntity>
 
     @Override
     public void suspend() {
-        closeBlockDevice();
+        synchronized (deviceLock) {
+            if (device != null) {
+                device.close();
+                device = null;
+            }
+        }
 
         if (blobHandle != null) {
             BlobStorage.close(blobHandle);
@@ -151,15 +137,5 @@ public final class ProjectorVMDevice extends IdentityProxy<ProjectorBlockEntity>
         final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
         final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, WIDTH * HEIGHT * SimpleFramebufferDevice.STRIDE);
         return new SimpleFramebufferDevice(WIDTH, HEIGHT, buffer);
-    }
-
-    private void closeBlockDevice() {
-        if (device == null) {
-            return;
-        }
-
-        device.close();
-
-        device = null;
     }
 }

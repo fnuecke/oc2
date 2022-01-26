@@ -2,6 +2,7 @@ package li.cil.oc2.api.bus.device.object;
 
 import li.cil.oc2.api.bus.device.rpc.AbstractRPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 import li.cil.oc2.api.bus.device.rpc.RPCParameter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,10 +55,10 @@ public final class Callbacks {
      * @param methodContainer an instance of a class with annotated methods.
      * @return the list of methods extracted from the specified object.
      */
-    public static List<RPCMethod> collectMethods(final Object methodContainer) {
+    public static List<RPCMethodGroup> collectMethods(final Object methodContainer) {
         final List<Method> reflectedMethods = getMethods(methodContainer.getClass());
 
-        final ArrayList<RPCMethod> methods = new ArrayList<>();
+        final ArrayList<RPCMethodGroup> methods = new ArrayList<>();
         for (final Method method : reflectedMethods) {
             try {
                 methods.add(new ObjectRPCMethod(methodContainer, method));
@@ -115,7 +116,7 @@ public final class Callbacks {
 
         @Nullable
         @Override
-        public Object invoke(final Object... parameters) throws Throwable {
+        protected Object invoke(final Object... parameters) throws Throwable {
             return handle.invokeWithArguments(parameters);
         }
 

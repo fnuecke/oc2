@@ -66,6 +66,11 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     }
 
     @Callback
+    public int drop(@Parameter("count") final int count) {
+        return drop(count, null);
+    }
+
+    @Callback
     public int drop(@Parameter("count") final int count,
                     @Parameter("side") @Nullable final RobotOperationSide side) {
         if (count <= 0) {
@@ -108,6 +113,12 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
     @Callback
     public int dropInto(@Parameter("intoSlot") final int intoSlot,
+                        @Parameter("count") final int count) {
+        return dropInto(intoSlot, count, null);
+    }
+
+    @Callback
+    public int dropInto(@Parameter("intoSlot") final int intoSlot,
                         @Parameter("count") final int count,
                         @Parameter("side") @Nullable final RobotOperationSide side) {
         if (count <= 0) {
@@ -144,6 +155,11 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     }
 
     @Callback
+    public int take(@Parameter("count") final int count) {
+        return take(count, null);
+    }
+
+    @Callback
     public int take(@Parameter("count") final int count,
                     @Parameter("side") @Nullable final RobotOperationSide side) {
         if (count <= 0) {
@@ -157,6 +173,12 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         } else {
             return takeFromInventories(count, handlers);
         }
+    }
+
+    @Callback
+    public int takeFrom(@Parameter("fromSlot") final int fromSlot,
+                        @Parameter("count") final int count) {
+        return takeFrom(fromSlot, count, null);
     }
 
     @Callback

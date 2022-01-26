@@ -5,9 +5,7 @@ import com.google.gson.JsonArray;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
-import li.cil.oc2.api.bus.device.rpc.RPCParameter;
+import li.cil.oc2.api.bus.device.rpc.*;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
@@ -66,6 +64,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
             .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
             .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
             .registerTypeHierarchyAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
+            .registerTypeAdapter(EmptyMethodGroup.class, new EmptyRPCMethodGroupSerializer())
             .create();
     }
 
@@ -154,7 +153,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
             // If there are no methods we have either no devices at all, or all synthetic
             // devices, i.e. devices that only contribute type names, but have no methods
             // to call. We do not expose these to avoid cluttering the device list.
-            if (device.getMethods().isEmpty()) {
+            if (device.getMethodGroups().isEmpty()) {
                 return;
             }
 
@@ -314,103 +313,45 @@ public final class RPCDeviceBusAdapter implements Steppable {
             return;
         }
 
+        final RPCInvocation invocation = new RPCInvocationImpl(methodInvocation.parameters, gson);
+
         // Yes, we could hashmap this lookup, but the expectation is that we'll generally
         // have relatively few methods per object, so the overhead of hashing would not
         // be worth it. Instead, we just do a quick linear search, which also gives us
         // a lot of flexibility for free (devices may dynamically change their methods).
-        final List<RPCMethod> fallbacks = new ArrayList<>();
         String error = ERROR_UNKNOWN_METHOD;
-        for (final RPCMethod method : device.getMethods()) {
-            if (!Objects.equals(method.getName(), methodInvocation.methodName)) {
+        for (final RPCMethodGroup methodGroup : device.getMethodGroups()) {
+            if (!Objects.equals(methodGroup.getName(), methodInvocation.methodName)) {
                 continue;
             }
 
-            final RPCParameter[] parametersSpec = method.getParameters();
-
-            // Special case: if a method takes as exactly one parameter a JsonArray, we pass
-            // on the parameters as-is, without automatically trying to deserialize them.
-            if (parametersSpec.length == 1 && parametersSpec[0].getType() == JsonArray.class) {
-                invokeMethod(methodInvocation, isMainThread, method, new Object[]{methodInvocation.parameters});
+            final Optional<RPCMethod> overload = methodGroup.findOverload(invocation);
+            if (overload.isPresent()) {
+                invokeMethod(methodInvocation, isMainThread, overload.get(), invocation);
                 return;
             }
 
-            if (methodInvocation.parameters.size() != parametersSpec.length) {
-                if (canTrailingParametersBeImplicitlyNull(methodInvocation.parameters, parametersSpec)) {
-                    fallbacks.add(method);
-                }
+            error = ERROR_INVALID_PARAMETER_SIGNATURE;
 
-                error = ERROR_INVALID_PARAMETER_SIGNATURE;
-                continue; // There may be an overload with matching parameter count.
-            }
-
-            final Object[] parameters = getParameters(methodInvocation.parameters, parametersSpec);
-            if (parameters == null) {
-                error = ERROR_INVALID_PARAMETER_SIGNATURE;
-                continue; // There may be an overload with matching parameter types.
-            }
-
-            invokeMethod(methodInvocation, isMainThread, method, parameters);
-
-            return;
-        }
-
-        if (fallbacks.size() == 1) {
-            final RPCMethod method = fallbacks.get(0);
-            final Object[] parameters = getParameters(methodInvocation.parameters, method.getParameters());
-            if (parameters != null) {
-                invokeMethod(methodInvocation, isMainThread, method, parameters);
-                return;
-            }
+            // Keep going, there may be an overload with matching parameter types in another
+            // method group with the same name.
         }
 
         writeError(error);
     }
 
-    private void invokeMethod(final MethodInvocation methodInvocation, final boolean isMainThread, final RPCMethod method, final Object[] parameters) {
+    private void invokeMethod(final MethodInvocation methodInvocation, final boolean isMainThread, final RPCMethod method, final RPCInvocation invocation) {
         if (method.isSynchronized() && !isMainThread) {
             synchronizedInvocation = methodInvocation;
             return;
         }
 
         try {
-            final Object result = method.invoke(parameters);
+            final Object result = method.invoke(invocation);
             writeMessage(Message.MESSAGE_TYPE_RESULT, result);
         } catch (final Throwable e) {
             writeError(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
         }
-    }
-
-    @Nullable
-    private Object[] getParameters(final JsonArray parameters, final RPCParameter[] parametersSpec) {
-        final Object[] result = new Object[parametersSpec.length];
-        for (int i = 0; i < parametersSpec.length; i++) {
-            final RPCParameter parameterInfo = parametersSpec[i];
-            if (parameters.size() > i) {
-                try {
-                    result[i] = gson.fromJson(parameters.get(i), parameterInfo.getType());
-                } catch (final Throwable e) {
-                    return null;
-                }
-            } else {
-                result[i] = null;
-            }
-        }
-        return result;
-    }
-
-    private boolean canTrailingParametersBeImplicitlyNull(final JsonArray parameters, final RPCParameter[] parametersSpec) {
-        if (parameters.size() > parametersSpec.length) {
-            return false;
-        }
-
-        for (int i = parameters.size(); i < parametersSpec.length; i++) {
-            final Class<?> type = parametersSpec[i].getType();
-            if (type.isPrimitive()) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private void writeDeviceList() {
@@ -420,10 +361,23 @@ public final class RPCDeviceBusAdapter implements Steppable {
     private void writeDeviceMethods(final UUID deviceId) {
         final RPCDeviceList device = devicesById.get(deviceId);
         if (device != null) {
-            writeMessage(Message.MESSAGE_TYPE_METHODS, device.getMethods());
+            writeMessage(Message.MESSAGE_TYPE_METHODS, flattenMethodGroups(device.getMethodGroups()));
         } else {
             writeError("unknown device");
         }
+    }
+
+    private List<Object> flattenMethodGroups(final List<? extends RPCMethodGroup> methodGroups) {
+        final List<Object> result = new ArrayList<>();
+        for (final RPCMethodGroup methodGroup : methodGroups) {
+            final Set<RPCMethod> overloads = methodGroup.getOverloads();
+            if (overloads.isEmpty()) {
+                result.add(new EmptyMethodGroup(methodGroup.getName()));
+            } else {
+                result.addAll(overloads);
+            }
+        }
+        return result;
     }
 
     private void writeError(final String message) {
@@ -456,6 +410,8 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     public record RPCDeviceWithIdentifier(UUID identifier, RPCDevice device) { }
 
+    public record EmptyMethodGroup(String name) { }
+
     public record Message(String type, @Nullable Object data) {
         // Device -> VM
         public static final String MESSAGE_TYPE_LIST = "list";
@@ -473,13 +429,46 @@ public final class RPCDeviceBusAdapter implements Steppable {
         public String methodName;
         public JsonArray parameters;
 
-        public MethodInvocation() { // For deserialization.
+        @SuppressWarnings("unused") // For deserialization.
+        public MethodInvocation() {
         }
 
         public MethodInvocation(final UUID deviceId, final String methodName, final JsonArray parameters) {
             this.deviceId = deviceId;
             this.methodName = methodName;
             this.parameters = parameters;
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private record RPCInvocationImpl(JsonArray parameters, Gson gson) implements RPCInvocation {
+        @Override
+        public JsonArray getParameters() {
+            return parameters;
+        }
+
+        @Override
+        public Gson getGson() {
+            return gson;
+        }
+
+        @Override
+        public Optional<Object[]> tryDeserializeParameters(final RPCParameter... parameterTypes) {
+            if (parameterTypes.length != parameters.size()) {
+                return Optional.empty();
+            }
+
+            final Object[] result = new Object[parameterTypes.length];
+            for (int i = 0; i < parameterTypes.length; i++) {
+                final RPCParameter parameterInfo = parameterTypes[i];
+                try {
+                    result[i] = gson.fromJson(parameters.get(i), parameterInfo.getType());
+                } catch (final Throwable e) {
+                    return Optional.empty();
+                }
+            }
+            return Optional.of(result);
         }
     }
 }

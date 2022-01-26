@@ -1,7 +1,5 @@
 package li.cil.oc2.api.bus.device.rpc;
 
-import li.cil.oc2.api.bus.DeviceBusController;
-
 import java.util.Optional;
 
 /**
@@ -11,8 +9,10 @@ public interface RPCParameter {
     /**
      * The type of this parameter.
      * <p>
-     * This is used by {@link DeviceBusController}s to convert parameters from a lower
-     * level representation before passing it to {@link RPCMethod#invoke(Object...)}.
+     * May be used inside VMs to generate documentation.
+     * <p>
+     * This is used by {@link AbstractRPCMethod}s to convert parameters from a lower
+     * level representation before passing it to {@link AbstractRPCMethod#invoke(Object...)}.
      * As such, the types used must be kept simple. As a rule of thumb, only primitives
      * and POJOs should be used.
      *

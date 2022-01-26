@@ -3,7 +3,7 @@ package li.cil.oc2.common.bus.device.item;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import net.minecraft.world.item.ItemStack;
 
@@ -27,8 +27,8 @@ public abstract class AbstractItemRPCDevice extends IdentityProxy<ItemStack> imp
     }
 
     @Override
-    public List<RPCMethod> getMethods() {
-        return device.getMethods();
+    public List<RPCMethodGroup> getMethodGroups() {
+        return device.getMethodGroups();
     }
 
     @Override

@@ -71,11 +71,11 @@ public interface RPCDevice extends Device {
     List<String> getTypeNames();
 
     /**
-     * The list of methods provided by this interface.
+     * The list of methods groups provided by this interface.
      *
-     * @return the list of methods.
+     * @return the list of method groups.
      */
-    List<RPCMethod> getMethods();
+    List<RPCMethodGroup> getMethodGroups();
 
     /**
      * Called to initialize this device.

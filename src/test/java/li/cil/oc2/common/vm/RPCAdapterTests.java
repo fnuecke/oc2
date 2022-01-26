@@ -6,9 +6,7 @@ import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
-import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
+import li.cil.oc2.api.bus.device.rpc.*;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +14,9 @@ import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Collections.singleton;
@@ -96,6 +96,26 @@ public class RPCAdapterTests {
         assertEquals(42 + 23, invokeMethod(DEVICE_UUID, "add", 42, 23).getAsInt());
     }
 
+    @Test
+    public void customDeviceGroupRejectsInvalidParameters() {
+        final RPCDevice device = mock(RPCDevice.class);
+        when(device.getTypeNames()).thenReturn(Collections.singletonList("test"));
+        when(device.getMethodGroups()).thenReturn(Collections.singletonList(new CustomMethodGroup()));
+        setDevice(device, DEVICE_UUID);
+
+        assertEquals("error", invokeMethodRaw(DEVICE_UUID, "test", "invalid", 123).get("type").getAsString());
+    }
+
+    @Test
+    public void customDeviceGroupAcceptsValidParameters() {
+        final RPCDevice device = mock(RPCDevice.class);
+        when(device.getTypeNames()).thenReturn(Collections.singletonList("test"));
+        when(device.getMethodGroups()).thenReturn(Collections.singletonList(new CustomMethodGroup()));
+        setDevice(device, DEVICE_UUID);
+
+        assertEquals(42, invokeMethod(DEVICE_UUID, "test", 123, "valid").getAsInt());
+    }
+
     private void setDevice(final RPCDevice device, final UUID deviceId) {
         when(busController.getDevices()).thenReturn(singleton(device));
         when(busController.getDeviceIdentifiers(device)).thenReturn(singleton(deviceId));
@@ -104,7 +124,7 @@ public class RPCAdapterTests {
         rpcAdapter.resume(busController, true);
     }
 
-    private JsonElement invokeMethod(final UUID deviceId, final String name, final Object... parameters) {
+    private JsonObject invokeMethodRaw(final UUID deviceId, final String name, final Object... parameters) {
         final JsonObject request = new JsonObject();
         request.addProperty("type", "invoke");
         final JsonObject methodInvocation = new JsonObject();
@@ -113,7 +133,7 @@ public class RPCAdapterTests {
         final JsonArray parametersJson = new JsonArray();
         methodInvocation.add("parameters", parametersJson);
         for (final Object parameter : parameters) {
-            parametersJson.add(new Gson().toJson(parameter));
+            parametersJson.add(new Gson().toJsonTree(parameter));
         }
         request.add("data", methodInvocation);
         serialDevice.putAsVM(request.toString());
@@ -122,7 +142,11 @@ public class RPCAdapterTests {
 
         final String result = serialDevice.readMessageAsVM();
         assertNotNull(result);
-        final JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
+        return JsonParser.parseString(result).getAsJsonObject();
+    }
+
+    private JsonElement invokeMethod(final UUID deviceId, final String name, final Object... parameters) {
+        final JsonObject resultJson = invokeMethodRaw(deviceId, name, parameters);
         assertEquals("result", resultJson.get("type").getAsString());
         return resultJson.get("data");
     }
@@ -152,6 +176,31 @@ public class RPCAdapterTests {
         public Object invoke(final Object... parameters) {
             passedValue = (long) parameters[0];
             return (int) passedValue;
+        }
+    }
+
+    private static final class CustomMethodGroup implements RPCMethodGroup {
+        @Override
+        public String getName() {
+            return "test";
+        }
+
+        @Override
+        public Optional<RPCMethod> findOverload(final RPCInvocation invocation) {
+            final JsonArray parameters = invocation.getParameters();
+            if (parameters.size() != 2)
+                return Optional.empty();
+            if (!parameters.get(0).isJsonPrimitive() || !parameters.get(0).getAsJsonPrimitive().isNumber())
+                return Optional.empty();
+            if (!parameters.get(1).isJsonPrimitive() || !parameters.get(1).getAsJsonPrimitive().isString())
+                return Optional.empty();
+
+            return Optional.of(new AbstractRPCMethod("test", int.class, () -> int.class, () -> String.class) {
+                @Override
+                protected Object invoke(final Object... parameters) {
+                    return 42;
+                }
+            });
         }
     }
 
@@ -234,7 +283,7 @@ public class RPCAdapterTests {
         }
 
         @Override
-        public List<? extends RPCMethodGroup> getMethodGroups() {
+        public List<RPCMethodGroup> getMethodGroups() {
             return singletonList(method);
         }
     }

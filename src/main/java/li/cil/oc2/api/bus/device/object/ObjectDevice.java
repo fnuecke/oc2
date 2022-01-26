@@ -2,6 +2,7 @@ package li.cil.oc2.api.bus.device.object;
 
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ import static java.util.Collections.singletonList;
 public final class ObjectDevice implements RPCDevice {
     private final Object object;
     private final ArrayList<String> typeNames;
-    private final List<RPCMethod> methods;
+    private final List<RPCMethodGroup> methods;
     private final String className;
 
     ///////////////////////////////////////////////////////////////////
@@ -82,7 +83,7 @@ public final class ObjectDevice implements RPCDevice {
     }
 
     @Override
-    public List<RPCMethod> getMethods() {
+    public List<RPCMethodGroup> getMethodGroups() {
         return methods;
     }
 

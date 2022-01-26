@@ -75,6 +75,11 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
     }
 
     @Callback
+    public boolean excavate() {
+        return excavate(null);
+    }
+
+    @Callback
     public boolean excavate(@Parameter("side") @Nullable final RobotOperationSide side) {
         if (isOnCooldown()) {
             return false;
@@ -107,6 +112,11 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         }
 
         return true;
+    }
+
+    @Callback
+    public boolean place() {
+        return place(null);
     }
 
     @Callback

@@ -2,7 +2,7 @@ package li.cil.oc2.common.bus.device.rpc;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public record TypeNameRPCDevice(String typeName) implements RPCDevice, ItemDevic
     }
 
     @Override
-    public List<RPCMethod> getMethods() {
+    public List<RPCMethodGroup> getMethodGroups() {
         return emptyList();
     }
 }

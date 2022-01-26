@@ -42,7 +42,7 @@ public final class RPCDeviceTests {
     @Test
     public void addedDevicesHaveMountCalled() {
         final RPCDevice device1 = mock(RPCDevice.class);
-        when(device1.getMethods()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
         addDevice(device1);
 
         adapter.resume(controller, true);
@@ -55,7 +55,7 @@ public final class RPCDeviceTests {
     @Test
     public void mountedDevicesAreUnmountedWhenRemoved() {
         final RPCDevice device1 = mock(RPCDevice.class);
-        when(device1.getMethods()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
         addDevice(device1);
 
         adapter.resume(controller, true);
@@ -72,7 +72,7 @@ public final class RPCDeviceTests {
     @Test
     public void mountedDevicesAreUnmountedOnGlobalUnmount() {
         final RPCDevice device1 = mock(RPCDevice.class);
-        when(device1.getMethods()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
         addDevice(device1);
 
         adapter.resume(controller, true);
@@ -88,7 +88,7 @@ public final class RPCDeviceTests {
     @Test
     public void unmountedDevicesAreNotUnmountedOnGlobalUnmount() {
         final RPCDevice device1 = mock(RPCDevice.class);
-        when(device1.getMethods()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
         addDevice(device1);
 
         adapter.resume(controller, true);
@@ -103,8 +103,8 @@ public final class RPCDeviceTests {
         final RPCDevice device1 = mock(RPCDevice.class);
         final RPCDevice device2 = mock(RPCDevice.class);
         final RPCDevice listDevice = new RPCDeviceList(new ArrayList<>(Arrays.asList(device1, device2)));
-        when(device1.getMethods()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        when(device2.getMethods()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        when(device2.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
         addDevice(listDevice);
 
         adapter.resume(controller, true);
@@ -121,8 +121,8 @@ public final class RPCDeviceTests {
         final RPCDevice device1 = mock(RPCDevice.class);
         final RPCDevice device2 = mock(RPCDevice.class);
         final RPCDevice listDevice = new RPCDeviceList(new ArrayList<>(Arrays.asList(device1, device2)));
-        when(device1.getMethods()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        when(device2.getMethods()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        when(device2.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
         addDevice(listDevice);
 
         adapter.resume(controller, true);
@@ -143,8 +143,8 @@ public final class RPCDeviceTests {
         final RPCDevice device1 = mock(RPCDevice.class);
         final RPCDevice device2 = mock(RPCDevice.class);
         final RPCDevice listDevice = new RPCDeviceList(new ArrayList<>(Arrays.asList(device1, device2)));
-        when(device1.getMethods()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        when(device2.getMethods()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        when(device2.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
         addDevice(listDevice);
 
         adapter.resume(controller, true);
@@ -165,8 +165,8 @@ public final class RPCDeviceTests {
         final RPCDevice device1 = mock(RPCDevice.class);
         final RPCDevice device2 = mock(RPCDevice.class);
         final RPCDevice listDevice = new RPCDeviceList(new ArrayList<>(Arrays.asList(device1, device2)));
-        when(device1.getMethods()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        when(device2.getMethods()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        when(device2.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
         addDevice(listDevice);
 
         adapter.resume(controller, true);

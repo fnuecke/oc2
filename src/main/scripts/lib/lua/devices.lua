@@ -29,11 +29,17 @@ Device.__tostring = function(self)
         else
           doc = doc .. "arg" .. i
         end
-        doc = doc .. ": " .. p.type
+        if p.type then
+            doc = doc .. ": " .. p.type
+        end
         i = i + 1
       end
     end
-    doc = doc .. "): " .. method.returnType .. "\n"
+    doc = doc .. ")"
+    if method.returnType then
+        doc = doc .. ": " .. method.returnType
+    end
+    doc = doc .. "\n"
 
     if method.description then
       doc = doc .. method.description .. "\n"

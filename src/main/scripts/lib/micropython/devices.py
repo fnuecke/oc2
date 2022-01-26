@@ -28,9 +28,13 @@ class Device:
                         doc += p["name"]
                     else:
                         doc += "arg" + str(i)
-                    doc += ": " + p["type"]
+                    if "type" in p:
+                        doc += ": " + p["type"]
                     i += 1
-            doc += "): " + method["returnType"] + "\n"
+            doc += ")"
+            if "returnType" in method:
+                doc += ": " + method["returnType"]
+            doc += "\n"
 
             if "description" in method and method["description"]:
                 doc += method["description"] + "\n"

@@ -90,8 +90,8 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     public void suspend() {
         joinWorkerThread();
-        state.vmAdapter.unmount();
-        state.rpcAdapter.unmount();
+        state.vmAdapter.unmountDevices();
+        state.rpcAdapter.unmountDevices();
     }
 
     @Override
@@ -203,8 +203,8 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         state.board.setRunning(false);
         state.board.reset();
         state.rpcAdapter.reset();
-        state.rpcAdapter.dispose();
-        state.vmAdapter.dispose();
+        state.rpcAdapter.disposeDevices();
+        state.vmAdapter.disposeDevices();
 
         runner = null;
     }
@@ -309,7 +309,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
             return;
         }
 
-        final VMDeviceLoadResult loadResult = state.vmAdapter.mount();
+        final VMDeviceLoadResult loadResult = state.vmAdapter.mountDevices();
         if (!loadResult.wasSuccessful()) {
             if (loadResult.getErrorMessage() != null) {
                 error(loadResult.getErrorMessage(), false);
@@ -343,7 +343,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
             runner = createRunner();
         }
 
-        state.rpcAdapter.mount();
+        state.rpcAdapter.mountDevices();
 
         setRunState(VMRunState.RUNNING);
 

@@ -42,7 +42,7 @@ public final class RPCDeviceTests {
         final RPCDevice device = addEmptyDevice();
         adapter.resume(controller, true);
 
-        adapter.mount();
+        adapter.mountDevices();
         verify(device, never()).mount();
     }
 
@@ -51,7 +51,7 @@ public final class RPCDeviceTests {
         final RPCDevice device = addDevice();
         adapter.resume(controller, true);
 
-        adapter.mount();
+        adapter.mountDevices();
         verify(device).mount();
     }
 
@@ -59,7 +59,7 @@ public final class RPCDeviceTests {
     public void mountedDevicesAreUnmountedAndDisposedWhenRemoved() {
         final RPCDevice device = addDevice();
         adapter.resume(controller, true);
-        adapter.mount();
+        adapter.mountDevices();
 
         removeDevice(device);
         adapter.resume(controller, true);
@@ -82,9 +82,9 @@ public final class RPCDeviceTests {
     public void mountedDevicesAreUnmountedButNotDisposedOnGlobalUnmount() {
         final RPCDevice device = addDevice();
         adapter.resume(controller, true);
-        adapter.mount();
+        adapter.mountDevices();
 
-        adapter.unmount();
+        adapter.unmountDevices();
         verify(device).unmount();
         verify(device, never()).dispose();
     }
@@ -94,7 +94,7 @@ public final class RPCDeviceTests {
         final RPCDevice device = addDevice();
         adapter.resume(controller, true);
 
-        adapter.unmount();
+        adapter.unmountDevices();
         verify(device, never()).unmount();
         verify(device, never()).dispose();
     }
@@ -103,9 +103,9 @@ public final class RPCDeviceTests {
     public void mountedDevicesAreUnmountedAndDisposedOnGlobalDispose() {
         final RPCDevice device = addDevice();
         adapter.resume(controller, true);
-        adapter.mount();
+        adapter.mountDevices();
 
-        adapter.dispose();
+        adapter.disposeDevices();
         verify(device).unmount();
         verify(device).dispose();
     }
@@ -115,7 +115,7 @@ public final class RPCDeviceTests {
         final RPCDevice device = addDevice();
         adapter.resume(controller, true);
 
-        adapter.dispose();
+        adapter.disposeDevices();
         verify(device, never()).unmount();
         verify(device).dispose();
     }
@@ -124,10 +124,10 @@ public final class RPCDeviceTests {
     public void devicesHaveMountCalledAfterGlobalUnmount() {
         final RPCDevice device = addDevice();
         adapter.resume(controller, true);
-        adapter.mount();
-        adapter.unmount();
+        adapter.mountDevices();
+        adapter.unmountDevices();
 
-        adapter.mount();
+        adapter.mountDevices();
         verify(device, times(2)).mount();
     }
 
@@ -144,7 +144,7 @@ public final class RPCDeviceTests {
         verify(device1, never()).mount();
         verify(device2, never()).mount();
 
-        adapter.mount();
+        adapter.mountDevices();
         verify(device1).mount();
         verify(device2).mount();
 
@@ -153,7 +153,7 @@ public final class RPCDeviceTests {
         verify(device1, never()).unmount();
         verify(device2, never()).unmount();
 
-        adapter.mount();
+        adapter.mountDevices();
         verify(device1, atMostOnce()).mount();
         verify(device2, atMostOnce()).mount();
     }

@@ -74,7 +74,7 @@ public final class VMDeviceTests {
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.mount().wasSuccessful());
+        assertTrue(adapter.mountDevices().wasSuccessful());
         verify(device).mount(any());
     }
 
@@ -86,11 +86,11 @@ public final class VMDeviceTests {
         when(device2.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device1));
-        adapter.mount();
+        adapter.mountDevices();
         verify(device1).mount(any());
 
         adapter.addDevices(Collections.singleton(device2));
-        adapter.mount();
+        adapter.mountDevices();
         verifyNoMoreInteractions(device1);
     }
 
@@ -100,7 +100,7 @@ public final class VMDeviceTests {
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.fail());
 
         adapter.addDevices(Collections.singleton(device));
-        assertFalse(adapter.mount().wasSuccessful());
+        assertFalse(adapter.mountDevices().wasSuccessful());
         verify(device).mount(any());
         verify(device, never()).unmount();
         verify(device, never()).dispose();
@@ -115,7 +115,7 @@ public final class VMDeviceTests {
 
         adapter.addDevices(Collections.singleton(device1));
         adapter.addDevices(Collections.singleton(device2));
-        adapter.mount();
+        adapter.mountDevices();
 
         verify(device1).mount(any());
         verify(device2).mount(any());
@@ -129,7 +129,7 @@ public final class VMDeviceTests {
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.mount().wasSuccessful());
+        assertTrue(adapter.mountDevices().wasSuccessful());
 
         adapter.removeDevices(Collections.singleton(device));
         verify(device).unmount();
@@ -152,9 +152,9 @@ public final class VMDeviceTests {
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.mount().wasSuccessful());
+        assertTrue(adapter.mountDevices().wasSuccessful());
 
-        adapter.unmount();
+        adapter.unmountDevices();
         verify(device).unmount();
         verify(device, never()).dispose();
     }
@@ -165,7 +165,7 @@ public final class VMDeviceTests {
 
         adapter.addDevices(Collections.singleton(device));
 
-        adapter.unmount();
+        adapter.unmountDevices();
         verify(device, never()).unmount();
         verify(device, never()).dispose();
     }
@@ -175,9 +175,9 @@ public final class VMDeviceTests {
         final VMDevice device = mock(VMDevice.class);
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
         adapter.addDevices(Collections.singleton(device));
-        adapter.mount();
+        adapter.mountDevices();
 
-        adapter.dispose();
+        adapter.disposeDevices();
         verify(device).unmount();
         verify(device).dispose();
     }
@@ -187,7 +187,7 @@ public final class VMDeviceTests {
         final VMDevice device = mock(VMDevice.class);
         adapter.addDevices(Collections.singleton(device));
 
-        adapter.dispose();
+        adapter.disposeDevices();
         verify(device, never()).unmount();
         verify(device).dispose();
     }
@@ -198,10 +198,10 @@ public final class VMDeviceTests {
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
-        adapter.mount();
-        adapter.unmount();
+        adapter.mountDevices();
+        adapter.unmountDevices();
 
-        assertTrue(adapter.mount().wasSuccessful());
+        assertTrue(adapter.mountDevices().wasSuccessful());
         verify(device, times(2)).mount(any());
     }
 
@@ -216,7 +216,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.mount().wasSuccessful());
+        assertTrue(adapter.mountDevices().wasSuccessful());
 
         verify(device).mount(any());
     }
@@ -236,7 +236,7 @@ public final class VMDeviceTests {
         context.getInterruptAllocator().claimInterrupt(claimedInterrupt);
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.mount().wasSuccessful());
+        assertTrue(adapter.mountDevices().wasSuccessful());
     }
 
     @Test
@@ -255,7 +255,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.mount().wasSuccessful());
+        assertTrue(adapter.mountDevices().wasSuccessful());
 
         final int claimedInterruptMask = 1 << deviceData.interrupt;
         deviceData.context.getInterruptController().raiseInterrupts(claimedInterruptMask);
@@ -273,7 +273,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.mount().wasSuccessful());
+        assertTrue(adapter.mountDevices().wasSuccessful());
 
         final int someInterruptMask = 0x1;
         assertThrows(IllegalArgumentException.class, () ->
@@ -296,14 +296,14 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.mount().wasSuccessful());
+        assertTrue(adapter.mountDevices().wasSuccessful());
 
         final int claimedInterruptMask = 1 << deviceData.interrupt;
         deviceData.context.getInterruptController().raiseInterrupts(claimedInterruptMask);
 
         assertTrue((interruptController.getRaisedInterrupts() & claimedInterruptMask) != 0);
 
-        adapter.unmount();
+        adapter.unmountDevices();
 
         assertFalse((interruptController.getRaisedInterrupts() & claimedInterruptMask) != 0);
     }
@@ -321,7 +321,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        adapter.mount();
+        adapter.mountDevices();
     }
 
     @Test
@@ -341,7 +341,7 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.mount().wasSuccessful());
+        assertTrue(adapter.mountDevices().wasSuccessful());
 
         assertTrue(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
     }
@@ -363,11 +363,11 @@ public final class VMDeviceTests {
         });
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.mount().wasSuccessful());
+        assertTrue(adapter.mountDevices().wasSuccessful());
 
         assertTrue(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
 
-        adapter.unmount();
+        adapter.unmountDevices();
 
         assertFalse(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
     }

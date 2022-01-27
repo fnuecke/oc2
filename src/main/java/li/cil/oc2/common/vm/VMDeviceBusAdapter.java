@@ -32,7 +32,7 @@ public final class VMDeviceBusAdapter {
         baseAddressProvider = provider;
     }
 
-    public VMDeviceLoadResult mount() {
+    public VMDeviceLoadResult mountDevices() {
         globalContext.joinWorkerThread();
 
         for (final VMDevice device : unmountedDevices) {
@@ -63,7 +63,7 @@ public final class VMDeviceBusAdapter {
         return VMDeviceLoadResult.success();
     }
 
-    public void unmount() {
+    public void unmountDevices() {
         globalContext.joinWorkerThread();
 
         mountedDevices.forEach((device, context) -> {
@@ -75,8 +75,8 @@ public final class VMDeviceBusAdapter {
         mountedDevices.clear();
     }
 
-    public void dispose() {
-        unmount();
+    public void disposeDevices() {
+        unmountDevices();
 
         unmountedDevices.forEach(VMDevice::dispose);
     }

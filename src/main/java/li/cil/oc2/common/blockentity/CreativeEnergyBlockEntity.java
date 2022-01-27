@@ -8,7 +8,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-public final class CreativeEnergyBlockEntity extends BlockEntity {
+public final class CreativeEnergyBlockEntity extends ModBlockEntity {
     private final Direction[] SIDES = Direction.values();
 
     ///////////////////////////////////////////////////////////////////

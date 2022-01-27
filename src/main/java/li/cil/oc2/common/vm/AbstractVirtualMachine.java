@@ -304,6 +304,11 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
             return;
         }
 
+        if (busController.getDevices().stream().noneMatch(device -> device instanceof FirmwareLoader)) {
+            error(new TranslatableComponent(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
+            return;
+        }
+
         final VMDeviceLoadResult loadResult = state.vmAdapter.mount();
         if (!loadResult.wasSuccessful()) {
             if (loadResult.getErrorMessage() != null) {
@@ -312,11 +317,6 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
                 error(new TranslatableComponent(Constants.COMPUTER_ERROR_UNKNOWN), false);
             }
             loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
-            return;
-        }
-
-        if (busController.getDevices().stream().noneMatch(device -> device instanceof FirmwareLoader)) {
-            error(new TranslatableComponent(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
             return;
         }
 

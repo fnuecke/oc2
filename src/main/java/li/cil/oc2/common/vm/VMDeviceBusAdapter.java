@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.OptionalLong;
 
 public final class VMDeviceBusAdapter {
-    private final HashMap<VMDevice, ManagedVMContext> deviceContexts = new HashMap<>();
-    private final ArrayList<VMDevice> incompleteLoads = new ArrayList<>();
+    private final HashMap<VMDevice, ManagedVMContext> mountedDevices = new HashMap<>();
+    private final ArrayList<VMDevice> unmountedDevices = new ArrayList<>();
     private BaseAddressProvider baseAddressProvider = unused -> OptionalLong.empty();
 
     ///////////////////////////////////////////////////////////////////
@@ -33,28 +33,30 @@ public final class VMDeviceBusAdapter {
     }
 
     public VMDeviceLoadResult mount() {
-        for (int i = 0; i < incompleteLoads.size(); i++) {
-            final VMDevice device = incompleteLoads.get(i);
+        globalContext.joinWorkerThread();
 
+        for (final VMDevice device : unmountedDevices) {
             final ManagedVMContext context = new ManagedVMContext(globalContext, globalContext,
                 () -> baseAddressProvider.getBaseAddress(device));
-
-            deviceContexts.put(device, context);
 
             final VMDeviceLoadResult result = device.mount(context);
             context.freeze();
 
             if (!result.wasSuccessful()) {
-                for (; i >= 0; i--) {
-                    final VMDevice otherDevice = incompleteLoads.get(i);
-                    otherDevice.unmount();
-                    deviceContexts.get(otherDevice).invalidate();
-                }
+                context.invalidate();
+                mountedDevices.forEach((mountedDevice, mountedContext) -> {
+                    mountedDevice.unmount();
+                    mountedDevice.dispose();
+                    mountedContext.invalidate();
+                });
+                mountedDevices.clear();
                 return result;
             }
+
+            mountedDevices.put(device, context);
         }
 
-        incompleteLoads.clear();
+        unmountedDevices.clear();
 
         globalContext.updateReservations();
 
@@ -64,21 +66,19 @@ public final class VMDeviceBusAdapter {
     public void unmount() {
         globalContext.joinWorkerThread();
 
-        for (final VMDevice device : deviceContexts.keySet()) {
+        mountedDevices.forEach((device, context) -> {
             device.unmount();
-        }
+            context.invalidate();
+        });
 
-        unload();
+        unmountedDevices.addAll(mountedDevices.keySet());
+        mountedDevices.clear();
     }
 
-    public void suspend() {
-        globalContext.joinWorkerThread();
+    public void dispose() {
+        unmount();
 
-        for (final VMDevice device : deviceContexts.keySet()) {
-            device.suspend();
-        }
-
-        unload();
+        unmountedDevices.forEach(VMDevice::dispose);
     }
 
     public void addDevices(final Collection<Device> devices) {
@@ -86,12 +86,11 @@ public final class VMDeviceBusAdapter {
 
         for (final Device device : devices) {
             if (device instanceof final VMDevice vmDevice) {
-                final ManagedVMContext context = deviceContexts.put(vmDevice, null);
-                if (context != null) {
-                    context.invalidate();
+                // Add to set of unmounted devices if we don't already track it. It's a set, so
+                // there won't be duplicates in the unmounted set due to this.
+                if (!mountedDevices.containsKey(vmDevice)) {
+                    unmountedDevices.add(vmDevice);
                 }
-
-                incompleteLoads.add(vmDevice);
             }
         }
     }
@@ -101,28 +100,16 @@ public final class VMDeviceBusAdapter {
 
         for (final Device device : devices) {
             if (device instanceof final VMDevice vmDevice) {
-                vmDevice.unmount();
-
-                final ManagedVMContext context = deviceContexts.remove(vmDevice);
+                final ManagedVMContext context = mountedDevices.remove(vmDevice);
                 if (context != null) {
+                    vmDevice.unmount();
+                    vmDevice.dispose();
                     context.invalidate();
+                } else {
+                    unmountedDevices.remove(vmDevice);
+                    vmDevice.dispose();
                 }
-
-                incompleteLoads.remove(vmDevice);
             }
         }
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    private void unload() {
-        deviceContexts.forEach((device, context) -> {
-            if (context != null) {
-                context.invalidate();
-            }
-        });
-
-        incompleteLoads.clear();
-        incompleteLoads.addAll(deviceContexts.keySet());
     }
 }

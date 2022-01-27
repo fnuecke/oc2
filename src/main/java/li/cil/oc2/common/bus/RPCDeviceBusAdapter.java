@@ -74,6 +74,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         for (final RPCDevice device : unmountedDevices) {
             device.mount();
         }
+
         mountedDevices.addAll(unmountedDevices);
         unmountedDevices.clear();
     }
@@ -82,18 +83,15 @@ public final class RPCDeviceBusAdapter implements Steppable {
         for (final RPCDevice device : mountedDevices) {
             device.unmount();
         }
+
+        unmountedDevices.addAll(mountedDevices);
+        mountedDevices.clear();
     }
 
     public void dispose() {
-        for (final RPCDevice device : mountedDevices) {
-            device.unmount();
-            device.dispose();
-        }
-        for (final RPCDeviceList device : unmountedDevices) {
-            device.dispose();
-        }
-        unmountedDevices.addAll(mountedDevices);
-        mountedDevices.clear();
+        unmount();
+
+        unmountedDevices.forEach(RPCDeviceList::dispose);
     }
 
     public void reset() {

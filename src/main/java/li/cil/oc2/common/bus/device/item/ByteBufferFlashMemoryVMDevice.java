@@ -67,16 +67,15 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
 
     @Override
     public void unmount() {
-        suspend();
-        deviceTag = null;
-        address.clear();
-    }
-
-    @Override
-    public void suspend() {
         memoryMap = null;
         data = null;
         device = null;
+    }
+
+    @Override
+    public void dispose() {
+        deviceTag = null;
+        address.clear();
     }
 
     @Subscribe

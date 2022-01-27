@@ -39,12 +39,11 @@ public final class FirmwareFlashMemoryVMDevice extends IdentityProxy<ItemStack> 
 
     @Override
     public void unmount() {
-        suspend();
+        memoryMap = null;
     }
 
     @Override
-    public void suspend() {
-        memoryMap = null;
+    public void dispose() {
     }
 
     @Subscribe

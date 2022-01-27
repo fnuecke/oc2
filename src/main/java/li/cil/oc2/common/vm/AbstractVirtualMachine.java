@@ -90,7 +90,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     public void suspend() {
         joinWorkerThread();
-        state.vmAdapter.suspend();
+        state.vmAdapter.unmount();
         state.rpcAdapter.unmount();
     }
 
@@ -204,7 +204,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         state.board.reset();
         state.rpcAdapter.reset();
         state.rpcAdapter.dispose();
-        state.vmAdapter.unmount();
+        state.vmAdapter.dispose();
 
         runner = null;
     }

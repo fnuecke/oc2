@@ -1,8 +1,8 @@
 package li.cil.oc2.common.bus;
 
-import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.vm.VMDeviceBusAdapter;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.Board;
@@ -60,24 +60,71 @@ public final class VMDeviceTests {
     }
 
     @Test
+    public void addingDeviceDoesNotMountDirectly() {
+        final VMDevice device = mock(VMDevice.class);
+        when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
+
+        adapter.addDevices(Collections.singleton(device));
+        verify(device, never()).mount(any());
+    }
+
+    @Test
     public void addedDevicesHaveMountCalled() {
+        final VMDevice device = mock(VMDevice.class);
+        when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
+
+        adapter.addDevices(Collections.singleton(device));
+        assertTrue(adapter.mount().wasSuccessful());
+        verify(device).mount(any());
+    }
+
+    @Test
+    public void existingDevicesDoNotHaveMountCalledAgain() {
         final VMDevice device1 = mock(VMDevice.class);
         final VMDevice device2 = mock(VMDevice.class);
         when(device1.mount(any())).thenReturn(VMDeviceLoadResult.success());
         when(device2.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device1));
-        assertTrue(adapter.mount().wasSuccessful());
+        adapter.mount();
         verify(device1).mount(any());
 
         adapter.addDevices(Collections.singleton(device2));
-        assertTrue(adapter.mount().wasSuccessful());
+        adapter.mount();
         verifyNoMoreInteractions(device1);
-        verify(device2).mount(any());
     }
 
     @Test
-    public void removedDevicesHaveUnmountCalled() {
+    public void deviceFailingMountDoesNotHaveUnmountOrDisposeCalled() {
+        final VMDevice device = mock(VMDevice.class);
+        when(device.mount(any())).thenReturn(VMDeviceLoadResult.fail());
+
+        adapter.addDevices(Collections.singleton(device));
+        assertFalse(adapter.mount().wasSuccessful());
+        verify(device).mount(any());
+        verify(device, never()).unmount();
+        verify(device, never()).dispose();
+    }
+
+    @Test
+    public void mountedDevicesAreUnmountedAndDisposedIfOtherMountFails() {
+        final VMDevice device1 = mock(VMDevice.class);
+        final VMDevice device2 = mock(VMDevice.class);
+        when(device1.mount(any())).thenReturn(VMDeviceLoadResult.success());
+        when(device2.mount(any())).thenReturn(VMDeviceLoadResult.fail());
+
+        adapter.addDevices(Collections.singleton(device1));
+        adapter.addDevices(Collections.singleton(device2));
+        adapter.mount();
+
+        verify(device1).mount(any());
+        verify(device2).mount(any());
+        verify(device1).unmount();
+        verify(device1).dispose();
+    }
+
+    @Test
+    public void mountedDevicesAreUnmountedAndDisposedWhenRemoved() {
         final VMDevice device = mock(VMDevice.class);
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
@@ -86,10 +133,21 @@ public final class VMDeviceTests {
 
         adapter.removeDevices(Collections.singleton(device));
         verify(device).unmount();
+        verify(device).dispose();
     }
 
     @Test
-    public void devicesHaveUnloadCalledOnGlobalUnmount() {
+    public void unmountedDevicesAreDisposedWhenRemoved() {
+        final VMDevice device = mock(VMDevice.class);
+
+        adapter.addDevices(Collections.singleton(device));
+
+        adapter.removeDevices(Collections.singleton(device));
+        verify(device).dispose();
+    }
+
+    @Test
+    public void mountedDevicesAreUnmountedButNotDisposedOnGlobalUnmount() {
         final VMDevice device = mock(VMDevice.class);
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
@@ -98,6 +156,40 @@ public final class VMDeviceTests {
 
         adapter.unmount();
         verify(device).unmount();
+        verify(device, never()).dispose();
+    }
+
+    @Test
+    public void unmountedDevicesAreNotUnmountedAndNotDisposedOnGlobalUnmount() {
+        final VMDevice device = mock(VMDevice.class);
+
+        adapter.addDevices(Collections.singleton(device));
+
+        adapter.unmount();
+        verify(device, never()).unmount();
+        verify(device, never()).dispose();
+    }
+
+    @Test
+    public void mountedDevicesAreUnmountedAndDisposedOnGlobalDispose() {
+        final VMDevice device = mock(VMDevice.class);
+        when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
+        adapter.addDevices(Collections.singleton(device));
+        adapter.mount();
+
+        adapter.dispose();
+        verify(device).unmount();
+        verify(device).dispose();
+    }
+
+    @Test
+    public void unmountedDevicesAreNotUnmountedButDisposedOnGlobalDispose() {
+        final VMDevice device = mock(VMDevice.class);
+        adapter.addDevices(Collections.singleton(device));
+
+        adapter.dispose();
+        verify(device, never()).unmount();
+        verify(device).dispose();
     }
 
     @Test
@@ -106,11 +198,8 @@ public final class VMDeviceTests {
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
-        assertTrue(adapter.mount().wasSuccessful());
-        verify(device).mount(any());
-
+        adapter.mount();
         adapter.unmount();
-        verify(device).unmount();
 
         assertTrue(adapter.mount().wasSuccessful());
         verify(device, times(2)).mount(any());
@@ -188,7 +277,7 @@ public final class VMDeviceTests {
 
         final int someInterruptMask = 0x1;
         assertThrows(IllegalArgumentException.class, () ->
-                deviceData.context.getInterruptController().raiseInterrupts(someInterruptMask));
+            deviceData.context.getInterruptController().raiseInterrupts(someInterruptMask));
     }
 
     @Test
@@ -226,7 +315,7 @@ public final class VMDeviceTests {
             final VMContext context = invocation.getArgument(0);
 
             assertThrows(UnsupportedOperationException.class, () ->
-                    context.getMemoryMap().addDevice(0, mock(MemoryMappedDevice.class)));
+                context.getMemoryMap().addDevice(0, mock(MemoryMappedDevice.class)));
 
             return VMDeviceLoadResult.success();
         });

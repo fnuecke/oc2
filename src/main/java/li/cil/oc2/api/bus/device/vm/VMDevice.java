@@ -19,53 +19,30 @@ import li.cil.sedna.api.device.MemoryMappedDevice;
  * <p>
  * The lifecycle for VMDevices can be depicted as such:
  * <pre>
- *    ┌──────────────────────────────────┐
- *    │VirtualMachine.isRunning() = false◄────────────────────────┐
- *    └────────────────┬─────────────────┘                        │
- *                     │                                          │
- *          ┌──────────▼───────────┐                              │
- *          │VirtualMachine.start()│                              │
- *          └──────────┬───────────┘                              │
- *                     │                                          │
- *                     │   ┌──────────┐                           │
- *                     │   │Chunk Load│  ┌──────────────────┐     │
- *                     ├───┼──────────◄──┤VMDevice.suspend()◄───┐ │
- *                     │   │World Load│  └──────────────────┘   │ │
- *                     │   └──────────┘                         │ │
- *                     │                                        │ │
- *            ┌────────▼───────┐       ┌────┐                   │ │
- * ┌──────────►VMDevice.mount()◄───────┤Wait◄─────────┐         │ │
- * │          └────────┬───────┘       └──▲─┘         │         │ │
- * │                   │                  │           │         │ │
- * │                   │  ┌───────────────┴─────────┐ │         │ │
- * │                   ├──►VMDeviceLoadResult.fail()│ │         │ │
- * │                   │  └─────────────────────────┘ │         │ │
- * │                   │                              │         │ │
- * │    ┌──────────────▼─────────────┐ ┌──────────────┴───┐     │ │
- * │    │VMDeviceLoadResult.success()│ │VMDevice.unmount()│     │ │
- * │    └──────────────┬─────────────┘ └──────────────▲───┘     │ │
- * │                   │                              │         │ │
- * │                   │        ┌─────────────────────┴───┐     │ │
- * │                   ├────────►     Other VMDevice:     │     │ │
- * │                   │        │VMDeviceLoadResult.fail()│     │ │
- * │                   │        └─────────────────────────┘     │ │
- * │                   │                                        │ │
- * │                   │                     ┌────────────┐     │ │
- * │                   │                     │Chunk Unload│     │ │
- * │                   │                   ┌─►────────────┼─────┘ │
- * │                   │                   │ │World Unload│       │
- * │ ┌─────────────────▼───────────────┐   │ └────────────┘       │
- * │ │VirtualMachine.isRunning() = true├───┤                      │
- * │ └─────┬───────────────────┬───────┘   │ ┌──────────────────┐ │
- * │       │                   │           │ │Computer Shutdown │ │
- * │ ┌─────▼──────┐     ┌──────▼───────┐   └─►──────────────────┤ │
- * └─┤Device Added│     │Device Removed│     │Computer Destroyed│ │
- *   └────────────┘     └──────┬───────┘     └─────────┬────────┘ │
- *                             │                       │          │
- *                    ┌────────▼─────────┐   ┌─────────▼────────┐ │
- *                    │VMDevice.unmount()│   │VMDevice.unmount()├─┘
- *                    └──────────────────┘   └──────────────────┘
+ * ┌──────────────┐ ┌────────────────┐
+ * │serializeNBT()│ │deserializeNBT()◄───────┐
+ * └──────────────┘ └───────┬────────┘       │
+ *   May be called          │VM starts or    │
+ *   at any time,    ┌──────┤resumes after   │
+ *   except while    │      │load            │
+ *   unloaded...     │  ┌───▼───┐            │
+ *                   │  │mount()│            │
+ *                   │  └───┬───┘            │Chunk
+ *                   │      │VM stops or     │unloaded
+ *                   │      │is unloaded     │
+ *                   │      │                │
+ *                   │ ┌────▼────┐           │
+ *                   │ │unmount()├───────────┤
+ *                   │ └────┬────┘           │
+ *                   │      │VM stopped or   │
+ *                   │      │device removed  │
+ *                   │      │                │
+ *                   │ ┌────▼────┐           │
+ *                   └─┤dispose()├───────────┘
+ *                     └─────────┘
  * </pre>
+ * Note that if any other {@link VMDevice} fails mounting, all mounted devices
+ * will immediately unmounted and disposed.
  *
  * @see li.cil.oc2.api.bus.device.provider.BlockDeviceProvider
  * @see li.cil.oc2.api.bus.device.provider.ItemDeviceProvider
@@ -106,5 +83,5 @@ public interface VMDevice extends Device {
      * Intended for soft-releasing resources acquired in {@link #mount(VMContext)}, i.e. non-persisted
      * unmanaged resources.
      */
-    void suspend();
+    void dispose();
 }

@@ -65,7 +65,7 @@ public interface ItemDeviceProvider extends IForgeRegistryEntry<ItemDeviceProvid
     /**
      * Last-resort cleanup method for devices provided by this provider.
      * <p>
-     * This is the equivalent of {@link RPCDevice#unmount()} or {@link VMDevice#unmount()},
+     * This is the equivalent of {@link RPCDevice#dispose()} or {@link VMDevice#dispose()},
      * for devices that have gone missing unexpectedly, so this method could no longer be
      * called on the actual device.
      * <p>

@@ -81,19 +81,18 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
 
     @Override
     public void unmount() {
-        suspend();
-        deviceTag = null;
-        address.clear();
-        interrupt.clear();
-    }
-
-    @Override
-    public void suspend() {
         closeBlockDevice();
 
         if (blobHandle != null) {
             BlobStorage.close(blobHandle);
         }
+    }
+
+    @Override
+    public void dispose() {
+        deviceTag = null;
+        address.clear();
+        interrupt.clear();
     }
 
     @Override

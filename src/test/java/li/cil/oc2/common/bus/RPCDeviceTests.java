@@ -121,6 +121,17 @@ public final class RPCDeviceTests {
     }
 
     @Test
+    public void devicesHaveMountCalledAfterGlobalUnmount() {
+        final RPCDevice device = addDevice();
+        adapter.resume(controller, true);
+        adapter.mount();
+        adapter.unmount();
+
+        adapter.mount();
+        verify(device, times(2)).mount();
+    }
+
+    @Test
     public void deviceListIsStable() {
         final RPCDevice device1 = mock(RPCDevice.class);
         final RPCDevice device2 = mock(RPCDevice.class);

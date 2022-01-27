@@ -63,32 +63,30 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     @Override
     public void unmount() {
-        suspend();
-
-        // Memory is volatile, so free up our persisted blob when device is unloaded.
-        if (blobHandle != null) {
-            BlobStorage.delete(blobHandle);
-            blobHandle = null;
-        }
-
-        address.clear();
-    }
-
-    @Override
-    public void suspend() {
         if (device != null) {
             try {
                 device.close();
             } catch (final Exception e) {
                 LOGGER.error(e);
             }
+
+            device = null;
         }
 
         if (blobHandle != null) {
             BlobStorage.close(blobHandle);
         }
+    }
 
-        device = null;
+    @Override
+    public void dispose() {
+        // Memory is volatile, so free up our persisted blob when device is disposed.
+        if (blobHandle != null) {
+            BlobStorage.delete(blobHandle);
+            blobHandle = null;
+        }
+
+        address.clear();
     }
 
     @Override

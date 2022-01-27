@@ -67,8 +67,8 @@ public final class HardDriveVMDeviceWithInitialData extends HardDriveVMDevice {
     @Override
     protected void closeBlockDevice() {
         // Join the copy job before releasing the device to avoid writes from thread to closed device.
-        // Since we use memory mapped memory, closing the device leads to it holding a dead pointer, meaning
-        // further access to it will hard-crash the JVM.
+        // Since we use memory mapped memory, closing the device leads to it holding a dead pointer,
+        // meaning further access to it will hard-crash the JVM.
         joinCopyJob();
 
         super.closeBlockDevice();

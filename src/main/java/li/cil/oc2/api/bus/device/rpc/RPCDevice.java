@@ -21,25 +21,25 @@ import java.util.List;
  * The lifecycle for {@link RPCDevice}s is as follows:
  * <pre>
  * ┌──────────────┐ ┌────────────────┐
- * │serializeNBT()│ │deserializeNBT()◄─────────────────┐
- * └──────────────┘ └───────┬────────┘                 │
- *   May be called          │VM starts or              │
- *   at any time,           │resumes after             │
- *   except while           │load                      │
- *   unloaded...        ┌───▼───┐                      │
- *                      │mount()│                      │
- *                      └───┬───┘                      │
- *                          │VM stops or               │
- *                          │is unloaded               │
- *                          │                          │
- *                     ┌────▼────┐Chunk unloaded       │
- *                     │unmount()├─────────────────────┤
- *                     └────┬────┘                     │
- *                          │VM stopped or             │
- *                          │device removed            │
- *                          │                          │
- *                     ┌────▼────┐                     │
- *                     │dispose()├─────────────────────┘
+ * │serializeNBT()│ │deserializeNBT()◄───────┐
+ * └──────────────┘ └───────┬────────┘       │
+ *   May be called          │VM starts or    │
+ *   at any time,    ┌──────┤resumes after   │
+ *   except while    │      │load            │
+ *   unloaded...     │  ┌───▼───┐            │
+ *                   │  │mount()│            │
+ *                   │  └───┬───┘            │Chunk
+ *                   │      │VM stops or     │unloaded
+ *                   │      │is unloaded     │
+ *                   │      │                │
+ *                   │ ┌────▼────┐           │
+ *                   │ │unmount()├───────────┤
+ *                   │ └────┬────┘           │
+ *                   │      │VM stopped or   │
+ *                   │      │device removed  │
+ *                   │      │                │
+ *                   │ ┌────▼────┐           │
+ *                   └─┤dispose()├───────────┘
  *                     └─────────┘
  * </pre>
  *

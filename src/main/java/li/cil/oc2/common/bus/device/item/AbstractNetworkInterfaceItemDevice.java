@@ -84,15 +84,14 @@ public abstract class AbstractNetworkInterfaceItemDevice extends IdentityProxy<I
 
     @Override
     public void unmount() {
-        suspend();
+        device = null;
         isRunning = false;
-        address.clear();
-        interrupt.clear();
     }
 
     @Override
-    public void suspend() {
-        device = null;
+    public void dispose() {
+        address.clear();
+        interrupt.clear();
     }
 
     @Subscribe

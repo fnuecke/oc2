@@ -1,13 +1,9 @@
 package li.cil.oc2.common.bus.device.item;
 
-import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
-import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
-import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
-import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
@@ -79,6 +75,8 @@ public abstract class AbstractNetworkInterfaceItemDevice extends IdentityProxy<I
 
         context.getEventBus().register(this);
 
+        isRunning = true;
+
         return VMDeviceLoadResult.success();
     }
 
@@ -92,21 +90,6 @@ public abstract class AbstractNetworkInterfaceItemDevice extends IdentityProxy<I
     public void dispose() {
         address.clear();
         interrupt.clear();
-    }
-
-    @Subscribe
-    public void handleInitializingEvent(final VMInitializingEvent event) {
-        isRunning = true;
-    }
-
-    @Subscribe
-    public void handlePausingEvent(final VMPausingEvent event) {
-        isRunning = false;
-    }
-
-    @Subscribe
-    public void handleResumingRunningEvent(final VMResumingRunningEvent event) {
-        isRunning = true;
     }
 
     @Override

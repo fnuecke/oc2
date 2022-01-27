@@ -6,6 +6,7 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
+import li.cil.oc2.common.util.ChunkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -57,6 +58,10 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
         isCharging = false;
         chargeBlock();
         chargeEntities();
+
+        if (isCharging) {
+            ChunkUtils.setLazyUnsaved(level, getBlockPos());
+        }
     }
 
     @Override

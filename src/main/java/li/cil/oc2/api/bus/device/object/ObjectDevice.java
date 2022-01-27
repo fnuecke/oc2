@@ -102,9 +102,9 @@ public final class ObjectDevice implements RPCDevice {
     }
 
     @Override
-    public void suspend() {
+    public void dispose() {
         if (object instanceof LifecycleAwareDevice device) {
-            device.onDeviceSuspended();
+            device.onDeviceDisposed();
         }
     }
 

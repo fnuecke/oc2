@@ -97,8 +97,6 @@ minecraft {
                     source sourceSets.main
                 }
             }
-
-            arg "-mixin.config=oc2.mixins.json"
         }
 
         client {
@@ -119,6 +117,10 @@ minecraft {
 
 mixin {
     add sourceSets.main, "oc2.refmap.json"
+
+    config 'oc2.mixins.json'
+
+    quiet
 }
 
 task copyGeneratedResources(type: Copy) {

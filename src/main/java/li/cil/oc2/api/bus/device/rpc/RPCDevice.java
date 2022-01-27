@@ -20,35 +20,27 @@ import java.util.List;
  * <p>
  * The lifecycle for {@link RPCDevice}s is as follows:
  * <pre>
- *    ┌──────────────────────────────────┐
- *    │VirtualMachine.isRunning() = false◄──────────────────────┐
- *    └────────────────┬─────────────────┘                      │
- *                     │                                        │
- *          ┌──────────▼───────────┐                            │
- *          │VirtualMachine.start()│                            │
- *          └──────────┬───────────┘                            │
- *                     │                                        │
- *                     │   ┌──────────┐                         │
- *                     │   │Chunk Load│   ┌───────────────────┐ │
- *                     ├───┼──────────◄───┤RPCDevice.suspend()│ │
- *                     │   │World Load│   └──────▲────────────┘ │
- *                     │   └──────────┘          │              │
- *                     │                         │              │
- *            ┌────────▼────────┐          ┌─────┴──────┐       │
- * ┌──────────►RPCDevice.mount()│          │Chunk Unload│       │
- * │          └────────┬────────┘        ┌─►────────────┤       │
- * │                   │                 │ │World Unload│       │
- * │ ┌─────────────────▼───────────────┐ │ └────────────┘       │
- * │ │VirtualMachine.isRunning() = true├─┤                      │
- * │ └─────┬───────────────────┬───────┘ │ ┌──────────────────┐ │
- * │       │                   │         │ │Computer Shutdown │ │
- * │ ┌─────▼──────┐     ┌──────▼───────┐ └─►──────────────────┤ │
- * └─┤Device Added│     │Device Removed│   │Computer Destroyed│ │
- *   └────────────┘     └──────┬───────┘   └─────┬────────────┘ │
- *                             │                 │              │
- *                  ┌──────────▼────────┐ ┌──────▼────────────┐ │
- *                  │RPCDevice.unmount()│ │RPCDevice.unmount()├─┘
- *                  └───────────────────┘ └───────────────────┘
+ * ┌──────────────┐ ┌────────────────┐
+ * │serializeNBT()│ │deserializeNBT()◄─────────────────┐
+ * └──────────────┘ └───────┬────────┘                 │
+ *   May be called          │VM starts or              │
+ *   at any time,           │resumes after             │
+ *   except while           │load                      │
+ *   unloaded...        ┌───▼───┐                      │
+ *                      │mount()│                      │
+ *                      └───┬───┘                      │
+ *                          │VM stops or               │
+ *                          │is unloaded               │
+ *                          │                          │
+ *                     ┌────▼────┐Chunk unloaded       │
+ *                     │unmount()├─────────────────────┤
+ *                     └────┬────┘                     │
+ *                          │VM stopped or             │
+ *                          │device removed            │
+ *                          │                          │
+ *                     ┌────▼────┐                     │
+ *                     │dispose()├─────────────────────┘
+ *                     └─────────┘
  * </pre>
  *
  * @see ObjectDevice
@@ -78,7 +70,7 @@ public interface RPCDevice extends Device {
     List<RPCMethodGroup> getMethodGroups();
 
     /**
-     * Called to initialize this device.
+     * Called to start this device.
      * <p>
      * This is called when the connected virtual machine starts, or when the device is added to an already running
      * virtual machine.
@@ -87,22 +79,28 @@ public interface RPCDevice extends Device {
     }
 
     /**
-     * Called to dispose this device.
+     * Called to stop this device.
      * <p>
-     * Called when the connected virtual machine stops, or when the device is removed from a currently running
-     * virtual machine.
+     * Called when the connected virtual machine stops, the device is removed from a currently running
+     * virtual machine, or the connected virtual machine is suspended (chunk unload/server stopped/...).
+     * <p>
+     * If {@link #mount()} was called, this is guaranteed to be called.
      */
     default void unmount() {
     }
 
     /**
-     * Called when the device is suspended.
+     * Called to dispose this device.
      * <p>
-     * This can happen when the level area containing the context the device was loaded in is unloaded,
-     * e.g. due to player moving too far away from the area.
+     * Called when the connected virtual machine stops or the device is removed from a currently running
+     * virtual machine.
      * <p>
-     * Intended for soft-releasing unmanaged resource, i.e. non-persisted unmanaged resources.
+     * Will only be called on unmounted devices (i.e. will always be called after {@link #unmount()} if
+     * {@link #mount()} was called before). May be called without intermediary {@link #mount()} calls, e.g.
+     * virtual machine stops, then device is disconnected from the virtual machine.
+     * <p>
+     * Intended for releasing persistent unmanaged resources.
      */
-    default void suspend() {
+    default void dispose() {
     }
 }

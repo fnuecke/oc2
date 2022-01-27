@@ -134,7 +134,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void suspend() {
+    public void unmount() {
         reset();
     }
 

@@ -42,7 +42,7 @@ public abstract class AbstractItemRPCDevice extends IdentityProxy<ItemStack> imp
     }
 
     @Override
-    public void suspend() {
-        device.suspend();
+    public void dispose() {
+        device.dispose();
     }
 }

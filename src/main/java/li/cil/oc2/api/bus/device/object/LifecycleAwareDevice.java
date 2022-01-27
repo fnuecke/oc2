@@ -11,23 +11,20 @@ import net.minecraft.world.level.block.entity.BlockEntity;
  */
 public interface LifecycleAwareDevice {
     /**
-     * This method corresponds to {@link RPCDevice#mount()}. It is called when the device is initialized, either
-     * because its virtual machine starts running, or because it is added to a running virtual machine.
+     * This method corresponds to {@link RPCDevice#mount()}.
      */
     default void onDeviceMounted() {
     }
 
     /**
-     * This method corresponds to {@link RPCDevice#unmount()}. It is called when the device is disposed, either
-     * because its virtual machine stops running, or because it is removed from a running virtual machine.
+     * This method corresponds to {@link RPCDevice#unmount()}.
      */
     default void onDeviceUnmounted() {
     }
 
     /**
-     * This method corresponds to {@link RPCDevice#suspend()}. It is called when its virtual machine is suspended,
-     * either due to the containing chunk being unloaded, or the containing world being unloaded.
+     * This method corresponds to {@link RPCDevice#dispose()}.
      */
-    default void onDeviceSuspended() {
+    default void onDeviceDisposed() {
     }
 }

@@ -30,134 +30,94 @@ public final class RPCDeviceTests {
     }
 
     @Test
-    public void emptyDevicesAreNotMounted() {
-        final RPCDevice device1 = mock(RPCDevice.class);
-        addDevice(device1);
+    public void resumeDoesNotMountDirectly() {
+        final RPCDevice device1 = addDevice();
 
         adapter.resume(controller, true);
-        adapter.mount();
         verify(device1, never()).mount();
+    }
+
+    @Test
+    public void emptyDevicesAreNotMounted() {
+        final RPCDevice device = addEmptyDevice();
+        adapter.resume(controller, true);
+
+        adapter.mount();
+        verify(device, never()).mount();
     }
 
     @Test
     public void addedDevicesHaveMountCalled() {
-        final RPCDevice device1 = mock(RPCDevice.class);
-        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        addDevice(device1);
-
+        final RPCDevice device = addDevice();
         adapter.resume(controller, true);
-        verify(device1, never()).mount();
 
         adapter.mount();
-        verify(device1).mount();
+        verify(device).mount();
     }
 
     @Test
-    public void mountedDevicesAreUnmountedWhenRemoved() {
-        final RPCDevice device1 = mock(RPCDevice.class);
-        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        addDevice(device1);
-
+    public void mountedDevicesAreUnmountedAndDisposedWhenRemoved() {
+        final RPCDevice device = addDevice();
         adapter.resume(controller, true);
-        verify(device1, never()).mount();
-
         adapter.mount();
-        verify(device1).mount();
 
-        removeDevice(device1);
+        removeDevice(device);
         adapter.resume(controller, true);
-        verify(device1).unmount();
+        verify(device).unmount();
+        verify(device).dispose();
     }
 
     @Test
-    public void mountedDevicesAreUnmountedOnGlobalUnmount() {
-        final RPCDevice device1 = mock(RPCDevice.class);
-        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        addDevice(device1);
-
+    public void unmountedDevicesAreDisposedWhenRemoved() {
+        final RPCDevice device = addDevice();
         adapter.resume(controller, true);
-        verify(device1, never()).mount();
 
+        removeDevice(device);
+        adapter.resume(controller, true);
+        verify(device, never()).unmount();
+        verify(device).dispose();
+    }
+
+    @Test
+    public void mountedDevicesAreUnmountedButNotDisposedOnGlobalUnmount() {
+        final RPCDevice device = addDevice();
+        adapter.resume(controller, true);
         adapter.mount();
-        verify(device1).mount();
 
         adapter.unmount();
-        verify(device1).unmount();
+        verify(device).unmount();
+        verify(device, never()).dispose();
     }
 
     @Test
-    public void unmountedDevicesAreNotUnmountedOnGlobalUnmount() {
-        final RPCDevice device1 = mock(RPCDevice.class);
-        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        addDevice(device1);
-
+    public void unmountedDevicesAreNotUnmountedAndNotDisposedOnGlobalUnmount() {
+        final RPCDevice device = addDevice();
         adapter.resume(controller, true);
-        verify(device1, never()).mount();
 
         adapter.unmount();
-        verify(device1, never()).unmount();
+        verify(device, never()).unmount();
+        verify(device, never()).dispose();
     }
 
     @Test
-    public void deviceListForwardsMount() {
-        final RPCDevice device1 = mock(RPCDevice.class);
-        final RPCDevice device2 = mock(RPCDevice.class);
-        final RPCDevice listDevice = new RPCDeviceList(new ArrayList<>(Arrays.asList(device1, device2)));
-        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        when(device2.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        addDevice(listDevice);
-
+    public void mountedDevicesAreUnmountedAndDisposedOnGlobalDispose() {
+        final RPCDevice device = addDevice();
         adapter.resume(controller, true);
-        verify(device1, never()).mount();
-        verify(device2, never()).mount();
-
         adapter.mount();
-        verify(device1).mount();
-        verify(device2).mount();
+
+        adapter.dispose();
+        verify(device).unmount();
+        verify(device).dispose();
     }
 
     @Test
-    public void deviceListForwardsUnmount() {
-        final RPCDevice device1 = mock(RPCDevice.class);
-        final RPCDevice device2 = mock(RPCDevice.class);
-        final RPCDevice listDevice = new RPCDeviceList(new ArrayList<>(Arrays.asList(device1, device2)));
-        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        when(device2.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        addDevice(listDevice);
-
+    public void unmountedDevicesAreNotUnmountedButDisposedOnGlobalDispose() {
+        final RPCDevice device = addDevice();
         adapter.resume(controller, true);
-        verify(device1, never()).mount();
-        verify(device2, never()).mount();
 
-        adapter.mount();
-        verify(device1).mount();
-        verify(device2).mount();
-
-        adapter.unmount();
-        verify(device1).unmount();
-        verify(device2).unmount();
-    }
-
-    @Test
-    public void deviceListForwardsSuspend() {
-        final RPCDevice device1 = mock(RPCDevice.class);
-        final RPCDevice device2 = mock(RPCDevice.class);
-        final RPCDevice listDevice = new RPCDeviceList(new ArrayList<>(Arrays.asList(device1, device2)));
-        when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        when(device2.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        addDevice(listDevice);
-
-        adapter.resume(controller, true);
-        verify(device1, never()).mount();
-        verify(device2, never()).mount();
-
-        adapter.mount();
-        verify(device1).mount();
-        verify(device2).mount();
-
-        adapter.suspend();
-        verify(device1).suspend();
-        verify(device2).suspend();
+        adapter.dispose();
+        verify(device, never()).unmount();
+        verify(device).dispose();
     }
 
     @Test
@@ -185,6 +145,19 @@ public final class RPCDeviceTests {
         adapter.mount();
         verify(device1, atMostOnce()).mount();
         verify(device2, atMostOnce()).mount();
+    }
+
+    private RPCDevice addEmptyDevice() {
+        final RPCDevice device = mock(RPCDevice.class);
+        addDevice(device);
+        return device;
+    }
+
+    private RPCDevice addDevice() {
+        final RPCDevice device = mock(RPCDevice.class);
+        when(device.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
+        addDevice(device);
+        return device;
     }
 
     private void addDevice(final Device device, UUID... identifiers) {

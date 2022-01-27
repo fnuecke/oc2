@@ -42,9 +42,9 @@ public record RPCDeviceList(ArrayList<RPCDevice> devices) implements RPCDevice {
     }
 
     @Override
-    public void suspend() {
+    public void dispose() {
         for (final RPCDevice device : devices) {
-            device.suspend();
+            device.dispose();
         }
     }
 

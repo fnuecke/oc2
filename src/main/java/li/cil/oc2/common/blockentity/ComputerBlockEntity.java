@@ -66,6 +66,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     private boolean hasAddedOwnDevices;
     private boolean isNeighborUpdateScheduled;
+    private LevelChunk chunk;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -192,6 +193,10 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
             level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
         }
 
+        // Just grab it again every tick, to avoid this becoming invalid if something tries to
+        // mess with this BlockEntity in unexpected ways.
+        chunk = level.getChunkAt(getBlockPos());
+
         virtualMachine.tick();
     }
 
@@ -299,14 +304,17 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     ///////////////////////////////////////////////////////////////////
 
+    private <T> void sendToClientsTrackingComputer(final T message) {
+        if (chunk != null) {
+            Network.sendToClientsTrackingChunk(message, chunk);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
     private final class ComputerItemStackHandlers extends AbstractVMItemStackHandlers {
         public ComputerItemStackHandlers() {
-            super(
-                new GroupDefinition(DeviceTypes.MEMORY, MEMORY_SLOTS),
-                new GroupDefinition(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
-                new GroupDefinition(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS),
-                new GroupDefinition(DeviceTypes.CARD, CARD_SLOTS)
-            );
+            super(new GroupDefinition(DeviceTypes.MEMORY, MEMORY_SLOTS), new GroupDefinition(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS), new GroupDefinition(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS), new GroupDefinition(DeviceTypes.CARD, CARD_SLOTS));
         }
 
         @Override
@@ -387,13 +395,11 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         @Override
         protected void sendTerminalUpdateToClient(final ByteBuffer output) {
-            Network.sendToClientsTrackingChunk(new ComputerTerminalOutputMessage(ComputerBlockEntity.this, output), virtualMachine.chunk);
+            sendToClientsTrackingComputer(new ComputerTerminalOutputMessage(ComputerBlockEntity.this, output));
         }
     }
 
     private final class ComputerVirtualMachine extends AbstractVirtualMachine {
-        private LevelChunk chunk;
-
         private ComputerVirtualMachine(final CommonDeviceBusController busController, final BaseAddressProvider baseAddressProvider) {
             super(busController);
             state.vmAdapter.setBaseAddressProvider(baseAddressProvider);
@@ -416,12 +422,8 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         public void tick() {
             assert level != null;
 
-            if (chunk == null) {
-                chunk = level.getChunkAt(getBlockPos());
-            }
-
             if (isRunning()) {
-                chunk.setUnsaved(true);
+                ChunkUtils.setLazyUnsaved(level, getBlockPos());
             }
 
             super.tick();
@@ -445,8 +447,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         protected void stopRunnerAndReset() {
             super.stopRunnerAndReset();
 
-            TerminalUtils.resetTerminal(terminal, output -> Network.sendToClientsTrackingChunk(
-                new ComputerTerminalOutputMessage(ComputerBlockEntity.this, output), chunk));
+            TerminalUtils.resetTerminal(terminal, output -> sendToClientsTrackingComputer(new ComputerTerminalOutputMessage(ComputerBlockEntity.this, output)));
         }
 
         @Override
@@ -456,7 +457,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         @Override
         protected void handleBusStateChanged(final CommonDeviceBusController.BusState value) {
-            Network.sendToClientsTrackingChunk(new ComputerBusStateMessage(ComputerBlockEntity.this, value), chunk);
+            sendToClientsTrackingComputer(new ComputerBusStateMessage(ComputerBlockEntity.this, value));
 
             if (value == CommonDeviceBusController.BusState.READY && level != null) {
                 // Bus just became ready, meaning new devices may be available, meaning new
@@ -467,16 +468,12 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         @Override
         protected void handleRunStateChanged(final VMRunState value) {
-            // This method can be called from disposal logic, so if we are disposed quickly enough
-            // chunk may not be initialized yet. Avoid resulting NRE in network logic.
-            if (chunk != null) {
-                Network.sendToClientsTrackingChunk(new ComputerRunStateMessage(ComputerBlockEntity.this, value), chunk);
-            }
+            sendToClientsTrackingComputer(new ComputerRunStateMessage(ComputerBlockEntity.this, value));
         }
 
         @Override
         protected void handleBootErrorChanged(@Nullable final Component value) {
-            Network.sendToClientsTrackingChunk(new ComputerBootErrorMessage(ComputerBlockEntity.this, value), chunk);
+            sendToClientsTrackingComputer(new ComputerBootErrorMessage(ComputerBlockEntity.this, value));
         }
     }
 }

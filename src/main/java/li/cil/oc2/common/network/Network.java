@@ -2,8 +2,11 @@ package li.cil.oc2.common.network;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.network.message.*;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -86,9 +89,30 @@ public final class Network {
 
     public static <T> void sendToClientsTrackingBlockEntity(final T message, final BlockEntity blockEntity) {
         final Level level = blockEntity.getLevel();
-        if (level != null) {
-            final LevelChunk chunk = level.getChunkAt(blockEntity.getBlockPos());
-            Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
+        if (level == null) {
+            return;
+        }
+
+        final MinecraftServer server = level.getServer();
+        if (server == null) {
+            return;
+        }
+
+        if (!server.isSameThread()) {
+            throw new IllegalStateException(
+                "Attempting to send network message to BlockEntity from non-server " +
+                    "thread [" + Thread.currentThread() + "]. This is not supported, " +
+                    "because looking up the chunk from the level is required. " +
+                    "Consider caching the containing chunk and using " +
+                    "sendToClientsTrackingChunk() directly, instead.");
+        }
+
+        final BlockPos blockPos = blockEntity.getBlockPos();
+        final int chunkX = SectionPos.blockToSectionCoord(blockPos.getX());
+        final int chunkZ = SectionPos.blockToSectionCoord(blockPos.getZ());
+        if (level.hasChunk(chunkX, chunkZ)) {
+            final LevelChunk chunk = level.getChunk(chunkX, chunkZ);
+            sendToClientsTrackingChunk(message, chunk);
         }
     }
 

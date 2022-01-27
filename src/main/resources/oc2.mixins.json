@@ -1,0 +1,14 @@
+{
+    "minVersion": "0.8",
+    "compatibilityLevel": "JAVA_17",
+    "required": true,
+    "package": "li.cil.oc2.common.mixin",
+    "refmap": "oc2.refmap.json",
+    "mixins": [
+        "ChunkAccessMixin",
+        "ChunkMapMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

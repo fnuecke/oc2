@@ -8,7 +8,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import java.util.WeakHashMap;
 
 public final class LoopingSoundManager {
-    private static final WeakHashMap<BlockEntity, TickableSoundInstance> BLOCK_ENTITY_SOUNDS = new WeakHashMap<>();
+    private static final WeakHashMap<BlockEntity, LoopingBlockEntitySound> BLOCK_ENTITY_SOUNDS = new WeakHashMap<>();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -21,14 +21,15 @@ public final class LoopingSoundManager {
     }
 
     public static void stop(final BlockEntity blockEntity) {
-        final TickableSoundInstance instance = BLOCK_ENTITY_SOUNDS.remove(blockEntity);
+        final LoopingBlockEntitySound instance = BLOCK_ENTITY_SOUNDS.remove(blockEntity);
         if (instance != null) {
+            instance.cancel();
             Minecraft.getInstance().getSoundManager().stop(instance);
         }
     }
 
     public static boolean isPlaying(final BlockEntity blockEntity) {
-        final TickableSoundInstance instance = BLOCK_ENTITY_SOUNDS.get(blockEntity);
+        final LoopingBlockEntitySound instance = BLOCK_ENTITY_SOUNDS.get(blockEntity);
         return instance != null && !instance.isStopped();
     }
 }

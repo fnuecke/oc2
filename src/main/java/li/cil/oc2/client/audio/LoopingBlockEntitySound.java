@@ -18,6 +18,7 @@ public final class LoopingBlockEntitySound extends AbstractTickableSoundInstance
     ///////////////////////////////////////////////////////////////////
 
     private final BlockEntity blockEntity;
+    private boolean isCanceled;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -36,6 +37,10 @@ public final class LoopingBlockEntitySound extends AbstractTickableSoundInstance
 
     ///////////////////////////////////////////////////////////////////
 
+    public void cancel() {
+        isCanceled = true;
+    }
+
     @Override
     public void tick() {
         volume = Mth.clamp(volume + FADE_IN_PER_TICK, 0, 1);
@@ -43,5 +48,10 @@ public final class LoopingBlockEntitySound extends AbstractTickableSoundInstance
         if (blockEntity.isRemoved() || blockEntity.getLevel() == null || !blockEntity.getLevel().hasChunk(chunkPos.x, chunkPos.z)) {
             stop();
         }
+    }
+
+    @Override
+    public boolean canPlaySound() {
+        return !isCanceled;
     }
 }

@@ -14,10 +14,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Hooks into {@link ChunkMap} saving code-paths for "hard" save operations.
@@ -51,46 +49,15 @@ public abstract class ChunkMapMixin extends ChunkStorage {
         super(path, dataFixer, sync);
     }
 
-    /**
-     * This is for the code-path taken when a chunk is being unloaded.
-     */
-    @Inject(method = "lambda$scheduleUnload$11", at = {@At(value = "INVOKE", target = "Lnet/minecraft/server/level/ChunkMap;save(Lnet/minecraft/world/level/chunk/ChunkAccess;)Z")})
-    private void beforeSaveOnUnload(final ChunkHolder chunkHolder, final CompletableFuture<?> chunkToSave, final long chunkId, final ChunkAccess chunkAccess, final CallbackInfo ci) {
-        if (chunkAccess instanceof ChunkAccessExt ext) {
-            ext.applyAndClearLazyUnsaved();
-        }
-    }
-
-    /**
-     * This is for the code-path taken when saving all chunks upon server shutdown or when
-     * running a save command with the "flush" flag.
-     */
-    @Inject(method = "lambda$saveAllChunks$8", at = {@At(value = "HEAD")})
-    private static void beforeSyncSave(final ChunkAccess chunkAccess, final CallbackInfoReturnable<Boolean> cir) {
-        if (chunkAccess instanceof ChunkAccessExt ext) {
-            ext.applyAndClearLazyUnsaved();
-        }
-    }
-
-    /**
-     * This is for the code-path taken when saving chunk upon pausing the game or when
-     * running a save command without the "flush" flag.
-     */
     @Inject(method = "saveAllChunks", at = {@At(value = "HEAD")})
-    private void beforeAsyncSave(final boolean sync, final CallbackInfo ci) {
-        // The sync case is handled in beforeSyncSave.
-        if (!sync) {
-            // Need to iterate this ourselves, because I can't find the hook for the save call
-            // inside the foreach in the method. Slightly annoying, but only happens on explicit
-            // save requests, so not too much of a performance worry.
-            visibleChunkMap.values().forEach(holder -> {
-                if (holder.wasAccessibleSinceLastSave()) {
-                    final ChunkAccess chunkToSave = holder.getChunkToSave().getNow(null);
-                    if (chunkToSave instanceof ChunkAccessExt ext) {
-                        ext.applyAndClearLazyUnsaved();
-                    }
+    private void beforeAsyncSave(final CallbackInfo ci) {
+        visibleChunkMap.values().forEach(holder -> {
+            if (holder.wasAccessibleSinceLastSave()) {
+                final ChunkAccess chunkToSave = holder.getChunkToSave().getNow(null);
+                if (chunkToSave instanceof ChunkAccessExt ext) {
+                    ext.applyAndClearLazyUnsaved();
                 }
-            });
-        }
+            }
+        });
     }
 }

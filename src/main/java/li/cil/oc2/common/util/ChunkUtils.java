@@ -1,10 +1,15 @@
 package li.cil.oc2.common.util;
 
+import li.cil.oc2.api.API;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraftforge.event.world.ChunkEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
+@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class ChunkUtils {
     /**
      * This will mark a chunk unsaved lazily, right before an attempt to save it would be made due
@@ -58,6 +63,13 @@ public final class ChunkUtils {
         final int chunkZ = SectionPos.blockToSectionCoord(blockPos.getZ());
         if (level.hasChunk(chunkX, chunkZ)) {
             setLazyUnsaved(level.getChunk(chunkX, chunkZ));
+        }
+    }
+
+    @SubscribeEvent
+    public static void handleChunkUnload(final ChunkEvent.Unload event) {
+        if (event.getChunk() instanceof ChunkAccessExt ext) {
+            ext.applyAndClearLazyUnsaved();
         }
     }
 }

@@ -33,8 +33,6 @@ public final class VMDeviceBusAdapter {
     }
 
     public VMDeviceLoadResult mountDevices() {
-        globalContext.joinWorkerThread();
-
         for (final VMDevice device : unmountedDevices) {
             final ManagedVMContext context = new ManagedVMContext(globalContext, globalContext,
                 () -> baseAddressProvider.getBaseAddress(device));
@@ -64,8 +62,6 @@ public final class VMDeviceBusAdapter {
     }
 
     public void unmountDevices() {
-        globalContext.joinWorkerThread();
-
         mountedDevices.forEach((device, context) -> {
             device.unmount();
             context.invalidate();
@@ -82,8 +78,6 @@ public final class VMDeviceBusAdapter {
     }
 
     public void addDevices(final Collection<Device> devices) {
-        globalContext.joinWorkerThread();
-
         for (final Device device : devices) {
             if (device instanceof final VMDevice vmDevice) {
                 // Add to set of unmounted devices if we don't already track it. It's a set, so
@@ -96,8 +90,6 @@ public final class VMDeviceBusAdapter {
     }
 
     public void removeDevices(final Collection<Device> devices) {
-        globalContext.joinWorkerThread();
-
         for (final Device device : devices) {
             if (device instanceof final VMDevice vmDevice) {
                 final ManagedVMContext context = mountedDevices.remove(vmDevice);

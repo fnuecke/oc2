@@ -93,13 +93,4 @@ public interface VMContext {
      * @return the event bus.
      */
     VMLifecycleEventBus getEventBus();
-
-    /**
-     * Waits for the executor thread of the virtual machine to finish running.
-     * <p>
-     * Note that this may trigger a {@link li.cil.oc2.api.bus.device.vm.event.VMPausingEvent}
-     * if the virtual machine has not been paused before. Calling this on a paused virtual
-     * machine is a no-op.
-     */
-    void joinWorkerThread();
 }

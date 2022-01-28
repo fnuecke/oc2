@@ -7,5 +7,10 @@ package li.cil.oc2.api.bus.device.vm.event;
  * such interactions until {@link VMResumedRunningEvent} is fired. This is required
  * if such interactions may modify VM state, to prevent corrupting data being
  * serialized asynchronously.
+ * <p>
+ * Note that this is called right before the worker thread used to execute the
+ * virtual machine is joined to the main thread. As such, only devices that run
+ * their own threads modifying observable state will need to synchronize these
+ * threads here.
  */
-public final class VMPausingEvent { }
+public final class VMSynchronizeEvent { }

@@ -8,8 +8,8 @@ import li.cil.oc2.api.bus.device.vm.context.VMContext;
  * <p>
  * Fired after all devices reported success from {@link VMDevice#mount(VMContext)}.
  * <p>
- * If a running VM is restored from a saved state, this event will not be fired. It is
- * intended for initializing the VM state on boot, e.g. by loading initial executable
+ * If a running VM is restored from a saved state, this event will <em>not</em> be fired.
+ * It is intended for initializing the VM state on boot, e.g. by loading initial executable
  * code into memory.
  * <p>
  * Listeners of this event may throw a {@link VMInitializationException} in case

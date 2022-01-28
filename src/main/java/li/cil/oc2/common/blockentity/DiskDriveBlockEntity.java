@@ -28,8 +28,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,10 +35,9 @@ import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 
 public final class DiskDriveBlockEntity extends ModBlockEntity {
-    private static final Logger LOGGER = LogManager.getLogger();
-
     private static final String DATA_TAG_NAME = "data";
 
     private static final ByteBufferBlockDevice EMPTY_BLOCK_DEVICE = ByteBufferBlockDevice.create(0, false);
@@ -232,8 +229,16 @@ public final class DiskDriveBlockEntity extends ModBlockEntity {
         }
 
         public void updateBlockDevice(final CompoundTag tag) {
+            joinOpenJob();
+
             if (device == null) {
                 return;
+            }
+
+            try {
+                device.setBlock(EMPTY_BLOCK_DEVICE);
+            } catch (final IOException e) {
+                LOGGER.error(e);
             }
 
             if (blobHandle != null) {
@@ -243,21 +248,20 @@ public final class DiskDriveBlockEntity extends ModBlockEntity {
 
             importFromItemStack(tag);
 
-            try {
-                device.setBlock(createBlockDevice());
-            } catch (final IOException e) {
-                LOGGER.error(e);
-            }
+            setOpenJob(createBlockDevice().thenAcceptAsync(blockDevice -> {
+                try {
+                    device.setBlock(blockDevice);
+                } catch (final IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }, WORKERS));
         }
 
         public void removeBlockDevice() {
+            joinOpenJob();
+
             if (device == null) {
                 return;
-            }
-
-            if (blobHandle != null) {
-                BlobStorage.close(blobHandle);
-                blobHandle = null;
             }
 
             try {
@@ -265,24 +269,35 @@ public final class DiskDriveBlockEntity extends ModBlockEntity {
             } catch (final IOException e) {
                 LOGGER.error(e);
             }
+
+            if (blobHandle != null) {
+                BlobStorage.close(blobHandle);
+                blobHandle = null;
+            }
         }
 
         @Override
-        protected BlockDevice createBlockDevice() throws IOException {
+        protected CompletableFuture<BlockDevice> createBlockDevice() {
             final ItemStack stack = itemHandler.getStackInSlotRaw(0);
             if (stack.isEmpty() || !(stack.getItem() instanceof final FloppyItem floppy)) {
-                return EMPTY_BLOCK_DEVICE;
+                return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
             }
 
             final int capacity = Mth.clamp(floppy.getCapacity(stack), 0, Config.maxFloppySize);
             if (capacity <= 0) {
-                return EMPTY_BLOCK_DEVICE;
+                return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
             }
 
             blobHandle = BlobStorage.validateHandle(blobHandle);
-            final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
-            final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, capacity);
-            return ByteBufferBlockDevice.wrap(buffer, false);
+            return CompletableFuture.supplyAsync(() -> {
+                try {
+                    final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
+                    final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, capacity);
+                    return ByteBufferBlockDevice.wrap(buffer, false);
+                } catch (final IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }, WORKERS);
         }
 
         @Override

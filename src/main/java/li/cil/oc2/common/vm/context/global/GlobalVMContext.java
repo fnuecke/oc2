@@ -19,7 +19,6 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     private final GlobalInterruptController interruptController;
     private final GlobalMemoryAllocator memoryAllocator;
     private final GlobalEventBus eventBus;
-    private final Runnable joinWorkerThread;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -38,14 +37,13 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
 
     ///////////////////////////////////////////////////////////////////
 
-    public GlobalVMContext(final Board board, final Runnable joinWorkerThread) {
+    public GlobalVMContext(final Board board) {
         this.memoryMap = new GlobalMemoryMap(board.getMemoryMap());
         this.memoryRangeAllocator = new GlobalMemoryRangeAllocator(board, reservedMemoryRanges);
         this.interruptAllocator = new GlobalInterruptAllocator(board.getInterruptCount(), reservedInterrupts);
         this.interruptController = new GlobalInterruptController(board.getInterruptController(), interruptAllocator);
         this.memoryAllocator = new GlobalMemoryAllocator();
         this.eventBus = new GlobalEventBus();
-        this.joinWorkerThread = joinWorkerThread;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -96,11 +94,6 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     @Override
     public VMLifecycleEventBus getEventBus() {
         return eventBus;
-    }
-
-    @Override
-    public void joinWorkerThread() {
-        joinWorkerThread.run();
     }
 
     @Override

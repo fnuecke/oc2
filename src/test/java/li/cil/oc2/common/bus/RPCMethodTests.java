@@ -1,4 +1,4 @@
-package li.cil.oc2.common.vm;
+package li.cil.oc2.common.bus;
 
 import com.google.gson.*;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
@@ -7,7 +7,6 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.rpc.*;
-import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class RPCAdapterTests {
+public class RPCMethodTests {
     private static final UUID DEVICE_UUID = java.util.UUID.randomUUID();
 
     private TestSerialDevice serialDevice;

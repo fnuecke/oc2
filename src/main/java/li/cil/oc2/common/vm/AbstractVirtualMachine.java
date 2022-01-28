@@ -70,7 +70,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         busController.onDevicesRemoved.add(this::handleDevicesRemoved);
 
         state.board = new R5Board();
-        state.context = new GlobalVMContext(state.board, this::joinWorkerThread);
+        state.context = new GlobalVMContext(state.board);
         state.builtinDevices = new BuiltinDevices(state.context);
         state.rpcAdapter = new RPCDeviceBusAdapter(state.builtinDevices.rpcSerialDevice);
         state.vmAdapter = new VMDeviceBusAdapter(state.context);
@@ -171,13 +171,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     private void joinWorkerThread() {
         if (runner != null) {
-            try {
-                runner.join();
-            } catch (final Throwable e) {
-                LOGGER.error(e);
-                runner = null;
-                setRunState(VMRunState.STOPPED);
-            }
+            runner.join();
         }
     }
 
@@ -309,6 +303,8 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
             return;
         }
 
+        assert runner == null : "Runner active while still in load phase.";
+
         final VMDeviceLoadResult loadResult = state.vmAdapter.mountDevices();
         if (!loadResult.wasSuccessful()) {
             if (loadResult.getErrorMessage() != null) {
@@ -410,10 +406,12 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     }
 
     private void handleDevicesAdded(final CommonDeviceBusController.DevicesChangedEvent event) {
+        joinWorkerThread();
         state.vmAdapter.addDevices(event.devices());
     }
 
     private void handleDevicesRemoved(final CommonDeviceBusController.DevicesChangedEvent event) {
+        joinWorkerThread();
         state.vmAdapter.removeDevices(event.devices());
     }
 }

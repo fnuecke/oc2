@@ -9,7 +9,6 @@ import java.util.OptionalLong;
 import java.util.function.Supplier;
 
 public final class ManagedVMContext implements VMContext {
-    private final VMContext parent;
     private final ManagedMemoryMap memoryMap;
     private final ManagedInterruptController interruptController;
     private final ManagedMemoryRangeAllocator memoryRangeAllocator;
@@ -20,7 +19,6 @@ public final class ManagedVMContext implements VMContext {
     ///////////////////////////////////////////////////////////////////
 
     public ManagedVMContext(final VMContext parent, final VMContextManagerCollection managers, final Supplier<OptionalLong> baseAddressSupplier) {
-        this.parent = parent;
         this.memoryRangeAllocator = new ManagedMemoryRangeAllocator(parent.getMemoryRangeAllocator(), managers.getMemoryRangeManager(), baseAddressSupplier);
         this.interruptAllocator = new ManagedInterruptAllocator(parent.getInterruptAllocator(), managers.getInterruptManager());
         this.memoryMap = new ManagedMemoryMap(parent.getMemoryMap());
@@ -75,10 +73,5 @@ public final class ManagedVMContext implements VMContext {
     @Override
     public VMLifecycleEventBus getEventBus() {
         return eventBus;
-    }
-
-    @Override
-    public void joinWorkerThread() {
-        parent.joinWorkerThread();
     }
 }

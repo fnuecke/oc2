@@ -12,6 +12,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 public class HardDriveVMDevice extends AbstractBlockDeviceVMDevice<ByteBufferBlockDevice, ItemStack> {
@@ -32,11 +33,18 @@ public class HardDriveVMDevice extends AbstractBlockDeviceVMDevice<ByteBufferBlo
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected ByteBufferBlockDevice createBlockDevice() throws IOException {
+    protected CompletableFuture<ByteBufferBlockDevice> createBlockDevice() {
         blobHandle = BlobStorage.validateHandle(blobHandle);
-        final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
-        final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, size);
-        return ByteBufferBlockDevice.wrap(buffer, readonly);
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
+                final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, size);
+                return ByteBufferBlockDevice.wrap(buffer, readonly);
+            } catch (final IOException e) {
+                throw new RuntimeException(e);
+            }
+        }, WORKERS);
     }
 
     @Override

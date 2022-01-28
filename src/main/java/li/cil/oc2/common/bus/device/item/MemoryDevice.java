@@ -56,22 +56,12 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
             return VMDeviceLoadResult.fail();
         }
 
-        context.getEventBus().register(this);
-
         return VMDeviceLoadResult.success();
     }
 
     @Override
     public void unmount() {
-        if (device != null) {
-            try {
-                device.close();
-            } catch (final Exception e) {
-                LOGGER.error(e);
-            }
-
-            device = null;
-        }
+        closeDevice();
 
         if (blobHandle != null) {
             BlobStorage.close(blobHandle);
@@ -126,9 +116,24 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
             final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, size);
             device = new ByteBufferMemory(size, buffer);
         } catch (final IOException e) {
+            LOGGER.error(e);
             return false;
         }
 
         return true;
+    }
+
+    private void closeDevice() {
+        if (device == null) {
+            return;
+        }
+
+        try {
+            device.close();
+        } catch (final Exception e) {
+            LOGGER.error(e);
+        }
+
+        device = null;
     }
 }

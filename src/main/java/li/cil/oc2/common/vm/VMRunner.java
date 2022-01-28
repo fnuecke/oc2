@@ -1,7 +1,10 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
-import li.cil.oc2.api.bus.device.vm.event.*;
+import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
+import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
+import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
+import li.cil.oc2.api.bus.device.vm.event.VMSynchronizeEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
@@ -71,21 +74,17 @@ public class VMRunner implements Runnable {
         }
     }
 
-    public void join() throws Throwable {
-        context.postEvent(new VMPausingEvent());
-        try {
-            if (lastSchedule != null) {
-                try {
-                    lastSchedule.get();
-                } catch (final InterruptedException e) {
-                    // We do not mind this.
-                } catch (final ExecutionException e) {
-                    throw e.getCause();
-                }
+    public void join() {
+        context.postEvent(new VMSynchronizeEvent());
+        firedResumedRunningEvent = false;
+        if (lastSchedule != null) {
+            try {
+                lastSchedule.get();
+            } catch (final InterruptedException e) {
+                // We do not mind this.
+            } catch (final ExecutionException e) {
+                throw new RuntimeException(e.getCause());
             }
-        } finally {
-            context.postEvent(new VMResumingRunningEvent());
-            firedResumedRunningEvent = false;
         }
     }
 

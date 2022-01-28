@@ -1,4 +1,4 @@
-package li.cil.oc2.common.vm;
+package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.device.rpc.AbstractRPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCParameter;

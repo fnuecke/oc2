@@ -1,9 +1,11 @@
 package li.cil.oc2.common.bus.device.item;
 
+import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
+import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
@@ -23,18 +25,29 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TIdentity> extends IdentityProxy<TIdentity> implements VMDevice, ItemDevice {
-    private static final Logger LOGGER = LogManager.getLogger();
+    protected static final Logger LOGGER = LogManager.getLogger();
 
     private static final String DEVICE_TAG_NAME = "device";
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String INTERRUPT_TAG_NAME = "interrupt";
     private static final String BLOB_HANDLE_TAG_NAME = "blob";
 
+    protected static final ExecutorService WORKERS = Executors.newCachedThreadPool(r -> {
+        final Thread thread = new Thread(r, "Block Device Initializer");
+        thread.setDaemon(false);
+        return thread;
+    });
+
     ///////////////////////////////////////////////////////////////
 
     protected VirtIOBlockDevice device;
+    private CompletableFuture<Void> openJob;
 
     ///////////////////////////////////////////////////////////////
 
@@ -81,7 +94,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
 
     @Override
     public void unmount() {
-        closeBlockDevice();
+        closeDevice();
 
         if (blobHandle != null) {
             BlobStorage.close(blobHandle);
@@ -157,23 +170,31 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
         }
     }
 
+    @Subscribe
+    public void handleResumedRunningEvent(final VMResumedRunningEvent event) {
+        joinOpenJob();
+    }
+
     ///////////////////////////////////////////////////////////////
 
-    protected abstract TBlock createBlockDevice() throws IOException;
-
-    protected void closeBlockDevice() {
-        if (device == null) {
-            return;
-        }
-
-        try {
-            device.close();
-        } catch (final IOException e) {
-            LOGGER.error(e);
-        }
-
-        device = null;
+    protected void setOpenJob(final CompletableFuture<Void> job) {
+        joinOpenJob();
+        openJob = job;
     }
+
+    protected void joinOpenJob() {
+        if (openJob != null) {
+            try {
+                openJob.join();
+            } catch (final CompletionException e) {
+                LOGGER.error(e);
+            } finally {
+                openJob = null;
+            }
+        }
+    }
+
+    protected abstract CompletableFuture<TBlock> createBlockDevice();
 
     protected void handleDataAccess() {
     }
@@ -185,16 +206,38 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
             return false;
         }
 
-        try {
-            final ListenableBlockDevice listenableData = new ListenableBlockDevice(createBlockDevice());
-            listenableData.onAccess.add(this::handleDataAccess);
-            device = new VirtIOBlockDevice(context.getMemoryMap(), listenableData);
-        } catch (final IOException e) {
-            LOGGER.error(e);
-            return false;
-        }
+        device = new VirtIOBlockDevice(context.getMemoryMap());
+
+        setOpenJob(createBlockDevice().thenAcceptAsync(blockDevice -> {
+            try {
+                final ListenableBlockDevice listenableData = new ListenableBlockDevice(blockDevice);
+                listenableData.onAccess.add(this::handleDataAccess);
+                device.setBlock(listenableData);
+            } catch (final IOException e) {
+                throw new RuntimeException(e);
+            }
+        }, WORKERS));
 
         return true;
+    }
+
+    private void closeDevice() {
+        // Join the init job before releasing the device to avoid writes from thread to closed device.
+        // Since we use memory mapped memory, closing the device leads to it holding a dead pointer,
+        // meaning further access to it will hard-crash the JVM.
+        joinOpenJob();
+
+        if (device == null) {
+            return;
+        }
+
+        try {
+            device.close();
+        } catch (final IOException e) {
+            LOGGER.error(e);
+        }
+
+        device = null;
     }
 
     ///////////////////////////////////////////////////////////////

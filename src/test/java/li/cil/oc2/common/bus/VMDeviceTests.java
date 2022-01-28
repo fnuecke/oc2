@@ -54,8 +54,7 @@ public final class VMDeviceTests {
             return null;
         }).when(board).removeDevice(any());
 
-        context = new GlobalVMContext(board, () -> {
-        });
+        context = new GlobalVMContext(board);
         adapter = new VMDeviceBusAdapter(context);
     }
 

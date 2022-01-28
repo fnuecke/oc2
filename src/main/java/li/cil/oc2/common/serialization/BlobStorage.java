@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This class facilitates storing binary chunks of data in an efficient, parallelized fashion.
@@ -52,7 +53,7 @@ public final class BlobStorage {
     /**
      * Closes all currently open blobs.
      */
-    public static void close() {
+    public static synchronized void close() {
         for (final FileChannel blob : BLOBS.values()) {
             try {
                 blob.close();
@@ -98,7 +99,7 @@ public final class BlobStorage {
      * @return the file channel for the requested blob.
      * @throws IOException if opening the blob fails.
      */
-    public static FileChannel getOrOpen(final UUID handle) throws IOException {
+    public static synchronized FileChannel getOrOpen(final UUID handle) throws IOException {
         FileChannel blob = BLOBS.get(handle);
         if (blob != null && blob.isOpen()) {
             return blob;
@@ -115,7 +116,7 @@ public final class BlobStorage {
      *
      * @param handle the handle of the blob to close.
      */
-    public static void close(final UUID handle) {
+    public static synchronized void close(final UUID handle) {
         try {
             final FileChannel blob = BLOBS.remove(handle);
             if (blob != null) {
@@ -134,11 +135,13 @@ public final class BlobStorage {
     public static void delete(final UUID handle) {
         close(handle);
 
-        try {
-            final Path path = dataDirectory.resolve(handle.toString());
-            Files.deleteIfExists(path);
-        } catch (final Throwable e) {
-            LOGGER.error(e);
-        }
+        final Path path = dataDirectory.resolve(handle.toString());
+        CompletableFuture.runAsync(() -> {
+            try {
+                Files.deleteIfExists(path);
+            } catch (final Throwable e) {
+                LOGGER.error(e);
+            }
+        });
     }
 }

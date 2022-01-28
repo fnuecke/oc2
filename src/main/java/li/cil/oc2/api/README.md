@@ -31,16 +31,26 @@ to the list of type names.
 ### Method Name Collisions
 
 All `RPCDevices` found for a particular `BlockEntity` or `Item` will be merged, and present as one singular `RPCDevice`
-to the virtual machine. This means that not only type names are merged, but `RPCMethods` are merged into a single list
-as well. The system supports method overloading to some degree. However, RPCs are passed from VM to Java as JSON
-messages, so some overloads that are clearly different on the Java side may lead to ambiguity.
+to the virtual machine. This means that not only type names are merged, but `RPCMethodGroups` are merged into a single
+list as well. In most cases, it is fine to return each `RPCMethod` as its own `RPCMethodGroup`. For this reason, the
+`RPCMethod` interface extends the `RPCMethodGroup` interface.
 
-> The system still does a best-effort attempt: it will try deserializing parameters for ambiguous overloads one after
+The system supports method overloading to some degree. `RPCMethodGroups` with matching method name and parameter count
+are queried one by one, for a method matching a list of parameters. `RPCMethods` provide a default implementation for
+this, using the declared parameter types to determine if they match.
+
+However, RPCs are passed from VM to Java as JSON messages, so some overloads, that are clearly different on the Java
+side, may lead to ambiguity. Specifically, in cases where one JSON serialization can be deserialized into different
+types. Most problematic in this area are `null` values, since they match any object type parameter.
+
+> The system does a best-effort attempt: it will try deserializing parameters for ambiguous overloads one after
 > the other, until deserialization for all parameter types succeeds.
 
 To avoid ambiguity, it is recommended to pick clear and unique method names where reasonable. This is particularly true
 for generic `RPCDevices`, e.g. devices providing access to common capabilities, which may be provided by various
 `BlockEntities`. An example for this are the built-in devices for the `IEnergyStorage` capability.
+
+For more control, `RPCMethodGroups` may implement custom override resolution via `findOverload(RPCInvocation)`.
 
 ### Device Lifecycle
 
@@ -258,6 +268,7 @@ import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 import li.cil.oc2.api.bus.device.rpc.RPCParameter;
 import li.cil.oc2.api.util.Invalidatable;
 import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
@@ -272,7 +283,7 @@ class ModDevice implements RPCDevice {
     }
 
     @Override
-    public List<RPCMethod> getMethods() {
+    public List<RPCMethodGroup> getMethodGroups() {
         return Collections.singletonList(new RPCMethod() {
             @Override
             public String getName() {
@@ -295,8 +306,8 @@ class ModDevice implements RPCDevice {
             }
 
             @Override
-            public Object invoke(Object... parameters) throws Throwable {
-                final int arg = (int) parameters[0];
+            public Object invoke(RPCInvocation invocation) {
+                int arg = invocation.getParameters().get(0).getAsInt();
                 if (arg < 0) throw new IllegalArgumentException("Invalid input value!");
                 return Math.sqrt(arg);
             }
@@ -326,7 +337,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 
 class Providers {
-    static final DeferredRegister<BlockDeviceProvider> BLOCK_DEVICE_PROVIDERS = DeferredRegister.create(BlockDeviceProvider.class, "my_mod_id");
+    static final DeferredRegister<BlockDeviceProvider> BLOCK_DEVICE_PROVIDERS =
+        DeferredRegister.create(BlockDeviceProvider.class, "my_mod_id");
 
     // Called from mod initialization, if oc2 is present.
     static void initialize() {

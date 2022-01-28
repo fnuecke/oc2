@@ -72,14 +72,6 @@ public final class ProjectorVMDevice extends IdentityProxy<ProjectorBlockEntity>
 
     @Override
     public void unmount() {
-        suspend();
-        address.clear();
-
-        identity.setProjecting(false);
-    }
-
-    @Override
-    public void suspend() {
         synchronized (deviceLock) {
             if (device != null) {
                 device.close();
@@ -90,6 +82,18 @@ public final class ProjectorVMDevice extends IdentityProxy<ProjectorBlockEntity>
         if (blobHandle != null) {
             BlobStorage.close(blobHandle);
         }
+
+        identity.setProjecting(false);
+    }
+
+    @Override
+    public void dispose() {
+        if (blobHandle != null) {
+            BlobStorage.delete(blobHandle);
+            blobHandle = null;
+        }
+
+        address.clear();
     }
 
     @Override

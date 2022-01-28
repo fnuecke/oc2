@@ -6,7 +6,6 @@ import li.cil.oc2.client.item.CustomItemColors;
 import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.BusCableModelLoader;
 import li.cil.oc2.client.renderer.BusInterfaceNameRenderer;
-import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.client.renderer.blockentity.*;
 import li.cil.oc2.client.renderer.color.BusCableBlockColor;
 import li.cil.oc2.client.renderer.entity.RobotRenderer;
@@ -33,7 +32,6 @@ import java.util.Objects;
 public final class ClientSetup {
     @SubscribeEvent
     public static void handleSetupEvent(final FMLClientSetupEvent event) {
-        NetworkCableRenderer.initialize();
         BusInterfaceNameRenderer.initialize();
 
         BlockEntityRenderers.register(BlockEntities.COMPUTER.get(), ComputerRenderer::new);

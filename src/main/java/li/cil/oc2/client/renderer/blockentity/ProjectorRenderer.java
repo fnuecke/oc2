@@ -10,6 +10,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
+import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.common.block.ProjectorBlock;
 import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
@@ -23,13 +24,15 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import java.time.Duration;
 import java.util.BitSet;
 import java.util.concurrent.ExecutionException;
 
+@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlockEntity> {
     private static final int LIGHT_COLOR_NEAR = 0x22FFFFFF;
     private static final int LIGHT_COLOR_FAR = 0x00FFFFFF;
@@ -49,7 +52,6 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
     ///////////////////////////////////////////////////////////////////
 
     public ProjectorRenderer(final BlockEntityRendererProvider.Context ignored) {
-        MinecraftForge.EVENT_BUS.addListener(ProjectorRenderer::updateCache);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -242,7 +244,8 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
         }
     }
 
-    private static void updateCache(final TickEvent.ClientTickEvent event) {
+    @SubscribeEvent
+    public static void updateCache(final TickEvent.ClientTickEvent event) {
         textures.cleanUp();
     }
 

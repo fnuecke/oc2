@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
+import li.cil.oc2.api.API;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -17,9 +18,10 @@ import net.minecraft.world.level.*;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelLastEvent;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -32,6 +34,7 @@ import java.util.function.Predicate;
 // fall back to letting the TESRs trigger the cable rendering. We still use the data
 // structures with precomputed data and such, it's just that they need much larger
 // render bounds and require an addition hash map look-up.
+@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class NetworkCableRenderer {
     private static final int MAX_RENDER_DISTANCE = 100;
     private static final int CABLE_VERTEX_COUNT = 9;
@@ -54,12 +57,6 @@ public final class NetworkCableRenderer {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void initialize() {
-        MinecraftForge.EVENT_BUS.addListener(NetworkCableRenderer::handleRenderWorld);
-        MinecraftForge.EVENT_BUS.addListener(NetworkCableRenderer::handleChunkUnloadEvent);
-        MinecraftForge.EVENT_BUS.addListener(NetworkCableRenderer::handleWorldUnloadEvent);
-    }
-
     public static void addNetworkConnector(final NetworkConnectorBlockEntity connector) {
         connectors.add(connector);
         invalidateConnections();
@@ -78,7 +75,8 @@ public final class NetworkCableRenderer {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static void handleChunkUnloadEvent(final ChunkEvent.Unload event) {
+    @SubscribeEvent
+    public static void handleChunkUnloadEvent(final ChunkEvent.Unload event) {
         if (event.getWorld().isClientSide()) {
             final ChunkPos chunkPos = event.getChunk().getPos();
 
@@ -94,7 +92,8 @@ public final class NetworkCableRenderer {
         }
     }
 
-    private static void handleWorldUnloadEvent(final WorldEvent.Unload event) {
+    @SubscribeEvent
+    public static void handleWorldUnloadEvent(final WorldEvent.Unload event) {
         if (event.getWorld().isClientSide()) {
             final LevelAccessor level = event.getWorld();
 
@@ -109,7 +108,8 @@ public final class NetworkCableRenderer {
         }
     }
 
-    private static void handleRenderWorld(final RenderLevelLastEvent event) {
+    @SubscribeEvent
+    public static void handleRenderWorld(final RenderLevelLastEvent event) {
         validateConnectors();
         validatePairs();
 

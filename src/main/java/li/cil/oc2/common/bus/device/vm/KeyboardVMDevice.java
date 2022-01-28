@@ -67,15 +67,14 @@ public final class KeyboardVMDevice<T> extends IdentityProxy<T> implements VMDev
 
     @Override
     public void unmount() {
-        suspend();
-        deviceTag = null;
-        address.clear();
-        interrupt.clear();
+        device = null;
     }
 
     @Override
-    public void suspend() {
-        device = null;
+    public void dispose() {
+        deviceTag = null;
+        address.clear();
+        interrupt.clear();
     }
 
     @Override

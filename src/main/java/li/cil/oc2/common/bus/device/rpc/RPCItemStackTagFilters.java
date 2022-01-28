@@ -3,29 +3,28 @@ package li.cil.oc2.common.bus.device.rpc;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import li.cil.oc2.api.API;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Map;
 
+@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class RPCItemStackTagFilters {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final ArrayList<RPCItemStackTagFilter> FILTERS = new ArrayList<>();
 
     ///////////////////////////////////////////////////////////////////
-
-    public static void initialize() {
-        MinecraftForge.EVENT_BUS.addListener(RPCItemStackTagFilters::handleAddReloadListenerEvent);
-    }
 
     public static CompoundTag getFilteredTag(final ItemStack stack, final CompoundTag tag) {
         final CompoundTag result = new CompoundTag();
@@ -41,7 +40,8 @@ public final class RPCItemStackTagFilters {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static void handleAddReloadListenerEvent(final AddReloadListenerEvent event) {
+    @SubscribeEvent
+    public static void handleAddReloadListenerEvent(final AddReloadListenerEvent event) {
         event.addListener(ReloadListener.INSTANCE);
     }
 

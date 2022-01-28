@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
+import li.cil.oc2.api.API;
 import li.cil.oc2.common.vm.fs.LayeredFileSystem;
 import li.cil.sedna.fs.FileSystem;
 import li.cil.sedna.fs.ZipStreamFileSystem;
@@ -12,8 +13,10 @@ import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -25,15 +28,12 @@ import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class FileSystems {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final LayeredFileSystem LAYERED_FILE_SYSTEM = new LayeredFileSystem();
 
     ///////////////////////////////////////////////////////////////////
-
-    public static void initialize() {
-        MinecraftForge.EVENT_BUS.addListener(FileSystems::handleAddReloadListenerEvent);
-    }
 
     public static FileSystem getLayeredFileSystem() {
         return LAYERED_FILE_SYSTEM;
@@ -45,9 +45,17 @@ public final class FileSystems {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static void handleAddReloadListenerEvent(final AddReloadListenerEvent event) {
+    @SubscribeEvent
+    public static void handleAddReloadListenerEvent(final AddReloadListenerEvent event) {
         event.addListener(ReloadListener.INSTANCE);
     }
+
+    @SubscribeEvent
+    public static void handleServerStopped(final ServerStoppedEvent event) {
+        reset();
+    }
+
+    ///////////////////////////////////////////////////////////////////
 
     private static void reload(final ResourceManager resourceManager) {
         reset();

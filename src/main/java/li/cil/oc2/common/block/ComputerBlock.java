@@ -5,10 +5,10 @@ import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
+import li.cil.oc2.common.blockentity.TickableBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.util.BlockEntityUtils;
 import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.VoxelShapeUtils;
@@ -210,7 +210,7 @@ public final class ComputerBlock extends ImmutableHorizontalBlock implements Ent
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(final Level level, final BlockState state, final BlockEntityType<T> type) {
-        return BlockEntityUtils.createTicker(type, BlockEntities.COMPUTER.get(), ComputerBlockEntity::tick);
+        return TickableBlockEntity.createTicker(level, type, BlockEntities.COMPUTER.get());
     }
 
     ///////////////////////////////////////////////////////////////////

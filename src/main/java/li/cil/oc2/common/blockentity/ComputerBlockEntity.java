@@ -32,7 +32,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.capabilities.Capability;
@@ -48,7 +47,7 @@ import java.util.*;
 import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
 import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 
-public final class ComputerBlockEntity extends ModBlockEntity implements TerminalUserProvider {
+public final class ComputerBlockEntity extends ModBlockEntity implements TerminalUserProvider, TickableBlockEntity {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
     private static final String DEVICES_TAG_NAME = "devices";
     private static final String TERMINAL_TAG_NAME = "terminal";
@@ -164,19 +163,13 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         return LazyOptional.empty();
     }
 
-    public static void tick(final Level level, final BlockPos ignoredPos, final BlockState ignoredState, final ComputerBlockEntity computer) {
-        if (level.isClientSide()) {
-            computer.clientTick();
-        } else {
-            computer.serverTick();
-        }
-    }
-
-    private void clientTick() {
+    @Override
+    public void clientTick() {
         terminal.clientTick();
     }
 
-    private void serverTick() {
+    @Override
+    public void serverTick() {
         if (level == null) {
             return;
         }

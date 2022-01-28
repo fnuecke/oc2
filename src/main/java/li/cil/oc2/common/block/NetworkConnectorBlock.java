@@ -2,7 +2,7 @@ package li.cil.oc2.common.block;
 
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
-import li.cil.oc2.common.util.BlockEntityUtils;
+import li.cil.oc2.common.blockentity.TickableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -88,7 +88,7 @@ public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirection
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(final Level level, final BlockState state, final BlockEntityType<T> type) {
-        return level.isClientSide ? null : BlockEntityUtils.createTicker(type, BlockEntities.NETWORK_CONNECTOR.get(), NetworkConnectorBlockEntity::serverTick);
+        return TickableBlockEntity.createServerTicker(level, type, BlockEntities.NETWORK_CONNECTOR.get());
     }
 
     ///////////////////////////////////////////////////////////////////

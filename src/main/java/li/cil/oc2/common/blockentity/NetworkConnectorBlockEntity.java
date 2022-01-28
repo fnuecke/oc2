@@ -35,7 +35,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public final class NetworkConnectorBlockEntity extends ModBlockEntity {
+public final class NetworkConnectorBlockEntity extends ModBlockEntity implements TickableBlockEntity {
     public enum ConnectionResult {
         SUCCESS,
         FAILURE,
@@ -170,11 +170,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity {
         NetworkCableRenderer.invalidateConnections();
     }
 
-    public static void serverTick(final Level ignoredLevel, final BlockPos ignoredPos, final BlockState ignoredState, final NetworkConnectorBlockEntity networkConnector) {
-        networkConnector.serverTick();
-    }
-
-    private void serverTick() {
+    @Override
+    public void serverTick() {
         if (level == null) {
             return;
         }

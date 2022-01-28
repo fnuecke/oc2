@@ -1,8 +1,7 @@
 package li.cil.oc2.common.block;
 
 import li.cil.oc2.common.blockentity.BlockEntities;
-import li.cil.oc2.common.blockentity.ChargerBlockEntity;
-import li.cil.oc2.common.util.BlockEntityUtils;
+import li.cil.oc2.common.blockentity.TickableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -57,7 +56,7 @@ public final class ChargerBlock extends HalfTransparentBlock implements EntityBl
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(final Level level, final BlockState state, final BlockEntityType<T> type) {
-        return BlockEntityUtils.createTicker(type, BlockEntities.CHARGER.get(), ChargerBlockEntity::tick);
+        return TickableBlockEntity.createTicker(level, type, BlockEntities.CHARGER.get());
     }
 
     ///////////////////////////////////////////////////////////////////

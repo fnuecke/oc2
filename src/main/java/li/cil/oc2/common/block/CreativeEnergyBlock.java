@@ -1,8 +1,7 @@
 package li.cil.oc2.common.block;
 
 import li.cil.oc2.common.blockentity.BlockEntities;
-import li.cil.oc2.common.blockentity.CreativeEnergyBlockEntity;
-import li.cil.oc2.common.util.BlockEntityUtils;
+import li.cil.oc2.common.blockentity.TickableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -37,6 +36,6 @@ public final class CreativeEnergyBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(final Level level, final BlockState state, final BlockEntityType<T> type) {
-        return level.isClientSide ? null : BlockEntityUtils.createTicker(type, BlockEntities.CREATIVE_ENERGY.get(), CreativeEnergyBlockEntity::serverTick);
+        return TickableBlockEntity.createServerTicker(level, type, BlockEntities.CREATIVE_ENERGY.get());
     }
 }

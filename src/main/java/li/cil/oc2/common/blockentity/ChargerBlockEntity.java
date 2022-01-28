@@ -13,7 +13,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -28,7 +27,7 @@ import java.util.function.Predicate;
 
 import static java.util.Collections.singletonList;
 
-public final class ChargerBlockEntity extends ModBlockEntity implements NamedDevice {
+public final class ChargerBlockEntity extends ModBlockEntity implements NamedDevice, TickableBlockEntity {
     private static final Predicate<Entity> ENTITY_PREDICATE =
         EntitySelector.NO_SPECTATORS
             .and(EntitySelector.ENTITY_STILL_ALIVE);
@@ -46,8 +45,14 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void tick(final Level ignoredLevel, final BlockPos ignoredPos, final BlockState ignoredState, final ChargerBlockEntity charger) {
-        charger.tick();
+    @Override
+    public void clientTick() {
+        tick();
+    }
+
+    @Override
+    public void serverTick() {
+        tick();
     }
 
     private void tick() {

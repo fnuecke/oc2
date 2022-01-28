@@ -4,11 +4,10 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-public final class CreativeEnergyBlockEntity extends ModBlockEntity {
+public final class CreativeEnergyBlockEntity extends ModBlockEntity implements TickableBlockEntity {
     private final Direction[] SIDES = Direction.values();
 
     ///////////////////////////////////////////////////////////////////
@@ -19,11 +18,8 @@ public final class CreativeEnergyBlockEntity extends ModBlockEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void serverTick(final Level ignoredLevel, final BlockPos ignoredPos, final BlockState ignoredState, final CreativeEnergyBlockEntity creativeEnergy) {
-        creativeEnergy.serverTick();
-    }
-
-    private void serverTick() {
+    @Override
+    public void serverTick() {
         if (level == null) {
             return;
         }

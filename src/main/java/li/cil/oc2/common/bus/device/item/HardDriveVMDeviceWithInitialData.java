@@ -5,8 +5,6 @@ import li.cil.oc2.common.util.Location;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.world.item.ItemStack;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,8 +14,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 public final class HardDriveVMDeviceWithInitialData extends HardDriveVMDevice {
-    private static final Logger LOGGER = LogManager.getLogger();
-
     private final BlockDevice base;
 
     ///////////////////////////////////////////////////////////////////

@@ -64,7 +64,7 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.4:processor'
 
-    implementation "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.10"
+    implementation "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.11"
 
     implementation fg.deobf("curse.maven:markdownmanual-502485:3565800")
 

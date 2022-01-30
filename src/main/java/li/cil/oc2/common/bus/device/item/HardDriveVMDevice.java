@@ -17,15 +17,13 @@ import java.util.function.Supplier;
 
 public class HardDriveVMDevice extends AbstractBlockDeviceVMDevice<ByteBufferBlockDevice, ItemStack> {
     private final int size;
-    private final boolean readonly;
     private final ThrottledSoundEmitter soundEmitter;
 
     ///////////////////////////////////////////////////////////////////
 
     public HardDriveVMDevice(final ItemStack identity, final int size, final boolean readonly, final Supplier<Optional<Location>> location) {
-        super(identity);
+        super(identity, readonly);
         this.size = size;
-        this.readonly = readonly;
         this.soundEmitter = new ThrottledSoundEmitter(location, SoundEvents.HDD_ACCESS.get())
             .withMinInterval(Duration.ofSeconds(1));
     }

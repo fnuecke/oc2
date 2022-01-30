@@ -225,7 +225,7 @@ public final class DiskDriveBlockEntity extends ModBlockEntity {
 
     private final class DiskDriveVMDevice extends AbstractBlockDeviceVMDevice<BlockDevice, BlockEntity> {
         public DiskDriveVMDevice() {
-            super(DiskDriveBlockEntity.this);
+            super(DiskDriveBlockEntity.this, false);
         }
 
         public void updateBlockDevice(final CompoundTag tag) {

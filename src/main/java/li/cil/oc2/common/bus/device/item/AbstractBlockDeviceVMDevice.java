@@ -46,6 +46,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
 
     ///////////////////////////////////////////////////////////////
 
+    protected boolean readonly;
     protected VirtIOBlockDevice device;
     private CompletableFuture<Void> openJob;
 
@@ -61,8 +62,9 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
 
     ///////////////////////////////////////////////////////////////
 
-    protected AbstractBlockDeviceVMDevice(final TIdentity identity) {
+    protected AbstractBlockDeviceVMDevice(final TIdentity identity, final boolean readonly) {
         super(identity);
+        this.readonly = readonly;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -206,7 +208,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
             return false;
         }
 
-        device = new VirtIOBlockDevice(context.getMemoryMap());
+        device = new VirtIOBlockDevice(context.getMemoryMap(), readonly);
 
         setOpenJob(createBlockDevice().thenAcceptAsync(blockDevice -> {
             try {

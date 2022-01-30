@@ -163,16 +163,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     @Override
     public void stop() {
-        switch (runState) {
-            case LOADING_DEVICES -> setRunState(VMRunState.STOPPED);
-            case RUNNING -> stopRunnerAndReset();
-        }
-    }
-
-    private void joinWorkerThread() {
-        if (runner != null) {
-            runner.join();
-        }
+        stopRunnerAndReset();
     }
 
     public void pauseAndReload() {
@@ -188,19 +179,6 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     public void resume(final boolean didDevicesChange) {
         state.rpcAdapter.resume(busController, didDevicesChange);
-    }
-
-    protected void stopRunnerAndReset() {
-        joinWorkerThread();
-        setRunState(VMRunState.STOPPED);
-
-        state.board.setRunning(false);
-        state.board.reset();
-        state.rpcAdapter.reset();
-        state.rpcAdapter.disposeDevices();
-        state.vmAdapter.disposeDevices();
-
-        runner = null;
     }
 
     public void tick() {
@@ -284,7 +262,26 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         setBootError(message);
     }
 
+    protected void stopRunnerAndReset() {
+        joinWorkerThread();
+        setRunState(VMRunState.STOPPED);
+
+        state.board.setRunning(false);
+        state.board.reset();
+        state.rpcAdapter.reset();
+        state.rpcAdapter.disposeDevices();
+        state.vmAdapter.disposeDevices();
+
+        runner = null;
+    }
+
     ///////////////////////////////////////////////////////////////////
+
+    private void joinWorkerThread() {
+        if (runner != null) {
+            runner.join();
+        }
+    }
 
     private void load() {
         if (loadDevicesDelay > 0) {

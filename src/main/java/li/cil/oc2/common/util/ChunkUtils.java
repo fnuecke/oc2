@@ -1,6 +1,7 @@
 package li.cil.oc2.common.util;
 
 import li.cil.oc2.api.API;
+import li.cil.oc2.common.ext.ChunkAccessExt;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.Level;

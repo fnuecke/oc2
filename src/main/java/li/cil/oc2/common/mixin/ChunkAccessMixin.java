@@ -1,6 +1,6 @@
 package li.cil.oc2.common.mixin;
 
-import li.cil.oc2.common.util.ChunkAccessExt;
+import li.cil.oc2.common.ext.ChunkAccessExt;
 import li.cil.oc2.common.util.ChunkUtils;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import org.spongepowered.asm.mixin.Mixin;

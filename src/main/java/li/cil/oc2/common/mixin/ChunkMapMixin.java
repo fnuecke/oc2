@@ -2,7 +2,7 @@ package li.cil.oc2.common.mixin;
 
 import com.mojang.datafixers.DataFixer;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
-import li.cil.oc2.common.util.ChunkAccessExt;
+import li.cil.oc2.common.ext.ChunkAccessExt;
 import li.cil.oc2.common.util.ChunkUtils;
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ChunkMap;

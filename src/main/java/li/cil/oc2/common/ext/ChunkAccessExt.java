@@ -1,6 +1,7 @@
-package li.cil.oc2.common.util;
+package li.cil.oc2.common.ext;
 
 import li.cil.oc2.common.mixin.ChunkMapMixin;
+import li.cil.oc2.common.util.ChunkUtils;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.world.level.chunk.ChunkAccess;
 

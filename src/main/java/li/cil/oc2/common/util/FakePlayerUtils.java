@@ -24,6 +24,10 @@ public final class FakePlayerUtils {
     }
 
     public static ServerPlayer getFakePlayer(final ServerLevel level) {
-        return FakePlayerFactory.get(level, new GameProfile(Config.fakePlayerUUID, FAKE_PLAYER_NAME));
+        return FakePlayerFactory.get(level, getFakePlayerProfile());
+    }
+
+    public static GameProfile getFakePlayerProfile() {
+        return new GameProfile(Config.fakePlayerUUID, FAKE_PLAYER_NAME);
     }
 }

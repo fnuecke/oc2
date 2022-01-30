@@ -8,6 +8,11 @@
         "ChunkAccessMixin",
         "ChunkMapMixin"
     ],
+    "client": [
+        "LevelRendererMixin",
+        "MinecraftMixin",
+        "RenderSystemMixin"
+    ],
     "injectors": {
         "defaultRequire": 1
     }

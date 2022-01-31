@@ -8,6 +8,7 @@ import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
+import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
@@ -864,6 +865,17 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         @Callback
         public ItemStack getStackInSlot(@Parameter("slot") final int slot) {
             return inventory.getStackInSlot(slot);
+        }
+
+        @Callback(synchronize = false)
+        public String inspect(@Parameter("side") @Nullable final RobotOperationSide side) {
+            if (side == null) throw new IllegalArgumentException();
+            final Level level = Robot.this.level;
+            if (!(level instanceof final ServerLevel serverLevel)) {
+                throw new IllegalArgumentException();
+            }
+            final BlockPos pos = Robot.this.blockPosition();
+            return level.getBlockState(pos.relative(RobotOperationSide.toGlobal(Robot.this, side))).getBlock().getDescriptionId();
         }
 
         @Callback(synchronize = false)

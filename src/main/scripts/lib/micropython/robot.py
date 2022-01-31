@@ -50,6 +50,11 @@ class Robot:
         while not self.device.turn(direction):
             time.sleep(1)
 
+    def inspect(self, direction):
+        if not direction:
+            raise Exception("no direction specified")
+        return self.device.inspect(direction)
+
     def _wait_for_last_action(self):
         id = self.device.getLastActionId()
         result = self.device.getActionResult(id)

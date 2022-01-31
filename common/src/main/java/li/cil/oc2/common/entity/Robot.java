@@ -12,6 +12,7 @@ import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.api.util.Invalidatable;
+import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.client.audio.TerminalBell;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
@@ -927,6 +928,37 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     public final class RobotDevice {
+        private static final String DETECT_AIR = "air";
+        private static final String DETECT_FLUID = "fluid";
+        private static final String DETECT_SOLID = "solid";
+
+        @Callback(description = "Check what occupies the space on the specified side of the robot. " +
+            "This only reports whether the space is free, not what is in it.",
+            returnValueDescription = "\"solid\" if something there blocks movement, \"fluid\" if the " +
+                "space holds a fluid the robot can move through, or \"air\" if the space is free.")
+        public String detect(@Parameter("side") @Nullable final RobotOperationSide side) {
+            if (side == null) throw new IllegalArgumentException();
+
+            final Level level = level();
+            final BlockPos pos = blockPosition().relative(RobotOperationSide.toGlobal(Robot.this, side));
+
+            final ChunkPos chunkPos = new ChunkPos(pos);
+            if (!level.hasChunk(chunkPos.x, chunkPos.z)) {
+                return DETECT_SOLID;
+            }
+
+            final BlockState state = level.getBlockState(pos);
+            if (!state.getCollisionShape(level, pos).isEmpty()) {
+                return DETECT_SOLID;
+            }
+
+            if (!state.getFluidState().isEmpty()) {
+                return DETECT_FLUID;
+            }
+
+            return DETECT_AIR;
+        }
+
         @Callback(synchronize = false)
         public int getEnergyStored() {
             return (int) energy.getEnergyStored();

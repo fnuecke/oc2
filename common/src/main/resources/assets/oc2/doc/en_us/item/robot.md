@@ -26,6 +26,9 @@ The direction parameter in the following methods represents a direction relative
 
 Short form aliases of these values can be used for convenience: `back`, `up`, `down`. For extreme brevity, the initial letter of each direction can be used as well.
 
+### Sides
+The side parameter of `detect()` represents a face of the robot rather than a movement direction. Valid values are: `front`, `up` and `down`.
+
 ### Methods
 These methods are available on the underlying robot device. Note that the library offers useful wrapper for all of these. It is recommended to use the library instead of interacting with the device directly.
 
@@ -44,6 +47,10 @@ These methods are available on the underlying robot device. Note that the librar
 
 `getStackInSlot(slot:number):table` gets a description of the item in the specified slot.
 - `slot` is the index of the slot to get the item description for.
+
+`detect(side):string` reports what occupies the space on the specified side of the robot. This only tells you whether the space is free, not what is in it.
+- `side` is the side to look at. See the "Sides" section.
+- Returns `solid` if something there blocks movement, `fluid` if the space holds a fluid the robot can move through, or `air` if the space is free. Blocks the robot can pass through, such as grass, count as `air`.
 
 `move(direction):boolean` tries to enqueue a movement action in the specified direction.
 - `direction` is the direction to move in.
@@ -86,6 +93,10 @@ This is a Lua library. It can be used in the default Linux distribution. For exa
 
 `stack([slot:number]):table` gets a description of the item in the specified slot.
 - `slot` is the index of the slot to get the item description for. Optional, defaults to `slot()`.
+
+`detect(side):string` reports what occupies the space on the specified side of the robot.
+- `side` is the side to look at. See the "Sides" section.
+- Returns `solid`, `fluid` or `air`. Since only `solid` stops the robot, `detect(side) ~= "solid"` tells you a move that way will not be blocked.
 
 `move(direction[,timeout:number]):boolean` tries to move into the specified direction. Blocks until the movement operation has completed.
 - `direction` is the direction to move in.

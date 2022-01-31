@@ -18,6 +18,12 @@ direction = {
     "right": "right",
 }
 
+side = {
+    "front": "front",
+    "up": "up",
+    "down": "down",
+}
+
 
 def _deadline_from(timeout):
     return clock.deadline(DEFAULT_TIMEOUT_MS if timeout is None else timeout)
@@ -53,6 +59,12 @@ def _queue_action(action, direction, timeout):
             return False
         bus.wait_event(POLL_INTERVAL_MS, ACTION_COMPLETED_EVENT)
     return True
+
+
+def detect(side):
+    if not side:
+        raise Exception("no side specified")
+    return _robot.detect(side)
 
 
 def energy():

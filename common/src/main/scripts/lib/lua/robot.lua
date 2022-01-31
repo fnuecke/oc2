@@ -55,6 +55,17 @@ M.direction = {
   right = "right"
 }
 
+M.side = {
+  front = "front",
+  up = "up",
+  down = "down"
+}
+
+M.detect = function(side)
+  side = assert(side, "no side specified")
+  return robot:detect(side)
+end
+
 M.energy = function()
   return robot:getEnergyStored()
 end

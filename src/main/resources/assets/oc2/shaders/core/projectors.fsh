@@ -56,8 +56,8 @@ vec3 getNormal(vec3 worldPos) {
 
 bool isInClipBounds(vec3 v) {
     return v.x >= -1 && v.x <= 1 &&
-    v.y >= -1 && v.y <= 1 &&
-    v.z >= -1 && v.z <= 1;
+           v.y >= -1 && v.y <= 1 &&
+           v.z >= -1 && v.z <= 1;
 }
 
 float toLinearDepth(float depth, float zNear, float zFar) {
@@ -92,7 +92,7 @@ bool getProjectorColor(vec3 worldPos, vec3 worldNormal, mat4 projectorCamera,
     float projectorDepth = texture2D(projectorDepthSampler, projectorUv).r;
     float projectorClipDepth = projectorDepth * 2 - 1;
 
-    if (projectorClipPos.z < projectorClipDepth + 0.005) {
+    if (projectorClipPos.z <= projectorClipDepth + 0.0001) {
         vec4 projectorColor = texture2D(projectorColorSampler, vec2(projectorUv.s, 1 - projectorUv.t));
         float dotAttenuation = clamp((d - DOT_EPSILON) / (1 - DOT_EPSILON), 0, 1);
         float distanceAttenuation = clamp(1 - (linearDepth - START_FADE_DISTANCE) / (MAX_DISTANCE - START_FADE_DISTANCE), 0, 1);

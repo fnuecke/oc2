@@ -9,6 +9,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -42,6 +43,8 @@ public abstract class LevelRendererMixin {
     @Nullable
     private RenderTarget weatherTargetBak;
 
+    @Shadow
+    protected abstract void renderSnowAndRain(final LightTexture lightTexture, final float partialTicks, final double cameraX, final double cameraY, final double cameraZ);
 
     @Inject(method = "renderLevel", at = @At("HEAD"))
     private void prepareDepthRendering(final CallbackInfo ci) {
@@ -79,15 +82,18 @@ public abstract class LevelRendererMixin {
     ) {
         if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {
             // If we're rendering depth, we can skip most of the rest here: we don't need destruction progress,
-            // transparency, hit result, debug stuff, clouds or weather.
+            // transparency, hit result, debug stuff, clouds.
             cleanupDepthRendering();
 
-            // We do want particles though, because that's a neat effect.
+            // We do want particles and weather (rain) though, because that's a neat effect.
             final MultiBufferSource.BufferSource bufferSource = renderBuffers.bufferSource();
             minecraft.particleEngine.render(stack, bufferSource, lightTexture, camera, partialTicks, cullingFrustum);
+            bufferSource.endBatch();
+
+            final Vec3 cameraPosition = camera.getPosition();
+            renderSnowAndRain(lightTexture, partialTicks, cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
 
             // Clean up anything regular return would also clean up.
-            bufferSource.endBatch();
             RenderSystem.depthMask(true);
             RenderSystem.disableBlend();
             RenderSystem.applyModelViewMatrix();
@@ -100,6 +106,19 @@ public abstract class LevelRendererMixin {
         }
     }
 
+    /**
+     * Make sure weather effects are rendered with depth, so they cause "shadows" in our projection.
+     */
+    @Inject(method = "renderSnowAndRain", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;depthMask(Z)V", shift = At.Shift.AFTER))
+    private void enableDepthForWeatherInDepthBuffer(final CallbackInfo ci) {
+        if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {
+            RenderSystem.depthMask(true);
+        }
+    }
+
+    /**
+     * Don't render outlines while rendering projector depth.
+     */
     @Inject(method = "shouldShowEntityOutlines", at = @At("HEAD"), cancellable = true)
     private void skipOutlines(final CallbackInfoReturnable<Boolean> cir) {
         if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {
@@ -107,6 +126,9 @@ public abstract class LevelRendererMixin {
         }
     }
 
+    /**
+     * Skip rendering the sky when rendering projector depth.
+     */
     @Inject(method = "renderSky", at = @At("HEAD"), cancellable = true)
     private void skipSky(final CallbackInfo ci) {
         if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {

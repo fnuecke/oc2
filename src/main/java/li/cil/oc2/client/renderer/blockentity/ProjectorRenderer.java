@@ -38,7 +38,16 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
 
     @Override
     public boolean shouldRender(final ProjectorBlockEntity projector, final Vec3 position) {
-        return projector.isProjecting() && BlockEntityRenderer.super.shouldRender(projector, position);
+        return !ProjectorDepthRenderer.isIsRenderingProjectorDepth() &&
+            projector.isProjecting() &&
+            BlockEntityRenderer.super.shouldRender(projector, position);
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen(final ProjectorBlockEntity p_112306_) {
+        // Render bounding box of projectors (vastly) exceeds their block position, so they need
+        // to be treated as global renderers, and cannot be culled with their chunk.
+        return true;
     }
 
     @Override

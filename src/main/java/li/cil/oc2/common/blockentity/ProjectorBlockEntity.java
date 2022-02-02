@@ -46,9 +46,10 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static final int MAX_RENDER_DISTANCE = 12;
-    private static final int MAX_WIDTH = MAX_RENDER_DISTANCE + 1; // +1 To make it odd, so we can center.
-    private static final int MAX_HEIGHT = (MAX_RENDER_DISTANCE * ProjectorVMDevice.HEIGHT / ProjectorVMDevice.WIDTH) + 1; // + 1 To match horizontal margin.
+    public static final int MAX_RENDER_DISTANCE = 16;
+    public static final int MAX_GOOD_RENDER_DISTANCE = 12;
+    public static final int MAX_WIDTH = MAX_GOOD_RENDER_DISTANCE + 1; // +1 To make it odd, so we can center.
+    public static final int MAX_HEIGHT = (MAX_GOOD_RENDER_DISTANCE * ProjectorVMDevice.HEIGHT / ProjectorVMDevice.WIDTH) + 1; // + 1 To match horizontal margin.
 
     private static final int FRAME_EVERY_N_TICKS = 5;
 
@@ -285,15 +286,15 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     private void updateRenderBounds() {
         final Direction blockFacing = getBlockState().getValue(ProjectorBlock.FACING);
-        final Direction screenUp = Direction.UP;
-        final Direction screenLeft = blockFacing.getCounterClockWise();
+        final Direction canvasUp = Direction.UP;
+        final Direction canvasLeft = blockFacing.getCounterClockWise();
 
         final BlockPos projectorPos = getBlockPos();
         final BlockPos screenBasePos = projectorPos.relative(blockFacing, MAX_RENDER_DISTANCE);
-        final BlockPos screenMinPos = screenBasePos.relative(screenLeft.getOpposite(), MAX_WIDTH / 2);
-        final BlockPos screenMaxPos = screenBasePos.relative(screenLeft, MAX_WIDTH / 2)
+        final BlockPos screenMinPos = screenBasePos.relative(canvasLeft.getOpposite(), MAX_WIDTH / 2);
+        final BlockPos screenMaxPos = screenBasePos.relative(canvasLeft, MAX_WIDTH / 2)
             // -1 for the MAX_HEIGHT padding, -1 for auto-expansion of AABB constructor
-            .relative(screenUp, MAX_HEIGHT - 2);
+            .relative(canvasUp, MAX_HEIGHT - 2);
 
         renderBounds = new AABB(getBlockPos()).minmax(new AABB(screenMinPos)).minmax(new AABB(screenMaxPos));
     }

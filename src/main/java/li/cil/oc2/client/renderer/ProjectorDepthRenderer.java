@@ -13,7 +13,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Matrix3f;
 import com.mojang.math.Matrix4f;
-import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.ProjectorBlock;
@@ -59,8 +58,6 @@ import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 @Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class ProjectorDepthRenderer {
     private static final int DEPTH_CAPTURE_SIZE = 256;
-    private static final float PROJECTOR_FOV = 50;
-    private static final float PROJECTOR_ASPECT_RATIO = ProjectorVMDevice.WIDTH / (float) ProjectorVMDevice.HEIGHT;
 
     private static final List<ProjectorBlockEntity> VISIBLE_PROJECTORS = new ArrayList<>();
     private static final DepthOnlyRenderTarget[] PROJECTOR_DEPTH_TARGETS = new DepthOnlyRenderTarget[ModShaders.MAX_PROJECTORS];
@@ -68,9 +65,16 @@ public final class ProjectorDepthRenderer {
     private static final Matrix4f[] PROJECTOR_CAMERA_MATRICES = new Matrix4f[ModShaders.MAX_PROJECTORS];
     private static final Camera PROJECTOR_DEPTH_CAMERA = new Camera();
     private static final DepthOnlyRenderTarget MAIN_CAMERA_DEPTH = new DepthOnlyRenderTarget(MainTarget.DEFAULT_WIDTH, MainTarget.DEFAULT_HEIGHT);
-    private static final float PROJECTOR_NEAR = 1 / 16f;
-    private static final float PROJECTOR_FAR = 32f;
-    private static final Matrix4f DEPTH_CAMERA_PROJECTION_MATRIX = Matrix4f.perspective(PROJECTOR_FOV, PROJECTOR_ASPECT_RATIO, PROJECTOR_NEAR, PROJECTOR_FAR);
+    private static final float PROJECTOR_FORWARD_SHIFT = 7 / 16f; // From center of projector block.
+    private static final float PROJECTOR_NEAR = 0.5f - PROJECTOR_FORWARD_SHIFT - 0.5f / 16f; // Not quite forward edge, to allow occluding with neighboring block.
+    private static final float PROJECTOR_FAR = ProjectorBlockEntity.MAX_RENDER_DISTANCE;
+    private static final int HALF_FRUSTUM_WIDTH = (ProjectorBlockEntity.MAX_WIDTH - 1) / 2;
+    private static final int FRUSTUM_HEIGHT = ProjectorBlockEntity.MAX_HEIGHT - 1;
+    private static final Matrix4f DEPTH_CAMERA_PROJECTION_MATRIX = getFrustumMatrix(
+        PROJECTOR_NEAR, PROJECTOR_FAR,
+        ProjectorBlockEntity.MAX_GOOD_RENDER_DISTANCE,
+        -HALF_FRUSTUM_WIDTH, HALF_FRUSTUM_WIDTH,
+        FRUSTUM_HEIGHT, 0);
 
     private static final Cache<ProjectorBlockEntity, RenderInfo> RENDER_INFO = CacheBuilder.newBuilder()
         .expireAfterAccess(Duration.ofSeconds(5))
@@ -213,7 +217,7 @@ public final class ProjectorDepthRenderer {
                 final Direction facing = projector.getBlockState().getValue(ProjectorBlock.FACING);
                 final Vec3 projectorPos = Vec3
                     .atCenterOf(projector.getBlockPos())
-                    .add(new Vec3(facing.step()).scale(7 / 16f));
+                    .add(new Vec3(facing.step()).scale(PROJECTOR_FORWARD_SHIFT));
 
                 configureProjectorDepthCamera(level, projectorPos, facing.toYRot());
 
@@ -268,9 +272,8 @@ public final class ProjectorDepthRenderer {
     }
 
     private static void setupViewModelMatrix(final PoseStack viewModelStack) {
-        final Quaternion rotation = Vector3f.YP.rotationDegrees(PROJECTOR_DEPTH_CAMERA.getYRot() + 180);
         viewModelStack.setIdentity();
-        viewModelStack.mulPose(rotation);
+        viewModelStack.mulPose(Vector3f.YP.rotationDegrees(PROJECTOR_DEPTH_CAMERA.getYRot() + 180));
 
         final Matrix3f viewRotationMatrix = viewModelStack.last().normal().copy();
         if (viewRotationMatrix.invert()) {
@@ -403,6 +406,17 @@ public final class ProjectorDepthRenderer {
         builder.vertex(MAIN_CAMERA_DEPTH.width, MAIN_CAMERA_DEPTH.height, 0).uv(1, 0).endVertex();
         builder.vertex(MAIN_CAMERA_DEPTH.width, 0, 0).uv(1, 1).endVertex();
         tesselator.end();
+    }
+
+    private static Matrix4f getFrustumMatrix(final float near, final float far, final float dist,
+                                             final float left, final float right,
+                                             final float top, final float bottom) {
+        return new Matrix4f(new float[]{
+            2 * dist / (right - left), 0, (right + left) / (right - left), 0,
+            0, 2 * dist / (top - bottom), (top + bottom) / (top - bottom), 0,
+            0, 0, -(far + near) / (far - near), -(2 * far * near) / (far - near),
+            0, 0, -1, 0,
+        });
     }
 
     private static RenderInfo getRenderInfo(final ProjectorBlockEntity projector) {

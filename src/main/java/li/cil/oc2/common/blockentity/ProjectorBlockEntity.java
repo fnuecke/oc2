@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
@@ -73,6 +74,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     // Video transfer.
     private final H264Encoder encoder = new H264Encoder(new CQPRateControl(12));
     @Nullable private Future<?> runningEncode; // To allow waiting for previous frame to finish.
+    private final ByteBuffer encoderBuffer = ByteBuffer.allocateDirect(1024 * 1024); // Re-used decompression buffer.
     private final Picture picture = Picture.create(ProjectorVMDevice.WIDTH, ProjectorVMDevice.HEIGHT, ColorSpace.YUV420J);
 
     private boolean needsIDR = true; // Whether we need to send a keyframe next.
@@ -186,12 +188,17 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
                 return;
             }
 
+            encoderBuffer.clear();
             final ByteBuffer frameData;
-            if (needsIDR) {
-                frameData = encoder.encodeIDRFrame(picture, ByteBuffer.allocateDirect(256 * 1024));
-                needsIDR = false;
-            } else {
-                frameData = encoder.encodeFrame(picture, ByteBuffer.allocateDirect(256 * 1024)).data();
+            try {
+                if (needsIDR) {
+                    frameData = encoder.encodeIDRFrame(picture, encoderBuffer);
+                    needsIDR = false;
+                } else {
+                    frameData = encoder.encodeFrame(picture, encoderBuffer).data();
+                }
+            } catch (final BufferOverflowException ignored) {
+                return; // Sad, frame encode failed for unknown reasons...
             }
 
             final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);

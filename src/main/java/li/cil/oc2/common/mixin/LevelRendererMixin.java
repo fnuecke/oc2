@@ -136,7 +136,7 @@ public abstract class LevelRendererMixin {
         }
     }
 
-    @Inject(method = {"entityTarget", "getItemEntityTarget"}, at = @At("HEAD"), cancellable = true)
+    @Inject(method = {"entityTarget", "getItemEntityTarget", "getWeatherTarget"}, at = @At("HEAD"), cancellable = true)
     private void redirectToMainTarget(final CallbackInfoReturnable<RenderTarget> cir) {
         if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {
             cir.setReturnValue(Minecraft.getInstance().getMainRenderTarget());

@@ -60,10 +60,6 @@ bool isInClipBounds(vec3 v) {
            v.z >= -1 && v.z <= 1;
 }
 
-float toLinearDepth(float depth, float zNear, float zFar) {
-    return zNear * zFar / (zFar + depth * (zNear - zFar));
-}
-
 bool getProjectorColor(vec3 worldPos, vec3 worldNormal, mat4 projectorCamera,
                        sampler2D projectorColorSampler, sampler2D projectorDepthSampler,
                        out vec4 result) {
@@ -78,9 +74,6 @@ bool getProjectorColor(vec3 worldPos, vec3 worldNormal, mat4 projectorCamera,
 
     vec4 projectorClipPosPrediv = projectorCamera * vec4(worldPos, 1);
     float linearDepth = projectorClipPosPrediv.z;
-    if (linearDepth >= MAX_DISTANCE) {
-        return false;
-    }
 
     vec3 projectorClipPos = projectorClipPosPrediv.xyz / projectorClipPosPrediv.w;
     if (!isInClipBounds(projectorClipPos)) {
@@ -105,7 +98,7 @@ bool getProjectorColor(vec3 worldPos, vec3 worldNormal, mat4 projectorCamera,
 void main() {
     float depth = texture2D(Sampler0, texCoord).r;
 
-    // Check for no hit, e.g. sky, for early exit.
+    // Check for no hit, for early exit.
     if (depth >= 1) {
         discard;
     }

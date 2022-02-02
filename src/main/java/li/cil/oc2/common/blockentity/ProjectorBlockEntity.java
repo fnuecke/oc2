@@ -15,6 +15,7 @@ import li.cil.oc2.jcodec.common.model.ColorSpace;
 import li.cil.oc2.jcodec.common.model.Picture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -103,7 +104,20 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     }
 
     public boolean isProjecting() {
-        return isProjecting;
+        if (!isProjecting || level == null) {
+            return false;
+        }
+
+        final Direction facing = getBlockState().getValue(ProjectorBlock.FACING);
+        final BlockPos neighborPos = getBlockPos().relative(facing);
+        final int neighborChunkX = SectionPos.blockToSectionCoord(neighborPos.getX());
+        final int neighborChunkZ = SectionPos.blockToSectionCoord(neighborPos.getZ());
+        if (!level.hasChunk(neighborChunkX, neighborChunkZ)) {
+            return false;
+        }
+
+        final BlockState neighborBlockState = level.getBlockState(neighborPos);
+        return !neighborBlockState.isSolidRender(level, neighborPos);
     }
 
     public void setProjecting(final boolean value) {

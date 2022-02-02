@@ -66,7 +66,7 @@ public final class ProjectorDepthRenderer {
     private static final Camera PROJECTOR_DEPTH_CAMERA = new Camera();
     private static final DepthOnlyRenderTarget MAIN_CAMERA_DEPTH = new DepthOnlyRenderTarget(MainTarget.DEFAULT_WIDTH, MainTarget.DEFAULT_HEIGHT);
     private static final float PROJECTOR_FORWARD_SHIFT = 7 / 16f; // From center of projector block.
-    private static final float PROJECTOR_NEAR = 0.5f - PROJECTOR_FORWARD_SHIFT - 0.5f / 16f; // Not quite forward edge, to allow occluding with neighboring block.
+    private static final float PROJECTOR_NEAR = 0.5f - PROJECTOR_FORWARD_SHIFT;
     private static final float PROJECTOR_FAR = ProjectorBlockEntity.MAX_RENDER_DISTANCE;
     private static final int HALF_FRUSTUM_WIDTH = (ProjectorBlockEntity.MAX_WIDTH - 1) / 2;
     private static final int FRUSTUM_HEIGHT = ProjectorBlockEntity.MAX_HEIGHT - 1;

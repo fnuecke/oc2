@@ -17,6 +17,8 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -25,6 +27,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 
 public final class ProjectorBlock extends HorizontalDirectionalBlock implements EntityBlock {
+    public static final BooleanProperty LIT = BlockStateProperties.LIT;
+
     // We bake the visual indents on the front and sides into the collision shape, to prevent stuff being
     // placeable on those sides, such as network connectors, torches, etc.
     private static final VoxelShape NEG_Z_SHAPE = Shapes.join(Shapes.block(), Shapes.or(
@@ -40,6 +44,7 @@ public final class ProjectorBlock extends HorizontalDirectionalBlock implements 
         super(Properties
             .of(Material.METAL)
             .sound(SoundType.METAL)
+            .lightLevel(state -> state.getValue(LIT) ? 8 : 0)
             .strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any()
             .setValue(FACING, Direction.NORTH));
@@ -77,6 +82,6 @@ public final class ProjectorBlock extends HorizontalDirectionalBlock implements 
     ///////////////////////////////////////////////////////////////////
 
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, LIT);
     }
 }

@@ -18,10 +18,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.nio.BufferOverflowException;
@@ -42,8 +41,6 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     }
 
     ///////////////////////////////////////////////////////////////
-
-    private static final Logger LOGGER = LogManager.getLogger();
 
     public static final int MAX_RENDER_DISTANCE = 16;
     public static final int MAX_GOOD_RENDER_DISTANCE = 12;
@@ -124,7 +121,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
             needsIDR = true;
         }
 
-        sendProjectorState();
+        updateProjectorState();
     }
 
     public void setRequiresKeyframe() {
@@ -160,12 +157,12 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         if (energy.extractEnergy(Config.projectorEnergyPerTick, true) < Config.projectorEnergyPerTick) {
             if (hasEnergy) {
                 hasEnergy = false;
-                sendProjectorState();
+                updateProjectorState();
             }
             return;
         } else if (!hasEnergy) {
             hasEnergy = true;
-            sendProjectorState();
+            updateProjectorState();
         }
 
         if (!projectorDevice.hasChanges()) {
@@ -262,8 +259,10 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         return Config.projectorEnergyStorage > 0 && Config.projectorEnergyPerTick > 0;
     }
 
-    private void sendProjectorState() {
+    private void updateProjectorState() {
         if (level != null && !level.isClientSide()) {
+            level.setBlock(getBlockPos(), getBlockState().setValue(ProjectorBlock.LIT, isProjecting), Block.UPDATE_CLIENTS);
+
             Network.sendToClientsTrackingBlockEntity(new ProjectorStateMessage(this, isProjecting && hasEnergy), this);
         }
     }

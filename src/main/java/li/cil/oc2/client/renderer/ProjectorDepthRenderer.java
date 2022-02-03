@@ -37,6 +37,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderLevelLastEvent;
 import net.minecraftforge.client.event.RenderNameplateEvent;
@@ -55,7 +56,7 @@ import static org.lwjgl.opengl.GL11.glDrawBuffer;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
-@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class ProjectorDepthRenderer {
     private static final int DEPTH_CAPTURE_SIZE = 256;
 

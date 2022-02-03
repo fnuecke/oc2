@@ -17,6 +17,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.*;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelLastEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -34,7 +35,7 @@ import java.util.function.Predicate;
 // fall back to letting the TESRs trigger the cable rendering. We still use the data
 // structures with precomputed data and such, it's just that they need much larger
 // render bounds and require an addition hash map look-up.
-@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class NetworkCableRenderer {
     private static final int MAX_RENDER_DISTANCE = 100;
     private static final int CABLE_VERTEX_COUNT = 9;

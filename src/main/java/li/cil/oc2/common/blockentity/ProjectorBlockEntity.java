@@ -167,7 +167,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
             updateProjectorState();
         }
 
-        if (!projectorDevice.hasChanges()) {
+        if (!projectorDevice.hasChanges() && !needsIDR) {
             return;
         }
 

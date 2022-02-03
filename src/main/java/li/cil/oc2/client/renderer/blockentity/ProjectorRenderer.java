@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
+import com.mojang.math.Vector4f;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
@@ -45,7 +46,7 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
     }
 
     @Override
-    public boolean shouldRenderOffScreen(final ProjectorBlockEntity p_112306_) {
+    public boolean shouldRenderOffScreen(final ProjectorBlockEntity projector) {
         // Render bounding box of projectors (vastly) exceeds their block position, so they need
         // to be treated as global renderers, and cannot be culled with their chunk.
         return true;
@@ -53,6 +54,10 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
 
     @Override
     public void render(final ProjectorBlockEntity projector, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
+        if (canSeeProjectedImage(stack)) {
+            ProjectorDepthRenderer.addProjector(projector);
+        }
+
         stack.pushPose();
 
         // Align with front face of block.
@@ -61,8 +66,6 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
         stack.translate(0.5f, 0, 0.5f);
         stack.mulPose(rotation);
 
-        ProjectorDepthRenderer.addProjector(projector);
-
         renderProjectorLight(stack, bufferSource);
 
         stack.popPose();
@@ -70,9 +73,19 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
 
     ///////////////////////////////////////////////////////////////////
 
-    private void renderProjectorLight(final PoseStack stack, final MultiBufferSource bufferSource) {
-        stack.pushPose();
+    private static boolean canSeeProjectedImage(final PoseStack stack) {
+        final Matrix4f matrix = stack.last().pose();
 
+        final Vector4f lookDirection = new Vector4f(0, 0, -1, 0);
+        lookDirection.transform(matrix);
+
+        final Vector4f relativePosition = new Vector4f(0, 0, 1, 1);
+        relativePosition.transform(matrix);
+
+        return relativePosition.dot(lookDirection) < ProjectorBlockEntity.MAX_RENDER_DISTANCE;
+    }
+
+    private static void renderProjectorLight(final PoseStack stack, final MultiBufferSource bufferSource) {
         stack.translate(-0.5, 0, 0.5);
         final VertexConsumer consumer = bufferSource.getBuffer(ModRenderType.getProjectorLight());
         final Matrix4f matrix = stack.last().pose();
@@ -108,11 +121,9 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
 
         renderLens(matrix, consumer);
         renderLed(matrix, consumer);
-
-        stack.popPose();
     }
 
-    private void renderLens(final Matrix4f matrix, final VertexConsumer consumer) {
+    private static void renderLens(final Matrix4f matrix, final VertexConsumer consumer) {
         final float lensDepth = -1 / 16f;
         consumer.vertex(matrix, LENS_RIGHT, LENS_BOTTOM, lensDepth).color(LENS_COLOR).endVertex();
         consumer.vertex(matrix, LENS_LEFT, LENS_BOTTOM, lensDepth).color(LENS_COLOR).endVertex();
@@ -120,7 +131,7 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
         consumer.vertex(matrix, LENS_RIGHT, LENS_TOP, lensDepth).color(LENS_COLOR).endVertex();
     }
 
-    private void renderLed(final Matrix4f matrix, final VertexConsumer consumer) {
+    private static void renderLed(final Matrix4f matrix, final VertexConsumer consumer) {
         final float ledRight = 0 + 7 / 16f;
         final float ledLeft = 0 + 9 / 16f;
         final float ledBottom = 0 + 3 / 16f;

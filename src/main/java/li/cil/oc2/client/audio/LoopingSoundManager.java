@@ -1,7 +1,6 @@
 package li.cil.oc2.client.audio;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.sounds.TickableSoundInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.block.entity.BlockEntity;
 

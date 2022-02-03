@@ -202,19 +202,15 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     public void start() {
-        if (level.isClientSide()) {
-            return;
+        if (!level.isClientSide()) {
+            virtualMachine.start();
         }
-
-        virtualMachine.start();
     }
 
     public void stop() {
-        if (level.isClientSide()) {
-            return;
+        if (!level.isClientSide()) {
+            virtualMachine.stop();
         }
-
-        virtualMachine.stop();
     }
 
     public void openTerminalScreen(final ServerPlayer player) {
@@ -345,9 +341,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     public void setRemoved(final RemovalReason reason) {
         super.setRemoved(reason);
 
-        // Full unload to release out-of-nbt persisted runtime-only data such as ram.
-        virtualMachine.stop();
-        virtualMachine.dispose();
+        if (!level.isClientSide()) {
+            // Full unload to release out-of-nbt persisted runtime-only data such as ram.
+            virtualMachine.stop();
+            virtualMachine.dispose();
+        }
     }
 
     @Override
@@ -737,7 +735,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         @Override
         protected void onContentsChanged(final DeviceItemStackHandler itemHandler, final int slot) {
-            virtualMachine.busController.scheduleBusScan();
+            if (!level.isClientSide()) {
+                virtualMachine.busController.scheduleBusScan();
+            }
         }
     }
 

@@ -66,36 +66,39 @@ public final class ModRecipesProvider extends RecipeProvider {
             .shaped(Items.NETWORK_HUB.get())
             .pattern("ICI")
             .pattern("XTX")
-            .pattern("ICI")
+            .pattern("IBI")
             .define('I', Tags.Items.INGOTS_IRON)
             .define('C', Items.NETWORK_CONNECTOR.get())
             .define('X', Items.BUS_INTERFACE.get())
             .define('T', Items.TRANSISTOR.get())
+            .define('B', Items.CIRCUIT_BOARD.get())
             .unlockedBy("has_network_connector", inventoryChange(Items.NETWORK_CONNECTOR.get()))
             .save(consumer);
 
         ShapedRecipeBuilder
             .shaped(Items.REDSTONE_INTERFACE.get())
-            .pattern("IRI")
+            .pattern("ICI")
             .pattern("XTX")
-            .pattern("IRI")
+            .pattern("IBI")
             .define('I', Tags.Items.INGOTS_IRON)
-            .define('R', Tags.Items.DUSTS_REDSTONE)
+            .define('C', net.minecraft.world.item.Items.COMPARATOR)
             .define('T', Items.TRANSISTOR.get())
             .define('X', Items.BUS_INTERFACE.get())
+            .define('B', Items.CIRCUIT_BOARD.get())
             .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
             .save(consumer);
 
         ShapedRecipeBuilder
             .shaped(Items.DISK_DRIVE.get())
+            .pattern("IUI")
+            .pattern("XTD")
             .pattern("IBI")
-            .pattern("XTX")
-            .pattern("IDI")
             .define('I', Tags.Items.INGOTS_IRON)
-            .define('B', ItemTags.BUTTONS)
+            .define('U', ItemTags.BUTTONS)
             .define('T', Items.TRANSISTOR.get())
             .define('X', Items.BUS_INTERFACE.get())
             .define('D', net.minecraft.world.item.Items.DISPENSER)
+            .define('B', Items.CIRCUIT_BOARD.get())
             .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
             .save(consumer);
 
@@ -109,6 +112,20 @@ public final class ModRecipesProvider extends RecipeProvider {
             .define('T', Items.TRANSISTOR.get())
             .define('X', Items.BUS_INTERFACE.get())
             .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+            .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
+            .save(consumer);
+
+        ShapedRecipeBuilder
+            .shaped(Items.PROJECTOR.get())
+            .pattern("GLG")
+            .pattern("XTD")
+            .pattern("GBG")
+            .define('G', Tags.Items.INGOTS_GOLD)
+            .define('L', net.minecraft.world.item.Items.REDSTONE_LAMP)
+            .define('D', Tags.Items.GEMS_DIAMOND)
+            .define('T', Items.TRANSISTOR.get())
+            .define('X', Items.BUS_INTERFACE.get())
+            .define('B', Items.CIRCUIT_BOARD.get())
             .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
             .save(consumer);
 
@@ -353,7 +370,7 @@ public final class ModRecipesProvider extends RecipeProvider {
 
 
         ShapedRecipeBuilder
-            .shaped(Items.TRANSISTOR.get(), 8)
+            .shaped(Items.TRANSISTOR.get(), 12)
             .pattern("RCR")
             .pattern("III")
             .define('I', Tags.Items.INGOTS_IRON)
@@ -363,7 +380,7 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ShapelessRecipeBuilder
-            .shapeless(Items.CIRCUIT_BOARD.get(), 4)
+            .shapeless(Items.CIRCUIT_BOARD.get(), 6)
             .requires(Tags.Items.INGOTS_GOLD)
             .requires(net.minecraft.world.item.Items.CLAY_BALL)
             .requires(Items.TRANSISTOR.get())

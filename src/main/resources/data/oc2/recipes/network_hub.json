@@ -3,7 +3,7 @@
   "pattern": [
     "ICI",
     "XTX",
-    "ICI"
+    "IBI"
   ],
   "key": {
     "I": {
@@ -17,6 +17,9 @@
     },
     "T": {
       "item": "oc2:transistor"
+    },
+    "B": {
+      "item": "oc2:circuit_board"
     }
   },
   "result": {

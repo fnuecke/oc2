@@ -1,16 +1,19 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "IUI",
+    "GLG",
     "XTD",
-    "IBI"
+    "GBG"
   ],
   "key": {
-    "I": {
-      "tag": "forge:ingots/iron"
+    "G": {
+      "tag": "forge:ingots/gold"
     },
-    "U": {
-      "tag": "minecraft:buttons"
+    "L": {
+      "item": "minecraft:redstone_lamp"
+    },
+    "D": {
+      "tag": "forge:gems/diamond"
     },
     "T": {
       "item": "oc2:transistor"
@@ -18,14 +21,11 @@
     "X": {
       "item": "oc2:bus_interface"
     },
-    "D": {
-      "item": "minecraft:dispenser"
-    },
     "B": {
       "item": "oc2:circuit_board"
     }
   },
   "result": {
-    "item": "oc2:disk_drive"
+    "item": "oc2:projector"
   }
 }

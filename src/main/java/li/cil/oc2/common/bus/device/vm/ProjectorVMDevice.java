@@ -44,13 +44,15 @@ public final class ProjectorVMDevice extends IdentityProxy<ProjectorBlockEntity>
 
     ///////////////////////////////////////////////////////////////
 
+    public boolean hasChanges() {
+        synchronized (deviceLock) {
+            return device != null && device.hasChanges();
+        }
+    }
+
     public boolean applyChanges(final Picture picture) {
         synchronized (deviceLock) {
-            if (device != null) {
-                return device.applyChanges(picture);
-            } else {
-                return false;
-            }
+            return device != null && device.applyChanges(picture);
         }
     }
 

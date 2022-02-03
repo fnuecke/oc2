@@ -14,8 +14,8 @@ public final class ProjectorFramebufferMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ProjectorFramebufferMessage(final ProjectorBlockEntity projector, final ByteBuffer frame) {
-        this.pos = projector.getBlockPos();
+    public ProjectorFramebufferMessage(final BlockPos projectorPos, final ByteBuffer frame) {
+        this.pos = projectorPos;
         this.frame = frame;
     }
 
@@ -44,8 +44,7 @@ public final class ProjectorFramebufferMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        context.enqueueWork(() ->
-            MessageUtils.withClientBlockEntityAt(pos, ProjectorBlockEntity.class,
-                projector -> projector.applyNextFrame(frame)));
+        MessageUtils.withClientBlockEntityAt(pos, ProjectorBlockEntity.class,
+            projector -> projector.applyNextFrame(frame));
     }
 }

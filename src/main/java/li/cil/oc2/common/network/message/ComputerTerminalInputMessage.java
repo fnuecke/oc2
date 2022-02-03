@@ -20,7 +20,7 @@ public final class ComputerTerminalInputMessage extends AbstractTerminalBlockMes
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withNearbyServerBlockEntityAt(context, pos, ComputerBlockEntity.class,
-            computer -> computer.getTerminal().putInput(ByteBuffer.wrap(data)));
+        MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos, ComputerBlockEntity.class,
+            (player, computer) -> computer.getTerminal().putInput(ByteBuffer.wrap(data)));
     }
 }

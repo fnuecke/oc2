@@ -39,7 +39,7 @@ public final class Config {
     @Path("gameplay") public static ResourceLocation blockOperationsModuleToolTier = TierSortingRegistry.getName(Tiers.DIAMOND);
 
     @Path("admin") public static UUID fakePlayerUUID = UUID.fromString("e39dd9a7-514f-4a2d-aa5e-b6030621416d");
-    @Path("admin.blocks") public static int projectorMaxBytesPerTick = 8192;
+    @Path("admin.network") public static int projectorAverageMaxBytesPerSecond = 160 * 1024;
 
     public static boolean robotsUseEnergy() {
         return robotEnergyPerTick > 0 && robotEnergyStorage > 0;

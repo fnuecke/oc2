@@ -35,6 +35,7 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
 
         this.buffer = buffer.order(ByteOrder.LITTLE_ENDIAN);
         this.dirtyLines = new BitSet(height / 2);
+        this.dirtyLines.set(0, height / 2);
     }
 
     ///////////////////////////////////////////////////////////////
@@ -50,6 +51,10 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
 
     public int getHeight() {
         return height;
+    }
+
+    public boolean hasChanges() {
+        return !dirtyLines.isEmpty();
     }
 
     public boolean applyChanges(final Picture picture) {

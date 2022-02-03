@@ -6,7 +6,8 @@ import li.cil.oc2.common.bus.device.vm.ProjectorVMDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.network.Network;
-import li.cil.oc2.common.network.message.ProjectorFramebufferMessage;
+import li.cil.oc2.common.network.ProjectorLoadBalancer;
+import li.cil.oc2.common.network.message.ProjectorRequestFramebufferMessage;
 import li.cil.oc2.common.network.message.ProjectorStateMessage;
 import li.cil.oc2.jcodec.codecs.h264.H264Decoder;
 import li.cil.oc2.jcodec.codecs.h264.H264Encoder;
@@ -18,7 +19,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.AABB;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,17 +27,14 @@ import javax.annotation.Nullable;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
-// TODO Only send frames to watching clients (have clients send "keepalive" packets when rendering this).
-// TODO Throttle update speed by distance to closest player and max number any player watching this projector is watching in total.
 public final class ProjectorBlockEntity extends ModBlockEntity implements TickableBlockEntity {
     @FunctionalInterface
     public interface FrameConsumer {
@@ -53,15 +50,13 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     public static final int MAX_WIDTH = MAX_GOOD_RENDER_DISTANCE + 1; // +1 To make it odd, so we can center.
     public static final int MAX_HEIGHT = (MAX_GOOD_RENDER_DISTANCE * ProjectorVMDevice.HEIGHT / ProjectorVMDevice.WIDTH) + 1; // + 1 To match horizontal margin.
 
-    private static final int FRAME_EVERY_N_TICKS = 5;
-
     private static final String ENERGY_TAG_NAME = "energy";
     private static final String IS_PROJECTING_TAG_NAME = "projecting";
 
-    private static final ExecutorService FRAME_WORKERS = Executors.newCachedThreadPool(r -> {
+    private static final ExecutorService DECODER_WORKERS = Executors.newCachedThreadPool(r -> {
         final Thread thread = new Thread(r);
         thread.setDaemon(true);
-        thread.setName("Projector Frame Encoder/Decoder");
+        thread.setName("Projector Frame Decoder");
         return thread;
     });
 
@@ -70,24 +65,21 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     private final ProjectorVMDevice projectorDevice = new ProjectorVMDevice(this);
     private boolean isProjecting, hasEnergy;
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.projectorEnergyStorage);
-
-    // Video transfer.
-    private final H264Encoder encoder = new H264Encoder(new CQPRateControl(12));
-    @Nullable private Future<?> runningEncode; // To allow waiting for previous frame to finish.
-    private final ByteBuffer encoderBuffer = ByteBuffer.allocateDirect(1024 * 1024); // Re-used decompression buffer.
     private final Picture picture = Picture.create(ProjectorVMDevice.WIDTH, ProjectorVMDevice.HEIGHT, ColorSpace.YUV420J);
 
+    // Video encoding.
+    private final H264Encoder encoder = new H264Encoder(new CQPRateControl(12));
+    private final ByteBuffer encoderBuffer = ByteBuffer.allocateDirect(1024 * 1024); // Re-used decompression buffer.
     private boolean needsIDR = true; // Whether we need to send a keyframe next.
-    private final AtomicInteger sendBudget = new AtomicInteger(); // Remaining accumulated bandwidth budget.
-    private int nextFrameIn = 0; // Remaining cooldown before sending next frame.
 
-    // Client only data.
+    // Video decoding.
     private final H264Decoder decoder = new H264Decoder();
-    @Nullable private Future<?> runningDecode; // Current decoding operation, if any, to avoid race conditions.
+    @Nullable private CompletableFuture<?> runningDecode; // Current decoding operation, if any, to avoid race conditions.
     private final ByteBuffer decoderBuffer = ByteBuffer.allocateDirect(1024 * 1024); // Re-used decompression buffer.
     @Nullable private FrameConsumer frameConsumer; // Where to throw received frames.
 
-    private AABB renderBounds; // Overall render bounds, disregarding projection surface, to allow growing if necessary.
+    private AABB renderBounds; // Maximum possible render bounds, assuming we project on furthest away surface.
+    private long lastKeepAliveSentAt;
 
     ///////////////////////////////////////////////////////////////
 
@@ -132,7 +124,11 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
             needsIDR = true;
         }
 
-        sendRunningState();
+        sendProjectorState();
+    }
+
+    public void setRequiresKeyframe() {
+        needsIDR = true;
     }
 
     public void setFrameConsumer(@Nullable final FrameConsumer consumer) {
@@ -147,6 +143,14 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         }
     }
 
+    public void onRendering() {
+        final long now = System.currentTimeMillis();
+        if (now - lastKeepAliveSentAt > 1000) {
+            lastKeepAliveSentAt = now;
+            Network.sendToServer(new ProjectorRequestFramebufferMessage(this));
+        }
+    }
+
     @Override
     public void serverTick() {
         if (!isProjecting()) {
@@ -156,63 +160,19 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         if (energy.extractEnergy(Config.projectorEnergyPerTick, true) < Config.projectorEnergyPerTick) {
             if (hasEnergy) {
                 hasEnergy = false;
-                sendRunningState();
+                sendProjectorState();
             }
             return;
         } else if (!hasEnergy) {
             hasEnergy = true;
-            sendRunningState();
+            sendProjectorState();
         }
 
-        sendBudget.updateAndGet(budget -> Math.min(Config.projectorMaxBytesPerTick * 10, budget + Config.projectorMaxBytesPerTick));
-        nextFrameIn = Math.max(0, nextFrameIn - 1);
-        if (sendBudget.get() < 0 || nextFrameIn > 0) {
+        if (!projectorDevice.hasChanges()) {
             return;
         }
 
-        if (runningEncode != null && !runningEncode.isDone()) {
-            return;
-        }
-
-        joinWorkerAndLogErrors(runningEncode);
-
-        nextFrameIn = FRAME_EVERY_N_TICKS;
-
-        if (level == null || !(level.getChunk(getBlockPos()) instanceof LevelChunk chunk)) {
-            return;
-        }
-
-        runningEncode = FRAME_WORKERS.submit(() -> {
-            final boolean hasChanges = projectorDevice.applyChanges(picture);
-            if (!hasChanges && !needsIDR) {
-                return;
-            }
-
-            encoderBuffer.clear();
-            final ByteBuffer frameData;
-            try {
-                if (needsIDR) {
-                    frameData = encoder.encodeIDRFrame(picture, encoderBuffer);
-                    needsIDR = false;
-                } else {
-                    frameData = encoder.encodeFrame(picture, encoderBuffer).data();
-                }
-            } catch (final BufferOverflowException ignored) {
-                return; // Sad, frame encode failed for unknown reasons...
-            }
-
-            final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
-            deflater.setInput(frameData);
-            deflater.finish();
-            final ByteBuffer compressedFrameData = ByteBuffer.allocateDirect(1024 * 1024);
-            deflater.deflate(compressedFrameData, Deflater.FULL_FLUSH);
-            deflater.end();
-            compressedFrameData.flip();
-
-            sendBudget.accumulateAndGet(compressedFrameData.limit(), (budget, packetSize) -> budget - packetSize);
-            final ProjectorFramebufferMessage message = new ProjectorFramebufferMessage(this, compressedFrameData);
-            Network.sendToClientsTrackingChunk(message, chunk);
-        });
+        ProjectorLoadBalancer.offerFrame(this, this::encodeFrame);
     }
 
     @Override
@@ -260,10 +220,13 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     }
 
     public void applyNextFrame(final ByteBuffer frameData) {
-        final Future<?> lastDecode = runningDecode;
-        runningDecode = FRAME_WORKERS.submit(() -> {
+        final CompletableFuture<?> lastDecode = runningDecode;
+        runningDecode = CompletableFuture.runAsync(() -> {
             try {
-                joinWorkerAndLogErrors(lastDecode);
+                try {
+                    if (lastDecode != null) lastDecode.join();
+                } catch (final CompletionException ignored) {
+                }
 
                 final Inflater inflater = new Inflater();
                 inflater.setInput(frameData);
@@ -281,7 +244,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
                 }
             } catch (final DataFormatException ignored) {
             }
-        });
+        }, DECODER_WORKERS);
     }
 
     ///////////////////////////////////////////////////////////////
@@ -299,10 +262,41 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         return Config.projectorEnergyStorage > 0 && Config.projectorEnergyPerTick > 0;
     }
 
-    private void sendRunningState() {
+    private void sendProjectorState() {
         if (level != null && !level.isClientSide()) {
             Network.sendToClientsTrackingBlockEntity(new ProjectorStateMessage(this, isProjecting && hasEnergy), this);
         }
+    }
+
+    @Nullable
+    private ByteBuffer encodeFrame() {
+        final boolean hasChanges = projectorDevice.applyChanges(picture);
+        if (!hasChanges && !needsIDR) {
+            return null;
+        }
+
+        encoderBuffer.clear();
+        final ByteBuffer frameData;
+        try {
+            if (needsIDR) {
+                frameData = encoder.encodeIDRFrame(picture, encoderBuffer);
+                needsIDR = false;
+            } else {
+                frameData = encoder.encodeFrame(picture, encoderBuffer).data();
+            }
+        } catch (final BufferOverflowException ignored) {
+            return null;
+        }
+
+        final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
+        deflater.setInput(frameData);
+        deflater.finish();
+        final ByteBuffer compressedFrameData = ByteBuffer.allocateDirect(1024 * 1024);
+        deflater.deflate(compressedFrameData, Deflater.FULL_FLUSH);
+        deflater.end();
+        compressedFrameData.flip();
+
+        return compressedFrameData;
     }
 
     private void updateRenderBounds() {
@@ -318,18 +312,5 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
             .relative(canvasUp, MAX_HEIGHT - 2);
 
         renderBounds = new AABB(getBlockPos()).minmax(new AABB(screenMinPos)).minmax(new AABB(screenMaxPos));
-    }
-
-    private static void joinWorkerAndLogErrors(@Nullable final Future<?> job) {
-        if (job == null) {
-            return;
-        }
-
-        try {
-            job.get();
-        } catch (final InterruptedException ignored) {
-        } catch (final ExecutionException e) {
-            LOGGER.error(e);
-        }
     }
 }

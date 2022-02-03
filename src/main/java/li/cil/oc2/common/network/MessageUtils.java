@@ -10,20 +10,30 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class MessageUtils {
-    @SuppressWarnings("unchecked")
-    public static <T extends BlockEntity> void withNearbyServerBlockEntityAt(final NetworkEvent.Context context, final BlockPos pos, final Class<T> type, final Consumer<T> callback) {
+    public static <T extends BlockEntity> void withNearbyServerBlockEntityForInteraction(final NetworkEvent.Context context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
         final ServerPlayer player = context.getSender();
         if (player == null || !pos.closerThan(player.position(), 8)) {
+            return;
+        }
+
+        withNearbyServerBlockEntity(context, pos, type, callback);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends BlockEntity> void withNearbyServerBlockEntity(final NetworkEvent.Context context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
+        final ServerPlayer player = context.getSender();
+        if (player == null) {
             return;
         }
 
         final ServerLevel level = player.getLevel();
         final BlockEntity blockEntity = LevelUtils.getBlockEntityIfChunkExists(level, pos);
         if (type.isInstance(blockEntity)) {
-            callback.accept((T) blockEntity);
+            callback.accept(player, (T) blockEntity);
         }
     }
 

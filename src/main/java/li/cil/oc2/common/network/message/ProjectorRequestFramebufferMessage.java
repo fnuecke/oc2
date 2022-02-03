@@ -1,23 +1,25 @@
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.blockentity.ComputerBlockEntity;
+import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
+import li.cil.oc2.common.network.ProjectorLoadBalancer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
-public final class OpenComputerInventoryMessage extends AbstractMessage {
+public final class ProjectorRequestFramebufferMessage extends AbstractMessage {
     private BlockPos pos;
 
     ///////////////////////////////////////////////////////////////////
 
-    public OpenComputerInventoryMessage(final ComputerBlockEntity computer) {
-        this.pos = computer.getBlockPos();
+    public ProjectorRequestFramebufferMessage(final ProjectorBlockEntity projector) {
+        this.pos = projector.getBlockPos();
     }
 
-    public OpenComputerInventoryMessage(final FriendlyByteBuf buffer) {
+    public ProjectorRequestFramebufferMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
+
     ///////////////////////////////////////////////////////////////////
 
     @Override
@@ -34,7 +36,7 @@ public final class OpenComputerInventoryMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos, ComputerBlockEntity.class,
-            (player, computer) -> computer.openInventoryScreen(player));
+        MessageUtils.withNearbyServerBlockEntity(context, pos, ProjectorBlockEntity.class,
+            (player, projector) -> ProjectorLoadBalancer.updateWatcher(projector, player));
     }
 }

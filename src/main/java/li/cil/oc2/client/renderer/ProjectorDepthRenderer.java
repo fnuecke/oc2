@@ -231,6 +231,8 @@ public final class ProjectorDepthRenderer {
                 renderProjectorDepthBuffer(minecraft, partialTicks, startNanos, viewModelStack);
 
                 storeProjectorColorBuffer(projectorIndex, projector);
+
+                projector.onRendering();
             }
         } finally {
             finishDepthBufferRendering(minecraft, player);

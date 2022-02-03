@@ -19,7 +19,7 @@
   "block.oc2.creative_energy": "Infinite Energy Cube",
   "block.oc2.creative_energy.desc": "Provides unlimited energy to adjacent blocks. Intended for testing.",
   "block.oc2.projector": "Projector",
-  "block.oc2.projector.desc": "Projects to be displayed content onto surfaces in front of it.",
+  "block.oc2.projector.desc": "Projects images onto surfaces in front of it.",
 
   "item.oc2.wrench": "Scrench",
   "item.oc2.wrench.desc": "Configures devices and dismantles them (while sneaking).",

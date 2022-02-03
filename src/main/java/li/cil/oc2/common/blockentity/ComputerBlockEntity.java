@@ -98,19 +98,15 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     }
 
     public void start() {
-        if (level == null || level.isClientSide()) {
-            return;
+        if (level != null && !level.isClientSide()) {
+            virtualMachine.start();
         }
-
-        virtualMachine.start();
     }
 
     public void stop() {
-        if (level == null || level.isClientSide()) {
-            return;
+        if (level != null && !level.isClientSide()) {
+            virtualMachine.stop();
         }
-
-        virtualMachine.stop();
     }
 
     public void openTerminalScreen(final ServerPlayer player) {
@@ -135,7 +131,9 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     }
 
     public void handleNeighborChanged() {
-        virtualMachine.busController.scheduleBusScan();
+        if (level != null && !level.isClientSide()) {
+            virtualMachine.busController.scheduleBusScan();
+        }
     }
 
     @NotNull

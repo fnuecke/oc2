@@ -54,7 +54,7 @@ import static li.cil.oc2.common.util.RegistryUtils.key;
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class ComputerBlock extends ImmutableHorizontalBlock implements EntityBlock {
-    // We bake the "screen" indent on the front into the collision shape to prevent stuff being
+    // We bake the "screen" indent on the front into the collision shape, to prevent stuff being
     // placeable on that side, such as network connectors, torches, etc.
     private static final VoxelShape NEG_Z_SHAPE = Shapes.or(
         Block.box(0, 0, 1, 16, 16, 16), // main body

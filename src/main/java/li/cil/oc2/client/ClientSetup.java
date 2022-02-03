@@ -6,6 +6,7 @@ import li.cil.oc2.client.item.CustomItemColors;
 import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.BusCableModelLoader;
 import li.cil.oc2.client.renderer.BusInterfaceNameRenderer;
+import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
 import li.cil.oc2.client.renderer.blockentity.*;
 import li.cil.oc2.client.renderer.color.BusCableBlockColor;
 import li.cil.oc2.client.renderer.entity.RobotRenderer;
@@ -24,6 +25,7 @@ import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
@@ -52,6 +54,9 @@ public final class ClientSetup {
 
             ItemBlockRenderTypes.setRenderLayer(Blocks.BUS_CABLE.get(), renderType -> true);
             Minecraft.getInstance().getBlockColors().register(new BusCableBlockColor(), Blocks.BUS_CABLE.get());
+
+            // We need to register this manually, because static init throws errors when running data generation.
+            MinecraftForge.EVENT_BUS.register(ProjectorDepthRenderer.class);
         });
     }
 

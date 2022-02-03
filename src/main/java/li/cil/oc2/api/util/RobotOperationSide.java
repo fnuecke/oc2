@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.util;
 
 import net.minecraft.core.Direction;

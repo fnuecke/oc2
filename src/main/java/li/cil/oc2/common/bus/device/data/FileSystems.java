@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus.device.data;
 
 import com.google.gson.JsonObject;

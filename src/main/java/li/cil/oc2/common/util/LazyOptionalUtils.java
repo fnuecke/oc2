@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.util;
 
 import net.minecraftforge.common.util.LazyOptional;

@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus.device.item;
 
 import com.google.common.eventbus.Subscribe;

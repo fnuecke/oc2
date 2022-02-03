@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.bus.device.rpc;
 
 import javax.annotation.Nullable;

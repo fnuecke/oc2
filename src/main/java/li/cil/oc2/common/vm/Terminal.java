@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.vm;
 
 import com.mojang.blaze3d.systems.RenderSystem;

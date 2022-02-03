@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.serialization.ceres;
 
 import li.cil.ceres.api.DeserializationVisitor;

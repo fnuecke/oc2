@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.ext;
 
 import li.cil.oc2.common.mixin.ChunkMapMixin;

@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.client.gui;
 
 import li.cil.oc2.client.gui.widget.Sprite;

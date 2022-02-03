@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;

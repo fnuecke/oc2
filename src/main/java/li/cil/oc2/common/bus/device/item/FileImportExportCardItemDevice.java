@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus.device.item;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;

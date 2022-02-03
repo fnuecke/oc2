@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.client.renderer.font;
 
 import li.cil.manual.api.prefab.renderer.BitmapFontRenderer;

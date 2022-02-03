@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.data;
 
 import com.mojang.datafixers.util.Pair;

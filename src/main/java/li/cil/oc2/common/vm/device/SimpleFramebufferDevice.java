@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.vm.device;
 
 import li.cil.oc2.jcodec.common.model.Picture;

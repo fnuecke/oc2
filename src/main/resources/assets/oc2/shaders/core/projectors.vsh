@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 #version 150
 
 in vec3 Position;

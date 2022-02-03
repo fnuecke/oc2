@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.block;
 
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;

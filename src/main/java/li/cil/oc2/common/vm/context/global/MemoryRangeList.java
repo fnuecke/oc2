@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.vm.context.global;
 
 import li.cil.sedna.api.memory.MemoryRange;

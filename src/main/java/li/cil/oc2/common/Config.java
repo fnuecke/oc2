@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common;
 
 import li.cil.oc2.common.ConfigManager.Path;

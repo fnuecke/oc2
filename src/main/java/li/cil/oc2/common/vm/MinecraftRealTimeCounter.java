@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.vm;
 
 import li.cil.sedna.api.device.rtc.RealTimeCounter;

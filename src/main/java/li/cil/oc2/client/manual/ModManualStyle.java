@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.client.manual;
 
 import li.cil.manual.api.ManualStyle;

@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus;
 
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;

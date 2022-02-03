@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus.device.provider.block;
 
 import li.cil.oc2.api.bus.device.Device;

@@ -1,17 +1,32 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,lit=false": {
       "model": "oc2:block/projector"
     },
-    "facing=south": {
+    "facing=south,lit=false": {
       "model": "oc2:block/projector",
       "y": 180
     },
-    "facing=west": {
+    "facing=west,lit=false": {
       "model": "oc2:block/projector",
       "y": 270
     },
-    "facing=east": {
+    "facing=east,lit=false": {
+      "model": "oc2:block/projector",
+      "y": 90
+    },
+    "facing=north,lit=true": {
+      "model": "oc2:block/projector"
+    },
+    "facing=south,lit=true": {
+      "model": "oc2:block/projector",
+      "y": 180
+    },
+    "facing=west,lit=true": {
+      "model": "oc2:block/projector",
+      "y": 270
+    },
+    "facing=east,lit=true": {
       "model": "oc2:block/projector",
       "y": 90
     }

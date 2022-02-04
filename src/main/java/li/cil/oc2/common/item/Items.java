@@ -30,8 +30,8 @@ public final class Items {
     public static final RegistryObject<Item> DISK_DRIVE = register(Blocks.DISK_DRIVE);
     public static final RegistryObject<Item> NETWORK_CONNECTOR = register(Blocks.NETWORK_CONNECTOR);
     public static final RegistryObject<Item> NETWORK_HUB = register(Blocks.NETWORK_HUB);
-    public static final RegistryObject<Item> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE);
     public static final RegistryObject<Item> PROJECTOR = register(Blocks.PROJECTOR);
+    public static final RegistryObject<Item> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE);
 
     ///////////////////////////////////////////////////////////////////
 

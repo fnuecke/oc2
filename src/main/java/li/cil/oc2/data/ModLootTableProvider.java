@@ -51,14 +51,13 @@ public final class ModLootTableProvider extends LootTableProvider {
     public static final class ModBlockLootTables extends BlockLoot {
         @Override
         protected void addTables() {
-            dropSelf(Blocks.REDSTONE_INTERFACE.get());
+            dropSelf(Blocks.CHARGER.get());
+            add(Blocks.COMPUTER.get(), ModBlockLootTables::droppingWithInventory);
+            dropSelf(Blocks.DISK_DRIVE.get());
             dropSelf(Blocks.NETWORK_CONNECTOR.get());
             dropSelf(Blocks.NETWORK_HUB.get());
-            dropSelf(Blocks.DISK_DRIVE.get());
-            dropSelf(Blocks.CHARGER.get());
             dropSelf(Blocks.PROJECTOR.get());
-
-            add(Blocks.COMPUTER.get(), ModBlockLootTables::droppingWithInventory);
+            dropSelf(Blocks.REDSTONE_INTERFACE.get());
         }
 
         @Override

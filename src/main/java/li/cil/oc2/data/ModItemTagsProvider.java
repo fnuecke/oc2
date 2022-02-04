@@ -71,17 +71,17 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
         tag(WRENCHES).add(Items.WRENCH.get());
 
         tag(DEVICE_NEEDS_REBOOT).add(
-            Items.MEMORY_SMALL.get(),
-            Items.MEMORY_MEDIUM.get(),
-            Items.MEMORY_LARGE.get(),
+            Items.DISK_DRIVE.get(),
+            Items.FLASH_MEMORY.get(),
+            Items.FLASH_MEMORY_CUSTOM.get(),
             Items.HARD_DRIVE_SMALL.get(),
             Items.HARD_DRIVE_MEDIUM.get(),
             Items.HARD_DRIVE_LARGE.get(),
             Items.HARD_DRIVE_CUSTOM.get(),
-            Items.FLASH_MEMORY.get(),
-            Items.FLASH_MEMORY_CUSTOM.get(),
+            Items.MEMORY_SMALL.get(),
+            Items.MEMORY_MEDIUM.get(),
+            Items.MEMORY_LARGE.get(),
             Items.NETWORK_INTERFACE_CARD.get(),
-            Items.DISK_DRIVE.get(),
             Items.NETWORK_TUNNEL_CARD.get(),
             Items.NETWORK_TUNNEL_MODULE.get(),
             Items.PROJECTOR.get()

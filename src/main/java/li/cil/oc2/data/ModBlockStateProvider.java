@@ -34,8 +34,10 @@ public final class ModBlockStateProvider extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
+        horizontalBlock(Blocks.CHARGER, Items.CHARGER, CHARGER_MODEL);
         horizontalBlock(Blocks.COMPUTER, Items.COMPUTER, COMPUTER_MODEL);
-        horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE, REDSTONE_INTERFACE_MODEL);
+        simpleBlock(Blocks.CREATIVE_ENERGY, Items.CREATIVE_ENERGY);
+        horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE, DISK_DRIVE_MODEL);
         horizontalFaceBlock(Blocks.NETWORK_CONNECTOR, Items.NETWORK_CONNECTOR, NETWORK_CONNECTOR_MODEL)
             .transforms()
             .transform(ModelBuilder.Perspective.GUI)
@@ -50,10 +52,8 @@ public final class ModBlockStateProvider extends BlockStateProvider {
             .end()
             .end();
         horizontalBlock(Blocks.NETWORK_HUB, Items.NETWORK_HUB, NETWORK_HUB_MODEL);
-        horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE, DISK_DRIVE_MODEL);
-        horizontalBlock(Blocks.CHARGER, Items.CHARGER, CHARGER_MODEL);
-        simpleBlock(Blocks.CREATIVE_ENERGY, Items.CREATIVE_ENERGY);
         horizontalBlock(Blocks.PROJECTOR, Items.PROJECTOR, PROJECTOR_MODEL);
+        horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE, REDSTONE_INTERFACE_MODEL);
 
         registerCableStates();
     }

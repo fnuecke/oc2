@@ -28,6 +28,7 @@ const float PROJECTOR_FAR = 32.0;
 const float MAX_DISTANCE = 16;
 const float START_FADE_DISTANCE = 12;
 const float DOT_EPSILON = 0.25;
+const float DEPTH_BIAS = 0.0001;
 const mat4 CLIP_TO_TEX = mat4(
     0.5,   0,   0, 0,
       0, 0.5,   0, 0,
@@ -44,12 +45,6 @@ vec3 getWorldPos(vec2 uv, float clipDepth) {
     vec4 clipPos = vec4(clipUv, clipDepth, 1);
     vec4 worldPos = InverseMainCamera * clipPos;
     return worldPos.xyz / worldPos.w;
-}
-
-vec3 getWorldPos(vec2 uv) {
-    float depth = texture2D(Sampler1, uv).r;
-    float clipDepth = depth * 2 - 1;
-    return getWorldPos(uv, clipDepth);
 }
 
 vec3 getNormal(vec3 worldPos) {
@@ -87,7 +82,7 @@ bool getProjectorColor(vec3 worldPos, vec3 worldNormal, mat4 projectorCamera,
     float projectorDepth = texture2D(projectorDepthSampler, projectorUv).r;
     float projectorClipDepth = projectorDepth * 2 - 1;
 
-    if (projectorClipPos.z <= projectorClipDepth + 0.0001) {
+    if (projectorClipPos.z <= projectorClipDepth + DEPTH_BIAS) {
         vec4 projectorColor = texture2D(projectorColorSampler, vec2(projectorUv.s, 1 - projectorUv.t));
         float dotAttenuation = clamp((d - DOT_EPSILON) / (1 - DOT_EPSILON), 0, 1);
         float distanceAttenuation = clamp(1 - (linearDepth - START_FADE_DISTANCE) / (MAX_DISTANCE - START_FADE_DISTANCE), 0, 1);

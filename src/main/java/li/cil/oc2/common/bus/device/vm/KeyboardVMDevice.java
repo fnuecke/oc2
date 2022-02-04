@@ -64,6 +64,10 @@ public final class KeyboardVMDevice<T> extends IdentityProxy<T> implements VMDev
 
         context.getEventBus().register(this);
 
+        if (deviceTag != null) {
+            NBTSerialization.deserialize(deviceTag, device);
+        }
+
         return VMDeviceLoadResult.success();
     }
 

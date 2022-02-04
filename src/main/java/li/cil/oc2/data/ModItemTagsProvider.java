@@ -78,6 +78,7 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
             Items.HARD_DRIVE_MEDIUM.get(),
             Items.HARD_DRIVE_LARGE.get(),
             Items.HARD_DRIVE_CUSTOM.get(),
+            Items.KEYBOARD.get(),
             Items.MEMORY_SMALL.get(),
             Items.MEMORY_MEDIUM.get(),
             Items.MEMORY_LARGE.get(),

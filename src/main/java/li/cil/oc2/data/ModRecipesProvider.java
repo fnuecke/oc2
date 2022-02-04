@@ -105,6 +105,19 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ShapedRecipeBuilder
+            .shaped(Items.KEYBOARD.get())
+            .pattern("UUU")
+            .pattern("XTU")
+            .pattern("IBI")
+            .define('I', Tags.Items.INGOTS_IRON)
+            .define('U', ItemTags.BUTTONS)
+            .define('T', Items.TRANSISTOR.get())
+            .define('X', Items.BUS_INTERFACE.get())
+            .define('B', Items.CIRCUIT_BOARD.get())
+            .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+            .save(consumer);
+
+        ShapedRecipeBuilder
             .shaped(Items.CHARGER.get())
             .pattern("IPI")
             .pattern("XTX")

@@ -8,6 +8,7 @@
     "oc2:hard_drive_medium",
     "oc2:hard_drive_large",
     "oc2:hard_drive_buildroot",
+    "oc2:keyboard",
     "oc2:memory_small",
     "oc2:memory_medium",
     "oc2:memory_large",

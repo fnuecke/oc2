@@ -23,6 +23,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
     private static final ResourceLocation CHARGER_MODEL = new ResourceLocation(API.MOD_ID, "block/charger");
     private static final ResourceLocation COMPUTER_MODEL = new ResourceLocation(API.MOD_ID, "block/computer");
     private static final ResourceLocation DISK_DRIVE_MODEL = new ResourceLocation(API.MOD_ID, "block/disk_drive");
+    private static final ResourceLocation KEYBOARD_MODEL = new ResourceLocation(API.MOD_ID, "block/keyboard");
     private static final ResourceLocation NETWORK_CONNECTOR_MODEL = new ResourceLocation(API.MOD_ID, "block/network_connector");
     private static final ResourceLocation NETWORK_HUB_MODEL = new ResourceLocation(API.MOD_ID, "block/network_hub");
     private static final ResourceLocation PROJECTOR_MODEL = new ResourceLocation(API.MOD_ID, "block/projector");
@@ -38,6 +39,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
         horizontalBlock(Blocks.COMPUTER, Items.COMPUTER, COMPUTER_MODEL);
         simpleBlock(Blocks.CREATIVE_ENERGY, Items.CREATIVE_ENERGY);
         horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE, DISK_DRIVE_MODEL);
+        horizontalBlock(Blocks.KEYBOARD, Items.KEYBOARD, KEYBOARD_MODEL);
         horizontalFaceBlock(Blocks.NETWORK_CONNECTOR, Items.NETWORK_CONNECTOR, NETWORK_CONNECTOR_MODEL)
             .transforms()
             .transform(ModelBuilder.Perspective.GUI)

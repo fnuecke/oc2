@@ -94,6 +94,8 @@ processResources.dependsOn(copyLicensesToResources)
 minecraft {
     mappings channel: 'official', version: minecraft_version
 
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
     runs {
         all {
             property 'forge.logging.markers', 'REGISTRIES'
@@ -141,6 +143,7 @@ jar {
 
     manifest {
         attributes([
+            'FMLAT'                   : 'accesstransformer.cfg',
             'Specification-Title'     : 'oc2',
             'Specification-Vendor'    : 'Sangar',
             'Specification-Version'   : '1',

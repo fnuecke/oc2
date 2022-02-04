@@ -224,7 +224,7 @@ public final class ProjectorDepthRenderer {
                 RenderSystem.setProjectionMatrix(DEPTH_CAMERA_PROJECTION_MATRIX);
                 setupViewModelMatrix(viewModelStack);
 
-                storeProjectorMatrix(projectorIndex, projectorPos, viewModelStack);
+                storeProjectorMatrix(projectorIndex, minecraft, projectorPos, viewModelStack);
 
                 bindProjectorDepthRenderTarget(projectorIndex, minecraft);
 
@@ -283,12 +283,19 @@ public final class ProjectorDepthRenderer {
         }
     }
 
-    private static void storeProjectorMatrix(final int projectorIndex, final Vec3 projectorPos, final PoseStack viewModelStack) {
-        // Save model-view-projection matrix for mapping in compositing shader. Shifted by position of the
-        // projector, to ensure we use the same origin for projectors and the main camera in compositing.
+    private static void storeProjectorMatrix(final int projectorIndex, final Minecraft minecraft, final Vec3 projectorPos, final PoseStack viewModelStack) {
+        final Camera mainCamera = minecraft.gameRenderer.getMainCamera();
+        final Vec3 mainCameraPosition = mainCamera.getPosition();
+
+        // Save model-view-projection matrix for mapping in compositing shader. We use the position relative to the
+        // main camera here, so that the main camera can sit at the origin. This avoids loss of precision.
         PROJECTOR_CAMERA_MATRICES[projectorIndex].load(DEPTH_CAMERA_PROJECTION_MATRIX);
         viewModelStack.pushPose();
-        viewModelStack.translate(-projectorPos.x(), -projectorPos.y(), -projectorPos.z());
+        viewModelStack.translate(
+            mainCameraPosition.x() - projectorPos.x(),
+            mainCameraPosition.y() - projectorPos.y(),
+            mainCameraPosition.z() - projectorPos.z()
+        );
         PROJECTOR_CAMERA_MATRICES[projectorIndex].multiply(viewModelStack.last().pose());
         viewModelStack.popPose();
     }
@@ -337,7 +344,7 @@ public final class ProjectorDepthRenderer {
             RenderSystem.setShader(ModShaders::getProjectorsShader);
             ModShaders.configureProjectorsShader(
                 MAIN_CAMERA_DEPTH,
-                constructInverseMainCameraMatrix(minecraft, modelViewMatrix, projectionMatrix),
+                constructInverseMainCameraMatrix(modelViewMatrix, projectionMatrix),
                 PROJECTOR_COLOR_TARGETS,
                 PROJECTOR_DEPTH_TARGETS,
                 PROJECTOR_CAMERA_MATRICES,
@@ -387,13 +394,9 @@ public final class ProjectorDepthRenderer {
         RenderSystem.applyModelViewMatrix();
     }
 
-    private static Matrix4f constructInverseMainCameraMatrix(final Minecraft minecraft, final Matrix4f modelViewMatrix, final Matrix4f projectionMatrix) {
-        final Camera mainCamera = minecraft.gameRenderer.getMainCamera();
-        final Vec3 mainCameraPosition = mainCamera.getPosition();
-
+    private static Matrix4f constructInverseMainCameraMatrix(final Matrix4f modelViewMatrix, final Matrix4f projectionMatrix) {
         final Matrix4f inverseModelViewMatrix = projectionMatrix.copy();
         inverseModelViewMatrix.multiply(modelViewMatrix);
-        inverseModelViewMatrix.multiplyWithTranslation(-(float) mainCameraPosition.x(), -(float) mainCameraPosition.y(), -(float) mainCameraPosition.z());
         inverseModelViewMatrix.invert();
         return inverseModelViewMatrix;
     }

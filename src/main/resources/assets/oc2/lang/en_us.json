@@ -20,6 +20,8 @@
   "block.oc2.creative_energy.desc": "Provides unlimited energy to adjacent blocks. Intended for testing.",
   "block.oc2.projector": "Projector",
   "block.oc2.projector.desc": "Projects images onto surfaces in front of it.",
+  "block.oc2.keyboard": "Keyboard",
+  "block.oc2.keyboard.desc": "Allows keyboard input when using a projector.",
 
   "item.oc2.wrench": "Scrench",
   "item.oc2.wrench.desc": "Configures devices and dismantles them (while sneaking).",
@@ -97,6 +99,8 @@
   "gui.oc2.network_interface_card.connectivity.enabled": "Enabled",
   "gui.oc2.network_interface_card.connectivity.disabled": "Disabled",
   "gui.oc2.network_interface_card.info": "Drag to rotate. Click faces to toggle connectivity.",
+
+  "gui.oc2.keyboard.close_info": "Right click or press [Escape] twice to close.",
 
   "gui.oc2.network_tunnel.link": "Link",
 

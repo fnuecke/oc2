@@ -11,16 +11,16 @@ public final class KeyCodeMapping {
 
     static {
         MAPPING.put(GLFW.GLFW_KEY_ESCAPE, EvdevKeys.KEY_ESC);
-        MAPPING.put(GLFW.GLFW_KEY_0, EvdevKeys.KEY_1);
-        MAPPING.put(GLFW.GLFW_KEY_1, EvdevKeys.KEY_2);
-        MAPPING.put(GLFW.GLFW_KEY_2, EvdevKeys.KEY_3);
-        MAPPING.put(GLFW.GLFW_KEY_3, EvdevKeys.KEY_4);
-        MAPPING.put(GLFW.GLFW_KEY_4, EvdevKeys.KEY_5);
-        MAPPING.put(GLFW.GLFW_KEY_5, EvdevKeys.KEY_6);
-        MAPPING.put(GLFW.GLFW_KEY_6, EvdevKeys.KEY_7);
-        MAPPING.put(GLFW.GLFW_KEY_7, EvdevKeys.KEY_8);
-        MAPPING.put(GLFW.GLFW_KEY_8, EvdevKeys.KEY_9);
-        MAPPING.put(GLFW.GLFW_KEY_9, EvdevKeys.KEY_0);
+        MAPPING.put(GLFW.GLFW_KEY_0, EvdevKeys.KEY_0);
+        MAPPING.put(GLFW.GLFW_KEY_1, EvdevKeys.KEY_1);
+        MAPPING.put(GLFW.GLFW_KEY_2, EvdevKeys.KEY_2);
+        MAPPING.put(GLFW.GLFW_KEY_3, EvdevKeys.KEY_3);
+        MAPPING.put(GLFW.GLFW_KEY_4, EvdevKeys.KEY_4);
+        MAPPING.put(GLFW.GLFW_KEY_5, EvdevKeys.KEY_5);
+        MAPPING.put(GLFW.GLFW_KEY_6, EvdevKeys.KEY_6);
+        MAPPING.put(GLFW.GLFW_KEY_7, EvdevKeys.KEY_7);
+        MAPPING.put(GLFW.GLFW_KEY_8, EvdevKeys.KEY_8);
+        MAPPING.put(GLFW.GLFW_KEY_9, EvdevKeys.KEY_9);
         MAPPING.put(GLFW.GLFW_KEY_MINUS, EvdevKeys.KEY_MINUS);
         MAPPING.put(GLFW.GLFW_KEY_EQUAL, EvdevKeys.KEY_EQUAL);
         MAPPING.put(GLFW.GLFW_KEY_BACKSPACE, EvdevKeys.KEY_BACKSPACE);

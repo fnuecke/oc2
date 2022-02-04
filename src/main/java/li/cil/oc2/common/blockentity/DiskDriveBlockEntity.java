@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.blockentity;
 
-import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.DiskDriveBlock;
@@ -67,10 +66,6 @@ public final class DiskDriveBlockEntity extends ModBlockEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    public VMDevice getDevice() {
-        return device;
-    }
-
     public boolean canInsert(final ItemStack stack) {
         return !stack.isEmpty() && ItemTags.DEVICES_FLOPPY.contains(stack.getItem());
     }
@@ -120,6 +115,10 @@ public final class DiskDriveBlockEntity extends ModBlockEntity {
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         collector.offer(Capabilities.ITEM_HANDLER, itemHandler);
+
+        if (direction == getBlockState().getValue(DiskDriveBlock.FACING).getOpposite()) {
+            collector.offer(Capabilities.DEVICE, device);
+        }
     }
 
     @Override

@@ -92,10 +92,6 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     ///////////////////////////////////////////////////////////////
 
-    public ProjectorVMDevice getProjectorDevice() {
-        return projectorDevice;
-    }
-
     public boolean isProjecting() {
         if (!isProjecting || level == null) {
             return false;
@@ -252,6 +248,10 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         if (projectorsUseEnergy()) {
             collector.offer(Capabilities.ENERGY_STORAGE, energy);
+        }
+
+        if (direction == getBlockState().getValue(ProjectorBlock.FACING).getOpposite()) {
+            collector.offer(Capabilities.DEVICE, projectorDevice);
         }
     }
 

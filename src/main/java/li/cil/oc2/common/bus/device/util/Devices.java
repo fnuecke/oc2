@@ -66,6 +66,10 @@ public final class Devices {
     }
 
     public static List<ItemDeviceInfo> getDevices(final ItemDeviceQuery query) {
+        if (query.getItemStack().isEmpty()) {
+            return Collections.emptyList();
+        }
+
         final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
         final ArrayList<ItemDeviceInfo> devices = new ArrayList<>();
         for (final ItemDeviceProvider provider : registry.getValues()) {
@@ -76,6 +80,10 @@ public final class Devices {
     }
 
     public static int getEnergyConsumption(final ItemDeviceQuery query) {
+        if (query.getItemStack().isEmpty()) {
+            return 0;
+        }
+
         final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
         long accumulator = 0;
         for (final ItemDeviceProvider provider : registry.getValues()) {

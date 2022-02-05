@@ -6,7 +6,6 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.Devices;
@@ -40,16 +39,10 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
         return false;
     }
 
-    public void updateDevices(final int slot, final ItemStack stack) {
-        if (!stack.isEmpty()) {
-            final ItemDeviceQuery query = makeQuery(stack);
-            final HashSet<ItemEntry> newDevices = new HashSet<>(Devices.getDevices(query).stream().map(ItemEntry::new).toList());
-            insertItemNameDevice(stack, newDevices);
-            importDeviceDataFromItemStack(stack, newDevices);
-            setEntriesForGroup(slot, new ItemQueryResult(query, newDevices));
-        } else {
-            setEntriesForGroup(slot, new ItemQueryResult(null, Collections.emptySet()));
-        }
+    public void handleSlotContentsChanged(final int slot, final ItemStack stack) {
+        final ItemQueryResult queryResult = collectDevices(stack);
+
+        setEntriesForGroup(slot, queryResult);
     }
 
     public void exportDeviceDataToItemStack(final int slot, final ItemStack stack) {
@@ -77,6 +70,29 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
 
     protected abstract ItemDeviceQuery makeQuery(final ItemStack stack);
 
+    protected ItemQueryResult collectDevices(final ItemStack stack) {
+        final ItemDeviceQuery query = makeQuery(stack);
+        final HashSet<ItemEntry> entries = new HashSet<>();
+
+        for (final ItemDeviceInfo deviceInfo : Devices.getDevices(query)) {
+            entries.add(new ItemEntry(deviceInfo));
+        }
+
+        collectSyntheticDevices(query, entries);
+
+        importDeviceDataFromItemStack(query, entries);
+
+        return new ItemQueryResult(query, entries);
+    }
+
+    protected void collectSyntheticDevices(final ItemDeviceQuery query, final HashSet<ItemEntry> entries) {
+        final ResourceLocation registryName = query.getItemStack().getItem().getRegistryName();
+        if (registryName != null) {
+            final String itemName = registryName.toString();
+            entries.add(new ItemEntry(new ItemDeviceInfo(null, new TypeNameRPCDevice(itemName), 0)));
+        }
+    }
+
     @Override
     protected void onEntryRemoved(final String dataKey, final CompoundTag tag, @Nullable final ItemDeviceQuery query) {
         super.onEntryRemoved(dataKey, tag, query);
@@ -89,8 +105,8 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
 
     ///////////////////////////////////////////////////////////////////
 
-    private void importDeviceDataFromItemStack(final ItemStack stack, final HashSet<ItemEntry> entries) {
-        final CompoundTag exportedTag = ItemDeviceUtils.getItemDeviceData(stack);
+    private void importDeviceDataFromItemStack(final ItemDeviceQuery query, final HashSet<ItemEntry> entries) {
+        final CompoundTag exportedTag = ItemDeviceUtils.getItemDeviceData(query.getItemStack());
         if (!exportedTag.isEmpty()) {
             for (final ItemEntry entry : entries) {
                 entry.getDeviceDataKey().ifPresent(key -> {
@@ -98,15 +114,6 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
                         entry.deviceInfo.device.importFromItemStack(exportedTag.getCompound(key));
                     }
                 });
-            }
-        }
-    }
-
-    private void insertItemNameDevice(final ItemStack stack, final HashSet<ItemEntry> entries) {
-        if (entries.stream().anyMatch(entry -> entry.getDevice() instanceof RPCDevice)) {
-            final ResourceLocation registryName = stack.getItem().getRegistryName();
-            if (registryName != null) {
-                entries.add(new ItemEntry(new ItemDeviceInfo(null, new TypeNameRPCDevice(registryName.toString()), 0)));
             }
         }
     }

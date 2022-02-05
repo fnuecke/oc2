@@ -49,7 +49,7 @@ public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackH
     public void loadItems(final CompoundTag tag) {
         super.deserializeNBT(tag);
         for (int slot = 0; slot < getSlots(); slot++) {
-            getBusElement().updateDevices(slot, getStackInSlot(slot));
+            getBusElement().handleSlotContentsChanged(slot, getStackInSlot(slot));
         }
     }
 
@@ -85,6 +85,6 @@ public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackH
     @Override
     protected void onContentsChanged(final int slot) {
         super.onContentsChanged(slot);
-        getBusElement().updateDevices(slot, getStackInSlot(slot));
+        getBusElement().handleSlotContentsChanged(slot, getStackInSlot(slot));
     }
 }

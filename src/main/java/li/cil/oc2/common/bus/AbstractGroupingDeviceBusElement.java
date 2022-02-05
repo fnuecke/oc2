@@ -3,6 +3,7 @@
 package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.DeviceContainer;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -10,7 +11,7 @@ import net.minecraft.nbt.ListTag;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGroupingDeviceBusElement.Entry, TQuery> extends AbstractDeviceBusElement {
+public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGroupingDeviceBusElement.Entry, TQuery> extends AbstractDeviceBusElement implements DeviceContainer {
     private static final String GROUPS_TAG_NAME = "groups";
     private static final String GROUP_ID_TAG_NAME = "groupId";
     private static final String GROUP_DATA_TAG_NAME = "groupData";
@@ -170,9 +171,11 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
     }
 
     protected void onEntryAdded(final TEntry entry) {
+        entry.getDevice().setDeviceContainer(this);
     }
 
     protected void onEntryRemoved(final TEntry entry) {
+        entry.getDevice().setDeviceContainer(null);
     }
 
     protected void onEntryRemoved(final String dataKey, final CompoundTag data, @Nullable final TQuery query) {

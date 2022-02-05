@@ -172,6 +172,11 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         }
 
         @Override
+        public void setChanged() {
+            onChanged();
+        }
+
+        @Override
         protected ItemDeviceQuery makeQuery(final ItemStack stack) {
             return AbstractVMItemStackHandlers.this.makeQuery(stack);
         }

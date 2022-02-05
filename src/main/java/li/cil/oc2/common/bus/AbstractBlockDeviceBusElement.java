@@ -39,6 +39,17 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
     }
 
     ///////////////////////////////////////////////////////////////////
+    // DeviceContainer
+
+    @Override
+    public void setChanged() {
+        final Level level = getLevel();
+        if (level != null) {
+            ChunkUtils.setLazyUnsaved(level, getPosition());
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
     // DeviceBusElement
 
     @Override

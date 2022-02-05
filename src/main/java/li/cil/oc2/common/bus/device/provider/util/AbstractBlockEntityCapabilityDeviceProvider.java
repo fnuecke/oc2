@@ -30,16 +30,16 @@ public abstract class AbstractBlockEntityCapabilityDeviceProvider<TCapability, T
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected final Invalidatable<Device> getBlockDevice(final BlockDeviceQuery blockQuery, final BlockEntity blockEntity) {
+    protected final Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final BlockEntity blockEntity) {
         final Capability<TCapability> capability = capabilitySupplier.get();
         if (capability == null) throw new IllegalStateException();
-        final LazyOptional<TCapability> optional = blockEntity.getCapability(capability, blockQuery.getQuerySide());
+        final LazyOptional<TCapability> optional = blockEntity.getCapability(capability, query.getQuerySide());
         if (!optional.isPresent()) {
             return Invalidatable.empty();
         }
 
         final TCapability value = optional.orElseThrow(AssertionError::new);
-        final Invalidatable<Device> device = getBlockDevice(blockQuery, value);
+        final Invalidatable<Device> device = getBlockDevice(query, value);
 
         // When capability gets invalidated, invalidate device. But don't keep device alive via capability.
         LazyOptionalUtils.addWeakListener(optional, device, (invalidatable, unused) -> invalidatable.invalidate());

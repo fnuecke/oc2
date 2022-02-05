@@ -2,6 +2,7 @@
 
 package li.cil.oc2.api.bus.device.object;
 
+import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
@@ -19,7 +20,7 @@ import static java.util.Collections.singletonList;
  * annotation to discover {@link RPCMethod}s in a target object via
  * {@link Callbacks#collectMethods(Object)}.
  */
-public final class ObjectDevice implements RPCDevice {
+public final class ObjectDevice implements RPCDevice, ItemDevice {
     private final Object object;
     private final ArrayList<String> typeNames;
     private final List<RPCMethodGroup> methods;

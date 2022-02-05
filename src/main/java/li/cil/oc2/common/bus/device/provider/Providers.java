@@ -27,8 +27,8 @@ public final class Providers {
     public static void initialize() {
         BLOCK_DEVICE_PROVIDERS.register("block", BlockStateDeviceProvider::new);
         BLOCK_DEVICE_PROVIDERS.register("block_entity", BlockEntityDeviceProvider::new);
-        BLOCK_DEVICE_PROVIDERS.register("block_entity/capability", BlockEntityCapabilityDeviceProvider::new);
 
+        BLOCK_DEVICE_PROVIDERS.register("block_entity/capability", BlockEntityCapabilityDeviceProvider::new);
         BLOCK_DEVICE_PROVIDERS.register("energy_storage", EnergyStorageBlockDeviceProvider::new);
         BLOCK_DEVICE_PROVIDERS.register("fluid_handler", FluidHandlerBlockDeviceProvider::new);
         BLOCK_DEVICE_PROVIDERS.register("item_handler", ItemHandlerBlockDeviceProvider::new);
@@ -47,5 +47,10 @@ public final class Providers {
         ITEM_DEVICE_PROVIDERS.register("inventory_operations_module", InventoryOperationsModuleDeviceProvider::new);
         ITEM_DEVICE_PROVIDERS.register("block_operations_module", BlockOperationsModuleDeviceProvider::new);
         ITEM_DEVICE_PROVIDERS.register("network_tunnel_module", NetworkTunnelModuleItemDeviceProvider::new);
+
+        ITEM_DEVICE_PROVIDERS.register("item_stack/capability", ItemStackCapabilityDeviceProvider::new);
+        ITEM_DEVICE_PROVIDERS.register("energy_storage", EnergyStorageItemDeviceProvider::new);
+        ITEM_DEVICE_PROVIDERS.register("fluid_handler", FluidHandlerItemDeviceProvider::new);
+        ITEM_DEVICE_PROVIDERS.register("item_handler", ItemHandlerItemDeviceProvider::new);
     }
 }

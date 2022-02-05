@@ -132,9 +132,10 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         return terminalUsers;
     }
 
-    public void handleNeighborChanged() {
+    public void handleNeighborChanged(final BlockPos pos) {
         if (level != null && !level.isClientSide()) {
             virtualMachine.busController.scheduleBusScan();
+            busElement.handleNeighborChanged(pos);
         }
     }
 
@@ -380,6 +381,11 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         @Override
         public boolean canScanContinueTowards(@Nullable final Direction direction) {
             return getBlockState().getValue(ComputerBlock.FACING) != direction;
+        }
+
+        @Override
+        protected boolean canDetectDevicesTowards(@Nullable final Direction direction) {
+            return false;
         }
 
         @Override

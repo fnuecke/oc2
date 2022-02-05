@@ -18,7 +18,7 @@ import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import li.cil.oc2.common.block.ProjectorBlock;
 import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
-import li.cil.oc2.common.bus.device.vm.ProjectorVMDevice;
+import li.cil.oc2.common.bus.device.vm.block.ProjectorDevice;
 import li.cil.oc2.common.ext.MinecraftExt;
 import li.cil.oc2.common.util.FakePlayerUtils;
 import li.cil.oc2.jcodec.common.model.Picture;
@@ -427,7 +427,7 @@ public final class ProjectorDepthRenderer {
     private static RenderInfo getRenderInfo(final ProjectorBlockEntity projector) {
         try {
             return RENDER_INFO.get(projector, () -> {
-                final DynamicTexture texture = new DynamicTexture(ProjectorVMDevice.WIDTH, ProjectorVMDevice.HEIGHT, false);
+                final DynamicTexture texture = new DynamicTexture(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, false);
                 final RenderInfo renderInfo = new RenderInfo(texture);
                 projector.setFrameConsumer(renderInfo);
                 return renderInfo;
@@ -465,17 +465,17 @@ public final class ProjectorDepthRenderer {
             // Convert in quads, based on the half resolution of UV. As such, skip every other row, since
             // we're setting the current and the next.
             int lumaIndex = 0, chromaIndex = 0;
-            for (int halfRow = 0; halfRow < ProjectorVMDevice.HEIGHT / 2; halfRow++, lumaIndex += ProjectorVMDevice.WIDTH * 2) {
+            for (int halfRow = 0; halfRow < ProjectorDevice.HEIGHT / 2; halfRow++, lumaIndex += ProjectorDevice.WIDTH * 2) {
                 final int row = halfRow * 2;
-                for (int halfCol = 0; halfCol < ProjectorVMDevice.WIDTH / 2; halfCol++, chromaIndex++) {
+                for (int halfCol = 0; halfCol < ProjectorDevice.WIDTH / 2; halfCol++, chromaIndex++) {
                     final int col = halfCol * 2;
                     final int yIndex = lumaIndex + col;
                     final byte cb = u[chromaIndex];
                     final byte cr = v[chromaIndex];
                     setFromYUV420(image, col, row, y[yIndex], cb, cr);
                     setFromYUV420(image, col + 1, row, y[yIndex + 1], cb, cr);
-                    setFromYUV420(image, col, row + 1, y[yIndex + ProjectorVMDevice.WIDTH], cb, cr);
-                    setFromYUV420(image, col + 1, row + 1, y[yIndex + ProjectorVMDevice.WIDTH + 1], cb, cr);
+                    setFromYUV420(image, col, row + 1, y[yIndex + ProjectorDevice.WIDTH], cb, cr);
+                    setFromYUV420(image, col + 1, row + 1, y[yIndex + ProjectorDevice.WIDTH + 1], cb, cr);
                 }
             }
 

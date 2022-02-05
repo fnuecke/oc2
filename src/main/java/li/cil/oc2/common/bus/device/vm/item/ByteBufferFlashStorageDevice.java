@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.item;
+package li.cil.oc2.common.bus.device.vm.item;
 
 import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
@@ -23,7 +23,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.nio.ByteBuffer;
 
-public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, FirmwareLoader {
+public final class ByteBufferFlashStorageDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, FirmwareLoader {
     public static final String DATA_TAG_NAME = "data";
 
     ///////////////////////////////////////////////////////////////
@@ -41,7 +41,7 @@ public final class ByteBufferFlashMemoryVMDevice extends IdentityProxy<ItemStack
 
     ///////////////////////////////////////////////////////////////
 
-    public ByteBufferFlashMemoryVMDevice(final ItemStack identity, final int size) {
+    public ByteBufferFlashStorageDevice(final ItemStack identity, final int size) {
         super(identity);
         this.size = size;
     }

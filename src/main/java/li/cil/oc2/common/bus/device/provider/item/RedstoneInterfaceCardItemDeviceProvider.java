@@ -5,8 +5,8 @@ package li.cil.oc2.common.bus.device.provider.item;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.bus.device.item.RedstoneInterfaceCardItemDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
+import li.cil.oc2.common.bus.device.rpc.item.RedstoneInterfaceCardItemDevice;
 import li.cil.oc2.common.item.Items;
 
 import java.util.Optional;

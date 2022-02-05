@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.provider.block;
+package li.cil.oc2.common.bus.device.rpc.block;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callbacks;
@@ -13,7 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-public final class BlockStateDeviceProvider extends AbstractBlockDeviceProvider {
+public final class BlockStateObjectDeviceProvider extends AbstractBlockDeviceProvider {
     @Override
     public Invalidatable<Device> getDevice(final BlockDeviceQuery query) {
         final Level level = query.getLevel();

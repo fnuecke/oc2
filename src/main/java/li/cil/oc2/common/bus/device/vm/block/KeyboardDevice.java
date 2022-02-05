@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.vm;
+package li.cil.oc2.common.bus.device.vm.block;
 
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
@@ -16,7 +16,7 @@ import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nullable;
 
-public final class KeyboardVMDevice<T> extends IdentityProxy<T> implements VMDevice {
+public final class KeyboardDevice<T> extends IdentityProxy<T> implements VMDevice {
     private static final String DEVICE_TAG_NAME = "device";
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String INTERRUPT_TAG_NAME = "interrupt";
@@ -33,7 +33,7 @@ public final class KeyboardVMDevice<T> extends IdentityProxy<T> implements VMDev
 
     ///////////////////////////////////////////////////////////////
 
-    public KeyboardVMDevice(final T identity) {
+    public KeyboardDevice(final T identity) {
         super(identity);
     }
 

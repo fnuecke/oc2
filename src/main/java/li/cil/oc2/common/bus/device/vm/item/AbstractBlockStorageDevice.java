@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.item;
+package li.cil.oc2.common.bus.device.vm.item;
 
 import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
@@ -32,7 +32,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TIdentity> extends IdentityProxy<TIdentity> implements VMDevice, ItemDevice {
+public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TIdentity> extends IdentityProxy<TIdentity> implements VMDevice, ItemDevice {
     protected static final Logger LOGGER = LogManager.getLogger();
 
     private static final String DEVICE_TAG_NAME = "device";
@@ -64,7 +64,7 @@ public abstract class AbstractBlockDeviceVMDevice<TBlock extends BlockDevice, TI
 
     ///////////////////////////////////////////////////////////////
 
-    protected AbstractBlockDeviceVMDevice(final TIdentity identity, final boolean readonly) {
+    protected AbstractBlockStorageDevice(final TIdentity identity, final boolean readonly) {
         super(identity);
         this.readonly = readonly;
     }

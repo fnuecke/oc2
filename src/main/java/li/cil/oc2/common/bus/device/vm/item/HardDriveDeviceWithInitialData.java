@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.item;
+package li.cil.oc2.common.bus.device.vm.item;
 
 import com.google.common.io.ByteStreams;
 import li.cil.oc2.common.util.Location;
@@ -15,12 +15,12 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-public final class HardDriveVMDeviceWithInitialData extends HardDriveVMDevice {
+public final class HardDriveDeviceWithInitialData extends HardDriveDevice {
     private final BlockDevice base;
 
     ///////////////////////////////////////////////////////////////////
 
-    public HardDriveVMDeviceWithInitialData(final ItemStack identity, final BlockDevice base, final boolean readonly, final Supplier<Optional<Location>> location) {
+    public HardDriveDeviceWithInitialData(final ItemStack identity, final BlockDevice base, final boolean readonly, final Supplier<Optional<Location>> location) {
         super(identity, (int) base.getCapacity(), readonly, location);
         this.base = base;
     }

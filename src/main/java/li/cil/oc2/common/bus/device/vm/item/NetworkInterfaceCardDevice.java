@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.item;
+package li.cil.oc2.common.bus.device.vm.item;
 
 import li.cil.oc2.common.item.NetworkInterfaceCardItem;
 import net.minecraft.core.Direction;
@@ -11,8 +11,8 @@ import net.minecraftforge.common.util.LazyOptional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public final class NetworkInterfaceCardItemDevice extends AbstractNetworkInterfaceItemDevice {
-    public NetworkInterfaceCardItemDevice(final ItemStack identity) {
+public final class NetworkInterfaceCardDevice extends AbstractNetworkInterfaceDevice {
+    public NetworkInterfaceCardDevice(final ItemStack identity) {
         super(identity);
     }
 

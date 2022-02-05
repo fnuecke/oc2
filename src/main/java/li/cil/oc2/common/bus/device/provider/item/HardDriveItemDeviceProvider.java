@@ -6,8 +6,8 @@ import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.item.HardDriveVMDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
+import li.cil.oc2.common.bus.device.vm.item.HardDriveDevice;
 import li.cil.oc2.common.item.HardDriveItem;
 import li.cil.oc2.common.util.LocationSupplierUtils;
 import net.minecraft.nbt.CompoundTag;
@@ -27,14 +27,14 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
     @Override
     public void unmount(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
         super.unmount(query, tag);
-        HardDriveVMDevice.unmount(tag);
+        HardDriveDevice.unmount(tag);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
-        return Optional.of(new HardDriveVMDevice(query.getItemStack(), getCapacity(query), false, LocationSupplierUtils.of(query)));
+        return Optional.of(new HardDriveDevice(query.getItemStack(), getCapacity(query), false, LocationSupplierUtils.of(query)));
     }
 
     @Override

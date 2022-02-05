@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.item;
+package li.cil.oc2.common.bus.device.vm.item;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -23,8 +23,8 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Duration;
 import java.util.*;
 
-public final class NetworkTunnelItemDevice extends AbstractNetworkInterfaceItemDevice {
-    public NetworkTunnelItemDevice(final ItemStack identity) {
+public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
+    public NetworkTunnelDevice(final ItemStack identity) {
         super(identity);
     }
 

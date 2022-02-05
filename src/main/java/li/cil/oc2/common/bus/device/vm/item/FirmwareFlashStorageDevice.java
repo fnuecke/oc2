@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.item;
+package li.cil.oc2.common.bus.device.vm.item;
 
 import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
@@ -17,13 +17,13 @@ import li.cil.sedna.api.memory.MemoryMap;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.ItemStack;
 
-public final class FirmwareFlashMemoryVMDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, FirmwareLoader {
+public final class FirmwareFlashStorageDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, FirmwareLoader {
     private final Firmware firmware;
     private MemoryMap memoryMap;
 
     ///////////////////////////////////////////////////////////////
 
-    public FirmwareFlashMemoryVMDevice(final ItemStack identity, final Firmware firmware) {
+    public FirmwareFlashStorageDevice(final ItemStack identity, final Firmware firmware) {
         super(identity);
         this.firmware = firmware;
     }

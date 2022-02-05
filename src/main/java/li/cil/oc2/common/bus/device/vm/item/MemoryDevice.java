@@ -1,62 +1,52 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.vm;
+package li.cil.oc2.common.bus.device.vm.item;
 
+import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.vm.device.SimpleFramebufferDevice;
-import li.cil.oc2.jcodec.common.model.Picture;
+import li.cil.sedna.api.device.PhysicalMemory;
+import li.cil.sedna.device.memory.ByteBufferMemory;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.UUID;
 
-public final class ProjectorVMDevice extends IdentityProxy<ProjectorBlockEntity> implements VMDevice {
-    private static final String ADDRESS_TAG_NAME = "address";
-    private static final String BLOB_HANDLE_TAG_NAME = "blob";
+public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice {
+    private static final Logger LOGGER = LogManager.getLogger();
 
-    public static final int WIDTH = 640;
-    public static final int HEIGHT = 480;
+    private static final String BLOB_HANDLE_TAG_NAME = "blob";
+    private static final String ADDRESS_TAG_NAME = "address";
 
     ///////////////////////////////////////////////////////////////
 
-    @Nullable private SimpleFramebufferDevice device;
-    private final Object deviceLock = new Object();
+    private final int size;
+    private PhysicalMemory device;
 
     ///////////////////////////////////////////////////////////////
 
     private final OptionalAddress address = new OptionalAddress();
-    @Nullable private UUID blobHandle;
+    private UUID blobHandle;
 
     ///////////////////////////////////////////////////////////////
 
-    public ProjectorVMDevice(final ProjectorBlockEntity identity) {
+    public MemoryDevice(final ItemStack identity, final int capacity) {
         super(identity);
+        size = capacity;
     }
 
-    ///////////////////////////////////////////////////////////////
-
-    public boolean hasChanges() {
-        synchronized (deviceLock) {
-            return device != null && device.hasChanges();
-        }
-    }
-
-    public boolean applyChanges(final Picture picture) {
-        synchronized (deviceLock) {
-            return device != null && device.applyChanges(picture);
-        }
-    }
+    ///////////////////////////////////////////////////////////////////
 
     @Override
     public VMDeviceLoadResult mount(final VMContext context) {
@@ -64,34 +54,25 @@ public final class ProjectorVMDevice extends IdentityProxy<ProjectorBlockEntity>
             return VMDeviceLoadResult.fail();
         }
 
-        assert device != null;
         if (!address.claim(context, device)) {
             return VMDeviceLoadResult.fail();
         }
-
-        identity.setProjecting(true);
 
         return VMDeviceLoadResult.success();
     }
 
     @Override
     public void unmount() {
-        synchronized (deviceLock) {
-            if (device != null) {
-                device.close();
-                device = null;
-            }
-        }
+        closeDevice();
 
         if (blobHandle != null) {
             BlobStorage.close(blobHandle);
         }
-
-        identity.setProjecting(false);
     }
 
     @Override
     public void dispose() {
+        // Memory is volatile, so free up our persisted blob when device is disposed.
         if (blobHandle != null) {
             BlobStorage.delete(blobHandle);
             blobHandle = null;
@@ -132,18 +113,29 @@ public final class ProjectorVMDevice extends IdentityProxy<ProjectorBlockEntity>
         }
 
         try {
-            device = createFrameBufferDevice();
+            blobHandle = BlobStorage.validateHandle(blobHandle);
+            final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
+            final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, size);
+            device = new ByteBufferMemory(size, buffer);
         } catch (final IOException e) {
+            LOGGER.error(e);
             return false;
         }
 
         return true;
     }
 
-    private SimpleFramebufferDevice createFrameBufferDevice() throws IOException {
-        blobHandle = BlobStorage.validateHandle(blobHandle);
-        final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
-        final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, WIDTH * HEIGHT * SimpleFramebufferDevice.STRIDE);
-        return new SimpleFramebufferDevice(WIDTH, HEIGHT, buffer);
+    private void closeDevice() {
+        if (device == null) {
+            return;
+        }
+
+        try {
+            device.close();
+        } catch (final Exception e) {
+            LOGGER.error(e);
+        }
+
+        device = null;
     }
 }

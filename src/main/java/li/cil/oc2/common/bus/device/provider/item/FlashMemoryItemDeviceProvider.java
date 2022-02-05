@@ -5,8 +5,8 @@ package li.cil.oc2.common.bus.device.provider.item;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.bus.device.item.ByteBufferFlashMemoryVMDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
+import li.cil.oc2.common.bus.device.vm.item.ByteBufferFlashStorageDevice;
 import li.cil.oc2.common.item.FlashMemoryItem;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -26,6 +26,6 @@ public final class FlashMemoryItemDeviceProvider extends AbstractItemDeviceProvi
         final FlashMemoryItem item = (FlashMemoryItem) stack.getItem();
 
         final int capacity = Mth.clamp(item.getCapacity(stack), 0, Config.maxFlashMemorySize);
-        return Optional.of(new ByteBufferFlashMemoryVMDevice(stack, capacity));
+        return Optional.of(new ByteBufferFlashStorageDevice(stack, capacity));
     }
 }

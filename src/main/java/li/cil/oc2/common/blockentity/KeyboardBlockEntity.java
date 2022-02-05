@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.blockentity;
 
-import li.cil.oc2.common.bus.device.vm.KeyboardVMDevice;
+import li.cil.oc2.common.bus.device.vm.block.KeyboardDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public final class KeyboardBlockEntity extends ModBlockEntity {
-    private final KeyboardVMDevice<BlockEntity> keyboardDevice = new KeyboardVMDevice<>(this);
+    private final KeyboardDevice<BlockEntity> keyboardDevice = new KeyboardDevice<>(this);
 
     ///////////////////////////////////////////////////////////////////
 

@@ -3,7 +3,7 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.client.gui.FileChooserScreen;
-import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
+import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.network.Network;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;

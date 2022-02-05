@@ -4,8 +4,9 @@ package li.cil.oc2.common.bus.device.provider;
 
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
-import li.cil.oc2.common.bus.device.provider.block.*;
+import li.cil.oc2.common.bus.device.provider.block.BlockEntityCapabilityDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.item.*;
+import li.cil.oc2.common.bus.device.rpc.block.*;
 import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -25,8 +26,8 @@ public final class Providers {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        BLOCK_DEVICE_PROVIDERS.register("block", BlockStateDeviceProvider::new);
-        BLOCK_DEVICE_PROVIDERS.register("block_entity", BlockEntityDeviceProvider::new);
+        BLOCK_DEVICE_PROVIDERS.register("block", BlockStateObjectDeviceProvider::new);
+        BLOCK_DEVICE_PROVIDERS.register("block_entity", BlockEntityObjectDeviceProvider::new);
 
         BLOCK_DEVICE_PROVIDERS.register("block_entity/capability", BlockEntityCapabilityDeviceProvider::new);
         BLOCK_DEVICE_PROVIDERS.register("energy_storage", EnergyStorageBlockDeviceProvider::new);

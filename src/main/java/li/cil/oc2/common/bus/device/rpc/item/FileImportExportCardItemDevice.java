@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.item;
+package li.cil.oc2.common.bus.device.rpc.item;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import li.cil.oc2.api.bus.device.object.Callback;

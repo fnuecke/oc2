@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.item;
+package li.cil.oc2.common.bus.device.vm.item;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
@@ -24,7 +24,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public abstract class AbstractNetworkInterfaceItemDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, ICapabilityProvider {
+public abstract class AbstractNetworkInterfaceDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, ICapabilityProvider {
     private static final String DEVICE_TAG_NAME = "device";
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String INTERRUPT_TAG_NAME = "interrupt";
@@ -41,7 +41,7 @@ public abstract class AbstractNetworkInterfaceItemDevice extends IdentityProxy<I
 
     ///////////////////////////////////////////////////////////////
 
-    protected AbstractNetworkInterfaceItemDevice(final ItemStack identity) {
+    protected AbstractNetworkInterfaceDevice(final ItemStack identity) {
         super(identity);
     }
 

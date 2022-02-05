@@ -5,8 +5,8 @@ package li.cil.oc2.common.bus.device.provider.item;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.data.Firmware;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import li.cil.oc2.common.bus.device.item.FirmwareFlashMemoryVMDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
+import li.cil.oc2.common.bus.device.vm.item.FirmwareFlashStorageDevice;
 import li.cil.oc2.common.item.FlashMemoryWithExternalDataItem;
 import net.minecraft.world.item.ItemStack;
 
@@ -29,6 +29,6 @@ public final class FlashMemoryWithExternalDataItemDeviceProvider extends Abstrac
             return Optional.empty();
         }
 
-        return Optional.of(new FirmwareFlashMemoryVMDevice(stack, firmware));
+        return Optional.of(new FirmwareFlashStorageDevice(stack, firmware));
     }
 }

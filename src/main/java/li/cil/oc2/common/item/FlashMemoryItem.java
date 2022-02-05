@@ -3,7 +3,7 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.bus.device.item.ByteBufferFlashMemoryVMDevice;
+import li.cil.oc2.common.bus.device.vm.item.ByteBufferFlashStorageDevice;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
@@ -25,7 +25,7 @@ public final class FlashMemoryItem extends AbstractStorageItem {
     public CompoundTag getShareTag(final ItemStack stack) {
         final CompoundTag tag = super.getShareTag(stack);
         if (tag != null && tag.contains(API.MOD_ID, NBTTagIds.TAG_COMPOUND)) {
-            tag.getCompound(API.MOD_ID).remove(ByteBufferFlashMemoryVMDevice.DATA_TAG_NAME);
+            tag.getCompound(API.MOD_ID).remove(ByteBufferFlashStorageDevice.DATA_TAG_NAME);
         }
         return tag;
     }

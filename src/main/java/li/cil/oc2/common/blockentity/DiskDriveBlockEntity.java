@@ -2,51 +2,39 @@
 
 package li.cil.oc2.common.blockentity;
 
-import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.DiskDriveBlock;
-import li.cil.oc2.common.bus.device.item.AbstractBlockDeviceVMDevice;
+import li.cil.oc2.common.bus.device.vm.block.DiskDriveContainer;
+import li.cil.oc2.common.bus.device.vm.block.DiskDriveDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.TypedItemStackHandler;
-import li.cil.oc2.common.item.FloppyItem;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.DiskDriveFloppyMessage;
-import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.LocationSupplierUtils;
 import li.cil.oc2.common.util.SoundEvents;
 import li.cil.oc2.common.util.ThrottledSoundEmitter;
-import li.cil.sedna.api.device.BlockDevice;
-import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
 
-public final class DiskDriveBlockEntity extends ModBlockEntity {
+public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDriveContainer {
     private static final String DATA_TAG_NAME = "data";
-
-    private static final ByteBufferBlockDevice EMPTY_BLOCK_DEVICE = ByteBufferBlockDevice.create(0, false);
 
     ///////////////////////////////////////////////////////////////////
 
     private final DiskDriveItemStackHandler itemHandler = new DiskDriveItemStackHandler();
-    private final DiskDriveVMDevice device = new DiskDriveVMDevice();
+    private final DiskDriveDevice<DiskDriveBlockEntity> device = new DiskDriveDevice<>(this);
     private final ThrottledSoundEmitter accessSoundEmitter;
     private final ThrottledSoundEmitter insertSoundEmitter;
     private final ThrottledSoundEmitter ejectSoundEmitter;
@@ -148,6 +136,16 @@ public final class DiskDriveBlockEntity extends ModBlockEntity {
         itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
     }
 
+    @Override
+    public ItemStack getDiskItemStack() {
+        return itemHandler.getStackInSlotRaw(0);
+    }
+
+    @Override
+    public void handleDataAccess() {
+        accessSoundEmitter.play();
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     private final class DiskDriveItemStackHandler extends TypedItemStackHandler {
@@ -221,89 +219,6 @@ public final class DiskDriveBlockEntity extends ModBlockEntity {
             final CompoundTag tag = new CompoundTag();
             device.exportToItemStack(tag);
             ItemStackUtils.getOrCreateModDataTag(stack).put(DATA_TAG_NAME, tag);
-        }
-    }
-
-    private final class DiskDriveVMDevice extends AbstractBlockDeviceVMDevice<BlockDevice, BlockEntity> {
-        public DiskDriveVMDevice() {
-            super(DiskDriveBlockEntity.this, false);
-        }
-
-        public void updateBlockDevice(final CompoundTag tag) {
-            joinOpenJob();
-
-            if (device == null) {
-                return;
-            }
-
-            try {
-                device.setBlock(EMPTY_BLOCK_DEVICE);
-            } catch (final IOException e) {
-                LOGGER.error(e);
-            }
-
-            if (blobHandle != null) {
-                BlobStorage.close(blobHandle);
-                blobHandle = null;
-            }
-
-            importFromItemStack(tag);
-
-            setOpenJob(createBlockDevice().thenAcceptAsync(blockDevice -> {
-                try {
-                    device.setBlock(blockDevice);
-                } catch (final IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }, WORKERS));
-        }
-
-        public void removeBlockDevice() {
-            joinOpenJob();
-
-            if (device == null) {
-                return;
-            }
-
-            try {
-                device.setBlock(EMPTY_BLOCK_DEVICE);
-            } catch (final IOException e) {
-                LOGGER.error(e);
-            }
-
-            if (blobHandle != null) {
-                BlobStorage.close(blobHandle);
-                blobHandle = null;
-            }
-        }
-
-        @Override
-        protected CompletableFuture<BlockDevice> createBlockDevice() {
-            final ItemStack stack = itemHandler.getStackInSlotRaw(0);
-            if (stack.isEmpty() || !(stack.getItem() instanceof final FloppyItem floppy)) {
-                return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
-            }
-
-            final int capacity = Mth.clamp(floppy.getCapacity(stack), 0, Config.maxFloppySize);
-            if (capacity <= 0) {
-                return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
-            }
-
-            blobHandle = BlobStorage.validateHandle(blobHandle);
-            return CompletableFuture.supplyAsync(() -> {
-                try {
-                    final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
-                    final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, capacity);
-                    return ByteBufferBlockDevice.wrap(buffer, false);
-                } catch (final IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }, WORKERS);
-        }
-
-        @Override
-        protected void handleDataAccess() {
-            accessSoundEmitter.play();
         }
     }
 }

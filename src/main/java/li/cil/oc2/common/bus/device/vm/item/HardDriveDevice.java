@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.item;
+package li.cil.oc2.common.bus.device.vm.item;
 
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.Location;
@@ -17,13 +17,13 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-public class HardDriveVMDevice extends AbstractBlockDeviceVMDevice<ByteBufferBlockDevice, ItemStack> {
+public class HardDriveDevice extends AbstractBlockStorageDevice<ByteBufferBlockDevice, ItemStack> {
     private final int size;
     private final ThrottledSoundEmitter soundEmitter;
 
     ///////////////////////////////////////////////////////////////////
 
-    public HardDriveVMDevice(final ItemStack identity, final int size, final boolean readonly, final Supplier<Optional<Location>> location) {
+    public HardDriveDevice(final ItemStack identity, final int size, final boolean readonly, final Supplier<Optional<Location>> location) {
         super(identity, readonly);
         this.size = size;
         this.soundEmitter = new ThrottledSoundEmitter(location, SoundEvents.HDD_ACCESS.get())

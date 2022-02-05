@@ -4,7 +4,7 @@ package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.block.ProjectorBlock;
-import li.cil.oc2.common.bus.device.vm.ProjectorVMDevice;
+import li.cil.oc2.common.bus.device.vm.block.ProjectorDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.network.Network;
@@ -47,7 +47,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     public static final int MAX_RENDER_DISTANCE = 16;
     public static final int MAX_GOOD_RENDER_DISTANCE = 12;
     public static final int MAX_WIDTH = MAX_GOOD_RENDER_DISTANCE + 1; // +1 To make it odd, so we can center.
-    public static final int MAX_HEIGHT = (MAX_GOOD_RENDER_DISTANCE * ProjectorVMDevice.HEIGHT / ProjectorVMDevice.WIDTH) + 1; // + 1 To match horizontal margin.
+    public static final int MAX_HEIGHT = (MAX_GOOD_RENDER_DISTANCE * ProjectorDevice.HEIGHT / ProjectorDevice.WIDTH) + 1; // + 1 To match horizontal margin.
 
     private static final String ENERGY_TAG_NAME = "energy";
     private static final String IS_PROJECTING_TAG_NAME = "projecting";
@@ -61,10 +61,10 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     ///////////////////////////////////////////////////////////////
 
-    private final ProjectorVMDevice projectorDevice = new ProjectorVMDevice(this);
+    private final ProjectorDevice projectorDevice = new ProjectorDevice(this);
     private boolean isProjecting, hasEnergy;
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.projectorEnergyStorage);
-    private final Picture picture = Picture.create(ProjectorVMDevice.WIDTH, ProjectorVMDevice.HEIGHT, ColorSpace.YUV420J);
+    private final Picture picture = Picture.create(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, ColorSpace.YUV420J);
 
     // Video encoding.
     private final H264Encoder encoder = new H264Encoder(new CQPRateControl(12));

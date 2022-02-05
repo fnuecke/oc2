@@ -2,6 +2,8 @@
 
 package li.cil.oc2.api.util;
 
+import li.cil.oc2.common.util.RunnableUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -102,8 +104,7 @@ public final class Invalidatable<T> {
             };
         } else {
             listener.accept(this);
-            return () -> {
-            };
+            return RunnableUtils::doNothing;
         }
     }
 }

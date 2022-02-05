@@ -120,6 +120,7 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
         }
 
         output[index] = clampedValue;
+        setChanged();
 
         final Direction direction = HorizontalBlockUtils.toGlobal(blockEntity.getBlockState(), side);
         if (direction != null) {

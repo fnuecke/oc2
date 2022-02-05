@@ -10,14 +10,13 @@ import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.client.audio.LoopingSoundManager;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.block.ComputerBlock;
+import li.cil.oc2.common.bus.AbstractBlockDeviceBusElement;
 import li.cil.oc2.common.bus.BlockEntityDeviceBusController;
-import li.cil.oc2.common.bus.BlockEntityDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ComputerInventoryContainer;
 import li.cil.oc2.common.container.ComputerTerminalContainer;
-import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBootErrorMessage;
@@ -34,6 +33,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.capabilities.Capability;
@@ -271,8 +271,16 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     protected void loadServer() {
         super.loadServer();
 
-        busElement.initialize();
+        assert level != null;
+
         virtualMachine.state.builtinDevices.rtcMinecraft.setLevel(level);
+        ServerScheduler.schedule(level, () -> {
+            if (isRemoved()) {
+                return;
+            }
+
+            busElement.initialize();
+        });
     }
 
     @Override
@@ -317,26 +325,36 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
 
         @Override
-        protected ItemDeviceQuery getDeviceQuery(final ItemStack stack) {
+        protected ItemDeviceQuery makeQuery(final ItemStack stack) {
             return Devices.makeQuery(ComputerBlockEntity.this, stack);
         }
 
         @Override
-        protected void onContentsChanged(final DeviceItemStackHandler itemStackHandler, final int slot) {
-            super.onContentsChanged(itemStackHandler, slot);
-            setChanged();
+        protected void onChanged() {
+            super.onChanged();
+            if (level != null && !level.isClientSide()) {
+                virtualMachine.busController.scheduleBusScan();
+                ChunkUtils.setLazyUnsaved(level, getBlockPos());
+            }
             isNeighborUpdateScheduled = true;
         }
     }
 
-    private final class ComputerBusElement extends BlockEntityDeviceBusElement {
+    private final class ComputerBusElement extends AbstractBlockDeviceBusElement {
         private static final String DEVICE_ID_TAG_NAME = "device_id";
 
         private final HashSet<Device> devices = new HashSet<>();
         private UUID deviceId = UUID.randomUUID();
 
-        public ComputerBusElement() {
-            super(ComputerBlockEntity.this);
+        @Nullable
+        @Override
+        public Level getLevel() {
+            return ComputerBlockEntity.this.getLevel();
+        }
+
+        @Override
+        public BlockPos getPosition() {
+            return getBlockPos();
         }
 
         public void addOwnDevices() {

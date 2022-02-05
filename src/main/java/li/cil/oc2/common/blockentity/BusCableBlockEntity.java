@@ -5,7 +5,7 @@ package li.cil.oc2.common.blockentity;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.BusCableBlock;
-import li.cil.oc2.common.bus.BlockEntityDeviceBusElement;
+import li.cil.oc2.common.bus.AbstractBlockDeviceBusElement;
 import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -14,6 +14,7 @@ import li.cil.oc2.common.network.message.BusCableFacadeMessage;
 import li.cil.oc2.common.network.message.BusInterfaceNameMessage;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
+import li.cil.oc2.common.util.ServerScheduler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -44,7 +45,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final BlockEntityDeviceBusElement busElement = new BusCableBusElement();
+    private final AbstractBlockDeviceBusElement busElement = new BusCableBusElement();
     private final String[] interfaceNames = new String[Constants.BLOCK_FACE_COUNT];
     private ItemStack facade = ItemStack.EMPTY;
 
@@ -217,7 +218,14 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     protected void loadServer() {
         super.loadServer();
 
-        busElement.initialize();
+        assert level != null;
+        ServerScheduler.schedule(level, () -> {
+            if (isRemoved()) {
+                return;
+            }
+
+            busElement.initialize();
+        });
     }
 
     @Override
@@ -258,9 +266,16 @@ public final class BusCableBlockEntity extends ModBlockEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final class BusCableBusElement extends BlockEntityDeviceBusElement {
-        public BusCableBusElement() {
-            super(BusCableBlockEntity.this);
+    private final class BusCableBusElement extends AbstractBlockDeviceBusElement {
+        @Nullable
+        @Override
+        public Level getLevel() {
+            return BusCableBlockEntity.this.getLevel();
+        }
+
+        @Override
+        public BlockPos getPosition() {
+            return getBlockPos();
         }
 
         @Override

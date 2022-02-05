@@ -15,7 +15,6 @@ import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.container.DeviceItemStackHandler;
 import li.cil.oc2.common.container.FixedSizeItemStackHandler;
 import li.cil.oc2.common.container.RobotInventoryContainer;
 import li.cil.oc2.common.container.RobotTerminalContainer;
@@ -731,12 +730,13 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         @Override
-        protected ItemDeviceQuery getDeviceQuery(final ItemStack stack) {
+        protected ItemDeviceQuery makeQuery(final ItemStack stack) {
             return Devices.makeQuery(Robot.this, stack);
         }
 
         @Override
-        protected void onContentsChanged(final DeviceItemStackHandler itemHandler, final int slot) {
+        protected void onChanged() {
+            super.onChanged();
             if (!level.isClientSide()) {
                 virtualMachine.busController.scheduleBusScan();
             }

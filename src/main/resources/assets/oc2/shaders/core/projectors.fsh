@@ -4,23 +4,26 @@
 
 uniform int Count;
 
-// Projector 1
-uniform sampler2D Sampler0; // Main Depth
-uniform mat4 InverseMainCamera; // Inverse Main View Projection Matrix
+// Main camera depth buffer.
+uniform sampler2D MainCameraDepth;
+// Inverse matrix of main camera view rotation and projection. Not that this
+// explicitly does *not* include the camera's actual position. All projector
+// matrices are computed relative to the main camera position, for precision.
+uniform mat4 InverseMainCamera;
 
-// Projector 2
-uniform sampler2D Sampler1; // Color
-uniform sampler2D Sampler2; // Depth
+// Projector 1
+uniform sampler2D ProjectorColor0;
+uniform sampler2D ProjectorDepth0;
 uniform mat4 ProjectorCamera0;
 
-// Projector 3
-uniform sampler2D Sampler3; // Color
-uniform sampler2D Sampler4; // Depth
+// Projector 2
+uniform sampler2D ProjectorColor1;
+uniform sampler2D ProjectorDepth1;
 uniform mat4 ProjectorCamera1;
 
-// Projector 4
-uniform sampler2D Sampler5; // Color
-uniform sampler2D Sampler6; // Depth
+// Projector 3
+uniform sampler2D ProjectorColor2;
+uniform sampler2D ProjectorDepth2;
 uniform mat4 ProjectorCamera2;
 
 const float PROJECTOR_NEAR = 1.0/16.0;
@@ -57,9 +60,11 @@ bool isInClipBounds(vec3 v) {
            v.z >= -1 && v.z <= 1;
 }
 
-bool getProjectorColor(vec3 worldPos, vec3 worldNormal, mat4 projectorCamera,
-                       sampler2D projectorColorSampler, sampler2D projectorDepthSampler,
-                       out vec4 result) {
+bool getProjectorColor(vec3 worldPos, vec3 worldNormal,
+                       mat4 projectorCamera,
+                       sampler2D projectorColorSampler,
+                       sampler2D projectorDepthSampler,
+                       out vec3 result) {
     // Project world normal into projector clip space.
     vec3 projectorClipNormal = (projectorCamera * vec4(worldNormal, 0)).xyz;
 
@@ -83,7 +88,7 @@ bool getProjectorColor(vec3 worldPos, vec3 worldNormal, mat4 projectorCamera,
     float projectorClipDepth = projectorDepth * 2 - 1;
 
     if (projectorClipPos.z <= projectorClipDepth + DEPTH_BIAS) {
-        vec4 projectorColor = texture2D(projectorColorSampler, vec2(projectorUv.s, 1 - projectorUv.t));
+        vec3 projectorColor = texture2D(projectorColorSampler, vec2(projectorUv.s, 1 - projectorUv.t)).rgb;
         float dotAttenuation = clamp((d - DOT_EPSILON) / (1 - DOT_EPSILON), 0, 1);
         float distanceAttenuation = clamp(1 - (linearDepth - START_FADE_DISTANCE) / (MAX_DISTANCE - START_FADE_DISTANCE), 0, 1);
         result = projectorColor * dotAttenuation * distanceAttenuation;
@@ -93,7 +98,7 @@ bool getProjectorColor(vec3 worldPos, vec3 worldNormal, mat4 projectorCamera,
 }
 
 void main() {
-    float depth = texture2D(Sampler0, texCoord).r;
+    float depth = texture2D(MainCameraDepth, texCoord).r;
 
     // Check for no hit, for early exit.
     if (depth >= 1) {
@@ -104,18 +109,18 @@ void main() {
     vec3 worldPos = getWorldPos(texCoord, clipDepth);
     vec3 worldNormal = getNormal(worldPos);
 
-    vec4 colorAcc = vec4(0, 0, 0, 0);
-    vec4 color;
+    vec3 colorAcc = vec3(0);
+    vec3 color;
     int accCount = 0;
-    if (Count > 0 && getProjectorColor(worldPos, worldNormal, ProjectorCamera0, Sampler1, Sampler2, color)) {
+    if (Count > 0 && getProjectorColor(worldPos, worldNormal, ProjectorCamera0, ProjectorColor0, ProjectorDepth0, color)) {
         colorAcc += color;
         accCount += 1;
     }
-    if (Count > 1 && getProjectorColor(worldPos, worldNormal, ProjectorCamera1, Sampler3, Sampler4, color)) {
+    if (Count > 1 && getProjectorColor(worldPos, worldNormal, ProjectorCamera1, ProjectorColor1, ProjectorDepth1, color)) {
         colorAcc += color;
         accCount += 1;
     }
-    if (Count > 2 && getProjectorColor(worldPos, worldNormal, ProjectorCamera2, Sampler5, Sampler6, color)) {
+    if (Count > 2 && getProjectorColor(worldPos, worldNormal, ProjectorCamera2, ProjectorColor2, ProjectorDepth2, color)) {
         colorAcc += color;
         accCount += 1;
     }
@@ -125,5 +130,5 @@ void main() {
         discard;
     }
 
-    fragColor = colorAcc / accCount;
+    fragColor = vec4(colorAcc, 1) / accCount;
 }

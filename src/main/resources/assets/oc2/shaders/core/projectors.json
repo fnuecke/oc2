@@ -8,13 +8,13 @@
   "fragment": "oc2:projectors",
   "attributes": ["Position", "UV0"],
   "samplers": [
-    {"name": "Sampler0"},
-    {"name": "Sampler1"},
-    {"name": "Sampler2"},
-    {"name": "Sampler3"},
-    {"name": "Sampler4"},
-    {"name": "Sampler5"},
-    {"name": "Sampler6"}
+    {"name": "MainCameraDepth"},
+    {"name": "ProjectorColor0"},
+    {"name": "ProjectorDepth0"},
+    {"name": "ProjectorColor1"},
+    {"name": "ProjectorDepth1"},
+    {"name": "ProjectorColor2"},
+    {"name": "ProjectorDepth2"}
   ],
   "uniforms": [
     {"name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]},

@@ -55,7 +55,6 @@ public final class SoundCardItemDevice extends AbstractItemRPCDevice {
             }
 
             gameTimeCooldownExpiresAt = gameTime + COOLDOWN_IN_TICKS;
-            setChanged();
 
             final SoundEvent soundEvent = ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation(name));
             if (soundEvent == null) throw new IllegalArgumentException("Sound not found.");

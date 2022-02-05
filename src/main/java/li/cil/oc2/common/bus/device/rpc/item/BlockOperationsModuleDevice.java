@@ -213,7 +213,6 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
     private void beginCooldown() {
         lastOperation = entity.level.getGameTime();
-        setChanged();
     }
 
     private boolean isOnCooldown() {

@@ -171,11 +171,9 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
     }
 
     protected void onEntryAdded(final TEntry entry) {
-        entry.getDevice().setDeviceContainer(this);
     }
 
     protected void onEntryRemoved(final TEntry entry) {
-        entry.getDevice().setDeviceContainer(null);
     }
 
     protected void onEntryRemoved(final String dataKey, final CompoundTag data, @Nullable final TQuery query) {

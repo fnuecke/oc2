@@ -447,6 +447,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
             if (isRunning()) {
                 ChunkUtils.setLazyUnsaved(level, getBlockPos());
+                busController.setDeviceContainersChanged();
             }
 
             super.tick();

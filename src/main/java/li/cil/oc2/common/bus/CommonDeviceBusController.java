@@ -60,6 +60,9 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     ///////////////////////////////////////////////////////////////////
 
+    public void setDeviceContainersChanged() {
+    }
+
     public void dispose() {
         for (final DeviceBusElement element : elements) {
             element.removeController(this);

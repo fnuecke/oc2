@@ -15,7 +15,6 @@ import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.util.ChunkUtils;
 import li.cil.oc2.common.util.LevelUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,17 +35,6 @@ import static li.cil.oc2.common.util.RegistryUtils.optionalKey;
 public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDeviceBusElement<AbstractBlockDeviceBusElement.BlockEntry, BlockDeviceQuery> implements BlockDeviceBusElement {
     public AbstractBlockDeviceBusElement() {
         super(Constants.BLOCK_FACE_COUNT);
-    }
-
-    ///////////////////////////////////////////////////////////////////
-    // DeviceContainer
-
-    @Override
-    public void setChanged() {
-        final Level level = getLevel();
-        if (level != null) {
-            ChunkUtils.setLazyUnsaved(level, getPosition());
-        }
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -4,6 +4,7 @@ package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.common.util.ChunkUtils;
 import li.cil.oc2.common.util.ServerScheduler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,6 +31,16 @@ public final class BlockEntityDeviceBusController extends CommonDeviceBusControl
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    @Override
+    public void setDeviceContainersChanged() {
+        super.setDeviceContainersChanged();
+        for (final TrackedChunk trackedChunk : trackedChunks) {
+            trackedChunk.tryGetLevel().ifPresent(level -> {
+                ChunkUtils.setLazyUnsaved(level, trackedChunk.position());
+            });
+        }
+    }
 
     @Override
     public void dispose() {

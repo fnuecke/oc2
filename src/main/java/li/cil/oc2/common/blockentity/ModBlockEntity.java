@@ -21,6 +21,7 @@ public abstract class ModBlockEntity extends BlockEntity {
     private final Runnable onWorldUnloaded = this::onWorldUnloaded;
     private final HashMap<CapabilityCacheKey, LazyOptional<?>> capabilityCache = new HashMap<>();
     private boolean needsWorldUnloadEvent;
+    private boolean isUnloaded;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -96,6 +97,7 @@ public abstract class ModBlockEntity extends BlockEntity {
     public void onChunkUnloaded() {
         super.onChunkUnloaded(); // -> invalidateCaps()
         onUnload(false);
+        isUnloaded = true;
     }
 
     public void onWorldUnloaded() {
@@ -106,7 +108,9 @@ public abstract class ModBlockEntity extends BlockEntity {
     @Override
     public void setRemoved() {
         super.setRemoved(); // -> invalidateCaps()
-        onUnload(true);
+        if (!isUnloaded) {
+            onUnload(true);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////

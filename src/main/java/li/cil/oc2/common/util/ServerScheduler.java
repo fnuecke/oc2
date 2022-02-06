@@ -45,7 +45,9 @@ public final class ServerScheduler {
     }
 
     public static void scheduleOnUnload(final LevelAccessor level, final Runnable listener) {
-        levelUnloadSchedulers.computeIfAbsent(level, unused -> new SimpleScheduler()).add(listener);
+        levelUnloadSchedulers
+            .computeIfAbsent(level, unused -> new SimpleScheduler())
+            .add(listener);
     }
 
     public static void cancelOnUnload(@Nullable final LevelAccessor level, final Runnable listener) {

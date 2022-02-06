@@ -3,7 +3,7 @@
 package li.cil.oc2.common.bus.device.vm.item;
 
 import li.cil.oc2.common.serialization.BlobStorage;
-import li.cil.oc2.common.util.Location;
+import li.cil.oc2.common.util.BlockLocation;
 import li.cil.oc2.common.util.SoundEvents;
 import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
@@ -23,7 +23,7 @@ public class HardDriveDevice extends AbstractBlockStorageDevice<ByteBufferBlockD
 
     ///////////////////////////////////////////////////////////////////
 
-    public HardDriveDevice(final ItemStack identity, final int size, final boolean readonly, final Supplier<Optional<Location>> location) {
+    public HardDriveDevice(final ItemStack identity, final int size, final boolean readonly, final Supplier<Optional<BlockLocation>> location) {
         super(identity, readonly);
         this.size = size;
         this.soundEmitter = new ThrottledSoundEmitter(location, SoundEvents.HDD_ACCESS.get())

@@ -4,14 +4,13 @@ package li.cil.oc2.common.bus.device.rpc.item;
 
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.common.util.Location;
+import li.cil.oc2.common.util.BlockLocation;
 import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
@@ -27,12 +26,12 @@ public final class SoundCardItemDevice extends AbstractItemRPCDevice {
 
     ///////////////////////////////////////////////////////////////////
 
-    private final Supplier<Optional<Location>> location;
+    private final Supplier<Optional<BlockLocation>> location;
     private long gameTimeCooldownExpiresAt;
 
     ///////////////////////////////////////////////////////////////////
 
-    public SoundCardItemDevice(final ItemStack identity, final Supplier<Optional<Location>> location) {
+    public SoundCardItemDevice(final ItemStack identity, final Supplier<Optional<BlockLocation>> location) {
         super(identity, "sound");
         this.location = location;
     }
@@ -43,8 +42,7 @@ public final class SoundCardItemDevice extends AbstractItemRPCDevice {
     public void playSound(@Nullable @Parameter("name") final String name) {
         if (name == null) throw new IllegalArgumentException();
 
-        location.get().ifPresent(location -> {
-            final LevelAccessor level = location.level();
+        location.get().ifPresent(location -> location.tryGetLevel().ifPresent(level -> {
             if (!(level instanceof final ServerLevel serverLevel)) {
                 return;
             }
@@ -58,8 +56,8 @@ public final class SoundCardItemDevice extends AbstractItemRPCDevice {
 
             final SoundEvent soundEvent = ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation(name));
             if (soundEvent == null) throw new IllegalArgumentException("Sound not found.");
-            level.playSound(null, location.pos(), soundEvent, SoundSource.BLOCKS, 1, 1);
-        });
+            level.playSound(null, location.blockPos(), soundEvent, SoundSource.BLOCKS, 1, 1);
+        }));
     }
 
     @Callback

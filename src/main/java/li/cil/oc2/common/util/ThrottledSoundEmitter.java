@@ -5,7 +5,6 @@ package li.cil.oc2.common.util;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.level.LevelAccessor;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -13,7 +12,7 @@ import java.util.Random;
 import java.util.function.Supplier;
 
 public final class ThrottledSoundEmitter {
-    private final Supplier<Optional<Location>> location;
+    private final Supplier<Optional<BlockLocation>> location;
     private final SoundEvent sound;
     private long minInterval;
     private SoundSource category;
@@ -26,7 +25,7 @@ public final class ThrottledSoundEmitter {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ThrottledSoundEmitter(final Supplier<Optional<Location>> location, final SoundEvent sound) {
+    public ThrottledSoundEmitter(final Supplier<Optional<BlockLocation>> location, final SoundEvent sound) {
         this.location = location;
         this.sound = sound;
         this.category = SoundSource.BLOCKS;
@@ -39,12 +38,11 @@ public final class ThrottledSoundEmitter {
         final long now = System.currentTimeMillis();
         if (now - lastEmittedTime > minInterval) {
             lastEmittedTime = now;
-            this.location.get().ifPresent(location -> {
-                final LevelAccessor level = location.level();
+            this.location.get().ifPresent(location -> location.tryGetLevel().ifPresent(level -> {
                 final float volume = sampleVolume(level.getRandom());
                 final float pitch = samplePitch(level.getRandom());
-                LevelUtils.playSound(level, location.pos(), sound, category, volume, pitch);
-            });
+                LevelUtils.playSound(level, location.blockPos(), sound, category, volume, pitch);
+            }));
         }
     }
 

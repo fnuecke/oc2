@@ -3,7 +3,7 @@
 package li.cil.oc2.common.bus.device.vm.item;
 
 import com.google.common.io.ByteStreams;
-import li.cil.oc2.common.util.Location;
+import li.cil.oc2.common.util.BlockLocation;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +20,7 @@ public final class HardDriveDeviceWithInitialData extends HardDriveDevice {
 
     ///////////////////////////////////////////////////////////////////
 
-    public HardDriveDeviceWithInitialData(final ItemStack identity, final BlockDevice base, final boolean readonly, final Supplier<Optional<Location>> location) {
+    public HardDriveDeviceWithInitialData(final ItemStack identity, final BlockDevice base, final boolean readonly, final Supplier<Optional<BlockLocation>> location) {
         super(identity, (int) base.getCapacity(), readonly, location);
         this.base = base;
     }

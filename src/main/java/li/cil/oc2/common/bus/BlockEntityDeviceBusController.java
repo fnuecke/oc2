@@ -4,23 +4,21 @@ package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.common.util.ChunkLocation;
 import li.cil.oc2.common.util.ChunkUtils;
 import li.cil.oc2.common.util.ServerScheduler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Optional;
 
 public final class BlockEntityDeviceBusController extends CommonDeviceBusController {
     private final Runnable onBusChunkLoadedStateChanged = this::scheduleBusScan;
-    private final HashSet<TrackedChunk> trackedChunks = new HashSet<>();
+    private final HashSet<ChunkLocation> trackedChunks = new HashSet<>();
     private final BlockEntity blockEntity;
 
     ///////////////////////////////////////////////////////////////////
@@ -35,10 +33,9 @@ public final class BlockEntityDeviceBusController extends CommonDeviceBusControl
     @Override
     public void setDeviceContainersChanged() {
         super.setDeviceContainersChanged();
-        for (final TrackedChunk trackedChunk : trackedChunks) {
-            trackedChunk.tryGetLevel().ifPresent(level -> {
-                ChunkUtils.setLazyUnsaved(level, trackedChunk.position());
-            });
+        for (final ChunkLocation trackedChunk : trackedChunks) {
+            trackedChunk.tryGetLevel().ifPresent(level ->
+                ChunkUtils.setLazyUnsaved(level, trackedChunk.position()));
         }
     }
 
@@ -61,30 +58,30 @@ public final class BlockEntityDeviceBusController extends CommonDeviceBusControl
             return;
         }
 
-        final HashSet<TrackedChunk> newTrackedChunks = new HashSet<>();
+        final HashSet<ChunkLocation> newTrackedChunks = new HashSet<>();
         for (final DeviceBusElement element : getElements()) {
             if (element instanceof final BlockDeviceBusElement blockElement) {
                 final LevelAccessor elementLevel = blockElement.getLevel();
                 final BlockPos elementPosition = blockElement.getPosition();
                 if (elementLevel != null) {
-                    newTrackedChunks.add(TrackedChunk.of(elementLevel, elementPosition));
-                    newTrackedChunks.add(TrackedChunk.of(elementLevel, elementPosition.relative(Direction.NORTH)));
-                    newTrackedChunks.add(TrackedChunk.of(elementLevel, elementPosition.relative(Direction.EAST)));
-                    newTrackedChunks.add(TrackedChunk.of(elementLevel, elementPosition.relative(Direction.SOUTH)));
-                    newTrackedChunks.add(TrackedChunk.of(elementLevel, elementPosition.relative(Direction.WEST)));
+                    newTrackedChunks.add(ChunkLocation.of(elementLevel, elementPosition));
+                    newTrackedChunks.add(ChunkLocation.of(elementLevel, elementPosition.relative(Direction.NORTH)));
+                    newTrackedChunks.add(ChunkLocation.of(elementLevel, elementPosition.relative(Direction.EAST)));
+                    newTrackedChunks.add(ChunkLocation.of(elementLevel, elementPosition.relative(Direction.SOUTH)));
+                    newTrackedChunks.add(ChunkLocation.of(elementLevel, elementPosition.relative(Direction.WEST)));
                 }
             }
         }
 
         // Do not track the chunk the controller itself is in -- this is unneeded because
         // we expect the controller to be disposed if its chunk is unloaded.
-        newTrackedChunks.remove(TrackedChunk.of(level, blockEntity.getBlockPos()));
+        newTrackedChunks.remove(ChunkLocation.of(level, blockEntity.getBlockPos()));
 
-        final HashSet<TrackedChunk> removedChunks = new HashSet<>(trackedChunks);
+        final HashSet<ChunkLocation> removedChunks = new HashSet<>(trackedChunks);
         removedChunks.removeAll(newTrackedChunks);
         removeListeners(removedChunks);
 
-        final HashSet<TrackedChunk> addedChunks = new HashSet<>(newTrackedChunks);
+        final HashSet<ChunkLocation> addedChunks = new HashSet<>(newTrackedChunks);
         newTrackedChunks.removeAll(trackedChunks);
         addListeners(addedChunks);
 
@@ -94,31 +91,21 @@ public final class BlockEntityDeviceBusController extends CommonDeviceBusControl
 
     ///////////////////////////////////////////////////////////////////
 
-    private void addListeners(final Collection<TrackedChunk> trackedChunks) {
-        for (final TrackedChunk trackedChunk : trackedChunks) {
+    private void addListeners(final Collection<ChunkLocation> trackedChunks) {
+        for (final ChunkLocation trackedChunk : trackedChunks) {
             trackedChunk.tryGetLevel().ifPresent(level -> {
-                ServerScheduler.scheduleOnLoad(level, trackedChunk.position, onBusChunkLoadedStateChanged);
-                ServerScheduler.scheduleOnUnload(level, trackedChunk.position, onBusChunkLoadedStateChanged);
+                ServerScheduler.scheduleOnLoad(level, trackedChunk.position(), onBusChunkLoadedStateChanged);
+                ServerScheduler.scheduleOnUnload(level, trackedChunk.position(), onBusChunkLoadedStateChanged);
             });
         }
     }
 
-    private void removeListeners(final Collection<TrackedChunk> trackedChunks) {
-        for (final TrackedChunk trackedChunk : trackedChunks) {
+    private void removeListeners(final Collection<ChunkLocation> trackedChunks) {
+        for (final ChunkLocation trackedChunk : trackedChunks) {
             trackedChunk.tryGetLevel().ifPresent(level -> {
-                ServerScheduler.cancelOnLoad(level, trackedChunk.position, onBusChunkLoadedStateChanged);
-                ServerScheduler.cancelOnUnload(level, trackedChunk.position, onBusChunkLoadedStateChanged);
+                ServerScheduler.cancelOnLoad(level, trackedChunk.position(), onBusChunkLoadedStateChanged);
+                ServerScheduler.cancelOnUnload(level, trackedChunk.position(), onBusChunkLoadedStateChanged);
             });
-        }
-    }
-
-    private record TrackedChunk(WeakReference<LevelAccessor> level, ChunkPos position) {
-        public static TrackedChunk of(final LevelAccessor level, final BlockPos position) {
-            return new TrackedChunk(new WeakReference<>(level), new ChunkPos(position));
-        }
-
-        public Optional<LevelAccessor> tryGetLevel() {
-            return Optional.ofNullable(level.get());
         }
     }
 }

@@ -3,7 +3,7 @@
 package li.cil.oc2.common.util;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.ext.ChunkAccessExt;
+import li.cil.oc2.common.mixin.ServerChunkCacheMixin;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.ChunkPos;
@@ -13,8 +13,18 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+
 @Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class ChunkUtils {
+    /**
+     * All chunks marked for lazy saving. The lazy unsaved state will be applied when
+     * chunks unload and when chunks get explicitly saved, via the {@link ServerChunkCacheMixin}.
+     */
+    private static final Set<ChunkAccess> UNSAVED_CHUNKS = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+
     /**
      * This will mark a chunk unsaved lazily, right before an attempt to save it would be made due
      * to of these events:
@@ -36,9 +46,7 @@ public final class ChunkUtils {
      * @param chunkAccess the chunk to set the flag for.
      */
     public static void setLazyUnsaved(final ChunkAccess chunkAccess) {
-        if (chunkAccess instanceof ChunkAccessExt ext) {
-            ext.setLazyUnsaved();
-        }
+        UNSAVED_CHUNKS.add(chunkAccess);
     }
 
     /**
@@ -99,10 +107,24 @@ public final class ChunkUtils {
         }
     }
 
+    /**
+     * Marks the specified as unsaved, if it was marked as lazy unsaved before
+     * and clears the lazy unsaved flags.
+     *
+     * @param chunk the chunk to apply the lazy unsaved state for.
+     */
+    public static void applyChunkLazyUnsaved() {
+        for (final ChunkAccess chunk : UNSAVED_CHUNKS) {
+            chunk.setUnsaved(true);
+        }
+        UNSAVED_CHUNKS.clear();
+    }
+
     @SubscribeEvent
     public static void handleChunkUnload(final ChunkEvent.Unload event) {
-        if (event.getChunk() instanceof ChunkAccessExt ext) {
-            ext.applyAndClearLazyUnsaved();
+        final ChunkAccess chunk = event.getChunk();
+        if (UNSAVED_CHUNKS.remove(chunk)) {
+            chunk.setUnsaved(true);
         }
     }
 }

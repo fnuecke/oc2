@@ -11,7 +11,7 @@ import li.cil.oc2.client.audio.LoopingSoundManager;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractBlockDeviceBusElement;
-import li.cil.oc2.common.bus.BlockEntityDeviceBusController;
+import li.cil.oc2.common.bus.BlockDeviceBusController;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -75,7 +75,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private final ComputerBusElement busElement = new ComputerBusElement();
     private final ComputerItemStackHandlers deviceItems = new ComputerItemStackHandlers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
-    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockEntityDeviceBusController(busElement, Config.computerEnergyPerTick, this), deviceItems::getDeviceAddressBase);
+    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockDeviceBusController(busElement, Config.computerEnergyPerTick, this), deviceItems::getDeviceAddressBase);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
 
     ///////////////////////////////////////////////////////////////////

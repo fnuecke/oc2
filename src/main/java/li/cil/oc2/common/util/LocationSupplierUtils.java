@@ -13,11 +13,11 @@ import java.util.function.Supplier;
 
 public final class LocationSupplierUtils {
     public static Supplier<Optional<BlockLocation>> of(final BlockEntity blockEntity) {
-        return () -> BlockLocation.of(blockEntity);
+        return () -> BlockLocation.ofOptional(blockEntity);
     }
 
     public static Supplier<Optional<BlockLocation>> of(final Entity entity) {
-        return () -> BlockLocation.of(entity);
+        return () -> BlockLocation.ofOptional(entity);
     }
 
     public static Supplier<Optional<BlockLocation>> of(final BlockDeviceQuery query) {
@@ -28,12 +28,12 @@ public final class LocationSupplierUtils {
     public static Supplier<Optional<BlockLocation>> of(final ItemDeviceQuery query) {
         final Optional<BlockEntity> blockEntity = query.getContainerBlockEntity();
         if (blockEntity.isPresent()) {
-            return () -> BlockLocation.of(blockEntity.get());
+            return () -> BlockLocation.ofOptional(blockEntity.get());
         }
 
         final Optional<Entity> entity = query.getContainerEntity();
         if (entity.isPresent()) {
-            return () -> BlockLocation.of(entity.get());
+            return () -> BlockLocation.ofOptional(entity.get());
         }
 
         return Optional::empty;

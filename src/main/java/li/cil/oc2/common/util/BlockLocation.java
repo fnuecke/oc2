@@ -12,17 +12,25 @@ import java.util.Objects;
 import java.util.Optional;
 
 public record BlockLocation(WeakReference<LevelAccessor> level, BlockPos blockPos) {
-    public static Optional<BlockLocation> of(final Entity entity) {
+    public static BlockLocation of(final Entity entity) {
+        return new BlockLocation(new WeakReference<>(entity.level), entity.blockPosition());
+    }
+
+    public static BlockLocation of(final BlockEntity blockEntity) {
+        return new BlockLocation(new WeakReference<>(blockEntity.getLevel()), blockEntity.getBlockPos());
+    }
+
+    public static Optional<BlockLocation> ofOptional(final Entity entity) {
         if (entity.isAlive()) {
-            return Optional.of(new BlockLocation(new WeakReference<>(entity.level), entity.blockPosition()));
+            return Optional.of(of(entity));
         } else {
             return Optional.empty();
         }
     }
 
-    public static Optional<BlockLocation> of(final BlockEntity blockEntity) {
+    public static Optional<BlockLocation> ofOptional(final BlockEntity blockEntity) {
         if (!blockEntity.isRemoved()) {
-            return Optional.of(new BlockLocation(new WeakReference<>(blockEntity.getLevel()), blockEntity.getBlockPos()));
+            return Optional.of(of(blockEntity));
         } else {
             return Optional.empty();
         }

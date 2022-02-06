@@ -18,8 +18,8 @@ public final class ServerScheduler {
     private static final TickScheduler globalTickScheduler = new TickScheduler();
     private static final WeakHashMap<LevelAccessor, TickScheduler> levelTickSchedulers = new WeakHashMap<>();
     private static final WeakHashMap<LevelAccessor, SimpleScheduler> levelUnloadSchedulers = new WeakHashMap<>();
-    private static final WeakHashMap<LevelAccessor, HashMap<ChunkPos, SimpleScheduler>> chunkLoadSchedulers = new WeakHashMap<>();
-    private static final WeakHashMap<LevelAccessor, HashMap<ChunkPos, SimpleScheduler>> chunkUnloadSchedulers = new WeakHashMap<>();
+    private static final WeakHashMap<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> chunkLoadSchedulers = new WeakHashMap<>();
+    private static final WeakHashMap<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> chunkUnloadSchedulers = new WeakHashMap<>();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -61,49 +61,49 @@ public final class ServerScheduler {
         }
     }
 
-    public static void scheduleOnLoad(final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
+    public static void subscribeOnLoad(final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
         chunkLoadSchedulers
             .computeIfAbsent(level, unused -> new HashMap<>())
-            .computeIfAbsent(chunkPos, unused -> new SimpleScheduler())
+            .computeIfAbsent(chunkPos, unused -> new ListenerCollection())
             .add(listener);
     }
 
-    public static void cancelOnLoad(@Nullable final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
+    public static void unsubscribeOnLoad(@Nullable final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
         if (level == null) {
             return;
         }
 
-        final HashMap<ChunkPos, SimpleScheduler> chunkMap = chunkLoadSchedulers.get(level);
+        final HashMap<ChunkPos, ListenerCollection> chunkMap = chunkLoadSchedulers.get(level);
         if (chunkMap == null) {
             return;
         }
 
-        final SimpleScheduler scheduler = chunkMap.get(chunkPos);
-        if (scheduler != null) {
-            scheduler.remove(listener);
+        final ListenerCollection listeners = chunkMap.get(chunkPos);
+        if (listeners != null) {
+            listeners.remove(listener);
         }
     }
 
-    public static void scheduleOnUnload(final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
+    public static void subscribeOnUnload(final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
         chunkUnloadSchedulers
             .computeIfAbsent(level, unused -> new HashMap<>())
-            .computeIfAbsent(chunkPos, unused -> new SimpleScheduler())
+            .computeIfAbsent(chunkPos, unused -> new ListenerCollection())
             .add(listener);
     }
 
-    public static void cancelOnUnload(@Nullable final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
+    public static void unsubscribeOnUnload(@Nullable final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
         if (level == null) {
             return;
         }
 
-        final HashMap<ChunkPos, SimpleScheduler> chunkMap = chunkUnloadSchedulers.get(level);
+        final HashMap<ChunkPos, ListenerCollection> chunkMap = chunkUnloadSchedulers.get(level);
         if (chunkMap == null) {
             return;
         }
 
-        final SimpleScheduler scheduler = chunkMap.get(chunkPos);
-        if (scheduler != null) {
-            scheduler.remove(listener);
+        final ListenerCollection listeners = chunkMap.get(chunkPos);
+        if (listeners != null) {
+            listeners.remove(listener);
         }
     }
 
@@ -135,27 +135,27 @@ public final class ServerScheduler {
 
         @SubscribeEvent
         public static void handleChunkLoad(final ChunkEvent.Load event) {
-            final HashMap<ChunkPos, SimpleScheduler> chunkMap = chunkLoadSchedulers.get(event.getWorld());
+            final HashMap<ChunkPos, ListenerCollection> chunkMap = chunkLoadSchedulers.get(event.getWorld());
             if (chunkMap == null) {
                 return;
             }
 
-            final SimpleScheduler scheduler = chunkMap.get(event.getChunk().getPos());
-            if (scheduler != null) {
-                scheduler.run();
+            final ListenerCollection listeners = chunkMap.get(event.getChunk().getPos());
+            if (listeners != null) {
+                listeners.run();
             }
         }
 
         @SubscribeEvent
         public static void handleChunkUnload(final ChunkEvent.Unload event) {
-            final HashMap<ChunkPos, SimpleScheduler> chunkMap = chunkUnloadSchedulers.get(event.getWorld());
+            final HashMap<ChunkPos, ListenerCollection> chunkMap = chunkUnloadSchedulers.get(event.getWorld());
             if (chunkMap == null) {
                 return;
             }
 
-            final SimpleScheduler scheduler = chunkMap.get(event.getChunk().getPos());
-            if (scheduler != null) {
-                scheduler.run();
+            final ListenerCollection listeners = chunkMap.get(event.getChunk().getPos());
+            if (listeners != null) {
+                listeners.run();
             }
         }
 
@@ -233,6 +233,24 @@ public final class ServerScheduler {
             }
 
             listeners.clear();
+        }
+    }
+
+    private static final class ListenerCollection {
+        private final Set<Runnable> listeners = Collections.newSetFromMap(new WeakHashMap<>());
+
+        public void add(final Runnable listener) {
+            listeners.add(listener);
+        }
+
+        public void remove(final Runnable listener) {
+            listeners.remove(listener);
+        }
+
+        public void run() {
+            for (final Runnable runnable : listeners) {
+                runnable.run();
+            }
         }
     }
 }

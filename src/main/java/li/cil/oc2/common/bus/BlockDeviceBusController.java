@@ -117,8 +117,8 @@ public final class BlockDeviceBusController extends CommonDeviceBusController {
     private void addListeners(final Collection<ChunkLocation> trackedChunks) {
         for (final ChunkLocation trackedChunk : trackedChunks) {
             trackedChunk.tryGetLevel().ifPresent(level -> {
-                ServerScheduler.scheduleOnLoad(level, trackedChunk.position(), onBusChunkLoadedStateChanged);
-                ServerScheduler.scheduleOnUnload(level, trackedChunk.position(), onBusChunkLoadedStateChanged);
+                ServerScheduler.subscribeOnLoad(level, trackedChunk.position(), onBusChunkLoadedStateChanged);
+                ServerScheduler.subscribeOnUnload(level, trackedChunk.position(), onBusChunkLoadedStateChanged);
             });
         }
     }
@@ -126,8 +126,8 @@ public final class BlockDeviceBusController extends CommonDeviceBusController {
     private void removeListeners(final Collection<ChunkLocation> trackedChunks) {
         for (final ChunkLocation trackedChunk : trackedChunks) {
             trackedChunk.tryGetLevel().ifPresent(level -> {
-                ServerScheduler.cancelOnLoad(level, trackedChunk.position(), onBusChunkLoadedStateChanged);
-                ServerScheduler.cancelOnUnload(level, trackedChunk.position(), onBusChunkLoadedStateChanged);
+                ServerScheduler.unsubscribeOnLoad(level, trackedChunk.position(), onBusChunkLoadedStateChanged);
+                ServerScheduler.unsubscribeOnUnload(level, trackedChunk.position(), onBusChunkLoadedStateChanged);
             });
         }
     }

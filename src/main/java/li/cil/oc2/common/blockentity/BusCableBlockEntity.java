@@ -419,16 +419,16 @@ public final class BusCableBlockEntity extends ModBlockEntity {
 
         private void addListener() {
             if (level != null && !hasRegisteredListener) {
-                ServerScheduler.scheduleOnLoad(level, chunkPos, onChunkLoadedStateChanged);
-                ServerScheduler.scheduleOnUnload(level, chunkPos, onChunkLoadedStateChanged);
+                ServerScheduler.subscribeOnLoad(level, chunkPos, onChunkLoadedStateChanged);
+                ServerScheduler.subscribeOnUnload(level, chunkPos, onChunkLoadedStateChanged);
             }
             hasRegisteredListener = true;
         }
 
         private void removeListener() {
             if (level != null && hasRegisteredListener) {
-                ServerScheduler.cancelOnLoad(level, chunkPos, onChunkLoadedStateChanged);
-                ServerScheduler.cancelOnUnload(level, chunkPos, onChunkLoadedStateChanged);
+                ServerScheduler.unsubscribeOnLoad(level, chunkPos, onChunkLoadedStateChanged);
+                ServerScheduler.unsubscribeOnUnload(level, chunkPos, onChunkLoadedStateChanged);
             }
             hasRegisteredListener = false;
         }

@@ -282,6 +282,10 @@ public final class ProjectorLoadBalancer {
             assert runningEncode == null || runningEncode.isDone();
             runningEncode = ENCODER_WORKERS.submit(() -> {
                 final ByteBuffer frame = frameSupplier.get();
+                if (frame == null) {
+                    return;
+                }
+
                 final int budgetCost = frame.limit() * players.size();
                 BUDGET.accumulateAndGet(budgetCost, (budget, cost) -> budget - cost);
 

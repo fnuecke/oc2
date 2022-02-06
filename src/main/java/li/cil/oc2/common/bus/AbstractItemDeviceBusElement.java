@@ -86,6 +86,10 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
     }
 
     protected void collectSyntheticDevices(final ItemDeviceQuery query, final HashSet<ItemEntry> entries) {
+        if (entries.isEmpty()) {
+            return;
+        }
+
         final ResourceLocation registryName = query.getItemStack().getItem().getRegistryName();
         if (registryName != null) {
             final String itemName = registryName.toString();

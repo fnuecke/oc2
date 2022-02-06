@@ -81,6 +81,9 @@ public final class ServerScheduler {
         final ListenerCollection listeners = chunkMap.get(chunkPos);
         if (listeners != null) {
             listeners.remove(listener);
+            if (listeners.isEmpty()) {
+                chunkMap.remove(chunkPos);
+            }
         }
     }
 
@@ -104,6 +107,9 @@ public final class ServerScheduler {
         final ListenerCollection listeners = chunkMap.get(chunkPos);
         if (listeners != null) {
             listeners.remove(listener);
+            if (listeners.isEmpty()) {
+                chunkMap.remove(chunkPos);
+            }
         }
     }
 
@@ -245,6 +251,10 @@ public final class ServerScheduler {
 
         public void remove(final Runnable listener) {
             listeners.remove(listener);
+        }
+
+        public boolean isEmpty() {
+            return listeners.isEmpty();
         }
 
         public void run() {

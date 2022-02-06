@@ -3,7 +3,7 @@
     "compatibilityLevel": "JAVA_17",
     "required": true,
     "package": "li.cil.oc2.common.mixin",
-    "refmap": "oc2.refmap.json",
+    "refmap": "mixins.oc2.refmap.json",
     "mixins": [
         "ChunkAccessMixin",
         "ChunkMapMixin"

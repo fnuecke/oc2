@@ -460,7 +460,7 @@ public final class BusCableBlock extends BaseEntityBlock {
     private static void onConnectionTypeChanged(final LevelAccessor level, final BlockPos pos, @Nullable final Direction face, final boolean neighborConnectionChanged) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof final BusCableBlockEntity busCable) {
-            busCable.handleConnectivityChanged(face, neighborConnectionChanged);
+            busCable.handleConfigurationChanged(face, neighborConnectionChanged);
         }
     }
 

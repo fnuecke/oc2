@@ -154,7 +154,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         busElement.handleNeighborChanged(pos);
     }
 
-    public void handleConnectivityChanged(@Nullable final Direction side, final boolean neighborConnectionChanged) {
+    public void handleConfigurationChanged(@Nullable final Direction side, final boolean neighborConnectionChanged) {
         if (side == null) {
             busElement.scheduleScan();
         } else {

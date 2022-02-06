@@ -262,7 +262,9 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     }
 
     private void updateProjectorState() {
-        if (level != null && !level.isClientSide()) {
+        // We may get called from unmount() of our device, which can be triggered due to chunk unload.
+        // Hence, we need to check the loaded state here, lest we ghost load the chunk, breaking everything.
+        if (level != null && !level.isClientSide() && level.isLoaded(getBlockPos())) {
             level.setBlock(getBlockPos(), getBlockState().setValue(ProjectorBlock.LIT, isProjecting), Block.UPDATE_CLIENTS);
 
             Network.sendToClientsTrackingBlockEntity(new ProjectorStateMessage(this, isProjecting && hasEnergy), this);

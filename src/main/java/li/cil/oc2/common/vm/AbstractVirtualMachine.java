@@ -25,7 +25,6 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
-import java.util.Objects;
 
 public abstract class AbstractVirtualMachine implements VirtualMachine {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -387,12 +386,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     }
 
     private void setBootError(@Nullable final Component value) {
-        if (Objects.equals(value, bootError)) {
-            return;
-        }
-
         bootError = value;
-
         handleBootErrorChanged(value);
     }
 

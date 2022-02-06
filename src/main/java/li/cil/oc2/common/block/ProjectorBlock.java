@@ -49,7 +49,8 @@ public final class ProjectorBlock extends HorizontalDirectionalBlock implements 
             .lightLevel(state -> state.getValue(LIT) ? 8 : 0)
             .strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any()
-            .setValue(FACING, Direction.NORTH));
+            .setValue(FACING, Direction.NORTH)
+            .setValue(LIT, false));
     }
 
     ///////////////////////////////////////////////////////////////////

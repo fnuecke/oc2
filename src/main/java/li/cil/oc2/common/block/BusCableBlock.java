@@ -229,7 +229,7 @@ public final class BusCableBlock extends BaseEntityBlock {
                     // NB: leave wrenching logic up to wrench when the to-be-removed interface is the last
                     //     part of this bus. This ensures we properly remove the block itself without having
                     //     to duplicate the logic needed for that.
-                    if (getPartCount(state) > 1 && (tryRemovePlug(state, level, pos, player, hit) || tryRemoveCable(state, level, pos, player))) {
+                    if (getPartCount(state) > 1 && (tryRemoveInterface(state, level, pos, player, hit) || tryRemoveCable(state, level, pos, player))) {
                         return InteractionResult.sidedSuccess(level.isClientSide());
                     }
                 }
@@ -411,7 +411,7 @@ public final class BusCableBlock extends BaseEntityBlock {
         return partCount;
     }
 
-    private static boolean tryRemovePlug(final BlockState state, final Level level, final BlockPos pos, final Player player, final BlockHitResult hit) {
+    private static boolean tryRemoveInterface(final BlockState state, final Level level, final BlockPos pos, final Player player, final BlockHitResult hit) {
         final Direction side = getHitSide(pos, hit);
         final EnumProperty<ConnectionType> property = FACING_TO_CONNECTION_MAP.get(side);
 

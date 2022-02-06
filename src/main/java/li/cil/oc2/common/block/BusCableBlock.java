@@ -420,13 +420,14 @@ public final class BusCableBlock extends BaseEntityBlock {
         }
 
         final BlockPos neighborPos = pos.relative(side);
-        if (state.getValue(HAS_CABLE) && canHaveCableTo(level.getBlockState(neighborPos), side.getOpposite())) {
+        final boolean isReplacedByCable = state.getValue(HAS_CABLE) && canHaveCableTo(level.getBlockState(neighborPos), side.getOpposite());
+        if (isReplacedByCable) {
             level.setBlockAndUpdate(pos, state.setValue(property, ConnectionType.CABLE));
         } else {
             level.setBlockAndUpdate(pos, state.setValue(property, ConnectionType.NONE));
         }
 
-        handlePartRemoved(state, level, pos, side, player, new ItemStack(Items.BUS_INTERFACE.get()));
+        handlePartRemoved(state, level, pos, side, player, new ItemStack(Items.BUS_INTERFACE.get()), isReplacedByCable);
 
         return true;
     }
@@ -438,13 +439,13 @@ public final class BusCableBlock extends BaseEntityBlock {
 
         level.setBlockAndUpdate(pos, state.setValue(HAS_CABLE, false));
 
-        handlePartRemoved(state, level, pos, null, player, new ItemStack(Items.BUS_CABLE.get()));
+        handlePartRemoved(state, level, pos, null, player, new ItemStack(Items.BUS_CABLE.get()), true);
 
         return true;
     }
 
-    private static void handlePartRemoved(final BlockState state, final Level level, final BlockPos pos, @Nullable final Direction side, final Player player, final ItemStack drop) {
-        onConnectionTypeChanged(level, pos, side, false);
+    private static void handlePartRemoved(final BlockState state, final Level level, final BlockPos pos, @Nullable final Direction side, final Player player, final ItemStack drop, final boolean neighborConnectionChanged) {
+        onConnectionTypeChanged(level, pos, side, neighborConnectionChanged);
 
         if (!player.isCreative() && level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) {
             ItemStackUtils.spawnAsEntity(level, pos, drop, side).ifPresent(entity -> {

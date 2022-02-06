@@ -133,7 +133,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
     public void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof final ComputerBlockEntity computer) {
-            computer.handleNeighborChanged(changedBlockPos);
+            computer.handleNeighborChanged();
         }
     }
 

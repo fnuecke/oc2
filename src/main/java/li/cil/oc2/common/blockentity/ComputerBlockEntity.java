@@ -132,10 +132,9 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         return terminalUsers;
     }
 
-    public void handleNeighborChanged(final BlockPos pos) {
+    public void handleNeighborChanged() {
         if (level != null && !level.isClientSide()) {
             virtualMachine.busController.scheduleBusScan();
-            busElement.handleNeighborChanged(pos);
         }
     }
 

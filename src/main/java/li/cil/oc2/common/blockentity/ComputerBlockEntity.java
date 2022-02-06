@@ -379,7 +379,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         @Override
         protected boolean canDetectDevicesTowards(@Nullable final Direction direction) {
-            return false;
+            return direction == null;
         }
 
         @Override

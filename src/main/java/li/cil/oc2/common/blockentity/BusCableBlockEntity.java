@@ -78,7 +78,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         if (!level.isClientSide()) {
             final BusInterfaceNameMessage message = new BusInterfaceNameMessage.ToClient(this, side, interfaceNames[side.get3DDataValue()]);
             Network.sendToClientsTrackingBlockEntity(message, this);
-            handleNeighborChanged(getBlockPos().relative(side));
+            busElement.updateDevicesForNeighbor(side);
         }
     }
 
@@ -151,24 +151,26 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     }
 
     public void handleNeighborChanged(final BlockPos pos) {
-        busElement.handleNeighborChanged(pos);
+        final BlockPos toPos = pos.subtract(getBlockPos());
+        final Direction side = Direction.fromNormal(toPos.getX(), toPos.getY(), toPos.getZ());
+        if (side != null) {
+            busElement.updateDevicesForNeighbor(side);
+        }
     }
 
-    public void handleConfigurationChanged(@Nullable final Direction side, final boolean neighborConnectionChanged) {
-        if (side == null) {
-            busElement.scheduleScan();
-        } else {
+    public void handleConfigurationChanged(@Nullable final Direction side, final boolean neighborConnectivityChanged) {
+        if (side != null) {
             // Whenever the type changes we can clear it. Technically only needed
             // for the interface->none transition, but all others are no-ops, so
             // we can just do this.
             setInterfaceName(side, "");
 
             invalidateCapability(Capabilities.DEVICE_BUS_ELEMENT, side);
-            handleNeighborChanged(getBlockPos().relative(side));
+            busElement.updateDevicesForNeighbor(side);
+        }
 
-            if (neighborConnectionChanged) {
-                busElement.scheduleScan();
-            }
+        if (neighborConnectivityChanged) {
+            busElement.scheduleScan();
         }
     }
 
@@ -224,8 +226,12 @@ public final class BusCableBlockEntity extends ModBlockEntity {
                 return;
             }
 
-            busElement.initialize();
+            for (Direction side : Direction.values()) {
+                busElement.updateDevicesForNeighbor(side);
+            }
         });
+
+        scheduleBusScanInAdjacentBusElements();
     }
 
     @Override
@@ -264,6 +270,30 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         return trimmed.length() > 32 ? trimmed.substring(0, 32) : trimmed;
     }
 
+    private void scheduleBusScanInAdjacentBusElements() {
+        // This is called from onLoad, so we cannot access neighbors yet.
+        assert level != null;
+        ServerScheduler.schedule(level, () -> {
+            if (isRemoved()) {
+                return;
+            }
+
+            final Level level = requireNonNull(getLevel());
+            final BlockPos pos = getBlockPos();
+            for (final Direction direction : Constants.DIRECTIONS) {
+                final BlockPos neighborPos = pos.relative(direction);
+                final BlockEntity blockEntity = LevelUtils.getBlockEntityIfChunkExists(level, neighborPos);
+                if (blockEntity == null) {
+                    continue;
+                }
+
+                final LazyOptional<DeviceBusElement> capability = blockEntity
+                    .getCapability(Capabilities.DEVICE_BUS_ELEMENT, direction.getOpposite());
+                capability.ifPresent(DeviceBus::scheduleScan);
+            }
+        });
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     private final class BusCableBusElement extends AbstractBlockDeviceBusElement {
@@ -292,12 +322,12 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
 
         @Override
-        protected void collectSyntheticDevices(final Level level, final BlockPos pos, @Nullable final Direction direction, final HashSet<BlockEntry> entries) {
-            super.collectSyntheticDevices(level, pos, direction, entries);
-            if (direction != null) {
-                final String interfaceName = interfaceNames[direction.get3DDataValue()];
+        protected void collectSyntheticDevices(final Level level, final BlockPos pos, @Nullable final Direction side, final HashSet<BlockEntry> entries) {
+            super.collectSyntheticDevices(level, pos, side, entries);
+            if (side != null) {
+                final String interfaceName = interfaceNames[side.get3DDataValue()];
                 if (!StringUtil.isNullOrEmpty(interfaceName)) {
-                    entries.add(new BlockEntry(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)), pos));
+                    entries.add(new BlockEntry(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)), side));
                 }
             }
         }

@@ -274,13 +274,6 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         assert level != null;
 
         virtualMachine.state.builtinDevices.rtcMinecraft.setLevel(level);
-        ServerScheduler.schedule(level, () -> {
-            if (isRemoved()) {
-                return;
-            }
-
-            busElement.initialize();
-        });
     }
 
     @Override
@@ -360,10 +353,12 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         public void addOwnDevices() {
             assert level != null;
 
-            for (final BlockEntry info : collectDevices(level, getPosition(), null).getEntries()) {
-                devices.add(info.getDevice());
-                super.addDevice(info.getDevice());
-            }
+            collectDevices(level, getPosition(), null).ifPresent(result -> {
+                for (final BlockEntry info : result.getEntries()) {
+                    devices.add(info.getDevice());
+                    super.addDevice(info.getDevice());
+                }
+            });
         }
 
         @Override

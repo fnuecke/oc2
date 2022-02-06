@@ -116,6 +116,21 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
 
     ///////////////////////////////////////////////////////////////////
 
+    protected final void setEntriesForGroupUnloaded(final int index) {
+        final HashSet<TEntry> oldEntries = groups.get(index);
+        if (oldEntries.isEmpty()) {
+            return;
+        }
+
+        saveGroup(index);
+
+        final HashSet<TEntry> removedEntries = new HashSet<>(oldEntries);
+        for (final TEntry entry : removedEntries) {
+            devices.removeInt(entry.getDevice());
+            onEntryRemoved(entry);
+        }
+    }
+
     protected final void setEntriesForGroup(final int index, final QueryResult queryResult) {
         final Set<TEntry> newEntries = queryResult.getEntries();
         final HashSet<TEntry> oldEntries = groups.get(index);

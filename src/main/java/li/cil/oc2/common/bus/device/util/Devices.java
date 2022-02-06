@@ -49,9 +49,9 @@ public final class Devices {
         return new ItemQuery(entity, stack);
     }
 
-    public static List<Invalidatable<BlockDeviceInfo>> getDevices(final BlockDeviceQuery query) {
+    public static Optional<List<Invalidatable<BlockDeviceInfo>>> getDevices(final BlockDeviceQuery query) {
         if (!query.getLevel().isLoaded(query.getQueryPosition())) {
-            return Collections.emptyList();
+            return Optional.empty();
         }
 
         final IForgeRegistry<BlockDeviceProvider> registry = Providers.BLOCK_DEVICE_PROVIDER_REGISTRY.get();
@@ -62,7 +62,8 @@ public final class Devices {
                 devices.add(device.mapWithDependency(d -> new BlockDeviceInfo(provider, d)));
             }
         }
-        return devices;
+
+        return Optional.of(devices);
     }
 
     public static List<ItemDeviceInfo> getDevices(final ItemDeviceQuery query) {

@@ -37,6 +37,7 @@ public final class ModShaders {
         return projectorsShader;
     }
 
+    @SuppressWarnings("ConstantConditions") // Setting samples to null to clear them is fine.
     public static void configureProjectorsShader(
         final RenderTarget target,
         final Matrix4f inverseCameraMatrix,
@@ -51,10 +52,15 @@ public final class ModShaders {
         projectorsShader.setSampler("MainCameraDepth", target.getDepthTextureId());
         projectorsShader.safeGetUniform("InverseMainCamera").set(inverseCameraMatrix);
 
-        for (int i = 0; i < projectorCount; i++) {
-            projectorsShader.setSampler(PROJECTOR_COLOR_NAMES[i], colors[i].getId());
-            projectorsShader.setSampler(PROJECTOR_DEPTH_NAMES[i], depths[i].getDepthTextureId());
-            projectorsShader.safeGetUniform(PROJECTOR_CAMERA_NAMES[i]).set(projectorCameraMatrices[i]);
+        for (int i = 0; i < MAX_PROJECTORS; i++) {
+            if (i < projectorCount) {
+                projectorsShader.setSampler(PROJECTOR_COLOR_NAMES[i], colors[i].getId());
+                projectorsShader.setSampler(PROJECTOR_DEPTH_NAMES[i], depths[i].getDepthTextureId());
+                projectorsShader.safeGetUniform(PROJECTOR_CAMERA_NAMES[i]).set(projectorCameraMatrices[i]);
+            } else {
+                projectorsShader.setSampler(PROJECTOR_COLOR_NAMES[i], null);
+                projectorsShader.setSampler(PROJECTOR_DEPTH_NAMES[i], null);
+            }
         }
     }
 

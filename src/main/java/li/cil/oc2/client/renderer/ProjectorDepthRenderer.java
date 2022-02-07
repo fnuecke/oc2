@@ -48,6 +48,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -181,6 +182,7 @@ public final class ProjectorDepthRenderer {
             renderProjectorColors(minecraft, event.getPoseStack().last().pose(), event.getProjectionMatrix(), projectorCount);
         } finally {
             VISIBLE_PROJECTORS.clear();
+            Arrays.fill(PROJECTOR_COLOR_TARGETS, null);
         }
     }
 

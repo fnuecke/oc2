@@ -11,6 +11,7 @@ import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.TextComponent;
@@ -19,6 +20,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -46,6 +48,23 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
 
     public static boolean isInputCaptureEnabled() {
         return isInputCaptureEnabled;
+    }
+
+    public List<Rect2i> getExtraAreas() {
+        final List<Rect2i> list = new ArrayList<>();
+        list.add(new Rect2i(
+            leftPos - Sprites.SIDEBAR_3.width, topPos + CONTROLS_TOP,
+            Sprites.SIDEBAR_3.width, Sprites.SIDEBAR_3.height
+        ));
+
+        if (shouldRenderEnergyBar()) {
+            list.add(new Rect2i(
+                leftPos - Sprites.SIDEBAR_2.width, topPos + ENERGY_TOP,
+                Sprites.SIDEBAR_2.width, Sprites.SIDEBAR_2.height
+            ));
+        }
+
+        return list;
     }
 
     @Override
@@ -171,7 +190,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
 
     @Override
     protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
-        Sprites.SIDEBAR_3.draw(stack, leftPos - Sprites.SIDEBAR_2.width, topPos + CONTROLS_TOP);
+        Sprites.SIDEBAR_3.draw(stack, leftPos - Sprites.SIDEBAR_3.width, topPos + CONTROLS_TOP);
 
         if (shouldRenderEnergyBar()) {
             final int x = leftPos - Sprites.SIDEBAR_2.width;

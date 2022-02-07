@@ -13,6 +13,7 @@ import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -20,6 +21,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -34,6 +36,25 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
 
     public AbstractMachineInventoryScreen(final T container, final Inventory playerInventory, final Component title) {
         super(container, playerInventory, title);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    public List<Rect2i> getExtraAreas() {
+        final List<Rect2i> list = new ArrayList<>();
+        list.add(new Rect2i(
+            leftPos - Sprites.SIDEBAR_2.width, topPos + CONTROLS_TOP,
+            Sprites.SIDEBAR_2.width, Sprites.SIDEBAR_2.height
+        ));
+
+        if (shouldRenderEnergyBar()) {
+            list.add(new Rect2i(
+                leftPos - Sprites.SIDEBAR_2.width, topPos + ENERGY_TOP,
+                Sprites.SIDEBAR_2.width, Sprites.SIDEBAR_2.height
+            ));
+        }
+
+        return list;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -76,8 +97,6 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
             }
         }.withTooltip(new TranslatableComponent(Constants.MACHINE_OPEN_TERMINAL_CAPTION)));
     }
-
-    ///////////////////////////////////////////////////////////////////
 
     @Override
     protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {

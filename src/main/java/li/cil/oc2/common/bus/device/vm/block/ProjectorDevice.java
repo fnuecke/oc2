@@ -31,7 +31,6 @@ public final class ProjectorDevice extends IdentityProxy<ProjectorBlockEntity> i
     ///////////////////////////////////////////////////////////////
 
     @Nullable private SimpleFramebufferDevice device;
-    private final Object deviceLock = new Object();
 
     ///////////////////////////////////////////////////////////////
 
@@ -47,15 +46,13 @@ public final class ProjectorDevice extends IdentityProxy<ProjectorBlockEntity> i
     ///////////////////////////////////////////////////////////////
 
     public boolean hasChanges() {
-        synchronized (deviceLock) {
-            return device != null && device.hasChanges();
-        }
+        final SimpleFramebufferDevice framebufferDevice = device;
+        return framebufferDevice != null && framebufferDevice.hasChanges();
     }
 
     public boolean applyChanges(final Picture picture) {
-        synchronized (deviceLock) {
-            return device != null && device.applyChanges(picture);
-        }
+        final SimpleFramebufferDevice framebufferDevice = device;
+        return framebufferDevice != null && framebufferDevice.applyChanges(picture);
     }
 
     @Override
@@ -76,11 +73,10 @@ public final class ProjectorDevice extends IdentityProxy<ProjectorBlockEntity> i
 
     @Override
     public void unmount() {
-        synchronized (deviceLock) {
-            if (device != null) {
-                device.close();
-                device = null;
-            }
+        final SimpleFramebufferDevice framebufferDevice = device;
+        device = null;
+        if (framebufferDevice != null) {
+            framebufferDevice.close();
         }
 
         if (blobHandle != null) {

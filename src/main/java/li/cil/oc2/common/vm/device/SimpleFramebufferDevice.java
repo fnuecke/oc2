@@ -43,8 +43,11 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
     ///////////////////////////////////////////////////////////////
 
     public void close() {
-        length = 0;
-        DirectByteBufferUtils.release(buffer);
+        synchronized (buffer) {
+            length = 0;
+            dirtyLines.clear();
+            DirectByteBufferUtils.release(buffer);
+        }
     }
 
     public int getWidth() {
@@ -64,29 +67,31 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
             return false;
         }
 
-        final int[][] quadrant = conversionBuffer.get();
-        final byte[][] pictureData = picture.getData();
-        for (int halfRow = dirtyLines.nextSetBit(0); halfRow >= 0; halfRow = dirtyLines.nextSetBit(halfRow + 1)) {
-            dirtyLines.clear(halfRow);
+        synchronized (buffer) {
+            final int[][] quadrant = conversionBuffer.get();
+            final byte[][] pictureData = picture.getData();
+            for (int halfRow = dirtyLines.nextSetBit(0); halfRow >= 0; halfRow = dirtyLines.nextSetBit(halfRow + 1)) {
+                dirtyLines.clear(halfRow);
 
-            final int row = halfRow * 2;
-            int bufferIndex = row * width * STRIDE, lumaIndex = row * width, chromaIndex = halfRow * (width / 2);
-            for (int halfCol = 0; halfCol < width / 2; halfCol++, bufferIndex += STRIDE * 2, lumaIndex += 2, chromaIndex++) {
-                r5g6b5ToYuv420(this.buffer.getShort(bufferIndex) & 0xFFFF, quadrant[0]);
-                pictureData[0][lumaIndex] = (byte) quadrant[0][0];
+                final int row = halfRow * 2;
+                int bufferIndex = row * width * STRIDE, lumaIndex = row * width, chromaIndex = halfRow * (width / 2);
+                for (int halfCol = 0; halfCol < width / 2; halfCol++, bufferIndex += STRIDE * 2, lumaIndex += 2, chromaIndex++) {
+                    r5g6b5ToYuv420(this.buffer.getShort(bufferIndex) & 0xFFFF, quadrant[0]);
+                    pictureData[0][lumaIndex] = (byte) quadrant[0][0];
 
-                r5g6b5ToYuv420(this.buffer.getShort(bufferIndex + STRIDE) & 0xFFFF, quadrant[1]);
-                pictureData[0][lumaIndex + 1] = (byte) quadrant[1][0];
+                    r5g6b5ToYuv420(this.buffer.getShort(bufferIndex + STRIDE) & 0xFFFF, quadrant[1]);
+                    pictureData[0][lumaIndex + 1] = (byte) quadrant[1][0];
 
-                r5g6b5ToYuv420(this.buffer.getShort(bufferIndex + width * STRIDE) & 0xFFFF, quadrant[2]);
-                pictureData[0][lumaIndex + width] = (byte) quadrant[2][0];
+                    r5g6b5ToYuv420(this.buffer.getShort(bufferIndex + width * STRIDE) & 0xFFFF, quadrant[2]);
+                    pictureData[0][lumaIndex + width] = (byte) quadrant[2][0];
 
-                r5g6b5ToYuv420(this.buffer.getShort(bufferIndex + width * STRIDE + STRIDE) & 0xFFFF, quadrant[3]);
-                pictureData[0][lumaIndex + width + 1] = (byte) quadrant[3][0];
+                    r5g6b5ToYuv420(this.buffer.getShort(bufferIndex + width * STRIDE + STRIDE) & 0xFFFF, quadrant[3]);
+                    pictureData[0][lumaIndex + width + 1] = (byte) quadrant[3][0];
 
-                // Average chroma values for quadrant.
-                pictureData[1][chromaIndex] = (byte) ((quadrant[0][1] + quadrant[1][1] + quadrant[2][1] + quadrant[3][1] + 2) >> 2);
-                pictureData[2][chromaIndex] = (byte) ((quadrant[0][2] + quadrant[1][2] + quadrant[2][2] + quadrant[3][2] + 2) >> 2);
+                    // Average chroma values for quadrant.
+                    pictureData[1][chromaIndex] = (byte) ((quadrant[0][1] + quadrant[1][1] + quadrant[2][1] + quadrant[3][1] + 2) >> 2);
+                    pictureData[2][chromaIndex] = (byte) ((quadrant[0][2] + quadrant[1][2] + quadrant[2][2] + quadrant[3][2] + 2) >> 2);
+                }
             }
         }
 

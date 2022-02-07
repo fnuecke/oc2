@@ -26,6 +26,7 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
     private static final int LIGHT_COLOR_NEAR = 0x22FFFFFF;
     private static final int LIGHT_COLOR_FAR = 0x00FFFFFF;
     private static final int LENS_COLOR = 0xDDFFFFFF;
+    private static final int MISSING_ENERGY_COLOR = 0xEEFF6666;
     private static final int LED_COLOR = 0xCC6688DD;
 
     private static final float LENS_RIGHT = 0 + 4 / 16f;
@@ -43,7 +44,6 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
     @Override
     public boolean shouldRender(final ProjectorBlockEntity projector, final Vec3 position) {
         return !ProjectorDepthRenderer.isIsRenderingProjectorDepth() &&
-            projector.isProjecting() &&
             BlockEntityRenderer.super.shouldRender(projector, position);
     }
 
@@ -56,21 +56,23 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
 
     @Override
     public void render(final ProjectorBlockEntity projector, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
-        if (canSeeProjectedImage(stack)) {
-            ProjectorDepthRenderer.addProjector(projector);
+        if (projector.isProjecting()) {
+            stack.pushPose();
+
+            alignToFrontFace(projector, stack);
+
+            if (projector.hasEnergy()) {
+                if (canSeeProjectedImage(stack)) {
+                    ProjectorDepthRenderer.addProjector(projector);
+                }
+
+                renderProjectorLight(stack, bufferSource);
+            } else {
+                renderMissingEnergyIndicator(stack, bufferSource);
+            }
+
+            stack.popPose();
         }
-
-        stack.pushPose();
-
-        // Align with front face of block.
-        final Direction blockFacing = projector.getBlockState().getValue(ProjectorBlock.FACING);
-        final Quaternion rotation = new Quaternion(Vector3f.YN, blockFacing.toYRot(), true);
-        stack.translate(0.5f, 0, 0.5f);
-        stack.mulPose(rotation);
-
-        renderProjectorLight(stack, bufferSource);
-
-        stack.popPose();
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -85,6 +87,13 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
         relativePosition.transform(matrix);
 
         return relativePosition.dot(lookDirection) < ProjectorBlockEntity.MAX_RENDER_DISTANCE;
+    }
+
+    private void alignToFrontFace(final ProjectorBlockEntity projector, final PoseStack stack) {
+        final Direction blockFacing = projector.getBlockState().getValue(ProjectorBlock.FACING);
+        final Quaternion rotation = new Quaternion(Vector3f.YN, blockFacing.toYRot(), true);
+        stack.translate(0.5f, 0, 0.5f);
+        stack.mulPose(rotation);
     }
 
     private static void renderProjectorLight(final PoseStack stack, final MultiBufferSource bufferSource) {
@@ -121,16 +130,25 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
         consumer.vertex(matrix, LENS_RIGHT, LENS_BOTTOM, 0).color(LIGHT_COLOR_NEAR).endVertex(); // bottom right near
         consumer.vertex(matrix, rightFar, bottomFar, 1).color(LIGHT_COLOR_FAR).endVertex(); // bottom right far
 
-        renderLens(matrix, consumer);
+        renderLens(matrix, consumer, LENS_COLOR);
         renderLed(matrix, consumer);
     }
 
-    private static void renderLens(final Matrix4f matrix, final VertexConsumer consumer) {
+    private static void renderMissingEnergyIndicator(final PoseStack stack, final MultiBufferSource bufferSource) {
+        stack.translate(-0.5, 0, 0.5);
+        final VertexConsumer consumer = bufferSource.getBuffer(ModRenderType.getProjectorLight());
+        final Matrix4f matrix = stack.last().pose();
+
+        renderLens(matrix, consumer, MISSING_ENERGY_COLOR);
+        renderLed(matrix, consumer);
+    }
+
+    private static void renderLens(final Matrix4f matrix, final VertexConsumer consumer, final int color) {
         final float lensDepth = -1 / 16f;
-        consumer.vertex(matrix, LENS_RIGHT, LENS_BOTTOM, lensDepth).color(LENS_COLOR).endVertex();
-        consumer.vertex(matrix, LENS_LEFT, LENS_BOTTOM, lensDepth).color(LENS_COLOR).endVertex();
-        consumer.vertex(matrix, LENS_LEFT, LENS_TOP, lensDepth).color(LENS_COLOR).endVertex();
-        consumer.vertex(matrix, LENS_RIGHT, LENS_TOP, lensDepth).color(LENS_COLOR).endVertex();
+        consumer.vertex(matrix, LENS_RIGHT, LENS_BOTTOM, lensDepth).color(color).endVertex();
+        consumer.vertex(matrix, LENS_LEFT, LENS_BOTTOM, lensDepth).color(color).endVertex();
+        consumer.vertex(matrix, LENS_LEFT, LENS_TOP, lensDepth).color(color).endVertex();
+        consumer.vertex(matrix, LENS_RIGHT, LENS_TOP, lensDepth).color(color).endVertex();
     }
 
     private static void renderLed(final Matrix4f matrix, final VertexConsumer consumer) {

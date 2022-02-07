@@ -51,6 +51,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     private static final String ENERGY_TAG_NAME = "energy";
     private static final String IS_PROJECTING_TAG_NAME = "projecting";
+    private static final String HAS_ENERGY_TAG_NAME = "has_energy";
 
     private static final ExecutorService DECODER_WORKERS = Executors.newCachedThreadPool(r -> {
         final Thread thread = new Thread(r);
@@ -61,15 +62,15 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     ///////////////////////////////////////////////////////////////
 
-    private final ProjectorDevice projectorDevice = new ProjectorDevice(this);
-    private boolean isProjecting, hasEnergy;
+    private final ProjectorDevice projectorDevice = new ProjectorDevice(this, this::handleMountedChanged);
+    private boolean isMounted, hasEnergy;
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.projectorEnergyStorage);
     private final Picture picture = Picture.create(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, ColorSpace.YUV420J);
 
     // Video encoding.
     private final H264Encoder encoder = new H264Encoder(new CQPRateControl(12));
     private final ByteBuffer encoderBuffer = ByteBuffer.allocateDirect(1024 * 1024); // Re-used decompression buffer.
-    private boolean needsIDR = true; // Whether we need to send a keyframe next.
+    private boolean needsIDR; // Whether we need to send a keyframe next.
 
     // Video decoding.
     private final H264Decoder decoder = new H264Decoder();
@@ -93,7 +94,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     ///////////////////////////////////////////////////////////////
 
     public boolean isProjecting() {
-        if (!isProjecting || level == null) {
+        if (!isMounted || level == null) {
             return false;
         }
 
@@ -109,17 +110,8 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         return !neighborBlockState.isSolidRender(level, neighborPos);
     }
 
-    public void setProjecting(final boolean value) {
-        isProjecting = value;
-
-        if (!isProjecting) {
-            Arrays.fill(picture.getPlaneData(0), (byte) -128);
-            Arrays.fill(picture.getPlaneData(1), (byte) 0);
-            Arrays.fill(picture.getPlaneData(2), (byte) 0);
-            needsIDR = true;
-        }
-
-        updateProjectorState();
+    public boolean hasEnergy() {
+        return hasEnergy;
     }
 
     public void setRequiresKeyframe() {
@@ -148,22 +140,22 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     @Override
     public void serverTick() {
-        if (!isProjecting()) {
+        if (!isMounted) {
             return;
         }
 
-        if (Config.projectorsUseEnergy() && energy.extractEnergy(Config.projectorEnergyPerTick, true) < Config.projectorEnergyPerTick) {
-            if (hasEnergy) {
-                hasEnergy = false;
-                updateProjectorState();
+        final boolean isPowered;
+        if (Config.projectorsUseEnergy()) {
+            isPowered = energy.extractEnergy(Config.projectorEnergyPerTick, true) >= Config.projectorEnergyPerTick;
+            if (isPowered) {
+                energy.extractEnergy(Config.projectorEnergyPerTick, false);
             }
-            return;
-        } else if (!hasEnergy) {
-            hasEnergy = true;
-            updateProjectorState();
+        } else {
+            isPowered = true;
         }
+        updateProjectorState(isMounted, isPowered);
 
-        if (!projectorDevice.hasChanges() && !needsIDR) {
+        if (!hasEnergy || (!projectorDevice.hasChanges() && !needsIDR)) {
             return;
         }
 
@@ -174,8 +166,8 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     public CompoundTag getUpdateTag() {
         final CompoundTag tag = super.getUpdateTag();
 
-        tag.putBoolean(IS_PROJECTING_TAG_NAME, isProjecting);
-        needsIDR = true;
+        tag.putBoolean(IS_PROJECTING_TAG_NAME, isMounted);
+        tag.putBoolean(HAS_ENERGY_TAG_NAME, hasEnergy);
 
         return tag;
     }
@@ -184,7 +176,8 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     public void handleUpdateTag(final CompoundTag tag) {
         super.handleUpdateTag(tag);
 
-        setProjecting(tag.getBoolean(IS_PROJECTING_TAG_NAME));
+        isMounted = tag.getBoolean(IS_PROJECTING_TAG_NAME);
+        hasEnergy = tag.getBoolean(HAS_ENERGY_TAG_NAME);
     }
 
     @Override
@@ -214,7 +207,20 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         updateRenderBounds();
     }
 
-    public void applyNextFrame(final ByteBuffer frameData) {
+    public void applyProjectorStateClient(final boolean isProjecting, final boolean hasEnergy) {
+        if (level == null || !level.isClientSide()) {
+            return;
+        }
+
+        this.isMounted = isProjecting;
+        this.hasEnergy = hasEnergy;
+    }
+
+    public void applyNextFrameClient(final ByteBuffer frameData) {
+        if (level == null || !level.isClientSide()) {
+            return;
+        }
+
         final CompletableFuture<?> lastDecode = runningDecode;
         runningDecode = CompletableFuture.runAsync(() -> {
             try {
@@ -257,13 +263,30 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     ///////////////////////////////////////////////////////////////
 
-    private void updateProjectorState() {
+    private void handleMountedChanged(final boolean value) {
+        updateProjectorState(value, hasEnergy);
+    }
+
+    private void updateProjectorState(final boolean isMounted, final boolean hasEnergy) {
+        if (isMounted == this.isMounted && hasEnergy == this.hasEnergy) {
+            return;
+        }
+
         // We may get called from unmount() of our device, which can be triggered due to chunk unload.
         // Hence, we need to check the loaded state here, lest we ghost load the chunk, breaking everything.
         if (level != null && !level.isClientSide() && level.isLoaded(getBlockPos())) {
-            level.setBlock(getBlockPos(), getBlockState().setValue(ProjectorBlock.LIT, isProjecting), Block.UPDATE_CLIENTS);
+            if (this.isMounted && !isMounted) {
+                Arrays.fill(picture.getPlaneData(0), (byte) -128);
+                Arrays.fill(picture.getPlaneData(1), (byte) 0);
+                Arrays.fill(picture.getPlaneData(2), (byte) 0);
+            }
 
-            Network.sendToClientsTrackingBlockEntity(new ProjectorStateMessage(this, isProjecting && hasEnergy), this);
+            this.isMounted = isMounted;
+            this.hasEnergy = hasEnergy;
+
+            level.setBlock(getBlockPos(), getBlockState().setValue(ProjectorBlock.LIT, isMounted), Block.UPDATE_CLIENTS);
+
+            Network.sendToClientsTrackingBlockEntity(new ProjectorStateMessage(this, isMounted, hasEnergy), this);
         }
     }
 

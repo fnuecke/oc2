@@ -47,6 +47,6 @@ public final class ProjectorFramebufferMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
         MessageUtils.withClientBlockEntityAt(pos, ProjectorBlockEntity.class,
-            projector -> projector.applyNextFrame(frame));
+            projector -> projector.applyNextFrameClient(frame));
     }
 }

@@ -2,11 +2,11 @@
 
 package li.cil.oc2.common.bus.device.vm.block;
 
+import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.serialization.BlobStorage;
@@ -14,6 +14,7 @@ import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.vm.device.SimpleFramebufferDevice;
 import li.cil.oc2.jcodec.common.model.Picture;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -21,7 +22,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.UUID;
 
-public final class ProjectorDevice extends IdentityProxy<ProjectorBlockEntity> implements VMDevice {
+public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements VMDevice {
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String BLOB_HANDLE_TAG_NAME = "blob";
 
@@ -29,6 +30,8 @@ public final class ProjectorDevice extends IdentityProxy<ProjectorBlockEntity> i
     public static final int HEIGHT = 480;
 
     ///////////////////////////////////////////////////////////////
+
+    private final BooleanConsumer onMountedChanged;
 
     @Nullable private SimpleFramebufferDevice device;
 
@@ -39,8 +42,9 @@ public final class ProjectorDevice extends IdentityProxy<ProjectorBlockEntity> i
 
     ///////////////////////////////////////////////////////////////
 
-    public ProjectorDevice(final ProjectorBlockEntity identity) {
+    public ProjectorDevice(final BlockEntity identity, final BooleanConsumer onMountedChanged) {
         super(identity);
+        this.onMountedChanged = onMountedChanged;
     }
 
     ///////////////////////////////////////////////////////////////
@@ -66,7 +70,7 @@ public final class ProjectorDevice extends IdentityProxy<ProjectorBlockEntity> i
             return VMDeviceLoadResult.fail();
         }
 
-        identity.setProjecting(true);
+        onMountedChanged.accept(true);
 
         return VMDeviceLoadResult.success();
     }
@@ -83,7 +87,7 @@ public final class ProjectorDevice extends IdentityProxy<ProjectorBlockEntity> i
             BlobStorage.close(blobHandle);
         }
 
-        identity.setProjecting(false);
+        onMountedChanged.accept(false);
     }
 
     @Override

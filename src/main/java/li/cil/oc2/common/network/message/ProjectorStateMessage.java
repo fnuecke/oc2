@@ -10,13 +10,15 @@ import net.minecraftforge.network.NetworkEvent;
 
 public class ProjectorStateMessage extends AbstractMessage {
     private BlockPos pos;
-    private boolean isProjecting;
+    private boolean isMounted;
+    private boolean hasEnergy;
 
     ///////////////////////////////////////////////////////////////////
 
-    public ProjectorStateMessage(final ProjectorBlockEntity projector, final boolean isProjecting) {
+    public ProjectorStateMessage(final ProjectorBlockEntity projector, final boolean isMounted, final boolean hasEnergy) {
         this.pos = projector.getBlockPos();
-        this.isProjecting = isProjecting;
+        this.isMounted = isMounted;
+        this.hasEnergy = hasEnergy;
     }
 
     public ProjectorStateMessage(final FriendlyByteBuf buffer) {
@@ -28,13 +30,15 @@ public class ProjectorStateMessage extends AbstractMessage {
     @Override
     public void fromBytes(final FriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
-        isProjecting = buffer.readBoolean();
+        isMounted = buffer.readBoolean();
+        hasEnergy = buffer.readBoolean();
     }
 
     @Override
     public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
-        buffer.writeBoolean(isProjecting);
+        buffer.writeBoolean(isMounted);
+        buffer.writeBoolean(hasEnergy);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -42,6 +46,6 @@ public class ProjectorStateMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
         MessageUtils.withClientBlockEntityAt(pos, ProjectorBlockEntity.class,
-            projector -> projector.setProjecting(isProjecting));
+            projector -> projector.applyProjectorStateClient(isMounted, hasEnergy));
     }
 }

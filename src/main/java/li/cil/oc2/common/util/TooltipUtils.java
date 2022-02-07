@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.block.EnergyConsumingBlock;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.tags.ItemTags;
@@ -21,6 +22,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.*;
 import net.minecraft.tags.Tag;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.ForgeHooksClient;
@@ -81,8 +83,8 @@ public final class TooltipUtils {
         }
 
         final String translationKey = stack.getDescriptionId() + Constants.TOOLTIP_DESCRIPTION_SUFFIX;
-        final Language languagemap = Language.getInstance();
-        if (languagemap.has(translationKey)) {
+        final Language language = Language.getInstance();
+        if (language.has(translationKey)) {
             final TranslatableComponent description = new TranslatableComponent(translationKey);
             tooltip.add(withFormat(description, ChatFormatting.GRAY));
         }
@@ -95,8 +97,15 @@ public final class TooltipUtils {
             tooltip.add(DEVICE_NEEDS_REBOOT);
         }
 
-        final ItemDeviceQuery query = Devices.makeQuery(stack);
-        final int energyConsumption = Devices.getEnergyConsumption(query);
+        final int energyConsumption;
+        if (stack.getItem() instanceof BlockItem blockItem &&
+            blockItem.getBlock() instanceof EnergyConsumingBlock energyConsumingBlock) {
+            energyConsumption = energyConsumingBlock.getEnergyConsumption();
+        } else {
+            final ItemDeviceQuery query = Devices.makeQuery(stack);
+            energyConsumption = Devices.getEnergyConsumption(query);
+        }
+
         if (energyConsumption > 0) {
             final MutableComponent energy = withFormat(String.valueOf(energyConsumption), ChatFormatting.GREEN);
             tooltip.add(withFormat(new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, energy), ChatFormatting.GRAY));

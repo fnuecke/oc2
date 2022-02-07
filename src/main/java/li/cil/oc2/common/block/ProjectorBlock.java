@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.block;
 
+import li.cil.oc2.common.Config;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
 import li.cil.oc2.common.util.VoxelShapeUtils;
@@ -28,7 +29,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
 
-public final class ProjectorBlock extends HorizontalDirectionalBlock implements EntityBlock {
+public final class ProjectorBlock extends HorizontalDirectionalBlock implements EntityBlock, EnergyConsumingBlock {
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
     // We bake the visual indents on the front and sides into the collision shape, to prevent stuff being
@@ -54,6 +55,15 @@ public final class ProjectorBlock extends HorizontalDirectionalBlock implements 
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    @Override
+    public int getEnergyConsumption() {
+        if (Config.projectorsUseEnergy()) {
+            return Config.projectorEnergyPerTick;
+        } else {
+            return 0;
+        }
+    }
 
     @Override
     public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {

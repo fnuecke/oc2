@@ -152,7 +152,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
             return;
         }
 
-        if (energy.extractEnergy(Config.projectorEnergyPerTick, true) < Config.projectorEnergyPerTick) {
+        if (Config.projectorsUseEnergy() && energy.extractEnergy(Config.projectorEnergyPerTick, true) < Config.projectorEnergyPerTick) {
             if (hasEnergy) {
                 hasEnergy = false;
                 updateProjectorState();
@@ -246,7 +246,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        if (projectorsUseEnergy()) {
+        if (Config.projectorsUseEnergy()) {
             collector.offer(Capabilities.ENERGY_STORAGE, energy);
         }
 
@@ -256,10 +256,6 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     }
 
     ///////////////////////////////////////////////////////////////
-
-    private static boolean projectorsUseEnergy() {
-        return Config.projectorEnergyStorage > 0 && Config.projectorEnergyPerTick > 0;
-    }
 
     private void updateProjectorState() {
         // We may get called from unmount() of our device, which can be triggered due to chunk unload.

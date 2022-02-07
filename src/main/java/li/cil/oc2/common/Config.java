@@ -43,11 +43,19 @@ public final class Config {
     @Path("admin") public static UUID fakePlayerUUID = UUID.fromString("e39dd9a7-514f-4a2d-aa5e-b6030621416d");
     @Path("admin.network") public static int projectorAverageMaxBytesPerSecond = 160 * 1024;
 
-    public static boolean robotsUseEnergy() {
-        return robotEnergyPerTick > 0 && robotEnergyStorage > 0;
+    public static boolean computersUseEnergy() {
+        return computerEnergyPerTick > 0 && computerEnergyStorage > 0;
     }
 
     public static boolean chargerUseEnergy() {
         return chargerEnergyPerTick > 0 && chargerEnergyStorage > 0;
+    }
+
+    public static boolean projectorsUseEnergy() {
+        return projectorEnergyStorage > 0 && projectorEnergyPerTick > 0;
+    }
+
+    public static boolean robotsUseEnergy() {
+        return robotEnergyPerTick > 0 && robotEnergyStorage > 0;
     }
 }

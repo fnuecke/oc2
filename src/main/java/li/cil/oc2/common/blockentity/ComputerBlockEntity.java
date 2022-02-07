@@ -255,7 +255,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         collector.offer(Capabilities.DEVICE_BUS_ELEMENT, busElement);
         collector.offer(Capabilities.TERMINAL_USER_PROVIDER, this);
 
-        if (computersUseEnergy()) {
+        if (Config.computersUseEnergy()) {
             collector.offer(Capabilities.ENERGY_STORAGE, energy);
         }
     }
@@ -302,12 +302,6 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         if (chunk != null) {
             Network.sendToClientsTrackingChunk(message, chunk);
         }
-    }
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static boolean computersUseEnergy() {
-        return Config.computerEnergyPerTick > 0 && Config.computerEnergyStorage > 0;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -449,7 +443,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         @Override
         protected boolean consumeEnergy(final int amount, final boolean simulate) {
-            if (!computersUseEnergy()) {
+            if (!Config.computersUseEnergy()) {
                 return true;
             }
 

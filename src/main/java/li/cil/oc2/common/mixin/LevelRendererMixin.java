@@ -101,7 +101,13 @@ public abstract class LevelRendererMixin {
             RenderSystem.applyModelViewMatrix();
             FogRenderer.setupNoFog();
             ci.cancel();
-        } else {
+        } else if (ProjectorDepthRenderer.willRenderProjectorDepth()) {
+            // Flush buffers that may write to depth buffer, e.g. when rendering item stacks.
+            final MultiBufferSource.BufferSource bufferSource = renderBuffers.bufferSource();
+            bufferSource.endBatch(Sheets.translucentCullBlockSheet());
+            bufferSource.endBatch(Sheets.bannerSheet());
+            bufferSource.endBatch(Sheets.shieldSheet());
+
             // Otherwise, we grab the depth buffer of the main render target here, before
             // fabulous shading breaks it.
             ProjectorDepthRenderer.captureMainCameraDepth();

@@ -20,6 +20,7 @@ import li.cil.oc2.common.block.ProjectorBlock;
 import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
 import li.cil.oc2.common.bus.device.vm.block.ProjectorDevice;
 import li.cil.oc2.common.ext.MinecraftExt;
+import li.cil.oc2.common.mixin.LevelRendererMixin;
 import li.cil.oc2.common.util.FakePlayerUtils;
 import li.cil.oc2.jcodec.common.model.Picture;
 import li.cil.oc2.jcodec.scale.Yuv420jToRgb;
@@ -111,6 +112,16 @@ public final class ProjectorDepthRenderer {
      */
     public static void addProjector(final ProjectorBlockEntity projector) {
         VISIBLE_PROJECTORS.add(projector);
+    }
+
+    /**
+     * Whether we will be rendering projector depth this frame.
+     * <p>
+     * Checked in our {@link LevelRendererMixin} to avoid unnecessary flushing and copying
+     * when we're not rendering projections.
+     */
+    public static boolean willRenderProjectorDepth() {
+        return !VISIBLE_PROJECTORS.isEmpty();
     }
 
     /**

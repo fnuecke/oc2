@@ -443,6 +443,7 @@ public final class ProjectorDepthRenderer {
         try {
             return RENDER_INFO.get(projector, () -> {
                 final DynamicTexture texture = new DynamicTexture(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, false);
+                texture.upload();
                 final RenderInfo renderInfo = new RenderInfo(texture);
                 projector.setFrameConsumer(renderInfo);
                 return renderInfo;

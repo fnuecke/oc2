@@ -135,7 +135,9 @@ public final class ProjectorDepthRenderer {
         if (mainRenderTarget.width != MAIN_CAMERA_DEPTH.width || mainRenderTarget.height != MAIN_CAMERA_DEPTH.height) {
             MAIN_CAMERA_DEPTH.resize(mainRenderTarget.width, mainRenderTarget.height, Minecraft.ON_OSX);
         }
-
+        if (mainRenderTarget.isStencilEnabled()) {
+            MAIN_CAMERA_DEPTH.enableStencil();
+        }
         MAIN_CAMERA_DEPTH.copyDepthFrom(mainRenderTarget);
         mainRenderTarget.bindWrite(false);
     }

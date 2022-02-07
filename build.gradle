@@ -47,7 +47,11 @@ repositories {
     mavenCentral()
     maven {
         url 'https://cursemaven.com'
-        content { includeGroup "curse.maven" }
+        content { includeGroup 'curse.maven' }
+    }
+    maven {
+        url 'https://dvs1.progwml6.com/files/maven/'
+        content { includeGroup 'mezz.jei' }
     }
     ["fnuecke/SednaMinecraft"].forEach(repo -> {
         maven {
@@ -68,8 +72,8 @@ dependencies {
 
     implementation fg.deobf("curse.maven:markdownmanual-502485:3565800")
 
-    // Just for in-dev convenience. Mod doesn't use any JEI APIs.
-    implementation fg.deobf("curse.maven:jei-238222:3603923")
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:9.1.0.41:api")
+    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:9.1.0.41")
 
     testImplementation 'org.mockito:mockito-core:4.3.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'

@@ -312,6 +312,14 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     @Override
+    public boolean skipAttackInteraction(final Entity entity) {
+        if (entity instanceof Player player && player.isCreative()) {
+            dropSelf();
+        }
+        return true;
+    }
+
+    @Override
     public InteractionResult interact(final Player player, final InteractionHand hand) {
         final ItemStack stack = player.getItemInHand(hand);
         if (!level.isClientSide()) {

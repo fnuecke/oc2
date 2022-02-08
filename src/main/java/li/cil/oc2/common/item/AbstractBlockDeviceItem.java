@@ -15,7 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import javax.annotation.Nullable;
 
 public abstract class AbstractBlockDeviceItem extends ModItem {
-    private static final String DATA_TAG_NAME = "data";
+    public static final String DATA_TAG_NAME = "data";
 
     ///////////////////////////////////////////////////////////////////
 

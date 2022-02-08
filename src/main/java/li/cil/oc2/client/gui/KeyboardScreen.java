@@ -27,14 +27,12 @@ public final class KeyboardScreen extends Screen {
     private static final int BORDER_SIZE = 4;
     private static final float ARM_SWING_RATE = 0.8f;
     private static final int BORDER_COLOR = 0xFFFFFFFF;
-    private static final int ESCAPE_DOUBLE_TAP_WINDOW = 300;
 
     private static final TranslatableComponent CLOSE_INFO = new TranslatableComponent("gui.oc2.keyboard.close_info");
 
     ///////////////////////////////////////////////////////////////////
 
     private final KeyboardBlockEntity keyboard;
-    private long lastEscapePress;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -52,8 +50,6 @@ public final class KeyboardScreen extends Screen {
         // Grabbing the mouse allows us to let the player keep turning the camera (to get a better
         // look at the projection of a projector, e.g.), while still grabbing all keyboard input.
         grabMouse();
-
-        lastEscapePress = 0;
 
         // Disable hotbar since we don't need it here, and it just blocks screen space.
         OverlayRegistry.enableOverlay(ForgeIngameGui.HOTBAR_ELEMENT, false);
@@ -73,27 +69,13 @@ public final class KeyboardScreen extends Screen {
 
     @Override
     public boolean keyPressed(final int keycode, final int scancode, final int modifiers) {
-        if (keycode == GLFW.GLFW_KEY_ESCAPE) {
-            if (lastEscapePress != 0 && System.currentTimeMillis() - lastEscapePress <= ESCAPE_DOUBLE_TAP_WINDOW) {
-                lastEscapePress = 0;
-                onClose();
-            } else {
-                lastEscapePress = System.currentTimeMillis();
-                sendInputMessage(keycode, true);
-            }
-        } else if (!super.keyPressed(keycode, scancode, modifiers)) {
-            sendInputMessage(keycode, true);
-        }
+        sendInputMessage(keycode, true);
         return true;
     }
 
     @Override
     public boolean keyReleased(final int keycode, final int scancode, final int modifiers) {
-        if (keycode == GLFW.GLFW_KEY_ESCAPE) {
-            sendInputMessage(keycode, false);
-        } else if (!super.keyReleased(keycode, scancode, modifiers)) {
-            sendInputMessage(keycode, false);
-        }
+        sendInputMessage(keycode, false);
         return true;
     }
 

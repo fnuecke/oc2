@@ -100,7 +100,7 @@
   "gui.oc2.network_interface_card.connectivity.disabled": "Disabled",
   "gui.oc2.network_interface_card.info": "Drag to rotate. Click faces to toggle connectivity.",
 
-  "gui.oc2.keyboard.close_info": "Right click or press [Escape] twice to close.",
+  "gui.oc2.keyboard.close_info": "Right click to close.",
 
   "gui.oc2.network_tunnel.link": "Link",
 

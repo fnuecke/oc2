@@ -221,5 +221,23 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
                 token = null;
             }
         }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            final BlockEntry that = (BlockEntry) o;
+            return Objects.equals(dataKey, that.dataKey) && device.equals(that.device) && side == that.side;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(dataKey, device, side);
+        }
+
+        @Override
+        public String toString() {
+            return device.toString();
+        }
     }
 }

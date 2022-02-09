@@ -221,7 +221,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     private Stream<IItemHandler> getEntityItemHandlersAt(final Vec3 position, final Direction side) {
         final AABB bounds = AABB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
         return entity.level.getEntities(entity, bounds).stream()
-            .map(e -> e.getCapability(Capabilities.ITEM_HANDLER, side))
+            .map(e -> e.getCapability(Capabilities.itemHandler(), side))
             .filter(LazyOptional::isPresent)
             .map(c -> c.orElseThrow(AssertionError::new));
     }
@@ -233,7 +233,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
             return Stream.empty();
         }
 
-        final LazyOptional<IItemHandler> capability = blockEntity.getCapability(Capabilities.ITEM_HANDLER, side);
+        final LazyOptional<IItemHandler> capability = blockEntity.getCapability(Capabilities.itemHandler(), side);
         if (capability.isPresent()) {
             return Stream.of(capability.orElseThrow(AssertionError::new));
         }

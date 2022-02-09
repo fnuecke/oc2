@@ -50,7 +50,7 @@ public abstract class AbstractNetworkInterfaceDevice extends IdentityProxy<ItemS
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(final Capability<T> cap, @Nullable final Direction side) {
-        if (cap == Capabilities.NETWORK_INTERFACE) {
+        if (cap == Capabilities.networkInterface()) {
             return LazyOptional.of(() -> networkInterface).cast();
         }
 

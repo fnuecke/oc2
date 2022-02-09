@@ -251,12 +251,12 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        collector.offer(Capabilities.ITEM_HANDLER, deviceItems.combinedItemHandlers);
-        collector.offer(Capabilities.DEVICE_BUS_ELEMENT, busElement);
-        collector.offer(Capabilities.TERMINAL_USER_PROVIDER, this);
+        collector.offer(Capabilities.itemHandler(), deviceItems.combinedItemHandlers);
+        collector.offer(Capabilities.deviceBusElement(), busElement);
+        collector.offer(Capabilities.terminalUserProvider(), this);
 
         if (Config.computersUseEnergy()) {
-            collector.offer(Capabilities.ENERGY_STORAGE, energy);
+            collector.offer(Capabilities.energyStorage(), energy);
         }
     }
 

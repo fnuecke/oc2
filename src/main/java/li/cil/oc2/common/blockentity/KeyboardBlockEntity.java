@@ -30,7 +30,7 @@ public final class KeyboardBlockEntity extends ModBlockEntity {
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         if (direction == Direction.DOWN) {
-            collector.offer(Capabilities.DEVICE, keyboardDevice);
+            collector.offer(Capabilities.device(), keyboardDevice);
         }
     }
 }

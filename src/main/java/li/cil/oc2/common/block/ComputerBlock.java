@@ -109,7 +109,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
         if (blockEntity != null) {
             // Redstone requests info for faces with external perspective. Capabilities treat
             // the Direction from internal perspective, so flip it.
-            return blockEntity.getCapability(Capabilities.REDSTONE_EMITTER, side.getOpposite())
+            return blockEntity.getCapability(Capabilities.redstoneEmitter(), side.getOpposite())
                 .map(RedstoneEmitter::getRedstoneOutput)
                 .orElse(0);
         }

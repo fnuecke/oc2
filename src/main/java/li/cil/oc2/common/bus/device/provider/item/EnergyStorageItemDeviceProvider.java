@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public final class EnergyStorageItemDeviceProvider extends AbstractItemStackCapabilityDeviceProvider<IEnergyStorage> {
     public EnergyStorageItemDeviceProvider() {
-        super(() -> Capabilities.ENERGY_STORAGE);
+        super(Capabilities::energyStorage);
     }
 
     ///////////////////////////////////////////////////////////////////

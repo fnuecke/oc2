@@ -63,7 +63,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
                 continue;
             }
 
-            final LazyOptional<DeviceBusElement> capability = blockEntity.getCapability(Capabilities.DEVICE_BUS_ELEMENT, neighborDirection.getOpposite());
+            final LazyOptional<DeviceBusElement> capability = blockEntity.getCapability(Capabilities.deviceBusElement(), neighborDirection.getOpposite());
             if (capability.isPresent()) {
                 neighbors.add(capability);
             }

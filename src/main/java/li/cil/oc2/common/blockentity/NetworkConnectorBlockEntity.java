@@ -276,7 +276,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         if (direction == NetworkConnectorBlock.getFacing(getBlockState()).getOpposite()) {
-            collector.offer(Capabilities.NETWORK_INTERFACE, networkInterface);
+            collector.offer(Capabilities.networkInterface(), networkInterface);
         }
     }
 
@@ -337,7 +337,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
             return;
         }
 
-        adjacentInterface = blockEntity.getCapability(Capabilities.NETWORK_INTERFACE, facing);
+        adjacentInterface = blockEntity.getCapability(Capabilities.networkInterface(), facing);
         if (adjacentInterface.isPresent()) {
             LazyOptionalUtils.addWeakListener(adjacentInterface, this, (connector, unused) -> connector.setNeighborChanged());
         }

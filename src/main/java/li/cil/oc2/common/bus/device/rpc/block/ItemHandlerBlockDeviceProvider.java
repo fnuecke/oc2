@@ -14,7 +14,7 @@ import net.minecraftforge.items.IItemHandler;
 
 public final class ItemHandlerBlockDeviceProvider extends AbstractBlockEntityCapabilityDeviceProvider<IItemHandler, BlockEntity> {
     public ItemHandlerBlockDeviceProvider() {
-        super(() -> Capabilities.ITEM_HANDLER);
+        super(Capabilities::itemHandler);
     }
 
     ///////////////////////////////////////////////////////////////////

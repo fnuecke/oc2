@@ -99,7 +99,7 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        collector.offer(Capabilities.ENERGY_STORAGE, energy);
+        collector.offer(Capabilities.energyStorage(), energy);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -131,15 +131,15 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
     }
 
     private void chargeCapabilityProvider(final ICapabilityProvider capabilityProvider) {
-        capabilityProvider.getCapability(Capabilities.ENERGY_STORAGE, Direction.DOWN).ifPresent(this::charge);
-        capabilityProvider.getCapability(Capabilities.ITEM_HANDLER, Direction.DOWN).ifPresent(this::chargeItems);
+        capabilityProvider.getCapability(Capabilities.energyStorage(), Direction.DOWN).ifPresent(this::charge);
+        capabilityProvider.getCapability(Capabilities.itemHandler(), Direction.DOWN).ifPresent(this::chargeItems);
     }
 
     private void chargeItems(final IItemHandler itemHandler) {
         for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
             final ItemStack stack = itemHandler.getStackInSlot(slot);
             if (!stack.isEmpty()) {
-                stack.getCapability(Capabilities.ENERGY_STORAGE).ifPresent(this::charge);
+                stack.getCapability(Capabilities.energyStorage()).ifPresent(this::charge);
             }
         }
     }

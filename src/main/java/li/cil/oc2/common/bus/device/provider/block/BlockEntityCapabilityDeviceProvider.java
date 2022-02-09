@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 public final class BlockEntityCapabilityDeviceProvider extends AbstractBlockEntityCapabilityDeviceProvider<Device, BlockEntity> {
     public BlockEntityCapabilityDeviceProvider() {
-        super(() -> Capabilities.DEVICE);
+        super(Capabilities::device);
     }
 
     ///////////////////////////////////////////////////////////////////

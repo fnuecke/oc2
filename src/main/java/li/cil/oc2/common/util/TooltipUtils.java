@@ -151,7 +151,7 @@ public final class TooltipUtils {
     }
 
     public static void addEntityEnergyInformation(final ItemStack stack, final List<Component> tooltip) {
-        stack.getCapability(Capabilities.ENERGY_STORAGE).ifPresent(energy -> {
+        stack.getCapability(Capabilities.energyStorage()).ifPresent(energy -> {
             if (energy.getEnergyStored() == 0) {
                 return;
             }

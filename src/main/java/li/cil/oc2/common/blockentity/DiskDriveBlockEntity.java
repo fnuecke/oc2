@@ -102,10 +102,10 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        collector.offer(Capabilities.ITEM_HANDLER, itemHandler);
+        collector.offer(Capabilities.itemHandler(), itemHandler);
 
         if (direction == getBlockState().getValue(DiskDriveBlock.FACING).getOpposite()) {
-            collector.offer(Capabilities.DEVICE, device);
+            collector.offer(Capabilities.device(), device);
         }
     }
 

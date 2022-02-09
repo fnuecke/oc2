@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public final class ItemHandlerItemDeviceProvider extends AbstractItemStackCapabilityDeviceProvider<IItemHandler> {
     public ItemHandlerItemDeviceProvider() {
-        super(() -> Capabilities.ITEM_HANDLER);
+        super(Capabilities::itemHandler);
     }
 
     ///////////////////////////////////////////////////////////////////

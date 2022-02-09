@@ -9,35 +9,44 @@ import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 
 public final class Capabilities {
-    public static final Capability<IEnergyStorage> ENERGY_STORAGE = CapabilityManager.get(new CapabilityToken<>() { });
-    public static final Capability<IFluidHandler> FLUID_HANDLER = CapabilityManager.get(new CapabilityToken<>() { });
-    public static final Capability<IItemHandler> ITEM_HANDLER = CapabilityManager.get(new CapabilityToken<>() { });
+    public static Capability<IEnergyStorage> energyStorage() {
+        return CapabilityRegistry.ENERGY_STORAGE;
+    }
 
-    public static final Capability<DeviceBusElement> DEVICE_BUS_ELEMENT = CapabilityManager.get(new CapabilityToken<>() { });
-    public static final Capability<Device> DEVICE = CapabilityManager.get(new CapabilityToken<>() { });
-    public static final Capability<RedstoneEmitter> REDSTONE_EMITTER = CapabilityManager.get(new CapabilityToken<>() { });
-    public static final Capability<NetworkInterface> NETWORK_INTERFACE = CapabilityManager.get(new CapabilityToken<>() { });
-    public static final Capability<TerminalUserProvider> TERMINAL_USER_PROVIDER = CapabilityManager.get(new CapabilityToken<>() { });
-    public static final Capability<Robot> ROBOT = CapabilityManager.get(new CapabilityToken<>() { });
+    public static Capability<IFluidHandler> fluidHandler() {
+        return CapabilityRegistry.FLUID_HANDLER;
+    }
 
-    ///////////////////////////////////////////////////////////////////
+    public static Capability<IItemHandler> itemHandler() {
+        return CapabilityRegistry.ITEM_HANDLER;
+    }
 
-    @SubscribeEvent
-    public static void initialize(final RegisterCapabilitiesEvent event) {
-        event.register(DeviceBusElement.class);
-        event.register(Device.class);
-        event.register(RedstoneEmitter.class);
-        event.register(NetworkInterface.class);
-        event.register(TerminalUserProvider.class);
-        event.register(Robot.class);
+    public static Capability<DeviceBusElement> deviceBusElement() {
+        return CapabilityRegistry.DEVICE_BUS_ELEMENT;
+    }
+
+    public static Capability<Device> device() {
+        return CapabilityRegistry.DEVICE;
+    }
+
+    public static Capability<RedstoneEmitter> redstoneEmitter() {
+        return CapabilityRegistry.REDSTONE_EMITTER;
+    }
+
+    public static Capability<NetworkInterface> networkInterface() {
+        return CapabilityRegistry.NETWORK_INTERFACE;
+    }
+
+    public static Capability<TerminalUserProvider> terminalUserProvider() {
+        return CapabilityRegistry.TERMINAL_USER_PROVIDER;
+    }
+
+    public static Capability<Robot> robot() {
+        return CapabilityRegistry.ROBOT;
     }
 }

@@ -14,7 +14,7 @@ import net.minecraftforge.energy.IEnergyStorage;
 
 public final class EnergyStorageBlockDeviceProvider extends AbstractBlockEntityCapabilityDeviceProvider<IEnergyStorage, BlockEntity> {
     public EnergyStorageBlockDeviceProvider() {
-        super(() -> Capabilities.ENERGY_STORAGE);
+        super(Capabilities::energyStorage);
     }
 
     ///////////////////////////////////////////////////////////////////

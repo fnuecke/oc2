@@ -179,7 +179,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
             // we can just do this.
             setInterfaceName(side, "");
 
-            invalidateCapability(Capabilities.DEVICE_BUS_ELEMENT, side);
+            invalidateCapability(Capabilities.deviceBusElement(), side);
 
             final NeighborTracker tracker = neighborTrackers[side.get3DDataValue()];
             tracker.updateListener();
@@ -229,7 +229,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         if (BusCableBlock.getConnectionType(getBlockState(), direction) != BusCableBlock.ConnectionType.NONE) {
-            collector.offer(Capabilities.DEVICE_BUS_ELEMENT, busElement);
+            collector.offer(Capabilities.deviceBusElement(), busElement);
         }
     }
 
@@ -303,7 +303,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
                 }
 
                 final LazyOptional<DeviceBusElement> capability = blockEntity
-                    .getCapability(Capabilities.DEVICE_BUS_ELEMENT, direction.getOpposite());
+                    .getCapability(Capabilities.deviceBusElement(), direction.getOpposite());
                 capability.ifPresent(DeviceBus::scheduleScan);
             }
         });

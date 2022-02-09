@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public class ItemStackCapabilityDeviceProvider extends AbstractItemStackCapabilityDeviceProvider<Device> {
     public ItemStackCapabilityDeviceProvider() {
-        super(() -> Capabilities.DEVICE);
+        super(Capabilities::device);
     }
 
     ///////////////////////////////////////////////////////////////////

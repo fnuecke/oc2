@@ -56,7 +56,7 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        collector.offer(Capabilities.NETWORK_INTERFACE, this);
+        collector.offer(Capabilities.networkInterface(), this);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
         for (final Direction side : Constants.DIRECTIONS) {
             final BlockEntity neighborBlockEntity = LevelUtils.getBlockEntityIfChunkExists(level, pos.relative(side));
             if (neighborBlockEntity != null) {
-                final LazyOptional<NetworkInterface> optional = neighborBlockEntity.getCapability(Capabilities.NETWORK_INTERFACE, side.getOpposite());
+                final LazyOptional<NetworkInterface> optional = neighborBlockEntity.getCapability(Capabilities.networkInterface(), side.getOpposite());
                 optional.ifPresent(adjacentInterface -> {
                     adjacentBlockInterfaces[side.get3DDataValue()] = adjacentInterface;
                     LazyOptionalUtils.addWeakListener(optional, this, (hub, unused) -> hub.handleNeighborChanged());

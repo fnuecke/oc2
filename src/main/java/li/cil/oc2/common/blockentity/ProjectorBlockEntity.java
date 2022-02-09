@@ -253,11 +253,11 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         if (Config.projectorsUseEnergy()) {
-            collector.offer(Capabilities.ENERGY_STORAGE, energy);
+            collector.offer(Capabilities.energyStorage(), energy);
         }
 
         if (direction == getBlockState().getValue(ProjectorBlock.FACING).getOpposite()) {
-            collector.offer(Capabilities.DEVICE, projectorDevice);
+            collector.offer(Capabilities.device(), projectorDevice);
         }
     }
 

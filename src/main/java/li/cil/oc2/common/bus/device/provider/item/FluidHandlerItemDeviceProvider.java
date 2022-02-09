@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public final class FluidHandlerItemDeviceProvider extends AbstractItemStackCapabilityDeviceProvider<IFluidHandler> {
     public FluidHandlerItemDeviceProvider() {
-        super(() -> Capabilities.FLUID_HANDLER);
+        super(Capabilities::fluidHandler);
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -58,7 +58,7 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull final Capability<T> capability, @Nullable final Direction side) {
-        if (capability == Capabilities.REDSTONE_EMITTER && side != null) {
+        if (capability == Capabilities.redstoneEmitter() && side != null) {
             final int index = side.get3DDataValue();
             return LazyOptional.of(() -> capabilities[index]).cast();
         }

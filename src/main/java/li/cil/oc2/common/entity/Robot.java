@@ -171,13 +171,13 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
-        if (capability == Capabilities.ITEM_HANDLER) {
+        if (capability == Capabilities.itemHandler()) {
             return LazyOptional.of(() -> inventory).cast();
         }
-        if (capability == Capabilities.ENERGY_STORAGE && Config.robotsUseEnergy()) {
+        if (capability == Capabilities.energyStorage() && Config.robotsUseEnergy()) {
             return LazyOptional.of(() -> energy).cast();
         }
-        if (capability == Capabilities.ROBOT) {
+        if (capability == Capabilities.robot()) {
             return LazyOptional.of(() -> this).cast();
         }
 

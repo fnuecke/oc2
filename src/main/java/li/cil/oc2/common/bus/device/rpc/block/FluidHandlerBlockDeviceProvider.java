@@ -14,7 +14,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 
 public final class FluidHandlerBlockDeviceProvider extends AbstractBlockEntityCapabilityDeviceProvider<IFluidHandler, BlockEntity> {
     public FluidHandlerBlockDeviceProvider() {
-        super(() -> Capabilities.FLUID_HANDLER);
+        super(Capabilities::fluidHandler);
     }
 
     ///////////////////////////////////////////////////////////////////

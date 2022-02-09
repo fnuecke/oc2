@@ -20,7 +20,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -40,7 +40,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
 
     @Override
     public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
-        final Level level = getLevel();
+        final LevelAccessor level = getLevel();
         if (level == null || level.isClientSide()) {
             return Optional.empty();
         }
@@ -75,7 +75,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
     ///////////////////////////////////////////////////////////////////
 
     public void updateDevicesForNeighbor(final Direction side) {
-        final Level level = getLevel();
+        final LevelAccessor level = getLevel();
         if (level == null || level.isClientSide()) {
             return;
         }
@@ -97,7 +97,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         return canScanContinueTowards(direction);
     }
 
-    protected Optional<BlockQueryResult> collectDevices(final Level level, final BlockPos pos, @Nullable final Direction side) {
+    protected Optional<BlockQueryResult> collectDevices(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side) {
         final BlockDeviceQuery query = Devices.makeQuery(level, pos, side != null ? side.getOpposite() : null);
         final HashSet<BlockEntry> entries = new HashSet<>();
 
@@ -119,7 +119,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         return Optional.of(new BlockQueryResult(query, entries));
     }
 
-    protected void collectSyntheticDevices(final Level level, final BlockPos pos, @Nullable final Direction side, final HashSet<BlockEntry> entries) {
+    protected void collectSyntheticDevices(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side, final HashSet<BlockEntry> entries) {
         final String blockName = LevelUtils.getBlockName(level, pos);
         if (blockName != null) {
             entries.add(new BlockEntry(new BlockDeviceInfo(null, new TypeNameRPCDevice(blockName)), side));

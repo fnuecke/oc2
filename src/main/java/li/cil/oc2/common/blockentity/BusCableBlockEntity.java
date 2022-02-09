@@ -27,6 +27,7 @@ import net.minecraft.util.StringUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -314,7 +315,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     private final class BusCableBusElement extends AbstractBlockDeviceBusElement {
         @Nullable
         @Override
-        public Level getLevel() {
+        public LevelAccessor getLevel() {
             return BusCableBlockEntity.this.getLevel();
         }
 
@@ -337,7 +338,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
 
         @Override
-        protected void collectSyntheticDevices(final Level level, final BlockPos pos, @Nullable final Direction side, final HashSet<BlockEntry> entries) {
+        protected void collectSyntheticDevices(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side, final HashSet<BlockEntry> entries) {
             super.collectSyntheticDevices(level, pos, side, entries);
             if (side != null) {
                 final String interfaceName = interfaceNames[side.get3DDataValue()];

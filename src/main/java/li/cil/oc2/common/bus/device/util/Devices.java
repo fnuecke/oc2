@@ -14,7 +14,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.registries.IForgeRegistry;
 
@@ -33,7 +35,7 @@ public final class Devices {
         return new BlockQuery(level, pos, side);
     }
 
-    public static BlockDeviceQuery makeQuery(final Level level, final BlockPos pos, @Nullable final Direction side) {
+    public static BlockDeviceQuery makeQuery(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side) {
         return new BlockQuery(level, pos, side);
     }
 
@@ -50,7 +52,8 @@ public final class Devices {
     }
 
     public static Optional<List<Invalidatable<BlockDeviceInfo>>> getDevices(final BlockDeviceQuery query) {
-        if (!query.getLevel().isLoaded(query.getQueryPosition())) {
+        final ChunkPos queryChunk = new ChunkPos(query.getQueryPosition());
+        if (!query.getLevel().hasChunk(queryChunk.x, queryChunk.z)) {
             return Optional.empty();
         }
 
@@ -99,9 +102,9 @@ public final class Devices {
 
     ///////////////////////////////////////////////////////////////////
 
-    private record BlockQuery(Level level, BlockPos pos, @Nullable Direction side) implements BlockDeviceQuery {
+    private record BlockQuery(LevelAccessor level, BlockPos pos, @Nullable Direction side) implements BlockDeviceQuery {
         @Override
-        public Level getLevel() {
+        public LevelAccessor getLevel() {
             return level;
         }
 

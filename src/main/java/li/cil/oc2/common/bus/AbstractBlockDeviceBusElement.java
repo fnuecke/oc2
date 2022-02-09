@@ -120,6 +120,10 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
     }
 
     protected void collectSyntheticDevices(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side, final HashSet<BlockEntry> entries) {
+        if (entries.isEmpty()) {
+            return;
+        }
+
         final String blockName = LevelUtils.getBlockName(level, pos);
         if (blockName != null) {
             entries.add(new BlockEntry(new BlockDeviceInfo(null, new TypeNameRPCDevice(blockName)), side));

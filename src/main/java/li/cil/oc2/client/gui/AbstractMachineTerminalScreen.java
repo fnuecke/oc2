@@ -185,7 +185,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
             Sprites.ENERGY_BAR.drawFillY(stack, x, y, menu.getEnergy() / (float) menu.getEnergyCapacity());
         }
 
-        terminalWidget.render(stack, mouseX, mouseY, menu.getVirtualMachine().getBootError());
+        terminalWidget.render(stack, mouseX, mouseY, menu.getVirtualMachine().getError());
     }
 
     @Override

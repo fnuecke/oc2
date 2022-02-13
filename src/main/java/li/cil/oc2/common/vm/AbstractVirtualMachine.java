@@ -126,6 +126,18 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     @Override
     @Nullable
     public Component getBootError() {
+        return bootError;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void setBootErrorClient(@Nullable final Component value) {
+        bootError = value;
+    }
+
+    @Override
+    @Nullable
+    public Component getError() {
         switch (busState) {
             case SCAN_PENDING:
             case INCOMPLETE:
@@ -143,12 +155,6 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
                 break;
         }
         return null;
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void setBootErrorClient(@Nullable final Component value) {
-        bootError = value;
     }
 
     @Override

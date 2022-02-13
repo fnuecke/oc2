@@ -183,7 +183,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
             return;
         }
 
-        final Component bootError = computer.getVirtualMachine().getBootError();
+        final Component bootError = computer.getVirtualMachine().getError();
         if (bootError == null) {
             return;
         }

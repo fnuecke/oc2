@@ -26,6 +26,9 @@ public interface VirtualMachine {
     @OnlyIn(Dist.CLIENT)
     void setBootErrorClient(@Nullable Component value);
 
+    @Nullable
+    Component getError();
+
     boolean isRunning();
 
     void start();

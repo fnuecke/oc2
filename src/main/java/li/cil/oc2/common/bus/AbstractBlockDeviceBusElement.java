@@ -146,7 +146,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
     protected void onEntryRemoved(final String dataKey, final CompoundTag tag, @Nullable final BlockDeviceQuery query) {
         super.onEntryRemoved(dataKey, tag, query);
         assert query != null : "Passed null query for block device bus element.";
-        final IForgeRegistry<BlockDeviceProvider> registry = Providers.BLOCK_DEVICE_PROVIDER_REGISTRY.get();
+        final IForgeRegistry<BlockDeviceProvider> registry = Providers.blockDeviceProviderRegistry();
         final BlockDeviceProvider provider = registry.getValue(new ResourceLocation(dataKey));
         if (provider != null) {
             provider.unmount(query, tag);

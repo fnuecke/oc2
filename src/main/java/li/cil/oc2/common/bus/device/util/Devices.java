@@ -57,7 +57,7 @@ public final class Devices {
             return Optional.empty();
         }
 
-        final IForgeRegistry<BlockDeviceProvider> registry = Providers.BLOCK_DEVICE_PROVIDER_REGISTRY.get();
+        final IForgeRegistry<BlockDeviceProvider> registry = Providers.blockDeviceProviderRegistry();
         final ArrayList<Invalidatable<BlockDeviceInfo>> devices = new ArrayList<>();
         for (final BlockDeviceProvider provider : registry.getValues()) {
             final Invalidatable<Device> device = provider.getDevice(query);
@@ -74,7 +74,7 @@ public final class Devices {
             return Collections.emptyList();
         }
 
-        final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
+        final IForgeRegistry<ItemDeviceProvider> registry = Providers.itemDeviceProviderRegistry();
         final ArrayList<ItemDeviceInfo> devices = new ArrayList<>();
         for (final ItemDeviceProvider provider : registry.getValues()) {
             final Optional<ItemDevice> device = provider.getDevice(query);
@@ -88,7 +88,7 @@ public final class Devices {
             return 0;
         }
 
-        final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
+        final IForgeRegistry<ItemDeviceProvider> registry = Providers.itemDeviceProviderRegistry();
         long accumulator = 0;
         for (final ItemDeviceProvider provider : registry.getValues()) {
             accumulator += Math.max(0, provider.getEnergyConsumption(query));

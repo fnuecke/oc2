@@ -11,7 +11,7 @@ import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
 import li.cil.oc2.common.bus.device.data.Firmwares;
-import li.cil.oc2.common.bus.device.provider.Providers;
+import li.cil.oc2.common.bus.device.provider.ProviderRegistry;
 import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.item.Items;
@@ -51,7 +51,7 @@ public final class Main {
         RecipeSerializers.initialize();
         SoundEvents.initialize();
 
-        Providers.initialize();
+        ProviderRegistry.initialize();
         DeviceTypes.initialize();
         BlockDeviceDataRegistration.initialize();
         Firmwares.initialize();

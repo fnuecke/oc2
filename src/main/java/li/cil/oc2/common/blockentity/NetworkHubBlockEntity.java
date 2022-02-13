@@ -67,7 +67,7 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
     }
 
     private void validateAdjacentBlocks() {
-        if (isRemoved() || !haveAdjacentBlocksChanged) {
+        if (!isValid() || !haveAdjacentBlocksChanged) {
             return;
         }
 

@@ -66,7 +66,9 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
 
     @Override
     public boolean stillValid(final Player player) {
-        if (computer.isRemoved()) { return false; }
+        if (!computer.isValid()) {
+            return false;
+        }
         final Level level = computer.getLevel();
         return level != null && stillValid(ContainerLevelAccess.create(level, computer.getBlockPos()), player, Blocks.COMPUTER.get());
     }

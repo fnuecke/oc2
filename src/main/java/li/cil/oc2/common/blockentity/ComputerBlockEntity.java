@@ -141,7 +141,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
-        if (isRemoved()) {
+        if (!isValid()) {
             return LazyOptional.empty();
         }
 

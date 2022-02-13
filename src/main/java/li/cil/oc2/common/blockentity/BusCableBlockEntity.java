@@ -290,7 +290,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         // This is called from onLoad, so we cannot access neighbors yet.
         assert level != null;
         ServerScheduler.schedule(level, () -> {
-            if (isRemoved()) {
+            if (!isValid()) {
                 return;
             }
 
@@ -443,7 +443,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
 
         private void updateNeighborDevices() {
-            if (!isRemoved()) {
+            if (isValid()) {
                 busElement.updateDevicesForNeighbor(side);
             }
             hasScheduledUpdate = false;

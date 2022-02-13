@@ -34,7 +34,7 @@ public abstract class ModBlockEntity extends BlockEntity {
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
-        if (isRemoved()) {
+        if (!isValid()) {
             return LazyOptional.empty();
         }
 
@@ -111,6 +111,10 @@ public abstract class ModBlockEntity extends BlockEntity {
         if (!isUnloaded) {
             onUnload(true);
         }
+    }
+
+    public boolean isValid() {
+        return !isRemoved() && !isUnloaded;
     }
 
     ///////////////////////////////////////////////////////////////////

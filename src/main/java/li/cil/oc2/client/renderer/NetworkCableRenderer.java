@@ -263,7 +263,7 @@ public final class NetworkCableRenderer {
     private static void validateConnectors() {
         final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(connectors);
         for (final NetworkConnectorBlockEntity connector : list) {
-            if (connector.isRemoved()) {
+            if (!connector.isValid()) {
                 connectors.remove(connector);
                 connectionsByConnector.remove(connector);
                 invalidateConnections();

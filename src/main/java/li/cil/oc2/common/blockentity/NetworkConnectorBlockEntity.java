@@ -79,7 +79,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     ///////////////////////////////////////////////////////////////////
 
     public static ConnectionResult connect(final NetworkConnectorBlockEntity connectorA, final NetworkConnectorBlockEntity connectorB) {
-        if (connectorA == connectorB || connectorA.isRemoved() || connectorB.isRemoved()) {
+        if (connectorA == connectorB || !connectorA.isValid() || !connectorB.isValid()) {
             return ConnectionResult.FAILURE;
         }
 
@@ -144,7 +144,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
             }
         }
 
-        if (!isRemoved()) {
+        if (isValid()) {
             if (connectorPositions.remove(pos)) {
                 onConnectedPositionsChanged();
             }
@@ -320,7 +320,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
 
         adjacentInterface = LazyOptional.empty();
 
-        if (isRemoved()) {
+        if (!isValid()) {
             return;
         }
 
@@ -346,7 +346,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     private void resolveConnectedInterface(final BlockPos connectedPosition) {
         connectors.remove(connectedPosition);
 
-        if (isRemoved()) {
+        if (!isValid()) {
             return;
         }
 
@@ -450,7 +450,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
             });
 
             for (final NetworkConnectorBlockEntity dst : connectors.values()) {
-                if (dst.isRemoved() || dst.networkInterface == source) {
+                if (!dst.isValid() || dst.networkInterface == source) {
                     continue;
                 }
                 dst.networkInterface.writeEthernetFrame(this, frame, timeToLive - TTL_COST);

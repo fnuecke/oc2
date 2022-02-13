@@ -87,6 +87,22 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         );
     }
 
+    public void setRemoved() {
+        final LevelAccessor level = getLevel();
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+
+        for (final Direction side : Direction.values()) {
+            final int index = side.get3DDataValue();
+            final BlockPos pos = getPosition().relative(side);
+            final BlockDeviceQuery query = Devices.makeQuery(level, pos, side.getOpposite());
+            setEntriesForGroup(index, new BlockQueryResult(query, Collections.emptySet()));
+        }
+
+        scheduleScan();
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     protected boolean canScanContinueTowards(@Nullable final Direction direction) {

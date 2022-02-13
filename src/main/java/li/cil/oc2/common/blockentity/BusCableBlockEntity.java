@@ -251,12 +251,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         super.unloadServer(isRemove);
 
         if (isRemove) {
-            // Bus element will usually be discovered via bus scan, not via capability request, so
-            // automatic invalidation via capability will *not* necessarily schedule a scan on the
-            // controller of our current bus. So we need to trigger that manually.
-            // The controller already listens to chunk unloads, so we don't want to call this when
-            // the containing chunk gets unloaded, only when we're being removed.
-            busElement.scheduleScan();
+            busElement.setRemoved();
         }
 
         for (final NeighborTracker tracker : neighborTrackers) {

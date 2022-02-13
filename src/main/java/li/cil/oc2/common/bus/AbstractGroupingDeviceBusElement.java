@@ -129,6 +129,8 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
             devices.removeInt(entry.getDevice());
             onEntryRemoved(entry);
         }
+
+        scanDevices();
     }
 
     protected final void setEntriesForGroup(final int index, final QueryResult queryResult) {

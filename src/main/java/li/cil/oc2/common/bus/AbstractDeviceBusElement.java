@@ -35,7 +35,7 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
 
     @Override
     public Collection<DeviceBusController> getControllers() {
-        return controllers;
+        return Collections.unmodifiableSet(controllers);
     }
 
     @Override

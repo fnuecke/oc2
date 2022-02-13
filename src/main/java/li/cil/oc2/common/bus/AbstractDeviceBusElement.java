@@ -45,7 +45,7 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
 
     @Override
     public Collection<Device> getLocalDevices() {
-        return devices.keySet();
+        return Collections.unmodifiableSet(devices.keySet());
     }
 
     @Override
@@ -65,7 +65,9 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     @Override
     public Collection<Device> getDevices() {
         if (!controllers.isEmpty()) {
-            return controllers.stream().flatMap(controller -> getDevices().stream()).collect(Collectors.toSet());
+            return controllers.stream()
+                .flatMap(controller -> controller.getDevices().stream())
+                .collect(Collectors.toUnmodifiableSet());
         } else {
             return getLocalDevices();
         }

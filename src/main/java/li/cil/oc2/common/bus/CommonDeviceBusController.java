@@ -156,80 +156,33 @@ public class CommonDeviceBusController implements DeviceBusController {
         assert scanDelay == -1;
 
         // We stay registered with elements until we scan so that other controllers on the same bus
-        // can detect us in the meantime (for multiple controller detection).
-        clearElements();
+        // can detect us in the meantime (for multiple controller detection). This also means that
+        // adapters keep devices mounted until a scan, which is a nice performance plus.
 
-        final HashSet<DeviceBusElement> closed = new HashSet<>();
-        final Stack<DeviceBusElement> open = new Stack<>();
-        final ArrayList<LazyOptional<DeviceBusElement>> optionals = new ArrayList<>();
+        collectBusElements().ifPresent(optionals -> {
+            final HashSet<DeviceBusElement> addedElements = updateElements(optionals.keySet());
 
-        closed.add(root);
-        open.add(root);
-
-        while (!open.isEmpty()) {
-            final DeviceBusElement element = open.pop();
-
-            final Optional<Collection<LazyOptional<DeviceBusElement>>> elementNeighbors = element.getNeighbors();
-            if (elementNeighbors.isEmpty()) {
-                scanDelay = INCOMPLETE_RETRY_INTERVAL;
-                state = BusState.INCOMPLETE;
+            if (checkOtherBusControllers()) {
                 return;
             }
 
-            elementNeighbors.ifPresent(neighbors -> {
-                for (final LazyOptional<DeviceBusElement> neighbor : neighbors) {
-                    neighbor.ifPresent(neighborElement -> {
-                        if (closed.add(neighborElement)) {
-                            open.add(neighborElement);
-                            optionals.add(neighbor);
-                        }
-                    });
-                }
-            });
-
-            if (closed.size() > MAX_BUS_ELEMENT_COUNT) {
-                scanDelay = BAD_CONFIGURATION_RETRY_INTERVAL;
-                state = BusState.TOO_COMPLEX;
-                return;
-            }
-        }
-
-        final HashSet<DeviceBusController> controllers = new HashSet<>();
-        for (final DeviceBusElement element : closed) {
-            controllers.addAll(element.getControllers());
-            element.addController(this);
-        }
-
-        controllers.remove(this); // Just in case...
-        elements.addAll(closed);
-
-        // If there's any controllers on the bus that are not this one, enter error state and
-        // trigger a scan for those controllers, too, so they may enter error state.
-        if (!controllers.isEmpty()) {
-            for (final DeviceBusController controller : controllers) {
-                controller.scheduleBusScan();
+            // Don't have an optional for our root element, so skip that.
+            addedElements.remove(root);
+            for (final DeviceBusElement element : addedElements) {
+                // Rescan if any bus element gets invalidated. Don't have bus elements keep this instance alive,
+                // only notify us on change if we still exist.
+                LazyOptionalUtils.addWeakListener(optionals.get(element), this,
+                    (controller, ignored) -> controller.scheduleBusScan());
             }
 
-            state = BusState.MULTIPLE_CONTROLLERS;
-            scanDelay = BAD_CONFIGURATION_RETRY_INTERVAL;
-            return;
-        }
+            scanDevices();
 
-        // Rescan if any bus element gets invalidated.
-        for (final LazyOptional<DeviceBusElement> optional : optionals) {
-            assert optional.isPresent();
+            updateEnergyConsumption();
 
-            // Don't have bus elements keep this instance alive, only notify us on change if we still exist.
-            LazyOptionalUtils.addWeakListener(optional, this, (controller, unused) -> controller.scheduleBusScan());
-        }
+            state = BusState.READY;
 
-        onAfterBusScan();
-
-        scanDevices();
-
-        updateEnergyConsumption();
-
-        state = BusState.READY;
+            onAfterBusScan();
+        });
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -266,6 +219,95 @@ public class CommonDeviceBusController implements DeviceBusController {
         }
 
         elements.clear();
+
+        scanDevices();
+    }
+
+    private Optional<HashMap<DeviceBusElement, LazyOptional<DeviceBusElement>>> collectBusElements() {
+        final HashSet<DeviceBusElement> closed = new HashSet<>();
+        final Stack<DeviceBusElement> open = new Stack<>();
+        final HashMap<DeviceBusElement, LazyOptional<DeviceBusElement>> optionals = new HashMap<>();
+
+        closed.add(root);
+        open.add(root);
+        optionals.put(root, LazyOptional.empty()); // Needed because we only return this map.
+
+        while (!open.isEmpty()) {
+            final DeviceBusElement element = open.pop();
+
+            final Optional<Collection<LazyOptional<DeviceBusElement>>> elementNeighbors = element.getNeighbors();
+            if (elementNeighbors.isEmpty()) {
+                scanDelay = INCOMPLETE_RETRY_INTERVAL;
+                state = BusState.INCOMPLETE;
+
+                clearElements();
+                return Optional.empty();
+            }
+
+            for (final LazyOptional<DeviceBusElement> neighbor : elementNeighbors.get()) {
+                neighbor.ifPresent(neighborElement -> {
+                    if (closed.add(neighborElement)) {
+                        open.add(neighborElement);
+                        optionals.put(neighborElement, neighbor);
+                    }
+                });
+            }
+
+            if (closed.size() > MAX_BUS_ELEMENT_COUNT) {
+                scanDelay = BAD_CONFIGURATION_RETRY_INTERVAL;
+                state = BusState.TOO_COMPLEX;
+
+                clearElements();
+                return Optional.empty();
+            }
+        }
+
+        return Optional.of(optionals);
+    }
+
+    private HashSet<DeviceBusElement> updateElements(final Set<DeviceBusElement> newElements) {
+        final HashSet<DeviceBusElement> removedElements = new HashSet<>(elements);
+        removedElements.removeAll(newElements);
+
+        elements.removeAll(removedElements);
+
+        for (final DeviceBusElement removedElement : removedElements) {
+            removedElement.removeController(this);
+        }
+
+        final HashSet<DeviceBusElement> addedElements = new HashSet<>(newElements);
+        addedElements.removeAll(elements);
+
+        elements.addAll(addedElements);
+
+        for (final DeviceBusElement element : addedElements) {
+            element.addController(this);
+        }
+        return addedElements;
+    }
+
+    private boolean checkOtherBusControllers() {
+        final HashSet<DeviceBusController> controllers = new HashSet<>();
+        for (final DeviceBusElement element : elements) {
+            controllers.addAll(element.getControllers());
+        }
+
+        controllers.remove(this);
+
+        if (controllers.isEmpty()) {
+            return false;
+        }
+
+        // If there's any controllers on the bus that are not this one, enter error state and
+        // trigger a scan for those controllers, too, so they may enter error state.
+
+        for (final DeviceBusController controller : controllers) {
+            controller.scheduleBusScan();
+        }
+
+        state = BusState.MULTIPLE_CONTROLLERS;
+        scanDelay = BAD_CONFIGURATION_RETRY_INTERVAL;
+        return true;
     }
 
     private void updateEnergyConsumption() {
@@ -277,7 +319,7 @@ public class CommonDeviceBusController implements DeviceBusController {
         if (accumulator > Integer.MAX_VALUE) {
             energyConsumption = Integer.MAX_VALUE;
         } else {
-            energyConsumption = (int) accumulator;
+            energyConsumption = (int) Math.ceil(accumulator);
         }
     }
 

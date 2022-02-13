@@ -3,6 +3,7 @@
 package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.capabilities.NetworkInterface;
+import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.LazyOptionalUtils;
@@ -20,6 +21,9 @@ import java.util.stream.Stream;
 
 public final class NetworkHubBlockEntity extends ModBlockEntity implements NetworkInterface {
     private static final int TTL_COST = 1;
+
+    private int frameCount;
+    private long lastGameTime;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -45,6 +49,23 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
 
     @Override
     public void writeEthernetFrame(final NetworkInterface source, final byte[] frame, final int timeToLive) {
+        if (level == null) {
+            return;
+        }
+
+        // Give a cap on top of the TLL, just in case trolls intentionally build
+        // loops that exponentially multiply ethernet frames after people crank up
+        // the default TTL.
+        final long gameTime = level.getGameTime();
+        if (gameTime > lastGameTime) {
+            lastGameTime = gameTime;
+            frameCount = 1;
+        } else if (frameCount > Config.hubEthernetFramesPerTick) {
+            return;
+        } else {
+            frameCount++;
+        }
+
         getAdjacentInterfaces().forEach(adjacentInterface -> {
             if (adjacentInterface != source) {
                 adjacentInterface.writeEthernetFrame(this, frame, timeToLive - TTL_COST);

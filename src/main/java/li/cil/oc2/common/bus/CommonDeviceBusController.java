@@ -84,8 +84,12 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     @Override
     public void scheduleBusScan() {
-        scanDelay = 0; // scan as soon as possible
-        state = BusState.SCAN_PENDING;
+        // For multiple controllers, avoid ping-ponging immediate scans when controllers
+        // detect each other during their scans.
+        if (state != BusState.MULTIPLE_CONTROLLERS) {
+            scanDelay = 0; // scan as soon as possible
+            state = BusState.SCAN_PENDING;
+        }
     }
 
     @Override

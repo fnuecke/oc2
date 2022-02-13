@@ -65,7 +65,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     public AbstractVirtualMachine(final CommonDeviceBusController busController) {
         this.busController = busController;
 
-        busController.onBeforeScan.add(this::handleBeforeScan);
+        busController.onBeforeDeviceScan.add(this::handleBeforeDeviceScan);
         busController.onAfterDeviceScan.add(this::handleAfterDeviceScan);
         busController.onDevicesAdded.add(this::handleDevicesAdded);
         busController.onDevicesRemoved.add(this::handleDevicesRemoved);
@@ -165,21 +165,6 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     @Override
     public void stop() {
         stopRunnerAndReset();
-    }
-
-    public void pauseAndReload() {
-        state.rpcAdapter.pause();
-
-        // This is typically called when a device bus starts a scan. Since scans
-        // can be delayed we must adjust our run state accordingly, to avoid
-        // running before the scan finishes.
-        if (runState == VMRunState.RUNNING) {
-            runState = VMRunState.LOADING_DEVICES;
-        }
-    }
-
-    public void resume(final boolean didDevicesChange) {
-        state.rpcAdapter.resume(busController, didDevicesChange);
     }
 
     public void tick() {
@@ -390,12 +375,18 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         handleBootErrorChanged(value);
     }
 
-    private void handleBeforeScan() {
-        pauseAndReload();
+    private void handleBeforeDeviceScan() {
+        state.rpcAdapter.pause();
+
+        // Since scans can be delayed we must adjust our run state accordingly, to avoid
+        // running before the scan finishes.
+        if (runState == VMRunState.RUNNING) {
+            runState = VMRunState.LOADING_DEVICES;
+        }
     }
 
     private void handleAfterDeviceScan(final CommonDeviceBusController.AfterDeviceScanEvent event) {
-        resume(event.didDevicesChange());
+        state.rpcAdapter.resume(busController, event.didDevicesChange());
     }
 
     private void handleDevicesAdded(final CommonDeviceBusController.DevicesChangedEvent event) {

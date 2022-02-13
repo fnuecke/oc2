@@ -34,7 +34,7 @@ public class CommonDeviceBusController implements DeviceBusController {
     ///////////////////////////////////////////////////////////////////
 
     public final Event onAfterBusScan = new Event();
-    public final Event onBeforeScan = new Event();
+    public final Event onBeforeDeviceScan = new Event();
     public final ParameterizedEvent<AfterDeviceScanEvent> onAfterDeviceScan = new ParameterizedEvent<>();
     public final ParameterizedEvent<DevicesChangedEvent> onDevicesAdded = new ParameterizedEvent<>();
     public final ParameterizedEvent<DevicesChangedEvent> onDevicesRemoved = new ParameterizedEvent<>();
@@ -90,7 +90,7 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     @Override
     public void scanDevices() {
-        onBeforeScan();
+        onBeforeDeviceScan();
 
         final HashSet<Device> newDevices = new HashSet<>();
         final HashMap<Device, Set<UUID>> newDeviceIds = new HashMap<>();
@@ -238,8 +238,8 @@ public class CommonDeviceBusController implements DeviceBusController {
         onAfterBusScan.run();
     }
 
-    protected void onBeforeScan() {
-        onBeforeScan.run();
+    protected void onBeforeDeviceScan() {
+        onBeforeDeviceScan.run();
     }
 
     protected void onAfterDeviceScan(final boolean didDevicesChange) {

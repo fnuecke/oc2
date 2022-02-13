@@ -26,6 +26,6 @@ public final class BuildrootFirmware extends ForgeRegistryEntry<Firmware> implem
 
     @Override
     public Component getDisplayName() {
-        return new TextComponent("Linux");
+        return new TextComponent("Sedna Linux");
     }
 }

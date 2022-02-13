@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public final class VMDeviceTests {
+public final class VMDeviceBusAdapterTests {
     private MemoryMap memoryMap;
     private InterruptController interruptController;
     private R5MemoryRangeAllocationStrategy allocationStrategy;
@@ -106,7 +106,7 @@ public final class VMDeviceTests {
     }
 
     @Test
-    public void mountedDevicesAreUnmountedAndDisposedIfOtherMountFails() {
+    public void mountedDevicesAreUnmountedIfOtherMountFails() {
         final VMDevice device1 = mock(VMDevice.class);
         final VMDevice device2 = mock(VMDevice.class);
         when(device1.mount(any())).thenReturn(VMDeviceLoadResult.success());
@@ -119,11 +119,11 @@ public final class VMDeviceTests {
         verify(device1).mount(any());
         verify(device2).mount(any());
         verify(device1).unmount();
-        verify(device1).dispose();
+        verify(device1, never()).dispose();
     }
 
     @Test
-    public void mountedDevicesAreUnmountedAndDisposedWhenRemoved() {
+    public void mountedDevicesAreUnmountedWhenRemoved() {
         final VMDevice device = mock(VMDevice.class);
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
@@ -132,17 +132,24 @@ public final class VMDeviceTests {
 
         adapter.removeDevices(Collections.singleton(device));
         verify(device).unmount();
-        verify(device).dispose();
+        verify(device, never()).dispose();
     }
 
     @Test
-    public void unmountedDevicesAreDisposedWhenRemoved() {
+    public void unmountedDevicesAreSilentlyRemoved() {
         final VMDevice device = mock(VMDevice.class);
+        when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
 
         adapter.addDevices(Collections.singleton(device));
+        adapter.mountDevices();
+        verify(device).mount(any());
+
+        adapter.unmountDevices();
+        verify(device).unmount();
 
         adapter.removeDevices(Collections.singleton(device));
-        verify(device).dispose();
+
+        verify(device, never()).dispose();
     }
 
     @Test

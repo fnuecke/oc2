@@ -13,7 +13,7 @@ import java.util.*;
 
 import static org.mockito.Mockito.*;
 
-public final class RPCDeviceTests {
+public final class RPCDeviceBusAdapterTests {
     private RPCDeviceBusAdapter adapter;
     private Set<Device> busDevices;
     private Map<Device, Set<UUID>> deviceIdentifiers;
@@ -56,7 +56,7 @@ public final class RPCDeviceTests {
     }
 
     @Test
-    public void mountedDevicesAreUnmountedAndDisposedWhenRemoved() {
+    public void mountedDevicesAreUnmountedWhenRemoved() {
         final RPCDevice device = addDevice();
         adapter.resume(controller, true);
         adapter.mountDevices();
@@ -64,18 +64,18 @@ public final class RPCDeviceTests {
         removeDevice(device);
         adapter.resume(controller, true);
         verify(device).unmount();
-        verify(device).dispose();
+        verify(device, never()).dispose();
     }
 
     @Test
-    public void unmountedDevicesAreDisposedWhenRemoved() {
+    public void unmountedDevicesAreSilentlyRemoved() {
         final RPCDevice device = addDevice();
         adapter.resume(controller, true);
 
         removeDevice(device);
         adapter.resume(controller, true);
         verify(device, never()).unmount();
-        verify(device).dispose();
+        verify(device, never()).dispose();
     }
 
     @Test

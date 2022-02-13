@@ -66,8 +66,10 @@ public class CommonDeviceBusController implements DeviceBusController {
     public void dispose() {
         for (final DeviceBusElement element : elements) {
             element.removeController(this);
+
+            // Let other controllers on the bus know we're gone, so they can quickly recover.
             for (final DeviceBusController controller : element.getControllers()) {
-                controller.scheduleBusScan();
+                controller.scheduleBusScan(ScanReason.BUS_CHANGE);
             }
         }
 
@@ -83,13 +85,15 @@ public class CommonDeviceBusController implements DeviceBusController {
     }
 
     @Override
-    public void scheduleBusScan() {
-        // For multiple controllers, avoid ping-ponging immediate scans when controllers
-        // detect each other during their scans.
-        if (state != BusState.MULTIPLE_CONTROLLERS) {
-            scanDelay = 0; // scan as soon as possible
-            state = BusState.SCAN_PENDING;
+    public void scheduleBusScan(final ScanReason reason) {
+        // For notification of a bus error, we just keep our old state and delay, if we have one.
+        // Avoids ping-ponging error states causing scans every tick.
+        if (reason == ScanReason.BUS_ERROR && state.ordinal() < BusState.READY.ordinal()) {
+            return;
         }
+
+        scanDelay = 0; // scan as soon as possible
+        state = BusState.SCAN_PENDING;
     }
 
     @Override
@@ -172,7 +176,7 @@ public class CommonDeviceBusController implements DeviceBusController {
                 // Rescan if any bus element gets invalidated. Don't have bus elements keep this instance alive,
                 // only notify us on change if we still exist.
                 LazyOptionalUtils.addWeakListener(optionals.get(element), this,
-                    (controller, ignored) -> controller.scheduleBusScan());
+                    (controller, ignored) -> controller.scheduleBusScan(ScanReason.BUS_CHANGE));
             }
 
             scanDevices();
@@ -273,6 +277,11 @@ public class CommonDeviceBusController implements DeviceBusController {
 
         for (final DeviceBusElement removedElement : removedElements) {
             removedElement.removeController(this);
+
+            // Let other controllers on the bus know we're gone, so they can quickly recover.
+            for (final DeviceBusController controller : removedElement.getControllers()) {
+                controller.scheduleBusScan(ScanReason.BUS_CHANGE);
+            }
         }
 
         final HashSet<DeviceBusElement> addedElements = new HashSet<>(newElements);
@@ -302,7 +311,7 @@ public class CommonDeviceBusController implements DeviceBusController {
         // trigger a scan for those controllers, too, so they may enter error state.
 
         for (final DeviceBusController controller : controllers) {
-            controller.scheduleBusScan();
+            controller.scheduleBusScan(ScanReason.BUS_ERROR);
         }
 
         state = BusState.MULTIPLE_CONTROLLERS;

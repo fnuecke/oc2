@@ -12,6 +12,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public final class BlockDeviceDataRegistry {
     private static final DeferredRegister<BlockDeviceData> INITIALIZER = RegistryUtils.create(BlockDeviceData.class);
@@ -37,5 +38,9 @@ public final class BlockDeviceDataRegistry {
     @Nullable
     public static BlockDeviceData getValue(final ResourceLocation location) {
         return REGISTRY.get().getValue(location);
+    }
+
+    public static Stream<BlockDeviceData> values() {
+        return REGISTRY.get().getValues().stream();
     }
 }

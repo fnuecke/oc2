@@ -85,4 +85,10 @@ public abstract class AbstractBlockDeviceItem extends ModItem {
             return super.getName(stack);
         }
     }
+
+    ///////////////////////////////////////////////////////////////////
+
+    protected ResourceLocation getDefaultData() {
+        return defaultData;
+    }
 }

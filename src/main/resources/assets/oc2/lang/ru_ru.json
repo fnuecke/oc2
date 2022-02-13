@@ -18,6 +18,10 @@
   "block.oc2.charger.desc": "Заряжает сущности и предметы в контейнерах над ним.",
   "block.oc2.creative_energy": "Энергокуб бесконечности",
   "block.oc2.creative_energy.desc": "Подает бесконечную энергию на соседние блоки. Применять только в тестовых целях.",
+  "block.oc2.projector": "Проектор",
+  "block.oc2.projector.desc": "Проецирует изображения на поверхности перед ним.",
+  "block.oc2.keyboard": "Клавиатура",
+  "block.oc2.keyboard.desc": "Позволяет вводить текст при использовании проектора.",
 
   "item.oc2.wrench": "Ключ",
   "item.oc2.wrench.desc": "Конфигурирует и демонтирует (если присесть) устройства.",
@@ -54,7 +58,7 @@
   "item.oc2.sound_card.desc": "Проигрывает разные звуки из своих высококачественных звуковых банков.",
   "item.oc2.network_tunnel_module": "Сетевой туннельный модуль",
   "item.oc2.network_tunnel_module.desc": "Отсылает и принимает пакеты с привязанного устройства.",
-  
+
   "item.oc2.transistor": "Транзистор",
   "item.oc2.transistor.desc": "Материал для крафта.",
   "item.oc2.circuit_board": "Печатная плата",
@@ -77,7 +81,7 @@
 
   "gui.oc2.machine.open_inventory.capt": "Открыть инвентарь",
   "gui.oc2.machine.open_terminal.capt": "Открыть терминал",
-  
+
   "gui.oc2.device_type.memory": "Память",
   "gui.oc2.device_type.hard_drive": "Жесткий диск",
   "gui.oc2.device_type.flash_memory": "Карта памяти",
@@ -90,18 +94,20 @@
   "gui.oc2.file_chooser.confirm_button.save": "Сохранить",
   "gui.oc2.file_chooser.confirm_button.overwrite": "Перезаписать",
   "gui.oc2.file_chooser.cancel_button": "Отмена",
-   
+
   "gui.oc2.network_interface_card.side_state": "Соединение: %s",
   "gui.oc2.network_interface_card.connectivity.enabled": "Включено",
   "gui.oc2.network_interface_card.connectivity.disabled": "Выключено",
   "gui.oc2.network_interface_card.info": "Потяните для поворота. Клик на сторону переключит соединение.",
-  
+
+  "gui.oc2.keyboard.close_info": "Для закрытия нажмите ПКМ.",
+
   "gui.oc2.network_tunnel.link": "Привязать",
 
   "manual.oc2.home": "Главная страница",
   "manual.oc2.blocks": "Блоки",
   "manual.oc2.items": "Предметы",
-    
+
   "message.oc2.connector.error.full": "Подключено слишком много кабелей.",
   "message.oc2.connector.error.too_far": "Дистанция между разъемами слишком велика.",
   "message.oc2.connector.error.obstructed": "Между разъемами присутствует преграда.",
@@ -110,7 +116,7 @@
 
   "tooltip.oc2.device_needs_reboot": "Требуется перезагрузка",
   "tooltip.oc2.flash_memory_missing": "Карта памяти содержит прошивку, необходимую для загрузки.",
-  "tooltip.oc2.memory_missing": "Некоторая память требуется для загрузки прошивки из карты памяти и последующей работы.",
+  "tooltip.oc2.memory_missing": "Оперативная память требуется для загрузки прошивки из карты памяти и последующей работы.",
   "tooltip.oc2.hard_drive_missing": "Большинству ОС для загрузки необходима файловая система.",
   "tooltip.oc2.energy": "Энергия: %s",
   "tooltip.oc2.energyConsumption": "Потребление энергии: %s/t",

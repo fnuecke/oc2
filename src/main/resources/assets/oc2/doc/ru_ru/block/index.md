@@ -8,6 +8,8 @@
 - [Зарядное устройство](charger.md)
 - [Компьютер](computer.md)
 - [Дисковод](disk_drive.md)
+- [Клавиатура](keyboard.md)
 - [Сетевой разъем](network_connector.md)
 - [Сетевой концентратор](network_hub.md)
+- [Проектор](projector.md)
 - [Красный интерфейс](redstone_interface.md)

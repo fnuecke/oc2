@@ -243,10 +243,8 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         final CompoundTag devicesTag = new CompoundTag();
         for (final TEntry entry : groups.get(index)) {
             entry.getDeviceDataKey().ifPresent(key -> {
-                final CompoundTag deviceTag = entry.getDevice().serializeNBT();
-                if (!deviceTag.isEmpty()) {
-                    devicesTag.put(key, deviceTag);
-                }
+                // Always store, even if the data is empty, so we know an device by this provider existed.
+                devicesTag.put(key, entry.getDevice().serializeNBT());
             });
         }
 

@@ -2,7 +2,7 @@
   "parent": "minecraft:recipes/root",
   "rewards": {
     "recipes": [
-      "oc2:hard_drive_buildroot"
+      "oc2:hard_drive_custom"
     ]
   },
   "criteria": {
@@ -33,7 +33,7 @@
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "oc2:hard_drive_buildroot"
+        "recipe": "oc2:hard_drive_custom"
       }
     }
   },

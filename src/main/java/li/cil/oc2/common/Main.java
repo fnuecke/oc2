@@ -14,6 +14,7 @@ import li.cil.oc2.common.bus.device.data.Firmwares;
 import li.cil.oc2.common.bus.device.provider.ProviderRegistry;
 import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
+import li.cil.oc2.common.item.ItemRenameHandler;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.RecipeSerializers;
 import li.cil.oc2.common.serialization.ceres.Serializers;
@@ -59,6 +60,8 @@ public final class Main {
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> Manuals::initialize);
 
         RegistryUtils.finish();
+
+        ItemRenameHandler.initialize();
 
         FMLJavaModLoadingContext.get().getModEventBus().register(CommonSetup.class);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->

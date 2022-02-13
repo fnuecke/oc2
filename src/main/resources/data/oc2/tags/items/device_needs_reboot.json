@@ -3,11 +3,11 @@
   "values": [
     "oc2:disk_drive",
     "oc2:flash_memory",
-    "oc2:flash_memory_buildroot",
+    "oc2:flash_memory_custom",
     "oc2:hard_drive_small",
     "oc2:hard_drive_medium",
     "oc2:hard_drive_large",
-    "oc2:hard_drive_buildroot",
+    "oc2:hard_drive_custom",
     "oc2:keyboard",
     "oc2:memory_small",
     "oc2:memory_medium",

@@ -46,7 +46,6 @@ public final class VMDeviceBusAdapter {
                 context.invalidate();
                 mountedDevices.forEach((mountedDevice, mountedContext) -> {
                     mountedDevice.unmount();
-                    mountedDevice.dispose();
                     mountedContext.invalidate();
                 });
                 mountedDevices.clear();
@@ -97,11 +96,9 @@ public final class VMDeviceBusAdapter {
                 final ManagedVMContext context = mountedDevices.remove(vmDevice);
                 if (context != null) {
                     vmDevice.unmount();
-                    vmDevice.dispose();
                     context.invalidate();
                 } else {
                     unmountedDevices.remove(vmDevice);
-                    vmDevice.dispose();
                 }
             }
         }

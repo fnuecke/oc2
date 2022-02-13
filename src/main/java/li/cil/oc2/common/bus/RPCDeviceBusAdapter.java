@@ -184,16 +184,10 @@ public final class RPCDeviceBusAdapter implements Steppable {
         final HashSet<RPCDeviceList> removedMountedDevices = new HashSet<>(mountedDevices);
         removedMountedDevices.removeAll(devices);
         mountedDevices.removeAll(removedMountedDevices);
-        removedMountedDevices.forEach(device -> {
-            device.unmount();
-            device.dispose();
-        });
+        removedMountedDevices.forEach(RPCDeviceList::unmount);
 
-        // Remove devices from unmounted set, call appropriate callbacks.
-        final HashSet<RPCDeviceList> removedUnmountedDevices = new HashSet<>(unmountedDevices);
-        removedUnmountedDevices.removeAll(devices);
-        unmountedDevices.removeAll(removedUnmountedDevices);
-        removedUnmountedDevices.forEach(RPCDeviceList::dispose);
+        // Remove devices from unmounted set.
+        unmountedDevices.retainAll(devices);
     }
 
     public void tick() {

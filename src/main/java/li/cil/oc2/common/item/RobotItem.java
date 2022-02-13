@@ -43,8 +43,8 @@ import static li.cil.oc2.common.util.RegistryUtils.key;
 
 public final class RobotItem extends ModItem {
     @Override
-    public void fillItemCategory(final CreativeModeTab group, final NonNullList<ItemStack> items) {
-        if (allowdedIn(group)) {
+    public void fillItemCategory(final CreativeModeTab tab, final NonNullList<ItemStack> items) {
+        if (allowdedIn(tab)) {
             items.add(getRobotWithFlash());
         }
     }

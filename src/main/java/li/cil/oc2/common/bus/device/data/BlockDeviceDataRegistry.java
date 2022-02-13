@@ -37,10 +37,16 @@ public final class BlockDeviceDataRegistry {
 
     @Nullable
     public static BlockDeviceData getValue(final ResourceLocation location) {
-        return REGISTRY.get().getValue(location);
+        final BlockDeviceData value = REGISTRY.get().getValue(location);
+        if (value != null) {
+            return value;
+        }
+        return FileSystems.getBlockData().get(location);
     }
 
     public static Stream<BlockDeviceData> values() {
-        return REGISTRY.get().getValues().stream();
+        return Stream.concat(
+            REGISTRY.get().getValues().stream(),
+            FileSystems.getBlockData().values().stream());
     }
 }

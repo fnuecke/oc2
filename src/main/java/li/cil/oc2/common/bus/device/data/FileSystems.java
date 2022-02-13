@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import li.cil.oc2.api.API;
+import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.vm.fs.LayeredFileSystem;
 import li.cil.sedna.fs.FileSystem;
 import li.cil.sedna.fs.ZipStreamFileSystem;
@@ -24,16 +25,17 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+
+import static li.cil.oc2.common.util.TextFormatUtils.formatSize;
 
 @Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class FileSystems {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final LayeredFileSystem LAYERED_FILE_SYSTEM = new LayeredFileSystem();
+    private static final Map<ResourceLocation, BlockDeviceData> BLOCK_DEVICE_DATA = new HashMap<>();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -41,8 +43,21 @@ public final class FileSystems {
         return LAYERED_FILE_SYSTEM;
     }
 
+    public static Map<ResourceLocation, BlockDeviceData> getBlockData() {
+        return BLOCK_DEVICE_DATA;
+    }
+
     public static void reset() {
         LAYERED_FILE_SYSTEM.clear();
+
+        for (final BlockDeviceData data : BLOCK_DEVICE_DATA.values()) {
+            try {
+                ((ResourceBlockDeviceData) data).close();
+            } catch (final Exception e) {
+                LOGGER.error(e);
+            }
+        }
+        BLOCK_DEVICE_DATA.clear();
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -99,7 +114,25 @@ public final class FileSystems {
                             fileSystemOrder.put(fileSystem, 0);
                         }
                     }
-                    case "block" -> LOGGER.error("Not yet implemented.");
+                    case "block" -> {
+                        final ResourceLocation location = new ResourceLocation(json.getAsJsonPrimitive("location").getAsString());
+                        if (BlockDeviceDataRegistry.getValue(location) != null) {
+                            LOGGER.error("Block device from datapack collides with already registered location [{}].", location);
+                            continue;
+                        }
+
+                        final String name;
+                        if (json.has("name")) {
+                            name = json.getAsJsonPrimitive("name").getAsString();
+                        } else {
+                            name = "???";
+                        }
+
+                        final ResourceBlockDeviceData data = new ResourceBlockDeviceData(resourceManager, location, name);
+
+                        LOGGER.info("  Adding block device [{}] with id [{}] and a size of [{}].", name, location, formatSize(data.getBlockDevice().getCapacity()));
+                        BLOCK_DEVICE_DATA.put(location, data);
+                    }
                     default -> LOGGER.error("Unsupported file system type [{}].", type);
                 }
             } catch (final Throwable e) {
@@ -123,4 +156,5 @@ public final class FileSystems {
                 .thenCompose(stage::wait);
         }
     }
+
 }

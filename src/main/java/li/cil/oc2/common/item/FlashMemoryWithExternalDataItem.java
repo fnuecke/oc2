@@ -3,7 +3,7 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.bus.device.data.Firmware;
-import li.cil.oc2.common.bus.device.data.Firmwares;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.util.ItemStackUtils;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.Util;
@@ -48,7 +48,7 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
             }
         }
 
-        return Firmwares.REGISTRY.get().getValue(location);
+        return FirmwareRegistry.getValue(location);
     }
 
     public ItemStack withFirmware(final ItemStack stack, final Firmware firmware) {
@@ -56,7 +56,7 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
             return stack;
         }
 
-        final ResourceLocation key = Firmwares.REGISTRY.get().getKey(firmware);
+        final ResourceLocation key = FirmwareRegistry.getKey(firmware);
         if (key == null) {
             return stack;
         }

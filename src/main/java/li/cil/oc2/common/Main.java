@@ -10,7 +10,7 @@ import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
-import li.cil.oc2.common.bus.device.data.Firmwares;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.bus.device.provider.ProviderRegistry;
 import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
@@ -55,7 +55,7 @@ public final class Main {
         ProviderRegistry.initialize();
         DeviceTypes.initialize();
         BlockDeviceDataRegistry.initialize();
-        Firmwares.initialize();
+        FirmwareRegistry.initialize();
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> Manuals::initialize);
 

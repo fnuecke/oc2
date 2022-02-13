@@ -4,14 +4,12 @@ package li.cil.oc2.common.item;
 
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.Blocks;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.bus.device.data.Firmwares;
 import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -58,7 +56,7 @@ public final class Items {
     public static final RegistryObject<HardDriveItem> HARD_DRIVE_LARGE = register("hard_drive_large", () ->
         new HardDriveItem(8 * Constants.MEGABYTE, DyeColor.CYAN));
     public static final RegistryObject<HardDriveWithExternalDataItem> HARD_DRIVE_CUSTOM = register("hard_drive_custom", () ->
-        new HardDriveWithExternalDataItem(BlockDeviceDataRegistration.BUILDROOT.getId(), DyeColor.BROWN));
+        new HardDriveWithExternalDataItem(BlockDeviceDataRegistry.BUILDROOT.getId(), DyeColor.BROWN));
 
     public static final RegistryObject<FlashMemoryItem> FLASH_MEMORY = register("flash_memory", () ->
         new FlashMemoryItem(4 * Constants.KILOBYTE));

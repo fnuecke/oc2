@@ -3,7 +3,7 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistration;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.util.ItemStackUtils;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.network.chat.Component;
@@ -50,7 +50,7 @@ public abstract class AbstractBlockDeviceItem extends ModItem {
             }
         }
 
-        return BlockDeviceDataRegistration.REGISTRY.get().getValue(location);
+        return BlockDeviceDataRegistry.getValue(location);
     }
 
     public ItemStack withData(final ItemStack stack, final BlockDeviceData data) {
@@ -58,7 +58,7 @@ public abstract class AbstractBlockDeviceItem extends ModItem {
             return stack;
         }
 
-        final ResourceLocation key = BlockDeviceDataRegistration.REGISTRY.get().getKey(data);
+        final ResourceLocation key = BlockDeviceDataRegistry.getKey(data);
         if (key == null) {
             return stack;
         }

@@ -84,11 +84,11 @@ bool getProjectorColor(vec3 worldPos, vec3 worldNormal,
 
     vec4 projectorUvPrediv = CLIP_TO_TEX * projectorClipPosPrediv;
     vec2 projectorUv = projectorUvPrediv.xy / projectorUvPrediv.w;
-    float projectorDepth = texture2D(projectorDepthSampler, projectorUv).r;
+    float projectorDepth = texture(projectorDepthSampler, projectorUv).r;
     float projectorClipDepth = projectorDepth * 2 - 1;
 
     if (projectorClipPos.z <= projectorClipDepth + DEPTH_BIAS) {
-        vec3 projectorColor = texture2D(projectorColorSampler, vec2(projectorUv.s, 1 - projectorUv.t)).rgb;
+        vec3 projectorColor = texture(projectorColorSampler, vec2(projectorUv.s, 1 - projectorUv.t)).rgb;
         float dotAttenuation = clamp((d - DOT_EPSILON) / (1 - DOT_EPSILON), 0, 1);
         float distanceAttenuation = clamp(1 - (linearDepth - START_FADE_DISTANCE) / (MAX_DISTANCE - START_FADE_DISTANCE), 0, 1);
         result = projectorColor * dotAttenuation * distanceAttenuation;
@@ -98,7 +98,7 @@ bool getProjectorColor(vec3 worldPos, vec3 worldNormal,
 }
 
 void main() {
-    float depth = texture2D(MainCameraDepth, texCoord).r;
+    float depth = texture(MainCameraDepth, texCoord).r;
 
     // Check for no hit, for early exit.
     if (depth >= 1) {

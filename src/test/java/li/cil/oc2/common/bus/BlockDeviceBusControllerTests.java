@@ -219,6 +219,23 @@ public class BlockDeviceBusControllerTests {
     }
 
     @Test
+    public void unloadedDeviceIsRemovedFromElement() {
+        final BlockPos elementPos = new BlockPos(0, 0, 8);
+        final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
+
+        final BlockPos devicePos = elementPos.west();
+        final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
+
+        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
+        assertTrue(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+
+        fakeLevel.setChunkLoaded(new ChunkPos(devicePos), false);
+
+        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
+        assertFalse(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+    }
+
+    @Test
     public void devicesGetSerializedWhenUnloadedAndDeserializedWhenLoaded() {
         final BlockPos controllerPos = new BlockPos(1, 0, 8);
         final BlockDeviceBusController busController = new TestBusControllerBlockEntity(controllerPos).getBusController();

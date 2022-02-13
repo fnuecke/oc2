@@ -124,11 +124,12 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
 
         saveGroup(index);
 
-        final HashSet<TEntry> removedEntries = new HashSet<>(oldEntries);
-        for (final TEntry entry : removedEntries) {
+        for (final TEntry entry : oldEntries) {
             devices.removeInt(entry.getDevice());
             onEntryRemoved(entry);
         }
+
+        oldEntries.clear();
 
         scanDevices();
     }

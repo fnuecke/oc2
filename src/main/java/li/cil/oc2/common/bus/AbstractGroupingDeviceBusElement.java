@@ -135,12 +135,33 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
 
     protected final void setEntriesForGroup(final int index, final QueryResult queryResult) {
         final Set<TEntry> newEntries = queryResult.getEntries();
-        final HashSet<TEntry> oldEntries = groups.get(index);
-        if (Objects.equals(newEntries, oldEntries)) {
+        final HashSet<TEntry> entries = groups.get(index);
+        if (Objects.equals(newEntries, entries)) {
+            if (entries.isEmpty()) {
+                // If we do not have any entries, we still need to check if there's any
+                // remaining data of previously known devices, so we can call dispose
+                // on the appropriate provider. If we don't do this here, we may delay
+                // this indefinitely, if no new devices are detected for this index.
+                final CompoundTag devicesTag = groupData[index];
+                if (!devicesTag.isEmpty()) {
+                    final Iterator<String> iterator = devicesTag.getAllKeys().iterator();
+                    while (iterator.hasNext()) {
+                        final String dataKey = iterator.next();
+                        if (devicesTag.contains(dataKey, NBTTagIds.TAG_COMPOUND)) {
+                            final CompoundTag tag = devicesTag.getCompound(dataKey);
+                            onEntryRemoved(dataKey, tag, queryResult.getQuery());
+                        }
+                        iterator.remove();
+                    }
+                }
+            }
+
             return;
         }
 
-        final HashSet<TEntry> removedEntries = new HashSet<>(oldEntries);
+        final boolean hadOldEntries = !entries.isEmpty();
+
+        final HashSet<TEntry> removedEntries = new HashSet<>(entries);
         removedEntries.removeAll(newEntries);
         for (final TEntry entry : removedEntries) {
             devices.removeInt(entry.getDevice());
@@ -148,20 +169,25 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         }
 
         final HashSet<TEntry> addedEntries = new HashSet<>(newEntries);
-        addedEntries.removeAll(oldEntries);
+        addedEntries.removeAll(entries);
         for (final TEntry entry : addedEntries) {
             devices.put(entry.getDevice(), entry.getDeviceEnergyConsumption().orElse(0));
             onEntryAdded(entry);
         }
 
-        oldEntries.removeAll(removedEntries);
-        oldEntries.addAll(newEntries);
+        entries.removeAll(removedEntries);
+        entries.addAll(newEntries);
 
+        // Remove serialized data for devices that were present before, but are gone now.
         final CompoundTag devicesTag = groupData[index];
         for (final TEntry entry : removedEntries) {
             entry.getDeviceDataKey().ifPresent(devicesTag::remove);
         }
 
+        // Deserialize data for found devices, if we have existing data for them. Also collect
+        // the list of serialized data we have for devices that have gone missing without being
+        // explicitly removed. This can happen if a device is removed while the bus element is
+        // unloaded. We need to call dispose on the provider if we detect this.
         final HashSet<String> invalidDataKeys = new HashSet<>(devicesTag.getAllKeys());
         for (final TEntry entry : addedEntries) {
             entry.getDeviceDataKey().ifPresent(key -> {
@@ -183,7 +209,23 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
             devicesTag.remove(invalidDataKey);
         }
 
+        // Assign a new ID to this side when the device configuration changes. Avoids confusion when
+        // providing a different device to an interface when some running use programs in the VM may
+        // still hold a reference to the old one. We consider "changing" anything that removes some
+        // devices or adds new devices to an *existing* device set.
+        if (hadOldEntries) {
+            groupIds[index] = UUID.randomUUID();
+        }
+
+        // Trigger a device update on the controller, if we have one. This gives adapters a chance
+        // to unmount old devices before we call dispose on them in the next step. If we don't
+        // have a controller, devices must already be unmounted (either not mounted in this lifetime,
+        // or controller unmounted them when it was removed).
         scanDevices();
+
+        for (final TEntry entry : removedEntries) {
+            entry.getDevice().dispose();
+        }
     }
 
     protected void onEntryAdded(final TEntry entry) {

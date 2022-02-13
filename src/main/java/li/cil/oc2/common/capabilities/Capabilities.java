@@ -13,6 +13,8 @@ import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 
+import java.util.function.Consumer;
+
 public final class Capabilities {
     public static Capability<IEnergyStorage> energyStorage() {
         return CapabilityRegistry.ENERGY_STORAGE;
@@ -48,5 +50,14 @@ public final class Capabilities {
 
     public static Capability<Robot> robot() {
         return CapabilityRegistry.ROBOT;
+    }
+
+    public static void registerCapabilities(final Consumer<Class<?>> registry) {
+        registry.accept(DeviceBusElement.class);
+        registry.accept(Device.class);
+        registry.accept(RedstoneEmitter.class);
+        registry.accept(NetworkInterface.class);
+        registry.accept(TerminalUserProvider.class);
+        registry.accept(Robot.class);
     }
 }

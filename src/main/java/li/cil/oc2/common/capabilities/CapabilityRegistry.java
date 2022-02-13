@@ -33,11 +33,6 @@ public final class CapabilityRegistry {
 
     @SubscribeEvent
     public static void initialize(final RegisterCapabilitiesEvent event) {
-        event.register(DeviceBusElement.class);
-        event.register(Device.class);
-        event.register(RedstoneEmitter.class);
-        event.register(NetworkInterface.class);
-        event.register(TerminalUserProvider.class);
-        event.register(Robot.class);
+        Capabilities.registerCapabilities(event::register);
     }
 }

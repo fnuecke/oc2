@@ -55,12 +55,12 @@ public abstract class AbstractBlockDeviceItem extends ModItem {
 
     public ItemStack withData(final ItemStack stack, final BlockDeviceData data) {
         if (stack.isEmpty() || stack.getItem() != this) {
-            return stack;
+            return ItemStack.EMPTY;
         }
 
         final ResourceLocation key = BlockDeviceDataRegistry.getKey(data);
         if (key == null) {
-            return stack;
+            return ItemStack.EMPTY;
         }
 
         ItemStackUtils.getOrCreateModDataTag(stack).putString(DATA_TAG_NAME, key.toString());

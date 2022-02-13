@@ -53,12 +53,12 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
 
     public ItemStack withFirmware(final ItemStack stack, final Firmware firmware) {
         if (stack.isEmpty() || stack.getItem() != this) {
-            return stack;
+            return ItemStack.EMPTY;
         }
 
         final ResourceLocation key = FirmwareRegistry.getKey(firmware);
         if (key == null) {
-            return stack;
+            return ItemStack.EMPTY;
         }
 
         ItemStackUtils.getOrCreateModDataTag(stack).putString(FIRMWARE_TAG_NAME, key.toString());

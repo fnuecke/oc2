@@ -2,6 +2,7 @@
 
 package li.cil.oc2.api.bus.device.rpc;
 
+import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 
@@ -74,35 +75,23 @@ public interface RPCDevice extends Device {
     /**
      * Called to start this device.
      * <p>
-     * This is called when the connected virtual machine starts, or when the device is added to an already running
-     * virtual machine.
+     * This is called when the connected virtual machine starts, or when the device
+     * is added to a {@link DeviceBus} with a currently running virtual machine.
      */
     default void mount() {
     }
 
     /**
-     * Called to stop this device.
+     * Called to pause this device.
      * <p>
-     * Called when the connected virtual machine stops, the device is removed from a currently running
-     * virtual machine, or the connected virtual machine is suspended (chunk unload/server stopped/...).
+     * Called when the connected virtual machine is suspended (chunk unload/server stopped/...).
+     * <p>
+     * Also called when the connected virtual machine stops or the device is removed from a
+     * {@link DeviceBus} with a currently running virtual machine. In this case, {@link #dispose()}
+     * will be called after this method returns.
      * <p>
      * If {@link #mount()} was called, this is guaranteed to be called.
      */
     default void unmount() {
-    }
-
-    /**
-     * Called to dispose this device.
-     * <p>
-     * Called when the connected virtual machine stops or the device is removed from a currently running
-     * virtual machine.
-     * <p>
-     * Will only be called on unmounted devices (i.e. will always be called after {@link #unmount()} if
-     * {@link #mount()} was called before). May be called without intermediary {@link #mount()} calls, e.g.
-     * virtual machine stops, then device is disconnected from the virtual machine.
-     * <p>
-     * Intended for releasing persistent unmanaged resources.
-     */
-    default void dispose() {
     }
 }

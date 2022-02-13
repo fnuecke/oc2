@@ -23,6 +23,14 @@ import net.minecraftforge.common.util.INBTSerializable;
  */
 public interface Device extends INBTSerializable<CompoundTag> {
     /**
+     * Called to dispose this device.
+     * <p>
+     * Called when the connected virtual machine stops or the device is removed from a {@link DeviceBus}.
+     */
+    default void dispose() {
+    }
+
+    /**
      * Called to serialize this device into its container's persistent storage.
      *
      * @return the serialized state of this device.

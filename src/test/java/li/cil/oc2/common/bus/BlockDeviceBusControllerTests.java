@@ -29,8 +29,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.jetbrains.annotations.Nullable;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -46,11 +45,6 @@ import static org.mockito.Mockito.*;
 public class BlockDeviceBusControllerTests {
     public static final ResourceLocation TEST_PROVIDER_REGISTRY_NAME = new ResourceLocation(API.MOD_ID, "test");
 
-    public static final IForgeRegistry<BlockDeviceProvider> BLOCK_DEVICE_PROVIDER_REGISTRY = createBlockDeviceProviderRegistry();
-    public static final IForgeRegistry<ItemDeviceProvider> ITEM_DEVICE_PROVIDER_REGISTRY = createItemDeviceProviderRegistry();
-
-    private static final Set<Class<?>> REGISTERED_CAPABILITIES = new HashSet<>();
-
     private static MockedStatic<Capabilities> capabilitiesMock;
     private static MockedStatic<Providers> providersMock;
     private static MockedStatic<LevelUtils> levelUtilsMock;
@@ -61,8 +55,8 @@ public class BlockDeviceBusControllerTests {
     ///////////////////////////////////////////////////////////////////
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    @BeforeAll
-    public static void setup() {
+    @BeforeEach
+    public void setupEach() {
         capabilitiesMock = mockStatic(Capabilities.class);
         registerCapability(capabilitiesMock.when(Capabilities::energyStorage));
         registerCapability(capabilitiesMock.when(Capabilities::fluidHandler));
@@ -73,14 +67,18 @@ public class BlockDeviceBusControllerTests {
         registerCapability(capabilitiesMock.when(Capabilities::networkInterface));
         registerCapability(capabilitiesMock.when(Capabilities::terminalUserProvider));
         registerCapability(capabilitiesMock.when(Capabilities::robot));
-        Capabilities.registerCapabilities(type -> assertTrue(REGISTERED_CAPABILITIES.contains(type)));
 
         providersMock = mockStatic(Providers.class);
-        providersMock.when(Providers::blockDeviceProviderRegistry).thenReturn(BLOCK_DEVICE_PROVIDER_REGISTRY);
-        providersMock.when(Providers::itemDeviceProviderRegistry).thenReturn(ITEM_DEVICE_PROVIDER_REGISTRY);
+        final IForgeRegistry<BlockDeviceProvider> blockDeviceProviderRegistry = createBlockDeviceProviderRegistry();
+        providersMock.when(Providers::blockDeviceProviderRegistry).thenReturn(blockDeviceProviderRegistry);
+        final IForgeRegistry<ItemDeviceProvider> itemDeviceProviderRegistry = createItemDeviceProviderRegistry();
+        providersMock.when(Providers::itemDeviceProviderRegistry).thenReturn(itemDeviceProviderRegistry);
 
         levelUtilsMock = mockStatic(LevelUtils.class);
         levelUtilsMock.when(() -> LevelUtils.getBlockName(any(), any())).thenReturn("test_block");
+
+        fakeLevel = new FakeLevel();
+        level = fakeLevel.getLevel();
     }
 
     @SuppressWarnings("unchecked")
@@ -89,19 +87,11 @@ public class BlockDeviceBusControllerTests {
         stubbing.thenReturn(capability);
     }
 
-    @AfterAll
-    public static void teardown() {
-        REGISTERED_CAPABILITIES.clear();
-
+    @AfterEach
+    public void teardownEach() {
         capabilitiesMock.close();
         providersMock.close();
         levelUtilsMock.close();
-    }
-
-    @BeforeEach
-    public void setupEach() {
-        fakeLevel = new FakeLevel();
-        level = fakeLevel.getLevel();
     }
 
     @Test

@@ -12,6 +12,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public final class FirmwareRegistry {
     private static final DeferredRegister<Firmware> INITIALIZER = RegistryUtils.create(Firmware.class);
@@ -37,5 +38,9 @@ public final class FirmwareRegistry {
     @Nullable
     public static Firmware getValue(final ResourceLocation location) {
         return REGISTRY.get().getValue(location);
+    }
+
+    public static Stream<Firmware> values() {
+        return REGISTRY.get().getValues().stream();
     }
 }

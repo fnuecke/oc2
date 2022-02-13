@@ -20,13 +20,13 @@ import li.cil.oc2.common.util.LevelUtils;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterAll;
@@ -44,6 +44,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 public class BlockDeviceBusControllerTests {
+    public static final ResourceLocation TEST_PROVIDER_REGISTRY_NAME = new ResourceLocation(API.MOD_ID, "test");
+
     public static final IForgeRegistry<BlockDeviceProvider> BLOCK_DEVICE_PROVIDER_REGISTRY = createBlockDeviceProviderRegistry();
     public static final IForgeRegistry<ItemDeviceProvider> ITEM_DEVICE_PROVIDER_REGISTRY = createItemDeviceProviderRegistry();
 
@@ -165,6 +167,23 @@ public class BlockDeviceBusControllerTests {
     }
 
     @Test
+    public void unloadedDeviceIsRemovedFromElement() {
+        final BlockPos elementPos = new BlockPos(0, 0, 8);
+        final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
+
+        final BlockPos devicePos = elementPos.west();
+        final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
+
+        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
+        assertTrue(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+
+        fakeLevel.setChunkLoaded(new ChunkPos(devicePos), false);
+
+        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
+        assertFalse(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+    }
+
+    @Test
     public void devicesInLoadedChunksAreCollected() {
         final BlockPos elementPos = new BlockPos(0, 0, 0);
         final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
@@ -216,23 +235,6 @@ public class BlockDeviceBusControllerTests {
         busController.scan();
 
         assertTrue(busController.getDevices().contains(deviceBlockEntity.getObjectDevice()));
-    }
-
-    @Test
-    public void unloadedDeviceIsRemovedFromElement() {
-        final BlockPos elementPos = new BlockPos(0, 0, 8);
-        final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
-
-        final BlockPos devicePos = elementPos.west();
-        final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
-
-        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
-        assertTrue(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
-
-        fakeLevel.setChunkLoaded(new ChunkPos(devicePos), false);
-
-        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
-        assertFalse(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
     }
 
     @Test
@@ -308,7 +310,212 @@ public class BlockDeviceBusControllerTests {
         verify(objectDevice, never()).deserializeNBT(any());
     }
 
-    // TODO device in loaded chunk -> unloaded chunk + saved -> loaded chunk + loaded
+    // Different load states and how removals effect state. Adds are uninteresting,
+    // because we need a fully loaded state before anything happens here.
+
+    // Loaded: [ ] Controller, [ ] Element, [ ] Device
+    //  -> No interaction possible.
+
+    // Loaded: [ ] Controller, [ ] Element, [x] Device
+    //  -> Removing Device:
+    //      -> Provider#dispose() when Element is loaded.
+
+    @Test
+    public void providerDisposeIsCalledWhenDeviceIsRemovedWhileElementIsUnloaded() {
+        final BlockPos elementPos = new BlockPos(0, 0, 8);
+        TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
+
+        final BlockPos devicePos = elementPos.west();
+        final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
+
+        final ObjectDevice objectDevice = spy(deviceBlockEntity.getObjectDevice());
+        deviceBlockEntity.setObjectDevice(objectDevice);
+
+        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
+
+        assertTrue(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        verify(objectDevice, never()).mount();
+        verify(objectDevice, never()).unmount();
+        verify(objectDevice, never()).dispose();
+        verify(objectDevice, never()).serializeNBT();
+        verify(objectDevice, never()).deserializeNBT(any());
+
+        final CompoundTag data = busElementInfo.getBusElement().save();
+        verify(objectDevice, times(1)).serializeNBT();
+
+        fakeLevel.setChunkLoaded(new ChunkPos(elementPos), false);
+        fakeLevel.removeBlockEntity(elementPos);
+
+        fakeLevel.removeBlockEntity(devicePos);
+
+        fakeLevel.setChunkLoaded(new ChunkPos(elementPos), true);
+        busElementInfo = new TestBusElementBlockEntity(elementPos);
+        busElementInfo.getBusElement().load(data);
+
+        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
+
+        final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().getValue(TEST_PROVIDER_REGISTRY_NAME);
+        verify(provider, times(1)).unmount(any(), any());
+    }
+
+    // Loaded: [ ] Controller, [x] Element, [ ] Device
+    //  -> Removing Element:
+    //      -> Provider#dispose()
+
+    @Test
+    public void providerDisposeIsCalledWhenElementIsRemovedWhileDeviceIsUnloaded() {
+        final BlockPos elementPos = new BlockPos(0, 0, 8);
+        final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
+
+        final BlockPos devicePos = elementPos.west();
+        final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
+
+        final ObjectDevice objectDevice = spy(deviceBlockEntity.getObjectDevice());
+        deviceBlockEntity.setObjectDevice(objectDevice);
+
+        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
+
+        assertTrue(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        verify(objectDevice, never()).mount();
+        verify(objectDevice, never()).unmount();
+        verify(objectDevice, never()).dispose();
+        verify(objectDevice, never()).serializeNBT();
+        verify(objectDevice, never()).deserializeNBT(any());
+
+        fakeLevel.setChunkLoaded(new ChunkPos(devicePos), false);
+        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
+        assertFalse(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        verify(objectDevice, never()).mount();
+        verify(objectDevice, never()).unmount();
+        verify(objectDevice, never()).dispose();
+        verify(objectDevice, times(1)).serializeNBT();
+        verify(objectDevice, never()).deserializeNBT(any());
+
+        fakeLevel.removeBlockEntity(elementPos);
+        busElementInfo.getBusElement().setRemoved();
+
+        final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().getValue(TEST_PROVIDER_REGISTRY_NAME);
+        verify(provider, times(1)).unmount(any(), any());
+    }
+
+    // Loaded: [ ] Controller, [x] Element, [x] Device
+    //  -> Removing Element:
+    //      -> Device#dispose()
+
+    @Test
+    public void deviceIsDisposedWhenElementIsRemoved() {
+        final BlockPos elementPos = new BlockPos(8, 0, 8);
+        final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
+
+        final BlockPos devicePos = elementPos.west();
+        final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
+
+        final ObjectDevice objectDevice = spy(deviceBlockEntity.getObjectDevice());
+        deviceBlockEntity.setObjectDevice(objectDevice);
+
+        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
+
+        assertTrue(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        verify(objectDevice, never()).mount();
+        verify(objectDevice, never()).unmount();
+        verify(objectDevice, never()).dispose();
+        verify(objectDevice, never()).serializeNBT();
+        verify(objectDevice, never()).deserializeNBT(any());
+
+        fakeLevel.removeBlockEntity(elementPos);
+        busElementInfo.getBusElement().setRemoved();
+
+        verify(objectDevice, times(1)).dispose();
+
+        final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().getValue(TEST_PROVIDER_REGISTRY_NAME);
+        verify(provider, never()).unmount(any(), any());
+    }
+
+    //  -> Removing Device:
+    //      -> Device#dispose()
+
+    @Test
+    public void deviceIsDisposedWhenDeviceIsRemoved() {
+        final BlockPos elementPos = new BlockPos(8, 0, 8);
+        final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
+
+        final BlockPos devicePos = elementPos.west();
+        final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
+
+        final ObjectDevice objectDevice = spy(deviceBlockEntity.getObjectDevice());
+        deviceBlockEntity.setObjectDevice(objectDevice);
+
+        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
+
+        assertTrue(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        verify(objectDevice, never()).mount();
+        verify(objectDevice, never()).unmount();
+        verify(objectDevice, never()).dispose();
+        verify(objectDevice, never()).serializeNBT();
+        verify(objectDevice, never()).deserializeNBT(any());
+
+        fakeLevel.removeBlockEntity(devicePos);
+        busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
+
+        verify(objectDevice, times(1)).dispose();
+
+        final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().getValue(TEST_PROVIDER_REGISTRY_NAME);
+        verify(provider, never()).unmount(any(), any());
+    }
+
+    // Loaded: [x] Controller, [ ] Element, [ ] Device
+    //  -> Removing Controller:
+    //      -> Edge-case: suspended Devices will *not* be disposed. If a new controller
+    //         picks them up, they will resume under the assumption that they're managed
+    //         by the same controller as before their previous unmount.
+
+    // Loaded: [x] Controller, [ ] Element, [x] Device
+    //  -> Removing Controller:
+    //      -> Edge-case: suspended Devices will *not* be disposed. If a new controller
+    //         picks them up, they will resume under the assumption that they're managed
+    //         by the same controller as before their previous unmount.
+    //  -> Removing Device:
+    //      -> Provider#dispose() when Element is loaded.
+
+    // Same as providerDisposeIsCalledWhenDeviceIsRemovedWhileElementIsUnloaded()
+
+    // Loaded: [x] Controller, [x] Element, [ ] Device
+    //  -> Removing Controller:
+    //      -> Edge-case: suspended Devices will *not* be disposed. If a new controller
+    //         picks them up, they will resume under the assumption that they're managed
+    //         by the same controller as before their previous unmount.
+    //  -> Removing Element:
+    //      -> Provider#dispose()
+
+    // Same as providerDisposeIsCalledWhenElementIsRemovedWhileDeviceIsUnloaded()
+
+    // Loaded: [x] Controller, [x] Element, [x] Device
+    //  -> Removing Controller:
+    //      -> Stop VM if running.
+    //  -> Stopping VM:
+    //      -> Device#unmount(), Device#dispose()
+
+    // Handled in Computer/Robot, too much pain to try to mock this.
+
+    //  -> Removing Element:
+    //      -> Device#unmount() if mounted, Device#dispose()
+    //  -> Removing Device:
+    //      -> Device#unmount() if mounted, Device#dispose()
+    //  -> Unloading Controller, Element or Device:
+    //      -> Device#unmount() if mounted.
+
+    // TODO
+
+    // Last case (all loaded) is the only case where the bus can be complete, so
+    // also the only case where Devices can possibly be mounted.
+
+    // In all but the last case (all loaded) it makes no difference if there's more
+    // loaded/unloaded elements in the chain. However, in the last case it does:
+    //  -> Removing intermediate element:
+    //      -> Edge-case: suspended Devices will *not* be disposed. If a new controller
+    //         picks them up, they will resume under the assumption that they're managed
+    //         by the same controller as before their previous unmount.
+
 
     ///////////////////////////////////////////////////////////////////
 
@@ -317,7 +524,7 @@ public class BlockDeviceBusControllerTests {
         final IForgeRegistry<BlockDeviceProvider> registry = mock(IForgeRegistry.class);
 
         final Map<ResourceLocation, BlockDeviceProvider> blockDeviceProviders = new HashMap<>();
-        blockDeviceProviders.put(new ResourceLocation(API.MOD_ID, "test"), new TestBlockDeviceProvider());
+        blockDeviceProviders.put(TEST_PROVIDER_REGISTRY_NAME, spy(new TestBlockDeviceProvider()));
 
         when(registry.getValues()).thenReturn(blockDeviceProviders.values());
         when(registry.getValue(notNull())).then(a -> blockDeviceProviders.get(a.<ResourceLocation>getArgument(0)));
@@ -330,7 +537,7 @@ public class BlockDeviceBusControllerTests {
         final IForgeRegistry<ItemDeviceProvider> registry = mock(IForgeRegistry.class);
 
         final Map<ResourceLocation, ItemDeviceProvider> itemDeviceProviders = new HashMap<>();
-        itemDeviceProviders.put(new ResourceLocation(API.MOD_ID, "test"), new TestItemDeviceProvider());
+        itemDeviceProviders.put(TEST_PROVIDER_REGISTRY_NAME, spy(new TestItemDeviceProvider()));
 
         when(registry.getValues()).thenReturn(itemDeviceProviders.values());
         when(registry.getValue(notNull())).then(a -> itemDeviceProviders.get(a.<ResourceLocation>getArgument(0)));
@@ -486,7 +693,7 @@ public class BlockDeviceBusControllerTests {
         @Nullable
         @Override
         public ResourceLocation getRegistryName() {
-            return new ResourceLocation(API.MOD_ID, "test");
+            return TEST_PROVIDER_REGISTRY_NAME;
         }
 
         @Override
@@ -515,7 +722,7 @@ public class BlockDeviceBusControllerTests {
         @Nullable
         @Override
         public ResourceLocation getRegistryName() {
-            return new ResourceLocation(API.MOD_ID, "test");
+            return TEST_PROVIDER_REGISTRY_NAME;
         }
 
         @Override

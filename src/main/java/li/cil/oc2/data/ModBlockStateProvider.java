@@ -54,6 +54,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
             .end()
             .end();
         horizontalBlock(Blocks.NETWORK_HUB, Items.NETWORK_HUB, NETWORK_HUB_MODEL);
+        horizontalBlock(Blocks.NETWORK_SWITCH, Items.NETWORK_SWITCH, NETWORK_HUB_MODEL);
         horizontalBlock(Blocks.PROJECTOR, Items.PROJECTOR, PROJECTOR_MODEL);
         horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE, REDSTONE_INTERFACE_MODEL);
 

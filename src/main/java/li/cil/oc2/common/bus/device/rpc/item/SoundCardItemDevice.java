@@ -6,6 +6,7 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.common.util.BlockLocation;
 import li.cil.oc2.common.util.TickUtils;
+import li.cil.oc2.common.Config;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -21,7 +22,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public final class SoundCardItemDevice extends AbstractItemRPCDevice {
-    private static final int COOLDOWN_IN_TICKS = TickUtils.toTicks(Duration.ofSeconds(2));
+    private static final int COOLDOWN_IN_TICKS = TickUtils.toTicks(Duration.ofSeconds(Config.soundCardCoolDownSeconds));
     private static final int MAX_FIND_RESULTS = 25;
 
     ///////////////////////////////////////////////////////////////////

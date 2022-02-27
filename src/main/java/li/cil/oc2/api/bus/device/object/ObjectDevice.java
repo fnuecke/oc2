@@ -10,6 +10,7 @@ import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -43,6 +44,9 @@ public final class ObjectDevice implements RPCDevice, ItemDevice {
 
         if (object instanceof final NamedDevice namedDevice) {
             this.typeNames.addAll(namedDevice.getDeviceTypeNames());
+        }
+        if (this.typeNames.isEmpty()) {
+            this.typeNames.add(toNiceTypeName(object.getClass()));
         }
     }
 
@@ -127,5 +131,17 @@ public final class ObjectDevice implements RPCDevice, ItemDevice {
     @Override
     public String toString() {
         return className;
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private static String toNiceTypeName(final Class<?> deviceClass) {
+        final String name = deviceClass.getSimpleName()
+            .replaceFirst("VMDevice$", "")
+            .replaceFirst("RPCDevice$", "")
+            .replaceFirst("Device$", "");
+        return name
+            .replaceAll("([a-z])([A-Z])", "$1_$2")
+            .toLowerCase(Locale.ROOT);
     }
 }

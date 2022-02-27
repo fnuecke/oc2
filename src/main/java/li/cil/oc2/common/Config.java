@@ -39,6 +39,7 @@ public final class Config {
     @Path("energy.items") public static int networkTunnelEnergyPerTick = 2;
 
     @Path("gameplay") public static ResourceLocation blockOperationsModuleToolTier = TierSortingRegistry.getName(Tiers.DIAMOND);
+    @Path("gameplay") public static long soundCardCoolDownSeconds = 2;
 
     @Path("admin") public static UUID fakePlayerUUID = UUID.fromString("e39dd9a7-514f-4a2d-aa5e-b6030621416d");
     @Path("admin.network") public static int projectorAverageMaxBytesPerSecond = 160 * 1024;

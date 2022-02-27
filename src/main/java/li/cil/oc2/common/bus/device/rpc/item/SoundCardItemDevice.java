@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public final class SoundCardItemDevice extends AbstractItemRPCDevice {
-    private static final int COOLDOWN_IN_TICKS = TickUtils.toTicks(Duration.ofSeconds(Config.soundCardCoolDownSeconds));
+    private final int COOLDOWN_IN_TICKS = TickUtils.toTicks(Duration.ofSeconds(Config.soundCardCoolDownSeconds));
     private static final int MAX_FIND_RESULTS = 25;
 
     ///////////////////////////////////////////////////////////////////

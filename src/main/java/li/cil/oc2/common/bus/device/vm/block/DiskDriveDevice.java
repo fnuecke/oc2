@@ -86,7 +86,7 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
         }
 
-        final int capacity = Mth.clamp(floppy.getCapacity(stack), 0, Config.maxFloppySize);
+        final int capacity = floppy.getCapacity(stack);
         if (capacity <= 0) {
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
         }

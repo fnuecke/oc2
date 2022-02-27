@@ -25,7 +25,7 @@ public final class FlashMemoryItemDeviceProvider extends AbstractItemDeviceProvi
         final ItemStack stack = query.getItemStack();
         final FlashMemoryItem item = (FlashMemoryItem) stack.getItem();
 
-        final int capacity = Mth.clamp(item.getCapacity(stack), 0, Config.maxFlashMemorySize);
+        final int capacity = Math.max(item.getCapacity(stack), 0);
         return Optional.of(new ByteBufferFlashStorageDevice(stack, capacity));
     }
 }

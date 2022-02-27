@@ -53,7 +53,7 @@ public final class HardDriveWithExternalDataItemDeviceProvider extends AbstractI
             return 0;
         }
 
-        final long capacity = Math.min(data.getBlockDevice().getCapacity(), Math.max(0, Config.maxHardDriveSize));
+        final long capacity = Math.max(data.getBlockDevice().getCapacity(), 0);
         return Math.max(1, (int) Math.round(capacity * Config.hardDriveEnergyPerMegabytePerTick / Constants.MEGABYTE));
     }
 }

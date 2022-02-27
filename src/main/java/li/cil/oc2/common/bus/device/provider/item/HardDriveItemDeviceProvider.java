@@ -47,6 +47,6 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
     private static int getCapacity(final ItemDeviceQuery query) {
         final ItemStack stack = query.getItemStack();
         final HardDriveItem item = (HardDriveItem) stack.getItem();
-        return Mth.clamp(item.getCapacity(stack), 0, Config.maxHardDriveSize);
+        return Math.max(item.getCapacity(stack), 0);
     }
 }

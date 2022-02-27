@@ -11,10 +11,6 @@ import java.util.UUID;
 
 public final class Config {
     @Path("vm") public static long maxAllocatedMemory = 512 * Constants.MEGABYTE;
-    @Path("vm") public static int maxMemorySize = 8 * Constants.MEGABYTE;
-    @Path("vm") public static int maxHardDriveSize = 8 * Constants.MEGABYTE;
-    @Path("vm") public static int maxFlashMemorySize = 4 * Constants.KILOBYTE;
-    @Path("vm") public static int maxFloppySize = 512 * Constants.KILOBYTE;
 
     @Path("energy.blocks") public static double busCableEnergyPerTick = 0.1;
     @Path("energy.blocks") public static double busInterfaceEnergyPerTick = 0.5;

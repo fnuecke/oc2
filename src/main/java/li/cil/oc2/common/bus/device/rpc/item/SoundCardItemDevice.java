@@ -40,6 +40,16 @@ public final class SoundCardItemDevice extends AbstractItemRPCDevice {
 
     @Callback
     public void playSound(@Nullable @Parameter("name") final String name) {
+        playSound(name, 1, 1);
+    }
+
+    @Callback
+    public void playSound(@Nullable @Parameter("name") final String name, @Parameter("volume") final float volume) {
+        playSound(name, volume, 1);
+    }
+    
+    @Callback
+    public void playSound(@Nullable @Parameter("name") final String name, @Parameter("volume") final float volume, @Parameter("pitch") final float pitch) {
         if (name == null) throw new IllegalArgumentException();
 
         location.get().ifPresent(location -> location.tryGetLevel().ifPresent(level -> {
@@ -56,7 +66,7 @@ public final class SoundCardItemDevice extends AbstractItemRPCDevice {
 
             final SoundEvent soundEvent = ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation(name));
             if (soundEvent == null) throw new IllegalArgumentException("Sound not found.");
-            level.playSound(null, location.blockPos(), soundEvent, SoundSource.BLOCKS, 1, 1);
+            level.playSound(null, location.blockPos(), soundEvent, SoundSource.BLOCKS, volume, pitch);
         }));
     }
 

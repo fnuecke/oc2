@@ -48,7 +48,7 @@ public final class NetworkSwitchBlock extends HorizontalDirectionalBlock impleme
     @Nullable
     @Override
     public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
-        return BlockEntities.NETWORK_HUB.get().create(pos, state);
+        return BlockEntities.NETWORK_SWITCH.get().create(pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////

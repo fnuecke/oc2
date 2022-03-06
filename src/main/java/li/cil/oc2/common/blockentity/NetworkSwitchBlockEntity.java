@@ -28,6 +28,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 public final class NetworkSwitchBlockEntity extends ModBlockEntity implements NamedDevice, DocumentedDevice, NetworkInterface, TickableBlockEntity {
+    private final String GET_LINK_STATE = "getLinkState";
     private final String GET_HOST_TABLE = "getHostTable";
     private final String GET_PORT_CONFIG = "getPortConfig";
     private final String SET_PORT_CONFIG = "setPortConfig";
@@ -240,6 +241,16 @@ public final class NetworkSwitchBlockEntity extends ModBlockEntity implements Na
         for (int i = 0; i < max; i++) {
             portSettings[i].untagged = ((Double) settings.get(i).get("untagged")).shortValue();
         }
+    }
+
+    @Callback(name = GET_LINK_STATE)
+    public boolean[] getLinkState() {
+        validateAdjacentBlocks();
+        boolean[] sides = new boolean[Constants.BLOCK_FACE_COUNT];
+        for (int i = 0; i < Constants.BLOCK_FACE_COUNT; i++) {
+            sides[i] = adjacentBlockInterfaces[i] != null;
+        }
+        return sides;
     }
 
     private Optional<Integer> sideReverseLookup(NetworkInterface iface) {

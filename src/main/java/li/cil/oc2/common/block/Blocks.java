@@ -23,6 +23,7 @@ public final class Blocks {
     public static final RegistryObject<NetworkHubBlock> NETWORK_HUB = BLOCKS.register("network_hub", NetworkHubBlock::new);
     public static final RegistryObject<ProjectorBlock> PROJECTOR = BLOCKS.register("projector", ProjectorBlock::new);
     public static final RegistryObject<RedstoneInterfaceBlock> REDSTONE_INTERFACE = BLOCKS.register("redstone_interface", RedstoneInterfaceBlock::new);
+    public static final RegistryObject<InternetGatewayBlock> INTERNET_GATEWAY = BLOCKS.register("internet_gateway", InternetGatewayBlock::new);
 
     ///////////////////////////////////////////////////////////////////
 

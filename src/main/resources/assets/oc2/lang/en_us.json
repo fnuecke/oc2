@@ -58,6 +58,8 @@
   "item.oc2.sound_card.desc": "Plays various sounds from its highly realistic sound bank.",
   "item.oc2.network_tunnel_module": "Network Tunnel Module",
   "item.oc2.network_tunnel_module.desc": "Sends and receives network packets to a linked device.",
+  "item.oc2.internet_card": "Internet Card",
+  "item.oc2.internet_card.desc": "Gives access to the Internet",
 
   "item.oc2.transistor": "Transistor",
   "item.oc2.transistor.desc": "Crafting material.",

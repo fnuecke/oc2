@@ -1,7 +1,11 @@
 package li.cil.oc2.common.inet;
 
+import li.cil.oc2.api.inet.LayerParameters;
 import li.cil.oc2.api.inet.LinkLocalLayer;
 import li.cil.oc2.api.inet.NetworkLayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.EndTag;
+import net.minecraft.nbt.Tag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,12 +34,15 @@ public final class DefaultLinkLocalLayer implements LinkLocalLayer {
     private static final int IP_VER4 = 4; // obviously
     private static final int IP_VER6 = 6; // obviously
 
+    private static final String MAC_ADDRESS_TAG = "MACAddress";
+    private static final String IPv4_ADDRESS_TAG = "IPv4Address";
+
     ///////////////////////////////////////////////////
 
     private final NetworkLayer networkLayer;
 
-    private final int myMacAddress;
-    private int myIpAddress = -1;
+    private MacAddress myMacAddress = new MacAddress(MAC_PREFIX, random.nextInt());
+    private int myIpV4Address = -1;
 
     private short cardMacPrefix = -1;
     private int cardMacAddress = -1;
@@ -45,18 +52,51 @@ public final class DefaultLinkLocalLayer implements LinkLocalLayer {
 
     ///////////////////////////////////////////////////
 
-    public DefaultLinkLocalLayer(final NetworkLayer networkLayer) {
+    public DefaultLinkLocalLayer(final LayerParameters layerParameters, final NetworkLayer networkLayer) {
+        final Tag tag = layerParameters.getSavedState();
+        if (tag instanceof CompoundTag layerState) {
+            final String ipAddressString = layerState.getString(IPv4_ADDRESS_TAG);
+            if (!ipAddressString.isEmpty()) {
+                try {
+                    myIpV4Address = InetUtils.parseIpv4Address(ipAddressString);
+                } catch (final AddressParseException exception) {
+                    LOGGER.error("Failed to parse internet adapter IPv4 address", exception);
+                }
+            }
+            final String macAddressString = layerState.getString(MAC_ADDRESS_TAG);
+            if (!macAddressString.isEmpty()) {
+                try {
+                    myMacAddress = InetUtils.parseMacAddress(macAddressString);
+                } catch (final AddressParseException exception) {
+                    LOGGER.error("Failed to parse internet adapter MAC address from NBT", exception);
+                }
+            }
+        }
         this.networkLayer = networkLayer;
-        myMacAddress = random.nextInt();
     }
 
     private void prepareEthernetHeader(final ByteBuffer frame, final short protocol) {
         // Prepare ethernet header
         frame.putShort(cardMacPrefix);
         frame.putInt(cardMacAddress);
-        frame.putShort(MAC_PREFIX);
-        frame.putInt(myMacAddress);
+        frame.putShort(myMacAddress.prefix());
+        frame.putInt(myMacAddress.address());
         frame.putShort(protocol);
+    }
+
+    @Override
+    public Tag onSave() {
+        final CompoundTag layerState = new CompoundTag();
+        if (myIpV4Address != -1) {
+            final String ipAddressString = InetUtils.ipv4AddressToString(myIpV4Address);
+            layerState.putString(IPv4_ADDRESS_TAG, ipAddressString);
+        }
+        layerState.putString(MAC_ADDRESS_TAG, InetUtils.macAddressToString(myMacAddress));
+        final Tag networkLayerState = networkLayer.onSave();
+        if (!(networkLayerState instanceof EndTag)) {
+            layerState.put(NetworkLayer.LAYER_NAME, networkLayerState);
+        }
+        return layerState;
     }
 
     @Override
@@ -76,9 +116,9 @@ public final class DefaultLinkLocalLayer implements LinkLocalLayer {
             frame.putInt(ARP_ADDRESS_TYPE);
             frame.putShort(ARP_ADDRESSES_SIZES);
             frame.putShort(ARP_RESPONSE);
-            frame.putShort(MAC_PREFIX);
-            frame.putInt(myMacAddress);
-            frame.putInt(myIpAddress);
+            frame.putShort(myMacAddress.prefix());
+            frame.putInt(myMacAddress.address());
+            frame.putInt(myIpV4Address);
             frame.putShort(cardMacPrefix);
             frame.putInt(cardMacAddress);
             frame.putInt(cardIpAddress);
@@ -153,10 +193,10 @@ public final class DefaultLinkLocalLayer implements LinkLocalLayer {
 
             /// Valid message, extracting useful data
             cardIpAddress = frame.getInt();
-            // Do not care in target MAC address
+            // Do not care what target MAC address is
             frame.getShort();
             frame.getInt();
-            myIpAddress = frame.getInt();
+            myIpV4Address = frame.getInt();
             cardMacPrefix = senderMacPrefix;
             cardMacAddress = senderMacAddress;
             needArpResponse = true;

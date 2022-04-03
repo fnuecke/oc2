@@ -22,6 +22,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class InternetManagerImpl implements InternetManager {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -73,7 +75,7 @@ public final class InternetManagerImpl implements InternetManager {
     public InternetConnection connect(final InternetAdapter internetAdapter, final Tag savedState) {
         final LayerParameters layerParameters = new LayerParametersImpl(savedState, this);
         final InternetConnectionImpl internetConnection =
-            new InternetConnectionImpl(internetAdapter,internetProvider.provideInternet(layerParameters));
+            new InternetConnectionImpl(internetAdapter, internetProvider.provideInternet(layerParameters));
         connections.add(internetConnection);
         LOGGER.debug("A new internet access provided");
         return internetConnection;
@@ -89,7 +91,6 @@ public final class InternetManagerImpl implements InternetManager {
         if (sending != null) {
             connection.outcoming.put(sending);
         }
-        executor.execute(connection);
     }
 
     public boolean isAllowedToConnect(final int ipAddress) {
@@ -113,20 +114,34 @@ public final class InternetManagerImpl implements InternetManager {
         });
     }
 
+    private void runOnInternetThread(
+        final List<InternetConnectionImpl> connectionsToStop,
+        final List<InternetConnectionImpl> connectionsToProcess
+    ) {
+        runTasks();
+        connectionsToStop.forEach(InternetConnectionImpl::stop);
+        connectionsToProcess.forEach(InternetConnectionImpl::process);
+    }
+
     //////////////////////////////////////////////////////////////
 
     @SubscribeEvent
     public void onTick(final TickEvent.ServerTickEvent event) {
-        executor.execute(this::runTasks);
+        final List<InternetConnectionImpl> connectionsToStop = connections.stream()
+            .filter(connection -> connection.isStopped)
+            .collect(Collectors.toList());
+        final List<InternetConnectionImpl> connectionsToProcess = connections.stream()
+            .filter(connection -> !connection.isStopped)
+            .collect(Collectors.toList());
         connections.removeIf(connection -> {
             if (connection.isStopped) {
-                LOGGER.debug("An internet access stopped provision");
                 return true;
             } else {
                 processInternetAdapter(connection);
                 return false;
             }
         });
+        executor.execute(() -> runOnInternetThread(connectionsToStop, connectionsToProcess));
     }
 
     @SubscribeEvent
@@ -160,7 +175,7 @@ public final class InternetManagerImpl implements InternetManager {
     }
 
 
-    private final class InternetConnectionImpl implements Runnable, InternetConnection {
+    private final class InternetConnectionImpl implements InternetConnection {
 
         public final PendingFrame incoming = new PendingFrame();
         public final PendingFrame outcoming = new PendingFrame();
@@ -188,8 +203,7 @@ public final class InternetManagerImpl implements InternetManager {
             }
         }
 
-        @Override
-        public void run() {
+        public void process() {
             try {
                 final byte[] outFrame = outcoming.get();
                 if (outFrame != null) {
@@ -208,10 +222,7 @@ public final class InternetManagerImpl implements InternetManager {
 
         @Override
         public void stop() {
-            if (!isStopped) {
-                isStopped = true;
-                executor.execute(ethernet::onStop);
-            }
+            isStopped = true;
         }
 
         //////////////////////////////////////////////////////////////

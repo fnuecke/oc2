@@ -1,0 +1,81 @@
+package li.cil.oc2.common.inet;
+
+import li.cil.oc2.api.inet.DatagramSession;
+import li.cil.oc2.api.inet.InternetManager;
+import li.cil.oc2.api.inet.Session;
+import org.apache.commons.logging.Log;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.util.Set;
+
+public final class SocketManager {
+    private static final Logger LOGGER = LogManager.getLogger();
+
+    private static int socketManagerUsesCount = 0;
+    private static SocketManager socketManager = null;
+
+    public static SocketManager attach(final InternetManager internetManager) {
+        if (socketManagerUsesCount++ == 0) {
+            assert socketManager == null;
+            socketManager = new SocketManager(internetManager);
+        }
+        assert socketManager != null;
+        return socketManager;
+    }
+
+    private final Selector selector;
+    private final InternetManager.Task selectionTask;
+
+    private void selectionTaskFunction() {
+        try {
+            selector.selectNow(selectionKey -> {
+                final ChannelAttachment attachment = (ChannelAttachment) selectionKey.attachment();
+                attachment.ready.add(attachment.session);
+            });
+        } catch (final IOException exception) {
+            LOGGER.error("Exception while selecting", exception);
+        }
+    }
+
+    private SocketManager(final InternetManager internetManager) {
+        try {
+            selector = Selector.open();
+        } catch (final IOException exception) {
+            throw new Error("Failed to open selector", exception);
+        }
+        selectionTask = internetManager.runOnInternetThreadTick(this::selectionTaskFunction);
+        LOGGER.info("Started socket manager");
+    }
+
+    private record ChannelAttachment(Session session, Set<Session> ready) {
+    }
+
+    public SelectionKey createDatagramChannel(final DatagramSession session, final Set<Session> ready) throws IOException {
+        final DatagramChannel datagramChannel = DatagramChannel.open();
+        datagramChannel.configureBlocking(false);
+        final ChannelAttachment attachment = new ChannelAttachment(session, ready);
+        return datagramChannel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE, attachment);
+    }
+
+    private void shutdown() {
+        selectionTask.close();
+        try {
+            selector.close();
+        } catch (final IOException exception) {
+            LOGGER.error("Exception during socket manager shutdown", exception);
+        }
+        LOGGER.info("Stopped socket manager");
+    }
+
+    public void detach() {
+        if (--socketManagerUsesCount == 0) {
+            shutdown();
+            socketManager = null;
+        }
+    }
+}

@@ -32,6 +32,8 @@ public interface TransportLayer extends InternetDeviceLifecycle {
      */
     byte PROTOCOL_UDP = 17;
 
+    String LAYER_NAME = "Transport";
+
     ////////////////////////////////////////////////////////////////////////////////////
 
     /**

@@ -7,6 +7,9 @@ import java.nio.ByteBuffer;
  * A session layer interface of TCP/IP stack.
  */
 public interface SessionLayer extends InternetDeviceLifecycle {
+
+    String LAYER_NAME = "Session";
+
     default void receiveSession(final Receiver receiver) {
     }
 

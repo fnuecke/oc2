@@ -70,6 +70,7 @@ public final class ConfigManager {
         PARSERS.put(String.class, ConfigManager::parseStringField);
         PARSERS.put(UUID.class, ConfigManager::parseUUIDField);
         PARSERS.put(ResourceLocation.class, ConfigManager::parseResourceLocationField);
+        PARSERS.put(boolean.class, ConfigManager::parseBooleanField);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -176,6 +177,14 @@ public final class ConfigManager {
         final ForgeConfigSpec.ConfigValue<String> configValue = builder.define(path, defaultValue.toString());
 
         return new ConfigFieldPair<>(field, configValue, ResourceLocation::new);
+    }
+
+    private static ConfigFieldPair<?> parseBooleanField(final Object instance, final Field field, final String path, final ForgeConfigSpec.Builder builder) throws IllegalAccessException {
+        final boolean defaultValue = (boolean) field.get(instance);
+
+        final ForgeConfigSpec.BooleanValue configValue = builder.define(path, defaultValue);
+
+        return new ConfigFieldPair<>(field, configValue);
     }
 
     private static String getPath(@Nullable final String prefix, final Field field) {

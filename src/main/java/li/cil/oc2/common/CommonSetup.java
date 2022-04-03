@@ -3,6 +3,7 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
+import li.cil.oc2.common.inet.InternetManagerImpl;
 import li.cil.oc2.common.integration.IMC;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.util.ServerScheduler;
@@ -14,6 +15,7 @@ public final class CommonSetup {
     public static void handleSetupEvent(final FMLCommonSetupEvent event) {
         IMC.initialize();
         Network.initialize();
+        InternetManagerImpl.initialize();
         RPCMethodParameterTypeAdapters.initialize();
         ServerScheduler.initialize();
     }

@@ -1,0 +1,225 @@
+package li.cil.oc2.common.inet;
+
+import li.cil.oc2.api.inet.*;
+import li.cil.oc2.common.Config;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
+
+public final class DefaultSessionLayer implements SessionLayer {
+    private static final Logger LOGGER = LogManager.getLogger();
+
+    ///////////////////////////////////////////////////////////////////
+
+    private static final Executor executor = Executors
+            .newSingleThreadExecutor(runnable -> new Thread(runnable, "internet/blocking-session"));
+
+    private static final Selector selector;
+
+    private static int adaptersCount = 0;
+    private static InternetManager.Task selectionTask = null;
+
+    ///////////////////////////////////////////////////////////////////
+
+    static {
+        Selector newSelector;
+        try {
+            newSelector = Selector.open();
+        } catch (IOException e) {
+            LOGGER.error("Failed to open selector", e);
+            newSelector = null;
+        }
+        selector = newSelector;
+    }
+
+    private final AtomicReference<EchoResponse> echoResponse = new AtomicReference<>(null);
+
+    ///////////////////////////////////////////////////////////////////
+
+    private final Set<SelectionKey> datagramKeys = new HashSet<>();
+    private final Set<SelectionKey> streamKeys = new HashSet<>();
+
+    public DefaultSessionLayer(final LayerParameters layerParameters) {
+        InternetManager internetManager = layerParameters.getInternetManager();
+        if (adaptersCount++ == 0) {
+            assert selectionTask == null;
+            selectionTask = internetManager.runOnInternetThreadTick(DefaultSessionLayer::selectAction);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        if (--adaptersCount == 0) {
+            assert selectionTask != null;
+            selectionTask.close();
+        }
+    }
+
+    private static void selectAction() {
+        try {
+            selector.selectNow();
+        } catch (IOException e) {
+            LOGGER.error(e);
+        }
+    }
+
+    private static SelectionKey register(
+            final SelectableChannel channel,
+            final Session session,
+            final int ops
+    ) throws IOException {
+        channel.configureBlocking(false);
+        return channel.register(selector, ops, session);
+    }
+
+    @Override
+    public void receiveSession(final Receiver receiver) {
+        final EchoResponse pending = echoResponse.getAndSet(null);
+        if (pending != null) {
+            final ByteBuffer data = receiver.receive(pending.session);
+            assert data != null;
+            data.put(pending.payload);
+            data.flip();
+            return;
+        }
+
+        for (final SelectionKey key : datagramKeys) {
+            if (key.isReadable()) {
+                LOGGER.info("Datagram received");
+                final DatagramChannel channel = (DatagramChannel) key.channel();
+                try {
+                    final DatagramSession session = (DatagramSession) key.attachment();
+                    final ByteBuffer datagram = receiver.receive(session);
+                    assert datagram != null;
+                    final SocketAddress address = channel.receive(datagram);
+                    if (address == null) {
+                        continue;
+                    }
+                    if (Config.useSynchronisedNAT && !address.equals(session.getDestination())) {
+                        continue;
+                    }
+                    datagram.flip();
+                    return;
+                } catch (IOException e) {
+                    LOGGER.error("Trying to read datagram socket", e);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void sendSession(final Session session, @Nullable final ByteBuffer data) {
+        if (session instanceof final EchoSession echoSession) {
+            if (data == null) {
+                return; // session closed due expiration
+            }
+            final EchoResponse response = new EchoResponse(data, echoSession);
+            final InetAddress address = session.getDestination().getAddress();
+            executor.execute(() -> {
+                try {
+                    if (address.isReachable(null, echoSession.getTtl(), Config.defaultEchoRequestTimeoutMs)) {
+                        echoResponse.set(response);
+                    }
+                } catch (IOException e) {
+                    LOGGER.error("Failed to get echo response", e);
+                }
+            });
+        } else if (session instanceof DatagramSession) {
+            try {
+                switch (session.getState()) {
+                    case NEW: {
+                        final DatagramChannel channel = DatagramChannel.open();
+                        channel.configureBlocking(false);
+                        final SelectionKey key =
+                                register(channel, session, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                        session.setUserdata(key);
+                        datagramKeys.add(key);
+                        LOGGER.info("Open datagram socket {}", session.getDestination());
+                        /* Fallthrough */
+                    }
+                    case ESTABLISHED: {
+                        final SelectionKey key = (SelectionKey) session.getUserdata();
+                        assert key != null;
+                        if (key.isWritable()) {
+                            final DatagramChannel channel = (DatagramChannel) key.channel();
+                            assert data != null;
+                            channel.send(data, session.getDestination());
+                        }
+                        break;
+                    }
+                    case EXPIRED: {
+                        final SelectionKey key = (SelectionKey) session.getUserdata();
+                        assert key != null;
+                        key.channel().close();
+                        datagramKeys.remove(key);
+                        LOGGER.info("Close datagram socket {}", session.getDestination());
+                        break;
+                    }
+                }
+            } catch (IOException e) {
+                LOGGER.error("Datagram session failure", e);
+                session.close();
+            }
+        } else if (session instanceof StreamSession) {
+            try {
+                switch (session.getState()) {
+                    case NEW -> {
+                        final SocketChannel channel = SocketChannel.open();
+                        channel.configureBlocking(false);
+                        final SelectionKey key =
+                                register(channel, session, SelectionKey.OP_READ | SelectionKey.OP_WRITE | SelectionKey.OP_CONNECT);
+                        session.setUserdata(key);
+                        streamKeys.add(key);
+                        channel.connect(session.getDestination());
+                        LOGGER.info("Open stream socket {}", session.getDestination());
+                    }
+                    case ESTABLISHED -> {
+                        final SelectionKey key = (SelectionKey) session.getUserdata();
+                        assert key != null;
+                        if (key.isWritable()) {
+                            final SocketChannel channel = (SocketChannel) key.channel();
+                            assert data != null;
+                            channel.write(data);
+                        }
+                    }
+                    case FINISH, EXPIRED -> {
+                        final SelectionKey key = (SelectionKey) session.getUserdata();
+                        assert key != null;
+                        key.channel().close();
+                        streamKeys.remove(key);
+                        LOGGER.info("Close stream socket {}", session.getDestination());
+                    }
+                }
+            } catch (IOException e) {
+                LOGGER.error("Stream session failure", e);
+                session.close();
+            }
+        } else {
+            session.close();
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private static final class EchoResponse {
+        final byte[] payload;
+        final EchoSession session;
+
+        public EchoResponse(final ByteBuffer payload, final EchoSession session) {
+            this.payload = new byte[payload.remaining()];
+            payload.get(this.payload);
+            this.session = session;
+        }
+    }
+}

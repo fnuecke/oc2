@@ -69,6 +69,7 @@ public final class Items {
     public static final RegistryObject<Item> REDSTONE_INTERFACE_CARD = register("redstone_interface_card");
     public static final RegistryObject<Item> NETWORK_INTERFACE_CARD = register("network_interface_card", NetworkInterfaceCardItem::new);
     public static final RegistryObject<Item> NETWORK_TUNNEL_CARD = register("network_tunnel_card", NetworkTunnelItem::new);
+    public static final RegistryObject<Item> INTERNET_CARD = register("internet_card");
     public static final RegistryObject<Item> FILE_IMPORT_EXPORT_CARD = register("file_import_export_card");
     public static final RegistryObject<Item> SOUND_CARD = register("sound_card");
 

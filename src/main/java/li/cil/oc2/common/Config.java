@@ -42,6 +42,19 @@ public final class Config {
     @Path("admin.virtual_network") public static int ethernetFrameTimeToLive = 12;
     @Path("admin.virtual_network") public static int hubEthernetFramesPerTick = 32;
 
+    @Path("internet-card") public static boolean internetCardEnabled = false;
+    @Path("internet-card") public static int defaultSessionLifetimeMs = 60 * 1000;
+    @Path("internet-card") public static int defaultSessionsNumberPerCardLimit = 10;
+    @Path("internet-card") public static int defaultSessionsNumberLimit = 100;
+    @Path("internet-card") public static int defaultEchoRequestTimeoutMs = 1000;
+    @Path("internet-card") public static String deniedHosts =
+            "127.0.0.0/8, 10.0.0.0/8, 100.64.0.0/10, 172.16.0.0/12, 192.168.0.0/16, 224.0.0.0/4";
+    @Path("internet-card") public static String allowedHosts = "";
+    @Path("internet-card") public static String defaultNameServer = "1.1.1.1";
+    @Path("internet-card") public static boolean useSynchronisedNAT = false;
+    @Path("internet-card") public static int streamBufferSize = 2000;
+    @Path("internet-card") public static int tcpRetransmissionTimeoutMs = 30 * 1000;
+
     public static boolean computersUseEnergy() {
         return computerEnergyPerTick > 0 && computerEnergyStorage > 0;
     }

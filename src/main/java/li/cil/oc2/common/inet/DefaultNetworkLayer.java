@@ -1,8 +1,6 @@
 package li.cil.oc2.common.inet;
 
-import li.cil.oc2.api.inet.NetworkLayer;
-import li.cil.oc2.api.inet.TransportLayer;
-import li.cil.oc2.api.inet.TransportMessage;
+import li.cil.oc2.api.inet.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,7 +24,10 @@ public final class DefaultNetworkLayer implements NetworkLayer {
     private final TransportMessage inMessage = new TransportMessage();
     private final TransportMessage outMessage = new TransportMessage();
 
-    public DefaultNetworkLayer(final TransportLayer transportLayer) {
+    private final InternetManagerImpl internetManager;
+
+    public DefaultNetworkLayer(final LayerParameters layerParameters, final TransportLayer transportLayer) {
+        this.internetManager = (InternetManagerImpl) layerParameters.getInternetManager();
         this.transportLayer = transportLayer;
     }
 
@@ -117,8 +118,7 @@ public final class DefaultNetworkLayer implements NetworkLayer {
         packet.getShort(); // I don't think, that we should expect packet corruption in Minecraft
         int srcIpAddress = packet.getInt();
         int dstIpAddress = packet.getInt();
-        // TODO: get internet manager from right place
-        if (!InternetManagerImpl.getInstance().get().isAllowedToConnect(dstIpAddress)) {
+        if (!internetManager.isAllowedToConnect(dstIpAddress)) {
             LOGGER.info("Forbidden IP address");
             return;
         }

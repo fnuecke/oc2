@@ -41,11 +41,11 @@ final class EchoSessionDiscriminator implements SessionDiscriminator<EchoSession
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder("Echo(");
-        InetUtils.ipAddressToString(builder, srcIpAddress);
+        InetUtils.ipv4AddressToString(builder, srcIpAddress);
         builder.append("<-[");
         builder.append(Short.toUnsignedInt(identity));
         builder.append("]->");
-        InetUtils.ipAddressToString(builder, dstIpAddress);
+        InetUtils.ipv4AddressToString(builder, dstIpAddress);
         builder.append(')');
         return builder.toString();
     }

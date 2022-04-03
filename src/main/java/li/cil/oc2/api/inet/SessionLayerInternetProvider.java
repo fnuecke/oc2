@@ -34,7 +34,7 @@ public abstract class SessionLayerInternetProvider extends TransportLayerInterne
 
     @Override
     protected final TransportLayer provideTransportLayer(final LayerParameters layerParameters) {
-        final LayerParameters sessionParameters = InetUtils.nextLayerParameters(layerParameters, "Session");
+        final LayerParameters sessionParameters = InetUtils.nextLayerParameters(layerParameters, SessionLayer.LAYER_NAME);
         final SessionLayer sessionLayer = provideSessionLayer(sessionParameters);
         return InetUtils.createLayerIfNotStub(sessionLayer, DefaultTransportLayer::new);
     }

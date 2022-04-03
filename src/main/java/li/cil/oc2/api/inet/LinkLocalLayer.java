@@ -24,6 +24,8 @@ public interface LinkLocalLayer extends InternetDeviceLifecycle {
      */
     int FRAME_SIZE = FRAME_HEADER_SIZE + DEFAULT_MTU;
 
+    String LAYER_NAME = "LinkLocal";
+
     ////////////////////////////////////////////////////////////////////
 
     /**

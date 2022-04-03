@@ -19,7 +19,9 @@ public abstract class TransportLayerInternetProvider extends NetworkLayerInterne
     }
 
     protected static TransportLayer defaultTransportLayer(final LayerParameters layerParameters) {
-        return new DefaultTransportLayer(SessionLayerInternetProvider.defaultSessionLayer(layerParameters));
+        final LayerParameters sessionParameters = InetUtils.nextLayerParameters(layerParameters, SessionLayer.LAYER_NAME);
+        final SessionLayer sessionLayer = SessionLayerInternetProvider.defaultSessionLayer(sessionParameters);
+        return new DefaultTransportLayer(sessionLayer);
     }
 
     /**
@@ -34,8 +36,8 @@ public abstract class TransportLayerInternetProvider extends NetworkLayerInterne
 
     @Override
     protected final NetworkLayer provideNetworkLayer(final LayerParameters layerParameters) {
-        final LayerParameters transportParameters = InetUtils.nextLayerParameters(layerParameters, "Transport");
+        final LayerParameters transportParameters = InetUtils.nextLayerParameters(layerParameters, TransportLayer.LAYER_NAME);
         final TransportLayer transportLayer = provideTransportLayer(transportParameters);
-        return InetUtils.createLayerIfNotStub(transportLayer, DefaultNetworkLayer::new);
+        return InetUtils.createLayerIfNotStub(transportLayer, layer -> new DefaultNetworkLayer(layerParameters, layer));
     }
 }

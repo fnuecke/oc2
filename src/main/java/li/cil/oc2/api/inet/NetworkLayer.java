@@ -36,6 +36,8 @@ public interface NetworkLayer extends InternetDeviceLifecycle {
      */
     short PROTOCOL_IPv6 = (short) 0x86dd;
 
+    String LAYER_NAME = "Network";
+
     ////////////////////////////////////////////////////////////////////////////////////
 
     /**

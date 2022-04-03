@@ -21,7 +21,9 @@ public abstract class NetworkLayerInternetProvider extends LinkLocalLayerInterne
     }
 
     protected static NetworkLayer defaultNetworkLayer(final LayerParameters layerParameters) {
-        return new DefaultNetworkLayer(TransportLayerInternetProvider.defaultTransportLayer(layerParameters));
+        final LayerParameters transportParameters = InetUtils.nextLayerParameters(layerParameters, TransportLayer.LAYER_NAME);
+        final TransportLayer transportLayer = TransportLayerInternetProvider.defaultTransportLayer(transportParameters);
+        return new DefaultNetworkLayer(layerParameters, transportLayer);
     }
 
     /**
@@ -36,8 +38,8 @@ public abstract class NetworkLayerInternetProvider extends LinkLocalLayerInterne
 
     @Override
     protected final LinkLocalLayer provideLinkLocalLayer(final LayerParameters layerParameters) {
-        final LayerParameters networkParameters = InetUtils.nextLayerParameters(layerParameters, "Network");
+        final LayerParameters networkParameters = InetUtils.nextLayerParameters(layerParameters, NetworkLayer.LAYER_NAME);
         final NetworkLayer networkLayer = provideNetworkLayer(networkParameters);
-        return InetUtils.createLayerIfNotStub(networkLayer, DefaultLinkLocalLayer::new);
+        return InetUtils.createLayerIfNotStub(networkLayer, layer -> new DefaultLinkLocalLayer(layerParameters, networkLayer));
     }
 }

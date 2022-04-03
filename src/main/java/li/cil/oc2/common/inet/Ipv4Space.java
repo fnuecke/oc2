@@ -12,17 +12,17 @@ import java.util.regex.Pattern;
 public final class Ipv4Space extends IntegerSpace {
 
     private static final String IPADDRESS_PATTERN =
-            "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}";
-    private static final Pattern ipAddressPattern =
-            line(group("ip", IPADDRESS_PATTERN));
+        "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}";
+    public static final Pattern ipAddressPattern =
+        line(group("ip", IPADDRESS_PATTERN));
     private static final Pattern ipRangePattern =
-            line(group("start", IPADDRESS_PATTERN) + "-" + group("end", IPADDRESS_PATTERN));
+        line(group("start", IPADDRESS_PATTERN) + "-" + group("end", IPADDRESS_PATTERN));
     private static final Pattern subnetPattern =
-            line(group("ip", IPADDRESS_PATTERN) + "\\/" + group("prefix", "[1-9]\\d?"));
+        line(group("ip", IPADDRESS_PATTERN) + "\\/" + group("prefix", "[1-9]\\d?"));
     private static final Pattern interfaceNamePattern =
-            line("@" + group("name", "[a-zA-Z].*"));
+        line("@" + group("name", "[a-zA-Z].*"));
     private static final Pattern interfaceIdPattern =
-            line("@" + group("id", "\\d*"));
+        line("@" + group("id", "\\d*"));
     private final boolean isAllowListMode;
 
     public Ipv4Space(final Modes mode) {
@@ -39,7 +39,7 @@ public final class Ipv4Space extends IntegerSpace {
 
     @Override
     protected void elementToString(final StringBuilder builder, final int element) {
-        InetUtils.ipAddressToString(builder, element);
+        InetUtils.ipv4AddressToString(builder, element);
     }
 
     private boolean putSubnet(final int ipAddress, final int prefix) {
@@ -67,20 +67,20 @@ public final class Ipv4Space extends IntegerSpace {
     public boolean put(final String string) {
         final Matcher ipAddressMatch = ipAddressPattern.matcher(string);
         if (ipAddressMatch.matches()) {
-            final int ipAddress = InetUtils.parseIpv4Address(ipAddressMatch.group("ip"));
+            final int ipAddress = InetUtils.surelyParseValidIpv4Address(ipAddressMatch.group("ip"));
             return put(ipAddress);
         }
 
         final Matcher ipRangeMatch = ipRangePattern.matcher(string);
         if (ipRangeMatch.matches()) {
-            final int rangeStart = InetUtils.parseIpv4Address(ipRangeMatch.group("start"));
-            final int rangeEnd = InetUtils.parseIpv4Address(ipRangeMatch.group("end"));
+            final int rangeStart = InetUtils.surelyParseValidIpv4Address(ipRangeMatch.group("start"));
+            final int rangeEnd = InetUtils.surelyParseValidIpv4Address(ipRangeMatch.group("end"));
             return put(rangeStart, rangeEnd);
         }
 
         final Matcher subnetMatch = subnetPattern.matcher(string);
         if (subnetMatch.matches()) {
-            final int ipAddress = InetUtils.parseIpv4Address(subnetMatch.group("ip"));
+            final int ipAddress = InetUtils.surelyParseValidIpv4Address(subnetMatch.group("ip"));
             final int prefix = Integer.parseInt(subnetMatch.group("prefix"));
             return putSubnet(ipAddress, prefix);
         }

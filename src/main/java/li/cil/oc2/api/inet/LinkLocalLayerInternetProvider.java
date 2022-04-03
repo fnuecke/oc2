@@ -21,7 +21,9 @@ public abstract class LinkLocalLayerInternetProvider implements InternetProvider
     }
 
     protected static LinkLocalLayer defaultLinkLocalLayer(final LayerParameters layerParameters) {
-        return new DefaultLinkLocalLayer(NetworkLayerInternetProvider.defaultNetworkLayer(layerParameters));
+        final LayerParameters networkParameters = InetUtils.nextLayerParameters(layerParameters, NetworkLayer.LAYER_NAME);
+        final NetworkLayer networkLayer = NetworkLayerInternetProvider.defaultNetworkLayer(networkParameters);
+        return new DefaultLinkLocalLayer(layerParameters, networkLayer);
     }
 
     /**
@@ -34,6 +36,6 @@ public abstract class LinkLocalLayerInternetProvider implements InternetProvider
 
     @Override
     public final LinkLocalLayer provideInternet(final LayerParameters layerParameters) {
-        return provideLinkLocalLayer(InetUtils.nextLayerParameters(layerParameters, "LinkLocal"));
+        return provideLinkLocalLayer(InetUtils.nextLayerParameters(layerParameters, LinkLocalLayer.LAYER_NAME));
     }
 }

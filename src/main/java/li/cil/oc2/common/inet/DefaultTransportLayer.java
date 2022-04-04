@@ -2,6 +2,8 @@ package li.cil.oc2.common.inet;
 
 import li.cil.oc2.api.inet.*;
 import li.cil.oc2.common.Config;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -286,6 +288,15 @@ public final class DefaultTransportLayer implements TransportLayer {
                 throw new IllegalStateException();
             }
         }
+    }
+
+    @Override
+    public Optional<Tag> onSave() {
+        return sessionLayer.onSave().map(sessionLayerState -> {
+            final CompoundTag transportLayerState = new CompoundTag();
+            transportLayerState.put(SessionLayer.LAYER_NAME, sessionLayerState);
+            return transportLayerState;
+        });
     }
 
     @Override

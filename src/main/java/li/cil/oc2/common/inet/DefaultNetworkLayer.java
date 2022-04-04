@@ -1,10 +1,13 @@
 package li.cil.oc2.common.inet;
 
 import li.cil.oc2.api.inet.*;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.Random;
 
 public final class DefaultNetworkLayer implements NetworkLayer {
@@ -29,6 +32,15 @@ public final class DefaultNetworkLayer implements NetworkLayer {
     public DefaultNetworkLayer(final LayerParameters layerParameters, final TransportLayer transportLayer) {
         this.internetManager = (InternetManagerImpl) layerParameters.getInternetManager();
         this.transportLayer = transportLayer;
+    }
+
+    @Override
+    public Optional<Tag> onSave() {
+        return transportLayer.onSave().map(transportLayerState -> {
+            final CompoundTag networkLayerState = new CompoundTag();
+            networkLayerState.put(TransportLayer.LAYER_NAME, transportLayerState);
+            return networkLayerState;
+        });
     }
 
     @Override

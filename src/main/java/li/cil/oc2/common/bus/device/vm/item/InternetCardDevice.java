@@ -65,10 +65,8 @@ public final class InternetCardDevice extends AbstractNetworkInterfaceDevice {
         final CompoundTag tag = super.serializeNBT();
         final InternetConnection internetConnection = this.internetConnection;
         if (internetConnection != null) {
-            final Tag adapterState = internetConnection.saveAdapterState();
-            if (!(adapterState instanceof EndTag)) {
-                tag.put(ADAPTER_SUBTAG, adapterState);
-            }
+            internetConnection.saveAdapterState()
+                .ifPresent(adapterState -> tag.put(ADAPTER_SUBTAG, adapterState));
         }
         return tag;
     }

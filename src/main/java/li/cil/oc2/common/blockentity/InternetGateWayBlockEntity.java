@@ -24,14 +24,14 @@ import org.apache.logging.log4j.Logger;
 
 public class InternetGateWayBlockEntity extends ModBlockEntity implements NetworkInterface, InternetAdapter {
     private static final Logger LOGGER = LogManager.getLogger();
-    
+
     private static final int QUEUE_MAX = 1;
-    private Deque<byte[]> inboundQueue;
-    private Deque<byte[]> outboundQueue;
-    
+    private final Deque<byte[]> inboundQueue;
+    private final Deque<byte[]> outboundQueue;
+
     private InternetConnection internetConnection;
-    
-    private static final String STATE_TAG = "internet_state";
+
+    private static final String STATE_TAG = "InternetAdapter";
     private Tag internetState;
 
     protected InternetGateWayBlockEntity(final BlockPos pos, final BlockState state) {
@@ -56,8 +56,7 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
     public void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         if (internetConnection != null) {
-            Tag state = internetConnection.saveAdapterState();
-            if (state != null && state != EndTag.INSTANCE) tag.put(STATE_TAG, state);
+            internetConnection.saveAdapterState().ifPresent(adapterState -> tag.put(STATE_TAG, adapterState));
         }
         LOGGER.info("State saved");
     }
@@ -117,5 +116,5 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
             outboundQueue.addLast(frame);
         }
     }
-        
+
 }

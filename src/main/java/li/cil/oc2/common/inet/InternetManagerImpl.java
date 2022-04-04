@@ -193,13 +193,13 @@ public final class InternetManagerImpl implements InternetManager {
         }
 
         @Override
-        public Tag saveAdapterState() {
+        public Optional<Tag> saveAdapterState() {
             try {
-                // Blocking code, I should reconsider it
+                // TODO: blocking code; should reconsider it
                 return executor.submit(ethernet::onSave).get();
             } catch (final InterruptedException | ExecutionException exception) {
                 LOGGER.error("Error on saving internet adapter state", exception);
-                return EndTag.INSTANCE;
+                return Optional.empty();
             }
         }
 

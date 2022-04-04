@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.Random;
 
 public final class DefaultLinkLocalLayer implements LinkLocalLayer {
@@ -85,18 +86,16 @@ public final class DefaultLinkLocalLayer implements LinkLocalLayer {
     }
 
     @Override
-    public Tag onSave() {
+    public Optional<Tag> onSave() {
         final CompoundTag layerState = new CompoundTag();
         if (myIpV4Address != -1) {
             final String ipAddressString = InetUtils.ipv4AddressToString(myIpV4Address);
             layerState.putString(IPv4_ADDRESS_TAG, ipAddressString);
         }
         layerState.putString(MAC_ADDRESS_TAG, InetUtils.macAddressToString(myMacAddress));
-        final Tag networkLayerState = networkLayer.onSave();
-        if (!(networkLayerState instanceof EndTag)) {
-            layerState.put(NetworkLayer.LAYER_NAME, networkLayerState);
-        }
-        return layerState;
+        networkLayer.onSave()
+            .ifPresent(networkLayerState -> layerState.put(NetworkLayer.LAYER_NAME, networkLayerState));
+        return Optional.of(layerState);
     }
 
     @Override

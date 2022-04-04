@@ -20,6 +20,8 @@ public final class Config {
     @Path("energy.blocks") public static int chargerEnergyStorage = 10000;
     @Path("energy.blocks") public static int projectorEnergyPerTick = 20;
     @Path("energy.blocks") public static int projectorEnergyStorage = 2000;
+    @Path("energy.blocks") public static int gatewayEnergyPerPacket = 20;
+    @Path("energy.blocks") public static int gatewayEnergyStorage = 2000;
 
     @Path("energy.entities") public static int robotEnergyPerTick = 5;
     @Path("energy.entities") public static int robotEnergyStorage = 750000;
@@ -69,5 +71,9 @@ public final class Config {
 
     public static boolean robotsUseEnergy() {
         return robotEnergyPerTick > 0 && robotEnergyStorage > 0;
+    }
+
+    public static boolean gatewayUseEnergy() {
+        return gatewayEnergyPerPacket > 0 && gatewayEnergyStorage > 0;
     }
 }

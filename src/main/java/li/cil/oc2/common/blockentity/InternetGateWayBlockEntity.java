@@ -9,7 +9,10 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import li.cil.oc2.api.capabilities.NetworkInterface;
+import li.cil.oc2.common.Config;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.inet.InternetAdapter;
 import li.cil.oc2.common.inet.InternetConnection;
 import li.cil.oc2.common.inet.InternetManagerImpl;
@@ -31,8 +34,10 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
 
     private InternetConnection internetConnection;
 
-    private static final String STATE_TAG = "InternetAdapter";
+    private static final String STATE_TAG = "internet_adapter";
     private Tag internetState;
+
+    private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.gatewayEnergyStorage);
 
     protected InternetGateWayBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.INTERNET_GATEWAY.get(), pos, state);
@@ -50,6 +55,7 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
         } else {
             internetState = EndTag.INSTANCE;
         }
+        energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
     }
 
     @Override
@@ -58,6 +64,7 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
         if (internetConnection != null) {
             internetConnection.saveAdapterState().ifPresent(adapterState -> tag.put(STATE_TAG, adapterState));
         }
+        tag.put(Constants.ENERGY_TAG_NAME, energy.serializeNBT());
         LOGGER.info("State saved");
     }
 
@@ -81,6 +88,7 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         collector.offer(Capabilities.networkInterface(), this);
+        collector.offer(Capabilities.energyStorage(), energy);
     }
 
     @Override
@@ -88,11 +96,21 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
         return outboundQueue.pollFirst();
     }
 
+    private boolean tryUseEnergy() {
+        boolean hasEnough = energy.getEnergyStored() >= Config.gatewayEnergyPerPacket;
+        if (hasEnough) {
+            energy.extractEnergy(Config.gatewayEnergyPerPacket, false);
+        }
+        return hasEnough;
+    }
+    
     @Override
     public void sendEthernetFrame(byte[] frame) {
         LOGGER.info("Got inbound packet");
         if (inboundQueue.size() < QUEUE_MAX) {
-            inboundQueue.addLast(frame);
+            if (tryUseEnergy()) {
+                inboundQueue.addLast(frame);
+            }
         }
     }
 
@@ -105,7 +123,9 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
     public void writeEthernetFrame(NetworkInterface source, byte[] frame, int timeToLive) {
         LOGGER.info("Got outbound packet");
         if (outboundQueue.size() < QUEUE_MAX) {
-            outboundQueue.addLast(frame);
+            if (tryUseEnergy()) {
+                outboundQueue.addLast(frame);
+            }
         }
     }
 

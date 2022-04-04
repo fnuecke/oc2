@@ -25,7 +25,7 @@ import org.apache.logging.log4j.Logger;
 public class InternetGateWayBlockEntity extends ModBlockEntity implements NetworkInterface, InternetAdapter {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static final int QUEUE_MAX = 1;
+    private static final int QUEUE_MAX = 64;
     private final Deque<byte[]> inboundQueue;
     private final Deque<byte[]> outboundQueue;
 
@@ -85,11 +85,7 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
 
     @Override
     public byte[] receiveEthernetFrame() {
-        if (outboundQueue.size() > 0) {
-            return outboundQueue.getFirst();
-        } else {
-            return null;
-        }
+        return outboundQueue.pollFirst();
     }
 
     @Override
@@ -102,11 +98,7 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
 
     @Override
     public byte[] readEthernetFrame() {
-        if (inboundQueue.size() > 0) {
-            return inboundQueue.getFirst();
-        } else {
-            return null;
-        }
+        return inboundQueue.pollFirst();
     }
 
     @Override

@@ -1,4 +1,7 @@
-package li.cil.oc2.api.inet;
+package li.cil.oc2.api.inet.provider;
+
+import li.cil.oc2.api.inet.LayerParameters;
+import li.cil.oc2.api.inet.layer.LinkLocalLayer;
 
 /**
  * Internet access provider for oc2:internet-card item.

@@ -1,10 +1,9 @@
 package li.cil.oc2.common.inet;
 
 import li.cil.oc2.api.inet.LayerParameters;
-import li.cil.oc2.api.inet.LinkLocalLayer;
-import li.cil.oc2.api.inet.NetworkLayer;
+import li.cil.oc2.api.inet.layer.LinkLocalLayer;
+import li.cil.oc2.api.inet.layer.NetworkLayer;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.EndTag;
 import net.minecraft.nbt.Tag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

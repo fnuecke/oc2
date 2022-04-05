@@ -1,11 +1,13 @@
-package li.cil.oc2.api.inet;
+package li.cil.oc2.api.inet.provider;
 
+import li.cil.oc2.api.inet.LayerParameters;
+import li.cil.oc2.api.inet.layer.LinkLocalLayer;
+import li.cil.oc2.api.inet.layer.NetworkLayer;
+import li.cil.oc2.api.inet.layer.TransportLayer;
 import li.cil.oc2.common.inet.DefaultLinkLocalLayer;
 import li.cil.oc2.common.inet.DefaultNetworkLayer;
 import li.cil.oc2.common.inet.InetUtils;
 import li.cil.oc2.common.inet.NullLayer;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 
 /**
  * An {@link InternetProvider} partial implementation that expects an {@link NetworkLayer} implementation from

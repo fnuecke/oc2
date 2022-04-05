@@ -1,4 +1,7 @@
-package li.cil.oc2.api.inet;
+package li.cil.oc2.api.inet.layer;
+
+import li.cil.oc2.api.inet.InternetDeviceLifecycle;
+import li.cil.oc2.api.inet.provider.NetworkLayerInternetProvider;
 
 import java.nio.ByteBuffer;
 

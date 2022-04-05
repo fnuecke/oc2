@@ -1,4 +1,4 @@
-package li.cil.oc2.api.inet;
+package li.cil.oc2.api.inet.session;
 
 import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
@@ -16,6 +16,13 @@ public interface Session {
     void setUserdata(final Object userdata);
 
     InetSocketAddress getDestination();
+
+    default boolean isClosed() {
+        return switch (getState()) {
+            case FINISH, REJECT, EXPIRED -> true;
+            default -> false;
+        };
+    }
 
     enum States {
         NEW, ESTABLISHED, FINISH, REJECT, EXPIRED

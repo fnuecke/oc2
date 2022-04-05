@@ -1,4 +1,4 @@
-package li.cil.oc2.api.inet;
+package li.cil.oc2.api.inet.session;
 
 import java.nio.ByteBuffer;
 

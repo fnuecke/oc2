@@ -1,7 +1,7 @@
 package li.cil.oc2.common.inet;
 
 import li.cil.oc2.api.inet.LayerParameters;
-import li.cil.oc2.api.inet.LinkLocalLayer;
+import li.cil.oc2.api.inet.layer.LinkLocalLayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.EndTag;
 import net.minecraft.nbt.Tag;

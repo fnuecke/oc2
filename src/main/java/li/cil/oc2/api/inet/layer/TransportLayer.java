@@ -1,4 +1,8 @@
-package li.cil.oc2.api.inet;
+package li.cil.oc2.api.inet.layer;
+
+import li.cil.oc2.api.inet.InternetDeviceLifecycle;
+import li.cil.oc2.api.inet.TransportMessage;
+import li.cil.oc2.api.inet.provider.SessionLayerInternetProvider;
 
 /**
  * Transport TCP/IP layer interface.
@@ -47,7 +51,7 @@ public interface TransportLayer extends InternetDeviceLifecycle {
      * {@link TransportLayer#PROTOCOL_NONE}, if no new data has arrived
      */
     default byte receiveTransportMessage(final TransportMessage message) {
-        return 0;
+        return PROTOCOL_NONE;
     }
 
     /**

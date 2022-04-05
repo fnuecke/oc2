@@ -1,6 +1,6 @@
 package li.cil.oc2.common.inet;
 
-import li.cil.oc2.api.inet.StreamSession;
+import li.cil.oc2.api.inet.session.StreamSession;
 import li.cil.oc2.common.Config;
 
 import javax.annotation.Nullable;
@@ -174,17 +174,11 @@ public class StreamSessionImpl extends SessionBase implements StreamSession {
     }
 
     public boolean onSend(final ByteBuffer data) {
-        switch (getState()) {
-            case NEW:
-                return newConnection(data);
-            case ESTABLISHED:
-            case FINISH:
-                return onPacket(data);
-            case REJECT:
-            case EXPIRED:
-                throw new IllegalStateException();
-        }
-        return false;
+        return switch (getState()) {
+            case NEW -> newConnection(data);
+            case ESTABLISHED, FINISH -> onPacket(data);
+            case REJECT, EXPIRED -> throw new IllegalStateException();
+        };
     }
 
     public boolean onReceive(final ByteBuffer data) {

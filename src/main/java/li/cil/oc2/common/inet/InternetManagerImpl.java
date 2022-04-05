@@ -2,10 +2,9 @@ package li.cil.oc2.common.inet;
 
 import li.cil.oc2.api.inet.LayerParameters;
 import li.cil.oc2.api.inet.InternetManager;
-import li.cil.oc2.api.inet.InternetProvider;
-import li.cil.oc2.api.inet.LinkLocalLayer;
+import li.cil.oc2.api.inet.provider.InternetProvider;
+import li.cil.oc2.api.inet.layer.LinkLocalLayer;
 import li.cil.oc2.common.Config;
-import net.minecraft.nbt.EndTag;
 import net.minecraft.nbt.Tag;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
@@ -15,7 +14,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -23,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public final class InternetManagerImpl implements InternetManager {
     private static final Logger LOGGER = LogManager.getLogger();

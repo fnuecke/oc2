@@ -1,6 +1,6 @@
 package li.cil.oc2.common.inet;
 
-import li.cil.oc2.api.inet.Session;
+import li.cil.oc2.api.inet.session.Session;
 import li.cil.oc2.common.Config;
 
 import javax.annotation.Nullable;
@@ -30,14 +30,9 @@ public abstract class SessionBase implements Session {
     @Override
     public void close() {
         switch (state) {
-            case NEW:
-                state = States.REJECT;
-                return;
-            case ESTABLISHED:
-                state = States.FINISH;
-                return;
-            default:
-                throw new IllegalStateException();
+            case NEW -> state = States.REJECT;
+            case ESTABLISHED -> state = States.FINISH;
+            default -> throw new IllegalStateException();
         }
     }
 

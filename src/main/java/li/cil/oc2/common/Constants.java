@@ -28,6 +28,7 @@ public final class Constants {
     public static final String MOD_TAG_NAME = API.MOD_ID;
     public static final String ITEMS_TAG_NAME = "items";
     public static final String ENERGY_TAG_NAME = "energy";
+    public static final String INTERNET_ADAPTER_TAG_NAME = "InternetAdapter";
 
     ///////////////////////////////////////////////////////////////////
 

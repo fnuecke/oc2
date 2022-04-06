@@ -3,6 +3,7 @@ package li.cil.oc2.common.bus.device.vm.item;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.api.capabilities.NetworkInterface;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.inet.InternetAdapter;
 import li.cil.oc2.common.inet.InternetConnection;
 import li.cil.oc2.common.inet.InternetManagerImpl;
@@ -15,12 +16,11 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.Optional;
 
 public final class InternetCardDevice extends AbstractNetworkInterfaceDevice {
 
     private static final Logger LOGGER = LogManager.getLogger();
-
-    private static final String ADAPTER_SUBTAG = "InternetAdapter";
 
     ///////////////////////////////////////////////////////////////
 
@@ -37,11 +37,9 @@ public final class InternetCardDevice extends AbstractNetworkInterfaceDevice {
     private void openInternetAccess() {
         LOGGER.debug("Connect internet card");
         closeInternetAccess();
-        final Tag savedState = internetAdapterState;
-        assert savedState != null;
         final InternetAdapter internetAdapter = new InternetAdapterImpl(getNetworkInterface());
         InternetManagerImpl.getInstance()
-            .ifPresent(internetManager -> internetConnection = internetManager.connect(internetAdapter, savedState));
+            .ifPresent(internetManager -> internetConnection = internetManager.connect(internetAdapter, internetAdapterState));
     }
 
     private void closeInternetAccess() {
@@ -57,7 +55,7 @@ public final class InternetCardDevice extends AbstractNetworkInterfaceDevice {
     @Override
     public void deserializeNBT(final CompoundTag tag) {
         super.deserializeNBT(tag);
-        internetAdapterState = Objects.requireNonNullElse(tag.get(ADAPTER_SUBTAG), EndTag.INSTANCE);
+        internetAdapterState = tag.get(Constants.INTERNET_ADAPTER_TAG_NAME);
     }
 
     @Override
@@ -66,7 +64,11 @@ public final class InternetCardDevice extends AbstractNetworkInterfaceDevice {
         final InternetConnection internetConnection = this.internetConnection;
         if (internetConnection != null) {
             internetConnection.saveAdapterState()
-                .ifPresent(adapterState -> tag.put(ADAPTER_SUBTAG, adapterState));
+                .ifPresent(adapterState -> {
+                    tag.put(Constants.INTERNET_ADAPTER_TAG_NAME, adapterState);
+                    // TODO: not sure, if this is meaningful
+                    internetAdapterState = adapterState;
+                });
         }
         return tag;
     }

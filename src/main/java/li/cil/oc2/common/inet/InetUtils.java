@@ -3,14 +3,13 @@ package li.cil.oc2.common.inet;
 import li.cil.oc2.api.inet.LayerParameters;
 import li.cil.oc2.api.inet.layer.LinkLocalLayer;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.EndTag;
 import net.minecraft.nbt.Tag;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 public final class InetUtils {
@@ -42,16 +41,16 @@ public final class InetUtils {
     }
 
     public static short transportRfc1071Checksum(
-            final ByteBuffer buffer,
-            final int srcIpAddress,
-            final int dstIpAddress,
-            final byte protocol
+        final ByteBuffer buffer,
+        final int srcIpAddress,
+        final int dstIpAddress,
+        final byte protocol
     ) {
         final int size = buffer.remaining();
         final int checksumPart = bufferChecksum(buffer, size);
         final int checksum = checksumPart + Byte.toUnsignedInt(protocol) + size +
-                             (srcIpAddress >>> 16) + (srcIpAddress & 0xFFFF) +
-                             (dstIpAddress >>> 16) + (dstIpAddress & 0xFFFF);
+            (srcIpAddress >>> 16) + (srcIpAddress & 0xFFFF) +
+            (dstIpAddress >>> 16) + (dstIpAddress & 0xFFFF);
         return finishChecksum(checksum);
     }
 
@@ -66,10 +65,10 @@ public final class InetUtils {
 
     public static InetAddress toJavaInetAddress(final int ipAddress) {
         final byte[] bytes = new byte[]{
-                (byte) (ipAddress >>> 24),
-                (byte) (ipAddress >>> 16),
-                (byte) (ipAddress >>> 8),
-                (byte) (ipAddress)
+            (byte) (ipAddress >>> 24),
+            (byte) (ipAddress >>> 16),
+            (byte) (ipAddress >>> 8),
+            (byte) (ipAddress)
         };
         return getInetAddressByBytes(bytes);
     }
@@ -124,7 +123,7 @@ public final class InetUtils {
         byteToHex(builder, (byte) prefix);
         for (int i = 3; i >= 0; --i) {
             builder.append(':');
-            byteToHex(builder, (byte) (address >>> (8*i)));
+            byteToHex(builder, (byte) (address >>> (8 * i)));
         }
     }
 
@@ -160,7 +159,7 @@ public final class InetUtils {
     public static int javaInetAddressToIpAddress(final Inet4Address address) {
         final byte[] bytes = address.getAddress();
         return (Byte.toUnsignedInt(bytes[0]) << 24) | (Byte.toUnsignedInt(bytes[1]) << 16)
-               | (Byte.toUnsignedInt(bytes[2]) << 8) | Byte.toUnsignedInt(bytes[3]);
+            | (Byte.toUnsignedInt(bytes[2]) << 8) | Byte.toUnsignedInt(bytes[3]);
     }
 
     public static int indexOf(final CharSequence string, final char character, final int start) {
@@ -222,7 +221,7 @@ public final class InetUtils {
         final short prefix = (short) (first << 8 | parseMacAddressByte(string, 3));
         int address = 0;
         for (int i = 0; i < 4; ++i) {
-            final int pos = i*3 + 5;
+            final int pos = i * 3 + 5;
             if (string.charAt(pos) != ':') {
                 throw illegalDelimiter(string, pos);
             }
@@ -282,13 +281,10 @@ public final class InetUtils {
     }
 
     public static LayerParameters nextLayerParameters(final LayerParameters layerParameters, final String layerName) {
-        final Tag currentLayerState = layerParameters.getSavedState();
-        final Tag nextLayerState;
-        if (currentLayerState instanceof CompoundTag tag) {
-            nextLayerState = Objects.requireNonNullElse(tag.get(layerName), EndTag.INSTANCE);
-        } else {
-            nextLayerState = EndTag.INSTANCE;
-        }
+        final Optional<Tag> nextLayerState = layerParameters.getSavedState()
+            .flatMap(currentLayerState -> (currentLayerState instanceof CompoundTag tag) ?
+                Optional.ofNullable(tag.get(layerName)) :
+                Optional.empty());
         return new LayerParametersImpl(nextLayerState, layerParameters.getInternetManager());
     }
 }

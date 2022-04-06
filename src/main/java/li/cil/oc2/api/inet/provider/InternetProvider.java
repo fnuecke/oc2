@@ -29,7 +29,7 @@ import li.cil.oc2.api.inet.layer.LinkLocalLayer;
 public interface InternetProvider {
 
     /**
-     * This method should provide and implementation of {@link LinkLocalLayer} interface and not fail.
+     * This method should provide an implementation of {@link LinkLocalLayer} interface.
      * It will be called once for each loaded internet card.
      *
      * @return an implementation of {@link LinkLocalLayer} interface

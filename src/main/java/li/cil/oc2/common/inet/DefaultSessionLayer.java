@@ -16,9 +16,11 @@ import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
+import java.util.Queue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 public final class DefaultSessionLayer implements SessionLayer {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -59,14 +61,7 @@ public final class DefaultSessionLayer implements SessionLayer {
             return;
         }
 
-        while (true) {
-            final Session session = readySessions.getToRead().poll();
-            if (session == null) {
-                break;
-            }
-            if (session.isClosed()) {
-                continue;
-            }
+        final boolean somethingRead = processQueue(readySessions.getToRead(), session -> {
             if (session instanceof DatagramSession datagramSession) {
                 LOGGER.info("Datagram received");
                 final DatagramChannel channel = getChannel(datagramSession);
@@ -75,18 +70,47 @@ public final class DefaultSessionLayer implements SessionLayer {
                     assert datagram != null;
                     final SocketAddress address = channel.receive(datagram);
                     if (address == null) {
-                        return;
+                        return false;
                     }
                     if (Config.useSynchronisedNAT && !address.equals(datagramSession.getDestination())) {
-                        return;
+                        return false;
                     }
                     datagram.flip();
-                } catch (IOException e) {
-                    LOGGER.error("Trying to read datagram socket", e);
+                    return true;
+                } catch (final IOException exception) {
+                    LOGGER.error("Trying to read datagram socket", exception);
                 }
                 LOGGER.info("Datagram received");
+            } else if (session instanceof StreamSession streamSession) {
+                LOGGER.info("Stream received");
+                final SocketChannel channel = getChannel(streamSession);
+                try {
+                    final ByteBuffer stream = receiver.receive(streamSession);
+                    assert stream != null;
+                    final int read = channel.read(stream);
+                    if (read != 0) {
+                        // some data still remaining in socket, read it later
+                        readySessions.getToRead().add(streamSession);
+                    }
+                    return true;
+                } catch (final IOException exception) {
+                    LOGGER.error("Trying to read stream socket", exception);
+                }
             }
+            return false;
+        });
+        if (somethingRead) {
+            return;
         }
+
+        processQueue(readySessions.getToConnect(), session -> {
+            if (session instanceof StreamSession streamSession) {
+                receiver.receive(streamSession);
+                streamSession.connect();
+                return true;
+            }
+            return false;
+        });
     }
 
     @Override
@@ -120,7 +144,7 @@ public final class DefaultSessionLayer implements SessionLayer {
                         LOGGER.info("Send datagram");
                         final DatagramChannel channel = getChannel(datagramSession);
                         assert data != null;
-                        int sent = channel.send(data, session.getDestination());
+                        channel.send(data, session.getDestination());
                         break;
                     }
                     case EXPIRED: {
@@ -158,6 +182,21 @@ public final class DefaultSessionLayer implements SessionLayer {
             }
         } else {
             session.close();
+        }
+    }
+
+    private boolean processQueue(final Queue<Session> queue, final Function<Session, Boolean> action) {
+        while (true) {
+            final Session session = queue.poll();
+            if (session == null) {
+                return false;
+            }
+            if (session.isClosed()) {
+                continue;
+            }
+            if (action.apply(session)) {
+                return true;
+            }
         }
     }
 

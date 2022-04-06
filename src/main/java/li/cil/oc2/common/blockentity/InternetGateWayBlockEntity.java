@@ -19,7 +19,6 @@ import li.cil.oc2.common.inet.InternetManagerImpl;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.EndTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.state.BlockState;
 import org.apache.logging.log4j.LogManager;
@@ -34,7 +33,6 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
 
     private InternetConnection internetConnection;
 
-    private static final String STATE_TAG = "internet_adapter";
     private Tag internetState;
 
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.gatewayEnergyStorage);
@@ -43,18 +41,14 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
         super(BlockEntities.INTERNET_GATEWAY.get(), pos, state);
         inboundQueue = new ArrayDeque<>();
         outboundQueue = new ArrayDeque<>();
-        internetState = EndTag.INSTANCE;
+        internetState = null;
         setNeedsLevelUnloadEvent();
     }
 
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        if (tag.contains(STATE_TAG)) {
-            internetState = tag.get(STATE_TAG);
-        } else {
-            internetState = EndTag.INSTANCE;
-        }
+        internetState = tag.get(Constants.INTERNET_ADAPTER_TAG_NAME);
         energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
     }
 
@@ -62,7 +56,8 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
     public void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         if (internetConnection != null) {
-            internetConnection.saveAdapterState().ifPresent(adapterState -> tag.put(STATE_TAG, adapterState));
+            internetConnection.saveAdapterState()
+                .ifPresent(adapterState -> tag.put(Constants.INTERNET_ADAPTER_TAG_NAME, adapterState));
         }
         tag.put(Constants.ENERGY_TAG_NAME, energy.serializeNBT());
         LOGGER.info("State saved");
@@ -70,7 +65,8 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
 
     @Override
     protected void loadServer() {
-        InternetManagerImpl.getInstance().ifPresent(internetManager -> internetConnection = internetManager.connect(this, internetState));
+        InternetManagerImpl.getInstance()
+            .ifPresent(internetManager -> internetConnection = internetManager.connect(this, internetState));
         if (internetConnection != null) {
             LOGGER.info("Connected to the internet");
         } else {
@@ -103,7 +99,7 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
         }
         return hasEnough;
     }
-    
+
     @Override
     public void sendEthernetFrame(byte[] frame) {
         LOGGER.info("Got inbound packet");

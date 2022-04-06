@@ -2,7 +2,9 @@ package li.cil.oc2.api.inet;
 
 import net.minecraft.nbt.Tag;
 
+import java.util.Optional;
+
 public interface LayerParameters {
-    Tag getSavedState();
+    Optional<Tag> getSavedState();
     InternetManager getInternetManager();
 }

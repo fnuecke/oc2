@@ -53,25 +53,26 @@ public final class DefaultLinkLocalLayer implements LinkLocalLayer {
     ///////////////////////////////////////////////////
 
     public DefaultLinkLocalLayer(final LayerParameters layerParameters, final NetworkLayer networkLayer) {
-        final Tag tag = layerParameters.getSavedState();
-        if (tag instanceof CompoundTag layerState) {
-            final String ipAddressString = layerState.getString(IPv4_ADDRESS_TAG);
-            if (!ipAddressString.isEmpty()) {
-                try {
-                    myIpV4Address = InetUtils.parseIpv4Address(ipAddressString);
-                } catch (final AddressParseException exception) {
-                    LOGGER.error("Failed to parse internet adapter IPv4 address", exception);
+        layerParameters.getSavedState().ifPresent(tag -> {
+            if (tag instanceof CompoundTag layerState) {
+                final String ipAddressString = layerState.getString(IPv4_ADDRESS_TAG);
+                if (!ipAddressString.isEmpty()) {
+                    try {
+                        myIpV4Address = InetUtils.parseIpv4Address(ipAddressString);
+                    } catch (final AddressParseException exception) {
+                        LOGGER.error("Failed to parse internet adapter IPv4 address", exception);
+                    }
+                }
+                final String macAddressString = layerState.getString(MAC_ADDRESS_TAG);
+                if (!macAddressString.isEmpty()) {
+                    try {
+                        myMacAddress = InetUtils.parseMacAddress(macAddressString);
+                    } catch (final AddressParseException exception) {
+                        LOGGER.error("Failed to parse internet adapter MAC address from NBT", exception);
+                    }
                 }
             }
-            final String macAddressString = layerState.getString(MAC_ADDRESS_TAG);
-            if (!macAddressString.isEmpty()) {
-                try {
-                    myMacAddress = InetUtils.parseMacAddress(macAddressString);
-                } catch (final AddressParseException exception) {
-                    LOGGER.error("Failed to parse internet adapter MAC address from NBT", exception);
-                }
-            }
-        }
+        });
         this.networkLayer = networkLayer;
     }
 

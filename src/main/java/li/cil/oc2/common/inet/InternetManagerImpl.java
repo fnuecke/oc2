@@ -69,8 +69,8 @@ public final class InternetManagerImpl implements InternetManager {
         return task;
     }
 
-    public InternetConnection connect(final InternetAdapter internetAdapter, final Tag savedState) {
-        final LayerParameters layerParameters = new LayerParametersImpl(savedState, this);
+    public InternetConnection connect(final InternetAdapter internetAdapter, @Nullable final Tag savedState) {
+        final LayerParameters layerParameters = new LayerParametersImpl(Optional.ofNullable(savedState), this);
         final InternetConnectionImpl internetConnection =
             new InternetConnectionImpl(internetAdapter, internetProvider.provideInternet(layerParameters));
         connections.add(internetConnection);
@@ -116,7 +116,10 @@ public final class InternetManagerImpl implements InternetManager {
         final List<InternetConnectionImpl> connectionsToProcess
     ) {
         runTasks();
-        connectionsToStop.forEach(InternetConnectionImpl::stop);
+        connectionsToStop.forEach(connection -> {
+            LOGGER.debug("Revoked internet access");
+            connection.ethernet.onStop();
+        });
         connectionsToProcess.forEach(InternetConnectionImpl::process);
     }
 

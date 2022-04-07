@@ -11,6 +11,7 @@ import li.cil.manual.api.prefab.tab.ItemStackTab;
 import li.cil.manual.api.prefab.tab.TextureTab;
 import li.cil.manual.api.provider.DocumentProvider;
 import li.cil.manual.api.provider.PathProvider;
+import li.cil.manual.api.util.Constants;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.item.Items;
@@ -25,7 +26,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 @OnlyIn(Dist.CLIENT)
 public final class Manuals {
-    private static final DeferredRegister<ManualModel> MANUALS = RegistryUtils.create(ManualModel.class);
+    private static final DeferredRegister<ManualModel> MANUALS = RegistryUtils.getInitializerFor(Constants.MANUAL_REGISTRY);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -34,9 +35,9 @@ public final class Manuals {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        final DeferredRegister<PathProvider> pathProviders = RegistryUtils.create(PathProvider.class);
-        final DeferredRegister<DocumentProvider> contentProviders = RegistryUtils.create(DocumentProvider.class);
-        final DeferredRegister<Tab> tabs = RegistryUtils.create(Tab.class);
+        final DeferredRegister<PathProvider> pathProviders = RegistryUtils.getInitializerFor(Constants.PATH_PROVIDER_REGISTRY);
+        final DeferredRegister<DocumentProvider> contentProviders = RegistryUtils.getInitializerFor(Constants.DOCUMENT_PROVIDER_REGISTRY);
+        final DeferredRegister<Tab> tabs = RegistryUtils.getInitializerFor(Constants.TAB_REGISTRY);
 
         pathProviders.register("path_provider", () -> new NamespacePathProvider(API.MOD_ID));
         contentProviders.register("content_provider", () -> new NamespaceDocumentProvider(API.MOD_ID, "doc"));

@@ -10,6 +10,7 @@ import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTUtils;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.registration.ISubtypeRegistration;
@@ -29,10 +30,10 @@ public class ExtraItemsJEIPlugin implements IModPlugin {
 
     @Override
     public void registerItemSubtypes(final ISubtypeRegistration registration) {
-        registration.registerSubtypeInterpreter(Items.COMPUTER.get(), new ComputerSubtypeInterpreter());
-        registration.registerSubtypeInterpreter(Items.ROBOT.get(), new RobotSubtypeInterpreter());
-        registration.registerSubtypeInterpreter(Items.HARD_DRIVE_CUSTOM.get(), new BlockDeviceSubtypeInterpreter());
-        registration.registerSubtypeInterpreter(Items.FLASH_MEMORY_CUSTOM.get(), new BlockDeviceSubtypeInterpreter());
+        registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.COMPUTER.get(), new ComputerSubtypeInterpreter());
+        registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.ROBOT.get(), new RobotSubtypeInterpreter());
+        registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.HARD_DRIVE_CUSTOM.get(), new BlockDeviceSubtypeInterpreter());
+        registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.FLASH_MEMORY_CUSTOM.get(), new BlockDeviceSubtypeInterpreter());
     }
 
     private static final class ComputerSubtypeInterpreter implements IIngredientSubtypeInterpreter<ItemStack> {

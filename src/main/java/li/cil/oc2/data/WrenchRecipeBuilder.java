@@ -14,7 +14,7 @@ import net.minecraft.advancements.RequirementsStrategy;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.Tag;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -48,7 +48,7 @@ public final class WrenchRecipeBuilder {
         return new WrenchRecipeBuilder(resultIn, countIn);
     }
 
-    public WrenchRecipeBuilder requires(final Tag<Item> tagIn) {
+    public WrenchRecipeBuilder requires(final TagKey<Item> tagIn) {
         return this.requires(Ingredient.of(tagIn));
     }
 

@@ -10,7 +10,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public final class SoundEvents {
-    private static final DeferredRegister<SoundEvent> SOUNDS = RegistryUtils.create(ForgeRegistries.SOUND_EVENTS);
+    private static final DeferredRegister<SoundEvent> SOUNDS = RegistryUtils.getInitializerFor(ForgeRegistries.SOUND_EVENTS);
 
     ///////////////////////////////////////////////////////////////////
 

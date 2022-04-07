@@ -21,9 +21,7 @@ import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.*;
-import net.minecraft.tags.Tag;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.registries.ForgeRegistry;
@@ -35,7 +33,6 @@ import java.util.List;
 
 import static li.cil.oc2.common.Constants.*;
 import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
-import static net.minecraft.tags.ItemTags.getAllTags;
 
 public final class TooltipUtils {
     private static final MutableComponent DEVICE_NEEDS_REBOOT =
@@ -89,11 +86,7 @@ public final class TooltipUtils {
             tooltip.add(withFormat(description, ChatFormatting.GRAY));
         }
 
-        // Tooltips get queried very early in Minecraft initialization, meaning tags may not
-        // have been initialized. Trying to directly use our tag would lead to an exception
-        // in that case, so we do the detour through the collection instead.
-        final Tag<Item> tag = getAllTags().getTag(ItemTags.DEVICE_NEEDS_REBOOT.getName());
-        if (tag != null && tag.contains(stack.getItem())) {
+        if (stack.is(ItemTags.DEVICE_NEEDS_REBOOT)) {
             tooltip.add(DEVICE_NEEDS_REBOOT);
         }
 

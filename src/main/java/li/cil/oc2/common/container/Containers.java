@@ -10,7 +10,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public final class Containers {
-    private static final DeferredRegister<MenuType<?>> CONTAINERS = RegistryUtils.create(ForgeRegistries.CONTAINERS);
+    private static final DeferredRegister<MenuType<?>> CONTAINERS = RegistryUtils.getInitializerFor(ForgeRegistries.CONTAINERS);
 
     ///////////////////////////////////////////////////////////////////
 

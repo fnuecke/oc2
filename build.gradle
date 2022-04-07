@@ -40,8 +40,9 @@ java.toolchain {
     vendor = JvmVendorSpec.ADOPTOPENJDK
 }
 
-compileJava.options.encoding = "utf-8"
-compileTestJava.options.encoding = "utf-8"
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'utf-8'
+}
 
 repositories {
     mavenCentral()
@@ -68,12 +69,12 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    implementation "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.12"
+    implementation "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.13"
 
-    implementation fg.deobf("curse.maven:markdownmanual-502485:3565800")
+    implementation fg.deobf("curse.maven:markdownmanual-502485:3738124")
 
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:9.1.0.41:api")
-    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:9.1.0.41")
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:9.7.0.180:api")
+    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:9.7.0.180")
 
     testImplementation 'org.mockito:mockito-inline:4.3.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'

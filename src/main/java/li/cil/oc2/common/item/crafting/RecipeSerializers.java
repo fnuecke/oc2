@@ -9,7 +9,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public final class RecipeSerializers {
-    private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = RegistryUtils.create(ForgeRegistries.RECIPE_SERIALIZERS);
+    private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = RegistryUtils.getInitializerFor(ForgeRegistries.RECIPE_SERIALIZERS);
 
     ///////////////////////////////////////////////////////////////////
 

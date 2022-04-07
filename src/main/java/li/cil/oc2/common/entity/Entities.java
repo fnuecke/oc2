@@ -13,7 +13,7 @@ import net.minecraftforge.registries.RegistryObject;
 import java.util.function.Function;
 
 public final class Entities {
-    private static final DeferredRegister<EntityType<?>> ENTITIES = RegistryUtils.create(ForgeRegistries.ENTITIES);
+    private static final DeferredRegister<EntityType<?>> ENTITIES = RegistryUtils.getInitializerFor(ForgeRegistries.ENTITIES);
 
     ///////////////////////////////////////////////////////////////////
 

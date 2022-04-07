@@ -2,11 +2,15 @@
 
 package li.cil.oc2.api.bus.device.provider;
 
+import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.util.Invalidatable;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**
@@ -30,7 +34,7 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
  * are registered. For example:
  * <pre>
  * class YourModInitialization {
- *     static DeferredRegister&lt;BlockDeviceProvider&gt; BLOCK_DEVICE_PROVIDERS = DeferredRegister.create(BlockDeviceProvider.class, "your_mod_id");
+ *     static DeferredRegister&lt;BlockDeviceProvider&gt; BLOCK_DEVICE_PROVIDERS = DeferredRegister.create(BlockDeviceProvider.REGISTRY, "your_mod_id");
  *
  *     static void initialize() {
  *         BLOCK_DEVICE_PROVIDERS.register("your_block_device_name", YourBlockDeviceProvider::new);
@@ -46,6 +50,11 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
  * @see BlockDeviceQuery
  */
 public interface BlockDeviceProvider extends IForgeRegistryEntry<BlockDeviceProvider> {
+    /**
+     * The registry name of the registry holding block device providers.
+     */
+    ResourceKey<Registry<BlockDeviceProvider>> REGISTRY = ResourceKey.createRegistryKey(new ResourceLocation(API.MOD_ID, "block_device_provider"));
+
     /**
      * Get a device for the specified query.
      *

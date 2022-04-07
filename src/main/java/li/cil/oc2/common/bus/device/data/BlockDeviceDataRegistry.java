@@ -15,11 +15,11 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class BlockDeviceDataRegistry {
-    private static final DeferredRegister<BlockDeviceData> INITIALIZER = RegistryUtils.create(BlockDeviceData.class);
+    private static final DeferredRegister<BlockDeviceData> INITIALIZER = RegistryUtils.getInitializerFor(BlockDeviceData.REGISTRY);
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final Supplier<IForgeRegistry<BlockDeviceData>> REGISTRY = INITIALIZER.makeRegistry(BlockDeviceData.REGISTRY.getPath(), RegistryBuilder::new);
+    private static final Supplier<IForgeRegistry<BlockDeviceData>> REGISTRY = INITIALIZER.makeRegistry(BlockDeviceData.class, RegistryBuilder::new);
 
     ///////////////////////////////////////////////////////////////////
 

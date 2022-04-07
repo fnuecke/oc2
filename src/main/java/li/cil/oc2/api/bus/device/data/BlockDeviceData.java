@@ -4,7 +4,9 @@ package li.cil.oc2.api.bus.device.data;
 
 import li.cil.oc2.api.API;
 import li.cil.sedna.api.device.BlockDevice;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
@@ -31,7 +33,7 @@ public interface BlockDeviceData extends IForgeRegistryEntry<BlockDeviceData> {
     /**
      * The registry name of the registry holding block device bases.
      */
-    ResourceLocation REGISTRY = new ResourceLocation(API.MOD_ID, "block_device_data");
+    ResourceKey<Registry<BlockDeviceData>> REGISTRY = ResourceKey.createRegistryKey(new ResourceLocation(API.MOD_ID, "block_device_data"));
 
     /**
      * Gets the read-only base block device this implementation describes.

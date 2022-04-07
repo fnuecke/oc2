@@ -3,6 +3,7 @@
 package li.cil.oc2.common.bus.device.data;
 
 import li.cil.oc2.api.bus.device.data.Firmware;
+import li.cil.oc2.api.util.Registries;
 import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.DeferredRegister;
@@ -15,7 +16,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class FirmwareRegistry {
-    private static final DeferredRegister<Firmware> INITIALIZER = RegistryUtils.getInitializerFor(Firmware.REGISTRY);
+    private static final DeferredRegister<Firmware> INITIALIZER = RegistryUtils.getInitializerFor(Registries.FIRMWARE);
 
     ///////////////////////////////////////////////////////////////////
 

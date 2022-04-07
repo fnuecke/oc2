@@ -3,6 +3,7 @@
 package li.cil.oc2.common.bus.device.data;
 
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
+import li.cil.oc2.api.util.Registries;
 import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.DeferredRegister;
@@ -15,7 +16,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class BlockDeviceDataRegistry {
-    private static final DeferredRegister<BlockDeviceData> INITIALIZER = RegistryUtils.getInitializerFor(BlockDeviceData.REGISTRY);
+    private static final DeferredRegister<BlockDeviceData> INITIALIZER = RegistryUtils.getInitializerFor(Registries.BLOCK_DEVICE_DATA);
 
     ///////////////////////////////////////////////////////////////////
 

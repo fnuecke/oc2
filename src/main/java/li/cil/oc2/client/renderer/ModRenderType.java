@@ -41,6 +41,20 @@ public abstract class ModRenderType extends RenderType {
             .setCullState(NO_CULL)
             .createCompositeState(false));
 
+    private static final RenderType GATEWAY_PARTICLE = create(
+        API.MOD_ID + "/gateway_particle",
+        DefaultVertexFormat.POSITION_COLOR,
+        VertexFormat.Mode.QUADS,
+        256,
+        false,
+        true,
+        CompositeState.builder()
+            .setShaderState(RENDERTYPE_LIGHTNING_SHADER)
+            .setTransparencyState(LIGHTNING_TRANSPARENCY)
+            .setWriteMaskState(COLOR_WRITE)
+            .setCullState(CULL)
+            .createCompositeState(false));
+
     ///////////////////////////////////////////////////////////////////
 
     public static RenderType getNetworkCable() {
@@ -85,6 +99,10 @@ public abstract class ModRenderType extends RenderType {
             false,
             true,
             state);
+    }
+
+    public static RenderType getGateWayParticle() {
+        return GATEWAY_PARTICLE;
     }
 
     ///////////////////////////////////////////////////////////////////

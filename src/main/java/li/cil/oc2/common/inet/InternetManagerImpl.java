@@ -2,10 +2,9 @@ package li.cil.oc2.common.inet;
 
 import li.cil.oc2.api.inet.LayerParameters;
 import li.cil.oc2.api.inet.InternetManager;
-import li.cil.oc2.api.inet.InternetProvider;
-import li.cil.oc2.api.inet.LinkLocalLayer;
+import li.cil.oc2.api.inet.provider.InternetProvider;
+import li.cil.oc2.api.inet.layer.LinkLocalLayer;
 import li.cil.oc2.common.Config;
-import net.minecraft.nbt.EndTag;
 import net.minecraft.nbt.Tag;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
@@ -15,7 +14,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -23,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public final class InternetManagerImpl implements InternetManager {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -72,8 +69,8 @@ public final class InternetManagerImpl implements InternetManager {
         return task;
     }
 
-    public InternetConnection connect(final InternetAdapter internetAdapter, final Tag savedState) {
-        final LayerParameters layerParameters = new LayerParametersImpl(savedState, this);
+    public InternetConnection connect(final InternetAdapter internetAdapter, @Nullable final Tag savedState) {
+        final LayerParameters layerParameters = new LayerParametersImpl(Optional.ofNullable(savedState), this);
         final InternetConnectionImpl internetConnection =
             new InternetConnectionImpl(internetAdapter, internetProvider.provideInternet(layerParameters));
         connections.add(internetConnection);
@@ -119,7 +116,10 @@ public final class InternetManagerImpl implements InternetManager {
         final List<InternetConnectionImpl> connectionsToProcess
     ) {
         runTasks();
-        connectionsToStop.forEach(InternetConnectionImpl::stop);
+        connectionsToStop.forEach(connection -> {
+            LOGGER.debug("Revoked internet access");
+            connection.ethernet.onStop();
+        });
         connectionsToProcess.forEach(InternetConnectionImpl::process);
     }
 

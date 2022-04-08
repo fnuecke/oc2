@@ -1,6 +1,6 @@
 package li.cil.oc2.common.inet;
 
-import li.cil.oc2.api.inet.Session;
+import li.cil.oc2.api.inet.session.Session;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;

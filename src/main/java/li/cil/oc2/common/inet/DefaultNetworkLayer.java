@@ -1,6 +1,8 @@
 package li.cil.oc2.common.inet;
 
 import li.cil.oc2.api.inet.*;
+import li.cil.oc2.api.inet.layer.NetworkLayer;
+import li.cil.oc2.api.inet.layer.TransportLayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import org.apache.logging.log4j.LogManager;

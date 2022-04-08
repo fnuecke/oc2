@@ -1,4 +1,7 @@
-package li.cil.oc2.api.inet;
+package li.cil.oc2.api.inet.provider;
+
+import li.cil.oc2.api.inet.LayerParameters;
+import li.cil.oc2.api.inet.layer.LinkLocalLayer;
 
 /**
  * Internet access provider for oc2:internet-card item.
@@ -26,7 +29,7 @@ package li.cil.oc2.api.inet;
 public interface InternetProvider {
 
     /**
-     * This method should provide and implementation of {@link LinkLocalLayer} interface and not fail.
+     * This method should provide an implementation of {@link LinkLocalLayer} interface.
      * It will be called once for each loaded internet card.
      *
      * @return an implementation of {@link LinkLocalLayer} interface

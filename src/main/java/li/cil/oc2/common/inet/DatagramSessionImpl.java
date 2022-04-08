@@ -1,6 +1,6 @@
 package li.cil.oc2.common.inet;
 
-import li.cil.oc2.api.inet.DatagramSession;
+import li.cil.oc2.api.inet.session.DatagramSession;
 
 public final class DatagramSessionImpl extends SessionBase implements DatagramSession {
     private final DatagramSessionDiscriminator discriminator;

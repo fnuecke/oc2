@@ -1,6 +1,12 @@
 package li.cil.oc2.common.inet;
 
 import li.cil.oc2.api.inet.*;
+import li.cil.oc2.api.inet.layer.SessionLayer;
+import li.cil.oc2.api.inet.layer.TransportLayer;
+import li.cil.oc2.api.inet.session.DatagramSession;
+import li.cil.oc2.api.inet.session.EchoSession;
+import li.cil.oc2.api.inet.session.Session;
+import li.cil.oc2.api.inet.session.StreamSession;
 import li.cil.oc2.common.Config;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -16,9 +22,10 @@ import java.util.function.Function;
 
 public final class DefaultTransportLayer implements TransportLayer {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final byte ICMP_TYPE_ECHO_REPLY = 0;
 
     ///////////////////////////////////////////////////////////
+
+    private static final byte ICMP_TYPE_ECHO_REPLY = 0;
     private static final byte ICMP_TYPE_ECHO_REQUEST = 8;
     private static final byte ICMP_TYPE_ECHO_UNREACHABLE = 3;
     private static final byte ICMP_CODE_ECHO_UNREACHABLE_PORT = 3;
@@ -169,7 +176,7 @@ public final class DefaultTransportLayer implements TransportLayer {
         final int limit = data.limit();
         data.putShort(discriminator.getDstPort());
         data.putShort(discriminator.getSrcPort());
-        boolean recv = stream.onReceive(data);
+        final boolean recv = stream.onReceive(data);
         if (!recv) {
             data.position(position);
             data.limit(limit);
@@ -235,10 +242,8 @@ public final class DefaultTransportLayer implements TransportLayer {
             if (session instanceof EchoSession) {
                 final EchoSessionImpl echoSession = (EchoSessionImpl) session;
                 switch (session.getState()) {
-                    case FINISH:
-                        closeSession(session);
-                        break;
-                    case ESTABLISHED: {
+                    case FINISH -> closeSession(session);
+                    case ESTABLISHED -> {
                         final EchoSessionDiscriminator discriminator = echoSession.getDiscriminator();
                         final ByteBuffer buffer = receiver.getBuffer();
                         final int position = buffer.position();
@@ -248,16 +253,13 @@ public final class DefaultTransportLayer implements TransportLayer {
                         message.updateIpv4(discriminator.getDstIpAddress(), discriminator.getSrcIpAddress());
                         return PROTOCOL_ICMP;
                     }
-                    default:
-                        throw new IllegalStateException();
+                    default -> throw new IllegalStateException();
                 }
             } else if (session instanceof DatagramSession) {
                 final DatagramSessionImpl datagramSession = (DatagramSessionImpl) session;
                 switch (session.getState()) {
-                    case FINISH:
-                        closeSession(session);
-                        break;
-                    case ESTABLISHED: {
+                    case FINISH -> closeSession(session);
+                    case ESTABLISHED -> {
                         final DatagramSessionDiscriminator discriminator = datagramSession.getDiscriminator();
                         final ByteBuffer buffer = receiver.getBuffer();
                         final int position = buffer.position();
@@ -266,18 +268,17 @@ public final class DefaultTransportLayer implements TransportLayer {
                         buffer.putShort(position + 4, (short) buffer.remaining());
                         buffer.putShort(position + 6, (short) 0);
                         short checksum = InetUtils.transportRfc1071Checksum(
-                                buffer,
-                                discriminator.getDstIpAddress(),
-                                discriminator.getSrcIpAddress(),
-                                PROTOCOL_UDP
+                            buffer,
+                            discriminator.getDstIpAddress(),
+                            discriminator.getSrcIpAddress(),
+                            PROTOCOL_UDP
                         );
                         buffer.putShort(position + 6, checksum);
                         buffer.position(position);
                         message.updateIpv4(discriminator.getDstIpAddress(), discriminator.getSrcIpAddress());
                         return PROTOCOL_UDP;
                     }
-                    default:
-                        throw new IllegalStateException();
+                    default -> throw new IllegalStateException();
                 }
             } else if (session instanceof StreamSession) {
                 final StreamSessionImpl streamSession = (StreamSessionImpl) session;
@@ -301,6 +302,11 @@ public final class DefaultTransportLayer implements TransportLayer {
 
     @Override
     public void onStop() {
+        for (final SessionBase session : sessions.values()) {
+            session.setState(Session.States.FINISH);
+            sessionLayer.sendSession(session, null);
+            closeSession(session);
+        }
         sessionLayer.onStop();
     }
 
@@ -314,7 +320,7 @@ public final class DefaultTransportLayer implements TransportLayer {
         final ByteBuffer data = message.getData();
 
         switch (protocol) {
-            case PROTOCOL_ICMP: {
+            case PROTOCOL_ICMP -> {
                 if (data.remaining() < ICMP_HEADER_SIZE) {
                     return;
                 }
@@ -330,9 +336,9 @@ public final class DefaultTransportLayer implements TransportLayer {
                     final short identity = data.getShort();
                     final short sequence = data.getShort();
                     final EchoSessionDiscriminator discriminator =
-                            new EchoSessionDiscriminator(srcIpAddress, dstIpAddress, identity);
+                        new EchoSessionDiscriminator(srcIpAddress, dstIpAddress, identity);
                     final EchoSessionImpl session =
-                            getOrCreateSession(discriminator, it -> new EchoSessionImpl(dstIpAddress, PORT_ECHO, it));
+                        getOrCreateSession(discriminator, it -> new EchoSessionImpl(dstIpAddress, PORT_ECHO, it));
                     if (session == null) {
                         reject(data, srcIpAddress);
                     } else {
@@ -342,9 +348,8 @@ public final class DefaultTransportLayer implements TransportLayer {
                         sessionSendFinish(session, data, srcIpAddress);
                     }
                 }
-                break;
             }
-            case PROTOCOL_UDP: {
+            case PROTOCOL_UDP -> {
                 if (data.remaining() < UDP_HEADER_SIZE) {
                     return;
                 }
@@ -360,18 +365,17 @@ public final class DefaultTransportLayer implements TransportLayer {
                 data.limit(data.position() + datagramLength - UDP_HEADER_SIZE);
 
                 final DatagramSessionDiscriminator discriminator =
-                        new DatagramSessionDiscriminator(srcIpAddress, srcPort, dstIpAddress, dstPort);
+                    new DatagramSessionDiscriminator(srcIpAddress, srcPort, dstIpAddress, dstPort);
                 final DatagramSessionImpl session =
-                        getOrCreateSession(discriminator, it -> new DatagramSessionImpl(dstIpAddress, dstPort, it));
+                    getOrCreateSession(discriminator, it -> new DatagramSessionImpl(dstIpAddress, dstPort, it));
                 if (session == null) {
                     reject(data, srcIpAddress);
                 } else {
                     sessionLayer.sendSession(session, data);
                     sessionSendFinish(session, data, srcIpAddress);
                 }
-                break;
             }
-            case PROTOCOL_TCP: {
+            case PROTOCOL_TCP -> {
                 if (data.remaining() < MIN_TCP_HEADER_SIZE) {
                     return;
                 }
@@ -380,15 +384,15 @@ public final class DefaultTransportLayer implements TransportLayer {
                 final short dstPort = data.getShort();
 
                 final StreamSessionDiscriminator discriminator =
-                        new StreamSessionDiscriminator(srcIpAddress, srcPort, dstIpAddress, dstPort);
+                    new StreamSessionDiscriminator(srcIpAddress, srcPort, dstIpAddress, dstPort);
                 final StreamSessionImpl session =
-                        getOrCreateSession(discriminator, it -> new StreamSessionImpl(dstIpAddress, dstPort, it));
+                    getOrCreateSession(discriminator, it -> new StreamSessionImpl(dstIpAddress, dstPort, it));
                 if (session == null) {
                     reject(data, srcIpAddress);
                 } else {
                     if (session.onSend(data)) {
                         if (session.getState() == Session.States.NEW)
-                        sessionLayer.sendSession(session, data);
+                            sessionLayer.sendSession(session, data);
                         final Session.States state = session.getState();
                         if (state == Session.States.REJECT || state == Session.States.FINISH) {
                             rejectedStream = session;
@@ -397,7 +401,6 @@ public final class DefaultTransportLayer implements TransportLayer {
                         closeSession(session);
                     }
                 }
-                break;
             }
         }
     }

@@ -1,5 +1,6 @@
 package li.cil.oc2.api.inet;
 
+import li.cil.oc2.api.inet.layer.NetworkLayer;
 import li.cil.oc2.common.inet.InetUtils;
 
 import java.net.InetAddress;
@@ -123,14 +124,11 @@ public final class TransportMessage {
      * @return IPv4 source address
      */
     public InetAddress getSrcAddress() {
-        switch (networkProtocolNumber) {
-            case NetworkLayer.PROTOCOL_IPv4:
-                return InetUtils.toJavaInetAddress(getSrcIpv4Address());
-            case NetworkLayer.PROTOCOL_IPv6:
-                return InetUtils.toJavaInetAddress(srcIpAddressMost, srcIpAddressLeast);
-            default:
-                throw new IllegalStateException();
-        }
+        return switch (networkProtocolNumber) {
+            case NetworkLayer.PROTOCOL_IPv4 -> InetUtils.toJavaInetAddress(getSrcIpv4Address());
+            case NetworkLayer.PROTOCOL_IPv6 -> InetUtils.toJavaInetAddress(srcIpAddressMost, srcIpAddressLeast);
+            default -> throw new IllegalStateException();
+        };
     }
 
     /**
@@ -139,14 +137,11 @@ public final class TransportMessage {
      * @return IPv4 destination address
      */
     public InetAddress getDstAddress() {
-        switch (networkProtocolNumber) {
-            case NetworkLayer.PROTOCOL_IPv4:
-                return InetUtils.toJavaInetAddress(getDstIpv4Address());
-            case NetworkLayer.PROTOCOL_IPv6:
-                return InetUtils.toJavaInetAddress(dstIpAddressMost, dstIpAddressLeast);
-            default:
-                throw new IllegalStateException();
-        }
+        return switch (networkProtocolNumber) {
+            case NetworkLayer.PROTOCOL_IPv4 -> InetUtils.toJavaInetAddress(getDstIpv4Address());
+            case NetworkLayer.PROTOCOL_IPv6 -> InetUtils.toJavaInetAddress(dstIpAddressMost, dstIpAddressLeast);
+            default -> throw new IllegalStateException();
+        };
     }
 
     /**

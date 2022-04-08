@@ -1,11 +1,9 @@
-package li.cil.oc2.api.inet;
+package li.cil.oc2.api.inet.provider;
 
+import li.cil.oc2.api.inet.LayerParameters;
+import li.cil.oc2.api.inet.layer.LinkLocalLayer;
+import li.cil.oc2.api.inet.layer.NetworkLayer;
 import li.cil.oc2.common.inet.*;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.EndTag;
-import net.minecraft.nbt.Tag;
-
-import java.util.Objects;
 
 /**
  * An {@link InternetProvider} partial implementation that expects an {@link LinkLocalLayer} implementation from

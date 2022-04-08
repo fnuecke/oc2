@@ -1,4 +1,7 @@
-package li.cil.oc2.api.inet;
+package li.cil.oc2.api.inet.layer;
+
+import li.cil.oc2.api.inet.InternetDeviceLifecycle;
+import li.cil.oc2.api.inet.session.Session;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -9,6 +12,8 @@ import java.nio.ByteBuffer;
 public interface SessionLayer extends InternetDeviceLifecycle {
 
     String LAYER_NAME = "Session";
+
+    ////////////////////////////////////////////////////////////////////////////////////
 
     default void receiveSession(final Receiver receiver) {
     }

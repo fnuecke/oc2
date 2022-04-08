@@ -1,6 +1,6 @@
 package li.cil.oc2.common.inet;
 
-import li.cil.oc2.api.inet.EchoSession;
+import li.cil.oc2.api.inet.session.EchoSession;
 
 public final class EchoSessionImpl extends SessionBase implements EchoSession {
     private final EchoSessionDiscriminator discriminator;

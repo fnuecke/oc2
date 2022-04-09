@@ -56,6 +56,8 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
         super(BlockEntities.INTERNET_GATEWAY.get(), pos, state);
         inboundQueue = new ArrayDeque<>();
         outboundQueue = new ArrayDeque<>();
+        animProgress = new float[EMITTER_SIDE_PIXELS*EMITTER_SIDE_PIXELS];
+        animReversed = new boolean[EMITTER_SIDE_PIXELS*EMITTER_SIDE_PIXELS];
         internetState = null;
         setNeedsLevelUnloadEvent();
     }
@@ -153,8 +155,6 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
         Level level = getLevel();
         if (level != null) {
             level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 2);
-            //setChanged();
-            LOGGER.info("Notified clients");
         }
     }
     

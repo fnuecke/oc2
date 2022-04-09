@@ -37,12 +37,6 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
     private final Deque<byte[]> outboundQueue;
 
     private InternetConnection internetConnection;
-<<<<<<< HEAD
-    
-    private static final String STATE_TAG = "internet_adapter";
-=======
-
->>>>>>> 75db7af06579e26ebec54a155aa27fedef284e6f
     private Tag internetState;
     
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.gatewayEnergyStorage);
@@ -62,13 +56,7 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
         super(BlockEntities.INTERNET_GATEWAY.get(), pos, state);
         inboundQueue = new ArrayDeque<>();
         outboundQueue = new ArrayDeque<>();
-<<<<<<< HEAD
-        animProgress = new float[EMITTER_SIDE_PIXELS*EMITTER_SIDE_PIXELS];
-        animReversed = new boolean[EMITTER_SIDE_PIXELS*EMITTER_SIDE_PIXELS];
-        internetState = EndTag.INSTANCE;
-=======
         internetState = null;
->>>>>>> 75db7af06579e26ebec54a155aa27fedef284e6f
         setNeedsLevelUnloadEvent();
     }
 
@@ -161,7 +149,6 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
         return hasEnough;
     }
 
-<<<<<<< HEAD
     private void notifyPlayers() {
         Level level = getLevel();
         if (level != null) {
@@ -171,8 +158,6 @@ public class InternetGateWayBlockEntity extends ModBlockEntity implements Networ
         }
     }
     
-=======
->>>>>>> 75db7af06579e26ebec54a155aa27fedef284e6f
     @Override
     public void sendEthernetFrame(byte[] frame) {
         LOGGER.trace("Got inbound packet");

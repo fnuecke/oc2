@@ -22,6 +22,8 @@
   "block.oc2.projector.desc": "Projects images onto surfaces in front of it.",
   "block.oc2.keyboard": "Keyboard",
   "block.oc2.keyboard.desc": "Allows keyboard input when using a projector.",
+  "block.oc2.internet_gateway": "Internet Gateway",
+  "block.oc2.internet_gateway.desc": "Gives access to the Internet.",
 
   "item.oc2.wrench": "Scrench",
   "item.oc2.wrench.desc": "Configures devices and dismantles them (while sneaking).",
@@ -125,6 +127,7 @@
   "tooltip.oc2.confirm": "Confirm",
   "tooltip.oc2.cancel": "Cancel",
   "tooltip.oc2.network_tunnel_id": "Tunnel: %s",
+  "tooltip.oc2.internet.disabled": "Note that Internet access is currently disabled. It can be enabled in the mod config, but know that this is potentially unsafe. Make sure that you either thrust everyone you're playing with, or configure address whitelist properly.",
 
   "subtitles.oc2.computer": "Computer fans running",
   "subtitles.oc2.floppy": "Floppy access",

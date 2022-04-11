@@ -38,6 +38,7 @@ public final class Constants {
     public static final String TOOLTIP_ENERGY_CONSUMPTION = key("tooltip.{mod}.energyConsumption");
     public static final String TOOLTIP_CONFIRM = key("tooltip.{mod}.confirm");
     public static final String TOOLTIP_CANCEL = key("tooltip.{mod}.cancel");
+    public static final String TOOLTIP_INTERNET_DISABLED = key("tooltip.{mod}.internet.disabled");
 
     ///////////////////////////////////////////////////////////////////
 

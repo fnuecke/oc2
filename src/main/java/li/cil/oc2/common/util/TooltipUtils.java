@@ -7,10 +7,12 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
+import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.EnergyConsumingBlock;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tags.ItemTags;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -109,6 +111,12 @@ public final class TooltipUtils {
         if (energyConsumption > 0) {
             final MutableComponent energy = withFormat(String.valueOf(energyConsumption), ChatFormatting.GREEN);
             tooltip.add(withFormat(new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, energy), ChatFormatting.GRAY));
+        }
+
+        if (!Config.internetCardEnabled) {
+            if (stack.getItem() == Items.INTERNET_GATEWAY.get()) {
+                tooltip.add(withFormat(new TranslatableComponent(Constants.TOOLTIP_INTERNET_DISABLED), ChatFormatting.RED));
+            }
         }
     }
 

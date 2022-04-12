@@ -127,7 +127,8 @@
   "tooltip.oc2.confirm": "Confirm",
   "tooltip.oc2.cancel": "Cancel",
   "tooltip.oc2.network_tunnel_id": "Tunnel: %s",
-  "tooltip.oc2.internet.disabled": "Note that Internet access is currently disabled. It can be enabled in the mod config, but know that this is potentially unsafe. Make sure that you either thrust everyone you're playing with, or configure address whitelist properly.",
+  "tooltip.oc2.internet.disabled": "Note that Internet access is currently disabled. It can be enabled in the mod config, but expect this to be potentially unsafe. Make sure that you trust everyone you're playing with and/or limit addresses which can be connected to in the config.",
+  "tooltip.oc2.internet.energy_per_packet": "Energy per packet sent: %s",
 
   "subtitles.oc2.computer": "Computer fans running",
   "subtitles.oc2.floppy": "Floppy access",

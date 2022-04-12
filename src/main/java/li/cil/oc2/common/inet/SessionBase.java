@@ -1,7 +1,6 @@
 package li.cil.oc2.common.inet;
 
 import li.cil.oc2.api.inet.session.Session;
-import li.cil.oc2.common.Config;
 
 import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
@@ -13,13 +12,12 @@ public abstract class SessionBase implements Session {
 
     private final long id = idGenerator.getAndIncrement();
     private final InetSocketAddress destination;
-    private States state;
-    private Instant expireTime;
-    private Object userdata;
+    private Instant lastUpdateTime = Instant.now();
+    @Nullable
+    private Object attachment;
 
     public SessionBase(final int ipAddress, final short port) {
         destination = new InetSocketAddress(InetUtils.toJavaInetAddress(ipAddress), Short.toUnsignedInt(port));
-        state = States.NEW;
     }
 
     @Override
@@ -27,42 +25,24 @@ public abstract class SessionBase implements Session {
         return id;
     }
 
-    @Override
-    public void close() {
-        switch (state) {
-            case NEW -> state = States.REJECT;
-            case ESTABLISHED -> state = States.FINISH;
-            default -> throw new IllegalStateException();
-        }
+    public void update() {
+        lastUpdateTime = Instant.now();
     }
 
     @Override
-    public States getState() {
-        return state;
-    }
-
-    public void setState(final States state) {
-        this.state = state;
-    }
-
-    public void updateExpireTime() {
-        expireTime = Instant.now().plusMillis(Config.defaultSessionLifetimeMs);
-    }
-
-    @Nullable
-    public Instant getExpireTime() {
-        return expireTime;
+    public Instant getLastUpdateTime() {
+        return lastUpdateTime;
     }
 
     @Nullable
     @Override
-    public Object getUserdata() {
-        return this.userdata;
+    public Object getAttachment() {
+        return this.attachment;
     }
 
     @Override
-    public void setUserdata(final Object userdata) {
-        this.userdata = userdata;
+    public void setAttachment(@Nullable final Object userdata) {
+        this.attachment = userdata;
     }
 
     @Override
@@ -71,4 +51,6 @@ public abstract class SessionBase implements Session {
     }
 
     public abstract SessionDiscriminator<?> getDiscriminator();
+
+    public abstract void expire();
 }

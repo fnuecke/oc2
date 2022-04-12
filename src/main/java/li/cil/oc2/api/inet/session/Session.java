@@ -2,6 +2,7 @@ package li.cil.oc2.api.inet.session;
 
 import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
+import java.time.Instant;
 
 public interface Session {
     long getId();
@@ -11,11 +12,13 @@ public interface Session {
     States getState();
 
     @Nullable
-    Object getUserdata();
+    Object getAttachment();
 
-    void setUserdata(final Object userdata);
+    void setAttachment(@Nullable final Object userdata);
 
     InetSocketAddress getDestination();
+
+    Instant getLastUpdateTime();
 
     default boolean isClosed() {
         return switch (getState()) {

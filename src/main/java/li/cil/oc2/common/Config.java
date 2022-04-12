@@ -55,7 +55,7 @@ public final class Config {
     @Path("internet-card") public static String defaultNameServer = "1.1.1.1";
     @Path("internet-card") public static boolean useSynchronisedNAT = false;
     @Path("internet-card") public static int streamBufferSize = 2000;
-    @Path("internet-card") public static int tcpRetransmissionTimeoutMs = 30 * 1000;
+    @Path("internet-card") public static int tcpRetransmissionTimeoutMs = 2 * 1000;
 
     public static boolean computersUseEnergy() {
         return computerEnergyPerTick > 0 && computerEnergyStorage > 0;

@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -61,7 +62,35 @@ public final class DefaultSessionLayer implements SessionLayer {
             return;
         }
 
-        final boolean somethingRead = processQueue(readySessions.getToRead(), session -> {
+        final boolean somethingConnected = processQueue(readySessions.getToConnect(), session -> {
+            if (session instanceof StreamSession streamSession) {
+                LOGGER.info("Connected {}", session);
+                if (session.getState() != Session.States.NEW) {
+                    return false;
+                }
+                receiver.receive(streamSession);
+                try {
+                    final SocketChannel channel = getChannel(streamSession);
+                    channel.finishConnect();
+                    streamSession.connect();
+                    return true;
+                } catch (final ConnectException exception) {
+                    LOGGER.info("Connection rejected for {}", session);
+                    closeSession(session);
+                    return true;
+                } catch (final IOException exception) {
+                    LOGGER.error("Error on socket.finishConnect()", exception);
+                    closeSession(session);
+                    return true;
+                }
+            }
+            return false;
+        });
+        if (somethingConnected) {
+            return;
+        }
+
+        processQueue(readySessions.getToRead(), session -> {
             if (session instanceof DatagramSession datagramSession) {
                 LOGGER.info("Datagram received");
                 final DatagramChannel channel = getChannel(datagramSession);
@@ -83,31 +112,20 @@ public final class DefaultSessionLayer implements SessionLayer {
                 LOGGER.info("Datagram received");
             } else if (session instanceof StreamSession streamSession) {
                 LOGGER.info("Stream received");
-                final SocketChannel channel = getChannel(streamSession);
+                final ByteBuffer stream = receiver.receive(streamSession);
                 try {
-                    final ByteBuffer stream = receiver.receive(streamSession);
+                    final SocketChannel channel = getChannel(streamSession);
                     assert stream != null;
+                    assert false;
                     final int read = channel.read(stream);
-                    if (read != 0) {
-                        // some data still remaining in socket, read it later
-                        readySessions.getToRead().add(streamSession);
+                    LOGGER.info("Read from real world: {}", read);
+                    if (read == -1) {
+                        closeSession(session);
                     }
                     return true;
                 } catch (final IOException exception) {
                     LOGGER.error("Trying to read stream socket", exception);
                 }
-            }
-            return false;
-        });
-        if (somethingRead) {
-            return;
-        }
-
-        processQueue(readySessions.getToConnect(), session -> {
-            if (session instanceof StreamSession streamSession) {
-                receiver.receive(streamSession);
-                streamSession.connect();
-                return true;
             }
             return false;
         });
@@ -136,7 +154,7 @@ public final class DefaultSessionLayer implements SessionLayer {
                     case NEW: {
                         final DatagramChannel channel =
                             socketManager.createDatagramChannel(datagramSession, readySessions);
-                        datagramSession.setUserdata(channel);
+                        datagramSession.setAttachment(channel);
                         LOGGER.info("Open datagram socket {}", session.getDestination());
                         /* Fallthrough */
                     }
@@ -162,9 +180,9 @@ public final class DefaultSessionLayer implements SessionLayer {
                 switch (session.getState()) {
                     case NEW -> {
                         final SocketChannel channel = socketManager.createStreamChannel(streamSession, readySessions);
-                        session.setUserdata(channel);
-                        channel.connect(session.getDestination());
-                        LOGGER.info("Open stream socket {}", session.getDestination());
+                        streamSession.setAttachment(channel);
+                        channel.connect(streamSession.getDestination());
+                        LOGGER.info("Open stream socket {}", streamSession.getDestination());
                     }
                     case ESTABLISHED -> {
                         final SocketChannel channel = getChannel(streamSession);
@@ -203,13 +221,16 @@ public final class DefaultSessionLayer implements SessionLayer {
     private void closeSession(final Session session) {
         try {
             getChannel(session).close();
+            if (!session.isClosed()) {
+                session.close();
+            }
         } catch (final IOException exception) {
             LOGGER.error("Error on closing channel", exception);
         }
     }
 
     private Object getExistingUserdata(final Session session) {
-        final Object channel = session.getUserdata();
+        final Object channel = session.getAttachment();
         assert channel != null;
         return channel;
     }

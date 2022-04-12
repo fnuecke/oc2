@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -42,7 +43,7 @@ public final class DefaultTransportLayer implements TransportLayer {
     private final SessionReceiver receiver = new SessionReceiver();
 
     private final NavigableMap<Instant, SessionBase> expirationQueue = new TreeMap<>();
-    private final NavigableMap<Instant, StreamSessionImpl> retransmissionQueue = new TreeMap<>();
+    private StreamSessionImpl streamToAck = null;
     private final Map<SessionDiscriminator<?>, SessionBase> sessions = new HashMap<>();
 
     private ICMPReply icmpReply = null;
@@ -54,22 +55,41 @@ public final class DefaultTransportLayer implements TransportLayer {
         this.sessionLayer = sessionLayer;
     }
 
-    private <T> void processExpirationQueue(final Map<Instant, T> queue, final Consumer<T> action) {
+    private <T> void processExpirationQueue(final NavigableMap<Instant, T> queue, final Consumer<T> action) {
         if (queue.isEmpty()) {
             return;
         }
-        final Instant now = Instant.now();
-        final Iterator<Map.Entry<Instant, T>> iterator = queue.entrySet().iterator();
+        final Instant expireTime = Instant.now().minus(Config.defaultSessionLifetimeMs, ChronoUnit.MILLIS);
+        final Iterator<Instant> iterator = queue.navigableKeySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<Instant, T> entry = iterator.next();
-            if (entry.getKey().compareTo(now) < 0) {
+            final Instant time = iterator.next();
+            if (time.compareTo(expireTime) < 0) {
+                final T value = queue.get(time);
                 iterator.remove();
-                final T entryValue = entry.getValue();
-                action.accept(entryValue);
+                action.accept(value);
             } else {
                 return;
             }
         }
+    }
+
+    @Nullable
+    private StreamSessionImpl getNextStreamForRetransmission() {
+        if (expirationQueue.isEmpty()) {
+            return null;
+        }
+        final Instant retransmissionTime = Instant.now().minus(Config.tcpRetransmissionTimeoutMs, ChronoUnit.MILLIS);
+        for (final Instant time : expirationQueue.navigableKeySet()) {
+            if (time.compareTo(retransmissionTime) < 0) {
+                final SessionBase session = expirationQueue.get(time);
+                if (session instanceof StreamSessionImpl stream && stream.isNeedsAcknowledgment()) {
+                    return stream;
+                }
+            } else {
+                break;
+            }
+        }
+        return null;
     }
 
     private void processSessionExpirationQueue() {
@@ -77,26 +97,24 @@ public final class DefaultTransportLayer implements TransportLayer {
             sessions.remove(session.getDiscriminator());
             --allSessionCount;
             LOGGER.info("Expired session {}", session.getDiscriminator());
-            session.setState(Session.States.EXPIRED);
+            session.expire();
             sessionLayer.sendSession(session, null);
         });
     }
 
     private void updateSession(final SessionBase session) {
-        final Instant oldKey = session.getExpireTime();
-        if (oldKey != null) {
-            expirationQueue.remove(oldKey);
-        }
-        session.updateExpireTime();
-        final Instant newExpireTime = session.getExpireTime();
-        SessionBase previous = expirationQueue.put(newExpireTime, session);
+        final Instant oldKey = session.getLastUpdateTime();
+        expirationQueue.remove(oldKey);
+        session.update();
+        final Instant newLastUpdateTime = session.getLastUpdateTime();
+        SessionBase previous = expirationQueue.put(newLastUpdateTime, session);
         assert previous == null;
     }
 
     private void closeSession(final SessionBase session) {
         LOGGER.info("Close session {}", session.getDiscriminator());
         sessions.remove(session.getDiscriminator());
-        expirationQueue.remove(session.getExpireTime());
+        expirationQueue.remove(session.getLastUpdateTime());
         --allSessionCount;
     }
 
@@ -148,7 +166,7 @@ public final class DefaultTransportLayer implements TransportLayer {
         );
     }
 
-    private void sessionSendFinish(final SessionBase session, final ByteBuffer payload, final int srcIpAddress) {
+    private void sessionSendFinish(final DatagramSessionBase session, final ByteBuffer payload, final int srcIpAddress) {
         final Session.States state = session.getState();
         switch (state) {
             case NEW:
@@ -169,29 +187,36 @@ public final class DefaultTransportLayer implements TransportLayer {
         }
     }
 
-    private boolean prepareTCPSegment(final TransportMessage message, final StreamSessionImpl stream) {
+    private SessionActions prepareTCPSegment(final TransportMessage message, final StreamSessionImpl stream) {
         final ByteBuffer data = message.getData();
         final StreamSessionDiscriminator discriminator = stream.getDiscriminator();
         final int position = data.position();
         final int limit = data.limit();
         data.putShort(discriminator.getDstPort());
         data.putShort(discriminator.getSrcPort());
-        final boolean recv = stream.onReceive(data);
-        if (!recv) {
-            data.position(position);
-            data.limit(limit);
-            return false;
+        final SessionActions recv = stream.receive(data);
+        switch (recv) {
+            case DROP, IGNORE -> {
+                data.position(position);
+                data.limit(limit);
+                return recv;
+            }
+            case FORWARD -> {
+                data.position(position);
+                final short checksum = InetUtils.transportRfc1071Checksum(
+                    data,
+                    discriminator.getDstIpAddress(),
+                    discriminator.getSrcIpAddress(),
+                    PROTOCOL_TCP
+                );
+                data.putShort(position + 16, checksum);
+                data.position(position);
+                message.updateIpv4(discriminator.getDstIpAddress(), discriminator.getSrcIpAddress());
+                LOGGER.info("Prepared TCP packet to receive {}", stream.getHeader());
+                return SessionActions.FORWARD;
+            }
+            default -> throw new IllegalStateException();
         }
-        data.position(position);
-        final short checksum = InetUtils.transportRfc1071Checksum(
-                data,
-                discriminator.getDstIpAddress(),
-                discriminator.getSrcIpAddress(),
-                PROTOCOL_TCP
-        );
-        data.putShort(position + 16, checksum);
-        data.position(position);
-        return true;
     }
 
     @Override
@@ -201,8 +226,9 @@ public final class DefaultTransportLayer implements TransportLayer {
         while (true) {
             if (rejectedStream != null) {
                 // This branch should be checked first! Stream needs to be closed properly
-                boolean success = prepareTCPSegment(message, rejectedStream);
-                assert success;
+                LOGGER.info("Rejecting stream {}", rejectedStream.getDiscriminator());
+                final SessionActions success = prepareTCPSegment(message, rejectedStream);
+                assert success == SessionActions.FORWARD;
                 closeSession(rejectedStream);
                 rejectedStream = null;
                 return PROTOCOL_TCP;
@@ -222,11 +248,37 @@ public final class DefaultTransportLayer implements TransportLayer {
                 return PROTOCOL_ICMP;
             }
 
-            if (!retransmissionQueue.isEmpty()) {
+            if (streamToAck != null) {
+                final StreamSessionImpl stream = streamToAck;
+                streamToAck = null;
+                updateSession(stream);
+                switch (prepareTCPSegment(message, stream)) {
+                    case FORWARD -> {
+                        if (stream.isClosed()) {
+                            closeSession(stream);
+                        }
+                        return PROTOCOL_TCP;
+                    }
+                    case DROP -> closeSession(stream);
+                }
+            }
+            /*
+            final StreamSessionImpl retransmitSession = getNextStreamForRetransmission();
+            if (retransmitSession != null) {
                 // Process retransmission queue
-                processExpirationQueue(retransmissionQueue, stream -> prepareTCPSegment(message, stream));
+                updateSession(retransmitSession);
+                switch (prepareTCPSegment(message, retransmitSession)) {
+                    case FORWARD -> {
+                        if (retransmitSession.isClosed()) {
+                            closeSession(retransmitSession);
+                        }
+                        return PROTOCOL_TCP;
+                    }
+                    case DROP -> closeSession(retransmitSession);
+                }
                 return PROTOCOL_TCP;
             }
+             */
 
             receiver.prepare(message.getData());
             sessionLayer.receiveSession(receiver);
@@ -282,8 +334,14 @@ public final class DefaultTransportLayer implements TransportLayer {
                 }
             } else if (session instanceof StreamSession) {
                 final StreamSessionImpl streamSession = (StreamSessionImpl) session;
-                if (prepareTCPSegment(message, streamSession)) {
-                    return PROTOCOL_TCP;
+                switch (prepareTCPSegment(message, streamSession)) {
+                    case FORWARD -> {
+                        if (streamSession.isClosed()) {
+                            closeSession(streamSession);
+                        }
+                        return PROTOCOL_TCP;
+                    }
+                    case DROP -> closeSession(streamSession);
                 }
             } else {
                 throw new IllegalStateException();
@@ -303,7 +361,7 @@ public final class DefaultTransportLayer implements TransportLayer {
     @Override
     public void onStop() {
         for (final SessionBase session : sessions.values()) {
-            session.setState(Session.States.FINISH);
+            session.expire();
             sessionLayer.sendSession(session, null);
             closeSession(session);
         }
@@ -390,35 +448,29 @@ public final class DefaultTransportLayer implements TransportLayer {
                 if (session == null) {
                     reject(data, srcIpAddress);
                 } else {
-                    if (session.onSend(data)) {
-                        if (session.getState() == Session.States.NEW)
-                            sessionLayer.sendSession(session, data);
-                        final Session.States state = session.getState();
-                        if (state == Session.States.REJECT || state == Session.States.FINISH) {
-                            rejectedStream = session;
+                    LOGGER.info("GOT TCP");
+                    switch (session.send(data)) {
+                        case FORWARD -> {
+                            switch (session.getState()) {
+                                case NEW, FINISH -> sessionLayer.sendSession(session, null);
+                                case ESTABLISHED -> sessionLayer.sendSession(session, session.getSendBuffer());
+                            }
+                            final Session.States state = session.getState();
+                            if (state == Session.States.REJECT || state == Session.States.FINISH) {
+                                rejectedStream = session;
+                            }
+                            if (session.isNeedsAcknowledgment()) {
+                                streamToAck = session;
+                            }
                         }
-                    } else {
-                        closeSession(session);
+                        case DROP -> closeSession(session);
                     }
                 }
             }
         }
     }
 
-    private static final class ICMPReply {
-        private final byte type;
-        private final byte code;
-        private final int srcIpAddress;
-        private final int dstIpAddress;
-        private final byte[] payload;
-
-        public ICMPReply(final byte type, final byte code, final int srcIpAddress, final int dstIpAddress, final byte[] payload) {
-            this.type = type;
-            this.code = code;
-            this.srcIpAddress = srcIpAddress;
-            this.dstIpAddress = dstIpAddress;
-            this.payload = payload;
-        }
+    private record ICMPReply(byte type, byte code, int srcIpAddress, int dstIpAddress, byte[] payload) {
     }
 
     private static final class SessionReceiver implements SessionLayer.Receiver {

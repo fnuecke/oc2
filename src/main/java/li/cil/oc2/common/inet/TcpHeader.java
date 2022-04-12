@@ -30,8 +30,8 @@ public class TcpHeader {
         sequenceNumber = data.getInt();
         acknowledgmentNumber = data.getInt();
         final int dataOffset = position + ((data.get() >>> 2) & 0x3C) - 4;
-        if (dataOffset < data.limit()) {
-            System.out.println("C");
+        if (dataOffset > data.limit()) {
+            System.out.println("C dataOffset=" + dataOffset + ", data.limit()=" + data.limit());
             return false;
         }
         final int flags = Byte.toUnsignedInt(data.get());
@@ -82,7 +82,7 @@ public class TcpHeader {
     public void write(final ByteBuffer data) {
         data.putInt(sequenceNumber);
         data.putInt(acknowledgmentNumber);
-        final int headerLength = MIN_HEADER_SIZE_NO_PORTS + (maxSegmentSize == -1 ? 0 : 4);
+        final int headerLength = 4 + MIN_HEADER_SIZE_NO_PORTS + (maxSegmentSize == -1 ? 0 : 4);
         data.put((byte) (headerLength << 2));
         final int flags =
                 (bool2int(urg) << 5) |
@@ -122,7 +122,11 @@ public class TcpHeader {
         maxSegmentSize = -1;
     }
 
-    public void denyConnection(final int sequence, final int acknowledgment) {
+    public boolean isAcceptanceOrRejectionAcknowledged() {
+        return !syn && !urg && ack && !psh && !rst && !fin;
+    }
+
+    public void rejectConnection(final int sequence, final int acknowledgment) {
         sequenceNumber = sequence;
         acknowledgmentNumber = acknowledgment;
         urg = false;

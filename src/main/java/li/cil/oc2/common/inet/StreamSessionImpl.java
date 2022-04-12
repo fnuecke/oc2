@@ -2,21 +2,23 @@ package li.cil.oc2.common.inet;
 
 import li.cil.oc2.api.inet.session.StreamSession;
 import li.cil.oc2.common.Config;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Random;
 
 public class StreamSessionImpl extends SessionBase implements StreamSession {
+
+    private static final Logger LOGGER = LogManager.getLogger();
+
     private static final Random random = new Random();
 
     private final StreamSessionDiscriminator discriminator;
 
     // Data from session layer implementation
     private final ByteBuffer receiveBuffer = ByteBuffer.allocate(Config.streamBufferSize);
-    private int receiveWindow = 0;
+    private int vmWindow = 0;
     private int nextSegmentMark = 0; // for retransmission
 
     // Data from virtual machine
@@ -27,175 +29,48 @@ public class StreamSessionImpl extends SessionBase implements StreamSession {
 
     private final TcpHeader header = new TcpHeader();
 
+    private TcpStates state = TcpStates.CONNECT;
+
     private boolean needsAcknowledgment = false;
-    private Instant retransmitTime = Instant.now();
 
     /////////////////////////////////////////////////////////////////////////
 
     public StreamSessionImpl(
-            final int ipAddress,
-            final short port,
-            final StreamSessionDiscriminator discriminator
+        final int ipAddress,
+        final short port,
+        final StreamSessionDiscriminator discriminator
     ) {
         super(ipAddress, port);
         this.discriminator = discriminator;
         sendBuffer.limit(0);
     }
 
-    private int computeWindow() {
-        return sendBuffer.remaining();
+    public SessionActions receive(final ByteBuffer segment) {
+        return state.receive(this, segment);
     }
 
-    public boolean newConnection(final ByteBuffer data) {
-        final boolean correct = header.read(data);
-        if (!correct) {
-            return false;
-        }
-        final boolean isInitiation = header.isConnectionInitiation();
-        if (!isInitiation) {
-            return false;
-        }
-        vmSequence = header.sequenceNumber;
-        receiveWindow = header.window;
-        return true;
+    public SessionActions send(final ByteBuffer segment) {
+        return state.send(this, segment);
     }
 
-    private void acceptConnection(final ByteBuffer data) {
-        header.acceptConnection(mySequence++, ++vmSequence, computeWindow());
-        header.write(data);
-        data.flip();
-        setState(States.ESTABLISHED);
+    boolean isNeedsAcknowledgment() {
+        return needsAcknowledgment;
     }
 
-    private void denyConnection(final ByteBuffer data) {
-        header.denyConnection(mySequence, vmSequence + 1);
-        header.write(data);
-        data.flip();
+    @Override
+    public ByteBuffer getReceiveBuffer() {
+        switch (state) {
+            case EXPIRED, FINISH, REJECT -> throw new IllegalStateException();
+        }
+        return receiveBuffer;
     }
 
-    private boolean onPacket(final ByteBuffer data) {
-        final boolean correct = header.read(data);
-        if (!correct) {
-            return false;
+    @Override
+    public ByteBuffer getSendBuffer() {
+        switch (state) {
+            case EXPIRED, REJECT -> throw new IllegalStateException();
         }
-        if (header.syn) {
-            return false;
-        }
-        if (header.sequenceNumber != vmSequence) {
-            return false;
-        }
-        if (header.ack) {
-            // Segment received
-            if (header.acknowledgmentNumber != mySequence) {
-                return false;
-            }
-            receiveWindow = header.window;
-            final int newPosition = receiveBuffer.position() - nextSegmentMark;
-            receiveBuffer.position(nextSegmentMark);
-            receiveBuffer.compact();
-            receiveBuffer.position(newPosition);
-            receiveBuffer.limit(receiveBuffer.capacity());
-            nextSegmentMark = 0;
-        } else {
-            receiveWindow = header.window;
-        }
-        if (header.psh) {
-            // Data to be sent
-            final int length = data.remaining();
-            if (length > computeWindow()) {
-                // TODO: State changed, but packet rejected
-                return false;
-            }
-            vmSequence += length;
-            sendBuffer.compact();
-            sendBuffer.limit(sendBuffer.limit() + length);
-            sendBuffer.put(data);
-            needsAcknowledgment = true;
-        }
-        if (header.fin) {
-            setState(States.FINISH);
-            ++vmSequence;
-        }
-        return true;
-    }
-
-    private void pushNextReceivedDataTo(final ByteBuffer data) {
-        final int position = data.position();
-        data.position(position + TcpHeader.MIN_HEADER_SIZE_NO_PORTS);
-
-        // Copy payload (yes, it is easier to prepare payload first)
-        final int recvPos = receiveBuffer.position();
-        final int recvLim = receiveBuffer.limit();
-        receiveBuffer.limit(nextSegmentMark);
-        receiveBuffer.position(0);
-        data.put(receiveBuffer);
-        receiveBuffer.position(recvPos);
-        receiveBuffer.limit(recvLim);
-        data.position(position);
-
-        // Update time
-        retransmitTime = Instant.now().plus(Config.tcpRetransmissionTimeoutMs, ChronoUnit.MILLIS);
-    }
-
-    private boolean preparePacket(final ByteBuffer data) {
-        final int length = receiveBuffer.position();
-        header.urg = false;
-        header.syn = false;
-        header.rst = false;
-        header.ack = needsAcknowledgment;
-        header.sequenceNumber = mySequence - nextSegmentMark;
-        header.acknowledgmentNumber = vmSequence;
-        header.maxSegmentSize = -1;
-        header.urgentPointer = 0;
-        header.window = computeWindow();
-        header.psh = length != 0;
-        if (header.psh) {
-            header.fin = false;
-            // We have something to receive
-            if (nextSegmentMark == 0) {
-                // Acknowledged, prepare next segment
-                nextSegmentMark = Math.min(Math.min(receiveWindow, length), data.remaining() - TcpHeader.MIN_HEADER_SIZE_NO_PORTS);
-                mySequence += nextSegmentMark;
-                pushNextReceivedDataTo(data);
-            } else {
-                // Packet is already sent, is retransmission required?
-                if (retransmitTime.compareTo(Instant.now()) > 0) {
-                    return false; // no
-                } else {
-                    pushNextReceivedDataTo(data);
-                }
-            }
-        } else {
-            header.fin = getState() == States.FINISH;
-            header.window = 0;
-        }
-        header.write(data);
-        return true;
-    }
-
-    public boolean onSend(final ByteBuffer data) {
-        return switch (getState()) {
-            case NEW -> newConnection(data);
-            case ESTABLISHED, FINISH -> onPacket(data);
-            case REJECT, EXPIRED -> throw new IllegalStateException();
-        };
-    }
-
-    public boolean onReceive(final ByteBuffer data) {
-        switch (getState()) {
-            case NEW:
-                acceptConnection(data);
-                return true;
-            case ESTABLISHED:
-            case FINISH:
-                return preparePacket(data);
-            case REJECT:
-                denyConnection(data);
-                return true;
-            case EXPIRED:
-                throw new IllegalStateException();
-        }
-        return false;
+        return sendBuffer;
     }
 
     @Override
@@ -204,32 +79,271 @@ public class StreamSessionImpl extends SessionBase implements StreamSession {
     }
 
     @Override
-    public ByteBuffer getReceiveBuffer() {
-        return receiveBuffer;
-    }
-
-    @Override
-    public ByteBuffer getSendBuffer() {
-        return sendBuffer;
-    }
-
-    @Nullable
-    public Instant whenCoolOff() {
-        if (nextSegmentMark != 0) {
-            return retransmitTime;
-        } else {
-            return null;
-        }
+    public void expire() {
+        state = TcpStates.EXPIRED;
     }
 
     @Override
     public void connect() {
-        if (getState() != States.NEW)
+        if (state != TcpStates.CONNECT) {
             throw new IllegalStateException();
-        setState(States.ESTABLISHED);
+        }
+        state = TcpStates.ACCEPT;
+    }
+
+    @Override
+    public States getState() {
+        return state.toSessionState();
+    }
+
+    @Override
+    public void close() {
+        state = switch (state) {
+            case ESTABLISHED -> TcpStates.FINISH;
+            case CONNECT -> TcpStates.REJECT;
+            default -> throw new IllegalStateException();
+        };
     }
 
     public TcpHeader getHeader() {
         return header;
+    }
+
+    @Override
+    public String toString() {
+        return "StreamSession(" + discriminator + ")";
+    }
+
+    private int computeWindow() {
+        return sendBuffer.capacity() - sendBuffer.limit();
+    }
+
+    private enum TcpStates {
+        CONNECT {
+            @Override
+            SessionActions receive(final StreamSessionImpl session, final ByteBuffer segment) {
+                LOGGER.warn("Incorrect session layer implementation. Stream session is not updated.");
+                return SessionActions.IGNORE;
+            }
+
+            @Override
+            SessionActions send(final StreamSessionImpl session, final ByteBuffer segment) {
+                final TcpHeader header = session.header;
+                if (!header.read(segment)) {
+                    return SessionActions.DROP;
+                }
+                if (!header.isConnectionInitiation()) {
+                    // weird packet; drop whole session
+                    return SessionActions.DROP;
+                }
+                // initialize stream state
+                session.vmSequence = header.sequenceNumber;
+                session.vmWindow = header.window;
+                return SessionActions.FORWARD;
+            }
+
+            @Override
+            States toSessionState() {
+                return States.NEW;
+            }
+        },
+        ACCEPT {
+            @Override
+            SessionActions receive(final StreamSessionImpl session, final ByteBuffer segment) {
+                final TcpHeader header = session.header;
+                header.acceptConnection(session.mySequence, session.vmSequence + 1, session.computeWindow());
+                header.write(segment);
+                segment.flip();
+                return SessionActions.FORWARD;
+            }
+
+            @Override
+            SessionActions send(final StreamSessionImpl session, final ByteBuffer segment) {
+                final TcpHeader header = session.header;
+                if (!header.read(segment)) {
+                    // strange incorrect packet; let's ignore it
+                    return SessionActions.IGNORE;
+                }
+                if (!header.isAcceptanceOrRejectionAcknowledged()) {
+                    return SessionActions.IGNORE;
+                }
+                session.mySequence += 1;
+                session.vmSequence += 1;
+                session.state = TcpStates.ESTABLISHED;
+                session.vmWindow = header.window;
+                // session layer already knows about this session; do not bother it
+                return SessionActions.IGNORE;
+            }
+
+            @Override
+            States toSessionState() {
+                return States.ESTABLISHED;
+            }
+        },
+        REJECT {
+            @Override
+            SessionActions receive(final StreamSessionImpl session, final ByteBuffer segment) {
+                final TcpHeader header = session.header;
+                header.rejectConnection(session.mySequence, session.vmSequence + 1);
+                header.write(segment);
+                segment.flip();
+                return SessionActions.FORWARD;
+            }
+
+            @Override
+            SessionActions send(final StreamSessionImpl session, final ByteBuffer segment) {
+                // rejection sent and session should be closed now
+                throw new IllegalStateException();
+            }
+
+            @Override
+            States toSessionState() {
+                return States.REJECT;
+            }
+        },
+        ESTABLISHED {
+            @Override
+            SessionActions receive(final StreamSessionImpl session, final ByteBuffer segment) {
+                final TcpHeader header = session.header;
+                final ByteBuffer receiveBuffer = session.receiveBuffer;
+                if (session.nextSegmentMark == 0) {
+                    session.nextSegmentMark = Math.min(Math.min(session.vmWindow, receiveBuffer.position()), segment.remaining() - TcpHeader.MIN_HEADER_SIZE_NO_PORTS);
+                    LOGGER.info("Next segment mark: {}", session.nextSegmentMark);
+                }
+                header.urg = false;
+                header.syn = false;
+                header.rst = false;
+                header.ack = true; //session.needsAcknowledgment;
+                header.sequenceNumber = session.mySequence; //- session.nextSegmentMark;
+                header.acknowledgmentNumber = /*header.ack ?*/ session.vmSequence /*: 0*/;
+                header.maxSegmentSize = -1;
+                header.urgentPointer = 0;
+                header.psh = session.nextSegmentMark != 0;
+                header.window = session.computeWindow();
+                if (!header.ack && !header.psh && session.state != TcpStates.FINISH) {
+                    // Nothing to send
+                    LOGGER.info("Established session nothing to send");
+                    return SessionActions.IGNORE;
+                }
+                if (header.psh) {
+                    header.fin = false;
+                    header.write(segment);
+                    // We have something to receive
+
+                    // Copy payload (yes, it is easier to prepare payload first)
+                    final int recvPos = receiveBuffer.position();
+                    final int recvLim = receiveBuffer.limit();
+                    receiveBuffer.limit(session.nextSegmentMark);
+                    receiveBuffer.position(0);
+                    segment.put(receiveBuffer);
+                    receiveBuffer.limit(recvLim);
+                    receiveBuffer.position(recvPos);
+                } else {
+                    header.fin = session.state == TcpStates.FINISH;
+                    header.write(segment);
+                }
+                segment.flip();
+                return SessionActions.FORWARD;
+            }
+
+            @Override
+            SessionActions send(final StreamSessionImpl session, final ByteBuffer segment) {
+                final TcpHeader header = session.header;
+                final boolean correct = header.read(segment);
+                if (!correct) {
+                    LOGGER.info("Got invalid TCP header");
+                    return SessionActions.IGNORE;
+                }
+                if (header.syn) {
+                    LOGGER.info("Got syn on established connection");
+                    return SessionActions.IGNORE;
+                }
+                if (header.sequenceNumber != session.vmSequence) {
+                    LOGGER.info("VM sent invalid sequence number (expected {}, got {})", session.vmSequence, header.sequenceNumber);
+                    return SessionActions.IGNORE;
+                }
+                final int length = segment.remaining();
+                if (header.psh && length > session.computeWindow()) {
+                    LOGGER.info("Received length > window size");
+                    return SessionActions.IGNORE;
+                }
+                if (header.ack) {
+                    // Segment received
+                    if (header.acknowledgmentNumber != session.mySequence && header.acknowledgmentNumber != (session.mySequence + session.nextSegmentMark)) {
+                        LOGGER.info("VM acked wrong number (expected {}, got {})", session.mySequence, header.acknowledgmentNumber);
+                        return SessionActions.IGNORE;
+                    }
+                    if (header.acknowledgmentNumber == (session.mySequence + session.nextSegmentMark)) {
+                        final ByteBuffer receiveBuffer = session.receiveBuffer;
+                        // Remove acknowledged data from buffer
+                        final int newPosition = receiveBuffer.position() - session.nextSegmentMark;
+                        receiveBuffer.position(session.nextSegmentMark);
+                        receiveBuffer.compact();
+                        receiveBuffer.position(newPosition);
+                        receiveBuffer.limit(receiveBuffer.capacity());
+                        session.mySequence += session.nextSegmentMark;
+                        session.nextSegmentMark = 0;
+                    }
+                }
+                session.vmWindow = header.window;
+                if (header.psh) {
+                    // Data to be sent
+                    session.vmSequence += length;
+                    final ByteBuffer sendBuffer = session.sendBuffer;
+                    sendBuffer.compact();
+                    sendBuffer.put(segment);
+                    sendBuffer.flip();
+                    session.needsAcknowledgment = true;
+                }
+                if (header.fin) {
+                    ++session.vmSequence;
+                    session.state = FINISH;
+                }
+                return SessionActions.FORWARD;
+            }
+
+            @Override
+            States toSessionState() {
+                return States.ESTABLISHED;
+            }
+        },
+        FINISH {
+            @Override
+            SessionActions receive(final StreamSessionImpl session, final ByteBuffer segment) {
+                return SessionActions.DROP;
+            }
+
+            @Override
+            SessionActions send(final StreamSessionImpl session, final ByteBuffer segment) {
+                return SessionActions.DROP;
+            }
+
+            @Override
+            States toSessionState() {
+                return States.FINISH;
+            }
+        },
+        EXPIRED {
+            @Override
+            SessionActions receive(final StreamSessionImpl session, final ByteBuffer segment) {
+                return SessionActions.DROP;
+            }
+
+            @Override
+            SessionActions send(final StreamSessionImpl session, final ByteBuffer segment) {
+                return SessionActions.DROP;
+            }
+
+            @Override
+            States toSessionState() {
+                return States.EXPIRED;
+            }
+        };
+
+        abstract SessionActions receive(StreamSessionImpl session, ByteBuffer segment);
+
+        abstract SessionActions send(StreamSessionImpl session, ByteBuffer segment);
+
+        abstract States toSessionState();
     }
 }

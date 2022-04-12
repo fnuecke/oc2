@@ -12,7 +12,6 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.Set;
 
 public final class SocketManager {
     private static final Logger LOGGER = LogManager.getLogger();

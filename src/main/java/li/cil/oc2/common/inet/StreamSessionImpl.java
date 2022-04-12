@@ -263,7 +263,7 @@ public class StreamSessionImpl extends SessionBase implements StreamSession {
                     return SessionActions.IGNORE;
                 }
                 final int length = segment.remaining();
-                if (header.psh && length > session.computeWindow()) {
+                if (length > session.computeWindow()) {
                     LOGGER.info("Received length > window size");
                     return SessionActions.IGNORE;
                 }
@@ -286,7 +286,7 @@ public class StreamSessionImpl extends SessionBase implements StreamSession {
                     }
                 }
                 session.vmWindow = header.window;
-                if (header.psh) {
+                if (/* header.psh */ length != 0) {
                     // Data to be sent
                     session.vmSequence += length;
                     final ByteBuffer sendBuffer = session.sendBuffer;

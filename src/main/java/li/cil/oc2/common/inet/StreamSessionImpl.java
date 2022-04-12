@@ -269,7 +269,7 @@ public class StreamSessionImpl extends SessionBase implements StreamSession {
                 }
                 if (header.ack) {
                     // Segment received
-                    if (header.acknowledgmentNumber != session.mySequence && header.acknowledgmentNumber != (session.mySequence + session.nextSegmentMark)) {
+                    if (header.acknowledgmentNumber != (session.mySequence + session.nextSegmentMark)) {
                         LOGGER.info("VM acked wrong number (expected {}, got {})", session.mySequence, header.acknowledgmentNumber);
                         return SessionActions.IGNORE;
                     }

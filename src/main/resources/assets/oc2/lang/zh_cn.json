@@ -15,6 +15,10 @@
   "block.oc2.charger.desc": "通过站在上面给实体和物品充电。",
   "block.oc2.creative_energy": "无限能量方块",
   "block.oc2.creative_energy.desc": "提供无限的能量给连接的方块。",
+  "block.oc2.projector": "投影仪",
+  "block.oc2.projector.desc": "将图像投影到它前面的表面上。",
+  "block.oc2.keyboard": "键盘",
+  "block.oc2.keyboard.desc": "允许在使用投影仪时输入按键。",
 
   "item.oc2.wrench": "螺丝刀扳手",
   "item.oc2.wrench.desc": "当潜行时用于配置设备和拆卸设备。",
@@ -28,7 +32,7 @@
   "item.oc2.redstone_interface_card": "红石卡",
   "item.oc2.network_interface_card": "网卡",
   "item.oc2.file_import_export_card": "文件导入/导出卡",
-  "item.oc2.file_import_export_card.desc": "提供一个API来导入/导出文件。",
+  "item.oc2.file_import_export_card.desc": "可以从真实的文件系统导入/导出文件。",
   "item.oc2.robot": "机器人",
   "item.oc2.robot.desc": "使用螺丝刀扳手或者兼容的扳手来添加或移除组件。",
   "item.oc2.inventory_operations_module": "物品栏操作模块",
@@ -37,9 +41,13 @@
   "item.oc2.block_operations_module.desc": "允许机器人放置/破坏方块。",
   "item.oc2.sound_card": "声卡",
   "item.oc2.sound_card.desc": "可以从其高度逼真的音库播放各种声音。",
+  "item.oc2.network_tunnel_module": "Network Tunnel Module",
+  "item.oc2.network_tunnel_module.desc": "Sends and receives network packets to a linked device.",
 
   "item.oc2.transistor": "晶体管",
+  "item.oc2.transistor.desc": "合成材料",
   "item.oc2.circuit_board": "电路板",
+  "item.oc2.circuit_board.desc": "合成材料",
 
   "entity.oc2.robot": "机器人",
 
@@ -78,8 +86,8 @@
     
   "message.oc2.connector.error.full": "不能放置更多线缆。",
   "message.oc2.connector.error.too_far": "距离太远了。",
-  "message.oc2.connector.error.obstructed": "直线内有方块",
-  "message.oc2.import_file.file_too_large": "文件过大",
+  "message.oc2.connector.error.obstructed": "直线内有方块。",
+  "message.oc2.import_file.file_too_large": "文件过大。",
   "message.oc2.invalid_facade_block": "该方块不能被用作一个面。",
 
   "tooltip.oc2.device_needs_reboot": "需要重启",
@@ -90,6 +98,7 @@
   "tooltip.oc2.energyConsumption": "能量使用：%s/t",
   "tooltip.oc2.confirm": "确认",
   "tooltip.oc2.cancel": "取消",
+  "tooltip.oc2.network_tunnel_id": "隧道id: %s",
 
   "subtitles.oc2.computer": "电脑:运行",
   "subtitles.oc2.floppy": "软盘:访问",

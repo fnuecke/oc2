@@ -49,13 +49,15 @@ public class InternetGateWayRenderer implements BlockEntityRenderer<InternetGate
         stack.popPose();
         stack.translate(0, EMITTER_POSITION, 0);
         matrix = stack.last().pose();
+        int pendingPackets = Math.max(0, gateWay.inboundCount - gateWay.handledInboundCount) + Math.max(0, gateWay.outboundCount - gateWay.handledOutboundCount);
+        float speedMod = Math.max(1f, Math.min(1.5f, pendingPackets * 0.025f));
         VertexConsumer packet = bufferSource.getBuffer(ModRenderType.getGateWayParticle());
         for (int x=0;x<InternetGateWayBlockEntity.EMITTER_SIDE_PIXELS;x++) {
             for (int z=0;z<InternetGateWayBlockEntity.EMITTER_SIDE_PIXELS;z++) {
                 int flatPos = x * InternetGateWayBlockEntity.EMITTER_SIDE_PIXELS + z;
                 if (gateWay.animProgress[flatPos] < 1f) {
                     float animPos = gateWay.animProgress[flatPos];
-                    gateWay.animProgress[flatPos] += dt/1000f;
+                    gateWay.animProgress[flatPos] += dt/1000f * speedMod;
                     if (gateWay.animReversed[flatPos]) {
                         animPos = 1 - animPos;
                     }
@@ -70,12 +72,12 @@ public class InternetGateWayRenderer implements BlockEntityRenderer<InternetGate
                 if (gateWay.pointer>=InternetGateWayBlockEntity.EMITTER_SIDE_PIXELS*InternetGateWayBlockEntity.EMITTER_SIDE_PIXELS) {
                     gateWay.pointer = 0;
                 }
-                gateWay.animProgress[scrambledPointer] = 0f;
+                gateWay.animProgress[scrambledPointer] = 0f - (float)Math.random() * 0.1f;
                 if (gateWay.handledInboundCount<gateWay.inboundCount) {
-                    gateWay.animReversed[scrambledPointer] = false;
+                    gateWay.animReversed[scrambledPointer] = true;
                     gateWay.handledInboundCount += 1;
                 } else {
-                    gateWay.animReversed[scrambledPointer] = true;
+                    gateWay.animReversed[scrambledPointer] = false;
                     gateWay.handledOutboundCount += 1;
                 }
             } else {

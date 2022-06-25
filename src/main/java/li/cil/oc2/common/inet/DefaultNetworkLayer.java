@@ -90,42 +90,42 @@ public final class DefaultNetworkLayer implements NetworkLayer {
     @Override
     public void sendPacket(final short protocol, final ByteBuffer packet) {
         if (protocol != PROTOCOL_IPv4) {
-            LOGGER.info("Unsupported network protocol");
+            LOGGER.trace("Unsupported network protocol");
             return;
         }
         if (packet.remaining() < IPv4_HEADER_SIZE) {
-            LOGGER.info("IP header is too small");
+            LOGGER.trace("IP header is too small");
             return;
         }
         final byte versionAndIhl = packet.get();
         if ((versionAndIhl >>> 4) != IPv4_VERSION) {
-            LOGGER.info("Invalid protocol version");
+            LOGGER.trace("Invalid protocol version");
             return;
         }
         final int headerSize = (versionAndIhl & 0xF) * 4;
         if (headerSize < IPv4_HEADER_SIZE || packet.remaining() < headerSize) {
-            LOGGER.info("Invalid header size");
+            LOGGER.trace("Invalid header size");
             return;
         }
         packet.get(); // too hard, ignore
         int messageLength = Short.toUnsignedInt(packet.getShort());
         if (packet.remaining() + 4 < messageLength) {
-            LOGGER.info("Packet size is lower than IP message size");
+            LOGGER.trace("Packet size is lower than IP message size");
             return;
         }
         packet.getShort(); // normally, we don't expect message to be fragmented
         short flagsAndFragmentOffset = packet.getShort();
         if (((flagsAndFragmentOffset >>> 13) & 0b101) != 0) {
-            LOGGER.info("Fragmented packet prohibited (1)");
+            LOGGER.trace("Fragmented packet prohibited (1)");
             return; // no fragments!
         }
         if ((flagsAndFragmentOffset & 0x1FFF) != 0) {
-            LOGGER.info("Fragmented packet prohibited (2)");
+            LOGGER.trace("Fragmented packet prohibited (2)");
             return; // no fragments!
         }
         byte ttl = (byte) (packet.get() - 1);
         if (ttl == 0) {
-            LOGGER.info("Small TTL value");
+            LOGGER.trace("Small TTL value");
             return;
         }
         byte transportProtocol = packet.get();
@@ -133,14 +133,14 @@ public final class DefaultNetworkLayer implements NetworkLayer {
         int srcIpAddress = packet.getInt();
         int dstIpAddress = packet.getInt();
         if (!internetManager.isAllowedToConnect(dstIpAddress)) {
-            LOGGER.info("Forbidden IP address");
+            LOGGER.trace("Forbidden IP address");
             return;
         }
         packet.position(packet.position() + headerSize - IPv4_HEADER_SIZE); // skip options
         packet.limit(packet.position() + messageLength - headerSize); // set correct limit
 
         /// Next layer
-        LOGGER.info("Transport message received");
+        LOGGER.trace("Transport message received");
         outMessage.initializeBuffer(packet);
         outMessage.updateIpv4(srcIpAddress, dstIpAddress, ttl);
         transportLayer.sendTransportMessage(transportProtocol, outMessage);

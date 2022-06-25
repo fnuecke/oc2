@@ -208,7 +208,7 @@ public class StreamSessionImpl extends SessionBase implements StreamSession {
                 final ByteBuffer receiveBuffer = session.receiveBuffer;
                 if (session.nextSegmentMark == 0) {
                     session.nextSegmentMark = Math.min(Math.min(session.vmWindow, receiveBuffer.position()), segment.remaining() - TcpHeader.MIN_HEADER_SIZE_NO_PORTS);
-                    LOGGER.info("Next segment mark: {}", session.nextSegmentMark);
+                    LOGGER.trace("Next segment mark: {}", session.nextSegmentMark);
                 }
                 header.urg = false;
                 header.syn = false;
@@ -222,7 +222,7 @@ public class StreamSessionImpl extends SessionBase implements StreamSession {
                 header.window = session.computeWindow();
                 if (!header.ack && !header.psh && session.state != TcpStates.FINISH) {
                     // Nothing to send
-                    LOGGER.info("Established session nothing to send");
+                    LOGGER.trace("Established session nothing to send");
                     return SessionActions.IGNORE;
                 }
                 if (header.psh) {
@@ -251,26 +251,26 @@ public class StreamSessionImpl extends SessionBase implements StreamSession {
                 final TcpHeader header = session.header;
                 final boolean correct = header.read(segment);
                 if (!correct) {
-                    LOGGER.info("Got invalid TCP header");
+                    LOGGER.trace("Got invalid TCP header");
                     return SessionActions.IGNORE;
                 }
                 if (header.syn) {
-                    LOGGER.info("Got syn on established connection");
+                    LOGGER.trace("Got syn on established connection");
                     return SessionActions.IGNORE;
                 }
                 if (header.sequenceNumber != session.vmSequence) {
-                    LOGGER.info("VM sent invalid sequence number (expected {}, got {})", session.vmSequence, header.sequenceNumber);
+                    LOGGER.trace("VM sent invalid sequence number (expected {}, got {})", session.vmSequence, header.sequenceNumber);
                     return SessionActions.IGNORE;
                 }
                 final int length = segment.remaining();
                 if (length > session.computeWindow()) {
-                    LOGGER.info("Received length > window size");
+                    LOGGER.trace("Received length > window size");
                     return SessionActions.IGNORE;
                 }
                 if (header.ack) {
                     // Segment received
                     if (header.acknowledgmentNumber != (session.mySequence + session.nextSegmentMark)) {
-                        LOGGER.info("VM acked wrong number (expected {}, got {})", session.mySequence, header.acknowledgmentNumber);
+                        LOGGER.trace("VM acked wrong number (expected {}, got {})", session.mySequence, header.acknowledgmentNumber);
                         return SessionActions.IGNORE;
                     }
                     if (header.acknowledgmentNumber == (session.mySequence + session.nextSegmentMark)) {

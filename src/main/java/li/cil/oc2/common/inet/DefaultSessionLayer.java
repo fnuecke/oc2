@@ -64,7 +64,7 @@ public final class DefaultSessionLayer implements SessionLayer {
 
         final boolean somethingConnected = processQueue(readySessions.getToConnect(), session -> {
             if (session instanceof StreamSession streamSession) {
-                LOGGER.info("Connected {}", session);
+                LOGGER.trace("Connected {}", session);
                 if (session.getState() != Session.States.NEW) {
                     return false;
                 }
@@ -75,7 +75,7 @@ public final class DefaultSessionLayer implements SessionLayer {
                     streamSession.connect();
                     return true;
                 } catch (final ConnectException exception) {
-                    LOGGER.info("Connection rejected for {}", session);
+                    LOGGER.trace("Connection rejected for {}", session);
                     closeSession(session);
                     return true;
                 } catch (final IOException exception) {
@@ -92,7 +92,7 @@ public final class DefaultSessionLayer implements SessionLayer {
 
         processQueue(readySessions.getToRead(), session -> {
             if (session instanceof DatagramSession datagramSession) {
-                LOGGER.info("Datagram received");
+                LOGGER.trace("Datagram received");
                 final DatagramChannel channel = getChannel(datagramSession);
                 try {
                     final ByteBuffer datagram = receiver.receive(datagramSession);
@@ -109,16 +109,16 @@ public final class DefaultSessionLayer implements SessionLayer {
                 } catch (final IOException exception) {
                     LOGGER.error("Trying to read datagram socket", exception);
                 }
-                LOGGER.info("Datagram received");
+                LOGGER.trace("Datagram received");
             } else if (session instanceof StreamSession streamSession) {
-                LOGGER.info("Stream received");
+                LOGGER.trace("Stream received");
                 final ByteBuffer stream = receiver.receive(streamSession);
                 try {
                     final SocketChannel channel = getChannel(streamSession);
                     assert stream != null;
                     assert false;
                     final int read = channel.read(stream);
-                    LOGGER.info("Read from real world: {}", read);
+                    LOGGER.trace("Read from real world: {}", read);
                     if (read == -1) {
                         closeSession(session);
                     }
@@ -155,11 +155,11 @@ public final class DefaultSessionLayer implements SessionLayer {
                         final DatagramChannel channel =
                             socketManager.createDatagramChannel(datagramSession, readySessions);
                         datagramSession.setAttachment(channel);
-                        LOGGER.info("Open datagram socket {}", session.getDestination());
+                        LOGGER.trace("Open datagram socket {}", session.getDestination());
                         /* Fallthrough */
                     }
                     case ESTABLISHED: {
-                        LOGGER.info("Send datagram");
+                        LOGGER.trace("Send datagram");
                         final DatagramChannel channel = getChannel(datagramSession);
                         assert data != null;
                         channel.send(data, session.getDestination());
@@ -167,7 +167,7 @@ public final class DefaultSessionLayer implements SessionLayer {
                     }
                     case EXPIRED: {
                         closeSession(session);
-                        LOGGER.info("Close datagram socket {}", session.getDestination());
+                        LOGGER.trace("Close datagram socket {}", session.getDestination());
                         break;
                     }
                 }
@@ -182,7 +182,7 @@ public final class DefaultSessionLayer implements SessionLayer {
                         final SocketChannel channel = socketManager.createStreamChannel(streamSession, readySessions);
                         streamSession.setAttachment(channel);
                         channel.connect(streamSession.getDestination());
-                        LOGGER.info("Open stream socket {}", streamSession.getDestination());
+                        LOGGER.trace("Open stream socket {}", streamSession.getDestination());
                     }
                     case ESTABLISHED -> {
                         final SocketChannel channel = getChannel(streamSession);
@@ -191,7 +191,7 @@ public final class DefaultSessionLayer implements SessionLayer {
                     }
                     case FINISH, EXPIRED -> {
                         closeSession(session);
-                        LOGGER.info("Close stream socket {}", session.getDestination());
+                        LOGGER.trace("Close stream socket {}", session.getDestination());
                     }
                 }
             } catch (IOException e) {

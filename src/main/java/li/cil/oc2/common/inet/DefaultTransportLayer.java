@@ -96,7 +96,7 @@ public final class DefaultTransportLayer implements TransportLayer {
         processExpirationQueue(expirationQueue, session -> {
             sessions.remove(session.getDiscriminator());
             --allSessionCount;
-            LOGGER.info("Expired session {}", session.getDiscriminator());
+            LOGGER.trace("Expired session {}", session.getDiscriminator());
             session.expire();
             sessionLayer.sendSession(session, null);
         });
@@ -112,7 +112,7 @@ public final class DefaultTransportLayer implements TransportLayer {
     }
 
     private void closeSession(final SessionBase session) {
-        LOGGER.info("Close session {}", session.getDiscriminator());
+        LOGGER.trace("Close session {}", session.getDiscriminator());
         sessions.remove(session.getDiscriminator());
         expirationQueue.remove(session.getLastUpdateTime());
         --allSessionCount;
@@ -148,7 +148,7 @@ public final class DefaultTransportLayer implements TransportLayer {
             return null;
         }
         ++allSessionCount;
-        LOGGER.info("New session: {}", discriminator);
+        LOGGER.trace("New session: {}", discriminator);
         final S newSession = factory.apply(discriminator);
         sessions.put(discriminator, newSession);
         updateSession(newSession);
@@ -174,7 +174,7 @@ public final class DefaultTransportLayer implements TransportLayer {
                 break;
             case REJECT: {
                 reject(payload, srcIpAddress);
-                LOGGER.info("Reject session {}", session.getDiscriminator());
+                LOGGER.trace("Reject session {}", session.getDiscriminator());
                 /* Fallthrough */
             }
             case FINISH:
@@ -212,7 +212,7 @@ public final class DefaultTransportLayer implements TransportLayer {
                 data.putShort(position + 16, checksum);
                 data.position(position);
                 message.updateIpv4(discriminator.getDstIpAddress(), discriminator.getSrcIpAddress());
-                LOGGER.info("Prepared TCP packet to receive {}", stream.getHeader());
+                LOGGER.trace("Prepared TCP packet to receive {}", stream.getHeader());
                 return SessionActions.FORWARD;
             }
             default -> throw new IllegalStateException();
@@ -226,7 +226,7 @@ public final class DefaultTransportLayer implements TransportLayer {
         while (true) {
             if (rejectedStream != null) {
                 // This branch should be checked first! Stream needs to be closed properly
-                LOGGER.info("Rejecting stream {}", rejectedStream.getDiscriminator());
+                LOGGER.trace("Rejecting stream {}", rejectedStream.getDiscriminator());
                 final SessionActions success = prepareTCPSegment(message, rejectedStream);
                 assert success == SessionActions.FORWARD;
                 closeSession(rejectedStream);
@@ -448,7 +448,7 @@ public final class DefaultTransportLayer implements TransportLayer {
                 if (session == null) {
                     reject(data, srcIpAddress);
                 } else {
-                    LOGGER.info("GOT TCP");
+                    LOGGER.trace("GOT TCP");
                     switch (session.send(data)) {
                         case FORWARD -> {
                             switch (session.getState()) {

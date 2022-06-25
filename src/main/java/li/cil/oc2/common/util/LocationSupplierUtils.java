@@ -1,36 +1,39 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.util;
 
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import net.minecraft.entity.Entity;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
+import java.lang.ref.WeakReference;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public final class LocationSupplierUtils {
-    public static Supplier<Optional<Location>> of(final TileEntity tileEntity) {
-        return () -> Location.of(tileEntity);
+    public static Supplier<Optional<BlockLocation>> of(final BlockEntity blockEntity) {
+        return () -> BlockLocation.ofOptional(blockEntity);
     }
 
-    public static Supplier<Optional<Location>> of(final Entity entity) {
-        return () -> Location.of(entity);
+    public static Supplier<Optional<BlockLocation>> of(final Entity entity) {
+        return () -> BlockLocation.ofOptional(entity);
     }
 
-    public static Supplier<Optional<Location>> of(final BlockDeviceQuery query) {
-        final Optional<Location> location = Optional.of(new Location(query.getLevel(), query.getQueryPosition()));
+    public static Supplier<Optional<BlockLocation>> of(final BlockDeviceQuery query) {
+        final Optional<BlockLocation> location = Optional.of(new BlockLocation(new WeakReference<>(query.getLevel()), query.getQueryPosition()));
         return () -> location;
     }
 
-    public static Supplier<Optional<Location>> of(final ItemDeviceQuery query) {
-        final Optional<TileEntity> tileEntity = query.getContainerTileEntity();
-        if (tileEntity.isPresent()) {
-            return () -> Location.of(tileEntity.get());
+    public static Supplier<Optional<BlockLocation>> of(final ItemDeviceQuery query) {
+        final Optional<BlockEntity> blockEntity = query.getContainerBlockEntity();
+        if (blockEntity.isPresent()) {
+            return () -> BlockLocation.ofOptional(blockEntity.get());
         }
 
         final Optional<Entity> entity = query.getContainerEntity();
         if (entity.isPresent()) {
-            return () -> Location.of(entity.get());
+            return () -> BlockLocation.ofOptional(entity.get());
         }
 
         return Optional::empty;

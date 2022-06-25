@@ -1,7 +1,9 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.vm;
 
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -19,10 +21,13 @@ public interface VirtualMachine {
     void setRunStateClient(VMRunState value);
 
     @Nullable
-    ITextComponent getBootError();
+    Component getBootError();
 
     @OnlyIn(Dist.CLIENT)
-    void setBootErrorClient(ITextComponent value);
+    void setBootErrorClient(@Nullable Component value);
+
+    @Nullable
+    Component getError();
 
     boolean isRunning();
 

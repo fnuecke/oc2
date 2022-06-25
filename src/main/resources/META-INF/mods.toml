@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[36,)"
+loaderVersion = "[40,)"
 issueTrackerURL = "https://github.com/fnuecke/oc2/issues"
 license = "MIT"
 
@@ -11,29 +11,29 @@ authors = "Sangar"
 description = '''
 Modern computers for the modern player.
 
-This mod uses the Terminus Font under the Open Font License.
+This mod uses the Terminus Font under the Open Font License. The full license can be found in the JAR of this mod.
 '''
 
 [[dependencies.oc2]]
 modId = "forge"
 mandatory = true
-versionRange = "[36.1.0,)"
+versionRange = "[40.0.40,)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.16.5,1.17)"
+versionRange = "[1.18.2,1.19)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]
 modId = "sedna"
 mandatory = true
-versionRange = "[0.0.1,)"
+versionRange = "[1.0.12,)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]
 modId = "markdown_manual"
 mandatory = true
-versionRange = "[1.1.0,)"
+versionRange = "[1.2.1,)"
 side = "CLIENT"

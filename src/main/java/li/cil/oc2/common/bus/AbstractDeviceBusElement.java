@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus;
 
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
@@ -33,7 +35,7 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
 
     @Override
     public Collection<DeviceBusController> getControllers() {
-        return controllers;
+        return Collections.unmodifiableSet(controllers);
     }
 
     @Override
@@ -43,7 +45,7 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
 
     @Override
     public Collection<Device> getLocalDevices() {
-        return devices.keySet();
+        return Collections.unmodifiableSet(devices.keySet());
     }
 
     @Override
@@ -63,7 +65,9 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     @Override
     public Collection<Device> getDevices() {
         if (!controllers.isEmpty()) {
-            return controllers.stream().flatMap(controller -> getDevices().stream()).collect(Collectors.toList());
+            return controllers.stream()
+                .flatMap(controller -> controller.getDevices().stream())
+                .collect(Collectors.toUnmodifiableSet());
         } else {
             return getLocalDevices();
         }

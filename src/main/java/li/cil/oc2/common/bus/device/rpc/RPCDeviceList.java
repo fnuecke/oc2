@@ -1,50 +1,65 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus.device.rpc;
 
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-public final class RPCDeviceList implements RPCDevice {
-    private final ArrayList<RPCDevice> devices;
-
-    ///////////////////////////////////////////////////////////////////
-
-    public RPCDeviceList(final ArrayList<RPCDevice> devices) {
-        this.devices = devices;
-    }
-
+public record RPCDeviceList(ArrayList<RPCDevice> devices) implements RPCDevice {
     @Override
     public List<String> getTypeNames() {
         return devices.stream()
-                .map(RPCDevice::getTypeNames)
-                .flatMap(Collection::stream)
-                .distinct()
-                .collect(Collectors.toList());
+            .map(RPCDevice::getTypeNames)
+            .flatMap(Collection::stream)
+            .distinct()
+            .collect(Collectors.toList());
     }
 
     @Override
-    public List<RPCMethod> getMethods() {
+    public List<RPCMethodGroup> getMethodGroups() {
         return devices.stream()
-                .map(RPCDevice::getMethods)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+            .map(RPCDevice::getMethodGroups)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
     }
 
     @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        final RPCDeviceList that = (RPCDeviceList) o;
-        return devices.equals(that.devices);
+    public void mount() {
+        for (final RPCDevice device : devices) {
+            device.mount();
+        }
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(devices);
+    public void unmount() {
+        for (final RPCDevice device : devices) {
+            device.unmount();
+        }
+    }
+
+    @Override
+    public void dispose() {
+        for (final RPCDevice device : devices) {
+            device.dispose();
+        }
+    }
+
+    // NB: We only use the list device in the adapter, for referencing grouped devices by their ID.
+    //     As such, serialize/deserialize will never be called on this class.
+
+    @Override
+    public CompoundTag serializeNBT() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void deserializeNBT(final CompoundTag tag) {
+        throw new UnsupportedOperationException();
     }
 }

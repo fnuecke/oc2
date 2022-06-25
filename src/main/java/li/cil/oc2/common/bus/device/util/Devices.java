@@ -1,66 +1,80 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus.device.util;
 
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.bus.device.provider.Providers;
-import net.minecraft.entity.Entity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.registries.IForgeRegistry;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
 public final class Devices {
-    public static BlockDeviceQuery makeQuery(final TileEntity tileEntity, @Nullable final Direction side) {
-        final World world = requireNonNull(tileEntity.getLevel());
-        final BlockPos pos = tileEntity.getBlockPos();
-        return new BlockQuery(world, pos, side);
+    public static BlockDeviceQuery makeQuery(final BlockEntity blockEntity, @Nullable final Direction side) {
+        final Level level = requireNonNull(blockEntity.getLevel());
+        final BlockPos pos = blockEntity.getBlockPos();
+        return new BlockQuery(level, pos, side);
     }
 
-    public static BlockDeviceQuery makeQuery(final World world, final BlockPos pos, @Nullable final Direction side) {
-        return new BlockQuery(world, pos, side);
+    public static BlockDeviceQuery makeQuery(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side) {
+        return new BlockQuery(level, pos, side);
     }
 
     public static ItemDeviceQuery makeQuery(final ItemStack stack) {
         return new ItemQuery(stack);
     }
 
-    public static ItemDeviceQuery makeQuery(final TileEntity tileEntity, final ItemStack stack) {
-        return new ItemQuery(tileEntity, stack);
+    public static ItemDeviceQuery makeQuery(final BlockEntity blockEntity, final ItemStack stack) {
+        return new ItemQuery(blockEntity, stack);
     }
 
     public static ItemDeviceQuery makeQuery(final Entity entity, final ItemStack stack) {
         return new ItemQuery(entity, stack);
     }
 
-    public static List<LazyOptional<BlockDeviceInfo>> getDevices(final BlockDeviceQuery query) {
-        final IForgeRegistry<BlockDeviceProvider> registry = Providers.BLOCK_DEVICE_PROVIDER_REGISTRY.get();
-        final ArrayList<LazyOptional<BlockDeviceInfo>> devices = new ArrayList<>();
+    public static Optional<List<Invalidatable<BlockDeviceInfo>>> getDevices(final BlockDeviceQuery query) {
+        final ChunkPos queryChunk = new ChunkPos(query.getQueryPosition());
+        if (!query.getLevel().hasChunk(queryChunk.x, queryChunk.z)) {
+            return Optional.empty();
+        }
+
+        final IForgeRegistry<BlockDeviceProvider> registry = Providers.blockDeviceProviderRegistry();
+        final ArrayList<Invalidatable<BlockDeviceInfo>> devices = new ArrayList<>();
         for (final BlockDeviceProvider provider : registry.getValues()) {
-            final LazyOptional<Device> device = provider.getDevice(query);
+            final Invalidatable<Device> device = provider.getDevice(query);
             if (device.isPresent()) {
-                final LazyOptional<BlockDeviceInfo> info = device.lazyMap(d -> new BlockDeviceInfo(provider, d));
-                device.addListener(unused -> info.invalidate());
-                devices.add(info);
+                devices.add(device.mapWithDependency(d -> new BlockDeviceInfo(provider, d)));
             }
         }
-        return devices;
+
+        return Optional.of(devices);
     }
 
     public static List<ItemDeviceInfo> getDevices(final ItemDeviceQuery query) {
-        final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
+        if (query.getItemStack().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        final IForgeRegistry<ItemDeviceProvider> registry = Providers.itemDeviceProviderRegistry();
         final ArrayList<ItemDeviceInfo> devices = new ArrayList<>();
         for (final ItemDeviceProvider provider : registry.getValues()) {
             final Optional<ItemDevice> device = provider.getDevice(query);
@@ -69,18 +83,12 @@ public final class Devices {
         return devices;
     }
 
-    public static Collection<DeviceType> getDeviceTypes(final ItemDeviceQuery query) {
-        final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
-        final HashSet<DeviceType> deviceTypes = new HashSet<>();
-        for (final ItemDeviceProvider provider : registry.getValues()) {
-            final Optional<DeviceType> device = provider.getDeviceType(query);
-            device.ifPresent(deviceTypes::add);
-        }
-        return deviceTypes;
-    }
-
     public static int getEnergyConsumption(final ItemDeviceQuery query) {
-        final IForgeRegistry<ItemDeviceProvider> registry = Providers.ITEM_DEVICE_PROVIDER_REGISTRY.get();
+        if (query.getItemStack().isEmpty()) {
+            return 0;
+        }
+
+        final IForgeRegistry<ItemDeviceProvider> registry = Providers.itemDeviceProviderRegistry();
         long accumulator = 0;
         for (final ItemDeviceProvider provider : registry.getValues()) {
             accumulator += Math.max(0, provider.getEnergyConsumption(query));
@@ -94,20 +102,10 @@ public final class Devices {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static class BlockQuery implements BlockDeviceQuery {
-        private final World world;
-        private final BlockPos pos;
-        @Nullable private final Direction side;
-
-        public BlockQuery(final World world, final BlockPos pos, @Nullable final Direction side) {
-            this.world = world;
-            this.pos = pos;
-            this.side = side;
-        }
-
+    private record BlockQuery(LevelAccessor level, BlockPos pos, @Nullable Direction side) implements BlockDeviceQuery {
         @Override
-        public World getLevel() {
-            return world;
+        public LevelAccessor getLevel() {
+            return level;
         }
 
         @Override
@@ -122,32 +120,26 @@ public final class Devices {
         }
     }
 
-    private static final class ItemQuery implements ItemDeviceQuery {
-        @Nullable private final TileEntity tileEntity;
-        @Nullable private final Entity entity;
-        private final ItemStack stack;
-
+    private record ItemQuery(
+        @Nullable BlockEntity blockEntity,
+        @Nullable Entity entity,
+        ItemStack stack
+    ) implements ItemDeviceQuery {
         public ItemQuery(final ItemStack stack) {
-            tileEntity = null;
-            entity = null;
-            this.stack = stack;
+            this(null, null, stack);
         }
 
-        public ItemQuery(final TileEntity tileEntity, final ItemStack stack) {
-            this.tileEntity = tileEntity;
-            entity = null;
-            this.stack = stack;
+        public ItemQuery(final BlockEntity blockEntity, final ItemStack stack) {
+            this(blockEntity, null, stack);
         }
 
         public ItemQuery(final Entity entity, final ItemStack stack) {
-            tileEntity = null;
-            this.entity = entity;
-            this.stack = stack;
+            this(null, entity, stack);
         }
 
         @Override
-        public Optional<TileEntity> getContainerTileEntity() {
-            return Optional.ofNullable(tileEntity);
+        public Optional<BlockEntity> getContainerBlockEntity() {
+            return Optional.ofNullable(blockEntity);
         }
 
         @Override

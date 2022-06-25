@@ -1,38 +1,40 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
+import li.cil.oc2.common.blockentity.DiskDriveBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.DiskDriveTileEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.network.NetworkEvent;
 
 public final class DiskDriveFloppyMessage extends AbstractMessage {
     private BlockPos pos;
-    private CompoundNBT data;
+    private CompoundTag data;
 
     ///////////////////////////////////////////////////////////////////
 
-    public DiskDriveFloppyMessage(final DiskDriveTileEntity diskDrive) {
+    public DiskDriveFloppyMessage(final DiskDriveBlockEntity diskDrive) {
         this.pos = diskDrive.getBlockPos();
         this.data = diskDrive.getFloppy().serializeNBT();
     }
 
-    public DiskDriveFloppyMessage(final PacketBuffer buffer) {
+    public DiskDriveFloppyMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         data = buffer.readNbt();
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeNbt(data);
     }
@@ -41,7 +43,7 @@ public final class DiskDriveFloppyMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientTileEntityAt(pos, DiskDriveTileEntity.class,
-                (diskDrive) -> diskDrive.setFloppyClient(ItemStack.of(data)));
+        MessageUtils.withClientBlockEntityAt(pos, DiskDriveBlockEntity.class,
+            diskDrive -> diskDrive.setFloppyClient(ItemStack.of(data)));
     }
 }

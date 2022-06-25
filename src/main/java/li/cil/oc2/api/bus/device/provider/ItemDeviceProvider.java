@@ -1,10 +1,14 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.bus.device.provider;
 
-import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
+import li.cil.oc2.api.bus.device.rpc.RPCDevice;
+import li.cil.oc2.api.bus.device.vm.VMDevice;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
@@ -23,7 +27,7 @@ import java.util.Optional;
  * are registered. For example:
  * <pre>
  * class YourModInitialization {
- *     static DeferredRegister&lt;ItemDeviceProvider&gt; ITEM_DEVICE_PROVIDERS = DeferredRegister.create(ItemDeviceProvider.class, "your_mod_id");
+ *     static DeferredRegister&lt;ItemDeviceProvider&gt; ITEM_DEVICE_PROVIDERS = DeferredRegister.create(ItemDeviceProvider.REGISTRY, "your_mod_id");
  *
  *     static void initialize() {
  *         ITEM_DEVICE_PROVIDERS.register("your_item_device_name", YourItemDeviceProvider::new);
@@ -48,18 +52,6 @@ public interface ItemDeviceProvider extends IForgeRegistryEntry<ItemDeviceProvid
     Optional<ItemDevice> getDevice(ItemDeviceQuery query);
 
     /**
-     * Get the type of a device that would be obtained from {@link #getDevice(ItemDeviceQuery)}
-     * if called with the same query. The device type controls which slot devices may be
-     * inserted in in item device containers.
-     *
-     * @param query the query describing the object to get the {@link DeviceType} for.
-     * @return the device type for the specified type, if available.
-     */
-    default Optional<DeviceType> getDeviceType(final ItemDeviceQuery query) {
-        return Optional.of(DeviceTypes.CARD);
-    }
-
-    /**
      * The amount of energy the device that would be returned by {@link #getDevice(ItemDeviceQuery)}
      * will consume per tick while the VM using it is running.
      * <p>
@@ -70,5 +62,24 @@ public interface ItemDeviceProvider extends IForgeRegistryEntry<ItemDeviceProvid
      */
     default int getEnergyConsumption(final ItemDeviceQuery query) {
         return 0;
+    }
+
+    /**
+     * Last-resort cleanup method for devices provided by this provider.
+     * <p>
+     * This is the equivalent of {@link RPCDevice#dispose()} or {@link VMDevice#dispose()},
+     * for devices that have gone missing unexpectedly, so this method could no longer be
+     * called on the actual device.
+     * <p>
+     * For item devices this is rather unlikely. It means an item disappeared while the
+     * block managing the item device was unloaded.
+     * <p>
+     * Implementing this is only necessary, if the device holds some out-of-NBT serialized
+     * data, or does something similar.
+     *
+     * @param query the query that resulted in a missing device being detected, if available.
+     * @param tag   the data last serialized by the device went missing.
+     */
+    default void unmount(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
     }
 }

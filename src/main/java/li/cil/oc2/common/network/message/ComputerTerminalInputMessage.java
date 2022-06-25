@@ -1,18 +1,20 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.nio.ByteBuffer;
 
 public final class ComputerTerminalInputMessage extends AbstractTerminalBlockMessage {
-    public ComputerTerminalInputMessage(final ComputerTileEntity tileEntity, final ByteBuffer data) {
-        super(tileEntity, data);
+    public ComputerTerminalInputMessage(final ComputerBlockEntity computer, final ByteBuffer data) {
+        super(computer, data);
     }
 
-    public ComputerTerminalInputMessage(final PacketBuffer buffer) {
+    public ComputerTerminalInputMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
@@ -20,7 +22,7 @@ public final class ComputerTerminalInputMessage extends AbstractTerminalBlockMes
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withNearbyServerTileEntityAt(context, pos, ComputerTileEntity.class,
-                (tileEntity) -> tileEntity.getTerminal().putInput(ByteBuffer.wrap(data)));
+        MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos, ComputerBlockEntity.class,
+            (player, computer) -> computer.getTerminal().putInput(ByteBuffer.wrap(data)));
     }
 }

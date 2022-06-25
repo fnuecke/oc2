@@ -1,11 +1,13 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.block;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalBlock;
-import net.minecraft.util.Mirror;
-import net.minecraft.util.Rotation;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
 
-public class ImmutableHorizontalBlock extends HorizontalBlock {
+public class ImmutableHorizontalBlock extends HorizontalDirectionalBlock {
     public ImmutableHorizontalBlock(final Properties properties) {
         super(properties);
     }

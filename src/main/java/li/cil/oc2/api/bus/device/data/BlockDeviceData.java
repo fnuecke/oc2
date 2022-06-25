@@ -1,9 +1,9 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.bus.device.data;
 
-import li.cil.oc2.api.API;
 import li.cil.sedna.api.device.BlockDevice;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**
@@ -27,11 +27,6 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
  */
 public interface BlockDeviceData extends IForgeRegistryEntry<BlockDeviceData> {
     /**
-     * The registry name of the registry holding block device bases.
-     */
-    ResourceLocation REGISTRY = new ResourceLocation(API.MOD_ID, "block_device_data");
-
-    /**
      * Gets the read-only base block device this implementation describes.
      *
      * @return the block device.
@@ -44,5 +39,5 @@ public interface BlockDeviceData extends IForgeRegistryEntry<BlockDeviceData> {
      *
      * @return the display name of this block device.
      */
-    ITextComponent getDisplayName();
+    Component getDisplayName();
 }

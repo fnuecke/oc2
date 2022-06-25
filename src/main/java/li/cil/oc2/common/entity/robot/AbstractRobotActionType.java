@@ -1,7 +1,9 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.entity.robot;
 
-import li.cil.oc2.common.entity.RobotEntity;
-import net.minecraft.nbt.CompoundNBT;
+import li.cil.oc2.common.entity.Robot;
+import net.minecraft.nbt.CompoundTag;
 
 public abstract class AbstractRobotActionType {
     private final int id;
@@ -18,14 +20,14 @@ public abstract class AbstractRobotActionType {
         return id;
     }
 
-    public void initializeData(final RobotEntity robot) {
+    public void initializeData(final Robot robot) {
     }
 
-    public void performServer(final RobotEntity robot, final AbstractRobotAction currentAction) {
+    public void performServer(final Robot robot, final AbstractRobotAction currentAction) {
     }
 
-    public void performClient(final RobotEntity robot) {
+    public void performClient(final Robot robot) {
     }
 
-    public abstract AbstractRobotAction deserialize(final CompoundNBT tag);
+    public abstract AbstractRobotAction deserialize(final CompoundTag tag);
 }

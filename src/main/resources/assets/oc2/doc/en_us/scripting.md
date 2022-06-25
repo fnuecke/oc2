@@ -14,7 +14,7 @@ To use the `devices` library, import it using `require("devices")`.
 - `id` is the unique identifier of the device.
 - Returns a wrapper for the specified device.
 
-`find(typeName):Device` returns a wrapper for a device of the specified type. If there are many devices of this type, it is undefined which one will be returned.
+`find(typeName):Device` returns a wrapper for a device of the specified type. If there are many devices of this type, it is undefined which one will be returned. Aliases set in [Bus Interfaces](block/bus_interface.md) may also be used.
 - `typeName` is the device type for which to find a device.
 - Returns a wrapper for a device of the specified device.
 

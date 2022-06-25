@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.bus.device.object;
 
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
@@ -27,8 +29,8 @@ public @interface Callback {
      * the caller as each call will take at least one tick (50ms).
      * <p>
      * Use this when the targeted method interacts with data that is not thread
-     * safe, for example the world or any objects inside the world, such as
-     * tile entities and entities.
+     * safe, for example the level or any objects inside the level, such as
+     * entities and block entities.
      *
      * @return {@code true} when to be executed on main thread; {@code false} otherwise.
      */

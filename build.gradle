@@ -5,6 +5,7 @@ buildscript {
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7.+'
     }
 }
 
@@ -15,6 +16,8 @@ plugins {
 }
 
 apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.spongepowered.mixin'
+apply from: 'minecraft.gradle'
 
 def getGitRef() {
     try {
@@ -29,49 +32,53 @@ def getGitRef() {
     }
 }
 
-final def semver = "${version_major}.${version_minor}.${version_patch}"
-
-String build_number = System.getenv('PROMOTED_NUMBER')
-if (build_number == null)
-    build_number = System.getenv('BUILD_NUMBER')
-if (build_number == null)
-    build_number = getGitRef()
-
-version = "${semver}+${build_number}"
+version = "${semver}+${getGitRef()}"
 group = 'li.cil.oc2'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+java.toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
+    vendor = JvmVendorSpec.ADOPTOPENJDK
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'utf-8'
+}
 
 repositories {
     mavenCentral()
-    maven { url 'https://dvs1.progwml6.com/files/maven' } // JEI
-    maven { url 'https://maven.cil.li/' } // Sedna
+    maven {
+        url 'https://cursemaven.com'
+        content { includeGroup 'curse.maven' }
+    }
+    maven {
+        url 'https://dvs1.progwml6.com/files/maven/'
+        content { includeGroup 'mezz.jei' }
+    }
+    ["fnuecke/SednaMinecraft"].forEach(repo -> {
+        maven {
+            url = uri("https://maven.pkg.github.com/${repo}")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GPR_USER")
+                password = project.findProperty("gpr.key") ?: System.getenv("GPR_KEY")
+            }
+        }
+    })
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    compileOnly 'org.jetbrains:annotations:21.0.1'
+    implementation "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.13"
 
-    implementation "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.0+"
+    implementation fg.deobf("curse.maven:markdownmanual-502485:3738124")
 
-    // These three will be provided by sedna-mc in standalone.
-    implementation 'li.cil.ceres:ceres:0.0.3+'
-    implementation 'li.cil.sedna:sedna:1.0.1+'
-    implementation 'li.cil.sedna:sedna-buildroot:0.0.1+15'
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:9.7.0.180:api")
+    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:9.7.0.180")
 
-    compileOnly fg.deobf("li.cil.markdown_manual:markdown_manual-${minecraft_version}-forge:${manual_version}:api")
-    runtimeOnly fg.deobf("li.cil.markdown_manual:markdown_manual-${minecraft_version}-forge:${manual_version}")
-
-    compileOnly fg.deobf("mezz.jei:jei-${jei_minecraft_version}:${jei_version}:api")
-    runtimeOnly fg.deobf("mezz.jei:jei-${jei_minecraft_version}:${jei_version}")
-
-    testImplementation 'li.cil.ceres:ceres:0.0.3+'
-    testImplementation 'li.cil.sedna:sedna:1.0.1+'
-
-    testImplementation 'org.mockito:mockito-core:2.+'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+    testImplementation 'org.mockito:mockito-inline:4.3.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 }
 
 task packageScripts(type: Zip) {
@@ -80,15 +87,22 @@ task packageScripts(type: Zip) {
     from 'src/main/scripts'
 }
 
+task copyLicensesToResources(type: Copy) {
+    from '.'
+    into file("$buildDir/resources/main")
+    include "LICENSE*"
+}
+
 processResources.dependsOn(packageScripts)
+processResources.dependsOn(copyLicensesToResources)
 
 minecraft {
-    mappings channel: mappings_channel, version: mappings_version
+    mappings channel: 'official', version: minecraft_version
+
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
-        client {
-            workingDirectory project.file('run')
-
+        all {
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'info'
 
@@ -97,36 +111,29 @@ minecraft {
                     source sourceSets.main
                 }
             }
+        }
+
+        client {
+            workingDirectory project.file('run')
         }
 
         server {
             workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'info'
-
-            mods {
-                oc2 {
-                    source sourceSets.main
-                }
-            }
+            arg "--nogui"
         }
 
         data {
             workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'info'
-
             args '--mod', 'oc2', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources')
-
-            mods {
-                oc2 {
-                    source sourceSets.main
-                }
-            }
         }
     }
+}
+
+mixin {
+    add sourceSets.main, 'mixins.oc2.refmap.json'
+    config 'mixins.oc2.json'
+
+//    quiet
 }
 
 task copyGeneratedResources(type: Copy) {
@@ -140,13 +147,15 @@ jar {
 
     manifest {
         attributes([
-                'Specification-Title'     : 'oc2',
-                'Specification-Vendor'    : 'Sangar',
-                'Specification-Version'   : '1',
-                'Implementation-Title'    : project.name,
-                'Implementation-Version'  : "${semver}",
-                'Implementation-Vendor'   : 'Sangar',
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+            'FMLAT'                   : 'accesstransformer.cfg',
+            'Specification-Title'     : 'oc2',
+            'Specification-Vendor'    : 'Sangar',
+            'Specification-Version'   : '1',
+            'Implementation-Title'    : project.name,
+            'Implementation-Version'  : "${semver}",
+            'Implementation-Vendor'   : 'Sangar',
+            'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            'MixinConfigs'            : 'mixins.oc2.json',
         ])
     }
 }
@@ -165,29 +174,38 @@ artifacts {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            groupId = project.group
+            artifactId = project.name
+            version = semver
             artifact jar
             artifact apiJar
         }
     }
     repositories {
         maven {
-            url System.getenv('MAVEN_PATH')
+            name = "GitHubPackages"
+            url = System.getenv("GITHUB_MAVEN_URL") ?: ""
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
         }
     }
 }
 
 curseforge {
-    apiKey = project.hasProperty('curseForgeApiKey') ? project.curseForgeApiKey : ''
+    apiKey = System.getenv('CURSEFORGE_API_KEY') ?: ""
     project {
         id = curse_project_id
-        releaseType = curse_project_releaseType
+        releaseType = System.getenv('CURSEFORGE_RELEASE_TYPE') ?: "alpha"
         changelogType = 'markdown'
-        changelog = file('changelog.md')
+        changelog = System.getenv("CHANGELOG") ?: "Changelog not available."
         addGameVersion 'Forge'
         addGameVersion minecraft_version
-        addGameVersion 'Java 8'
+        addGameVersion 'Java 17'
         relations {
             requiredDependency 'markdownmanual'
+            requiredDependency 'sedna'
         }
     }
 }
@@ -202,4 +220,8 @@ idea {
 
 test {
     useJUnitPlatform()
+}
+
+compileJava {
+    options.encoding = "UTF-8"
 }

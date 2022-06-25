@@ -1,16 +1,18 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
 import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
-import li.cil.oc2.api.bus.device.vm.event.VMResumingRunningEvent;
+import li.cil.oc2.api.bus.device.vm.event.VMSynchronizeEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.riscv.R5Board;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
@@ -21,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class VMRunner implements Runnable {
     private static final int TICKS_PER_SECOND = 20;
-    private static final int TIMESLICE_IN_MS = 1000 / TICKS_PER_SECOND;
+    private static final int TIMESLICE_IN_MS = 500 / TICKS_PER_SECOND;
 
     private static final ExecutorService VM_RUNNERS = Executors.newCachedThreadPool(r -> {
         final Thread thread = new Thread(r);
@@ -40,9 +42,9 @@ public class VMRunner implements Runnable {
 
     ///////////////////////////////////////////////////////////////////
 
-    private boolean firedResumeEvent;
+    private boolean firedResumedRunningEvent;
     @Serialized private boolean firedInitializationEvent;
-    @Serialized private ITextComponent runtimeError;
+    @Serialized private Component runtimeError;
 
     @Serialized private long cycleLimit;
     @Serialized private long cycles;
@@ -57,12 +59,8 @@ public class VMRunner implements Runnable {
 
     ///////////////////////////////////////////////////////////////////
 
-    public void scheduleResumeEvent() {
-        firedResumeEvent = false;
-    }
-
     @Nullable
-    public ITextComponent getRuntimeError() {
+    public Component getRuntimeError() {
         return runtimeError;
     }
 
@@ -78,14 +76,16 @@ public class VMRunner implements Runnable {
         }
     }
 
-    public void join() throws Throwable {
+    public void join() {
+        context.postEvent(new VMSynchronizeEvent());
+        firedResumedRunningEvent = false;
         if (lastSchedule != null) {
             try {
                 lastSchedule.get();
             } catch (final InterruptedException e) {
                 // We do not mind this.
             } catch (final ExecutionException e) {
-                throw e.getCause();
+                throw new RuntimeException(e.getCause());
             }
         }
     }
@@ -131,14 +131,13 @@ public class VMRunner implements Runnable {
                 context.postEvent(new VMInitializingEvent(board.getDefaultProgramStart()));
             } catch (final VMInitializationException e) {
                 board.setRunning(false);
-                runtimeError = e.getErrorMessage().orElse(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
+                runtimeError = e.getErrorMessage().orElse(new TranslatableComponent(Constants.COMPUTER_ERROR_UNKNOWN));
                 return;
             }
         }
 
-        if (!firedResumeEvent) {
-            firedResumeEvent = true;
-            context.postEvent(new VMResumingRunningEvent());
+        if (!firedResumedRunningEvent) {
+            firedResumedRunningEvent = true;
             context.postEvent(new VMResumedRunningEvent());
         }
     }

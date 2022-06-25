@@ -1,11 +1,13 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
 import li.cil.oc2.common.vm.VMRunState;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 public final class ComputerRunStateMessage extends AbstractMessage {
     private BlockPos pos;
@@ -13,25 +15,25 @@ public final class ComputerRunStateMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerRunStateMessage(final ComputerTileEntity tileEntity) {
-        this.pos = tileEntity.getBlockPos();
-        this.value = tileEntity.getVirtualMachine().getRunState();
+    public ComputerRunStateMessage(final ComputerBlockEntity computer, final VMRunState value) {
+        this.pos = computer.getBlockPos();
+        this.value = value;
     }
 
-    public ComputerRunStateMessage(final PacketBuffer buffer) {
+    public ComputerRunStateMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         value = buffer.readEnum(VMRunState.class);
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeEnum(value);
     }
@@ -40,7 +42,7 @@ public final class ComputerRunStateMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientTileEntityAt(pos, ComputerTileEntity.class,
-                (tileEntity) -> tileEntity.getVirtualMachine().setRunStateClient(value));
+        MessageUtils.withClientBlockEntityAt(pos, ComputerBlockEntity.class,
+            computer -> computer.getVirtualMachine().setRunStateClient(value));
     }
 }

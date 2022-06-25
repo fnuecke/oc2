@@ -1,60 +1,62 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.common.tileentity.NetworkHubTileEntity;
-import li.cil.oc2.common.tileentity.TileEntities;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import li.cil.oc2.common.blockentity.BlockEntities;
+import li.cil.oc2.common.blockentity.NetworkHubBlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.material.Material;
 
-public final class NetworkHubBlock extends HorizontalBlock {
+import javax.annotation.Nullable;
+
+public final class NetworkHubBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public NetworkHubBlock() {
         super(Properties
-                .of(Material.METAL)
-                .sound(SoundType.METAL)
-                .strength(1.5f, 6.0f));
+            .of(Material.METAL)
+            .sound(SoundType.METAL)
+            .strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public BlockState getStateForPlacement(final BlockItemUseContext context) {
+    public BlockState getStateForPlacement(final BlockPlaceContext context) {
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-    }
-
-    @Override
-    public boolean hasTileEntity(final BlockState state) {
-        return true;
-    }
-
-    @Override
-    public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
-        return TileEntities.NETWORK_HUB_TILE_ENTITY.get().create();
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public void neighborChanged(final BlockState state, final World world, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
-        final TileEntity tileEntity = world.getBlockEntity(pos);
-        if (tileEntity instanceof NetworkHubTileEntity) {
-            final NetworkHubTileEntity hub = (NetworkHubTileEntity) tileEntity;
-            hub.handleNeighborChanged();
+    public void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof final NetworkHubBlockEntity networkHub) {
+            networkHub.handleNeighborChanged();
         }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+    // EntityBlock
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
+        return BlockEntities.NETWORK_HUB.get().create(pos, state);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(FACING);
     }

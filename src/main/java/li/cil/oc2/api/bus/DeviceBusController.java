@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.bus;
 
 import li.cil.oc2.api.bus.device.Device;
@@ -30,16 +32,32 @@ import java.util.UUID;
  */
 public interface DeviceBusController {
     /**
+     * Reason for a bus scan. Used to determine whether to immediately perform the scan or no, for example.
+     */
+    enum ScanReason {
+        BUS_CHANGE,
+        BUS_ERROR,
+    }
+
+    /**
      * Schedules a scan.
      * <p>
-     * This will immediately invalidate the current bus, i.e. all {@link DeviceBusElement}s
-     * will be removed from the controller and {@link #getDevices()} will return an empty
-     * list after this call.
+     * Multiple sequential calls to this method do nothing, the actual scan will be performed
+     * in the next update.
+     *
+     * @param reason the reason for the bus scan.
+     */
+    void scheduleBusScan(ScanReason reason);
+
+    /**
+     * Schedules a scan due to a bus configuration change.
      * <p>
      * Multiple sequential calls to this method do nothing, the actual scan will be performed
      * in the next update.
      */
-    void scheduleBusScan();
+    default void scheduleBusScan() {
+        scheduleBusScan(ScanReason.BUS_CHANGE);
+    }
 
     /**
      * Forces a device map rebuild.

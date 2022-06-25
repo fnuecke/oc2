@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus;
 
 import com.google.gson.Gson;
@@ -5,13 +7,11 @@ import com.google.gson.JsonArray;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
-import li.cil.oc2.api.bus.device.rpc.RPCParameter;
+import li.cil.oc2.api.bus.device.rpc.*;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
-import li.cil.oc2.common.serialization.serializers.*;
+import li.cil.oc2.common.serialization.gson.*;
 import li.cil.sedna.api.device.Steppable;
 import li.cil.sedna.api.device.serial.SerialDevice;
 
@@ -38,8 +38,10 @@ public final class RPCDeviceBusAdapter implements Steppable {
     private final SerialDevice serialDevice;
     private final Gson gson;
 
-    private final ArrayList<RPCDeviceWithIdentifier> devices = new ArrayList<>();
+    private final ArrayList<RPCDeviceWithIdentifier> devicesWithId = new ArrayList<>();
     private final HashMap<UUID, RPCDeviceList> devicesById = new HashMap<>();
+    private final Set<RPCDeviceList> unmountedDevices = new HashSet<>();
+    private final Set<RPCDeviceList> mountedDevices = new HashSet<>();
     private final Lock pauseLock = new ReentrantLock();
     private boolean isPaused;
 
@@ -59,20 +61,39 @@ public final class RPCDeviceBusAdapter implements Steppable {
         this.serialDevice = serialDevice;
         this.transmitBuffer = ByteBuffer.allocate(maxMessageSize);
         this.gson = RPCMethodParameterTypeAdapters.beginBuildGson()
-                .registerTypeAdapter(byte[].class, new UnsignedByteArrayJsonSerializer())
-                .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
-                .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
-                .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
-                .registerTypeHierarchyAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
-                .create();
+            .registerTypeAdapter(byte[].class, new UnsignedByteArrayJsonSerializer())
+            .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
+            .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
+            .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
+            .registerTypeHierarchyAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
+            .registerTypeAdapter(EmptyMethodGroup.class, new EmptyRPCMethodGroupSerializer())
+            .create();
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public void suspend() {
-        for (final RPCDeviceWithIdentifier info : devices) {
-            info.device.suspend();
+    public void mountDevices() {
+        for (final RPCDevice device : unmountedDevices) {
+            device.mount();
         }
+
+        mountedDevices.addAll(unmountedDevices);
+        unmountedDevices.clear();
+    }
+
+    public void unmountDevices() {
+        for (final RPCDevice device : mountedDevices) {
+            device.unmount();
+        }
+
+        unmountedDevices.addAll(mountedDevices);
+        mountedDevices.clear();
+    }
+
+    public void disposeDevices() {
+        unmountDevices();
+
+        unmountedDevices.forEach(RPCDeviceList::dispose);
     }
 
     public void reset() {
@@ -98,15 +119,12 @@ public final class RPCDeviceBusAdapter implements Steppable {
             return;
         }
 
-        devices.clear();
-        devicesById.clear();
-
         // How device grouping works:
         // Each device can have multiple UUIDs due to being attached to multiple bus elements.
         // There is no guarantee that for each device D1 present on bus elements E1 and E2,
         // where device D2 is present on E1 it will also be present on E2. This is completely
         // up to the device providers.
-        // Therefore we must group all devices by their identifiers to then remove duplicate
+        // Therefore, we must group all devices by their identifiers to then remove duplicate
         // groups. This is fragile because it will depend on the order the devices appear in
         // the list. However, since we add devices to bus elements in the order of their
         // providers, then add devices to the controller in the order of their elements, this
@@ -118,13 +136,12 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
         final HashMap<UUID, ArrayList<RPCDevice>> devicesByIdentifier = new HashMap<>();
         for (final Device device : controller.getDevices()) {
-            if (device instanceof RPCDevice) {
-                final RPCDevice rpcDevice = (RPCDevice) device;
+            if (device instanceof final RPCDevice rpcDevice) {
                 final Set<UUID> identifiers = controller.getDeviceIdentifiers(device);
                 for (final UUID identifier : identifiers) {
                     devicesByIdentifier
-                            .computeIfAbsent(identifier, unused -> new ArrayList<>())
-                            .add(rpcDevice);
+                        .computeIfAbsent(identifier, unused -> new ArrayList<>())
+                        .add(rpcDevice);
                 }
             }
         }
@@ -136,20 +153,41 @@ public final class RPCDeviceBusAdapter implements Steppable {
             // If there are no methods we have either no devices at all, or all synthetic
             // devices, i.e. devices that only contribute type names, but have no methods
             // to call. We do not expose these to avoid cluttering the device list.
-            if (device.getMethods().isEmpty()) {
+            if (device.getMethodGroups().isEmpty()) {
                 return;
             }
 
             identifiersByDevice
-                    .computeIfAbsent(device, unused -> new ArrayList<>())
-                    .add(identifier);
+                .computeIfAbsent(device, unused -> new ArrayList<>())
+                .add(identifier);
         });
 
+        // Rebuild devices lists.
+        devicesWithId.clear();
+        devicesById.clear();
+
+        final Set<RPCDeviceList> devices = new HashSet<>();
         identifiersByDevice.forEach((device, identifiers) -> {
             final UUID identifier = selectIdentifierDeterministically(identifiers);
-            devices.add(new RPCDeviceWithIdentifier(identifier, device));
+            devicesWithId.add(new RPCDeviceWithIdentifier(identifier, device));
             devicesById.put(identifier, device);
+            devices.add(device);
+
+            // Add to set of unmounted devices if we don't already track it. It's a set, so
+            // there won't be duplicates in the unmounted set due to this.
+            if (!mountedDevices.contains(device)) {
+                unmountedDevices.add(device);
+            }
         });
+
+        // Remove devices from mounted set, call appropriate callbacks.
+        final HashSet<RPCDeviceList> removedMountedDevices = new HashSet<>(mountedDevices);
+        removedMountedDevices.removeAll(devices);
+        mountedDevices.removeAll(removedMountedDevices);
+        removedMountedDevices.forEach(RPCDeviceList::unmount);
+
+        // Remove devices from unmounted set.
+        unmountedDevices.retainAll(devices);
     }
 
     public void tick() {
@@ -162,7 +200,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
             processMethodInvocation(methodInvocation, true);
 
             // This is also used to prevent thread from processing messages, so only
-            // reset this when we're done. Otherwise we may get a race-condition when
+            // reset this when we're done. Otherwise, we may get a race-condition when
             // writing back data.
             synchronizedInvocation = null;
         }
@@ -247,30 +285,22 @@ public final class RPCDeviceBusAdapter implements Steppable {
         try {
             final Message message = gson.fromJson(stream, Message.class);
             switch (message.type) {
-                case Message.MESSAGE_TYPE_LIST: {
-                    writeDeviceList();
-                    break;
-                }
-                case Message.MESSAGE_TYPE_METHODS: {
+                case Message.MESSAGE_TYPE_LIST -> writeDeviceList();
+                case Message.MESSAGE_TYPE_METHODS -> {
                     if (message.data != null) {
                         writeDeviceMethods((UUID) message.data);
                     } else {
                         writeError("missing device id");
                     }
-                    break;
                 }
-                case Message.MESSAGE_TYPE_INVOKE_METHOD: {
+                case Message.MESSAGE_TYPE_INVOKE_METHOD -> {
                     if (message.data != null) {
                         processMethodInvocation((MethodInvocation) message.data, false);
                     } else {
                         writeError("missing invocation data");
                     }
-                    break;
                 }
-                default: {
-                    writeError(ERROR_UNKNOWN_MESSAGE_TYPE);
-                    break;
-                }
+                default -> writeError(ERROR_UNKNOWN_MESSAGE_TYPE);
             }
         } catch (final Throwable e) {
             writeError(e.getMessage());
@@ -284,116 +314,71 @@ public final class RPCDeviceBusAdapter implements Steppable {
             return;
         }
 
+        final RPCInvocation invocation = new RPCInvocationImpl(methodInvocation.parameters, gson);
+
         // Yes, we could hashmap this lookup, but the expectation is that we'll generally
-        // have relatively few methods per object where the overhead of hashing would not
-        // be worth it. So we just do a linear search, which also gives us maximal
-        // flexibility for free (devices may dynamically change their methods).
-        final List<RPCMethod> fallbacks = new ArrayList<>();
+        // have relatively few methods per object, so the overhead of hashing would not
+        // be worth it. Instead, we just do a quick linear search, which also gives us
+        // a lot of flexibility for free (devices may dynamically change their methods).
         String error = ERROR_UNKNOWN_METHOD;
-        for (final RPCMethod method : device.getMethods()) {
-            if (!Objects.equals(method.getName(), methodInvocation.methodName)) {
+        for (final RPCMethodGroup methodGroup : device.getMethodGroups()) {
+            if (!Objects.equals(methodGroup.getName(), methodInvocation.methodName)) {
                 continue;
             }
 
-            final RPCParameter[] parametersSpec = method.getParameters();
-
-            // Special case: if a method takes as exactly one parameter a JsonArray, we pass
-            // on the parameters as-is, without automatically trying to deserialize them.
-            if (parametersSpec.length == 1 && parametersSpec[0].getType() == JsonArray.class) {
-                invokeMethod(methodInvocation, isMainThread, method, new Object[]{methodInvocation.parameters});
+            final Optional<RPCMethod> overload = methodGroup.findOverload(invocation);
+            if (overload.isPresent()) {
+                invokeMethod(methodInvocation, isMainThread, overload.get(), invocation);
                 return;
             }
 
-            if (methodInvocation.parameters.size() != parametersSpec.length) {
-                if (canTrailingParametersBeImplicitlyNull(methodInvocation.parameters, parametersSpec)) {
-                    fallbacks.add(method);
-                }
+            error = ERROR_INVALID_PARAMETER_SIGNATURE;
 
-                error = ERROR_INVALID_PARAMETER_SIGNATURE;
-                continue; // There may be an overload with matching parameter count.
-            }
-
-            final Object[] parameters = getParameters(methodInvocation.parameters, parametersSpec);
-            if (parameters == null) {
-                error = ERROR_INVALID_PARAMETER_SIGNATURE;
-                continue; // There may be an overload with matching parameter types.
-            }
-
-            invokeMethod(methodInvocation, isMainThread, method, parameters);
-
-            return;
-        }
-
-        if (fallbacks.size() == 1) {
-            final RPCMethod method = fallbacks.get(0);
-            final Object[] parameters = getParameters(methodInvocation.parameters, method.getParameters());
-            if (parameters != null) {
-                invokeMethod(methodInvocation, isMainThread, method, parameters);
-                return;
-            }
+            // Keep going, there may be an overload with matching parameter types in another
+            // method group with the same name.
         }
 
         writeError(error);
     }
 
-    private void invokeMethod(final MethodInvocation methodInvocation, final boolean isMainThread, final RPCMethod method, final Object[] parameters) {
+    private void invokeMethod(final MethodInvocation methodInvocation, final boolean isMainThread, final RPCMethod method, final RPCInvocation invocation) {
         if (method.isSynchronized() && !isMainThread) {
             synchronizedInvocation = methodInvocation;
             return;
         }
 
         try {
-            final Object result = method.invoke(parameters);
+            final Object result = method.invoke(invocation);
             writeMessage(Message.MESSAGE_TYPE_RESULT, result);
         } catch (final Throwable e) {
             writeError(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
         }
     }
 
-    @Nullable
-    private Object[] getParameters(final JsonArray parameters, final RPCParameter[] parametersSpec) {
-        final Object[] result = new Object[parametersSpec.length];
-        for (int i = 0; i < parametersSpec.length; i++) {
-            final RPCParameter parameterInfo = parametersSpec[i];
-            if (parameters.size() > i) {
-                try {
-                    result[i] = gson.fromJson(parameters.get(i), parameterInfo.getType());
-                } catch (final Throwable e) {
-                    return null;
-                }
-            } else {
-                result[i] = null;
-            }
-        }
-        return result;
-    }
-
-    private boolean canTrailingParametersBeImplicitlyNull(final JsonArray parameters, final RPCParameter[] parametersSpec) {
-        if (parameters.size() > parametersSpec.length) {
-            return false;
-        }
-
-        for (int i = parameters.size(); i < parametersSpec.length; i++) {
-            final Class<?> type = parametersSpec[i].getType();
-            if (type.isPrimitive()) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     private void writeDeviceList() {
-        writeMessage(Message.MESSAGE_TYPE_LIST, devices);
+        writeMessage(Message.MESSAGE_TYPE_LIST, devicesWithId);
     }
 
     private void writeDeviceMethods(final UUID deviceId) {
         final RPCDeviceList device = devicesById.get(deviceId);
         if (device != null) {
-            writeMessage(Message.MESSAGE_TYPE_METHODS, device.getMethods());
+            writeMessage(Message.MESSAGE_TYPE_METHODS, flattenMethodGroups(device.getMethodGroups()));
         } else {
             writeError("unknown device");
         }
+    }
+
+    private List<Object> flattenMethodGroups(final List<? extends RPCMethodGroup> methodGroups) {
+        final List<Object> result = new ArrayList<>();
+        for (final RPCMethodGroup methodGroup : methodGroups) {
+            final Set<RPCMethod> overloads = methodGroup.getOverloads();
+            if (overloads.isEmpty()) {
+                result.add(new EmptyMethodGroup(methodGroup.getName()));
+            } else {
+                result.addAll(overloads);
+            }
+        }
+        return result;
     }
 
     private void writeError(final String message) {
@@ -424,17 +409,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final class RPCDeviceWithIdentifier {
-        public final UUID identifier;
-        public final RPCDevice device;
+    public record RPCDeviceWithIdentifier(UUID identifier, RPCDevice device) { }
 
-        private RPCDeviceWithIdentifier(final UUID identifier, final RPCDevice device) {
-            this.identifier = identifier;
-            this.device = device;
-        }
-    }
+    public record EmptyMethodGroup(String name) { }
 
-    public static final class Message {
+    public record Message(String type, @Nullable Object data) {
         // Device -> VM
         public static final String MESSAGE_TYPE_LIST = "list";
         public static final String MESSAGE_TYPE_METHODS = "methods";
@@ -443,14 +422,6 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
         // VM -> Device
         public static final String MESSAGE_TYPE_INVOKE_METHOD = "invoke";
-
-        public final String type;
-        @Nullable public final Object data;
-
-        public Message(final String type, @Nullable final Object data) {
-            this.type = type;
-            this.data = data;
-        }
     }
 
     @Serialized
@@ -459,13 +430,46 @@ public final class RPCDeviceBusAdapter implements Steppable {
         public String methodName;
         public JsonArray parameters;
 
-        public MethodInvocation() { // For deserialization.
+        @SuppressWarnings("unused") // For deserialization.
+        public MethodInvocation() {
         }
 
         public MethodInvocation(final UUID deviceId, final String methodName, final JsonArray parameters) {
             this.deviceId = deviceId;
             this.methodName = methodName;
             this.parameters = parameters;
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private record RPCInvocationImpl(JsonArray parameters, Gson gson) implements RPCInvocation {
+        @Override
+        public JsonArray getParameters() {
+            return parameters;
+        }
+
+        @Override
+        public Gson getGson() {
+            return gson;
+        }
+
+        @Override
+        public Optional<Object[]> tryDeserializeParameters(final RPCParameter... parameterTypes) {
+            if (parameterTypes.length != parameters.size()) {
+                return Optional.empty();
+            }
+
+            final Object[] result = new Object[parameterTypes.length];
+            for (int i = 0; i < parameterTypes.length; i++) {
+                final RPCParameter parameterInfo = parameterTypes[i];
+                try {
+                    result[i] = gson.fromJson(parameters.get(i), parameterInfo.getType());
+                } catch (final Throwable e) {
+                    return Optional.empty();
+                }
+            }
+            return Optional.of(result);
         }
     }
 }

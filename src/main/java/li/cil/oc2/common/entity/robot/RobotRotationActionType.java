@@ -1,9 +1,11 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.entity.robot;
 
-import li.cil.oc2.common.entity.RobotEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.MathHelper;
+import li.cil.oc2.common.entity.Robot;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Mth;
 
 public final class RobotRotationActionType extends AbstractRobotActionType {
     public RobotRotationActionType(final int id) {
@@ -13,27 +15,27 @@ public final class RobotRotationActionType extends AbstractRobotActionType {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void initializeData(final RobotEntity robot) {
-        robot.getEntityData().set(RobotEntity.TARGET_DIRECTION, robot.getDirection());
+    public void initializeData(final Robot robot) {
+        robot.getEntityData().set(Robot.TARGET_DIRECTION, robot.getDirection());
     }
 
     @Override
-    public void performServer(final RobotEntity robot, final AbstractRobotAction currentAction) {
+    public void performServer(final Robot robot, final AbstractRobotAction currentAction) {
         if (!(currentAction instanceof RobotRotationAction)) {
-            robot.getEntityData().set(RobotEntity.TARGET_DIRECTION, robot.getDirection());
+            robot.getEntityData().set(Robot.TARGET_DIRECTION, robot.getDirection());
         }
     }
 
     @Override
-    public void performClient(final RobotEntity robot) {
-        final Direction target = robot.getEntityData().get(RobotEntity.TARGET_DIRECTION);
-        if (MathHelper.degreesDifferenceAbs(robot.yRot, target.toYRot()) > RobotRotationAction.TARGET_EPSILON) {
+    public void performClient(final Robot robot) {
+        final Direction target = robot.getEntityData().get(Robot.TARGET_DIRECTION);
+        if (Mth.degreesDifferenceAbs(robot.getYRot(), target.toYRot()) > RobotRotationAction.TARGET_EPSILON) {
             RobotRotationAction.rotateTowards(robot, target);
         }
     }
 
     @Override
-    public AbstractRobotAction deserialize(final CompoundNBT tag) {
+    public AbstractRobotAction deserialize(final CompoundTag tag) {
         return new RobotRotationAction(tag);
     }
 }

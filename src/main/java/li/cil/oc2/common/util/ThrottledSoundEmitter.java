@@ -1,9 +1,10 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.util;
 
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.IWorld;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -11,10 +12,10 @@ import java.util.Random;
 import java.util.function.Supplier;
 
 public final class ThrottledSoundEmitter {
-    private final Supplier<Optional<Location>> location;
+    private final Supplier<Optional<BlockLocation>> location;
     private final SoundEvent sound;
     private long minInterval;
-    private SoundCategory category;
+    private SoundSource category;
     private float volume = 0.95f;
     private float volumeVariance = 0.05f;
     private float pitch = 0.9f;
@@ -24,10 +25,10 @@ public final class ThrottledSoundEmitter {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ThrottledSoundEmitter(final Supplier<Optional<Location>> location, final SoundEvent sound) {
+    public ThrottledSoundEmitter(final Supplier<Optional<BlockLocation>> location, final SoundEvent sound) {
         this.location = location;
         this.sound = sound;
-        this.category = SoundCategory.BLOCKS;
+        this.category = SoundSource.BLOCKS;
         this.minInterval = 500;
     }
 
@@ -37,12 +38,11 @@ public final class ThrottledSoundEmitter {
         final long now = System.currentTimeMillis();
         if (now - lastEmittedTime > minInterval) {
             lastEmittedTime = now;
-            this.location.get().ifPresent(location -> {
-                final IWorld world = location.world;
-                final float volume = sampleVolume(world.getRandom());
-                final float pitch = samplePitch(world.getRandom());
-                WorldUtils.playSound(world, location.pos, sound, category, volume, pitch);
-            });
+            this.location.get().ifPresent(location -> location.tryGetLevel().ifPresent(level -> {
+                final float volume = sampleVolume(level.getRandom());
+                final float pitch = samplePitch(level.getRandom());
+                LevelUtils.playSound(level, location.blockPos(), sound, category, volume, pitch);
+            }));
         }
     }
 
@@ -51,7 +51,7 @@ public final class ThrottledSoundEmitter {
         return this;
     }
 
-    public ThrottledSoundEmitter withCategory(final SoundCategory category) {
+    public ThrottledSoundEmitter withCategory(final SoundSource category) {
         this.category = category;
         return this;
     }
@@ -79,10 +79,10 @@ public final class ThrottledSoundEmitter {
     ///////////////////////////////////////////////////////////////////
 
     private float sampleVolume(final Random random) {
-        return MathHelper.clamp(volume + volumeVariance * (random.nextFloat() - 0.5f), 0, 1);
+        return Mth.clamp(volume + volumeVariance * (random.nextFloat() - 0.5f), 0, 1);
     }
 
     private float samplePitch(final Random random) {
-        return MathHelper.clamp(pitch + pitchVariance * (random.nextFloat() - 0.5f), 0, 1);
+        return Mth.clamp(pitch + pitchVariance * (random.nextFloat() - 0.5f), 0, 1);
     }
 }

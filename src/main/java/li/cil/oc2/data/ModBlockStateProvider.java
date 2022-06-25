@@ -1,17 +1,19 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.data;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.item.Items;
-import net.minecraft.block.Block;
+import net.minecraft.core.Direction;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.item.Item;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.model.generators.*;
 import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraftforge.registries.RegistryObject;
 
 public final class ModBlockStateProvider extends BlockStateProvider {
     private static final ResourceLocation CABLE_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_base");
@@ -21,8 +23,10 @@ public final class ModBlockStateProvider extends BlockStateProvider {
     private static final ResourceLocation CHARGER_MODEL = new ResourceLocation(API.MOD_ID, "block/charger");
     private static final ResourceLocation COMPUTER_MODEL = new ResourceLocation(API.MOD_ID, "block/computer");
     private static final ResourceLocation DISK_DRIVE_MODEL = new ResourceLocation(API.MOD_ID, "block/disk_drive");
+    private static final ResourceLocation KEYBOARD_MODEL = new ResourceLocation(API.MOD_ID, "block/keyboard");
     private static final ResourceLocation NETWORK_CONNECTOR_MODEL = new ResourceLocation(API.MOD_ID, "block/network_connector");
     private static final ResourceLocation NETWORK_HUB_MODEL = new ResourceLocation(API.MOD_ID, "block/network_hub");
+    private static final ResourceLocation PROJECTOR_MODEL = new ResourceLocation(API.MOD_ID, "block/projector");
     private static final ResourceLocation REDSTONE_INTERFACE_MODEL = new ResourceLocation(API.MOD_ID, "block/redstone_interface");
 
     public ModBlockStateProvider(final DataGenerator generator, final ExistingFileHelper existingFileHelper) {
@@ -31,25 +35,27 @@ public final class ModBlockStateProvider extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-        horizontalBlock(Blocks.COMPUTER, Items.COMPUTER, COMPUTER_MODEL);
-        horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE, REDSTONE_INTERFACE_MODEL);
-        horizontalFaceBlock(Blocks.NETWORK_CONNECTOR, Items.NETWORK_CONNECTOR, NETWORK_CONNECTOR_MODEL)
-                .transforms()
-                .transform(ModelBuilder.Perspective.GUI)
-                .rotation(30, 315, 0)
-                .translation(0, 2, 0)
-                .scale(0.75f, 0.75f, 0.75f)
-                .end()
-                .transform(ModelBuilder.Perspective.FIXED)
-                .rotation(270, 0, 0)
-                .translation(0, 0, -5)
-                .scale(1, 1, 1)
-                .end()
-                .end();
-        horizontalBlock(Blocks.NETWORK_HUB, Items.NETWORK_HUB, NETWORK_HUB_MODEL);
-        horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE, DISK_DRIVE_MODEL);
         horizontalBlock(Blocks.CHARGER, Items.CHARGER, CHARGER_MODEL);
+        horizontalBlock(Blocks.COMPUTER, Items.COMPUTER, COMPUTER_MODEL);
         simpleBlock(Blocks.CREATIVE_ENERGY, Items.CREATIVE_ENERGY);
+        horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE, DISK_DRIVE_MODEL);
+        horizontalBlock(Blocks.KEYBOARD, Items.KEYBOARD, KEYBOARD_MODEL);
+        horizontalFaceBlock(Blocks.NETWORK_CONNECTOR, Items.NETWORK_CONNECTOR, NETWORK_CONNECTOR_MODEL)
+            .transforms()
+            .transform(ModelBuilder.Perspective.GUI)
+            .rotation(30, 315, 0)
+            .translation(0, 2, 0)
+            .scale(0.75f, 0.75f, 0.75f)
+            .end()
+            .transform(ModelBuilder.Perspective.FIXED)
+            .rotation(270, 0, 0)
+            .translation(0, 0, -5)
+            .scale(1, 1, 1)
+            .end()
+            .end();
+        horizontalBlock(Blocks.NETWORK_HUB, Items.NETWORK_HUB, NETWORK_HUB_MODEL);
+        horizontalBlock(Blocks.PROJECTOR, Items.PROJECTOR, PROJECTOR_MODEL);
+        horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE, REDSTONE_INTERFACE_MODEL);
 
         registerCableStates();
     }
@@ -66,9 +72,9 @@ public final class ModBlockStateProvider extends BlockStateProvider {
         //     insert supports where appropriate, as well as for replacing it with a facade block model.
 
         builder.part()
-                .modelFile(baseModel)
-                .addModel()
-                .end();
+            .modelFile(baseModel)
+            .addModel()
+            .end();
 
         BusCableBlock.FACING_TO_CONNECTION_MAP.forEach((direction, connectionType) -> {
             final int rotationY = (int) direction.toYRot();
@@ -82,85 +88,85 @@ public final class ModBlockStateProvider extends BlockStateProvider {
             }
 
             builder.part()
-                    .modelFile(linkModel)
-                    .rotationY(rotationY)
-                    .rotationX(rotationX)
-                    .addModel()
-                    .condition(connectionType, BusCableBlock.ConnectionType.CABLE)
-                    .condition(BusCableBlock.HAS_FACADE, false)
-                    .end();
+                .modelFile(linkModel)
+                .rotationY(rotationY)
+                .rotationX(rotationX)
+                .addModel()
+                .condition(connectionType, BusCableBlock.ConnectionType.CABLE)
+                .condition(BusCableBlock.HAS_FACADE, false)
+                .end();
 
             builder.part()
-                    .modelFile(plugModel)
-                    .rotationY(rotationY)
-                    .rotationX(rotationX)
-                    .addModel()
-                    .condition(connectionType, BusCableBlock.ConnectionType.INTERFACE)
-                    .condition(BusCableBlock.HAS_FACADE, false)
-                    .end();
+                .modelFile(plugModel)
+                .rotationY(rotationY)
+                .rotationX(rotationX)
+                .addModel()
+                .condition(connectionType, BusCableBlock.ConnectionType.INTERFACE)
+                .condition(BusCableBlock.HAS_FACADE, false)
+                .end();
         });
 
         itemModels().getBuilder(Items.BUS_CABLE.getId().getPath())
-                .parent(straightModel)
-                .transforms()
-                .transform(ModelBuilder.Perspective.GUI)
-                .rotation(30, 225, 0)
-                .scale(0.75f)
-                .end()
-                .transform(ModelBuilder.Perspective.GROUND)
-                .translation(0, 3, 0)
-                .scale(0.75f)
-                .end()
-                .transform(ModelBuilder.Perspective.FIXED)
-                .rotation(0, 180, 0)
-                .scale(1.0f)
-                .end()
-                .transform(ModelBuilder.Perspective.THIRDPERSON_RIGHT)
-                .rotation(75, 45, 0)
-                .translation(0, 2.5f, 0)
-                .scale(0.75f)
-                .end()
-                .transform(ModelBuilder.Perspective.FIRSTPERSON_RIGHT)
-                .rotation(0, 45, 0)
-                .scale(0.75f)
-                .end()
-                .transform(ModelBuilder.Perspective.FIRSTPERSON_LEFT)
-                .rotation(0, 225, 0)
-                .scale(0.75f)
-                .end();
+            .parent(straightModel)
+            .transforms()
+            .transform(ModelBuilder.Perspective.GUI)
+            .rotation(30, 225, 0)
+            .scale(0.75f)
+            .end()
+            .transform(ModelBuilder.Perspective.GROUND)
+            .translation(0, 3, 0)
+            .scale(0.75f)
+            .end()
+            .transform(ModelBuilder.Perspective.FIXED)
+            .rotation(0, 180, 0)
+            .scale(1.0f)
+            .end()
+            .transform(ModelBuilder.Perspective.THIRDPERSON_RIGHT)
+            .rotation(75, 45, 0)
+            .translation(0, 2.5f, 0)
+            .scale(0.75f)
+            .end()
+            .transform(ModelBuilder.Perspective.FIRSTPERSON_RIGHT)
+            .rotation(0, 45, 0)
+            .scale(0.75f)
+            .end()
+            .transform(ModelBuilder.Perspective.FIRSTPERSON_LEFT)
+            .rotation(0, 225, 0)
+            .scale(0.75f)
+            .end();
 
         itemModels().getBuilder(Items.BUS_INTERFACE.getId().getPath())
-                .parent(plugModel)
-                .transforms()
-                .transform(ModelBuilder.Perspective.GUI)
-                .rotation(30, 315, 0)
-                .translation(2, 1, 0)
-                .scale(0.75f)
-                .end()
-                .transform(ModelBuilder.Perspective.GROUND)
-                .translation(0, 3, -5)
-                .scale(0.75f)
-                .end()
-                .transform(ModelBuilder.Perspective.FIXED)
-                .rotation(0, 180, 0)
-                .translation(0, 0, 4)
-                .scale(1.0f)
-                .end()
-                .transform(ModelBuilder.Perspective.THIRDPERSON_RIGHT)
-                .rotation(75, 180, 0)
-                .translation(0, -1, 0)
-                .scale(0.75f)
-                .end()
-                .transform(ModelBuilder.Perspective.FIRSTPERSON_RIGHT)
-                .rotation(0, 180, 0)
-                .translation(0, 0, 2)
-                .scale(0.75f)
-                .end()
-                .transform(ModelBuilder.Perspective.FIRSTPERSON_LEFT)
-                .rotation(0, 180, 0)
-                .translation(0, 0, 2)
-                .scale(0.75f)
-                .end();
+            .parent(plugModel)
+            .transforms()
+            .transform(ModelBuilder.Perspective.GUI)
+            .rotation(30, 315, 0)
+            .translation(2, 1, 0)
+            .scale(0.75f)
+            .end()
+            .transform(ModelBuilder.Perspective.GROUND)
+            .translation(0, 3, -5)
+            .scale(0.75f)
+            .end()
+            .transform(ModelBuilder.Perspective.FIXED)
+            .rotation(0, 180, 0)
+            .translation(0, 0, 4)
+            .scale(1.0f)
+            .end()
+            .transform(ModelBuilder.Perspective.THIRDPERSON_RIGHT)
+            .rotation(75, 180, 0)
+            .translation(0, -1, 0)
+            .scale(0.75f)
+            .end()
+            .transform(ModelBuilder.Perspective.FIRSTPERSON_RIGHT)
+            .rotation(0, 180, 0)
+            .translation(0, 0, 2)
+            .scale(0.75f)
+            .end()
+            .transform(ModelBuilder.Perspective.FIRSTPERSON_LEFT)
+            .rotation(0, 180, 0)
+            .translation(0, 0, 2)
+            .scale(0.75f)
+            .end();
     }
 
     private <T extends Block> ItemModelBuilder horizontalBlock(final RegistryObject<T> block, final RegistryObject<Item> item, final ResourceLocation modelFileLocation) {

@@ -74,7 +74,7 @@ if dhcpServer == "y" or dhcpServer == "Y" then
         end
 
         if not dhcpRangeStart:match("%d+%.%d+%.%d+%.%d+") then
-            io.write("Invalid IP address format.")
+            io.stderr:write("Invalid IP address format.")
         else
             break
         end
@@ -90,7 +90,7 @@ if dhcpServer == "y" or dhcpServer == "Y" then
         end
 
         if not dhcpRangeEnd:match("%d+%.%d+%.%d+%.%d+") then
-            io.write("Invalid IP address format.")
+            io.stderr:write("Invalid IP address format.")
         else
             break
         end

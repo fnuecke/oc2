@@ -1,0 +1,28 @@
+{
+  "blend": {
+    "func": "add",
+    "srcrgb": "srcalpha",
+    "dstrgb": "1-srcalpha"
+  },
+  "vertex": "oc2:projectors",
+  "fragment": "oc2:projectors",
+  "attributes": ["Position", "UV0"],
+  "samplers": [
+    {"name": "MainCameraDepth"},
+    {"name": "ProjectorColor0"},
+    {"name": "ProjectorDepth0"},
+    {"name": "ProjectorColor1"},
+    {"name": "ProjectorDepth1"},
+    {"name": "ProjectorColor2"},
+    {"name": "ProjectorDepth2"}
+  ],
+  "uniforms": [
+    {"name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]},
+    {"name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]},
+    {"name": "InverseMainCamera", "type": "matrix4x4", "count": 16, "values": [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]},
+    {"name": "ProjectorCamera0", "type": "matrix4x4", "count": 16, "values": [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]},
+    {"name": "ProjectorCamera1", "type": "matrix4x4", "count": 16, "values": [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]},
+    {"name": "ProjectorCamera2", "type": "matrix4x4", "count": 16, "values": [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]},
+    {"name": "Count", "type": "int", "count": 1, "values": [0]}
+  ]
+}

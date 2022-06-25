@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.entity.robot;
 
 import javax.annotation.Nullable;
@@ -21,6 +23,7 @@ public enum RotationDirection {
         this.parent = resolve(parent);
     }
 
+    @Nullable
     public RotationDirection resolve() {
         return resolve(this);
     }

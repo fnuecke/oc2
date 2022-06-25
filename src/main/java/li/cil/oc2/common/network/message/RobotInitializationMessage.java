@@ -1,25 +1,27 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.vm.VMRunState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraftforge.network.NetworkEvent;
 
 public final class RobotInitializationMessage extends AbstractMessage {
     private int entityId;
     private CommonDeviceBusController.BusState busState;
     private VMRunState runState;
-    private ITextComponent bootError;
-    private CompoundNBT terminal;
+    private Component bootError;
+    private CompoundTag terminal;
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotInitializationMessage(final RobotEntity robot) {
+    public RobotInitializationMessage(final Robot robot) {
         this.entityId = robot.getId();
         this.busState = robot.getVirtualMachine().getBusState();
         this.runState = robot.getVirtualMachine().getRunState();
@@ -27,14 +29,14 @@ public final class RobotInitializationMessage extends AbstractMessage {
         this.terminal = NBTSerialization.serialize(robot.getTerminal());
     }
 
-    public RobotInitializationMessage(final PacketBuffer buffer) {
+    public RobotInitializationMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         entityId = buffer.readVarInt();
         busState = buffer.readEnum(CommonDeviceBusController.BusState.class);
         runState = buffer.readEnum(VMRunState.class);
@@ -43,7 +45,7 @@ public final class RobotInitializationMessage extends AbstractMessage {
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeVarInt(entityId);
         buffer.writeEnum(busState);
         buffer.writeEnum(runState);
@@ -55,12 +57,12 @@ public final class RobotInitializationMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientEntity(entityId, RobotEntity.class,
-                (robot) -> {
-                    robot.getVirtualMachine().setBusStateClient(busState);
-                    robot.getVirtualMachine().setRunStateClient(runState);
-                    robot.getVirtualMachine().setBootErrorClient(bootError);
-                    NBTSerialization.deserialize(terminal, robot.getTerminal());
-                });
+        MessageUtils.withClientEntity(entityId, Robot.class,
+            robot -> {
+                robot.getVirtualMachine().setBusStateClient(busState);
+                robot.getVirtualMachine().setRunStateClient(runState);
+                robot.getVirtualMachine().setBootErrorClient(bootError);
+                NBTSerialization.deserialize(terminal, robot.getTerminal());
+            });
     }
 }

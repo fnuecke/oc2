@@ -1,16 +1,23 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.network.message.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.PacketDistributor;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.util.function.Function;
 
@@ -18,10 +25,10 @@ public final class Network {
     private static final String PROTOCOL_VERSION = "1";
 
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
-            new ResourceLocation(API.MOD_ID, "main"),
-            () -> PROTOCOL_VERSION,
-            PROTOCOL_VERSION::equals,
-            PROTOCOL_VERSION::equals
+        new ResourceLocation(API.MOD_ID, "main"),
+        () -> PROTOCOL_VERSION,
+        PROTOCOL_VERSION::equals,
+        PROTOCOL_VERSION::equals
     );
 
     ///////////////////////////////////////////////////////////////////
@@ -65,15 +72,56 @@ public final class Network {
         registerMessage(ClientCanceledImportFileMessage.class, ClientCanceledImportFileMessage::new, NetworkDirection.PLAY_TO_SERVER);
 
         registerMessage(BusCableFacadeMessage.class, BusCableFacadeMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+
+        registerMessage(NetworkInterfaceCardConfigurationMessage.class, NetworkInterfaceCardConfigurationMessage::new, NetworkDirection.PLAY_TO_SERVER);
+        registerMessage(NetworkTunnelLinkMessage.class, NetworkTunnelLinkMessage::new, NetworkDirection.PLAY_TO_SERVER);
+
+        registerMessage(ProjectorRequestFramebufferMessage.class, ProjectorRequestFramebufferMessage::new, NetworkDirection.PLAY_TO_SERVER);
+        registerMessage(ProjectorFramebufferMessage.class, ProjectorFramebufferMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+        registerMessage(ProjectorStateMessage.class, ProjectorStateMessage::new, NetworkDirection.PLAY_TO_CLIENT);
+
+        registerMessage(KeyboardInputMessage.class, KeyboardInputMessage::new, NetworkDirection.PLAY_TO_SERVER);
     }
 
-    public static <T> void sendToClientsTrackingChunk(final T message, final Chunk chunk) {
+    public static <T> void sendToServer(final T message) {
+        Network.INSTANCE.sendToServer(message);
+    }
+
+    public static <T> void sendToClient(final T message, final ServerPlayer player) {
+        Network.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
+    }
+
+    public static <T> void sendToClientsTrackingChunk(final T message, final LevelChunk chunk) {
         Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
     }
 
-    public static <T> void sendToClientsTrackingTileEntity(final T message, final TileEntity tileEntity) {
-        final Chunk chunk = tileEntity.getLevel().getChunkAt(tileEntity.getBlockPos());
-        Network.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> chunk), message);
+    public static <T> void sendToClientsTrackingBlockEntity(final T message, final BlockEntity blockEntity) {
+        final Level level = blockEntity.getLevel();
+        if (level == null) {
+            return;
+        }
+
+        final MinecraftServer server = level.getServer();
+        if (server == null) {
+            return;
+        }
+
+        if (!server.isSameThread()) {
+            throw new IllegalStateException(
+                "Attempting to send network message to BlockEntity from non-server " +
+                    "thread [" + Thread.currentThread() + "]. This is not supported, " +
+                    "because looking up the chunk from the level is required. " +
+                    "Consider caching the containing chunk and using " +
+                    "sendToClientsTrackingChunk() directly, instead.");
+        }
+
+        final BlockPos blockPos = blockEntity.getBlockPos();
+        final int chunkX = SectionPos.blockToSectionCoord(blockPos.getX());
+        final int chunkZ = SectionPos.blockToSectionCoord(blockPos.getZ());
+        if (level.hasChunk(chunkX, chunkZ)) {
+            final LevelChunk chunk = level.getChunk(chunkX, chunkZ);
+            sendToClientsTrackingChunk(message, chunk);
+        }
     }
 
     public static <T> void sendToClientsTrackingEntity(final T message, final Entity entity) {
@@ -82,12 +130,12 @@ public final class Network {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static <T extends AbstractMessage> void registerMessage(final Class<T> type, final Function<PacketBuffer, T> decoder, final NetworkDirection direction) {
+    private static <T extends AbstractMessage> void registerMessage(final Class<T> type, final Function<FriendlyByteBuf, T> decoder, final NetworkDirection direction) {
         INSTANCE.messageBuilder(type, getNextPacketId(), direction)
-                .encoder(AbstractMessage::toBytes)
-                .decoder(decoder)
-                .consumer(AbstractMessage::handleMessage)
-                .add();
+            .encoder(AbstractMessage::toBytes)
+            .decoder(decoder)
+            .consumer(AbstractMessage::handleMessage)
+            .add();
     }
 
     private static int getNextPacketId() {

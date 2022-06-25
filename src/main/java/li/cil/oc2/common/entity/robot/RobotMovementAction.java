@@ -1,18 +1,21 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.entity.robot;
 
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.entity.Entities;
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
-import net.minecraft.entity.MoverType;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import li.cil.oc2.common.util.TickUtils;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Objects;
 
 public final class RobotMovementAction extends AbstractRobotAction {
@@ -20,7 +23,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final float MOVEMENT_SPEED = 1f / Constants.SECONDS_TO_TICKS; // block / sec -> block / tick.
+    private static final float MOVEMENT_SPEED = 1f / TickUtils.toTicks(Duration.ofSeconds(1)); // blocks per tick
 
     private static final String DIRECTION_TAG_NAME = "direction";
     private static final String ORIGIN_TAG_NAME = "origin";
@@ -29,11 +32,11 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
     ///////////////////////////////////////////////////////////////////
 
-    private MovementDirection direction;
+    @Nullable private MovementDirection direction;
     @Nullable private BlockPos origin;
     @Nullable private BlockPos start;
     @Nullable private BlockPos target;
-    @Nullable private Vector3d targetPos;
+    @Nullable private Vec3 targetPos;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -42,19 +45,18 @@ public final class RobotMovementAction extends AbstractRobotAction {
         this.direction = direction.resolve();
     }
 
-    RobotMovementAction(final CompoundNBT tag) {
-        super(RobotActions.MOVEMENT);
-        deserialize(tag);
+    RobotMovementAction(final CompoundTag tag) {
+        super(RobotActions.MOVEMENT, tag);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static Vector3d getTargetPositionInBlock(final BlockPos position) {
-        return Vector3d.atBottomCenterOf(position).add(0, 0.5f * (1 - Entities.ROBOT.get().getHeight()), 0);
+    public static Vec3 getTargetPositionInBlock(final BlockPos position) {
+        return Vec3.atBottomCenterOf(position).add(0, 0.5f * (1 - Entities.ROBOT.get().getHeight()), 0);
     }
 
-    public static void moveTowards(final RobotEntity robot, final Vector3d targetPosition) {
-        Vector3d delta = targetPosition.subtract(robot.position());
+    public static void moveTowards(final Robot robot, final Vec3 targetPosition) {
+        Vec3 delta = targetPosition.subtract(robot.position());
         if (delta.lengthSqr() > MOVEMENT_SPEED * MOVEMENT_SPEED) {
             delta = delta.normalize().scale(MOVEMENT_SPEED);
         }
@@ -65,33 +67,27 @@ public final class RobotMovementAction extends AbstractRobotAction {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void initialize(final RobotEntity robot) {
+    public void initialize(final Robot robot) {
         if (origin == null || start == null || target == null) {
             origin = robot.blockPosition();
             start = origin;
             target = start;
-            switch (direction) {
-                case UPWARD:
-                    target = target.relative(Direction.UP);
-                    break;
-                case DOWNWARD:
-                    target = target.relative(Direction.DOWN);
-                    break;
-                case FORWARD:
-                    target = target.relative(robot.getDirection());
-                    break;
-                case BACKWARD:
-                    target = target.relative(robot.getDirection().getOpposite());
-                    break;
+            if (direction != null) {
+                switch (direction) {
+                    case UPWARD -> target = target.relative(Direction.UP);
+                    case DOWNWARD -> target = target.relative(Direction.DOWN);
+                    case FORWARD -> target = target.relative(robot.getDirection());
+                    case BACKWARD -> target = target.relative(robot.getDirection().getOpposite());
+                }
             }
         }
 
         targetPos = getTargetPositionInBlock(target);
-        robot.getEntityData().set(RobotEntity.TARGET_POSITION, target);
+        robot.getEntityData().set(Robot.TARGET_POSITION, target);
     }
 
     @Override
-    public RobotActionResult perform(final RobotEntity robot) {
+    public RobotActionResult perform(final Robot robot) {
         if (targetPos == null) {
             throw new IllegalStateException();
         }
@@ -112,43 +108,47 @@ public final class RobotMovementAction extends AbstractRobotAction {
     }
 
     @Override
-    public CompoundNBT serialize() {
-        final CompoundNBT tag = super.serialize();
+    public CompoundTag serialize() {
+        final CompoundTag tag = super.serialize();
 
         NBTUtils.putEnum(tag, DIRECTION_TAG_NAME, direction);
         if (origin != null) {
-            tag.put(ORIGIN_TAG_NAME, NBTUtil.writeBlockPos(origin));
+            tag.put(ORIGIN_TAG_NAME, NbtUtils.writeBlockPos(origin));
         }
         if (start != null) {
-            tag.put(START_TAG_NAME, NBTUtil.writeBlockPos(start));
+            tag.put(START_TAG_NAME, NbtUtils.writeBlockPos(start));
         }
         if (target != null) {
-            tag.put(TARGET_TAG_NAME, NBTUtil.writeBlockPos(target));
+            tag.put(TARGET_TAG_NAME, NbtUtils.writeBlockPos(target));
         }
 
         return tag;
     }
 
     @Override
-    public void deserialize(final CompoundNBT tag) {
+    public void deserialize(final CompoundTag tag) {
         super.deserialize(tag);
 
         direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, MovementDirection.class);
         if (direction == null) direction = MovementDirection.FORWARD;
         direction = direction.resolve();
         if (tag.contains(ORIGIN_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            origin = NBTUtil.readBlockPos(tag.getCompound(ORIGIN_TAG_NAME));
+            origin = NbtUtils.readBlockPos(tag.getCompound(ORIGIN_TAG_NAME));
         }
         if (tag.contains(START_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            start = NBTUtil.readBlockPos(tag.getCompound(START_TAG_NAME));
+            start = NbtUtils.readBlockPos(tag.getCompound(START_TAG_NAME));
         }
         if (tag.contains(TARGET_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            target = NBTUtil.readBlockPos(tag.getCompound(TARGET_TAG_NAME));
+            target = NbtUtils.readBlockPos(tag.getCompound(TARGET_TAG_NAME));
             targetPos = getTargetPositionInBlock(target);
         }
     }
 
-    private void moveAndResolveCollisions(final RobotEntity robot) {
+    private void moveAndResolveCollisions(final Robot robot) {
+        if (start == null || target == null || targetPos == null) {
+            return;
+        }
+
         moveTowards(robot, targetPos);
 
         final boolean didCollide = robot.horizontalCollision || robot.verticalCollision;
@@ -159,13 +159,14 @@ public final class RobotMovementAction extends AbstractRobotAction {
             target = start;
             start = newStart;
             targetPos = getTargetPositionInBlock(target);
-            robot.getEntityData().set(RobotEntity.TARGET_POSITION, target);
+            robot.getEntityData().set(Robot.TARGET_POSITION, target);
         }
     }
 
-    private void validateTarget(final RobotEntity robot) {
+    private void validateTarget(final Robot robot) {
         final BlockPos currentPosition = robot.blockPosition();
-        if (Objects.equals(currentPosition, start) || Objects.equals(currentPosition, target)) {
+        if (start == null || Objects.equals(currentPosition, start) ||
+            target == null || Objects.equals(currentPosition, target)) {
             return;
         }
 
@@ -185,6 +186,6 @@ public final class RobotMovementAction extends AbstractRobotAction {
         }
 
         targetPos = getTargetPositionInBlock(target);
-        robot.getEntityData().set(RobotEntity.TARGET_POSITION, target);
+        robot.getEntityData().set(Robot.TARGET_POSITION, target);
     }
 }

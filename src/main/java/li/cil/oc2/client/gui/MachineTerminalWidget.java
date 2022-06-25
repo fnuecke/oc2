@@ -1,25 +1,31 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 
-public final class MachineTerminalWidget extends AbstractGui {
-    public static final int TERMINAL_WIDTH = Terminal.WIDTH * Terminal.CHAR_WIDTH / 2;
-    public static final int TERMINAL_HEIGHT = Terminal.HEIGHT * Terminal.CHAR_HEIGHT / 2;
+@OnlyIn(Dist.CLIENT)
+public final class MachineTerminalWidget extends GuiComponent {
+    private static final int TERMINAL_WIDTH = Terminal.WIDTH * Terminal.CHAR_WIDTH / 2;
+    private static final int TERMINAL_HEIGHT = Terminal.HEIGHT * Terminal.CHAR_HEIGHT / 2;
 
-    public static final int MARGIN_SIZE = 8;
-    public static final int TERMINAL_X = MARGIN_SIZE;
-    public static final int TERMINAL_Y = MARGIN_SIZE;
+    private static final int MARGIN_SIZE = 8;
+    private static final int TERMINAL_X = MARGIN_SIZE;
+    private static final int TERMINAL_Y = MARGIN_SIZE;
 
     public static final int WIDTH = Sprites.TERMINAL_SCREEN.width;
     public static final int HEIGHT = Sprites.TERMINAL_SCREEN.height;
@@ -31,6 +37,7 @@ public final class MachineTerminalWidget extends AbstractGui {
     private final Terminal terminal;
     private int leftPos, topPos;
     private boolean isMouseOverTerminal;
+    private Terminal.RendererView rendererView;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -40,33 +47,39 @@ public final class MachineTerminalWidget extends AbstractGui {
         this.terminal = this.container.getTerminal();
     }
 
-    public void renderBackground(final MatrixStack matrixStack, final int mouseX, final int mouseY) {
+    public void renderBackground(final PoseStack stack, final int mouseX, final int mouseY) {
         isMouseOverTerminal = isMouseOverTerminal(mouseX, mouseY);
 
-        Sprites.TERMINAL_SCREEN.draw(matrixStack, leftPos, topPos);
+        Sprites.TERMINAL_SCREEN.draw(stack, leftPos, topPos);
 
         if (shouldCaptureInput()) {
-            Sprites.TERMINAL_FOCUSED.draw(matrixStack, leftPos, topPos);
+            Sprites.TERMINAL_FOCUSED.draw(stack, leftPos, topPos);
         }
     }
 
-    public void render(final MatrixStack matrixStack, final int mouseX, final int mouseY, @Nullable final ITextComponent error) {
+    public void render(final PoseStack stack, final int mouseX, final int mouseY, @Nullable final Component error) {
         if (container.getVirtualMachine().isRunning()) {
-            final MatrixStack stack = new MatrixStack();
-            stack.translate(leftPos + TERMINAL_X, topPos + TERMINAL_Y, getClient().getItemRenderer().blitOffset);
-            stack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
-            terminal.render(stack);
+            final PoseStack terminalStack = new PoseStack();
+            terminalStack.translate(leftPos + TERMINAL_X, topPos + TERMINAL_Y, getClient().getItemRenderer().blitOffset);
+            terminalStack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
+
+            if (rendererView == null) {
+                rendererView = terminal.getRenderer();
+            }
+
+            final Matrix4f projectionMatrix = Matrix4f.orthographic(0, parent.width, 0, parent.height, -10, 10f);
+            rendererView.render(terminalStack, projectionMatrix);
         } else {
-            final FontRenderer font = getClient().font;
+            final Font font = getClient().font;
             if (error != null) {
                 final int textWidth = font.width(error);
                 final int textOffsetX = (TERMINAL_WIDTH - textWidth) / 2;
                 final int textOffsetY = (TERMINAL_HEIGHT - font.lineHeight) / 2;
-                font.drawShadow(matrixStack,
-                        error,
-                        leftPos + TERMINAL_X + textOffsetX,
-                        topPos + TERMINAL_Y + textOffsetY,
-                        0xEE3322);
+                font.drawShadow(stack,
+                    error,
+                    leftPos + TERMINAL_X + textOffsetX,
+                    topPos + TERMINAL_Y + textOffsetY,
+                    0xEE3322);
             }
         }
     }
@@ -79,7 +92,9 @@ public final class MachineTerminalWidget extends AbstractGui {
     }
 
     public boolean charTyped(final char ch, final int modifier) {
-        terminal.putInput((byte) ch);
+        if (modifier == 0 || modifier == GLFW.GLFW_MOD_SHIFT) {
+            terminal.putInput((byte) ch);
+        }
         return true;
     }
 
@@ -96,8 +111,8 @@ public final class MachineTerminalWidget extends AbstractGui {
         } else {
             final byte[] sequence = TerminalInput.getSequence(keyCode, modifiers);
             if (sequence != null) {
-                for (int i = 0; i < sequence.length; i++) {
-                    terminal.putInput(sequence[i]);
+                for (final byte b : sequence) {
+                    terminal.putInput(b);
                 }
             }
         }
@@ -114,6 +129,10 @@ public final class MachineTerminalWidget extends AbstractGui {
 
     public void onClose() {
         getClient().keyboardHandler.setSendRepeatsToGui(false);
+        if (rendererView != null) {
+            terminal.releaseRenderer(rendererView);
+            rendererView = null;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -124,12 +143,12 @@ public final class MachineTerminalWidget extends AbstractGui {
 
     private boolean shouldCaptureInput() {
         return isMouseOverTerminal && AbstractMachineTerminalScreen.isInputCaptureEnabled() &&
-               container.getVirtualMachine().isRunning();
+            container.getVirtualMachine().isRunning();
     }
 
     private boolean isMouseOverTerminal(final int mouseX, final int mouseY) {
         return parent.isMouseOver(mouseX, mouseY,
-                MachineTerminalWidget.TERMINAL_X, MachineTerminalWidget.TERMINAL_Y,
-                MachineTerminalWidget.TERMINAL_WIDTH, MachineTerminalWidget.TERMINAL_HEIGHT);
+            MachineTerminalWidget.TERMINAL_X, MachineTerminalWidget.TERMINAL_Y,
+            MachineTerminalWidget.TERMINAL_WIDTH, MachineTerminalWidget.TERMINAL_HEIGHT);
     }
 }

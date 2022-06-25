@@ -1,11 +1,13 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus.device.data;
 
 import li.cil.oc2.api.bus.device.data.Firmware;
 import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.memory.MemoryMaps;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import java.io.IOException;
@@ -23,7 +25,7 @@ public final class BuildrootFirmware extends ForgeRegistryEntry<Firmware> implem
     }
 
     @Override
-    public ITextComponent getDisplayName() {
-        return new StringTextComponent("Linux");
+    public Component getDisplayName() {
+        return new TextComponent("Sedna Linux");
     }
 }

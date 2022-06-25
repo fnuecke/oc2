@@ -1,9 +1,9 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.bus.device.data;
 
-import li.cil.oc2.api.API;
 import li.cil.sedna.api.memory.MemoryMap;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**
@@ -22,16 +22,11 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
  */
 public interface Firmware extends IForgeRegistryEntry<Firmware> {
     /**
-     * The registry name of the registry holding firmwares.
-     */
-    ResourceLocation REGISTRY = new ResourceLocation(API.MOD_ID, "firmware");
-
-    /**
      * Runs this firmware.
      * <p>
      * This will usually load machine code into memory at the specified start address.
      * <p>
-     * Typically only returns {@code false} when there was not enough memory to fit the firmware.
+     * Typically, only returns {@code false} when there was not enough memory to fit the firmware.
      *
      * @param memory       access to the memory map of the machine.
      * @param startAddress the memory address where execution will commence.
@@ -45,5 +40,5 @@ public interface Firmware extends IForgeRegistryEntry<Firmware> {
      *
      * @return the display name of this firmware.
      */
-    ITextComponent getDisplayName();
+    Component getDisplayName();
 }

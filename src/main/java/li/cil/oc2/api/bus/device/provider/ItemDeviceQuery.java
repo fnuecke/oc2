@@ -1,8 +1,10 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.bus.device.provider;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.Optional;
 
@@ -13,11 +15,11 @@ import java.util.Optional;
  */
 public interface ItemDeviceQuery {
     /**
-     * The {@link TileEntity} that holds the item this query is for.
+     * The {@link BlockEntity} that holds the item this query is for.
      *
-     * @return the {@link TileEntity} hosting the device, if any.
+     * @return the {@link BlockEntity} hosting the device, if any.
      */
-    Optional<TileEntity> getContainerTileEntity();
+    Optional<BlockEntity> getContainerBlockEntity();
 
     /**
      * The {@link Entity} that holds the item this query is for.

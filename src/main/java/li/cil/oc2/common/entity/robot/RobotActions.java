@@ -1,7 +1,9 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.entity.robot;
 
-import li.cil.oc2.common.entity.RobotEntity;
-import net.minecraft.nbt.CompoundNBT;
+import li.cil.oc2.common.entity.Robot;
+import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -19,32 +21,32 @@ public final class RobotActions {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void initializeData(final RobotEntity robot) {
+    public static void initializeData(final Robot robot) {
         for (final AbstractRobotActionType type : ACTIONS) {
             type.initializeData(robot);
         }
     }
 
-    public static void performServer(final RobotEntity robot, final AbstractRobotAction currentAction) {
+    public static void performServer(final Robot robot, final AbstractRobotAction currentAction) {
         for (final AbstractRobotActionType type : ACTIONS) {
             type.performServer(robot, currentAction);
         }
     }
 
-    public static void performClient(final RobotEntity robot) {
+    public static void performClient(final Robot robot) {
         for (final AbstractRobotActionType type : ACTIONS) {
             type.performClient(robot);
         }
     }
 
-    public static CompoundNBT serialize(final AbstractRobotAction action) {
-        final CompoundNBT actionTag = action.serialize();
+    public static CompoundTag serialize(final AbstractRobotAction action) {
+        final CompoundTag actionTag = action.serialize();
         actionTag.putInt(ACTION_TYPE_TAG_NAME, action.getType().getId());
         return actionTag;
     }
 
     @Nullable
-    public static AbstractRobotAction deserialize(final CompoundNBT tag) {
+    public static AbstractRobotAction deserialize(final CompoundTag tag) {
         final int type = tag.getInt(ACTION_TYPE_TAG_NAME);
         if (type < 1 || type > ACTIONS.size()) {
             return null;

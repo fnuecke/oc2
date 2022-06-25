@@ -1,8 +1,10 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.client.gui.FileChooserScreen;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -24,20 +26,20 @@ public final class ExportedFileMessage extends AbstractMessage {
         this.data = data;
     }
 
-    public ExportedFileMessage(final PacketBuffer buffer) {
+    public ExportedFileMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         name = buffer.readUtf();
         data = buffer.readByteArray();
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeUtf(name);
         buffer.writeByteArray(data);
     }

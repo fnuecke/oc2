@@ -1,22 +1,19 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import li.cil.oc2.common.network.Network;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.function.Supplier;
 
 public abstract class AbstractMessage {
-    protected static final Logger LOGGER = LogManager.getLogger();
-
-    ///////////////////////////////////////////////////////////////////
-
     protected AbstractMessage() {
     }
 
-    protected AbstractMessage(final PacketBuffer buffer) {
+    protected AbstractMessage(final FriendlyByteBuf buffer) {
         fromBytes(buffer);
     }
 
@@ -27,9 +24,9 @@ public abstract class AbstractMessage {
         return true;
     }
 
-    public abstract void fromBytes(final PacketBuffer buffer);
+    public abstract void fromBytes(final FriendlyByteBuf buffer);
 
-    public abstract void toBytes(final PacketBuffer buffer);
+    public abstract void toBytes(final FriendlyByteBuf buffer);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -40,5 +37,9 @@ public abstract class AbstractMessage {
 
     protected void handleMessage(final NetworkEvent.Context context) {
         throw new NotImplementedException("Message implements neither asynchronous nor synchronous handleMessage() method.");
+    }
+
+    protected <T> void reply(final T message, final NetworkEvent.Context context) {
+        Network.INSTANCE.reply(message, context);
     }
 }

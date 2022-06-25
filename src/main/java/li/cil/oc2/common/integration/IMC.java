@@ -1,9 +1,11 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.integration;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.imc.RPCMethodParameterTypeAdapter;
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -35,11 +37,11 @@ public final class IMC {
 
     private static void handleIMCMessages(final InterModProcessEvent event) {
         event.getIMCStream().forEach(message -> {
-            final Consumer<InterModComms.IMCMessage> method = METHODS.get(message.getMethod());
+            final Consumer<InterModComms.IMCMessage> method = METHODS.get(message.method());
             if (method != null) {
                 method.accept(message);
             } else {
-                LOGGER.error("Received unknown IMC message [{}] from mod [{}], ignoring.", message.getMethod(), message.getSenderModId());
+                LOGGER.error("Received unknown IMC message [{}] from mod [{}], ignoring.", message.method(), message.senderModId());
             }
         });
     }
@@ -49,18 +51,18 @@ public final class IMC {
             try {
                 RPCMethodParameterTypeAdapters.addTypeAdapter(value);
             } catch (final IllegalArgumentException e) {
-                LOGGER.error("Received invalid type adapter registration [{}] for type [{}] from mod [{}].", value.getTypeAdapter(), value.getType(), message.getSenderModId());
+                LOGGER.error("Received invalid type adapter registration [{}] for type [{}] from mod [{}].", value.typeAdapter(), value.type(), message.senderModId());
             }
         });
     }
 
     @SuppressWarnings("unchecked")
     private static <T> Optional<T> getMessageParameter(final InterModComms.IMCMessage message, final Class<T> type) {
-        final Object value = message.getMessageSupplier().get();
+        final Object value = message.messageSupplier().get();
         if (type.isInstance(value)) {
             return Optional.of((T) value);
         } else {
-            LOGGER.error("Received incompatible parameter [{}] for IMC message [{}] from mod [{}]. Expected type is [{}].", message.getMessageSupplier().get(), message.getMethod(), message.getSenderModId(), type);
+            LOGGER.error("Received incompatible parameter [{}] for IMC message [{}] from mod [{}]. Expected type is [{}].", message.messageSupplier().get(), message.method(), message.senderModId(), type);
             return Optional.empty();
         }
     }

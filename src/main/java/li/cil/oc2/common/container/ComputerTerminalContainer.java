@@ -1,48 +1,50 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.container;
 
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IIntArray;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.network.NetworkHooks;
 
 public final class ComputerTerminalContainer extends AbstractComputerContainer {
-    public static void createServer(final ComputerTileEntity computer, final IEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayerEntity player) {
-        NetworkHooks.openGui(player, new INamedContainerProvider() {
+    public static void createServer(final ComputerBlockEntity computer, final IEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
+        NetworkHooks.openGui(player, new MenuProvider() {
             @Override
-            public ITextComponent getDisplayName() {
-                return new TranslationTextComponent(computer.getBlockState().getBlock().getDescriptionId());
+            public Component getDisplayName() {
+                return new TranslatableComponent(computer.getBlockState().getBlock().getDescriptionId());
             }
 
             @Override
-            public Container createMenu(final int id, final PlayerInventory inventory, final PlayerEntity player) {
+            public AbstractContainerMenu createMenu(final int id, final Inventory inventory, final Player player) {
                 return new ComputerTerminalContainer(id, player, computer, createEnergyInfo(energy, busController));
             }
         }, computer.getBlockPos());
     }
 
-    public static ComputerTerminalContainer createClient(final int id, final PlayerInventory playerInventory, final PacketBuffer data) {
+    public static ComputerTerminalContainer createClient(final int id, final Inventory inventory, final FriendlyByteBuf data) {
         final BlockPos pos = data.readBlockPos();
-        final TileEntity tileEntity = playerInventory.player.level.getBlockEntity(pos);
-        if (!(tileEntity instanceof ComputerTileEntity)) {
-            throw new IllegalArgumentException();
+        final BlockEntity blockEntity = inventory.player.level.getBlockEntity(pos);
+        if (blockEntity instanceof final ComputerBlockEntity computer) {
+            return new ComputerTerminalContainer(id, inventory.player, computer, createClientEnergyInfo());
         }
-        return new ComputerTerminalContainer(id, playerInventory.player, (ComputerTileEntity) tileEntity, createEnergyInfo());
+
+        throw new IllegalArgumentException();
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private ComputerTerminalContainer(final int id, final PlayerEntity player, final ComputerTileEntity computer, final IIntArray energyInfo) {
+    private ComputerTerminalContainer(final int id, final Player player, final ComputerBlockEntity computer, final IntPrecisionContainerData energyInfo) {
         super(Containers.COMPUTER_TERMINAL.get(), id, player, computer, energyInfo);
     }
 }

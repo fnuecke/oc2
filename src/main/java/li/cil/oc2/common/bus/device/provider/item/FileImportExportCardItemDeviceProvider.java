@@ -1,11 +1,13 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus.device.provider.item;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
+import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
 import net.minecraftforge.common.util.LazyOptional;
@@ -27,7 +29,7 @@ public final class FileImportExportCardItemDeviceProvider extends AbstractItemDe
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
         return getTerminalUserProvider(query).map(provider ->
-                new FileImportExportCardItemDevice(query.getItemStack(), provider));
+            new FileImportExportCardItemDevice(query.getItemStack(), provider));
     }
 
     @Override
@@ -38,9 +40,9 @@ public final class FileImportExportCardItemDeviceProvider extends AbstractItemDe
     ///////////////////////////////////////////////////////////////////
 
     private Optional<TerminalUserProvider> getTerminalUserProvider(final ItemDeviceQuery query) {
-        if (query.getContainerTileEntity().isPresent()) {
-            final LazyOptional<TerminalUserProvider> capability = query.getContainerTileEntity().get()
-                    .getCapability(Capabilities.TERMINAL_USER_PROVIDER);
+        if (query.getContainerBlockEntity().isPresent()) {
+            final LazyOptional<TerminalUserProvider> capability = query.getContainerBlockEntity().get()
+                .getCapability(Capabilities.terminalUserProvider());
             if (capability.isPresent()) {
                 return capability.resolve();
             }
@@ -48,7 +50,7 @@ public final class FileImportExportCardItemDeviceProvider extends AbstractItemDe
 
         if (query.getContainerEntity().isPresent()) {
             final LazyOptional<TerminalUserProvider> capability = query.getContainerEntity().get()
-                    .getCapability(Capabilities.TERMINAL_USER_PROVIDER);
+                .getCapability(Capabilities.terminalUserProvider());
             if (capability.isPresent()) {
                 return capability.resolve();
             }

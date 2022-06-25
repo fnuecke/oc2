@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.bus.device.vm.event;
 
 import li.cil.oc2.api.bus.device.vm.VMDevice;
@@ -8,8 +10,8 @@ import li.cil.oc2.api.bus.device.vm.context.VMContext;
  * <p>
  * Fired after all devices reported success from {@link VMDevice#mount(VMContext)}.
  * <p>
- * If a running VM is restored from a saved state, this event will not be fired. It is
- * intended for initializing the VM state on boot, e.g. by loading initial executable
+ * If a running VM is restored from a saved state, this event will <em>not</em> be fired.
+ * It is intended for initializing the VM state on boot, e.g. by loading initial executable
  * code into memory.
  * <p>
  * Listeners of this event may throw a {@link VMInitializationException} in case
@@ -19,26 +21,4 @@ import li.cil.oc2.api.bus.device.vm.context.VMContext;
  * <p>
  * <em>This is invoked from the worker thread running the VM.</em>
  */
-public final class VMInitializingEvent {
-    private final long programStartAddress;
-
-    ///////////////////////////////////////////////////////////////
-
-    public VMInitializingEvent(final long programStartAddress) {
-        this.programStartAddress = programStartAddress;
-    }
-
-    ///////////////////////////////////////////////////////////////
-
-    /**
-     * The address where code execution will begin.
-     * <p>
-     * Some VM implementations may perform some early setup before jumping to this
-     * memory address.
-     *
-     * @return the memory address where code execution begins.
-     */
-    public long getProgramStartAddress() {
-        return programStartAddress;
-    }
-}
+public record VMInitializingEvent(long programStartAddress) { }

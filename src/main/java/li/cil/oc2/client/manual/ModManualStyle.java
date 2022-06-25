@@ -1,10 +1,12 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.client.manual;
 
 import li.cil.manual.api.ManualStyle;
 import li.cil.manual.api.render.FontRenderer;
 import li.cil.oc2.client.renderer.font.MonospaceFontRenderer;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 

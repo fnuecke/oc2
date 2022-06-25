@@ -1,9 +1,11 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.util;
 
 import li.cil.oc2.api.util.Side;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalBlock;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
 
@@ -18,18 +20,17 @@ public final class HorizontalBlockUtils {
             return null;
         }
 
+        if (direction.getAxis().isVertical()) {
+            return direction;
+        }
+        if (!blockState.hasProperty(HorizontalDirectionalBlock.FACING)) {
+            return direction;
+        }
+
+        final Direction facing = blockState.getValue(HorizontalDirectionalBlock.FACING);
         final int index = direction.get2DDataValue();
-        if (index < 0) {
-            return direction;
-        }
-
-        if (!blockState.hasProperty(HorizontalBlock.FACING)) {
-            return direction;
-        }
-
-        final Direction facing = blockState.getValue(HorizontalBlock.FACING);
-        final int toLocal = HORIZONTAL_DIRECTION_COUNT - facing.get2DDataValue();
-        final int rotatedIndex = (index + toLocal) % HORIZONTAL_DIRECTION_COUNT;
+        final int toLocal = -facing.get2DDataValue();
+        final int rotatedIndex = (index + toLocal + HORIZONTAL_DIRECTION_COUNT) % HORIZONTAL_DIRECTION_COUNT;
         return Direction.from2DDataValue(rotatedIndex);
     }
 
@@ -39,16 +40,16 @@ public final class HorizontalBlockUtils {
             return null;
         }
 
-        final int index = side.get2DDataValue();
-        if (index < 0) {
-            return side.getDirection();
+        final Direction direction = side.getDirection();
+        if (direction.getAxis().isVertical()) {
+            return direction;
+        }
+        if (!blockState.hasProperty(HorizontalDirectionalBlock.FACING)) {
+            return direction;
         }
 
-        if (!blockState.hasProperty(HorizontalBlock.FACING)) {
-            return side.getDirection();
-        }
-
-        final Direction facing = blockState.getValue(HorizontalBlock.FACING);
+        final Direction facing = blockState.getValue(HorizontalDirectionalBlock.FACING);
+        final int index = direction.get2DDataValue();
         final int toGlobal = facing.get2DDataValue();
         final int rotatedIndex = (index + toGlobal) % HORIZONTAL_DIRECTION_COUNT;
         return Direction.from2DDataValue(rotatedIndex);

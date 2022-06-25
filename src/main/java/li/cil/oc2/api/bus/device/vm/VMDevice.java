@@ -1,5 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.bus.device.vm;
 
+import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.vm.context.InterruptAllocator;
@@ -16,13 +19,43 @@ import li.cil.sedna.api.device.MemoryMappedDevice;
  * <p>
  * To listen to lifecycle events of the VM and the device, register to the event
  * bus provided via {@link VMContext#getEventBus()} in {@link #mount(VMContext)}.
+ * <p>
+ * The lifecycle for VMDevices can be depicted as such:
+ * <pre>
+ * ┌──────────────┐ ┌────────────────┐
+ * │serializeNBT()│ │deserializeNBT()◄───────┐
+ * └──────────────┘ └───────┬────────┘       │
+ *   May be called          │VM starts or    │
+ *   at any time,    ┌──────┤resumes after   │
+ *   except while    │      │load            │
+ *   unloaded...     │  ┌───▼───┐            │
+ *                   │  │mount()│            │
+ *                   │  └───┬───┘            │Chunk
+ *                   │      │VM stops or     │unloaded
+ *                   │      │is unloaded     │
+ *                   │      │                │
+ *                   │ ┌────▼────┐           │
+ *                   │ │unmount()├───────────┤
+ *                   │ └────┬────┘           │
+ *                   │      │VM stopped or   │
+ *                   │      │device removed  │
+ *                   │      │                │
+ *                   │ ┌────▼────┐           │
+ *                   └─┤dispose()├───────────┘
+ *                     └─────────┘
+ * </pre>
+ * Note that if any other {@link VMDevice} fails mounting, all mounted devices
+ * will immediately unmounted and disposed.
  *
  * @see li.cil.oc2.api.bus.device.provider.BlockDeviceProvider
  * @see li.cil.oc2.api.bus.device.provider.ItemDeviceProvider
  */
 public interface VMDevice extends Device {
     /**
-     * Called to initialize this device.
+     * Called to start this device.
+     * <p>
+     * This is called when the connected virtual machine starts, or when the device
+     * is added to a {@link DeviceBus} with a currently running virtual machine.
      * <p>
      * Register {@link MemoryMappedDevice}s and claim interrupts via the
      * {@link InterruptAllocator} made available through the {@code context}.
@@ -30,7 +63,7 @@ public interface VMDevice extends Device {
      * If loading cannot complete, e.g. because resources cannot be allocated,
      * this should return {@code false}. The virtual machine will periodically
      * try again to load failed devices. The virtual machine will only start
-     * running after all devices have successfully loaded.
+     * or resume after all devices have successfully loaded.
      *
      * @param context the virtual machine context.
      * @return {@code true} if the device was loaded successfully; {@code false} otherwise.
@@ -38,23 +71,13 @@ public interface VMDevice extends Device {
     VMDeviceLoadResult mount(VMContext context);
 
     /**
-     * Called when the device is removed from the context it was loaded with.
+     * Called to pause this device.
      * <p>
-     * This can happen because the VM was stopped or the device was removed from
-     * the device bus that connected it to the VM, for example.
+     * Called when the connected virtual machine is suspended (chunk unload/server stopped/...).
      * <p>
-     * Intended for releasing resources acquired in {@link #mount(VMContext)}.
+     * Also called when the connected virtual machine stops or the device is removed from a
+     * {@link DeviceBus} with a currently running virtual machine. In this case, {@link #dispose()}
+     * will be called after this method returns.
      */
     void unmount();
-
-    /**
-     * Called when the device is suspended.
-     * <p>
-     * This can happen when the world area containing the context the device was loaded in is unloaded,
-     * e.g. due to player moving too far away from the area.
-     * <p>
-     * Intended for soft-releasing resources acquired in {@link #mount(VMContext)}, i.e. non-persisted
-     * unmanaged resources.
-     */
-    void suspend();
 }

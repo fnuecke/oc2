@@ -1,15 +1,22 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.API;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.IDyeableArmorItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Util;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
+import li.cil.oc2.common.util.ColorUtils;
+import net.minecraft.Util;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeableLeatherItem;
+import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
-public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem implements IDyeableArmorItem {
+public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem implements DyeableLeatherItem {
     private final int defaultColor;
     @Nullable private String descriptionId;
 
@@ -17,14 +24,28 @@ public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem
 
     public HardDriveWithExternalDataItem(final ResourceLocation defaultData, final DyeColor defaultColor) {
         super(defaultData);
-        this.defaultColor = defaultColor.getColorValue();
+        this.defaultColor = ColorUtils.textureDiffuseColorsToRGB(defaultColor.getTextureDiffuseColors());
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
+    public void fillItemCategory(final CreativeModeTab tab, final NonNullList<ItemStack> items) {
+        super.fillItemCategory(tab, items);
+
+        BlockDeviceDataRegistry.values().forEach(data -> {
+            if (!Objects.equals(BlockDeviceDataRegistry.getKey(data), getDefaultData())) {
+                final ItemStack stack = withData(data);
+                if (!stack.isEmpty()) {
+                    items.add(stack);
+                }
+            }
+        });
+    }
+
+    @Override
     public int getColor(final ItemStack stack) {
-        return hasCustomColor(stack) ? IDyeableArmorItem.super.getColor(stack) : defaultColor;
+        return hasCustomColor(stack) ? DyeableLeatherItem.super.getColor(stack) : defaultColor;
     }
 
     ///////////////////////////////////////////////////////////////////

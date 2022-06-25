@@ -4,8 +4,8 @@ local devices = require("devices")
 local device = devices:find("file_import_export")
 
 if not device then
-    io.write("A File Import/Export Card is required for this functionality.\n")
-    return
+    io.stderr:write("A File Import/Export Card is required for this functionality.\n")
+    os.exit(1)
 end
 
 device:reset()

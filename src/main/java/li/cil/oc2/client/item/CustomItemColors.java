@@ -1,12 +1,14 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.client.item;
 
 import li.cil.oc2.common.item.Items;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.color.ItemColors;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.IDyeableArmorItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.color.item.ItemColors;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeableLeatherItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 public final class CustomItemColors {
     public static final int BLACK = 0xFF404040;
@@ -36,56 +38,37 @@ public final class CustomItemColors {
     public static void initialize() {
         final ItemColors itemColors = Minecraft.getInstance().getItemColors();
         itemColors.register((stack, layer) -> layer == 1 ? getColor(stack) : NO_TINT,
-                Items.HARD_DRIVE_SMALL.get(),
-                Items.HARD_DRIVE_MEDIUM.get(),
-                Items.HARD_DRIVE_LARGE.get(),
-                Items.HARD_DRIVE_CUSTOM.get(),
-                Items.FLOPPY.get());
+            Items.HARD_DRIVE_SMALL.get(),
+            Items.HARD_DRIVE_MEDIUM.get(),
+            Items.HARD_DRIVE_LARGE.get(),
+            Items.HARD_DRIVE_CUSTOM.get(),
+            Items.FLOPPY.get());
     }
 
     public static int getColorByDye(final DyeColor dye) {
-        switch (dye) {
-            case WHITE:
-                return WHITE;
-            case ORANGE:
-                return ORANGE;
-            case MAGENTA:
-                return MAGENTA;
-            case LIGHT_BLUE:
-                return LIGHT_BLUE;
-            case YELLOW:
-                return YELLOW;
-            case LIME:
-                return LIME;
-            case PINK:
-                return PINK;
-            case GRAY:
-                return GREY;
-            case LIGHT_GRAY:
-                return LIGHT_GREY;
-            case CYAN:
-                return CYAN;
-            case PURPLE:
-                return PURPLE;
-            case BLUE:
-                return BLUE;
-            case BROWN:
-                return BROWN;
-            case GREEN:
-                return GREEN;
-            case RED:
-                return RED;
-            case BLACK:
-                return BLACK;
-        }
-
-        return GREY;
+        return switch (dye) {
+            case WHITE -> WHITE;
+            case ORANGE -> ORANGE;
+            case MAGENTA -> MAGENTA;
+            case LIGHT_BLUE -> LIGHT_BLUE;
+            case YELLOW -> YELLOW;
+            case LIME -> LIME;
+            case PINK -> PINK;
+            case GRAY -> GREY;
+            case LIGHT_GRAY -> LIGHT_GREY;
+            case CYAN -> CYAN;
+            case PURPLE -> PURPLE;
+            case BLUE -> BLUE;
+            case BROWN -> BROWN;
+            case GREEN -> GREEN;
+            case RED -> RED;
+            case BLACK -> BLACK;
+        };
     }
 
     public static int getColor(final ItemStack stack) {
         final Item item = stack.getItem();
-        if (item instanceof IDyeableArmorItem) {
-            final IDyeableArmorItem coloredItem = (IDyeableArmorItem) item;
+        if (item instanceof final DyeableLeatherItem coloredItem) {
             return coloredItem.getColor(stack);
         }
         return GREY;
@@ -97,8 +80,7 @@ public final class CustomItemColors {
 
     public static ItemStack withColor(final ItemStack stack, final int color) {
         final Item item = stack.getItem();
-        if (item instanceof IDyeableArmorItem) {
-            final IDyeableArmorItem coloredItem = (IDyeableArmorItem) item;
+        if (item instanceof final DyeableLeatherItem coloredItem) {
             coloredItem.setColor(stack, color);
         }
         return stack;

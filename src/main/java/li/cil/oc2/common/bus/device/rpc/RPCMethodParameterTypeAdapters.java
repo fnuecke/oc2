@@ -1,11 +1,13 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus.device.rpc;
 
 import com.google.gson.GsonBuilder;
 import li.cil.oc2.api.imc.RPCMethodParameterTypeAdapter;
-import li.cil.oc2.common.serialization.serializers.DirectionJsonSerializer;
-import li.cil.oc2.common.serialization.serializers.ItemStackJsonSerializer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Direction;
+import li.cil.oc2.common.serialization.gson.DirectionJsonSerializer;
+import li.cil.oc2.common.serialization.gson.ItemStackJsonSerializer;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 
@@ -31,7 +33,7 @@ public final class RPCMethodParameterTypeAdapters {
         final GsonBuilder builder = new GsonBuilder();
 
         for (final RPCMethodParameterTypeAdapter value : TYPE_ADAPTERS) {
-            builder.registerTypeAdapter(value.getType(), value.getTypeAdapter());
+            builder.registerTypeAdapter(value.type(), value.typeAdapter());
         }
 
         return builder;

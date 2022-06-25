@@ -1,28 +1,30 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.vm.FirmwareLoader;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
-import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.TickUtils;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.riscv.R5Board;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
+import java.time.Duration;
 
 public abstract class AbstractVirtualMachine implements VirtualMachine {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -36,7 +38,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     public static final String RUN_STATE_TAG_NAME = "runState";
     public static final String BOOT_ERROR_TAG_NAME = "bootError";
 
-    private static final int DEVICE_LOAD_RETRY_INTERVAL = 10 * Constants.SECONDS_TO_TICKS;
+    private static final int DEVICE_LOAD_RETRY_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(10));
 
     ///////////////////////////////////////////////////////////////////
 
@@ -50,26 +52,26 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         public GlobalVMContext context;
         public BuiltinDevices builtinDevices;
         public RPCDeviceBusAdapter rpcAdapter;
-        public VMDeviceBusAdapter vmAdapter;
+        public transient VMDeviceBusAdapter vmAdapter;
     }
 
-    public SerializedState state = new SerializedState();
+    public final SerializedState state = new SerializedState();
     public AbstractTerminalVMRunner runner;
     private VMRunState runState = VMRunState.STOPPED;
-    private ITextComponent bootError;
+    @Nullable private Component bootError;
 
     ///////////////////////////////////////////////////////////////////
 
     public AbstractVirtualMachine(final CommonDeviceBusController busController) {
         this.busController = busController;
 
-        busController.onBeforeScan.add(this::handleBeforeScan);
+        busController.onBeforeDeviceScan.add(this::handleBeforeDeviceScan);
         busController.onAfterDeviceScan.add(this::handleAfterDeviceScan);
         busController.onDevicesAdded.add(this::handleDevicesAdded);
         busController.onDevicesRemoved.add(this::handleDevicesRemoved);
 
         state.board = new R5Board();
-        state.context = new GlobalVMContext(state.board, this::joinWorkerThread);
+        state.context = new GlobalVMContext(state.board);
         state.builtinDevices = new BuiltinDevices(state.context);
         state.rpcAdapter = new RPCDeviceBusAdapter(state.builtinDevices.rpcSerialDevice);
         state.vmAdapter = new VMDeviceBusAdapter(state.context);
@@ -81,18 +83,22 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     ///////////////////////////////////////////////////////////////////
 
-    public void suspend() {
+    public void dispose() {
         joinWorkerThread();
-        state.vmAdapter.suspend();
-        state.rpcAdapter.suspend();
         state.context.invalidate();
         busController.dispose();
+    }
+
+    public void suspend() {
+        joinWorkerThread();
+        state.vmAdapter.unmountDevices();
+        state.rpcAdapter.unmountDevices();
     }
 
     @Override
     public boolean isRunning() {
         return getBusState() == CommonDeviceBusController.BusState.READY &&
-               getRunState() == VMRunState.RUNNING;
+            getRunState() == VMRunState.RUNNING;
     }
 
     @Override
@@ -119,15 +125,27 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     @Override
     @Nullable
-    public ITextComponent getBootError() {
+    public Component getBootError() {
+        return bootError;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void setBootErrorClient(@Nullable final Component value) {
+        bootError = value;
+    }
+
+    @Override
+    @Nullable
+    public Component getError() {
         switch (busState) {
             case SCAN_PENDING:
             case INCOMPLETE:
-                return new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_INCOMPLETE);
+                return new TranslatableComponent(Constants.COMPUTER_BUS_STATE_INCOMPLETE);
             case TOO_COMPLEX:
-                return new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_TOO_COMPLEX);
+                return new TranslatableComponent(Constants.COMPUTER_BUS_STATE_TOO_COMPLEX);
             case MULTIPLE_CONTROLLERS:
-                return new TranslationTextComponent(Constants.COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS);
+                return new TranslatableComponent(Constants.COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS);
             case READY:
                 switch (runState) {
                     case STOPPED:
@@ -137,12 +155,6 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
                 break;
         }
         return null;
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void setBootErrorClient(final ITextComponent value) {
-        bootError = value;
     }
 
     @Override
@@ -158,53 +170,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     @Override
     public void stop() {
-        switch (runState) {
-            case LOADING_DEVICES:
-                setRunState(VMRunState.STOPPED);
-                break;
-            case RUNNING:
-                stopRunnerAndReset();
-                break;
-        }
-    }
-
-    private void joinWorkerThread() {
-        if (runner != null) {
-            try {
-                state.context.postEvent(new VMPausingEvent());
-                runner.join();
-                runner.scheduleResumeEvent();
-            } catch (final Throwable e) {
-                LOGGER.error(e);
-                runner = null;
-            }
-        }
-    }
-
-    public void pauseAndReload() {
-        state.rpcAdapter.pause();
-
-        // This is typically called when a device bus starts a scan. Since scans
-        // can be delayed we must adjust our run state accordingly, to avoid
-        // running before the scan finishes.
-        if (runState == VMRunState.RUNNING) {
-            runState = VMRunState.LOADING_DEVICES;
-        }
-    }
-
-    public void resume(final boolean didDevicesChange) {
-        state.rpcAdapter.resume(busController, didDevicesChange);
-    }
-
-    protected void stopRunnerAndReset() {
-        joinWorkerThread();
-        setRunState(VMRunState.STOPPED);
-
-        state.board.reset();
-        state.rpcAdapter.reset();
-        state.vmAdapter.unmount();
-
-        runner = null;
+        stopRunnerAndReset();
     }
 
     public void tick() {
@@ -220,19 +186,15 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
 
         switch (runState) {
-            case LOADING_DEVICES:
-                load();
-                break;
-            case RUNNING:
-                run();
-                break;
+            case LOADING_DEVICES -> load();
+            case RUNNING -> run();
         }
     }
 
-    public CompoundNBT serialize() {
+    public CompoundTag serialize() {
         joinWorkerThread();
 
-        final CompoundNBT tag = new CompoundNBT();
+        final CompoundTag tag = new CompoundTag();
 
         if (runner != null) {
             tag.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
@@ -245,7 +207,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         return tag;
     }
 
-    public void deserialize(final CompoundNBT tag) {
+    public void deserialize(final CompoundTag tag) {
         joinWorkerThread();
 
         if (tag.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
@@ -278,21 +240,40 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     protected void handleRunStateChanged(final VMRunState value) {
     }
 
-    protected void handleBootErrorChanged(@Nullable final ITextComponent value) {
+    protected void handleBootErrorChanged(@Nullable final Component value) {
     }
 
-    protected void error(@Nullable final ITextComponent message) {
+    protected void error(@Nullable final Component message) {
         error(message, true);
     }
 
-    protected void error(@Nullable final ITextComponent message, final boolean reset) {
+    protected void error(@Nullable final Component message, final boolean reset) {
         if (reset) {
             stopRunnerAndReset();
         }
         setBootError(message);
     }
 
+    protected void stopRunnerAndReset() {
+        joinWorkerThread();
+        setRunState(VMRunState.STOPPED);
+
+        state.board.setRunning(false);
+        state.board.reset();
+        state.rpcAdapter.reset();
+        state.rpcAdapter.disposeDevices();
+        state.vmAdapter.disposeDevices();
+
+        runner = null;
+    }
+
     ///////////////////////////////////////////////////////////////////
+
+    private void joinWorkerThread() {
+        if (runner != null) {
+            runner.join();
+        }
+    }
 
     private void load() {
         if (loadDevicesDelay > 0) {
@@ -302,23 +283,25 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
         if (!consumeEnergy(busController.getEnergyConsumption(), true)) {
             // Don't even start running if we couldn't keep running.
-            error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
-            return;
-        }
-
-        final VMDeviceLoadResult loadResult = state.vmAdapter.mount();
-        if (!loadResult.wasSuccessful()) {
-            if (loadResult.getErrorMessage() != null) {
-                error(loadResult.getErrorMessage(), false);
-            } else {
-                error(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN), false);
-            }
-            loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
+            error(new TranslatableComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
             return;
         }
 
         if (busController.getDevices().stream().noneMatch(device -> device instanceof FirmwareLoader)) {
-            error(new TranslationTextComponent(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
+            error(new TranslatableComponent(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
+            return;
+        }
+
+        assert runner == null : "Runner active while still in load phase.";
+
+        final VMDeviceLoadResult loadResult = state.vmAdapter.mountDevices();
+        if (!loadResult.wasSuccessful()) {
+            if (loadResult.getErrorMessage() != null) {
+                error(loadResult.getErrorMessage(), false);
+            } else {
+                error(new TranslatableComponent(Constants.COMPUTER_ERROR_UNKNOWN), false);
+            }
+            loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
             return;
         }
 
@@ -334,25 +317,27 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
                 // a program that only uses registers. But not supporting that esoteric
                 // use-case loses out against avoiding people getting confused for having
                 // forgotten to add some RAM modules.
-                error(new TranslationTextComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
+                error(new TranslatableComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
                 return;
             } catch (final MemoryAccessException e) {
                 LOGGER.error(e);
-                error(new TranslationTextComponent(Constants.COMPUTER_ERROR_UNKNOWN));
+                error(new TranslatableComponent(Constants.COMPUTER_ERROR_UNKNOWN));
                 return;
             }
 
             runner = createRunner();
         }
 
+        state.rpcAdapter.mountDevices();
+
         setRunState(VMRunState.RUNNING);
 
-        // Only start running next tick. This gives loaded devices one tick to do async
+        // Only start running next tick. Doing so gives loaded devices one tick to do async
         // initialization. This is used by devices to restore data from disk, for example.
     }
 
     private void run() {
-        final ITextComponent runtimeError = runner.getRuntimeError();
+        final Component runtimeError = runner.getRuntimeError();
         if (runtimeError != null) {
             error(runtimeError);
             return;
@@ -364,7 +349,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
 
         if (!consumeEnergy(busController.getEnergyConsumption(), false)) {
-            error(new TranslationTextComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
+            error(new TranslatableComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
             return;
         }
 
@@ -391,29 +376,32 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         handleRunStateChanged(value);
     }
 
-    private void setBootError(@Nullable final ITextComponent value) {
-        if (Objects.equals(value, bootError)) {
-            return;
-        }
-
+    private void setBootError(@Nullable final Component value) {
         bootError = value;
-
         handleBootErrorChanged(value);
     }
 
-    private void handleBeforeScan() {
-        pauseAndReload();
+    private void handleBeforeDeviceScan() {
+        state.rpcAdapter.pause();
+
+        // Since scans can be delayed we must adjust our run state accordingly, to avoid
+        // running before the scan finishes.
+        if (runState == VMRunState.RUNNING) {
+            runState = VMRunState.LOADING_DEVICES;
+        }
     }
 
     private void handleAfterDeviceScan(final CommonDeviceBusController.AfterDeviceScanEvent event) {
-        resume(event.didDevicesChange);
+        state.rpcAdapter.resume(busController, event.didDevicesChange());
     }
 
     private void handleDevicesAdded(final CommonDeviceBusController.DevicesChangedEvent event) {
-        state.vmAdapter.addDevices(event.devices);
+        joinWorkerThread();
+        state.vmAdapter.addDevices(event.devices());
     }
 
     private void handleDevicesRemoved(final CommonDeviceBusController.DevicesChangedEvent event) {
-        state.vmAdapter.removeDevices(event.devices);
+        joinWorkerThread();
+        state.vmAdapter.removeDevices(event.devices());
     }
 }

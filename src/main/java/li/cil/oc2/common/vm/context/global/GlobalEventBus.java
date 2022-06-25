@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.vm.context.global;
 
 import com.google.common.eventbus.EventBus;
@@ -8,7 +10,6 @@ import li.cil.oc2.common.vm.context.EventManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@SuppressWarnings("UnstableApiUsage")
 final class GlobalEventBus implements VMLifecycleEventBus, EventManager {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -44,8 +45,8 @@ final class GlobalEventBus implements VMLifecycleEventBus, EventManager {
     ///////////////////////////////////////////////////////////////////
 
     private void handleEventBusException(final Throwable throwable, final SubscriberExceptionContext context) {
-        if (throwable instanceof VMInitializationException) {
-            initializationException = (VMInitializationException) throwable;
+        if (throwable instanceof final VMInitializationException exception) {
+            initializationException = exception;
         } else {
             LOGGER.error(throwable);
         }

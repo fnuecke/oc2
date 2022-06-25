@@ -1,7 +1,9 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.entity.robot;
 
-import li.cil.oc2.common.entity.RobotEntity;
-import net.minecraft.nbt.CompoundNBT;
+import li.cil.oc2.common.entity.Robot;
+import net.minecraft.nbt.CompoundTag;
 
 public abstract class AbstractRobotAction {
     private static final String ID_TAG_NAME = "id";
@@ -17,7 +19,7 @@ public abstract class AbstractRobotAction {
         this.type = type;
     }
 
-    public AbstractRobotAction(final AbstractRobotActionType type, final CompoundNBT tag) {
+    public AbstractRobotAction(final AbstractRobotActionType type, final CompoundTag tag) {
         this(type);
         deserialize(tag);
     }
@@ -36,20 +38,20 @@ public abstract class AbstractRobotAction {
         id = value;
     }
 
-    public void initialize(final RobotEntity robot) {
+    public void initialize(final Robot robot) {
     }
 
-    public abstract RobotActionResult perform(RobotEntity robot);
+    public abstract RobotActionResult perform(Robot robot);
 
-    public CompoundNBT serialize() {
-        final CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serialize() {
+        final CompoundTag tag = new CompoundTag();
 
         tag.putInt(ID_TAG_NAME, id);
 
         return tag;
     }
 
-    public void deserialize(final CompoundNBT tag) {
+    public void deserialize(final CompoundTag tag) {
         id = tag.getInt(ID_TAG_NAME);
     }
 }

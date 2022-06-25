@@ -11,6 +11,8 @@ This index lists all documented items. If you're looking for a block, see the [b
 - [Memory](memory.md)
 - [Network Cable](network_cable.md)
 - [Network Interface Card](network_interface_card.md)
+- [Network Tunnel Card](network_tunnel_card.md)
+- [Network Tunnel Module](network_tunnel_module.md)
 - [Redstone Interface Card](redstone_interface_card.md)
 - [Robot](robot.md)
 - [Scrench](wrench.md)

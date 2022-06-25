@@ -4,11 +4,11 @@ local devices = require("devices")
 local device = devices:find("file_import_export")
 
 if not device then
-    io.write("A File Import/Export Card is required for this functionality.\n")
-    return
+    io.stderr:write("A File Import/Export Card is required for this functionality.\n")
+    os.exit(1)
 end
 
-if not arg[1] then
+if #arg == 0 then
     io.write("Usage: export.lua filename\n")
     os.exit(1)
 end

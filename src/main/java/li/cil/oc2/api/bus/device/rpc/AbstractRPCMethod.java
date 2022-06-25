@@ -1,4 +1,8 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.bus.device.rpc;
+
+import javax.annotation.Nullable;
 
 /**
  * Convenience base class for {@link RPCMethod} implementations.
@@ -30,6 +34,8 @@ public abstract class AbstractRPCMethod implements RPCMethod {
         this(name, false, void.class, parameters);
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     @Override
     public String getName() {
         return name;
@@ -49,4 +55,14 @@ public abstract class AbstractRPCMethod implements RPCMethod {
     public RPCParameter[] getParameters() {
         return parameters;
     }
+
+    @Nullable
+    public Object invoke(final RPCInvocation invocation) throws Throwable {
+        return invoke(invocation.tryDeserializeParameters(getParameters()).orElseThrow(IllegalArgumentException::new));
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @Nullable
+    protected abstract Object invoke(final Object... parameters) throws Throwable;
 }

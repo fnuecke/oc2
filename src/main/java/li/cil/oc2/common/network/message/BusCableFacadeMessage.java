@@ -1,11 +1,13 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
+import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.BusCableTileEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.network.NetworkEvent;
 
 public final class BusCableFacadeMessage extends AbstractMessage {
     private BlockPos pos;
@@ -18,20 +20,20 @@ public final class BusCableFacadeMessage extends AbstractMessage {
         this.stack = stack;
     }
 
-    public BusCableFacadeMessage(final PacketBuffer buffer) {
+    public BusCableFacadeMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         stack = buffer.readItem();
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeItem(stack);
     }
@@ -40,7 +42,7 @@ public final class BusCableFacadeMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientTileEntityAt(pos, BusCableTileEntity.class,
-                (tileEntity) -> tileEntity.setFacade(stack));
+        MessageUtils.withClientBlockEntityAt(pos, BusCableBlockEntity.class,
+            busCable -> busCable.setFacade(stack));
     }
 }

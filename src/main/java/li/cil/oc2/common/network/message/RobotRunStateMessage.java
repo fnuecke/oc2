@@ -1,10 +1,12 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.vm.VMRunState;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 public final class RobotRunStateMessage extends AbstractMessage {
     private int entityId;
@@ -12,25 +14,25 @@ public final class RobotRunStateMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotRunStateMessage(final RobotEntity robot) {
+    public RobotRunStateMessage(final Robot robot, final VMRunState value) {
         this.entityId = robot.getId();
-        this.value = robot.getVirtualMachine().getRunState();
+        this.value = value;
     }
 
-    public RobotRunStateMessage(final PacketBuffer buffer) {
+    public RobotRunStateMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         entityId = buffer.readVarInt();
         value = buffer.readEnum(VMRunState.class);
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeVarInt(entityId);
         buffer.writeEnum(value);
     }
@@ -39,7 +41,7 @@ public final class RobotRunStateMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withClientEntity(entityId, RobotEntity.class,
-                (robot) -> robot.getVirtualMachine().setRunStateClient(value));
+        MessageUtils.withClientEntity(entityId, Robot.class,
+            robot -> robot.getVirtualMachine().setRunStateClient(value));
     }
 }

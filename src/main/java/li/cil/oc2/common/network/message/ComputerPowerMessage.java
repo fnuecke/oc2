@@ -1,10 +1,12 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.tileentity.ComputerTileEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 public final class ComputerPowerMessage extends AbstractMessage {
     private BlockPos pos;
@@ -12,25 +14,25 @@ public final class ComputerPowerMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public ComputerPowerMessage(final ComputerTileEntity computer, final boolean power) {
+    public ComputerPowerMessage(final ComputerBlockEntity computer, final boolean power) {
         this.pos = computer.getBlockPos();
         this.power = power;
     }
 
-    public ComputerPowerMessage(final PacketBuffer buffer) {
+    public ComputerPowerMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         power = buffer.readBoolean();
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeBoolean(power);
     }
@@ -39,13 +41,13 @@ public final class ComputerPowerMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withNearbyServerTileEntityAt(context, pos, ComputerTileEntity.class,
-                (computer) -> {
-                    if (power) {
-                        computer.start();
-                    } else {
-                        computer.stop();
-                    }
-                });
+        MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos, ComputerBlockEntity.class,
+            (player, computer) -> {
+                if (power) {
+                    computer.start();
+                } else {
+                    computer.stop();
+                }
+            });
     }
 }

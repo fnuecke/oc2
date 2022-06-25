@@ -1,22 +1,25 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "IRI",
+    "ICI",
     "XTX",
-    "IRI"
+    "IBI"
   ],
   "key": {
     "I": {
       "tag": "forge:ingots/iron"
     },
-    "R": {
-      "tag": "forge:dusts/redstone"
+    "C": {
+      "item": "minecraft:comparator"
     },
     "T": {
       "item": "oc2:transistor"
     },
     "X": {
       "item": "oc2:bus_interface"
+    },
+    "B": {
+      "item": "oc2:circuit_board"
     }
   },
   "result": {

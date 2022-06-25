@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.vm.context.global;
 
 import li.cil.ceres.api.Serialized;
@@ -19,7 +21,6 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     private final GlobalInterruptController interruptController;
     private final GlobalMemoryAllocator memoryAllocator;
     private final GlobalEventBus eventBus;
-    private final Runnable joinWorkerThread;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -28,22 +29,23 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     // or memory ranges previously used by other devices. Only claiming interrupts and
     // memory ranges explicitly will allow grabbing reserved ones.
 
-    @Serialized @SuppressWarnings("FieldMayBeFinal")
+    @Serialized
+    @SuppressWarnings("FieldMayBeFinal")
     private BitSet reservedInterrupts = new BitSet();
 
-    @Serialized @SuppressWarnings("FieldMayBeFinal")
+    @Serialized
+    @SuppressWarnings("FieldMayBeFinal")
     private MemoryRangeList reservedMemoryRanges = new MemoryRangeList();
 
     ///////////////////////////////////////////////////////////////////
 
-    public GlobalVMContext(final Board board, final Runnable joinWorkerThread) {
+    public GlobalVMContext(final Board board) {
         this.memoryMap = new GlobalMemoryMap(board.getMemoryMap());
         this.memoryRangeAllocator = new GlobalMemoryRangeAllocator(board, reservedMemoryRanges);
         this.interruptAllocator = new GlobalInterruptAllocator(board.getInterruptCount(), reservedInterrupts);
         this.interruptController = new GlobalInterruptController(board.getInterruptController(), interruptAllocator);
         this.memoryAllocator = new GlobalMemoryAllocator();
         this.eventBus = new GlobalEventBus();
-        this.joinWorkerThread = joinWorkerThread;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -94,11 +96,6 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     @Override
     public VMLifecycleEventBus getEventBus() {
         return eventBus;
-    }
-
-    @Override
-    public void joinWorkerThread() {
-        joinWorkerThread.run();
     }
 
     @Override

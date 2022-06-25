@@ -1,6 +1,12 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.vm;
 
+import li.cil.oc2.api.API;
 import li.cil.oc2.common.Config;
+import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,6 +21,7 @@ import java.util.stream.Collectors;
  * Call sites must be cooperative and only free claimed memory when actually being sure the
  * allocated memory associated with the claim will be garbage collected.
  */
+@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class Allocator {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -77,12 +84,19 @@ public final class Allocator {
             for (final Allocation allocation : ALLOCATIONS.values()) {
                 // Skip first three: Allocator::claimMemory, Allocation::new, Throwable::getStacktrace
                 LOGGER.error(Arrays.stream(allocation.stacktrace).skip(3).map(StackTraceElement::toString)
-                        .collect(Collectors.joining("\n  ", "Leaked memory allocation:\n  ", "")));
+                    .collect(Collectors.joining("\n  ", "Leaked memory allocation:\n  ", "")));
             }
         }
 
         ALLOCATIONS.clear();
         allocated = 0;
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @SubscribeEvent
+    public static void handleServerStopped(final ServerStoppedEvent event) {
+        resetAndCheckLeaks();
     }
 
     ///////////////////////////////////////////////////////////////////

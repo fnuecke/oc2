@@ -1,28 +1,31 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.entity.robot;
 
-import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.MathHelper;
+import li.cil.oc2.common.util.TickUtils;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Mth;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 
 public final class RobotRotationAction extends AbstractRobotAction {
     public static final float TARGET_EPSILON = 0.0001f;
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final float ROTATION_SPEED = 90f / Constants.SECONDS_TO_TICKS; // degrees / sec -> degrees / tick
+    private static final float ROTATION_SPEED = 90f / TickUtils.toTicks(Duration.ofSeconds(1)); // degrees per tick
 
     private static final String DIRECTION_TAG_NAME = "direction";
     private static final String TARGET_TAG_NAME = "start";
 
     ///////////////////////////////////////////////////////////////////
 
-    private RotationDirection direction;
+    @Nullable private RotationDirection direction;
     @Nullable private Direction target;
 
     ///////////////////////////////////////////////////////////////////
@@ -32,45 +35,42 @@ public final class RobotRotationAction extends AbstractRobotAction {
         this.direction = direction.resolve();
     }
 
-    RobotRotationAction(final CompoundNBT tag) {
-        super(RobotActions.ROTATION);
-        deserialize(tag);
+    RobotRotationAction(final CompoundTag tag) {
+        super(RobotActions.ROTATION, tag);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void rotateTowards(final RobotEntity robot, final Direction targetRotation) {
-        robot.yRot = MathHelper.approachDegrees(robot.yRot, targetRotation.toYRot(), ROTATION_SPEED);
+    public static void rotateTowards(final Robot robot, final Direction targetRotation) {
+        robot.setYRot(Mth.approachDegrees(robot.getYRot(), targetRotation.toYRot(), ROTATION_SPEED));
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void initialize(final RobotEntity robot) {
+    public void initialize(final Robot robot) {
         if (target == null) {
             target = robot.getDirection();
-            switch (direction) {
-                case LEFT:
-                    target = target.getCounterClockWise();
-                    break;
-                case RIGHT:
-                    target = target.getClockWise();
-                    break;
+            if (direction != null) {
+                switch (direction) {
+                    case LEFT -> target = target.getCounterClockWise();
+                    case RIGHT -> target = target.getClockWise();
+                }
             }
         }
 
-        robot.getEntityData().set(RobotEntity.TARGET_DIRECTION, target);
+        robot.getEntityData().set(Robot.TARGET_DIRECTION, target);
     }
 
     @Override
-    public RobotActionResult perform(final RobotEntity robot) {
+    public RobotActionResult perform(final Robot robot) {
         if (target == null) {
             throw new IllegalStateException();
         }
 
         rotateTowards(robot, target);
 
-        if (MathHelper.degreesDifferenceAbs(robot.yRot, target.toYRot()) < TARGET_EPSILON) {
+        if (Mth.degreesDifferenceAbs(robot.getYRot(), target.toYRot()) < TARGET_EPSILON) {
             return RobotActionResult.SUCCESS;
         }
 
@@ -78,8 +78,8 @@ public final class RobotRotationAction extends AbstractRobotAction {
     }
 
     @Override
-    public CompoundNBT serialize() {
-        final CompoundNBT tag = super.serialize();
+    public CompoundTag serialize() {
+        final CompoundTag tag = super.serialize();
 
         NBTUtils.putEnum(tag, DIRECTION_TAG_NAME, direction);
         if (target != null) {
@@ -90,7 +90,7 @@ public final class RobotRotationAction extends AbstractRobotAction {
     }
 
     @Override
-    public void deserialize(final CompoundNBT tag) {
+    public void deserialize(final CompoundTag tag) {
         super.deserialize(tag);
 
         direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, RotationDirection.class);

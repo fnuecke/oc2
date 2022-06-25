@@ -1,8 +1,14 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.serialization;
 
 import li.cil.oc2.api.API;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.storage.FolderName;
+import net.minecraft.world.level.storage.LevelResource;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,16 +21,18 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This class facilitates storing binary chunks of data in an efficient, parallelized fashion.
  */
+@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class BlobStorage {
     private static final Logger LOGGER = LogManager.getLogger();
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final FolderName BLOBS_FOLDER_NAME = new FolderName(API.MOD_ID + "-blobs");
+    private static final LevelResource BLOBS_FOLDER_NAME = new LevelResource(API.MOD_ID + "-blobs");
     private static final Map<UUID, FileChannel> BLOBS = new HashMap<>();
 
     private static Path dataDirectory; // Directory blobs get saved to.
@@ -52,7 +60,7 @@ public final class BlobStorage {
     /**
      * Closes all currently open blobs.
      */
-    public static void close() {
+    public static synchronized void close() {
         for (final FileChannel blob : BLOBS.values()) {
             try {
                 blob.close();
@@ -98,7 +106,7 @@ public final class BlobStorage {
      * @return the file channel for the requested blob.
      * @throws IOException if opening the blob fails.
      */
-    public static FileChannel getOrOpen(final UUID handle) throws IOException {
+    public static synchronized FileChannel getOrOpen(final UUID handle) throws IOException {
         FileChannel blob = BLOBS.get(handle);
         if (blob != null && blob.isOpen()) {
             return blob;
@@ -115,7 +123,7 @@ public final class BlobStorage {
      *
      * @param handle the handle of the blob to close.
      */
-    public static void close(final UUID handle) {
+    public static synchronized void close(final UUID handle) {
         try {
             final FileChannel blob = BLOBS.remove(handle);
             if (blob != null) {
@@ -134,11 +142,25 @@ public final class BlobStorage {
     public static void delete(final UUID handle) {
         close(handle);
 
-        try {
-            final Path path = dataDirectory.resolve(handle.toString());
-            Files.deleteIfExists(path);
-        } catch (final Throwable e) {
-            LOGGER.error(e);
-        }
+        final Path path = dataDirectory.resolve(handle.toString());
+        CompletableFuture.runAsync(() -> {
+            try {
+                Files.deleteIfExists(path);
+            } catch (final Throwable e) {
+                LOGGER.error(e);
+            }
+        });
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    @SubscribeEvent
+    public static void handleServerAboutToStart(final ServerAboutToStartEvent event) {
+        BlobStorage.setServer(event.getServer());
+    }
+
+    @SubscribeEvent
+    public static void handleServerStopped(final ServerStoppedEvent event) {
+        BlobStorage.close();
     }
 }

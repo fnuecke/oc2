@@ -1,7 +1,9 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common;
 
 import li.cil.oc2.api.API;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 
 import static li.cil.oc2.common.util.TranslationUtils.key;
 
@@ -10,7 +12,7 @@ public final class Constants {
     public static final int MEGABYTE = 1024 * KILOBYTE;
     public static final int GIGABYTE = 1024 * MEGABYTE;
 
-    public static int PAGE_SIZE = 4 * 1024;
+    public static final int PAGE_SIZE = 4 * 1024;
 
     public static final int CPU_FREQUENCY = 25_000_000;
 
@@ -26,6 +28,7 @@ public final class Constants {
     public static final String MOD_TAG_NAME = API.MOD_ID;
     public static final String ITEMS_TAG_NAME = "items";
     public static final String ENERGY_TAG_NAME = "energy";
+    public static final String INTERNET_ADAPTER_TAG_NAME = "InternetAdapter";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -35,6 +38,8 @@ public final class Constants {
     public static final String TOOLTIP_ENERGY_CONSUMPTION = key("tooltip.{mod}.energyConsumption");
     public static final String TOOLTIP_CONFIRM = key("tooltip.{mod}.confirm");
     public static final String TOOLTIP_CANCEL = key("tooltip.{mod}.cancel");
+    public static final String TOOLTIP_INTERNET_DISABLED = key("tooltip.{mod}.internet.disabled");
+    public static final String TOOLTIP_INTERNET_ENERGY_PER_PACKET = key("tooltip.{mod}.internet.energy_per_packet");
 
     ///////////////////////////////////////////////////////////////////
 

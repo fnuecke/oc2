@@ -1,9 +1,11 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 public final class RobotPowerMessage extends AbstractMessage {
     private int entityId;
@@ -11,25 +13,25 @@ public final class RobotPowerMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotPowerMessage(final RobotEntity robot, final boolean power) {
+    public RobotPowerMessage(final Robot robot, final boolean power) {
         this.entityId = robot.getId();
         this.power = power;
     }
 
-    public RobotPowerMessage(final PacketBuffer buffer) {
+    public RobotPowerMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         entityId = buffer.readVarInt();
         power = buffer.readBoolean();
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeVarInt(entityId);
         buffer.writeBoolean(power);
     }
@@ -38,13 +40,13 @@ public final class RobotPowerMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withNearbyServerEntity(context, entityId, RobotEntity.class,
-                (robot) -> {
-                    if (power) {
-                        robot.start();
-                    } else {
-                        robot.stop();
-                    }
-                });
+        MessageUtils.withNearbyServerEntity(context, entityId, Robot.class,
+            robot -> {
+                if (power) {
+                    robot.start();
+                } else {
+                    robot.stop();
+                }
+            });
     }
 }

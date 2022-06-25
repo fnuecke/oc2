@@ -1,11 +1,16 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.bus.device.object;
 
+import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -16,10 +21,10 @@ import static java.util.Collections.singletonList;
  * annotation to discover {@link RPCMethod}s in a target object via
  * {@link Callbacks#collectMethods(Object)}.
  */
-public final class ObjectDevice implements RPCDevice {
+public final class ObjectDevice implements RPCDevice, ItemDevice {
     private final Object object;
     private final ArrayList<String> typeNames;
-    private final List<RPCMethod> methods;
+    private final List<RPCMethodGroup> methods;
     private final String className;
 
     ///////////////////////////////////////////////////////////////////
@@ -37,9 +42,11 @@ public final class ObjectDevice implements RPCDevice {
         this.methods = Callbacks.collectMethods(object);
         this.className = object.getClass().getSimpleName();
 
-        if (object instanceof NamedDevice) {
-            final NamedDevice namedDevice = (NamedDevice) object;
+        if (object instanceof final NamedDevice namedDevice) {
             this.typeNames.addAll(namedDevice.getDeviceTypeNames());
+        }
+        if (this.typeNames.isEmpty()) {
+            this.typeNames.add(toNiceTypeName(object.getClass()));
         }
     }
 
@@ -83,8 +90,29 @@ public final class ObjectDevice implements RPCDevice {
     }
 
     @Override
-    public List<RPCMethod> getMethods() {
+    public List<RPCMethodGroup> getMethodGroups() {
         return methods;
+    }
+
+    @Override
+    public void mount() {
+        if (object instanceof LifecycleAwareDevice device) {
+            device.onDeviceMounted();
+        }
+    }
+
+    @Override
+    public void unmount() {
+        if (object instanceof LifecycleAwareDevice device) {
+            device.onDeviceUnmounted();
+        }
+    }
+
+    @Override
+    public void dispose() {
+        if (object instanceof LifecycleAwareDevice device) {
+            device.onDeviceDisposed();
+        }
     }
 
     @Override
@@ -103,5 +131,17 @@ public final class ObjectDevice implements RPCDevice {
     @Override
     public String toString() {
         return className;
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private static String toNiceTypeName(final Class<?> deviceClass) {
+        final String name = deviceClass.getSimpleName()
+            .replaceFirst("VMDevice$", "")
+            .replaceFirst("RPCDevice$", "")
+            .replaceFirst("Device$", "");
+        return name
+            .replaceAll("([a-z])([A-Z])", "$1_$2")
+            .toLowerCase(Locale.ROOT);
     }
 }

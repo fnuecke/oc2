@@ -1,14 +1,14 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.bus.device.provider.util;
 
-import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistryEntry;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -42,11 +42,6 @@ public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<Item
     }
 
     @Override
-    public final Optional<DeviceType> getDeviceType(final ItemDeviceQuery query) {
-        return matches(query) ? getItemDeviceType(query) : Optional.empty();
-    }
-
-    @Override
     public final int getEnergyConsumption(final ItemDeviceQuery query) {
         return matches(query) ? getItemDeviceEnergyConsumption(query) : 0;
     }
@@ -59,10 +54,6 @@ public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<Item
     }
 
     protected abstract Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query);
-
-    protected Optional<DeviceType> getItemDeviceType(final ItemDeviceQuery query) {
-        return Optional.of(DeviceTypes.CARD);
-    }
 
     protected int getItemDeviceEnergyConsumption(final ItemDeviceQuery query) {
         return 0;

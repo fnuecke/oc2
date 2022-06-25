@@ -1,11 +1,13 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.bus.device.item.ByteBufferFlashMemoryVMDevice;
+import li.cil.oc2.common.bus.device.vm.item.ByteBufferFlashStorageDevice;
 import li.cil.oc2.common.util.NBTTagIds;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 
@@ -20,10 +22,10 @@ public final class FlashMemoryItem extends AbstractStorageItem {
 
     @Nullable
     @Override
-    public CompoundNBT getShareTag(final ItemStack stack) {
-        final CompoundNBT tag = super.getShareTag(stack);
+    public CompoundTag getShareTag(final ItemStack stack) {
+        final CompoundTag tag = super.getShareTag(stack);
         if (tag != null && tag.contains(API.MOD_ID, NBTTagIds.TAG_COMPOUND)) {
-            tag.getCompound(API.MOD_ID).remove(ByteBufferFlashMemoryVMDevice.DATA_TAG_NAME);
+            tag.getCompound(API.MOD_ID).remove(ByteBufferFlashStorageDevice.DATA_TAG_NAME);
         }
         return tag;
     }

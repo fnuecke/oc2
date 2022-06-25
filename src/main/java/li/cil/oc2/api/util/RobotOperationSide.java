@@ -1,7 +1,9 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.util;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
 
 import javax.annotation.Nullable;
 
@@ -32,14 +34,17 @@ public enum RobotOperationSide {
         this(parent.direction);
     }
 
-    public Direction getDirection() {
-        return direction;
-    }
-
-    public static Direction getAdjustedDirection(@Nullable final RobotOperationSide side, final Entity entity) {
+    /**
+     * Gets the world-space direction for the specified side relative to the specified entity.
+     *
+     * @param entity the entity to which the side is relative.
+     * @param side   the side to convert to a world-space direction.
+     * @return a world-space direction.
+     */
+    public static Direction toGlobal(final Entity entity, @Nullable final RobotOperationSide side) {
         Direction direction = side == null
-                ? RobotOperationSide.FRONT.getDirection()
-                : side.getDirection();
+            ? RobotOperationSide.FRONT.direction
+            : side.direction;
         if (direction.getAxis().isHorizontal()) {
             final int horizontalIndex = entity.getDirection().get2DDataValue();
             for (int i = 0; i < horizontalIndex; i++) {

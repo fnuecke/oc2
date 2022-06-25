@@ -1,15 +1,15 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "IBI",
-    "XTX",
-    "IDI"
+    "IUI",
+    "XTD",
+    "IBI"
   ],
   "key": {
     "I": {
       "tag": "forge:ingots/iron"
     },
-    "B": {
+    "U": {
       "tag": "minecraft:buttons"
     },
     "T": {
@@ -20,6 +20,9 @@
     },
     "D": {
       "item": "minecraft:dispenser"
+    },
+    "B": {
+      "item": "oc2:circuit_board"
     }
   },
   "result": {

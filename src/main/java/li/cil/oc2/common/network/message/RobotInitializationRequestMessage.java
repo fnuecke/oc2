@@ -1,33 +1,34 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.entity.RobotEntity;
+import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
-import li.cil.oc2.common.network.Network;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 public final class RobotInitializationRequestMessage extends AbstractMessage {
     private int entityId;
 
     ///////////////////////////////////////////////////////////////////
 
-    public RobotInitializationRequestMessage(final RobotEntity robot) {
+    public RobotInitializationRequestMessage(final Robot robot) {
         this.entityId = robot.getId();
     }
 
-    public RobotInitializationRequestMessage(final PacketBuffer buffer) {
+    public RobotInitializationRequestMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         entityId = buffer.readVarInt();
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeVarInt(entityId);
     }
 
@@ -35,7 +36,7 @@ public final class RobotInitializationRequestMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkEvent.Context context) {
-        MessageUtils.withServerEntity(context, entityId, RobotEntity.class,
-                (robot) -> Network.INSTANCE.reply(new RobotInitializationMessage(robot), context));
+        MessageUtils.withServerEntity(context, entityId, Robot.class,
+            robot -> reply(new RobotInitializationMessage(robot), context));
     }
 }

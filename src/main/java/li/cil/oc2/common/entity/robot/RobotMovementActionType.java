@@ -1,8 +1,10 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.entity.robot;
 
-import li.cil.oc2.common.entity.RobotEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.vector.Vector3d;
+import li.cil.oc2.common.entity.Robot;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.phys.Vec3;
 
 public final class RobotMovementActionType extends AbstractRobotActionType {
     public RobotMovementActionType(final int id) {
@@ -12,27 +14,27 @@ public final class RobotMovementActionType extends AbstractRobotActionType {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void initializeData(final RobotEntity robot) {
-        robot.getEntityData().set(RobotEntity.TARGET_POSITION, robot.blockPosition());
+    public void initializeData(final Robot robot) {
+        robot.getEntityData().set(Robot.TARGET_POSITION, robot.blockPosition());
     }
 
     @Override
-    public void performServer(final RobotEntity robot, final AbstractRobotAction currentAction) {
+    public void performServer(final Robot robot, final AbstractRobotAction currentAction) {
         if (!(currentAction instanceof RobotMovementAction)) {
-            robot.getEntityData().set(RobotEntity.TARGET_POSITION, robot.blockPosition());
+            robot.getEntityData().set(Robot.TARGET_POSITION, robot.blockPosition());
         }
     }
 
     @Override
-    public void performClient(final RobotEntity robot) {
-        final Vector3d target = RobotMovementAction.getTargetPositionInBlock(robot.getEntityData().get(RobotEntity.TARGET_POSITION));
+    public void performClient(final Robot robot) {
+        final Vec3 target = RobotMovementAction.getTargetPositionInBlock(robot.getEntityData().get(Robot.TARGET_POSITION));
         if (robot.position().distanceToSqr(target) > RobotMovementAction.TARGET_EPSILON) {
             RobotMovementAction.moveTowards(robot, target);
         }
     }
 
     @Override
-    public AbstractRobotAction deserialize(final CompoundNBT tag) {
+    public AbstractRobotAction deserialize(final CompoundTag tag) {
         return new RobotMovementAction(tag);
     }
 }

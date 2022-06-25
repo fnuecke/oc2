@@ -1,13 +1,15 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.client.gui.FileChooserScreen;
-import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
+import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.network.Network;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.text.Color;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraftforge.network.NetworkEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,7 +21,7 @@ import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class RequestImportedFileMessage extends AbstractMessage {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final TranslationTextComponent FILE_TOO_LARGE_TEXT = text("message.{mod}.import_file.file_too_large");
+    private static final TranslatableComponent FILE_TOO_LARGE_TEXT = text("message.{mod}.import_file.file_too_large");
 
     ///////////////////////////////////////////////////////////////////
 
@@ -31,19 +33,19 @@ public final class RequestImportedFileMessage extends AbstractMessage {
         this.id = id;
     }
 
-    public RequestImportedFileMessage(final PacketBuffer buffer) {
+    public RequestImportedFileMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         id = buffer.readVarInt();
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeVarInt(id);
     }
 
@@ -58,11 +60,11 @@ public final class RequestImportedFileMessage extends AbstractMessage {
                     final String fileName = path.getFileName().toString();
                     final byte[] data = Files.readAllBytes(path);
                     if (data.length > FileImportExportCardItemDevice.MAX_TRANSFERRED_FILE_SIZE) {
-                        Network.INSTANCE.sendToServer(new ClientCanceledImportFileMessage(id));
-                        Minecraft.getInstance().player.displayClientMessage(FILE_TOO_LARGE_TEXT
-                                .withStyle(s -> s.withColor(Color.fromRgb(0xFFA0A0))), false);
+                        Network.sendToServer(new ClientCanceledImportFileMessage(id));
+                        Minecraft.getInstance().gui.getChat().addMessage(FILE_TOO_LARGE_TEXT
+                            .withStyle(s -> s.withColor(TextColor.fromRgb(0xFFA0A0))));
                     } else {
-                        Network.INSTANCE.sendToServer(new ImportedFileMessage(id, fileName, data));
+                        Network.sendToServer(new ImportedFileMessage(id, fileName, data));
                     }
                 } catch (final IOException e) {
                     LOGGER.error(e);
@@ -71,7 +73,7 @@ public final class RequestImportedFileMessage extends AbstractMessage {
 
             @Override
             public void onCanceled() {
-                Network.INSTANCE.sendToServer(new ClientCanceledImportFileMessage(id));
+                Network.sendToServer(new ClientCanceledImportFileMessage(id));
             }
         });
     }

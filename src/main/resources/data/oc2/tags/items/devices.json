@@ -4,6 +4,7 @@
     "oc2:computer",
     "oc2:redstone_interface",
     "oc2:disk_drive",
+    "oc2:projector",
     "#oc2:devices/memory",
     "#oc2:devices/hard_drive",
     "#oc2:devices/flash_memory",

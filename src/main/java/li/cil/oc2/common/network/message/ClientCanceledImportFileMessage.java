@@ -1,8 +1,11 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
@@ -15,19 +18,19 @@ public final class ClientCanceledImportFileMessage extends AbstractMessage {
         this.id = id;
     }
 
-    public ClientCanceledImportFileMessage(final PacketBuffer buffer) {
+    public ClientCanceledImportFileMessage(final FriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final PacketBuffer buffer) {
+    public void fromBytes(final FriendlyByteBuf buffer) {
         id = buffer.readVarInt();
     }
 
     @Override
-    public void toBytes(final PacketBuffer buffer) {
+    public void toBytes(final FriendlyByteBuf buffer) {
         buffer.writeVarInt(id);
     }
 
@@ -35,6 +38,9 @@ public final class ClientCanceledImportFileMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final Supplier<NetworkEvent.Context> context) {
-        FileImportExportCardItemDevice.cancelImport(context.get().getSender(), id);
+        final ServerPlayer player = context.get().getSender();
+        if (player != null) {
+            FileImportExportCardItemDevice.cancelImport(player, id);
+        }
     }
 }

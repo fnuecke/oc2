@@ -1,26 +1,27 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.client.gui.util;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.gui.widget.Sprite;
-import li.cil.oc2.common.container.TypedSlotItemHandler;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.ITextComponent;
+import li.cil.oc2.common.container.DeviceTypeSlotItemHandler;
+import li.cil.oc2.common.util.TooltipUtils;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class GuiUtils {
-    private static final Map<DeviceType, ITextComponent> WARNING_BY_DEVICE_TYPE = Util.make(() -> {
-        final HashMap<DeviceType, ITextComponent> map = new HashMap<>();
+    private static final Map<DeviceType, Component> WARNING_BY_DEVICE_TYPE = Util.make(() -> {
+        final HashMap<DeviceType, Component> map = new HashMap<>();
 
         map.put(DeviceTypes.FLASH_MEMORY, text("tooltip.{mod}.flash_memory_missing"));
         map.put(DeviceTypes.MEMORY, text("tooltip.{mod}.memory_missing"));
@@ -35,18 +36,26 @@ public final class GuiUtils {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static <TContainer extends Container> void renderMissingDeviceInfoIcon(final MatrixStack matrixStack, final ContainerScreen<TContainer> screen, final DeviceType type, final Sprite icon) {
-        findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> icon.draw(matrixStack,
-                screen.getGuiLeft() + slot.x - 1 + RELATIVE_ICON_POSITION,
-                screen.getGuiTop() + slot.y - 1 + RELATIVE_ICON_POSITION));
+    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoIcon(final PoseStack stack, final AbstractContainerScreen<TContainer> screen, final DeviceType type, final Sprite icon) {
+        stack.pushPose();
+        stack.translate(0, 0, 100);
+        findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> icon.draw(stack,
+            screen.getGuiLeft() + slot.x - 1 + RELATIVE_ICON_POSITION,
+            screen.getGuiTop() + slot.y - 1 + RELATIVE_ICON_POSITION));
+        stack.popPose();
     }
 
-    public static <TContainer extends Container> void renderMissingDeviceInfoTooltip(final MatrixStack matrixStack, final ContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type) {
-        renderMissingDeviceInfoTooltip(matrixStack, screen, mouseX, mouseY, type, Objects.requireNonNull(WARNING_BY_DEVICE_TYPE.get(type)));
+    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final PoseStack stack, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type) {
+        renderMissingDeviceInfoTooltip(stack, screen, mouseX, mouseY, type, Objects.requireNonNull(WARNING_BY_DEVICE_TYPE.get(type)));
     }
 
-    public static <TContainer extends Container> void renderMissingDeviceInfoTooltip(final MatrixStack matrixStack, final ContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final ITextComponent tooltip) {
-        final boolean isCursorHoldingStack = !screen.getMinecraft().player.inventory.getCarried().isEmpty();
+    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final PoseStack stack, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final Component tooltip) {
+        final Minecraft minecraft = screen.getMinecraft();
+        if (minecraft.player == null) {
+            return;
+        }
+
+        final boolean isCursorHoldingStack = !minecraft.player.inventoryMenu.getCarried().isEmpty();
         if (isCursorHoldingStack) {
             return;
         }
@@ -58,18 +67,17 @@ public final class GuiUtils {
 
         findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> {
             if (slot == hoveredSlot) {
-                screen.renderTooltip(matrixStack, tooltip, mouseX, mouseY);
+                TooltipUtils.drawTooltip(stack, Collections.singletonList(tooltip), mouseX, mouseY);
             }
         });
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private static Optional<TypedSlotItemHandler> findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(final Container container, final DeviceType type) {
-        TypedSlotItemHandler firstSlot = null;
+    private static Optional<DeviceTypeSlotItemHandler> findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(final AbstractContainerMenu container, final DeviceType type) {
+        DeviceTypeSlotItemHandler firstSlot = null;
         for (final Slot slot : container.slots) {
-            if (slot instanceof TypedSlotItemHandler) {
-                final TypedSlotItemHandler typedSlot = (TypedSlotItemHandler) slot;
+            if (slot instanceof final DeviceTypeSlotItemHandler typedSlot) {
                 final DeviceType slotType = typedSlot.getDeviceType();
                 if (slotType == type) {
                     if (slot.hasItem()) {

@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.api.bus;
 
 import li.cil.oc2.api.bus.device.Device;
@@ -18,7 +20,7 @@ import java.util.UUID;
  * connected to this element.
  * <p>
  * This interface is relevant when implementing means to extend the bus, e.g.
- * to provide a custom cable implementation or some kind of a device container.
+ * to provide a custom cable implementation or some kind of device container.
  * <p>
  * Implementations <em>must</em> call {@link #scheduleScan()} when they become
  * invalid, e.g. due to being in a chunk that is being unloaded or the block
@@ -31,7 +33,7 @@ public interface DeviceBusElement extends DeviceBus {
      * <p>
      * This will be called by {@link DeviceBusController}s when scanning.
      * <p>
-     * Bus elements can be have multiple controllers at the same time. This is used
+     * Bus elements can have multiple controllers at the same time. This is used
      * by controllers to detect each other on the bus.
      * <p>
      * When {@link #scheduleScan()} is called, {@link DeviceBusController#scheduleBusScan()}
@@ -89,7 +91,7 @@ public interface DeviceBusElement extends DeviceBus {
      * track of the device. Note that some device types (e.g. {@link RPCDevice}s)
      * require for an ID to be provided for them to work at all.
      * <p>
-     * It is possible for multiple devices to have the same identifier. Typically
+     * It is possible for multiple devices to have the same identifier. Typically,
      * this means they represent a view on the same underlying object. How this is
      * handled depends on the device type and may or may not be supported.
      * <p>

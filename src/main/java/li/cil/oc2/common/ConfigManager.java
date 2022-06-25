@@ -1,11 +1,16 @@
+/* SPDX-License-Identifier: MIT */
+
 package li.cil.oc2.common;
 
 import li.cil.oc2.api.API;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.IConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,7 +61,7 @@ public final class ConfigManager {
     ///////////////////////////////////////////////////////////////////
 
     private static final Map<Class<?>, ConfigFieldParser> PARSERS = new HashMap<>();
-    private static final Map<ForgeConfigSpec, ConfigDefinition> CONFIGS = new HashMap<>();
+    private static final Map<IConfigSpec<ForgeConfigSpec>, ConfigDefinition> CONFIGS = new HashMap<>();
 
     static {
         PARSERS.put(int.class, ConfigManager::parseIntField);
@@ -64,6 +69,8 @@ public final class ConfigManager {
         PARSERS.put(double.class, ConfigManager::parseDoubleField);
         PARSERS.put(String.class, ConfigManager::parseStringField);
         PARSERS.put(UUID.class, ConfigManager::parseUUIDField);
+        PARSERS.put(ResourceLocation.class, ConfigManager::parseResourceLocationField);
+        PARSERS.put(boolean.class, ConfigManager::parseBooleanField);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -89,7 +96,7 @@ public final class ConfigManager {
     ///////////////////////////////////////////////////////////////////
 
     @SubscribeEvent
-    public static void handleModConfigEvent(final ModConfig.ModConfigEvent event) {
+    public static void handleModConfigEvent(final ModConfigEvent event) {
         final ConfigDefinition config = CONFIGS.get(event.getConfig().getSpec());
         if (config != null) {
             config.apply();
@@ -164,6 +171,22 @@ public final class ConfigManager {
         return new ConfigFieldPair<>(field, configValue, UUID::fromString);
     }
 
+    private static ConfigFieldPair<?> parseResourceLocationField(final Object instance, final Field field, final String path, final ForgeConfigSpec.Builder builder) throws IllegalAccessException {
+        final ResourceLocation defaultValue = (ResourceLocation) field.get(instance);
+
+        final ForgeConfigSpec.ConfigValue<String> configValue = builder.define(path, defaultValue.toString());
+
+        return new ConfigFieldPair<>(field, configValue, ResourceLocation::new);
+    }
+
+    private static ConfigFieldPair<?> parseBooleanField(final Object instance, final Field field, final String path, final ForgeConfigSpec.Builder builder) throws IllegalAccessException {
+        final boolean defaultValue = (boolean) field.get(instance);
+
+        final ForgeConfigSpec.BooleanValue configValue = builder.define(path, defaultValue);
+
+        return new ConfigFieldPair<>(field, configValue);
+    }
+
     private static String getPath(@Nullable final String prefix, final Field field) {
         return (prefix != null ? prefix + "." : "") + field.getName();
     }
@@ -185,15 +208,7 @@ public final class ConfigManager {
         ConfigFieldPair<?> apply(final Object instance, final Field field, final String path, final ForgeConfigSpec.Builder builder) throws IllegalAccessException;
     }
 
-    private static final class ConfigDefinition {
-        public final Object instance;
-        public final ArrayList<ConfigFieldPair<?>> values;
-
-        public ConfigDefinition(final Object instance, final ArrayList<ConfigFieldPair<?>> values) {
-            this.instance = instance;
-            this.values = values;
-        }
-
+    private record ConfigDefinition(Object instance, ArrayList<ConfigFieldPair<?>> values) {
         public void apply() {
             for (final ConfigFieldPair<?> pair : values) {
                 pair.apply(instance);

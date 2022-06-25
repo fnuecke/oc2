@@ -27,7 +27,7 @@ import java.util.Optional;
  * are registered. For example:
  * <pre>
  * class YourModInitialization {
- *     static DeferredRegister&lt;ItemDeviceProvider&gt; ITEM_DEVICE_PROVIDERS = DeferredRegister.create(ItemDeviceProvider.class, "your_mod_id");
+ *     static DeferredRegister&lt;ItemDeviceProvider&gt; ITEM_DEVICE_PROVIDERS = DeferredRegister.create(ItemDeviceProvider.REGISTRY, "your_mod_id");
  *
  *     static void initialize() {
  *         ITEM_DEVICE_PROVIDERS.register("your_item_device_name", YourItemDeviceProvider::new);

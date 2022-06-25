@@ -55,11 +55,11 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
     ///////////////////////////////////////////////////////////////////
 
     public boolean canInsert(final ItemStack stack) {
-        return !stack.isEmpty() && ItemTags.DEVICES_FLOPPY.contains(stack.getItem());
+        return !stack.isEmpty() && stack.is(ItemTags.DEVICES_FLOPPY);
     }
 
     public ItemStack insert(final ItemStack stack, @Nullable final Player player) {
-        if (stack.isEmpty() || !ItemTags.DEVICES_FLOPPY.contains(stack.getItem())) {
+        if (!canInsert(stack)) {
             return stack;
         }
 

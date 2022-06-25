@@ -2,10 +2,8 @@
 
 package li.cil.oc2.api.bus.device.data;
 
-import li.cil.oc2.api.API;
 import li.cil.sedna.api.memory.MemoryMap;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**
@@ -23,11 +21,6 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
  * </pre>
  */
 public interface Firmware extends IForgeRegistryEntry<Firmware> {
-    /**
-     * The registry name of the registry holding firmwares.
-     */
-    ResourceLocation REGISTRY = new ResourceLocation(API.MOD_ID, "firmware");
-
     /**
      * Runs this firmware.
      * <p>

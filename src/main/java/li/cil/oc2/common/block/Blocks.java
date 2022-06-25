@@ -9,7 +9,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public final class Blocks {
-    private static final DeferredRegister<Block> BLOCKS = RegistryUtils.create(ForgeRegistries.BLOCKS);
+    private static final DeferredRegister<Block> BLOCKS = RegistryUtils.getInitializerFor(ForgeRegistries.BLOCKS);
 
     ///////////////////////////////////////////////////////////////////
 

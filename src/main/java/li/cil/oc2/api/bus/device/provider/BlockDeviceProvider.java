@@ -30,7 +30,7 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
  * are registered. For example:
  * <pre>
  * class YourModInitialization {
- *     static DeferredRegister&lt;BlockDeviceProvider&gt; BLOCK_DEVICE_PROVIDERS = DeferredRegister.create(BlockDeviceProvider.class, "your_mod_id");
+ *     static DeferredRegister&lt;BlockDeviceProvider&gt; BLOCK_DEVICE_PROVIDERS = DeferredRegister.create(BlockDeviceProvider.REGISTRY, "your_mod_id");
  *
  *     static void initialize() {
  *         BLOCK_DEVICE_PROVIDERS.register("your_block_device_name", YourBlockDeviceProvider::new);

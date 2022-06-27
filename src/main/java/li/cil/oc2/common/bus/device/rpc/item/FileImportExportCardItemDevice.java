@@ -224,6 +224,11 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
     @Nullable
     @Callback(name = BEGIN_IMPORT_FILE)
     public ImportedFileInfo beginImportFile() {
+        if (state == State.IMPORT_CANCELED) {
+            reset();
+            throw new IllegalStateException("import was canceled");
+        }
+
         if (state != State.IMPORT_REQUESTED) {
             throw new IllegalStateException("invalid state");
         }

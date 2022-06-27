@@ -11,13 +11,24 @@ end
 device:reset()
 
 if not device:requestImportFile() then
-    io.write("No users present to request file from.\n")
+    io.stderr:write("No users present to request file from.\n")
+    os.exit(1)
+end
+
+local function error_handler(err)
+    if err:match("import was canceled$") then
+        io.stderr:write("Import was calceled by the user.\n")
+    else
+        io.stderr:write(debug.traceback(err, 2))
+        io.stderr:write("\n")
+    end
     os.exit(1)
 end
 
 local name, size
 while true do
-    local info = device:beginImportFile()
+    local _, info = xpcall(device.beginImportFile, error_handler, device)
+
     if info then
         name = arg[1] or info.name or "imported"
         size = info.size
@@ -50,7 +61,7 @@ while file_exists(name) do
     end
 end
 
-io.write("Importing ")
+io.write("Importing " .. name)
 io.flush()
 
 local file = assert(io.open(name, "wb"))

@@ -46,8 +46,26 @@ local function file_exists(path)
     end
 end
 
+local function is_dir(path)
+    if not file_exists(path) then
+        return false
+    end
+
+    local f = io.open(path, "r")
+    local _, _, code = f:read(1)
+    f:close()
+    return code == 21
+end
+
 while file_exists(name) do
-    io.write("File '" .. name .. "' exists. [O]verwrite/[U]se another name/[C]ancel? ")
+    io.write("File '" .. name .. "' exists. ")
+
+    local is_dir = is_dir(name)
+    if not is_dir then
+        io.write("[O]verwrite/")
+    end
+
+    io.write("[U]se another name/[C]ancel? ")
     io.flush()
     local choice = io.read()
     if not choice or choice == "" or choice == "c" or choice == "C" then
@@ -56,8 +74,11 @@ while file_exists(name) do
         io.write("Enter new name: ")
         io.flush()
         name = io.read()
-    else
+    elseif not is_dir and (choice == "o" or choice == "O") then
         break
+    else
+        io.stderr:write("Invalid option: " .. choice .. "\n")
+        os.exit(1)
     end
 end
 

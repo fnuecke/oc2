@@ -17,7 +17,7 @@ end
 
 local function error_handler(err)
     if err:match("import was canceled$") then
-        io.stderr:write("Import was calceled by the user.\n")
+        io.stderr:write("Import was canceled by the user.\n")
     else
         io.stderr:write(debug.traceback(err, 2))
         io.stderr:write("\n")
@@ -60,8 +60,8 @@ end
 while file_exists(name) do
     io.write("File '" .. name .. "' exists. ")
 
-    local is_dir = is_dir(name)
-    if not is_dir then
+    local dir = is_dir(name)
+    if not dir then
         io.write("[O]verwrite/")
     end
 
@@ -74,7 +74,7 @@ while file_exists(name) do
         io.write("Enter new name: ")
         io.flush()
         name = io.read()
-    elseif not is_dir and (choice == "o" or choice == "O") then
+    elseif not dir and (choice == "o" or choice == "O") then
         break
     else
         io.stderr:write("Invalid option: " .. choice .. "\n")

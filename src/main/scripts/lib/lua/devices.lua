@@ -107,7 +107,6 @@ local function fillBuffer(bus)
     return nil, "timeout"
   else
     bus.buffer = unistd.read(bus.fd, 1024)
-    bus.bufferLen = string.len(bus.buffer)
     bus.bufferPos = 1
     return true
   end
@@ -126,7 +125,7 @@ local function readOne(bus)
   end
 
   local result = bus.buffer:byte(bus.bufferPos)
-  if bus.bufferPos >= bus.bufferLen then
+  if bus.bufferPos >= #bus.buffer then
     bus.buffer = nil
   else
     bus.bufferPos = bus.bufferPos + 1
@@ -139,23 +138,39 @@ local function readMessage(bus)
   local value
   local message = ""
   while true do
-    value, reason = readOne(bus)
-    if value == nil then -- error
-      return value, reason
+    if not bus.buffer then
+      local result, status = fillBuffer(bus)
+      if not result then
+        return result, status
+      end
+    end
+
+    value = bus.buffer:sub(bus.bufferPos, -1)
+
+    if #message == 0 and value:byte(1) == 0 then
+      bus.bufferPos = bus.bufferPos + 1
+      value = value:sub(2, -1)
+    end
+
+    if value:find(message_delimiter) then
+      value = value:sub(1, value:find(message_delimiter))
+      bus.bufferPos = bus.bufferPos + #value
+      if bus.bufferPos > #bus.buffer then
+        clearBuffer(bus)
+      end
     else
-      if value == 0 then
-        if message:match("%S") ~= nil then
-          local ok, result = pcall(cjson.decode, message)
-          if ok then
-            return result
-          else
-            return nil, result
-          end
-        else
-          message = ""
-        end
+        clearBuffer(bus)
+    end
+
+    message = message .. value
+
+    if message:byte(-1) == 0 then
+      message = message:sub(1, -2)
+      local ok, result = pcall(cjson.decode, message)
+      if ok then
+        return result
       else
-        message = message .. string.char(value)
+        return nil, result
       end
     end
   end

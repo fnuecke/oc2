@@ -153,4 +153,12 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
             isCharging = true;
         }
     }
+
+    @Override
+    public AABB getRenderBoundingBox() {
+        return new AABB(
+            getBlockPos().offset(0, 1, 0),
+            getBlockPos().offset(1, 2, 1)
+        );
+    }
 }

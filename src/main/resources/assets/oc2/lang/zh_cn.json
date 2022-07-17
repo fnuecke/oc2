@@ -41,8 +41,8 @@
   "item.oc2.block_operations_module.desc": "允许机器人放置/破坏方块。",
   "item.oc2.sound_card": "声卡",
   "item.oc2.sound_card.desc": "可以从其高度逼真的音库播放各种声音。",
-  "item.oc2.network_tunnel_module": "Network Tunnel Module",
-  "item.oc2.network_tunnel_module.desc": "Sends and receives network packets to a linked device.",
+  "item.oc2.network_tunnel_module": "网络隧道模块",
+  "item.oc2.network_tunnel_module.desc": "向链接设备发送和接收网络数据包。",
 
   "item.oc2.transistor": "晶体管",
   "item.oc2.transistor.desc": "合成材料",

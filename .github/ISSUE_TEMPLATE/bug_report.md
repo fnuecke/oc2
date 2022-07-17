@@ -7,6 +7,15 @@ assignees: ''
 
 ---
 
+---
+name: Bug report
+about: Report an issue of the mod crashing or behaving in an unexpected way
+title: ''
+labels: bug
+assignees: ''
+
+---
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
@@ -16,6 +25,10 @@ Steps to reproduce the behavior:
 2. Place block '....'
 3. Interact with '....'
 4. See error '...'
+
+**Log files**
+Please post your log files (client and server) to gist and link them here.
+If it's a crash report, please also upload the crash report to gist and link it here.
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.

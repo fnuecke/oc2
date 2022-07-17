@@ -17,7 +17,7 @@
 Это устройство с высокоуровневым API. Оно может управляться через Lua в стандартном дистрибутиве Linux. Например:  
 `local d = require("devices")`  
 `local r = d:find("robot")`  
-`d:move("forward")`
+`r:move("forward")`
 
 ### Направления
 Направления указываются от лица робота. Допускаются значения: `forward`, `backward`, `upward`, `downward` для движения, `left` и `right` для поворотов.

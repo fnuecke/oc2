@@ -65,11 +65,15 @@ repositories {
     })
 }
 
+def tryProject(final projectName, final libraryName) {
+    findProject(projectName) ?: libraryName
+}
+
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    implementation "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.13"
+    implementation tryProject(":modules:sedna-${minecraft_version}-forge", "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.13")
 
     implementation fg.deobf("curse.maven:markdownmanual-502485:3738124")
 

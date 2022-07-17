@@ -17,7 +17,7 @@ Device name: `robot`
 This is a high level API device. It can be controlled using Lua in the default Linux distribution. For example:  
 `local d = require("devices")`  
 `local r = d:find("robot")`  
-`d:move("forward")`
+`r:move("forward")`
 
 ### Directions
 The direction parameter in the following methods represents a direction relative to the robot. Valid values are: `forward`, `backward`, `upward`, `downward` for movement actions, `left` and `right` for rotation actions. These directions are always from the point of view of the robot at the time it executes an action.

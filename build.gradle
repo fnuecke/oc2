@@ -35,10 +35,7 @@ def getGitRef() {
 version = "${semver}+${getGitRef()}"
 group = 'li.cil.oc2'
 
-java.toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
-    vendor = JvmVendorSpec.ADOPTOPENJDK
-}
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'utf-8'

@@ -54,16 +54,21 @@ repositories {
         url 'https://dvs1.progwml6.com/files/maven/'
         content { includeGroup 'mezz.jei' }
     }
-    ["fnuecke/SednaMinecraft"].forEach(repo -> {
+    final def GithubPackages = [
+        ["fnuecke/ceres", "li.cil.ceres"],
+        ["fnuecke/sedna", "li.cil.sedna"],
+        ["fnuecke/buildroot", "li.cil.sedna"]
+    ]
+    GithubPackages.each { final repo, final group ->
         maven {
             url = uri("https://maven.pkg.github.com/${repo}")
             credentials {
                 username = project.findProperty("gpr.user") ?: System.getenv("GPR_USER")
                 password = project.findProperty("gpr.key") ?: System.getenv("GPR_KEY")
             }
-            content { includeGroup 'li.cil' }
+            content { includeGroup group }
         }
-    })
+    }
 }
 
 dependencies {

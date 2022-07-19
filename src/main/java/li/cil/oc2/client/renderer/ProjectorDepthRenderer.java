@@ -224,7 +224,7 @@ public final class ProjectorDepthRenderer {
     private static void renderProjectorDepths(final Minecraft minecraft, final ClientLevel level, final Player player,
                                               final float partialTicks, final long startNanos,
                                               final int projectorCount) {
-        prepareDepthBufferRendering(minecraft);
+        prepareDepthBufferRendering(minecraft, level);
         try {
             final PoseStack viewModelStack = new PoseStack();
             for (int projectorIndex = 0; projectorIndex < projectorCount; projectorIndex++) {
@@ -254,7 +254,7 @@ public final class ProjectorDepthRenderer {
         }
     }
 
-    private static void prepareDepthBufferRendering(final Minecraft minecraft) {
+    private static void prepareDepthBufferRendering(final Minecraft minecraft, final ClientLevel level) {
         isRenderingProjectorDepth = true;
 
         // Suppresses hit outlines being rendered.
@@ -265,7 +265,7 @@ public final class ProjectorDepthRenderer {
         entityShadowsBak = minecraft.options.entityShadows;
         minecraft.options.entityShadows = false;
 
-        minecraft.setCameraEntity(PROJECTOR_DEPTH_CAMERA.getEntity());
+        minecraft.setCameraEntity(ProjectorCameraEntity.get(level, Vec3.ZERO, 0));
 
         RenderSystem.backupProjectionMatrix();
     }

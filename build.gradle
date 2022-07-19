@@ -79,7 +79,7 @@ dependencies {
     compileOnly 'li.cil.ceres:ceres:0.0.4'
     compileOnly 'li.cil.sedna:sedna:2.0.8'
     compileOnly 'li.cil.sedna:sedna-buildroot:0.0.8'
-    runtimeOnly "curse.maven:sedna-511276:3885542"
+    implementation 'curse.maven:sedna-511276:3885542'
 
     implementation fg.deobf("curse.maven:markdownmanual-502485:3738124")
 

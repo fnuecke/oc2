@@ -61,19 +61,23 @@ repositories {
                 username = project.findProperty("gpr.user") ?: System.getenv("GPR_USER")
                 password = project.findProperty("gpr.key") ?: System.getenv("GPR_KEY")
             }
+            content { includeGroup 'li.cil' }
         }
     })
-}
-
-def tryProject(final projectName, final libraryName) {
-    findProject(projectName) ?: libraryName
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    implementation tryProject(":modules:sedna-${minecraft_version}-forge", "li.cil.sedna:sedna-${minecraft_version}-forge:1.0.13")
+    // Specify the libs embedded in the library mod explicitly for local development, where
+    // we can include these directly (and will have a local library mod using the local
+    // versions). Can't get these to get properly resolved in the IDE otherwise (doesn't
+    // pick them up via the library mod due to the embed configuration).
+    compileOnly 'li.cil.ceres:ceres:0.0.4'
+    compileOnly 'li.cil.sedna:sedna:2.0.7'
+    compileOnly 'li.cil.sedna:sedna-buildroot:0.0.8'
+    runtimeOnly "curse.maven:sedna-511276:3737661"
 
     implementation fg.deobf("curse.maven:markdownmanual-502485:3738124")
 

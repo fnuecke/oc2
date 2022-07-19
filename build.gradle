@@ -75,9 +75,9 @@ dependencies {
     // versions). Can't get these to get properly resolved in the IDE otherwise (doesn't
     // pick them up via the library mod due to the embed configuration).
     compileOnly 'li.cil.ceres:ceres:0.0.4'
-    compileOnly 'li.cil.sedna:sedna:2.0.7'
+    compileOnly 'li.cil.sedna:sedna:2.0.8'
     compileOnly 'li.cil.sedna:sedna-buildroot:0.0.8'
-    runtimeOnly "curse.maven:sedna-511276:3737661"
+    runtimeOnly "curse.maven:sedna-511276:3885542"
 
     implementation fg.deobf("curse.maven:markdownmanual-502485:3738124")
 

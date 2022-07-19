@@ -41,6 +41,8 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'utf-8'
 }
 
+final def hasGithubPackageCredentials = System.getenv("GITHUB_ACTOR") && System.getenv("GITHUB_TOKEN")
+
 repositories {
     mavenCentral()
     maven {
@@ -51,19 +53,21 @@ repositories {
         url 'https://dvs1.progwml6.com/files/maven/'
         content { includeGroup 'mezz.jei' }
     }
-    final def GithubPackages = [
-        ["fnuecke/ceres", "li.cil.ceres"],
-        ["fnuecke/sedna", "li.cil.sedna"],
-        ["fnuecke/buildroot", "li.cil.sedna"]
-    ]
-    GithubPackages.each { final repo, final group ->
-        maven {
-            url = uri("https://maven.pkg.github.com/${repo}")
-            credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("GPR_USER")
-                password = project.findProperty("gpr.key") ?: System.getenv("GPR_KEY")
+    if (hasGithubPackageCredentials) {
+        final def GithubPackages = [
+            ["fnuecke/ceres", "li.cil.ceres"],
+            ["fnuecke/sedna", "li.cil.sedna"],
+            ["fnuecke/buildroot", "li.cil.sedna"]
+        ]
+        GithubPackages.each { final repo, final group ->
+            maven {
+                url = uri("https://maven.pkg.github.com/${repo}")
+                credentials {
+                    username = project.findProperty("gpr.user") ?: System.getenv("GPR_USER")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GPR_KEY")
+                }
+                content { includeGroup group }
             }
-            content { includeGroup group }
         }
     }
 }
@@ -76,9 +80,11 @@ dependencies {
     // we can include these directly (and will have a local library mod using the local
     // versions). Can't get these to get properly resolved in the IDE otherwise (doesn't
     // pick them up via the library mod due to the embed configuration).
-    compileOnly 'li.cil.ceres:ceres:0.0.4'
-    compileOnly 'li.cil.sedna:sedna:2.0.8'
-    compileOnly 'li.cil.sedna:sedna-buildroot:0.0.8'
+    if (hasGithubPackageCredentials) {
+        compileOnly 'li.cil.ceres:ceres:0.0.4'
+        compileOnly 'li.cil.sedna:sedna:2.0.8'
+        compileOnly 'li.cil.sedna:sedna-buildroot:0.0.8'
+    }
     implementation 'curse.maven:sedna-511276:3885542'
 
     implementation fg.deobf("curse.maven:markdownmanual-502485:3738124")

@@ -38,16 +38,13 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
 
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.chargerEnergyStorage);
     private boolean isCharging;
-    private final AABB cachedRenderAABB;
+    private final AABB renderBoundingBox;
 
     ///////////////////////////////////////////////////////////////////
 
     ChargerBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.CHARGER.get(), pos, state);
-        cachedRenderAABB = new AABB(
-            getBlockPos().offset(0, 1, 0),
-            getBlockPos().offset(1, 2, 1)
-        );
+        renderBoundingBox = new AABB(pos.above());
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -161,6 +158,6 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
 
     @Override
     public AABB getRenderBoundingBox() {
-        return cachedRenderAABB;
+        return renderBoundingBox;
     }
 }

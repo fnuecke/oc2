@@ -64,7 +64,7 @@ public final class RequestImportedFileMessage extends AbstractMessage {
                         Minecraft.getInstance().gui.getChat().addMessage(FILE_TOO_LARGE_TEXT
                             .withStyle(s -> s.withColor(TextColor.fromRgb(0xFFA0A0))));
                     } else {
-                        Network.sendToServer(new ImportedFileMessage(id, fileName, data));
+                        MultipartMessage.sendToServer(new ImportedFileMessage(id, fileName, data));
                     }
                 } catch (final IOException e) {
                     LOGGER.error(e);

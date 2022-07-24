@@ -81,6 +81,10 @@ public final class Network {
         registerMessage(ProjectorStateMessage.class, ProjectorStateMessage::new, NetworkDirection.PLAY_TO_CLIENT);
 
         registerMessage(KeyboardInputMessage.class, KeyboardInputMessage::new, NetworkDirection.PLAY_TO_SERVER);
+
+        registerMessage(MultipartMessage.class, MultipartMessage::new, NetworkDirection.PLAY_TO_SERVER);
+
+        MultipartMessage.registerMessage(ImportedFileMessage.class, ImportedFileMessage::new);
     }
 
     public static <T> void sendToServer(final T message) {

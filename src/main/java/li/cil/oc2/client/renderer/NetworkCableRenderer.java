@@ -8,7 +8,6 @@ import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -16,11 +15,12 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.*;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderLevelLastEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -112,13 +112,13 @@ public final class NetworkCableRenderer {
     }
 
     @SubscribeEvent
-    public static void handleRenderWorld(final RenderLevelLastEvent event) {
-        validateConnectors();
-        validatePairs();
-
-        if (Minecraft.useShaderTransparency()) {
+    public static void handleRenderWorld(final RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) {
             return;
         }
+
+        validateConnectors();
+        validatePairs();
 
         if (connections.isEmpty()) {
             return;
@@ -132,8 +132,7 @@ public final class NetworkCableRenderer {
 
         final PoseStack stack = event.getPoseStack();
 
-        final Camera activeRenderInfo = client.gameRenderer.getMainCamera();
-        final Vec3 eye = activeRenderInfo.getPosition();
+        final Vec3 eye = event.getCamera().getPosition();
 
         final Frustum frustum = new Frustum(stack.last().pose(), event.getProjectionMatrix());
         frustum.prepare(eye.x, eye.y, eye.z);

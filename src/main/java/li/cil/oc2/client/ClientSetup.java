@@ -39,7 +39,6 @@ public final class ClientSetup {
         BusInterfaceNameRenderer.initialize();
 
         BlockEntityRenderers.register(BlockEntities.COMPUTER.get(), ComputerRenderer::new);
-        BlockEntityRenderers.register(BlockEntities.NETWORK_CONNECTOR.get(), NetworkConnectorRenderer::new);
         BlockEntityRenderers.register(BlockEntities.DISK_DRIVE.get(), DiskDriveRenderer::new);
         BlockEntityRenderers.register(BlockEntities.CHARGER.get(), ChargerRenderer::new);
         BlockEntityRenderers.register(BlockEntities.PROJECTOR.get(), ProjectorRenderer::new);

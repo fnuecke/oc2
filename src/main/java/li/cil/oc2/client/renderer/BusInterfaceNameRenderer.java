@@ -20,7 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.client.event.RenderLevelLastEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -34,7 +34,11 @@ public enum BusInterfaceNameRenderer {
     }
 
     @SubscribeEvent
-    public void handleRenderLastEvent(final RenderLevelLastEvent event) {
+    public void handleRenderLastEvent(final RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
+            return;
+        }
+
         final Minecraft mc = Minecraft.getInstance();
         final Player player = mc.player;
         if (player == null) {

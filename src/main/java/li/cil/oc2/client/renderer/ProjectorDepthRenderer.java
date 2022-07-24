@@ -35,12 +35,13 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
-import net.minecraftforge.client.event.RenderLevelLastEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.RenderNameplateEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.Event;
@@ -66,7 +67,7 @@ public final class ProjectorDepthRenderer {
     private static final DynamicTexture[] PROJECTOR_COLOR_TARGETS = new DynamicTexture[ModShaders.MAX_PROJECTORS];
     private static final Matrix4f[] PROJECTOR_CAMERA_MATRICES = new Matrix4f[ModShaders.MAX_PROJECTORS];
     private static final Camera PROJECTOR_DEPTH_CAMERA = new Camera();
-    private static final DepthOnlyRenderTarget MAIN_CAMERA_DEPTH = new DepthOnlyRenderTarget(MainTarget.DEFAULT_WIDTH, MainTarget.DEFAULT_HEIGHT);
+    private static DepthOnlyRenderTarget MAIN_CAMERA_DEPTH = new DepthOnlyRenderTarget(MainTarget.DEFAULT_WIDTH, MainTarget.DEFAULT_HEIGHT);
     private static final float PROJECTOR_FORWARD_SHIFT = 7 / 16f; // From center of projector block.
     private static final float PROJECTOR_NEAR = 0.5f - PROJECTOR_FORWARD_SHIFT;
     private static final float PROJECTOR_FAR = ProjectorBlockEntity.MAX_RENDER_DISTANCE;
@@ -86,6 +87,8 @@ public final class ProjectorDepthRenderer {
     private static boolean isRenderingProjectorDepth;
     private static HitResult hitResultBak;
     private static boolean entityShadowsBak;
+    private static Entity minecraftCameraEntityBak;
+    private static Camera gameRendererMainCameraBak;
 
     private static void handleProjectorNoLongerRendering(final RemovalNotification<ProjectorBlockEntity, RenderInfo> notification) {
         final ProjectorBlockEntity projector = notification.getKey();
@@ -140,7 +143,7 @@ public final class ProjectorDepthRenderer {
      * method to grab the current depth buffer. This is necessary, because the depth buffer may be messed up by other
      * render passes when using the "Fabulous!" graphics mode.
      * <p>
-     * Called before {@link #handleRenderLevelLast(RenderLevelLastEvent)} every frame.
+     * Called before {@link #renderProjectors(RenderLevelStageEvent)} every frame.
      */
     public static void captureMainCameraDepth() {
         final RenderTarget mainRenderTarget = Minecraft.getInstance().getMainRenderTarget();
@@ -149,6 +152,9 @@ public final class ProjectorDepthRenderer {
         }
         if (mainRenderTarget.isStencilEnabled()) {
             MAIN_CAMERA_DEPTH.enableStencil();
+        } else if (MAIN_CAMERA_DEPTH.isStencilEnabled()) {
+            MAIN_CAMERA_DEPTH.destroyBuffers();
+            MAIN_CAMERA_DEPTH = new DepthOnlyRenderTarget(mainRenderTarget.width, mainRenderTarget.height);
         }
         MAIN_CAMERA_DEPTH.copyDepthFrom(mainRenderTarget);
         mainRenderTarget.bindWrite(false);
@@ -159,7 +165,14 @@ public final class ProjectorDepthRenderer {
      * {@link #addProjector(ProjectorBlockEntity)} this frame.
      */
     @SubscribeEvent
-    public static void handleRenderLevelLast(final RenderLevelLastEvent event) {
+    public static void renderProjectors(final RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
+            return;
+        }
+        if (isIsRenderingProjectorDepth()) {
+            return;
+        }
+
         if (VISIBLE_PROJECTORS.isEmpty()) {
             return;
         }
@@ -178,7 +191,7 @@ public final class ProjectorDepthRenderer {
             });
 
             final int projectorCount = Math.min(VISIBLE_PROJECTORS.size(), ModShaders.MAX_PROJECTORS);
-            renderProjectorDepths(minecraft, level, player, event.getPartialTick(), event.getStartNanos(), projectorCount);
+            renderProjectorDepths(minecraft, level, event.getPartialTick(), projectorCount);
             renderProjectorColors(minecraft, event.getPoseStack().last().pose(), event.getProjectionMatrix(), projectorCount);
         } finally {
             VISIBLE_PROJECTORS.clear();
@@ -221,10 +234,10 @@ public final class ProjectorDepthRenderer {
      * bre rendered. The output is the list of depth buffers, MVP matrices that were used to render them, and the
      * associated color texture for the projector.
      */
-    private static void renderProjectorDepths(final Minecraft minecraft, final ClientLevel level, final Player player,
-                                              final float partialTicks, final long startNanos,
-                                              final int projectorCount) {
-        prepareDepthBufferRendering(minecraft, level);
+    private static void renderProjectorDepths(final Minecraft minecraft, final ClientLevel level,
+                                              final float partialTicks, final int projectorCount) {
+        final Vec3 mainCameraPosition = minecraft.gameRenderer.getMainCamera().getPosition();
+        prepareDepthBufferRendering(minecraft, level, partialTicks);
         try {
             final PoseStack viewModelStack = new PoseStack();
             for (int projectorIndex = 0; projectorIndex < projectorCount; projectorIndex++) {
@@ -239,22 +252,22 @@ public final class ProjectorDepthRenderer {
                 RenderSystem.setProjectionMatrix(DEPTH_CAMERA_PROJECTION_MATRIX);
                 setupViewModelMatrix(viewModelStack);
 
-                storeProjectorMatrix(projectorIndex, minecraft, projectorPos, viewModelStack);
+                storeProjectorMatrix(projectorIndex, projectorPos, mainCameraPosition, viewModelStack);
 
                 bindProjectorDepthRenderTarget(projectorIndex, minecraft);
 
-                renderProjectorDepthBuffer(minecraft, partialTicks, startNanos, viewModelStack);
+                renderProjectorDepthBuffer(minecraft, partialTicks, viewModelStack);
 
                 storeProjectorColorBuffer(projectorIndex, projector);
 
                 projector.onRendering();
             }
         } finally {
-            finishDepthBufferRendering(minecraft, player);
+            finishDepthBufferRendering(minecraft);
         }
     }
 
-    private static void prepareDepthBufferRendering(final Minecraft minecraft, final ClientLevel level) {
+    private static void prepareDepthBufferRendering(final Minecraft minecraft, final ClientLevel level, final float partialTicks) {
         isRenderingProjectorDepth = true;
 
         // Suppresses hit outlines being rendered.
@@ -265,12 +278,15 @@ public final class ProjectorDepthRenderer {
         entityShadowsBak = minecraft.options.entityShadows;
         minecraft.options.entityShadows = false;
 
-        minecraft.setCameraEntity(ProjectorCameraEntity.get(level, Vec3.ZERO, 0));
+        minecraftCameraEntityBak = minecraft.getCameraEntity();
+        minecraft.setCameraEntity(ProjectorCameraEntity.get(level, Vec3.ZERO, partialTicks));
+        gameRendererMainCameraBak = minecraft.gameRenderer.mainCamera;
+        minecraft.gameRenderer.mainCamera = PROJECTOR_DEPTH_CAMERA;
 
         RenderSystem.backupProjectionMatrix();
     }
 
-    private static void finishDepthBufferRendering(final Minecraft minecraft, final Player player) {
+    private static void finishDepthBufferRendering(final Minecraft minecraft) {
         minecraft.hitResult = hitResultBak;
         minecraft.options.entityShadows = entityShadowsBak;
 
@@ -279,7 +295,8 @@ public final class ProjectorDepthRenderer {
         ((MinecraftExt) minecraft).setMainRenderTargetOverride(null);
         minecraft.getMainRenderTarget().bindWrite(true);
 
-        minecraft.setCameraEntity(player);
+        minecraft.setCameraEntity(minecraftCameraEntityBak);
+        minecraft.gameRenderer.mainCamera = gameRendererMainCameraBak;
 
         isRenderingProjectorDepth = false;
     }
@@ -298,10 +315,7 @@ public final class ProjectorDepthRenderer {
         }
     }
 
-    private static void storeProjectorMatrix(final int projectorIndex, final Minecraft minecraft, final Vec3 projectorPos, final PoseStack viewModelStack) {
-        final Camera mainCamera = minecraft.gameRenderer.getMainCamera();
-        final Vec3 mainCameraPosition = mainCamera.getPosition();
-
+    private static void storeProjectorMatrix(final int projectorIndex, final Vec3 projectorPos, final Vec3 mainCameraPosition, final PoseStack viewModelStack) {
         // Save model-view-projection matrix for mapping in compositing shader. We use the position relative to the
         // main camera here, so that the main camera can sit at the origin. This avoids loss of precision.
         PROJECTOR_CAMERA_MATRICES[projectorIndex].load(DEPTH_CAMERA_PROJECTION_MATRIX);
@@ -321,7 +335,7 @@ public final class ProjectorDepthRenderer {
         ((MinecraftExt) minecraft).setMainRenderTargetOverride(projectorDepthTarget);
     }
 
-    private static void renderProjectorDepthBuffer(final Minecraft minecraft, final float partialTicks, final long startNanos, final PoseStack viewModelStack) {
+    private static void renderProjectorDepthBuffer(final Minecraft minecraft, final float partialTicks, final PoseStack viewModelStack) {
         final LevelRenderer levelRenderer = minecraft.levelRenderer;
         levelRenderer.prepareCullFrustum(
             viewModelStack,
@@ -331,7 +345,7 @@ public final class ProjectorDepthRenderer {
         levelRenderer.renderLevel(
             viewModelStack,
             partialTicks,
-            startNanos,
+            /* startNanos */ 0,
             /* shouldRenderBlockOutline: */ false,
             PROJECTOR_DEPTH_CAMERA,
             minecraft.gameRenderer,
@@ -341,7 +355,7 @@ public final class ProjectorDepthRenderer {
     }
 
     private static void storeProjectorColorBuffer(final int projectorIndex, final ProjectorBlockEntity projector) {
-        PROJECTOR_COLOR_TARGETS[projectorIndex] = getRenderInfo(projector).texture();
+        PROJECTOR_COLOR_TARGETS[projectorIndex] = getColorBuffer(projector);
     }
 
     /**
@@ -352,7 +366,6 @@ public final class ProjectorDepthRenderer {
      */
     private static void renderProjectorColors(final Minecraft minecraft, final Matrix4f modelViewMatrix, final Matrix4f projectionMatrix, final int projectorCount) {
         prepareColorBufferRendering();
-
         try {
             prepareOrthographicRendering(minecraft);
 
@@ -439,7 +452,7 @@ public final class ProjectorDepthRenderer {
         });
     }
 
-    private static RenderInfo getRenderInfo(final ProjectorBlockEntity projector) {
+    private static DynamicTexture getColorBuffer(final ProjectorBlockEntity projector) {
         try {
             return RENDER_INFO.get(projector, () -> {
                 final DynamicTexture texture = new DynamicTexture(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, false);
@@ -447,7 +460,7 @@ public final class ProjectorDepthRenderer {
                 final RenderInfo renderInfo = new RenderInfo(texture);
                 projector.setFrameConsumer(renderInfo);
                 return renderInfo;
-            });
+            }).texture();
         } catch (final ExecutionException e) {
             throw new RuntimeException(e);
         }

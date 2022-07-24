@@ -109,20 +109,36 @@ class DeviceBus:
     def _read_message(self, expected_type):
         message = ""
         while True:
-            value = chr(self._read_one())
-            if value == self.MESSAGE_DELIMITER:
-                if message:
-                    data = json.loads(message)
-                    if data["type"] != expected_type:
-                        raise Exception("unexpected message type: %s" % data["type"])
+            if self.buffer is None:
+                self._fill_buffer()
+
+            value = self.buffer.decode()[self.buffer_pos:]
+
+            if len(message) == 0 and value[0] == self.MESSAGE_DELIMITER:
+                self.buffer_pos += 1
+                value = value[1:]
+
+            if value.find(self.MESSAGE_DELIMITER) != -1:
+                value = value[:value.find(self.MESSAGE_DELIMITER) + 1]
+                self.buffer_pos += len(value)
+                if self.buffer_pos >= len(self.buffer):
+                    self._clear_buffer()
+            else:
+                self._clear_buffer()
+
+            message += value
+ 
+            if message[-1] == self.MESSAGE_DELIMITER:
+                data = json.loads(message)
+                if data["type"] == expected_type:
                     if "data" in data:
                         return data["data"]
                     else:
                         return
+                elif data["type"] == "error":
+                    raise Exception(data["data"])
                 else:
-                    message = ""
-            else:
-                message += value
+                    raise Exception("unexpected message type: %s" % data["type"])
 
     def _read_one(self):
         if self.buffer is None:
@@ -146,8 +162,10 @@ class DeviceBus:
         # This is horrible, but don't know how to know how many bytes are available,
         # so reading one by one is necessary to avoid blocking.
         data = bytearray()
-        while len(data) < limit and len(self.poll.poll(0)) > 0:
+        bytesRead = 0
+        while bytesRead < limit and len(self.poll.poll(0)) > 0:
             data.extend(self.file.read(1))
+            bytesRead += 1
         return data
 
     def _skip_input(self):

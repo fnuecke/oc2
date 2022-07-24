@@ -4,9 +4,9 @@ package li.cil.oc2.common.bus.device.rpc.item;
 
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.common.Config;
 import li.cil.oc2.common.util.BlockLocation;
 import li.cil.oc2.common.util.TickUtils;
-import li.cil.oc2.common.Config;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -48,10 +48,13 @@ public final class SoundCardItemDevice extends AbstractItemRPCDevice {
     public void playSound(@Nullable @Parameter("name") final String name, @Parameter("volume") final float volume) {
         playSound(name, volume, 1);
     }
-    
+
     @Callback
     public void playSound(@Nullable @Parameter("name") final String name, @Parameter("volume") final float volume, @Parameter("pitch") final float pitch) {
         if (name == null) throw new IllegalArgumentException();
+        if (volume < 0 || volume > 1.0f) throw new IllegalArgumentException("volume must be between >= 0 and <= 1");
+        if (pitch < 0.5f || pitch > 2.0f) throw new IllegalArgumentException("pitch must be between >= 0.5 and <= 2");
+        if (volume == 0) return;
 
         location.get().ifPresent(location -> location.tryGetLevel().ifPresent(level -> {
             if (!(level instanceof final ServerLevel serverLevel)) {

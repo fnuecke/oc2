@@ -23,6 +23,22 @@
     }
   },
   "result": {
-    "item": "oc2:robot"
+    "item": "oc2:robot",
+    "nbt": {
+      "oc2": {
+        "items": {
+          "oc2:flash_memory": {
+            "Items": [
+              {
+                "Slot": 0,
+                "Count": 1,
+                "id": "oc2:flash_memory_custom"
+              }
+            ],
+            "Size": 1
+          }
+        }
+      }
+    }
   }
 }

@@ -36,7 +36,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 final def hasGithubPackageCredentials =
-    (project.property("gpr.user") && project.property("gpr.key")) ||
+    (project.hasProperty("gpr.user") && project.hasProperty("gpr.key")) ||
         (System.getenv("GITHUB_ACTOR") && System.getenv("GITHUB_TOKEN"))
 
 repositories {

@@ -116,24 +116,6 @@ local function clearBuffer(bus)
     bus.buffer = nil
 end
 
-local function readOne(bus)
-  if not bus.buffer then
-    local result, status = fillBuffer(bus)
-    if not result then
-      return result, status
-    end
-  end
-
-  local result = bus.buffer:byte(bus.bufferPos)
-  if bus.bufferPos >= #bus.buffer then
-    bus.buffer = nil
-  else
-    bus.bufferPos = bus.bufferPos + 1
-  end
-
-  return result
-end
-
 local function readMessage(bus)
   local value
   local message = ""

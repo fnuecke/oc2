@@ -140,15 +140,6 @@ class DeviceBus:
                 else:
                     raise Exception("unexpected message type: %s" % data["type"])
 
-    def _read_one(self):
-        if self.buffer is None:
-            self._fill_buffer()
-        result = self.buffer[self.buffer_pos]
-        self.buffer_pos += 1
-        if self.buffer_pos >= len(self.buffer):
-            self._clear_buffer()
-        return result
-
     def _clear_buffer(self):
         self.buffer = None
         self.buffer_pos = 0

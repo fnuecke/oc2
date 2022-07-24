@@ -1,3 +1,11 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url = 'https://maven.minecraftforge.net/' }
+        maven { url "https://repo.spongepowered.org/repository/maven-public/" }
+    }
+}
+
 apply from: 'minecraft.gradle'
 rootProject.name = "oc2-${minecraft_version}-${minecraft_sdk}"
 

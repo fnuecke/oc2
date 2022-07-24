@@ -1,47 +1,43 @@
 buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        mavenCentral()
-    }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7.+'
     }
 }
-
 plugins {
-    id 'idea'
-    id 'maven-publish'
-    id 'com.matthewprenger.cursegradle' version '1.4.0'
+    id "idea"
+    id "maven-publish"
+    id "net.minecraftforge.gradle" version "5.1.+"
+    id "com.matthewprenger.cursegradle" version "1.4.0"
 }
 
-apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
-apply from: 'minecraft.gradle'
+apply from: "minecraft.gradle"
 
 def getGitRef() {
     try {
         final def stdout = new ByteArrayOutputStream()
         exec {
-            commandLine 'git', 'rev-parse', '--short', 'HEAD'
+            commandLine "git", "rev-parse", "--short", "HEAD"
             standardOutput = stdout
         }
         return stdout.toString().trim()
     } catch (final Throwable ignored) {
-        return 'unknown'
+        return "unknown"
     }
 }
 
 version = "${semver}+${getGitRef()}"
-group = 'li.cil.oc2'
+group = "li.cil.oc2"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'utf-8'
+    options.encoding = "utf-8"
 }
 
-final def hasGithubPackageCredentials = System.getenv("GITHUB_ACTOR") && System.getenv("GITHUB_TOKEN")
+final def hasGithubPackageCredentials =
+    (project.property("gpr.user") && project.property("gpr.key")) ||
+        (System.getenv("GITHUB_ACTOR") && System.getenv("GITHUB_TOKEN"))
 
 repositories {
     mavenCentral()
@@ -74,37 +70,37 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
 
     // Specify the libs embedded in the library mod explicitly for local development, where
     // we can include these directly (and will have a local library mod using the local
     // versions). Can't get these to get properly resolved in the IDE otherwise (doesn't
     // pick them up via the library mod due to the embed configuration).
     if (hasGithubPackageCredentials) {
-        compileOnly 'li.cil.ceres:ceres:0.0.4'
-        compileOnly 'li.cil.sedna:sedna:2.0.8'
-        compileOnly 'li.cil.sedna:sedna-buildroot:0.0.8'
+        compileOnly "li.cil.ceres:ceres:0.0.4"
+        compileOnly "li.cil.sedna:sedna:2.0.8"
+        compileOnly "li.cil.sedna:sedna-buildroot:0.0.8"
     }
-    implementation 'curse.maven:sedna-511276:3885542'
+    implementation "curse.maven:sedna-511276:3885542"
 
     implementation fg.deobf("curse.maven:markdownmanual-502485:3738124")
 
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:9.7.0.180:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:9.7.0.180")
 
-    testImplementation 'org.mockito:mockito-inline:4.3.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    testImplementation "org.mockito:mockito-inline:4.3.1"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.2"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.2"
 }
 
 task packageScripts(type: Zip) {
-    archiveFileName = 'scripts.zip'
+    archiveFileName = "scripts.zip"
     destinationDirectory = file("$buildDir/resources/main/data/oc2/file_systems")
-    from 'src/main/scripts'
+    from "src/main/scripts"
 }
 
 task copyLicensesToResources(type: Copy) {
-    from '.'
+    from "."
     into file("$buildDir/resources/main")
     include "LICENSE*"
 }
@@ -113,14 +109,14 @@ processResources.dependsOn(packageScripts)
 processResources.dependsOn(copyLicensesToResources)
 
 minecraft {
-    mappings channel: 'official', version: minecraft_version
+    mappings channel: "official", version: minecraft_version
 
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    accessTransformer = file("src/main/resources/META-INF/accesstransformer.cfg")
 
     runs {
         all {
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'info'
+            property "forge.logging.markers", "REGISTRIES"
+            property "forge.logging.console.level", "info"
 
             mods {
                 oc2 {
@@ -130,57 +126,64 @@ minecraft {
         }
 
         client {
-            workingDirectory project.file('run')
+            workingDirectory project.file("run")
+            property "forge.enabledGameTestNamespaces", "oc2"
         }
 
         server {
-            workingDirectory project.file('run')
+            workingDirectory project.file("run")
+            property "forge.enabledGameTestNamespaces", "oc2"
             arg "--nogui"
         }
 
-        data {
+        gameTestServer {
             workingDirectory project.file('run')
-            args '--mod', 'oc2', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources')
+            property "forge.enabledGameTestNamespaces", "oc2"
+        }
+
+        data {
+            workingDirectory project.file("run")
+            args "--mod", "oc2", "--all", "--output", file("src/generated/resources/"), "--existing", file("src/main/resources")
         }
     }
 }
 
 mixin {
-    add sourceSets.main, 'mixins.oc2.refmap.json'
-    config 'mixins.oc2.json'
+    add sourceSets.main, "mixins.oc2.refmap.json"
+    config "mixins.oc2.json"
 
 //    quiet
 }
 
 task copyGeneratedResources(type: Copy) {
-    from 'src/generated'
-    into 'src/main'
-    exclude 'resources/.cache'
+    from "src/generated"
+    into "src/main"
+    exclude "resources/.cache"
 }
 
 jar {
-    finalizedBy 'reobfJar'
+    finalizedBy "reobfJar"
 
     manifest {
         attributes([
-            'FMLAT'                   : 'accesstransformer.cfg',
-            'Specification-Title'     : 'oc2',
-            'Specification-Vendor'    : 'Sangar',
-            'Specification-Version'   : '1',
-            'Implementation-Title'    : project.name,
-            'Implementation-Version'  : "${semver}",
-            'Implementation-Vendor'   : 'Sangar',
-            'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-            'MixinConfigs'            : 'mixins.oc2.json',
+            "FMLAT"                   : "accesstransformer.cfg",
+            "Specification-Title"     : "oc2",
+            "Specification-Vendor"    : "Sangar",
+            "Specification-Version"   : "1",
+            "Implementation-Title"    : project.name,
+            "Implementation-Version"  : "${semver}",
+            "Implementation-Vendor"   : "Sangar",
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            "MixinConfigs"            : "mixins.oc2.json",
         ])
     }
 }
 
 task apiJar(type: Jar) {
-    archiveClassifier.set('api')
+    archiveClassifier.set("api")
     from sourceSets.main.allSource
     from sourceSets.main.output
-    include 'li/cil/oc2/api/**'
+    include "li/cil/oc2/api/**"
 }
 
 artifacts {
@@ -210,25 +213,25 @@ publishing {
 }
 
 curseforge {
-    apiKey = System.getenv('CURSEFORGE_API_KEY') ?: ""
+    apiKey = System.getenv("CURSEFORGE_API_KEY") ?: ""
     project {
         id = curse_project_id
         releaseType = System.getenv('CURSEFORGE_RELEASE_TYPE') ?: "alpha"
         changelogType = 'markdown'
         changelog = System.getenv("CHANGELOG") ?: "Changelog not available."
-        addGameVersion 'Forge'
+        addGameVersion "Forge"
         addGameVersion minecraft_version
-        addGameVersion 'Java 17'
+        addGameVersion "Java 17"
         relations {
-            requiredDependency 'markdownmanual'
-            requiredDependency 'sedna'
+            requiredDependency "markdownmanual"
+            requiredDependency "sedna"
         }
     }
 }
 
 idea {
     module {
-        for (final String exclude in ['assets', 'run', 'out', 'logs', 'src/generated']) {
+        for (final String exclude in ["assets", "run", "out", "logs", "src/generated"]) {
             excludeDirs += file(exclude)
         }
     }

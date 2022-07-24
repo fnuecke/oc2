@@ -8,6 +8,7 @@ import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.rpc.*;
+import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
@@ -67,6 +68,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
             .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
             .registerTypeHierarchyAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
             .registerTypeAdapter(EmptyMethodGroup.class, new EmptyRPCMethodGroupSerializer())
+            .registerTypeAdapter(Side.class, new SideJsonDeserializer())
             .create();
     }
 

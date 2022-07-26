@@ -72,4 +72,9 @@ M.turnAsync = function(direction)
   end
 end
 
+M.inspect = function(direction)
+  direction = assert(direction, "no direction specified")
+  return robot:inspect(direction)
+end
+
 return M

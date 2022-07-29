@@ -1,7 +1,7 @@
 # Floppy
 ![It's not the floppy that bends](item:oc2:floppy)
 
-Floppy disks are removable media. This means they can be inserted and removed from [disk drives](../block/disk_drive.md) without the [computer](../block/disk_drive.md) using the disk drive having to reboot to use them.
+Floppy disks are removable media. This means they can be inserted and removed from [disk drives](../block/disk_drive.md) without the [computer](../block/computer.md) using the disk drive having to reboot to use them.
 
 Crafting a blank floppy together with a [Z80 processor](cpu_z80.md) writes the CP/M system to it. That is the disk a Z80 machine boots from. Crafting a written floppy with a [wrench](wrench.md) erases it back to a blank one.
 

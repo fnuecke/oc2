@@ -184,7 +184,7 @@ public final class Callbacks {
                                 description = callbackVisitor.description;
                             }
                             if (Strings.isNotBlank(callbackVisitor.returnValueDescription)) {
-                                returnValueDescription = callbackVisitor.description;
+                                returnValueDescription = callbackVisitor.returnValueDescription;
                             }
 
                             parameterDescriptions.putAll(callbackVisitor.parameterDescriptions);

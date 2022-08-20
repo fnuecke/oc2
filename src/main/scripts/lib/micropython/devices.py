@@ -39,6 +39,9 @@ class Device:
             if "description" in method and method["description"]:
                 doc += method["description"] + "\n"
 
+            if "returnTypeDescription" in method and method["returnTypeDescription"]:
+                doc += method["returnTypeDescription"] + "\n"
+
             if "parameters" in method:
                 i = 0
                 for p in method["parameters"]:

@@ -45,6 +45,10 @@ Device.__tostring = function(self)
       doc = doc .. method.description .. "\n"
     end
 
+    if method.returnTypeDescription then
+      doc = doc .. method.returnTypeDescription .. "\n"
+    end
+
     if method.parameters then
       local i = 1
       for _, p in ipairs(method.parameters) do

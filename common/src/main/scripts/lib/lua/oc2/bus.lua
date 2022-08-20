@@ -129,6 +129,10 @@ Device.__tostring = function(self)
         end
       end
     end
+
+    if method.returnValueDescription then
+      put("  returns  ", method.returnValueDescription, "\n")
+    end
   end
 
   return table.concat(out)

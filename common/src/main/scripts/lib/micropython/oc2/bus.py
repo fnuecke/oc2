@@ -88,6 +88,11 @@ class Device:
                     out.append("  ")
                     out.append(p["description"])
                     out.append("\n")
+
+            if method.get("returnValueDescription"):
+                out.append("  returns  ")
+                out.append(method["returnValueDescription"])
+                out.append("\n")
         return "".join(out)
 
 

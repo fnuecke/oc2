@@ -50,6 +50,10 @@ class Device:
                             doc += "args" + str(i)
                         doc += "  " + p["description"] + "\n"
                     i += 1
+
+            if "returnTypeDescription" in method and method["returnTypeDescription"]:
+                doc += method["returnTypeDescription"] + "\n"
+
         return doc
 
 

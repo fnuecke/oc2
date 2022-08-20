@@ -294,7 +294,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         visitor.visitCallback(WRITE_EXPORT_FILE)
             .description("Appends more data to the currently being exported file.\n" +
                 "This method may error if the device is not currently exporting or the " +
-                "export was interrupted.\n")
+                "export was interrupted.")
             .parameterDescription(DATA, "the contents of the file being exported.");
         visitor.visitCallback(FINISH_EXPORT_FILE)
             .description("Finishes an export. This will prompt present users to select an external " +

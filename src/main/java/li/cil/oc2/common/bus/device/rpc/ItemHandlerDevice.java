@@ -27,12 +27,12 @@ public final class ItemHandlerDevice extends IdentityProxy<IItemHandler> impleme
     }
 
     @Callback
-    public ItemStack getItemStackInSlot(final int slot) {
+    public ItemStack getItemStackInSlot(@Parameter("slot") final int slot) {
         return identity.getStackInSlot(slot);
     }
 
     @Callback
-    public int getItemSlotLimit(final int slot) {
+    public int getItemSlotLimit(@Parameter("slot") final int slot) {
         return identity.getSlotLimit(slot);
     }
 }

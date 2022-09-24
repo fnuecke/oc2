@@ -26,9 +26,6 @@ Device.__tostring = function(self)
         end
         if p.name then
           doc = doc .. p.name
-        else
-          doc = doc .. "arg" .. i
-        end
         if p.type then
             doc = doc .. ": " .. p.type
         end

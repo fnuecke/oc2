@@ -16,7 +16,7 @@ The side parameter in the following methods represents a direction from the pers
 
 ### Methods
 `excavate([side]):boolean` tries to break a block in the specified direction. Collected blocks will be inserted starting at the currently selected inventory slot. If the selected slot is full, the next slot will be used, and so on. If the inventory has no space for the dropped block, it will drop into the world.
-- `side` is the relative direction in to break a block in. Optional, defaults to `front`. See the "Sides" section.
+- `side` is the relative direction to break a block in. Optional, defaults to `front`. See the "Sides" section.
 - Returns whether the operation was successful.
 
 `place([side]):boolean` tries to place a block in the specified direction. Blocks will be placed from the currently selected inventory slot. If the slot is empty, no block will be placed.

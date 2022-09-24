@@ -3,6 +3,7 @@
 package li.cil.oc2.common.bus.device.rpc.item;
 
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.inventory.ItemHandler;
@@ -37,12 +38,17 @@ import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
 
-public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
+public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice implements DocumentedDevice {
     private static final String LAST_OPERATION_TAG_NAME = "cooldown";
     private static final String COOLDOWN_TAG_NAME = "cooldown_ticks";
 
     private static final int MIN_COOLDOWN = TickUtils.toTicks(Duration.ofSeconds(1));
     private static final int MAX_COOLDOWN = TickUtils.toTicks(Duration.ofSeconds(15));
+
+    private static final String EXCAVATE = "excavate";
+    private static final String PLACE = "place";
+    private static final String DURABILITY = "durability";
+    private static final String SIDE = "side";
 
     // --------------------------------------------------------------------- //
 
@@ -75,12 +81,12 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         cooldown = Mth.clamp(tag.getInt(COOLDOWN_TAG_NAME), MIN_COOLDOWN, MAX_COOLDOWN);
     }
 
-    @Callback
+    @Callback(name = EXCAVATE)
     public boolean excavate() {
         return excavate(null);
     }
 
-    @Callback
+    @Callback(name = EXCAVATE)
     public boolean excavate(@Parameter("side") @Nullable final RobotOperationSide side) {
         if (isOnCooldown()) {
             return false;
@@ -131,12 +137,12 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         return true;
     }
 
-    @Callback
+    @Callback(name = PLACE)
     public boolean place() {
         return place(null);
     }
 
-    @Callback
+    @Callback(name = PLACE)
     public boolean place(@Parameter("side") @Nullable final RobotOperationSide side) {
         if (isOnCooldown()) {
             return false;
@@ -187,7 +193,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         return true;
     }
 
-    @Callback
+    @Callback(name = DURABILITY)
     public int durability() {
         final ItemStack tool = robot.getInventory().getStackInSlot(robot.getSelectedSlot());
         if (!tool.isDamageableItem()) {
@@ -195,6 +201,33 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         }
 
         return tool.getMaxDamage() - tool.getDamageValue();
+    }
+
+    @Override
+    public void getDeviceDocumentation(final DocumentedDevice.DeviceVisitor visitor) {
+        visitor.visitCallback(EXCAVATE)
+            .description("Try to break a block in the specified direction, using the tool in the " +
+                "currently selected inventory slot. Collected blocks will be inserted starting after " +
+                "the currently selected inventory slot. If a slot is full, the next slot will be used. " +
+                "If the inventory has no space for the dropped block, it will drop into the world.\n" +
+                "Blocks the held tool would not collect anything from, blocks nothing can break and " +
+                "blocks that would take longer than fifteen seconds are refused.")
+            .returnValueDescription("whether the operation was successful.")
+            .parameterDescription(SIDE, "the relative direction to break a block in. " +
+                "Optional, defaults to front. Valid values are front, up and down.");
+
+        visitor.visitCallback(PLACE)
+            .description("Try to place a block in the specified direction. Blocks will be placed from " +
+                "the currently selected inventory slot. If the slot is empty, no block will be placed.")
+            .returnValueDescription("whether the operation was successful.")
+            .parameterDescription(SIDE, "the relative direction to place the block in. " +
+                "Optional, defaults to front. Valid values are front, up and down.");
+
+        visitor.visitCallback(DURABILITY)
+            .description("Get the remaining durability of the tool in the currently selected " +
+                "inventory slot.")
+            .returnValueDescription("the remaining durability, or zero if the slot is empty or holds " +
+                "something that cannot take damage.");
     }
 
     // --------------------------------------------------------------------- //

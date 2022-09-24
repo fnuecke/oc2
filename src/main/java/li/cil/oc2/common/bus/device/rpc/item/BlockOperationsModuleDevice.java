@@ -3,6 +3,7 @@
 package li.cil.oc2.common.bus.device.rpc.item;
 
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
@@ -43,10 +44,16 @@ import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
 
-public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
+public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice implements DocumentedDevice{
     private static final String LAST_OPERATION_TAG_NAME = "cooldown";
 
     private static final int COOLDOWN = TickUtils.toTicks(Duration.ofSeconds(1));
+
+    private static final String EXCAVATE = "excavate";
+    private static final String PLACE = "place";
+    private static final String DURABILITY = "durability";
+    private static final String REPAIR = "repair";
+    private static final String OPERATION_SIDE = "side";
 
     ///////////////////////////////////////////////////////////////////
 
@@ -81,7 +88,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         return excavate(null);
     }
 
-    @Callback
+    @Callback(name = EXCAVATE)
     public boolean excavate(@Parameter("side") @Nullable final RobotOperationSide side) {
         if (isOnCooldown()) {
             return false;
@@ -116,12 +123,12 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         return true;
     }
 
-    @Callback
+    @Callback(name = PLACE)
     public boolean place() {
         return place(null);
     }
 
-    @Callback
+    @Callback(name = PLACE)
     public boolean place(@Parameter("side") @Nullable final RobotOperationSide side) {
         if (isOnCooldown()) {
             return false;
@@ -167,12 +174,12 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         return true;
     }
 
-    @Callback(synchronize = false)
+    @Callback(name = DURABILITY, synchronize = false)
     public int durability() {
         return identity.getMaxDamage() - identity.getDamageValue();
     }
 
-    @Callback
+    @Callback(name = REPAIR)
     public boolean repair() {
         if (isOnCooldown()) {
             return false;
@@ -207,6 +214,37 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         identity.setDamageValue(identity.getDamageValue() - repairValue);
 
         return true;
+    }
+
+    @Override
+    public void getDeviceDocumentation(final DeviceVisitor visitor) {
+        visitor.visitCallback(EXCAVATE)
+            .description("Tries to break a block in the specified direction. Collected blocks will be " +
+                "inserted starting at the currently selected inventory slot. If the selected slot is full, " +
+                "the next slot will be used, and so on.\n" + 
+                "If the inventory has no space for the dropped block, it will drop into the world.")
+            .returnValueDescription("Returns whether the operation was successful.")
+            .parameterDescription(OPERATION_SIDE, "is the relative direction to break a block in.\n" +
+                "Optional, defaults to front. See the \"Sides\" section.");
+        visitor.visitCallback(PLACE)
+            .description("Tries to place a block in the specified direction. Blocks will be placed " +
+                "from the currently selected inventory slot.\n" + 
+                "If the slot is empty, no block will be placed.")
+            .returnValueDescription("Returns whether the operation was successful.")
+            .parameterDescription(OPERATION_SIDE, "is the relative direction to place the block in.\n" +
+                "Optional, defaults to front. See the \"Sides\" section.");
+        visitor.visitCallback(DURABILITY)
+            .description("Returns the remaining durability of the module's excavation tool. Once the " +
+                "durability has reached zero, no further excavation operations can be performed until it is " +
+                "repaired.")
+            .returnValueDescription("Returns the remaining durability of the module's excavation tool");
+        visitor.visitCallback(REPAIR)
+            .description("Attempts to repair the module's excavation tool using materials in the currently " + 
+                "selected inventory slot. This method will consume one item at a time. Any regular tool may act " +
+                "as the source for repair materials, such as pickaxes and shovels. The quality of the tool " + 
+                "directly effects the amount of durability restored.")
+            .returnValueDescription("Returns whether some material could be used to repair the module's " +
+                "excavation tool.");
     }
 
     ///////////////////////////////////////////////////////////////////

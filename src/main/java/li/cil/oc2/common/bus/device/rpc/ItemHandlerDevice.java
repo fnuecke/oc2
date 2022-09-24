@@ -3,6 +3,7 @@
 package li.cil.oc2.common.bus.device.rpc;
 
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import net.minecraft.world.item.ItemStack;
@@ -27,12 +28,12 @@ public final class ItemHandlerDevice extends IdentityProxy<IItemHandler> impleme
     }
 
     @Callback
-    public ItemStack getItemStackInSlot(final int slot) {
+    public ItemStack getItemStackInSlot(@Parameter("slot") final int slot) {
         return identity.getStackInSlot(slot);
     }
 
     @Callback
-    public int getItemSlotLimit(final int slot) {
+    public int getItemSlotLimit(@Parameter("slot") final int slot) {
         return identity.getSlotLimit(slot);
     }
 }

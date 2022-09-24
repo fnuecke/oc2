@@ -26,8 +26,6 @@ class Device:
                         doc += ", "
                     if "name" in p:
                         doc += p["name"]
-                    else:
-                        doc += "arg" + str(i)
                     if "type" in p:
                         doc += ": " + p["type"]
                     i += 1

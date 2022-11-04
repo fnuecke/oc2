@@ -30,7 +30,7 @@ public final class MultipartMessage extends AbstractMessage {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final int MAX_MULTIPART_MESSAGE_SIZE = 1024 * Constants.KILOBYTE;
-    private static final int MAX_PAYLOAD_SIZE = ServerboundCustomPayloadPacket.MAX_PAYLOAD_SIZE;
+    private static final int MAX_PAYLOAD_SIZE = 8 * Constants.KILOBYTE;
     private static final int HEADER_SIZE =
         1 /* forge message index */ +
             4 /* message id */ +

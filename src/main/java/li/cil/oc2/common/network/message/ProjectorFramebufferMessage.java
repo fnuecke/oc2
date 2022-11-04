@@ -40,6 +40,7 @@ public final class ProjectorFramebufferMessage extends AbstractMessage {
         buffer.writeBlockPos(pos);
         buffer.writeVarInt(frame.limit());
         buffer.writeBytes(frame);
+        frame.position(0);
     }
 
     ///////////////////////////////////////////////////////////////////

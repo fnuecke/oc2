@@ -10,7 +10,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.util.Mth;
 
 import java.util.Arrays;
@@ -35,7 +34,7 @@ public abstract class ImageButton extends AbstractButton {
     ///////////////////////////////////////////////////////////////////
 
     protected ImageButton(final int x, final int y, final int width, final int height, final Sprite baseImage, final Sprite pressedImage) {
-        super(x, y, width, height, TextComponent.EMPTY);
+        super(x, y, width, height, Component.empty());
         this.baseImage = baseImage;
         this.pressedImage = pressedImage;
     }
@@ -104,7 +103,7 @@ public abstract class ImageButton extends AbstractButton {
 
         background.draw(stack, x, y);
 
-        if (!Objects.equals(getMessage(), TextComponent.EMPTY)) {
+        if (!Objects.equals(getMessage(), Component.empty())) {
             drawCenteredString(stack, Minecraft.getInstance().font, getMessage(),
                 x + width / 2, y + (height - 8) / 2,
                 getFGColor() | Mth.ceil(alpha * 255) << 24);

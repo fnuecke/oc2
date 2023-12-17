@@ -14,7 +14,8 @@ import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.gui.ForgeIngameGui;
@@ -28,7 +29,7 @@ public final class KeyboardScreen extends Screen {
     private static final float ARM_SWING_RATE = 0.8f;
     private static final int BORDER_COLOR = 0xFFFFFFFF;
 
-    private static final TranslatableComponent CLOSE_INFO = new TranslatableComponent("gui.oc2.keyboard.close_info");
+    private static final MutableComponent CLOSE_INFO = Component.translatable("gui.oc2.keyboard.close_info");
 
     ///////////////////////////////////////////////////////////////////
 

@@ -17,7 +17,6 @@ import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.riscv.R5Board;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
@@ -141,11 +140,11 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         switch (busState) {
             case SCAN_PENDING:
             case INCOMPLETE:
-                return new TranslatableComponent(Constants.COMPUTER_BUS_STATE_INCOMPLETE);
+                return Component.translatable(Constants.COMPUTER_BUS_STATE_INCOMPLETE);
             case TOO_COMPLEX:
-                return new TranslatableComponent(Constants.COMPUTER_BUS_STATE_TOO_COMPLEX);
+                return Component.translatable(Constants.COMPUTER_BUS_STATE_TOO_COMPLEX);
             case MULTIPLE_CONTROLLERS:
-                return new TranslatableComponent(Constants.COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS);
+                return Component.translatable(Constants.COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS);
             case READY:
                 switch (runState) {
                     case STOPPED:
@@ -283,12 +282,12 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
         if (!consumeEnergy(busController.getEnergyConsumption(), true)) {
             // Don't even start running if we couldn't keep running.
-            error(new TranslatableComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
+            error(Component.translatable(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
             return;
         }
 
         if (busController.getDevices().stream().noneMatch(device -> device instanceof FirmwareLoader)) {
-            error(new TranslatableComponent(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
+            error(Component.translatable(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
             return;
         }
 
@@ -299,7 +298,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
             if (loadResult.getErrorMessage() != null) {
                 error(loadResult.getErrorMessage(), false);
             } else {
-                error(new TranslatableComponent(Constants.COMPUTER_ERROR_UNKNOWN), false);
+                error(Component.translatable(Constants.COMPUTER_ERROR_UNKNOWN), false);
             }
             loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
             return;
@@ -317,11 +316,11 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
                 // a program that only uses registers. But not supporting that esoteric
                 // use-case loses out against avoiding people getting confused for having
                 // forgotten to add some RAM modules.
-                error(new TranslatableComponent(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
+                error(Component.translatable(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
                 return;
             } catch (final MemoryAccessException e) {
                 LOGGER.error(e);
-                error(new TranslatableComponent(Constants.COMPUTER_ERROR_UNKNOWN));
+                error(Component.translatable(Constants.COMPUTER_ERROR_UNKNOWN));
                 return;
             }
 
@@ -349,7 +348,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
 
         if (!consumeEnergy(busController.getEnergyConsumption(), false)) {
-            error(new TranslatableComponent(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
+            error(Component.translatable(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
             return;
         }
 

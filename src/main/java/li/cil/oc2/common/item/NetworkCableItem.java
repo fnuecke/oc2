@@ -9,7 +9,7 @@ import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity.ConnectionResul
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -70,7 +70,7 @@ public final class NetworkCableItem extends ModItem {
                 if (currentConnector.canConnectMore()) {
                     persistentData.put(LINK_START_TAG_NAME, NbtUtils.writeBlockPos(currentPos));
                 } else {
-                    player.displayClientMessage(new TranslatableComponent(Constants.CONNECTOR_ERROR_FULL), true);
+                    player.displayClientMessage(Component.translatable(Constants.CONNECTOR_ERROR_FULL), true);
                 }
             } else {
                 final BlockEntity startBlockEntity = level.getBlockEntity(startPos);
@@ -92,15 +92,15 @@ public final class NetworkCableItem extends ModItem {
                         break;
                     case FAILURE_FULL:
                         persistentData.put(LINK_START_TAG_NAME, NbtUtils.writeBlockPos(startPos));
-                        player.displayClientMessage(new TranslatableComponent(Constants.CONNECTOR_ERROR_FULL), true);
+                        player.displayClientMessage(Component.translatable(Constants.CONNECTOR_ERROR_FULL), true);
                         break;
                     case FAILURE_TOO_FAR:
                         persistentData.put(LINK_START_TAG_NAME, NbtUtils.writeBlockPos(startPos));
-                        player.displayClientMessage(new TranslatableComponent(Constants.CONNECTOR_ERROR_TOO_FAR), true);
+                        player.displayClientMessage(Component.translatable(Constants.CONNECTOR_ERROR_TOO_FAR), true);
                         break;
                     case FAILURE_OBSTRUCTED:
                         persistentData.put(LINK_START_TAG_NAME, NbtUtils.writeBlockPos(startPos));
-                        player.displayClientMessage(new TranslatableComponent(Constants.CONNECTOR_ERROR_OBSTRUCTED), true);
+                        player.displayClientMessage(Component.translatable(Constants.CONNECTOR_ERROR_OBSTRUCTED), true);
                         break;
                 }
             }

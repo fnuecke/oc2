@@ -36,7 +36,7 @@ import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
 
 public final class TooltipUtils {
     private static final MutableComponent DEVICE_NEEDS_REBOOT =
-        new TranslatableComponent(Constants.TOOLTIP_DEVICE_NEEDS_REBOOT)
+        Component.translatable(Constants.TOOLTIP_DEVICE_NEEDS_REBOOT)
             .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.YELLOW)));
 
     private static final ThreadLocal<List<ItemStack>> ITEM_STACKS = ThreadLocal.withInitial(ArrayList::new);
@@ -82,7 +82,7 @@ public final class TooltipUtils {
         final String translationKey = stack.getDescriptionId() + Constants.TOOLTIP_DESCRIPTION_SUFFIX;
         final Language language = Language.getInstance();
         if (language.has(translationKey)) {
-            final TranslatableComponent description = new TranslatableComponent(translationKey);
+            final MutableComponent description = Component.translatable(translationKey);
             tooltip.add(withFormat(description, ChatFormatting.GRAY));
         }
 
@@ -101,7 +101,7 @@ public final class TooltipUtils {
 
         if (energyConsumption > 0) {
             final MutableComponent energy = withFormat(String.valueOf(energyConsumption), ChatFormatting.GREEN);
-            tooltip.add(withFormat(new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, energy), ChatFormatting.GRAY));
+            tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION, energy), ChatFormatting.GRAY));
         }
     }
 
@@ -133,10 +133,10 @@ public final class TooltipUtils {
 
         for (int i = 0; i < itemStacks.size(); i++) {
             final ItemStack itemStack = itemStacks.get(i);
-            tooltip.add(new TextComponent("- ")
+            tooltip.add(Component.literal("- ")
                 .append(itemStack.getDisplayName())
                 .withStyle(style -> style.withColor(TextColor.fromLegacyFormat(ChatFormatting.GRAY)))
-                .append(new TextComponent(" x")
+                .append(Component.literal(" x")
                     .append(String.valueOf(itemStackSizes.getInt(i)))
                     .withStyle(style -> style.withColor(TextColor.fromLegacyFormat(ChatFormatting.DARK_GRAY))))
             );
@@ -150,13 +150,13 @@ public final class TooltipUtils {
             }
 
             final MutableComponent value = withFormat(energy.getEnergyStored() + "/" + energy.getMaxEnergyStored(), ChatFormatting.GREEN);
-            tooltip.add(withFormat(new TranslatableComponent(Constants.TOOLTIP_ENERGY, value), ChatFormatting.GRAY));
+            tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_ENERGY, value), ChatFormatting.GRAY));
         });
     }
 
     public static void addEnergyConsumption(final double value, final List<Component> tooltip) {
         if (value > 0) {
-            tooltip.add(withFormat(new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION, withFormat(new DecimalFormat("#.##").format(value), ChatFormatting.GREEN)), ChatFormatting.GRAY));
+            tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION, withFormat(new DecimalFormat("#.##").format(value), ChatFormatting.GREEN)), ChatFormatting.GRAY));
         }
     }
 

@@ -6,7 +6,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.TextComponent;
 
 public final class TextFormatUtils {
     private static final int SIZE_STEP = 1024;
@@ -22,7 +21,7 @@ public final class TextFormatUtils {
     }
 
     public static MutableComponent withFormat(final String value, final ChatFormatting formatting) {
-        return withFormat(new TextComponent(value), formatting);
+        return withFormat(Component.literal(value), formatting);
     }
 
     public static MutableComponent withFormat(final MutableComponent text, final ChatFormatting formatting) {
@@ -30,6 +29,6 @@ public final class TextFormatUtils {
     }
 
     public static Component withFormat(final Component text, final ChatFormatting formatting) {
-        return new TextComponent("").withStyle(formatting).append(text);
+        return Component.literal("").withStyle(formatting).append(text);
     }
 }

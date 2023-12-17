@@ -8,7 +8,6 @@ import li.cil.oc2.common.util.ItemStackUtils;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.item.ItemStack;
@@ -74,7 +73,7 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
     public Component getName(final ItemStack stack) {
         final Firmware firmware = getFirmware(stack);
         if (firmware != null) {
-            return new TextComponent("")
+            return Component.literal("")
                 .append(super.getName(stack))
                 .append(" (")
                 .append(firmware.getDisplayName())

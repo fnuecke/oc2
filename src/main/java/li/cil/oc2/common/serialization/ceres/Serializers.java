@@ -23,7 +23,7 @@ public final class Serializers {
         isInitialized = true;
 
         Ceres.putSerializer(JsonArray.class, new JsonArraySerializer());
-        Ceres.putSerializer(Component.class, new TextComponentSerializer());
+        Ceres.putSerializer(Component.class, Component.literalSerializer());
         Ceres.putSerializer(MemoryRange.class, new MemoryRangeSerializer());
         Ceres.putSerializer(MemoryRangeList.class, new MemoryRangeListSerializer());
     }

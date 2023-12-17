@@ -13,7 +13,7 @@ import li.cil.oc2.common.network.message.BusInterfaceNameMessage;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 
@@ -74,7 +74,7 @@ public final class BusInterfaceScreen extends Screen {
                 setInterfaceName(nameField.getValue());
                 onClose();
             }
-        }).withTooltip(new TranslatableComponent(Constants.TOOLTIP_CONFIRM));
+        }).withTooltip(Component.translatable(Constants.TOOLTIP_CONFIRM));
 
         addRenderableWidget(new ImageButton(
             left + CANCEL_LEFT, top + CANCEL_TOP,
@@ -87,7 +87,7 @@ public final class BusInterfaceScreen extends Screen {
                 super.onPress();
                 onClose();
             }
-        }).withTooltip(new TranslatableComponent(Constants.TOOLTIP_CANCEL));
+        }).withTooltip(Component.translatable(Constants.TOOLTIP_CANCEL));
     }
 
     @Override

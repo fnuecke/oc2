@@ -14,8 +14,6 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -101,7 +99,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         super.init();
         terminalWidget.init();
 
-        final EditBox focusIndicatorEditBox = new EditBox(font, 0, 0, 0, 0, TextComponent.EMPTY);
+        final EditBox focusIndicatorEditBox = new EditBox(font, 0, 0, 0, 0, Component.empty());
         focusIndicatorEditBox.setFocus(true);
         setFocusIndicatorEditBox(focusIndicatorEditBox);
 
@@ -123,8 +121,8 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
                 return menu.getVirtualMachine().isRunning();
             }
         }).withTooltip(
-            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
-            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION)
+            Component.translatable(Constants.COMPUTER_SCREEN_POWER_CAPTION),
+            Component.translatable(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION)
         );
 
         addRenderableWidget(new ToggleImageButton(
@@ -145,8 +143,8 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
                 return isInputCaptureEnabled;
             }
         }).withTooltip(
-            new TranslatableComponent(Constants.TERMINAL_CAPTURE_INPUT_CAPTION),
-            new TranslatableComponent(Constants.TERMINAL_CAPTURE_INPUT_DESCRIPTION)
+            Component.translatable(Constants.TERMINAL_CAPTURE_INPUT_CAPTION),
+            Component.translatable(Constants.TERMINAL_CAPTURE_INPUT_DESCRIPTION)
         );
 
         addRenderableWidget(new ImageButton(
@@ -159,7 +157,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
             public void onPress() {
                 menu.switchToInventory();
             }
-        }).withTooltip(new TranslatableComponent(Constants.MACHINE_OPEN_INVENTORY_CAPTION));
+        }).withTooltip(Component.translatable(Constants.MACHINE_OPEN_INVENTORY_CAPTION));
     }
 
     @Override
@@ -210,9 +208,9 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
 
             if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
                 final List<? extends FormattedText> tooltip = asList(
-                    new TranslatableComponent(Constants.TOOLTIP_ENERGY,
+                    Component.translatable(Constants.TOOLTIP_ENERGY,
                         withFormat(menu.getEnergy() + "/" + menu.getEnergyCapacity(), ChatFormatting.GREEN)),
-                    new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION,
+                    Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION,
                         withFormat(String.valueOf(menu.getEnergyConsumption()), ChatFormatting.GREEN))
                 );
                 TooltipUtils.drawTooltip(stack, tooltip, mouseX, mouseY, 200);

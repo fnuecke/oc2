@@ -9,7 +9,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.InteractionHand;
@@ -59,7 +58,7 @@ public final class NetworkTunnelItem extends ModItem {
         getTunnelId(stack).ifPresent(id -> {
             final String idString = StringUtil.truncateStringIfNecessary(id.toString(), 8 + 3, true);
             final MutableComponent idComponent = TextFormatUtils.withFormat(idString, ChatFormatting.GREEN);
-            tooltip.add(new TranslatableComponent(TUNNEL_ID_TEXT, idComponent).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable(TUNNEL_ID_TEXT, idComponent).withStyle(ChatFormatting.GRAY));
         });
     }
 

@@ -16,7 +16,6 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -81,8 +80,8 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
                 return menu.getVirtualMachine().isRunning();
             }
         }).withTooltip(
-            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_CAPTION),
-            new TranslatableComponent(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION)
+            Component.translatable(Constants.COMPUTER_SCREEN_POWER_CAPTION),
+            Component.translatable(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION)
         );
 
         addRenderableWidget(new ImageButton(
@@ -95,7 +94,7 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
             public void onPress() {
                 menu.switchToTerminal();
             }
-        }.withTooltip(new TranslatableComponent(Constants.MACHINE_OPEN_TERMINAL_CAPTION)));
+        }.withTooltip(Component.translatable(Constants.MACHINE_OPEN_TERMINAL_CAPTION)));
     }
 
     @Override
@@ -139,9 +138,9 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
         if (shouldRenderEnergyBar()) {
             if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
                 final List<? extends FormattedText> tooltip = asList(
-                    new TranslatableComponent(Constants.TOOLTIP_ENERGY,
+                    Component.translatable(Constants.TOOLTIP_ENERGY,
                         withFormat(menu.getEnergy() + "/" + menu.getEnergyCapacity(), ChatFormatting.GREEN)),
-                    new TranslatableComponent(Constants.TOOLTIP_ENERGY_CONSUMPTION,
+                    Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION,
                         withFormat(String.valueOf(menu.getEnergyConsumption()), ChatFormatting.GREEN))
                 );
                 TooltipUtils.drawTooltip(stack, tooltip, mouseX, mouseY, 200);

@@ -11,7 +11,6 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
 public final class WrenchRecipe extends ShapelessRecipe {
@@ -25,8 +24,8 @@ public final class WrenchRecipe extends ShapelessRecipe {
 
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
             final ItemStack stack = inventory.getItem(slot);
-            if (stack.hasContainerItem()) {
-                result.set(slot, stack.getContainerItem());
+            if (stack.hasCraftingRemainingItem()) {
+                result.set(slot, stack.getCraftingRemainingItem());
             } else if (Wrenches.isWrench(stack)) {
                 final ItemStack copy = stack.copy();
                 copy.setCount(1);
@@ -42,7 +41,7 @@ public final class WrenchRecipe extends ShapelessRecipe {
         return Serializer.INSTANCE;
     }
 
-    public static final class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>> implements RecipeSerializer<WrenchRecipe> {
+    public static final class Serializer implements RecipeSerializer<WrenchRecipe> {
         public static final Serializer INSTANCE = new Serializer();
 
         @Override

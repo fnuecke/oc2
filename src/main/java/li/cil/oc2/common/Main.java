@@ -61,8 +61,6 @@ public final class Main {
 
         RegistryUtils.finish();
 
-        ItemRenameHandler.initialize();
-
         FMLJavaModLoadingContext.get().getModEventBus().register(CommonSetup.class);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
             FMLJavaModLoadingContext.get().getModEventBus().register(ClientSetup.class));

@@ -15,14 +15,13 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.*;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.event.world.ChunkEvent;
-import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.event.level.ChunkEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -80,7 +79,7 @@ public final class NetworkCableRenderer {
 
     @SubscribeEvent
     public static void handleChunkUnloadEvent(final ChunkEvent.Unload event) {
-        if (event.getWorld().isClientSide()) {
+        if (event.getLevel().isClientSide()) {
             final ChunkPos chunkPos = event.getChunk().getPos();
 
             final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
@@ -96,9 +95,9 @@ public final class NetworkCableRenderer {
     }
 
     @SubscribeEvent
-    public static void handleWorldUnloadEvent(final WorldEvent.Unload event) {
-        if (event.getWorld().isClientSide()) {
-            final LevelAccessor level = event.getWorld();
+    public static void handleWorldUnloadEvent(final LevelEvent.Unload event) {
+        if (event.getLevel().isClientSide()) {
+            final LevelAccessor level = event.getLevel();
 
             final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
             for (final NetworkConnectorBlockEntity connector : list) {

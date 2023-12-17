@@ -70,8 +70,8 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.world.ChunkEvent;
-import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.event.level.ChunkEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.NetworkHooks;
 
@@ -109,7 +109,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     ///////////////////////////////////////////////////////////////////
 
     private final Consumer<ChunkEvent.Unload> chunkUnloadListener = this::handleChunkUnload;
-    private final Consumer<WorldEvent.Unload> worldUnloadListener = this::handleWorldUnload;
+    private final Consumer<LevelEvent.Unload> worldUnloadListener = this::handleWorldUnload;
     private final BlockPos.MutableBlockPos mutablePosition = new BlockPos.MutableBlockPos();
 
     private final AnimationState animationState = new AnimationState();
@@ -472,7 +472,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     private void handleChunkUnload(final ChunkEvent.Unload event) {
-        if (event.getWorld() != level) {
+        if (event.getLevel() != level) {
             return;
         }
 
@@ -486,8 +486,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         virtualMachine.dispose();
     }
 
-    private void handleWorldUnload(final WorldEvent.Unload event) {
-        if (event.getWorld() != level) {
+    private void handleWorldUnload(final LevelEvent.Unload event) {
+        if (event.getLevel() != level) {
             return;
         }
 

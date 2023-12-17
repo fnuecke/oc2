@@ -5,6 +5,7 @@ package li.cil.oc2.common.util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -14,7 +15,6 @@ import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
-import java.util.Random;
 
 import static li.cil.oc2.common.Constants.MOD_TAG_NAME;
 
@@ -51,7 +51,7 @@ public final class ItemStackUtils {
             return Optional.empty();
         }
 
-        final Random rng = level.random;
+        final RandomSource rng = level.random;
 
         final float tx = 0.5f * (rng.nextFloat() - 1.0f);
         final float ty = 0.5f * (rng.nextFloat() - 1.0f);
@@ -80,7 +80,7 @@ public final class ItemStackUtils {
             return Optional.empty();
         }
 
-        final Random rng = level.random;
+        final RandomSource rng = level.random;
 
         final float ox = direction.getStepX();
         final float oy = direction.getStepY();

@@ -5,10 +5,10 @@ package li.cil.oc2.common.util;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 
 import java.time.Duration;
 import java.util.Optional;
-import java.util.Random;
 import java.util.function.Supplier;
 
 public final class ThrottledSoundEmitter {
@@ -78,11 +78,11 @@ public final class ThrottledSoundEmitter {
 
     ///////////////////////////////////////////////////////////////////
 
-    private float sampleVolume(final Random random) {
+    private float sampleVolume(final RandomSource random) {
         return Mth.clamp(volume + volumeVariance * (random.nextFloat() - 0.5f), 0, 1);
     }
 
-    private float samplePitch(final Random random) {
+    private float samplePitch(final RandomSource random) {
         return Mth.clamp(pitch + pitchVariance * (random.nextFloat() - 0.5f), 0, 1);
     }
 }

@@ -16,13 +16,12 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.gui.ForgeIngameGui;
 import net.minecraftforge.client.gui.OverlayRegistry;
 import org.lwjgl.glfw.GLFW;
-
-import java.util.Random;
 
 public final class KeyboardScreen extends Screen {
     private static final int BORDER_SIZE = 4;
@@ -156,7 +155,7 @@ public final class KeyboardScreen extends Screen {
             return;
         }
 
-        final Random random = player.getRandom();
+        final RandomSource random = player.getRandom();
         if (random.nextFloat() < ARM_SWING_RATE) {
             return;
         }

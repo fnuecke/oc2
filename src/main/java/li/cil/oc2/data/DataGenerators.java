@@ -17,15 +17,15 @@ public final class DataGenerators {
         final ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
 
         if (event.includeServer()) {
-            generator.addProvider(new ModLootTableProvider(generator));
+            generator.addProvider(event.includeServer(), new ModLootTableProvider(generator));
             final BlockTagsProvider blockTagProvider = new ModBlockTagsProvider(generator, existingFileHelper);
-            generator.addProvider(blockTagProvider);
-            generator.addProvider(new ModItemTagsProvider(generator, blockTagProvider, existingFileHelper));
-            generator.addProvider(new ModRecipesProvider(generator));
+            generator.addProvider(event.includeServer(), blockTagProvider);
+            generator.addProvider(event.includeServer(), new ModItemTagsProvider(generator, blockTagProvider, existingFileHelper));
+            generator.addProvider(event.includeServer(), new ModRecipesProvider(generator));
         }
         if (event.includeClient()) {
-            generator.addProvider(new ModBlockStateProvider(generator, existingFileHelper));
-            generator.addProvider(new ModItemModelProvider(generator, existingFileHelper));
+            generator.addProvider(event.includeClient(), new ModBlockStateProvider(generator, existingFileHelper));
+            generator.addProvider(event.includeClient(), new ModItemModelProvider(generator, existingFileHelper));
         }
     }
 }

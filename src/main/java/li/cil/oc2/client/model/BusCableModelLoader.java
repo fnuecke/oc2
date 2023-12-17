@@ -4,17 +4,13 @@ package li.cil.oc2.client.model;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraftforge.client.model.IModelLoader;
-import net.minecraftforge.client.model.ModelLoaderRegistry;
+import com.google.gson.JsonParseException;
+import net.minecraftforge.client.model.ElementsModel;
+import net.minecraftforge.client.model.geometry.IGeometryLoader;
 
-public final class BusCableModelLoader implements IModelLoader<BusCableModel> {
+public final class BusCableModelLoader implements IGeometryLoader<BusCableModel> {
     @Override
-    public void onResourceManagerReload(final ResourceManager resourceManager) {
-    }
-
-    @Override
-    public BusCableModel read(final JsonDeserializationContext context, final JsonObject modelContents) {
-        return new BusCableModel(ModelLoaderRegistry.VanillaProxy.Loader.INSTANCE.read(context, modelContents));
+    public BusCableModel read(final JsonObject modelContents, final JsonDeserializationContext context) throws JsonParseException {
+        return new BusCableModel(ElementsModel.Loader.INSTANCE.read(modelContents, context));
     }
 }

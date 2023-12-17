@@ -7,13 +7,12 @@ import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 import net.minecraftforge.registries.RegistryObject;
 
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public abstract class AbstractItemDeviceProvider extends ForgeRegistryEntry<ItemDeviceProvider> implements ItemDeviceProvider {
+public abstract class AbstractItemDeviceProvider implements ItemDeviceProvider {
     private final Predicate<Item> predicate;
 
     ///////////////////////////////////////////////////////////////////

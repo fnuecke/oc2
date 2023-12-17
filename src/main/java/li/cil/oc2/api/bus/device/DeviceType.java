@@ -9,7 +9,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**
  * Implementations describe individual slot types. Slot types are only used
@@ -18,7 +17,7 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
  * <p>
  * For built-in slot types, see {@link DeviceTypes}.
  */
-public interface DeviceType extends IForgeRegistryEntry<DeviceType> {
+public interface DeviceType {
     /**
      * The registry name of the registry holding device types.
      */

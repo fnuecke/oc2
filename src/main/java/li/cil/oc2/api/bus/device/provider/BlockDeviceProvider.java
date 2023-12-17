@@ -7,7 +7,6 @@ import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.util.Invalidatable;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**
  * This is used to query for devices given a block face.
@@ -45,7 +44,7 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
  * @see li.cil.oc2.api.bus.device.vm.VMDevice
  * @see BlockDeviceQuery
  */
-public interface BlockDeviceProvider extends IForgeRegistryEntry<BlockDeviceProvider> {
+public interface BlockDeviceProvider {
     /**
      * Get a device for the specified query.
      *

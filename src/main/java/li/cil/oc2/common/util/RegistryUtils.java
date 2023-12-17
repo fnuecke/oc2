@@ -9,7 +9,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -59,11 +58,11 @@ public abstract class RegistryUtils {
         ENTRIES.clear();
     }
 
-    public static <T> String key(final IForgeRegistryEntry<T> registryEntry) {
+    public static <T> String key(final T object) {
         return Objects.requireNonNull(registryEntry.getRegistryName()).toString();
     }
 
-    public static <T> Optional<String> optionalKey(@Nullable final IForgeRegistryEntry<T> registryEntry) {
+    public static <T> Optional<String> optionalKey(@Nullable final T registryEntry) {
         if (registryEntry == null) {
             return Optional.empty();
         }

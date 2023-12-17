@@ -20,7 +20,7 @@ import net.minecraftforge.network.NetworkHooks;
 
 public final class RobotInventoryContainer extends AbstractRobotContainer {
     public static void createServer(final Robot robot, final FixedEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
-        NetworkHooks.openGui(player, new MenuProvider() {
+        NetworkHooks.openScreen(player, new MenuProvider() {
             @Override
             public Component getDisplayName() {
                 return robot.getName();

@@ -422,7 +422,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
             if (value == VMRunState.RUNNING) {
                 if (!LoopingSoundManager.isPlaying(ComputerBlockEntity.this) && level != null) {
-                    LoopingSoundManager.play(ComputerBlockEntity.this, SoundEvents.COMPUTER_RUNNING.get(), level.getRandom().nextInt(MAX_RUNNING_SOUND_DELAY));
+                    LoopingSoundManager.play(ComputerBlockEntity.this, SoundEvents.COMPUTER_RUNNING.get(), level.getRandom().nextInt(MAX_RUNNING_SOUND_DELAY), level.getRandom());
                 }
             } else {
                 LoopingSoundManager.stop(ComputerBlockEntity.this);

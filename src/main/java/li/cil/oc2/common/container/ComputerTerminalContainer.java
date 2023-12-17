@@ -18,7 +18,7 @@ import net.minecraftforge.network.NetworkHooks;
 
 public final class ComputerTerminalContainer extends AbstractComputerContainer {
     public static void createServer(final ComputerBlockEntity computer, final IEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
-        NetworkHooks.openGui(player, new MenuProvider() {
+        NetworkHooks.openScreen(player, new MenuProvider() {
             @Override
             public Component getDisplayName() {
                 return Component.translatable(computer.getBlockState().getBlock().getDescriptionId());

@@ -12,7 +12,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public final class BlockEntities {
-    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = RegistryUtils.getInitializerFor(ForgeRegistries.BLOCK_ENTITIES);
+    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = RegistryUtils.getInitializerFor(ForgeRegistries.BLOCK_ENTITY_TYPES);
 
     ///////////////////////////////////////////////////////////////////
 

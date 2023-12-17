@@ -797,7 +797,7 @@ public final class Terminal {
                     lines[row] = new VertexBuffer();
                 }
 
-                lines[row].upload(builder);
+                lines[row].upload(builder.end());
             }
         }
 
@@ -935,7 +935,7 @@ public final class Terminal {
             buffer.vertex(matrix, 0, 0, 0).color(r, g, b, 1).endVertex();
 
             buffer.end();
-            BufferUploader.end(buffer);
+            BufferUploader.drawWithShader(buffer.end());
 
             stack.popPose();
 

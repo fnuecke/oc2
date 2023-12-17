@@ -10,15 +10,15 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public final class Containers {
-    private static final DeferredRegister<MenuType<?>> CONTAINERS = RegistryUtils.getInitializerFor(ForgeRegistries.CONTAINERS);
+    private static final DeferredRegister<MenuType<?>> MENUS = RegistryUtils.getInitializerFor(ForgeRegistries.MENU_TYPES);
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final RegistryObject<MenuType<ComputerInventoryContainer>> COMPUTER = CONTAINERS.register("computer", () -> IForgeMenuType.create(ComputerInventoryContainer::createClient));
-    public static final RegistryObject<MenuType<ComputerTerminalContainer>> COMPUTER_TERMINAL = CONTAINERS.register("computer_terminal", () -> IForgeMenuType.create(ComputerTerminalContainer::createClient));
-    public static final RegistryObject<MenuType<RobotInventoryContainer>> ROBOT = CONTAINERS.register("robot", () -> IForgeMenuType.create(RobotInventoryContainer::createClient));
-    public static final RegistryObject<MenuType<RobotTerminalContainer>> ROBOT_TERMINAL = CONTAINERS.register("robot_terminal", () -> IForgeMenuType.create(RobotTerminalContainer::createClient));
-    public static final RegistryObject<MenuType<NetworkTunnelContainer>> NETWORK_TUNNEL = CONTAINERS.register("network_tunnel", () -> IForgeMenuType.create(NetworkTunnelContainer::createClient));
+    public static final RegistryObject<MenuType<ComputerInventoryContainer>> COMPUTER = MENUS.register("computer", () -> IForgeMenuType.create(ComputerInventoryContainer::createClient));
+    public static final RegistryObject<MenuType<ComputerTerminalContainer>> COMPUTER_TERMINAL = MENUS.register("computer_terminal", () -> IForgeMenuType.create(ComputerTerminalContainer::createClient));
+    public static final RegistryObject<MenuType<RobotInventoryContainer>> ROBOT = MENUS.register("robot", () -> IForgeMenuType.create(RobotInventoryContainer::createClient));
+    public static final RegistryObject<MenuType<RobotTerminalContainer>> ROBOT_TERMINAL = MENUS.register("robot_terminal", () -> IForgeMenuType.create(RobotTerminalContainer::createClient));
+    public static final RegistryObject<MenuType<NetworkTunnelContainer>> NETWORK_TUNNEL = MENUS.register("network_tunnel", () -> IForgeMenuType.create(NetworkTunnelContainer::createClient));
 
     ///////////////////////////////////////////////////////////////////
 

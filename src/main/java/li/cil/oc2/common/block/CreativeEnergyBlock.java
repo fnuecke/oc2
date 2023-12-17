@@ -23,7 +23,7 @@ public final class CreativeEnergyBlock extends Block implements EntityBlock {
             .of(Material.METAL)
             .sound(SoundType.METAL)
             .strength(-1, 3600000)
-            .noDrops());
+            .noLootTable());
     }
 
     ///////////////////////////////////////////////////////////////////

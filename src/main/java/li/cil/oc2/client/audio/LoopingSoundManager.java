@@ -4,6 +4,7 @@ package li.cil.oc2.client.audio;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.WeakHashMap;
@@ -13,10 +14,10 @@ public final class LoopingSoundManager {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void play(final BlockEntity blockEntity, final SoundEvent sound, final int delay) {
+    public static void play(final BlockEntity blockEntity, final SoundEvent sound, final int delay, final RandomSource random) {
         stop(blockEntity);
 
-        final LoopingBlockEntitySound instance = new LoopingBlockEntitySound(blockEntity, sound);
+        final LoopingBlockEntitySound instance = new LoopingBlockEntitySound(blockEntity, sound, random);
         BLOCK_ENTITY_SOUNDS.put(blockEntity, instance);
         Minecraft.getInstance().getSoundManager().playDelayed(instance, delay);
     }

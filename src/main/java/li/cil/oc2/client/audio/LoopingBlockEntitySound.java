@@ -7,6 +7,7 @@ import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -24,8 +25,8 @@ public final class LoopingBlockEntitySound extends AbstractTickableSoundInstance
 
     ///////////////////////////////////////////////////////////////////
 
-    public LoopingBlockEntitySound(final BlockEntity blockEntity, final SoundEvent sound) {
-        super(sound, SoundSource.BLOCKS);
+    public LoopingBlockEntitySound(final BlockEntity blockEntity, final SoundEvent sound, final RandomSource random) {
+        super(sound, SoundSource.BLOCKS, random);
         this.blockEntity = blockEntity;
         this.volume = 0;
 

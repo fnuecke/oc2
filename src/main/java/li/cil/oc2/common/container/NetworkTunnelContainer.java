@@ -22,7 +22,7 @@ import java.util.UUID;
 
 public final class NetworkTunnelContainer extends AbstractContainer {
     public static void createServer(final ServerPlayer player, final InteractionHand hand) {
-        NetworkHooks.openGui(player, new MenuProvider() {
+        NetworkHooks.openScreen(player, new MenuProvider() {
             @Override
             public Component getDisplayName() {
                 return player.getItemInHand(hand).getItem().getDescription();

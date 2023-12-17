@@ -85,7 +85,7 @@ dependencies {
 
     implementation fg.deobf("curse.maven:markdownmanual-502485:3894579")
 
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:11.1.1.239")
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:11.1.1.239")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:11.1.1.239")
 
     testImplementation "org.mockito:mockito-inline:4.3.1"

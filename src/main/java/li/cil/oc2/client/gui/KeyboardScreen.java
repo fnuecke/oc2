@@ -19,8 +19,10 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.gui.ForgeIngameGui;
-import net.minecraftforge.client.gui.OverlayRegistry;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.lwjgl.glfw.GLFW;
 
 public final class KeyboardScreen extends Screen {
@@ -33,6 +35,8 @@ public final class KeyboardScreen extends Screen {
     ///////////////////////////////////////////////////////////////////
 
     private final KeyboardBlockEntity keyboard;
+
+    private boolean hideHotbar = false;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -52,7 +56,7 @@ public final class KeyboardScreen extends Screen {
         grabMouse();
 
         // Disable hotbar since we don't need it here, and it just blocks screen space.
-        OverlayRegistry.enableOverlay(ForgeIngameGui.HOTBAR_ELEMENT, false);
+        hideHotbar = true;
     }
 
     @Override
@@ -60,9 +64,7 @@ public final class KeyboardScreen extends Screen {
         super.tick();
 
         final Vec3 keyboardCenter = Vec3.atCenterOf(keyboard.getBlockPos());
-        if (!keyboard.isValid() ||
-            getMinecraft().player == null ||
-            getMinecraft().player.distanceToSqr(keyboardCenter) > 8 * 8) {
+        if (!keyboard.isValid() || getMinecraft().player == null || getMinecraft().player.distanceToSqr(keyboardCenter) > 8 * 8) {
             onClose();
         }
     }
@@ -95,9 +97,7 @@ public final class KeyboardScreen extends Screen {
 
         renderBorderOverlay(stack);
 
-        font.drawWordWrap(CLOSE_INFO,
-            BORDER_SIZE * 3, height - BORDER_SIZE * 3 - font.lineHeight,
-            width - BORDER_SIZE * 6, 0x88FFFFFF);
+        font.drawWordWrap(CLOSE_INFO, BORDER_SIZE * 3, height - BORDER_SIZE * 3 - font.lineHeight, width - BORDER_SIZE * 6, 0x88FFFFFF);
     }
 
     @Override
@@ -109,7 +109,15 @@ public final class KeyboardScreen extends Screen {
     public void removed() {
         super.removed();
 
-        OverlayRegistry.enableOverlay(ForgeIngameGui.HOTBAR_ELEMENT, true);
+        hideHotbar = false;
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onOverlayRenderPre(RenderGuiOverlayEvent.Pre event) {
+        if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.isSpectator()) return;
+        if (event.getOverlay() == VanillaGuiOverlay.HOTBAR.type() && hideHotbar) {
+            event.setCanceled(true);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////

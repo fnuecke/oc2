@@ -40,9 +40,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.event.EntityViewRenderEvent;
+import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.event.RenderNameplateEvent;
+import net.minecraftforge.client.event.RenderNameTagEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -203,7 +203,7 @@ public final class ProjectorDepthRenderer {
      * Suppresses fog rendering while rendering depth buffer for projectors.
      */
     @SubscribeEvent
-    public static void handleFog(final EntityViewRenderEvent.RenderFogEvent event) {
+    public static void handleFog(final ViewportEvent.RenderFog event) {
         if (isRenderingProjectorDepth) {
             FogRenderer.setupNoFog();
         }
@@ -213,7 +213,7 @@ public final class ProjectorDepthRenderer {
      * Suppresses nameplate rendering while rendering depth buffer for projectors.
      */
     @SubscribeEvent
-    public static void handleNameplate(final RenderNameplateEvent event) {
+    public static void handleNameplate(final RenderNameTagEvent event) {
         if (isRenderingProjectorDepth) {
             event.setResult(Event.Result.DENY);
         }

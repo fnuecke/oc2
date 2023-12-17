@@ -177,14 +177,14 @@ public final class ServerScheduler {
         }
 
         @SubscribeEvent
-        public static void handleLevelTick(final TickEvent.WorldTickEvent event) {
+        public static void handleLevelTick(final TickEvent.LevelTickEvent event) {
             if (event.phase != TickEvent.Phase.START) {
                 return;
             }
 
             globalTickScheduler.processQueue();
 
-            final TickScheduler scheduler = levelTickSchedulers.get(event.world);
+            final TickScheduler scheduler = levelTickSchedulers.get(event.level);
             if (scheduler != null) {
                 scheduler.processQueue();
             }

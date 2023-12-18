@@ -21,8 +21,6 @@ import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static li.cil.oc2.common.util.RegistryUtils.key;
-
 public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers {
     public record GroupDefinition(DeviceType deviceType, int count) { }
 

@@ -181,7 +181,9 @@ public record BusCableBakedModel(
 
     @Override
     public ChunkRenderTypeSet getRenderTypes(@NotNull final BlockState state, @NotNull final RandomSource rand, @NotNull final ModelData data) {
-        return ChunkRenderTypeSet.of(RenderType.chunkBufferLayers().toArray(RenderType[]::new));
+        final BlockModelShaper shapes = Minecraft.getInstance().getBlockRenderer().getBlockModelShaper();
+        final BakedModel model = shapes.getBlockModel(state);
+        return model.getRenderTypes(state, rand, data);
     }
 
     ///////////////////////////////////////////////////////////////////

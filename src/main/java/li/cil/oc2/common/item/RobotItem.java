@@ -39,7 +39,6 @@ import java.util.function.Consumer;
 
 import static li.cil.oc2.common.Constants.*;
 import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
-import static li.cil.oc2.common.util.RegistryUtils.key;
 
 public final class RobotItem extends ModItem {
     @Override

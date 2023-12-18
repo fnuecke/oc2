@@ -138,7 +138,7 @@ public final class Network {
         INSTANCE.messageBuilder(type, getNextPacketId(), direction)
             .encoder(AbstractMessage::toBytes)
             .decoder(decoder)
-            .consumerNetworkThread(AbstractMessage::handleMessage)
+            .consumerMainThread(AbstractMessage::handleMessage)
             .add();
     }
 

@@ -12,6 +12,7 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.bus.device.util.OptionalInterrupt;
+import li.cil.oc2.common.config.AsyncConfig;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.Event;
@@ -101,7 +102,14 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         closeDevice();
 
         if (blobHandle != null) {
-            BlobStorage.close(blobHandle);
+            if (AsyncConfig.SERVER.asyncStorageOperations.get()) {
+                BlobStorage.closeAsync(blobHandle).exceptionally(e -> {
+                    LOGGER.error("Error closing blob asynchronously: " + blobHandle, e);
+                    return null;
+                });
+            } else {
+                BlobStorage.close(blobHandle);
+            }
         }
     }
 
@@ -170,7 +178,14 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     public static void unmount(final CompoundTag tag) {
         if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
             final UUID blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
-            BlobStorage.close(blobHandle);
+            if (AsyncConfig.SERVER.asyncStorageOperations.get()) {
+                BlobStorage.closeAsync(blobHandle).exceptionally(e -> {
+                    LOGGER.error("Error closing blob asynchronously during unmount: " + blobHandle, e);
+                    return null;
+                });
+            } else {
+                BlobStorage.close(blobHandle);
+            }
         }
     }
 

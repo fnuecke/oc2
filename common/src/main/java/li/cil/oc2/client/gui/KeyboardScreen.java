@@ -126,10 +126,10 @@ public final class KeyboardScreen extends Screen {
         final Tesselator tesselator = Tesselator.getInstance();
         final BufferBuilder builder = tesselator.getBuilder();
         builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        builder.vertex(stack.last().pose(), x0, y1, getBlitOffset()).color(color).endVertex();
-        builder.vertex(stack.last().pose(), x1, y1, getBlitOffset()).color(color).endVertex();
-        builder.vertex(stack.last().pose(), x1, y0, getBlitOffset()).color(color).endVertex();
-        builder.vertex(stack.last().pose(), x0, y0, getBlitOffset()).color(color).endVertex();
+        builder.addVertex(stack.last().pose(), x0, y1, getBlitOffset()).setColor(color);
+        builder.addVertex(stack.last().pose(), x1, y1, getBlitOffset()).setColor(color);
+        builder.addVertex(stack.last().pose(), x1, y0, getBlitOffset()).setColor(color);
+        builder.addVertex(stack.last().pose(), x0, y0, getBlitOffset()).setColor(color);
         tesselator.end();
     }
 

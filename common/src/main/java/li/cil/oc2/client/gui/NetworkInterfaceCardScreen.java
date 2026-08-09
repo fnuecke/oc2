@@ -294,10 +294,10 @@ public final class NetworkInterfaceCardScreen extends Screen {
         private void renderOverlay(final PoseStack poseStack, final MultiBufferSource.BufferSource bufferSource, final Texture texture) {
             final VertexConsumer buffer = bufferSource.getBuffer(ModRenderType.getOverlay(texture.location));
 
-            buffer.vertex(poseStack.last().pose(), 0, 0, 0).uv(0, 0).endVertex();
-            buffer.vertex(poseStack.last().pose(), 0, 1, 0).uv(0, 1).endVertex();
-            buffer.vertex(poseStack.last().pose(), 1, 1, 0).uv(1, 1).endVertex();
-            buffer.vertex(poseStack.last().pose(), 1, 0, 0).uv(1, 0).endVertex();
+            buffer.addVertex(poseStack.last().pose(), 0, 0, 0).setUv(0, 0);
+            buffer.addVertex(poseStack.last().pose(), 0, 1, 0).setUv(0, 1);
+            buffer.addVertex(poseStack.last().pose(), 1, 1, 0).setUv(1, 1);
+            buffer.addVertex(poseStack.last().pose(), 1, 0, 0).setUv(1, 0);
         }
     }
 }

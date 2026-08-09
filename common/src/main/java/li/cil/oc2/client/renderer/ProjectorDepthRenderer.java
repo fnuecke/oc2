@@ -434,10 +434,10 @@ public final class ProjectorDepthRenderer {
         final BufferBuilder builder = tesselator.getBuilder();
 
         builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        builder.vertex(0, 0, 0).uv(0, 1).endVertex();
-        builder.vertex(0, MAIN_CAMERA_DEPTH.height, 0).uv(0, 0).endVertex();
-        builder.vertex(MAIN_CAMERA_DEPTH.width, MAIN_CAMERA_DEPTH.height, 0).uv(1, 0).endVertex();
-        builder.vertex(MAIN_CAMERA_DEPTH.width, 0, 0).uv(1, 1).endVertex();
+        builder.addVertex(0, 0, 0).setUv(0, 1);
+        builder.addVertex(0, MAIN_CAMERA_DEPTH.height, 0).setUv(0, 0);
+        builder.addVertex(MAIN_CAMERA_DEPTH.width, MAIN_CAMERA_DEPTH.height, 0).setUv(1, 0);
+        builder.addVertex(MAIN_CAMERA_DEPTH.width, 0, 0).setUv(1, 1);
         tesselator.end();
     }
 

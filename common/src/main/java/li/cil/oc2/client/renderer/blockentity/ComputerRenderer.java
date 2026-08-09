@@ -16,7 +16,6 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
-import li.cil.oc2.common.util.ChainableVertexConsumer;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -232,22 +231,17 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     }
 
     private static void renderQuad(final Matrix4f matrix, final VertexConsumer consumer) {
-        final VertexConsumer wrapper = new ChainableVertexConsumer(consumer);
-        wrapper.vertex(matrix, 0, 0, 0)
-            .uv(0, 0)
-            .endVertex();
+        consumer.addVertex(matrix, 0, 0, 0)
+            .setUv(0, 0);
 
-        wrapper.vertex(matrix, 0, 16, 0)
-            .uv(0, 1)
-            .endVertex();
+        consumer.addVertex(matrix, 0, 16, 0)
+            .setUv(0, 1);
 
-        wrapper.vertex(matrix, 16, 16, 0)
-            .uv(1, 1)
-            .endVertex();
+        consumer.addVertex(matrix, 16, 16, 0)
+            .setUv(1, 1);
 
-        wrapper.vertex(matrix, 16, 0, 0)
-            .uv(1, 0)
-            .endVertex();
+        consumer.addVertex(matrix, 16, 0, 0)
+            .setUv(1, 0);
     }
 
     @SubscribeEvent

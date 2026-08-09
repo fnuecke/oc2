@@ -108,28 +108,28 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
         final float bottomFar = 0 + 1 / 16f;
 
         // Top.
-        consumer.vertex(matrix, leftFar, topFar, 1).color(LIGHT_COLOR_FAR).endVertex(); // top left far
-        consumer.vertex(matrix, LENS_LEFT, LENS_TOP, 0).color(LIGHT_COLOR_NEAR).endVertex(); // top left near
-        consumer.vertex(matrix, LENS_RIGHT, LENS_TOP, 0).color(LIGHT_COLOR_NEAR).endVertex(); // top right near
-        consumer.vertex(matrix, rightFar, topFar, 1).color(LIGHT_COLOR_FAR).endVertex(); // top right far
+        consumer.addVertex(matrix, leftFar, topFar, 1).setColor(LIGHT_COLOR_FAR); // top left far
+        consumer.addVertex(matrix, LENS_LEFT, LENS_TOP, 0).setColor(LIGHT_COLOR_NEAR); // top left near
+        consumer.addVertex(matrix, LENS_RIGHT, LENS_TOP, 0).setColor(LIGHT_COLOR_NEAR); // top right near
+        consumer.addVertex(matrix, rightFar, topFar, 1).setColor(LIGHT_COLOR_FAR); // top right far
 
         // Bottom.
-        consumer.vertex(matrix, leftFar, bottomFar, 1).color(LIGHT_COLOR_FAR).endVertex(); // bottom left far
-        consumer.vertex(matrix, LENS_LEFT, LENS_BOTTOM, 0).color(LIGHT_COLOR_NEAR).endVertex(); // bottom left near
-        consumer.vertex(matrix, LENS_RIGHT, LENS_BOTTOM, 0).color(LIGHT_COLOR_NEAR).endVertex(); // bottom right near
-        consumer.vertex(matrix, rightFar, bottomFar, 1).color(LIGHT_COLOR_FAR).endVertex(); // bottom right far
+        consumer.addVertex(matrix, leftFar, bottomFar, 1).setColor(LIGHT_COLOR_FAR); // bottom left far
+        consumer.addVertex(matrix, LENS_LEFT, LENS_BOTTOM, 0).setColor(LIGHT_COLOR_NEAR); // bottom left near
+        consumer.addVertex(matrix, LENS_RIGHT, LENS_BOTTOM, 0).setColor(LIGHT_COLOR_NEAR); // bottom right near
+        consumer.addVertex(matrix, rightFar, bottomFar, 1).setColor(LIGHT_COLOR_FAR); // bottom right far
 
         // Left.
-        consumer.vertex(matrix, leftFar, topFar, 1).color(LIGHT_COLOR_FAR).endVertex(); // top left far
-        consumer.vertex(matrix, leftFar, bottomFar, 1).color(LIGHT_COLOR_FAR).endVertex(); // bottom left far
-        consumer.vertex(matrix, LENS_LEFT, LENS_BOTTOM, 0).color(LIGHT_COLOR_NEAR).endVertex(); // bottom left near
-        consumer.vertex(matrix, LENS_LEFT, LENS_TOP, 0).color(LIGHT_COLOR_NEAR).endVertex(); // top left near
+        consumer.addVertex(matrix, leftFar, topFar, 1).setColor(LIGHT_COLOR_FAR); // top left far
+        consumer.addVertex(matrix, leftFar, bottomFar, 1).setColor(LIGHT_COLOR_FAR); // bottom left far
+        consumer.addVertex(matrix, LENS_LEFT, LENS_BOTTOM, 0).setColor(LIGHT_COLOR_NEAR); // bottom left near
+        consumer.addVertex(matrix, LENS_LEFT, LENS_TOP, 0).setColor(LIGHT_COLOR_NEAR); // top left near
 
         // Right.
-        consumer.vertex(matrix, rightFar, topFar, 1).color(LIGHT_COLOR_FAR).endVertex(); // top right far
-        consumer.vertex(matrix, LENS_RIGHT, LENS_TOP, 0).color(LIGHT_COLOR_NEAR).endVertex(); // top right near
-        consumer.vertex(matrix, LENS_RIGHT, LENS_BOTTOM, 0).color(LIGHT_COLOR_NEAR).endVertex(); // bottom right near
-        consumer.vertex(matrix, rightFar, bottomFar, 1).color(LIGHT_COLOR_FAR).endVertex(); // bottom right far
+        consumer.addVertex(matrix, rightFar, topFar, 1).setColor(LIGHT_COLOR_FAR); // top right far
+        consumer.addVertex(matrix, LENS_RIGHT, LENS_TOP, 0).setColor(LIGHT_COLOR_NEAR); // top right near
+        consumer.addVertex(matrix, LENS_RIGHT, LENS_BOTTOM, 0).setColor(LIGHT_COLOR_NEAR); // bottom right near
+        consumer.addVertex(matrix, rightFar, bottomFar, 1).setColor(LIGHT_COLOR_FAR); // bottom right far
 
         renderLens(matrix, consumer, LENS_COLOR);
         renderLed(matrix, consumer);
@@ -146,10 +146,10 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
 
     private static void renderLens(final Matrix4f matrix, final VertexConsumer consumer, final int color) {
         final float lensDepth = -1 / 16f;
-        consumer.vertex(matrix, LENS_RIGHT, LENS_BOTTOM, lensDepth).color(color).endVertex();
-        consumer.vertex(matrix, LENS_LEFT, LENS_BOTTOM, lensDepth).color(color).endVertex();
-        consumer.vertex(matrix, LENS_LEFT, LENS_TOP, lensDepth).color(color).endVertex();
-        consumer.vertex(matrix, LENS_RIGHT, LENS_TOP, lensDepth).color(color).endVertex();
+        consumer.addVertex(matrix, LENS_RIGHT, LENS_BOTTOM, lensDepth).setColor(color);
+        consumer.addVertex(matrix, LENS_LEFT, LENS_BOTTOM, lensDepth).setColor(color);
+        consumer.addVertex(matrix, LENS_LEFT, LENS_TOP, lensDepth).setColor(color);
+        consumer.addVertex(matrix, LENS_RIGHT, LENS_TOP, lensDepth).setColor(color);
     }
 
     private static void renderLed(final Matrix4f matrix, final VertexConsumer consumer) {
@@ -159,9 +159,9 @@ public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlo
         final float ledTop = 0 + 4 / 16f;
         final float ledDepth = -0.75f / 16f;
 
-        consumer.vertex(matrix, ledRight, ledBottom, ledDepth).color(LED_COLOR).endVertex();
-        consumer.vertex(matrix, ledLeft, ledBottom, ledDepth).color(LED_COLOR).endVertex();
-        consumer.vertex(matrix, ledLeft, ledTop, ledDepth).color(LED_COLOR).endVertex();
-        consumer.vertex(matrix, ledRight, ledTop, ledDepth).color(LED_COLOR).endVertex();
+        consumer.addVertex(matrix, ledRight, ledBottom, ledDepth).setColor(LED_COLOR);
+        consumer.addVertex(matrix, ledLeft, ledBottom, ledDepth).setColor(LED_COLOR);
+        consumer.addVertex(matrix, ledLeft, ledTop, ledDepth).setColor(LED_COLOR);
+        consumer.addVertex(matrix, ledRight, ledTop, ledDepth).setColor(LED_COLOR);
     }
 }

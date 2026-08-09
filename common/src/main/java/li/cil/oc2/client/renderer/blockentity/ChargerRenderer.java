@@ -8,7 +8,6 @@ import org.joml.Matrix4f;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.common.blockentity.ChargerBlockEntity;
-import li.cil.oc2.common.util.ChainableVertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -70,21 +69,16 @@ public final class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEn
     }
 
     private static void renderQuad(final Matrix4f matrix, final VertexConsumer consumer) {
-        final VertexConsumer wrapper = new ChainableVertexConsumer(consumer);
-        wrapper.vertex(matrix, -0.5f, 0, -0.5f)
-            .uv(0, 0)
-            .endVertex();
+        consumer.addVertex(matrix, -0.5f, 0, -0.5f)
+            .setUv(0, 0);
 
-        wrapper.vertex(matrix, -0.5f, 0, 0.5f)
-            .uv(0, 1)
-            .endVertex();
+        consumer.addVertex(matrix, -0.5f, 0, 0.5f)
+            .setUv(0, 1);
 
-        wrapper.vertex(matrix, 0.5f, 0, 0.5f)
-            .uv(1, 1)
-            .endVertex();
+        consumer.addVertex(matrix, 0.5f, 0, 0.5f)
+            .setUv(1, 1);
 
-        wrapper.vertex(matrix, 0.5f, 0, -0.5f)
-            .uv(1, 0)
-            .endVertex();
+        consumer.addVertex(matrix, 0.5f, 0, -0.5f)
+            .setUv(1, 0);
     }
 }

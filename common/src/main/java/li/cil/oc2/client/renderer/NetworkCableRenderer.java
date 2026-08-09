@@ -198,22 +198,18 @@ public final class NetworkCableRenderer {
                 final CablePoint pa = cablePoints.get(i);
                 final CablePoint pb = cablePoints.get(i + 1);
 
-                consumer.vertex(viewMatrix, pa.v0.x(), pa.v0.y(), pa.v0.z())
-                    .color(r, g, b, 1f)
-                    .uv2(pa.packedLight)
-                    .endVertex();
-                consumer.vertex(viewMatrix, pa.v1.x(), pa.v1.y(), pa.v1.z())
-                    .color(r, g, b, 1f)
-                    .uv2(pa.packedLight)
-                    .endVertex();
-                consumer.vertex(viewMatrix, pb.v1.x(), pb.v1.y(), pb.v1.z())
-                    .color(r, g, b, 1f)
-                    .uv2(pa.packedLight)
-                    .endVertex();
-                consumer.vertex(viewMatrix, pb.v0.x(), pb.v0.y(), pb.v0.z())
-                    .color(r, g, b, 1f)
-                    .uv2(pa.packedLight)
-                    .endVertex();
+                consumer.addVertex(viewMatrix, pa.v0.x(), pa.v0.y(), pa.v0.z())
+                    .setColor(r, g, b, 1f)
+                    .setLight(pa.packedLight);
+                consumer.addVertex(viewMatrix, pa.v1.x(), pa.v1.y(), pa.v1.z())
+                    .setColor(r, g, b, 1f)
+                    .setLight(pa.packedLight);
+                consumer.addVertex(viewMatrix, pb.v1.x(), pb.v1.y(), pb.v1.z())
+                    .setColor(r, g, b, 1f)
+                    .setLight(pa.packedLight);
+                consumer.addVertex(viewMatrix, pb.v0.x(), pb.v0.y(), pb.v0.z())
+                    .setColor(r, g, b, 1f)
+                    .setLight(pa.packedLight);
             }
 
             bufferSource.endBatch(renderType);

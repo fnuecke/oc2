@@ -4,7 +4,7 @@ package li.cil.oc2.client.gui;
 
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import li.cil.oc2.client.gui.widget.ImageButton;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.blockentity.BusCableBlockEntity;
@@ -123,14 +123,14 @@ public final class BusInterfaceScreen extends Screen {
     }
 
     @Override
-    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground(stack);
-        Sprites.BUS_INTERFACE_SCREEN.draw(stack, left, top);
+    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
+        renderBackground(graphics);
+        Sprites.BUS_INTERFACE_SCREEN.draw(graphics, left, top);
 
-        super.render(stack, mouseX, mouseY, partialTicks);
+        super.render(graphics, mouseX, mouseY, partialTicks);
 
         RenderSystem.disableBlend();
-        nameField.render(stack, mouseX, mouseY, partialTicks);
+        nameField.render(graphics, mouseX, mouseY, partialTicks);
     }
 
     @Override

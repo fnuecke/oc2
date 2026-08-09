@@ -2,8 +2,7 @@
 
 package li.cil.oc2.client.gui.widget;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 
 public final class Sprite {
@@ -31,21 +30,21 @@ public final class Sprite {
 
     ///////////////////////////////////////////////////////////////////
 
-    public void draw(final PoseStack stack, final int x, final int y) {
-        draw(stack, x, y, 0, 0);
+    public void draw(final GuiGraphics graphics, final int x, final int y) {
+        draw(graphics, x, y, 0, 0);
     }
 
-    public void draw(final PoseStack stack, final int x, final int y, final int uOffset, final int vOffset) {
-        blit(stack, x, y, u0 + uOffset, v0 + vOffset, width, height);
+    public void draw(final GuiGraphics graphics, final int x, final int y, final int uOffset, final int vOffset) {
+        blit(graphics, x, y, u0 + uOffset, v0 + vOffset, width, height);
     }
 
-    public void drawFillY(final PoseStack stack, final int x, final int y, final float value) {
+    public void drawFillY(final GuiGraphics graphics, final int x, final int y, final float value) {
         final int h = (int) (this.height * Mth.clamp(value, 0, 1));
-        blit(stack, x, y + (height - h), u0, v0 + (height - h), width, h);
+        blit(graphics, x, y + (height - h), u0, v0 + (height - h), width, h);
     }
 
-    private void blit(final PoseStack stack, final int x, final int y, final int u0, final int v0, final int width, final int height) {
-        texture.bind();
-        GuiComponent.blit(stack, x, y, u0, v0, width, height, texture.width, texture.height);
+    private void blit(final GuiGraphics graphics, final int x, final int y, final int u0, final int v0, final int width, final int height) {
+        // GuiGraphics binds the texture itself, so the explicit Texture.bind() is gone.
+        graphics.blit(texture.location, x, y, u0, v0, width, height, texture.width, texture.height);
     }
 }

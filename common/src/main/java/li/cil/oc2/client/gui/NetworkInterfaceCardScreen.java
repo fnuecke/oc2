@@ -2,6 +2,7 @@
 
 package li.cil.oc2.client.gui;
 
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.MutableComponent;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -146,11 +147,11 @@ public final class NetworkInterfaceCardScreen extends Screen {
     }
 
     @Override
-    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground(stack);
-        Sprites.NETWORK_INTERFACE_CARD_SCREEN.draw(stack, left, top);
+    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
+        renderTransparentBackground(graphics);
+        Sprites.NETWORK_INTERFACE_CARD_SCREEN.draw(graphics, left, top);
 
-        super.render(stack, mouseX, mouseY, partialTicks);
+        super.render(graphics, mouseX, mouseY, partialTicks);
 
         final int blockX = left + BLOCK_LEFT;
         final int blockY = top + BLOCK_TOP;
@@ -160,10 +161,10 @@ public final class NetworkInterfaceCardScreen extends Screen {
         if (focusedSide != null) {
             final Component enabledComponent = getConfiguration(focusedSide) ? CONNECTIVITY_ENABLED_TEXT : CONNECTIVITY_DISABLED_TEXT;
             final MutableComponent tooltip = Component.translatable(SIDE_STATE_TEXT, enabledComponent);
-            renderTooltip(stack, tooltip, mouseX, mouseY);
+            graphics.renderTooltip(font, tooltip, mouseX, mouseY);
         }
 
-        font.drawWordWrap(INFO_TEXT, left + INFO_TEXT_LEFT, top + INFO_TEXT_TOP, INFO_TEXT_WIDTH, 0xAAAAAA);
+        graphics.drawWordWrap(font, INFO_TEXT, left + INFO_TEXT_LEFT, top + INFO_TEXT_TOP, INFO_TEXT_WIDTH, 0xAAAAAA);
     }
 
     @Override

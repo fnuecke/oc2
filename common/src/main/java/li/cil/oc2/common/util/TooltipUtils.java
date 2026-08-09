@@ -4,7 +4,7 @@ package li.cil.oc2.common.util;
 
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Component;
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import li.cil.oc2.api.bus.device.DeviceType;
@@ -46,15 +46,15 @@ public final class TooltipUtils {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void drawTooltip(final PoseStack poseStack, final List<? extends FormattedText> tooltip, final int x, final int y) {
-        drawTooltip(poseStack, tooltip, x, y, 200, ItemStack.EMPTY);
+    public static void drawTooltip(final GuiGraphics graphics, final List<? extends FormattedText> tooltip, final int x, final int y) {
+        drawTooltip(graphics, tooltip, x, y, 200, ItemStack.EMPTY);
     }
 
-    public static void drawTooltip(final PoseStack poseStack, final List<? extends FormattedText> tooltip, final int x, final int y, final int widthHint) {
-        drawTooltip(poseStack, tooltip, x, y, widthHint, ItemStack.EMPTY);
+    public static void drawTooltip(final GuiGraphics graphics, final List<? extends FormattedText> tooltip, final int x, final int y, final int widthHint) {
+        drawTooltip(graphics, tooltip, x, y, widthHint, ItemStack.EMPTY);
     }
 
-    public static void drawTooltip(final PoseStack poseStack, final List<? extends FormattedText> tooltip, final int x, final int y, final int widthHint, final ItemStack itemStack) {
+    public static void drawTooltip(final GuiGraphics graphics, final List<? extends FormattedText> tooltip, final int x, final int y, final int widthHint, final ItemStack itemStack) {
         final Minecraft minecraft = Minecraft.getInstance();
         final Screen screen = minecraft.screen;
         if (screen == null) {
@@ -67,12 +67,12 @@ public final class TooltipUtils {
 
         final boolean needsWrapping = tooltip.stream().anyMatch(line -> font.width(line) > targetWidth);
         if (!needsWrapping) {
-            screen.renderComponentTooltip(poseStack, tooltip, x, y, font, itemStack);
+            graphics.renderComponentTooltip(font, tooltip, x, y, itemStack);
         } else {
             final StringSplitter splitter = font.getSplitter();
             final List<? extends FormattedText> wrappedTooltip = tooltip.stream().flatMap(line ->
                 splitter.splitLines(line, targetWidth, Style.EMPTY).stream()).toList();
-            screen.renderComponentTooltip(poseStack, wrappedTooltip, x, y, font, itemStack);
+            graphics.renderComponentTooltip(font, wrappedTooltip, x, y, itemStack);
         }
     }
 

@@ -3,7 +3,7 @@
 package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import li.cil.oc2.common.container.RobotInventoryContainer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -17,14 +17,14 @@ public final class RobotContainerScreen extends AbstractMachineInventoryScreen<R
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void renderSelection(final PoseStack stack, final int selectedSlot, final int x, final int y, final int columns) {
+    public static void renderSelection(final GuiGraphics graphics, final int selectedSlot, final int x, final int y, final int columns) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1, 1, 1, 1);
 
         final int slotX = (selectedSlot % columns) * SLOT_SIZE;
         final int slotY = (selectedSlot / columns) * SLOT_SIZE;
         final int offset = SLOT_SIZE * (int) (15 * (System.currentTimeMillis() % 1000) / 1000);
-        Sprites.SLOT_SELECTION.draw(stack, x + slotX, y + slotY, 0, offset);
+        Sprites.SLOT_SELECTION.draw(graphics, x + slotX, y + slotY, 0, offset);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -39,10 +39,10 @@ public final class RobotContainerScreen extends AbstractMachineInventoryScreen<R
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
-        super.renderBg(stack, partialTicks, mouseX, mouseY);
+    protected void renderBg(final GuiGraphics graphics, final float partialTicks, final int mouseX, final int mouseY) {
+        super.renderBg(graphics, partialTicks, mouseX, mouseY);
 
-        Sprites.ROBOT_CONTAINER.draw(stack, leftPos, topPos);
-        renderSelection(stack, menu.getRobot().getSelectedSlot(), leftPos + 115, topPos + 23, 3);
+        Sprites.ROBOT_CONTAINER.draw(graphics, leftPos, topPos);
+        renderSelection(graphics, menu.getRobot().getSelectedSlot(), leftPos + 115, topPos + 23, 3);
     }
 }

@@ -2,10 +2,10 @@
 
 package li.cil.oc2.client.gui;
 
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import li.cil.oc2.common.blockentity.KeyboardBlockEntity;
 import li.cil.oc2.common.item.Items;
@@ -15,7 +15,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.gui.ForgeIngameGui;
@@ -91,12 +90,12 @@ public final class KeyboardScreen extends Screen {
     }
 
     @Override
-    public void render(final PoseStack stack, final int mouseX, final int mouseY, final float partialTicks) {
-        super.render(stack, mouseX, mouseY, partialTicks);
+    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
+        super.render(graphics, mouseX, mouseY, partialTicks);
 
-        renderBorderOverlay(stack);
+        renderBorderOverlay(graphics);
 
-        font.drawWordWrap(CLOSE_INFO,
+        graphics.drawWordWrap(font, CLOSE_INFO,
             BORDER_SIZE * 3, height - BORDER_SIZE * 3 - font.lineHeight,
             width - BORDER_SIZE * 6, 0x88FFFFFF);
     }
@@ -115,23 +114,11 @@ public final class KeyboardScreen extends Screen {
 
     ///////////////////////////////////////////////////////////////////
 
-    private void renderBorderOverlay(final PoseStack stack) {
-        blitQuad(stack, BORDER_SIZE, BORDER_SIZE, width - BORDER_SIZE, BORDER_SIZE * 2, BORDER_COLOR);
-        blitQuad(stack, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE * 2, height - BORDER_SIZE, BORDER_COLOR);
-        blitQuad(stack, BORDER_SIZE, height - BORDER_SIZE * 2, width - BORDER_SIZE, height - BORDER_SIZE, BORDER_COLOR);
-        blitQuad(stack, width - BORDER_SIZE * 2, BORDER_SIZE, width - BORDER_SIZE, height - BORDER_SIZE, BORDER_COLOR);
-    }
-
-    private void blitQuad(final PoseStack stack, final int x0, final int y0, final int x1, final int y1, final int color) {
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        final Tesselator tesselator = Tesselator.getInstance();
-        final BufferBuilder builder = tesselator.getBuilder();
-        builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        builder.addVertex(stack.last().pose(), x0, y1, getBlitOffset()).setColor(color);
-        builder.addVertex(stack.last().pose(), x1, y1, getBlitOffset()).setColor(color);
-        builder.addVertex(stack.last().pose(), x1, y0, getBlitOffset()).setColor(color);
-        builder.addVertex(stack.last().pose(), x0, y0, getBlitOffset()).setColor(color);
-        tesselator.end();
+    private void renderBorderOverlay(final GuiGraphics graphics) {
+        graphics.fill(BORDER_SIZE, BORDER_SIZE, width - BORDER_SIZE, BORDER_SIZE * 2, BORDER_COLOR);
+        graphics.fill(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE * 2, height - BORDER_SIZE, BORDER_COLOR);
+        graphics.fill(BORDER_SIZE, height - BORDER_SIZE * 2, width - BORDER_SIZE, height - BORDER_SIZE, BORDER_COLOR);
+        graphics.fill(width - BORDER_SIZE * 2, BORDER_SIZE, width - BORDER_SIZE, height - BORDER_SIZE, BORDER_COLOR);
     }
 
     private void grabMouse() {

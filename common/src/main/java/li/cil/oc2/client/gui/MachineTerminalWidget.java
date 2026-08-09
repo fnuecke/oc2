@@ -3,13 +3,13 @@
 package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import org.joml.Matrix4f;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.network.chat.Component;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -19,7 +19,7 @@ import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 
 @Environment(EnvType.CLIENT)
-public final class MachineTerminalWidget extends GuiComponent {
+public final class MachineTerminalWidget {
     private static final int TERMINAL_WIDTH = Terminal.WIDTH * Terminal.CHAR_WIDTH / 2;
     private static final int TERMINAL_HEIGHT = Terminal.HEIGHT * Terminal.CHAR_HEIGHT / 2;
 
@@ -47,17 +47,17 @@ public final class MachineTerminalWidget extends GuiComponent {
         this.terminal = this.container.getTerminal();
     }
 
-    public void renderBackground(final PoseStack stack, final int mouseX, final int mouseY) {
+    public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY) {
         isMouseOverTerminal = isMouseOverTerminal(mouseX, mouseY);
 
-        Sprites.TERMINAL_SCREEN.draw(stack, leftPos, topPos);
+        Sprites.TERMINAL_SCREEN.draw(graphics, leftPos, topPos);
 
         if (shouldCaptureInput()) {
-            Sprites.TERMINAL_FOCUSED.draw(stack, leftPos, topPos);
+            Sprites.TERMINAL_FOCUSED.draw(graphics, leftPos, topPos);
         }
     }
 
-    public void render(final PoseStack stack, final int mouseX, final int mouseY, @Nullable final Component error) {
+    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, @Nullable final Component error) {
         if (container.getVirtualMachine().isRunning()) {
             final PoseStack terminalStack = new PoseStack();
             terminalStack.translate(leftPos + TERMINAL_X, topPos + TERMINAL_Y, getClient().getItemRenderer().blitOffset);
@@ -75,7 +75,7 @@ public final class MachineTerminalWidget extends GuiComponent {
                 final int textWidth = font.width(error);
                 final int textOffsetX = (TERMINAL_WIDTH - textWidth) / 2;
                 final int textOffsetY = (TERMINAL_HEIGHT - font.lineHeight) / 2;
-                font.drawShadow(stack,
+                graphics.drawString(font,
                     error,
                     leftPos + TERMINAL_X + textOffsetX,
                     topPos + TERMINAL_Y + textOffsetY,

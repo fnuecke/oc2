@@ -2,7 +2,7 @@
 
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import li.cil.oc2.common.container.RobotTerminalContainer;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
@@ -28,11 +28,11 @@ public final class RobotTerminalScreen extends AbstractMachineTerminalScreen<Rob
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void renderBg(final PoseStack stack, final float partialTicks, final int mouseX, final int mouseY) {
-        Sprites.HOTBAR.draw(stack, leftPos + SLOTS_X, topPos + SLOTS_Y);
-        RobotContainerScreen.renderSelection(stack, menu.getRobot().getSelectedSlot(), leftPos + SLOTS_X + 4, topPos + SLOTS_Y + 4, 12);
+    protected void renderBg(final GuiGraphics graphics, final float partialTicks, final int mouseX, final int mouseY) {
+        Sprites.HOTBAR.draw(graphics, leftPos + SLOTS_X, topPos + SLOTS_Y);
+        RobotContainerScreen.renderSelection(graphics, menu.getRobot().getSelectedSlot(), leftPos + SLOTS_X + 4, topPos + SLOTS_Y + 4, 12);
 
-        super.renderBg(stack, partialTicks, mouseX, mouseY);
+        super.renderBg(graphics, partialTicks, mouseX, mouseY);
     }
 
     @Override

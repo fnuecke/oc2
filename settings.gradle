@@ -21,7 +21,6 @@ def substituteLocal(final directoryName, final libraryName) {
     }
 }
 
-substituteLocal('sedna-mc', 'curse.maven:sedna-511276')
 substituteLocal('ceres', 'li.cil.ceres:ceres')
 substituteLocal('sedna', 'li.cil.sedna:sedna')
 substituteLocal('buildroot', 'li.cil.sedna:sedna-buildroot')

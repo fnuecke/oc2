@@ -50,6 +50,10 @@ subprojects {
             forRepository { maven("https://api.modrinth.com/maven") }
             filter { includeGroup("maven.modrinth") }
         }
+        exclusiveContent {
+            forRepository { maven("https://maven.blamejared.com") }
+            filter { includeGroup("mezz.jei") }
+        }
         // Only needed when the ceres / sedna / buildroot sibling checkouts are absent.
         if (project.hasProperty("gpr.user") && project.hasProperty("gpr.key")) {
             for ((repo, group) in listOf(

@@ -2,7 +2,7 @@
 
 package li.cil.oc2.api.capabilities;
 
-import net.minecraftforge.items.ItemStackHandler;
+import li.cil.oc2.api.inventory.ItemHandler;
 
 /**
  * This interface may be implemented by entities hosting devices to allow
@@ -16,7 +16,7 @@ public interface Robot {
      *
      * @return the inventory of the robot.
      */
-    ItemStackHandler getInventory();
+    ItemHandler getInventory();
 
     /**
      * The index of the currently selected slot in the inventory.

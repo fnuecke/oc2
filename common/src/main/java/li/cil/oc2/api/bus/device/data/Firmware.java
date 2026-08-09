@@ -4,7 +4,6 @@ package li.cil.oc2.api.bus.device.data;
 
 import li.cil.sedna.api.memory.MemoryMap;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**
  * Implementations of this interface that are registered with the registry for
@@ -20,7 +19,7 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
  * /give &#64;p oc2:flash_memory{oc2:{firmware:"my_mod:my_firmware"}}
  * </pre>
  */
-public interface Firmware extends IForgeRegistryEntry<Firmware> {
+public interface Firmware {
     /**
      * Runs this firmware.
      * <p>

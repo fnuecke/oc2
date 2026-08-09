@@ -38,6 +38,6 @@ public final class Registries {
     ///////////////////////////////////////////////////////////////////
 
     private static <T> ResourceKey<Registry<T>> key(final String name) {
-        return ResourceKey.createRegistryKey(new ResourceLocation(API.MOD_ID, name));
+        return ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name));
     }
 }

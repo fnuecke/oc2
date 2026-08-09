@@ -13,7 +13,7 @@ sedna-buildroot = "0.0.8"
 fabric-loader = "0.19.3"
 fabric-api = "0.116.15+1.21.1"
 
-fabric-rei = "16.0.799"
+jei = "19.43.0.395"
 
 fabric-markdownManual = "MC1.21.1-fabric-1.2.6"
 
@@ -42,8 +42,12 @@ fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.r
 fabric-architectury = { group = "dev.architectury", name = "architectury-fabric", version.ref = "architectury" }
 
 fabric-manual = { group = "maven.modrinth", name = "markdownmanual", version.ref = "fabric-markdownManual" }
-fabric-roughlyEnoughItems = { group = "me.shedaniel", name = "RoughlyEnoughItems-fabric", version.ref = "fabric-rei" }
-fabric-roughlyEnoughItems-api = { group = "me.shedaniel", name = "RoughlyEnoughItems-api-fabric", version.ref = "fabric-rei" }
+
+jei-common-api = { group = "mezz.jei", name = "jei-1.21.1-common-api", version.ref = "jei" }
+jei-neoforge-api = { group = "mezz.jei", name = "jei-1.21.1-neoforge-api", version.ref = "jei" }
+jei-neoforge = { group = "mezz.jei", name = "jei-1.21.1-neoforge", version.ref = "jei" }
+jei-fabric-api = { group = "mezz.jei", name = "jei-1.21.1-fabric-api", version.ref = "jei" }
+jei-fabric = { group = "mezz.jei", name = "jei-1.21.1-fabric", version.ref = "jei" }
 
 neoforge-platform = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-platform" }
 neoforge-architectury = { group = "dev.architectury", name = "architectury-neoforge", version.ref = "architectury" }

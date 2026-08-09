@@ -4,7 +4,6 @@ package li.cil.oc2.api.bus.device.data;
 
 import li.cil.sedna.api.device.BlockDevice;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
 /**
  * Implementations of this interface that are registered with the registry for
@@ -25,7 +24,7 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
  * /give ? oc2:hard_drive{oc2:{data:"my_mod:my_block_device",readonly:true}}
  * </pre>
  */
-public interface BlockDeviceData extends IForgeRegistryEntry<BlockDeviceData> {
+public interface BlockDeviceData {
     /**
      * Gets the read-only base block device this implementation describes.
      *

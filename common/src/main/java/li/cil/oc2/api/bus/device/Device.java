@@ -7,7 +7,6 @@ import li.cil.oc2.api.bus.DeviceBusController;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.INBTSerializable;
 
 /**
  * Base interface for objects that can be registered as devices on a {@link DeviceBus}.
@@ -21,7 +20,7 @@ import net.minecraftforge.common.util.INBTSerializable;
  * {@link Object#equals(Object)} and {@link Object#hashCode()} so that identical
  * devices can be detected.
  */
-public interface Device extends INBTSerializable<CompoundTag> {
+public interface Device {
     /**
      * Called to dispose this device.
      * <p>
@@ -35,7 +34,6 @@ public interface Device extends INBTSerializable<CompoundTag> {
      *
      * @return the serialized state of this device.
      */
-    @Override
     default CompoundTag serializeNBT() {
         return new CompoundTag();
     }
@@ -47,7 +45,6 @@ public interface Device extends INBTSerializable<CompoundTag> {
      *
      * @param tag the serialized state of this device.
      */
-    @Override
     default void deserializeNBT(final CompoundTag tag) {
     }
 }

@@ -3,7 +3,7 @@
 package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.vm.Terminal;
@@ -67,7 +67,7 @@ public final class MachineTerminalWidget extends GuiComponent {
                 rendererView = terminal.getRenderer();
             }
 
-            final Matrix4f projectionMatrix = Matrix4f.orthographic(0, parent.width, 0, parent.height, -10, 10f);
+            final Matrix4f projectionMatrix = new Matrix4f().setOrtho(0, parent.width, parent.height, 0, -10, 10f);
             rendererView.render(terminalStack, projectionMatrix);
         } else {
             final Font font = getClient().font;

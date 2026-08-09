@@ -6,8 +6,8 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import li.cil.oc2.client.gui.widget.Texture;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.common.item.Items;
@@ -191,11 +191,18 @@ public final class NetworkInterfaceCardScreen extends Screen {
         private final ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
         private final BakedModel model = itemRenderer.getModel(computerItemStack, null, null, 0);
 
+        private static Quaternionf fromXYZDegrees(final Vector3f degrees) {
+            return new Quaternionf().rotationXYZ(
+                (float) Math.toRadians(degrees.x()),
+                (float) Math.toRadians(degrees.y()),
+                (float) Math.toRadians(degrees.z()));
+        }
+
         @Nullable
         private Direction getFocusedSide(final float mouseX, final float mouseY, final Vector3f rotation) {
             // Rotate ray inversely around block to represent visual block rotation.
-            final Quaternion quaternion = Quaternion.fromXYZDegrees(rotation);
-            quaternion.conj();
+            final Quaternionf quaternion = fromXYZDegrees(rotation);
+            quaternion.conjugate();
 
             // Move ray in screen space to mouse position.
             final float relMouseX = -mouseX / (float) BLOCK_RENDER_SIZE;
@@ -203,11 +210,11 @@ public final class NetworkInterfaceCardScreen extends Screen {
 
             final Vector3f source = new Vector3f();
             source.add(relMouseX, relMouseY, 1);
-            source.transform(quaternion);
+            source.rotate(quaternion);
 
             final Vector3f target = new Vector3f();
             target.add(relMouseX, relMouseY, -1);
-            target.transform(quaternion);
+            target.rotate(quaternion);
 
             // Intersect rotated ray with bounding box representing block.
             final AABB aabb = new AABB(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5);
@@ -223,13 +230,13 @@ public final class NetworkInterfaceCardScreen extends Screen {
             RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             RenderSystem.setShaderColor(1, 1, 1, 1);
 
-            final Vector3f renderRotation = rotation.copy();
+            final Vector3f renderRotation = new Vector3f(rotation);
             renderRotation.add(0, 180, 0);
 
             final PoseStack stack = RenderSystem.getModelViewStack();
             stack.pushPose();
             stack.translate(x, y, 0);
-            stack.mulPose(Quaternion.fromXYZDegrees(renderRotation));
+            stack.mulPose(fromXYZDegrees(renderRotation));
             stack.scale(BLOCK_RENDER_SIZE, -BLOCK_RENDER_SIZE, BLOCK_RENDER_SIZE);
             RenderSystem.applyModelViewMatrix();
 
@@ -266,7 +273,7 @@ public final class NetworkInterfaceCardScreen extends Screen {
                     case EAST -> new Vector3f(0, 90, 0);
                     default -> throw new IllegalStateException("Unexpected value: " + side);
                 };
-                poseStack.mulPose(Quaternion.fromXYZDegrees(sideRotation));
+                poseStack.mulPose(fromXYZDegrees(sideRotation));
 
                 poseStack.translate(-0.5, -0.5, 0);
 

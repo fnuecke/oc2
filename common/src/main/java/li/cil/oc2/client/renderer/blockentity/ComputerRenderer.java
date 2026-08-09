@@ -2,15 +2,16 @@
 
 package li.cil.oc2.client.renderer.blockentity;
 
+import com.mojang.math.Axis;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
@@ -82,7 +83,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         stack.pushPose();
 
         // Align with front face of block.
-        final Quaternion rotation = new Quaternion(Vector3f.YN, blockFacing.toYRot() + 180, true);
+        final Quaternionf rotation = Axis.YN.rotationDegrees(blockFacing.toYRot() + 180);
         stack.translate(0.5f, 0, 0.5f);
         stack.mulPose(rotation);
         stack.translate(-0.5f, 0, -0.5f);

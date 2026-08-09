@@ -4,7 +4,7 @@ package li.cil.oc2.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.integration.Wrenches;

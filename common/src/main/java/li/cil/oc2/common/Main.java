@@ -3,8 +3,6 @@
 package li.cil.oc2.common;
 
 import li.cil.ceres.Ceres;
-import li.cil.oc2.api.API;
-import li.cil.oc2.client.ClientSetup;
 import li.cil.oc2.client.manual.Manuals;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.blockentity.BlockEntities;
@@ -24,14 +22,11 @@ import li.cil.oc2.common.util.RegistryUtils;
 import li.cil.oc2.common.util.SoundEvents;
 import li.cil.oc2.common.vm.provider.DeviceTreeProviders;
 import li.cil.sedna.Sedna;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import dev.architectury.utils.EnvExecutor;
+import net.fabricmc.api.EnvType;
 
-@Mod(API.MOD_ID)
 public final class Main {
-    public Main() {
+    public static void initialize() {
         Ceres.initialize();
         Sedna.initialize();
         DeviceTreeProviders.initialize();
@@ -57,14 +52,13 @@ public final class Main {
         BlockDeviceDataRegistry.initialize();
         FirmwareRegistry.initialize();
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> Manuals::initialize);
+        EnvExecutor.runInEnv(EnvType.CLIENT, () -> Manuals::initialize);
 
         RegistryUtils.finish();
 
         ItemRenameHandler.initialize();
+    }
 
-        FMLJavaModLoadingContext.get().getModEventBus().register(CommonSetup.class);
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-            FMLJavaModLoadingContext.get().getModEventBus().register(ClientSetup.class));
+    private Main() {
     }
 }

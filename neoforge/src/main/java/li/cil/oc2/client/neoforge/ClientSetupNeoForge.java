@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.client;
+package li.cil.oc2.client.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.client.gui.*;
@@ -33,7 +33,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 import java.util.Objects;
 
-public final class ClientSetup {
+public final class ClientSetupNeoForge {
     @SubscribeEvent
     public static void handleSetupEvent(final FMLClientSetupEvent event) {
         BusInterfaceNameRenderer.initialize();

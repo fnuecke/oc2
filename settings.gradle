@@ -23,4 +23,3 @@ def substituteLocal(final directoryName, final libraryName) {
 
 substituteLocal('ceres', 'li.cil.ceres:ceres')
 substituteLocal('sedna', 'li.cil.sedna:sedna')
-substituteLocal('buildroot', 'li.cil.sedna:sedna-buildroot')

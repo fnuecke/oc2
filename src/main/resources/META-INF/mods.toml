@@ -27,12 +27,6 @@ versionRange = "[1.18.2,1.19)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.oc2]]
-modId = "sedna"
-mandatory = true
-versionRange = "[1.0.14,)"
-ordering = "NONE"
-side = "BOTH"
-[[dependencies.oc2]]
 modId = "markdown_manual"
 mandatory = true
 versionRange = "[1.2.1,)"

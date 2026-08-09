@@ -39,6 +39,15 @@ final def hasGithubPackageCredentials =
     (project.hasProperty("gpr.user") && project.hasProperty("gpr.key")) ||
         (System.getenv("GITHUB_ACTOR") && System.getenv("GITHUB_TOKEN"))
 
+final def buildrootJars = fileTree("../buildroot/build/libs") {
+    include "sedna-buildroot-*.jar"
+    exclude "*-sources.jar", "*-javadoc.jar"
+}
+
+final def localBuildrootJar = buildrootJars.files.toSorted { a, b ->
+    b.lastModified() <=> a.lastModified()
+}.find()
+
 repositories {
     mavenCentral()
     maven {
@@ -72,16 +81,13 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
 
-    // Specify the libs embedded in the library mod explicitly for local development, where
-    // we can include these directly (and will have a local library mod using the local
-    // versions). Can't get these to get properly resolved in the IDE otherwise (doesn't
-    // pick them up via the library mod due to the embed configuration).
-    if (hasGithubPackageCredentials) {
-        compileOnly "li.cil.ceres:ceres:0.0.4"
-        compileOnly "li.cil.sedna:sedna:2.0.8"
-        compileOnly "li.cil.sedna:sedna-buildroot:0.0.8"
+    minecraftLibrary('li.cil.ceres:ceres:0.0.4') { transitive = false }
+    minecraftLibrary('li.cil.sedna:sedna:2.0.9') { transitive = false }
+    if (localBuildrootJar != null) {
+        minecraftLibrary files(localBuildrootJar)
+    } else {
+        minecraftLibrary('li.cil.sedna:sedna-buildroot:0.0.8') { transitive = false }
     }
-    implementation "curse.maven:sedna-511276:3885542"
 
     implementation fg.deobf("curse.maven:markdownmanual-502485:3738124")
 
@@ -164,6 +170,12 @@ task copyGeneratedResources(type: Copy) {
 jar {
     finalizedBy "reobfJar"
 
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from({ configurations.minecraftLibrary.collect { it.isDirectory() ? it : zipTree(it) } }) {
+        exclude "META-INF/MANIFEST.MF", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA"
+        exclude "module-info.class"
+    }
+
     manifest {
         attributes([
             "FMLAT"                   : "accesstransformer.cfg",
@@ -224,7 +236,6 @@ curseforge {
         addGameVersion "Java 17"
         relations {
             requiredDependency "markdownmanual"
-            requiredDependency "sedna"
         }
     }
 }

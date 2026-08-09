@@ -30,7 +30,7 @@ import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 public class ExtraItemsJEIPlugin implements IModPlugin {
     @Override
     public ResourceLocation getPluginUid() {
-        return new ResourceLocation(API.MOD_ID, "extra_items");
+        return ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "extra_items");
     }
 
     @Override

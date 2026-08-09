@@ -18,8 +18,8 @@ import li.cil.sedna.riscv.R5Board;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -107,7 +107,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void setBusStateClient(final CommonDeviceBusController.BusState value) {
         busState = value;
     }
@@ -118,7 +118,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void setRunStateClient(final VMRunState value) {
         runState = value;
     }
@@ -130,7 +130,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void setBootErrorClient(@Nullable final Component value) {
         bootError = value;
     }

@@ -28,8 +28,8 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -42,7 +42,7 @@ public final class BusInterfaceItem extends ModBlockItem {
 
     ///////////////////////////////////////////////////////////////////
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     @Override
     public void appendHoverText(final ItemStack stack, final @Nullable Level level, final List<Component> tooltip, final TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);

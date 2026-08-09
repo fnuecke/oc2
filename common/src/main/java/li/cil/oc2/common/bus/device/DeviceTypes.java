@@ -43,7 +43,7 @@ public final class DeviceTypes {
         final String id = tag.location().getPath().replaceFirst("^devices/", "");
         DEVICE_TYPES.register(id, () -> new DeviceTypeImpl(
             tag,
-            new ResourceLocation(API.MOD_ID, "gui/icon/" + id),
+            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "gui/icon/" + id),
             text("gui.{mod}.device_type." + id)
         ));
     }

@@ -63,8 +63,8 @@ public final class ModItemModelProvider extends ItemModelProvider {
 
     private <T extends Item> ItemModelBuilder simple(final RegistryObject<T> item, final String texturePath) {
         return singleTexture(item.getId().getPath(),
-            new ResourceLocation("item/generated"),
+            ResourceLocation.withDefaultNamespace("item/generated"),
             "layer0",
-            new ResourceLocation(API.MOD_ID, texturePath));
+            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, texturePath));
     }
 }

@@ -28,6 +28,6 @@ public final class SoundEvents {
     ///////////////////////////////////////////////////////////////////
 
     private static RegistryObject<SoundEvent> register(final String name) {
-        return SOUNDS.register(name, () -> new SoundEvent(new ResourceLocation(API.MOD_ID, name)));
+        return SOUNDS.register(name, () -> new SoundEvent(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name)));
     }
 }

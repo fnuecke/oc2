@@ -45,8 +45,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -464,7 +464,7 @@ public final class BusCableBlock extends BaseEntityBlock {
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     private static void openBusInterfaceScreen(final BusCableBlockEntity blockEntity, final Direction side) {
         final BusInterfaceScreen screen = new BusInterfaceScreen(blockEntity, side);
         Minecraft.getInstance().setScreen(screen);

@@ -22,7 +22,7 @@ public final class MemoryItem extends AbstractStorageItem {
     @Override
     protected String getOrCreateDescriptionId() {
         if (descriptionId == null) {
-            descriptionId = Util.makeDescriptionId("item", new ResourceLocation(API.MOD_ID, "memory"));
+            descriptionId = Util.makeDescriptionId("item", ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "memory"));
         }
         return descriptionId;
     }

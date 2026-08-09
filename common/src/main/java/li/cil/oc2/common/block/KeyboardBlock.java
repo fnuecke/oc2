@@ -27,8 +27,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import org.jetbrains.annotations.Nullable;
 
 public final class KeyboardBlock extends HorizontalDirectionalBlock implements EntityBlock {
@@ -98,7 +98,7 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
 
     ///////////////////////////////////////////////////////////////////
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     private static void openKeyboardScreen(final KeyboardBlockEntity keyboard) {
         final KeyboardScreen screen = new KeyboardScreen(keyboard);
         Minecraft.getInstance().setScreen(screen);

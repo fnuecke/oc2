@@ -21,8 +21,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -95,7 +95,7 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
         return itemHandler.getStackInSlot(0);
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void setFloppyClient(final ItemStack stack) {
         itemHandler.setStackInSlot(0, stack);
     }

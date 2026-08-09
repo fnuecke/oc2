@@ -35,7 +35,7 @@ public final class HardDriveItem extends AbstractStorageItem implements DyeableL
     @Override
     protected String getOrCreateDescriptionId() {
         if (descriptionId == null) {
-            descriptionId = Util.makeDescriptionId("item", new ResourceLocation(API.MOD_ID, "hard_drive"));
+            descriptionId = Util.makeDescriptionId("item", ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "hard_drive"));
         }
         return descriptionId;
     }

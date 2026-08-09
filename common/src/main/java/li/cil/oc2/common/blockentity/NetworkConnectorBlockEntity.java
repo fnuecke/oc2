@@ -27,8 +27,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
@@ -165,7 +165,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         isAdjacentInterfaceDirty = true;
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void setConnectedPositionsClient(final ArrayList<BlockPos> positions) {
         connectorPositions.clear();
         connectorPositions.addAll(positions);

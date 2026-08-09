@@ -7,10 +7,10 @@ import li.cil.oc2.common.container.RobotTerminalContainer;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public final class RobotTerminalScreen extends AbstractMachineTerminalScreen<RobotTerminalContainer> {
     private static final int SLOTS_X = (MachineTerminalWidget.WIDTH - Sprites.HOTBAR.width) / 2;
     private static final int SLOTS_Y = MachineTerminalWidget.HEIGHT - 1;

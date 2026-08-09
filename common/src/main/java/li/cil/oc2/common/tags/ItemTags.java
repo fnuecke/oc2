@@ -30,6 +30,6 @@ public final class ItemTags {
     ///////////////////////////////////////////////////////////////////
 
     private static TagKey<Item> tag(final String name) {
-        return TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(API.MOD_ID, name));
+        return TagKey.create(Registry.ITEM_REGISTRY, ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name));
     }
 }

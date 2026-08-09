@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class MonospaceFontRenderer extends BitmapFontRenderer {
     public static final FontRenderer INSTANCE = new MonospaceFontRenderer();
 
-    private static final ResourceLocation LOCATION_FONT_TEXTURE = new ResourceLocation(API.MOD_ID, "textures/font/monospace.png");
+    private static final ResourceLocation LOCATION_FONT_TEXTURE = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/font/monospace.png");
     private static final String CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
     @Override

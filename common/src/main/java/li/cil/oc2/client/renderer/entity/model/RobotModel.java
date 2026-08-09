@@ -19,8 +19,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.model.TransformationHelper;
 
 public final class RobotModel extends EntityModel<Robot> {
-    public static final ModelLayerLocation ROBOT_MODEL_LAYER = new ModelLayerLocation(new ResourceLocation(API.MOD_ID, "robot"), "main");
-    public static final ResourceLocation ROBOT_ENTITY_TEXTURE = new ResourceLocation(API.MOD_ID, "textures/entity/robot/robot.png");
+    public static final ModelLayerLocation ROBOT_MODEL_LAYER = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "robot"), "main");
+    public static final ResourceLocation ROBOT_ENTITY_TEXTURE = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/entity/robot/robot.png");
 
     ///////////////////////////////////////////////////////////////////
 

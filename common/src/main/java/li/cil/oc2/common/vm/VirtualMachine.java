@@ -4,26 +4,26 @@ package li.cil.oc2.common.vm;
 
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import javax.annotation.Nullable;
 
 public interface VirtualMachine {
     CommonDeviceBusController.BusState getBusState();
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     void setBusStateClient(CommonDeviceBusController.BusState value);
 
     VMRunState getRunState();
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     void setRunStateClient(VMRunState value);
 
     @Nullable
     Component getBootError();
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     void setBootErrorClient(@Nullable Component value);
 
     @Nullable

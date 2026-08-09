@@ -14,8 +14,8 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -132,19 +132,19 @@ public final class Terminal {
         return HEIGHT * CHAR_HEIGHT;
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void setDisplayOnly(final boolean value) {
         displayOnly = value;
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public RendererView getRenderer() {
         final Renderer renderer = new Renderer(this);
         renderers.add(renderer);
         return renderer;
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void releaseRenderer(final RendererView renderer) {
         if (renderer instanceof final RendererModel rendererModel) {
             rendererModel.close();
@@ -152,7 +152,7 @@ public final class Terminal {
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void clientTick() {
         if (hasPendingBell) {
             hasPendingBell = false;
@@ -682,9 +682,9 @@ public final class Terminal {
         void close();
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     private static final class Renderer implements RendererModel, RendererView {
-        private static final ResourceLocation LOCATION_FONT_TEXTURE = new ResourceLocation(API.MOD_ID, "textures/font/terminus.png");
+        private static final ResourceLocation LOCATION_FONT_TEXTURE = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/font/terminus.png");
         private static final int TEXTURE_RESOLUTION = 256;
         private static final float ONE_OVER_TEXTURE_RESOLUTION = 1.0f / (float) TEXTURE_RESOLUTION;
         private static final int TEXTURE_COLUMNS = 16;

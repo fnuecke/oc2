@@ -17,18 +17,18 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
 
 public final class ModBlockStateProvider extends BlockStateProvider {
-    private static final ResourceLocation CABLE_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_base");
-    private static final ResourceLocation CABLE_LINK_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_link");
-    private static final ResourceLocation CABLE_PLUG_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_plug");
-    private static final ResourceLocation CABLE_STRAIGHT_MODEL = new ResourceLocation(API.MOD_ID, "block/cable_straight");
-    private static final ResourceLocation CHARGER_MODEL = new ResourceLocation(API.MOD_ID, "block/charger");
-    private static final ResourceLocation COMPUTER_MODEL = new ResourceLocation(API.MOD_ID, "block/computer");
-    private static final ResourceLocation DISK_DRIVE_MODEL = new ResourceLocation(API.MOD_ID, "block/disk_drive");
-    private static final ResourceLocation KEYBOARD_MODEL = new ResourceLocation(API.MOD_ID, "block/keyboard");
-    private static final ResourceLocation NETWORK_CONNECTOR_MODEL = new ResourceLocation(API.MOD_ID, "block/network_connector");
-    private static final ResourceLocation NETWORK_HUB_MODEL = new ResourceLocation(API.MOD_ID, "block/network_hub");
-    private static final ResourceLocation PROJECTOR_MODEL = new ResourceLocation(API.MOD_ID, "block/projector");
-    private static final ResourceLocation REDSTONE_INTERFACE_MODEL = new ResourceLocation(API.MOD_ID, "block/redstone_interface");
+    private static final ResourceLocation CABLE_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/cable_base");
+    private static final ResourceLocation CABLE_LINK_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/cable_link");
+    private static final ResourceLocation CABLE_PLUG_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/cable_plug");
+    private static final ResourceLocation CABLE_STRAIGHT_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/cable_straight");
+    private static final ResourceLocation CHARGER_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/charger");
+    private static final ResourceLocation COMPUTER_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/computer");
+    private static final ResourceLocation DISK_DRIVE_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/disk_drive");
+    private static final ResourceLocation KEYBOARD_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/keyboard");
+    private static final ResourceLocation NETWORK_CONNECTOR_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/network_connector");
+    private static final ResourceLocation NETWORK_HUB_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/network_hub");
+    private static final ResourceLocation PROJECTOR_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/projector");
+    private static final ResourceLocation REDSTONE_INTERFACE_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/redstone_interface");
 
     public ModBlockStateProvider(final DataGenerator generator, final ExistingFileHelper existingFileHelper) {
         super(generator, API.MOD_ID, existingFileHelper);

@@ -18,7 +18,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 
 public final class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> {
-    public static final ResourceLocation EFFECT_LOCATION = new ResourceLocation(API.MOD_ID, "block/charger/effect");
+    public static final ResourceLocation EFFECT_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/charger/effect");
 
     private static final Material TEXTURE_EFFECT = new Material(InventoryMenu.BLOCK_ATLAS, EFFECT_LOCATION);
 

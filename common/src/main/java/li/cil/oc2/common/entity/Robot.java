@@ -63,8 +63,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -136,7 +136,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     ///////////////////////////////////////////////////////////////////
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public AnimationState getAnimationState() {
         return animationState;
     }
@@ -455,7 +455,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     ///////////////////////////////////////////////////////////////////
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     private void requestInitialState() {
         Network.sendToServer(new RobotInitializationRequestMessage(this));
     }

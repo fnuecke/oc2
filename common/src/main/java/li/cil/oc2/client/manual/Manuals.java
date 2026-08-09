@@ -19,12 +19,12 @@ import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public final class Manuals {
     private static final DeferredRegister<ManualModel> MANUALS = RegistryUtils.getInitializerFor(Constants.MANUAL_REGISTRY);
 
@@ -45,7 +45,7 @@ public final class Manuals {
         tabs.register("home", () -> new TextureTab(
             ManualModel.LANGUAGE_KEY + "/index.md",
             new TranslatableComponent("manual." + API.MOD_ID + ".home"),
-            new ResourceLocation(API.MOD_ID, "textures/gui/manual/home.png")));
+            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/home.png")));
         tabs.register("blocks", () -> new ItemStackTab(
             ManualModel.LANGUAGE_KEY + "/block/index.md",
             new TranslatableComponent("manual." + API.MOD_ID + ".blocks"),

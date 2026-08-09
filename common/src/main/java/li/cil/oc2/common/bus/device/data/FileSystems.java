@@ -92,7 +92,7 @@ public final class FileSystems {
                 final String type = json.getAsJsonPrimitive("type").getAsString();
                 switch (type) {
                     case "layer" -> {
-                        final ResourceLocation location = new ResourceLocation(json.getAsJsonPrimitive("location").getAsString());
+                        final ResourceLocation location = ResourceLocation.parse(json.getAsJsonPrimitive("location").getAsString());
 
                         final ZipStreamFileSystem fileSystem;
                         try (final InputStream stream = resourceManager.getResource(location).getInputStream()) {
@@ -115,7 +115,7 @@ public final class FileSystems {
                         }
                     }
                     case "block" -> {
-                        final ResourceLocation location = new ResourceLocation(json.getAsJsonPrimitive("location").getAsString());
+                        final ResourceLocation location = ResourceLocation.parse(json.getAsJsonPrimitive("location").getAsString());
                         if (BlockDeviceDataRegistry.getValue(location) != null) {
                             LOGGER.error("Block device from datapack collides with already registered location [{}].", location);
                             continue;

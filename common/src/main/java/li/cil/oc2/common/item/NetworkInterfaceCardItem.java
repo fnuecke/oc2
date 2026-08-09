@@ -17,8 +17,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -106,7 +106,7 @@ public final class NetworkInterfaceCardItem extends ModItem {
 
     ///////////////////////////////////////////////////////////////////
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     private void openConfigurationScreen(final Player player, final InteractionHand hand) {
         Minecraft.getInstance().setScreen(new NetworkInterfaceCardScreen(player, hand));
     }

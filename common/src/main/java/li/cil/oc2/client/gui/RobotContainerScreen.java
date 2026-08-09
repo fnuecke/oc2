@@ -8,10 +8,10 @@ import li.cil.oc2.common.container.RobotInventoryContainer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public final class RobotContainerScreen extends AbstractMachineInventoryScreen<RobotInventoryContainer> {
     private static final int SLOT_SIZE = 18;
 

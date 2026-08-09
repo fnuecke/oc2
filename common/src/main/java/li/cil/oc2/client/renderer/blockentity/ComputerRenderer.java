@@ -41,9 +41,9 @@ import java.util.concurrent.ExecutionException;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlockEntity> {
-    public static final ResourceLocation OVERLAY_POWER_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_power");
-    public static final ResourceLocation OVERLAY_STATUS_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_status");
-    public static final ResourceLocation OVERLAY_TERMINAL_LOCATION = new ResourceLocation(API.MOD_ID, "block/computer/computer_overlay_terminal");
+    public static final ResourceLocation OVERLAY_POWER_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/computer/computer_overlay_power");
+    public static final ResourceLocation OVERLAY_STATUS_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/computer/computer_overlay_status");
+    public static final ResourceLocation OVERLAY_TERMINAL_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/computer/computer_overlay_terminal");
 
     private static final Material TEXTURE_POWER = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_POWER_LOCATION);
     private static final Material TEXTURE_STATUS = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_STATUS_LOCATION);

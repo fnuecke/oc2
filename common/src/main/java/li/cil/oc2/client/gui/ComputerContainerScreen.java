@@ -6,10 +6,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.common.container.ComputerInventoryContainer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public final class ComputerContainerScreen extends AbstractMachineInventoryScreen<ComputerInventoryContainer> {
     public ComputerContainerScreen(final ComputerInventoryContainer container, final Inventory inventory, final Component title) {
         super(container, inventory, title);

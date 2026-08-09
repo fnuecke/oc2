@@ -43,7 +43,7 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
         ResourceLocation location = defaultData;
         if (!StringUtil.isNullOrEmpty(registryName)) {
             try {
-                location = new ResourceLocation(registryName);
+                location = ResourceLocation.parse(registryName);
             } catch (final ResourceLocationException ignored) {
             }
         }

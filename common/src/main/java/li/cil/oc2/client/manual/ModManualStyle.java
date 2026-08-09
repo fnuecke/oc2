@@ -7,10 +7,10 @@ import li.cil.manual.api.render.FontRenderer;
 import li.cil.oc2.client.renderer.font.MonospaceFontRenderer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public final class ModManualStyle implements ManualStyle {
     public static final ManualStyle INSTANCE = new ModManualStyle();
 

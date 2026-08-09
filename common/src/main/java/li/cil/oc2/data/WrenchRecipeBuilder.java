@@ -95,19 +95,19 @@ public final class WrenchRecipeBuilder {
 
     public void save(final Consumer<FinishedRecipe> consumerIn, final String save) {
         final ResourceLocation resourcelocation = ForgeRegistries.ITEMS.getKey(this.result);
-        if ((new ResourceLocation(save)).equals(resourcelocation)) {
+        if ((ResourceLocation.parse(save)).equals(resourcelocation)) {
             throw new IllegalStateException("Shapeless Recipe " + save + " should remove its 'save' argument");
         } else {
-            this.save(consumerIn, new ResourceLocation(save));
+            this.save(consumerIn, ResourceLocation.parse(save));
         }
     }
 
     public void save(final Consumer<FinishedRecipe> consumerIn, final ResourceLocation id) {
         this.validate(id);
-        this.advancementBuilder.parent(new ResourceLocation("recipes/root")).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id)).rewards(AdvancementRewards.Builder.recipe(id)).requirements(RequirementsStrategy.OR);
+        this.advancementBuilder.parent(ResourceLocation.withDefaultNamespace("recipes/root")).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id)).rewards(AdvancementRewards.Builder.recipe(id)).requirements(RequirementsStrategy.OR);
         final CreativeModeTab itemCategory = this.result.getItemCategory();
         if (itemCategory != null) {
-            consumerIn.accept(new WrenchRecipeBuilder.Result(id, this.result, this.count, this.group == null ? "" : this.group, this.ingredients, this.advancementBuilder, new ResourceLocation(id.getNamespace(), "recipes/" + itemCategory.getRecipeFolderName() + "/" + id.getPath())));
+            consumerIn.accept(new WrenchRecipeBuilder.Result(id, this.result, this.count, this.group == null ? "" : this.group, this.ingredients, this.advancementBuilder, ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "recipes/" + itemCategory.getRecipeFolderName() + "/" + id.getPath())));
         }
     }
 

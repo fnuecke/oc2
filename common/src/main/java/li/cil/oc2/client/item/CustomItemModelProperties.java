@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
 
 public final class CustomItemModelProperties {
-    public static final ResourceLocation COLOR_PROPERTY = new ResourceLocation(API.MOD_ID, "color");
+    public static final ResourceLocation COLOR_PROPERTY = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "color");
 
     ///////////////////////////////////////////////////////////////////
 

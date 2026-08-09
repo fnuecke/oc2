@@ -25,7 +25,7 @@ public final class Network {
     private static final String PROTOCOL_VERSION = "1";
 
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
-        new ResourceLocation(API.MOD_ID, "main"),
+        ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "main"),
         () -> PROTOCOL_VERSION,
         PROTOCOL_VERSION::equals,
         PROTOCOL_VERSION::equals

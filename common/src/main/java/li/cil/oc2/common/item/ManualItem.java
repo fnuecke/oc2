@@ -14,8 +14,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -27,7 +27,7 @@ public final class ManualItem extends AbstractManualItem {
 
     ///////////////////////////////////////////////////////////////////
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     @Override
     public void appendHoverText(final ItemStack stack, @Nullable final Level level, final List<Component> tooltip, final TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
@@ -41,13 +41,13 @@ public final class ManualItem extends AbstractManualItem {
         return Manuals.MANUAL.get();
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     @Override
     protected ManualStyle getManualStyle() {
         return ModManualStyle.INSTANCE;
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     @Override
     protected ManualScreenStyle getScreenStyle() {
         return ModManualScreenStyle.INSTANCE;

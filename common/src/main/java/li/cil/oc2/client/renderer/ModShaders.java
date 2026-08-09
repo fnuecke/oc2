@@ -21,7 +21,7 @@ import java.io.IOException;
 public final class ModShaders {
     public static final int MAX_PROJECTORS = 3;
 
-    private static final ResourceLocation PROJECTORS_SHADER_LOCATION = new ResourceLocation(API.MOD_ID, "projectors");
+    private static final ResourceLocation PROJECTORS_SHADER_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "projectors");
     private static final String[] PROJECTOR_COLOR_NAMES = {"ProjectorColor0", "ProjectorColor1", "ProjectorColor2"};
     private static final String[] PROJECTOR_DEPTH_NAMES = {"ProjectorDepth0", "ProjectorDepth1", "ProjectorDepth2"};
     private static final String[] PROJECTOR_CAMERA_NAMES = {"ProjectorCamera0", "ProjectorCamera1", "ProjectorCamera2"};

@@ -7,10 +7,10 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import li.cil.oc2.api.API;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public abstract class ModRenderType extends RenderType {
     private static final RenderType NETWORK_CABLE = create(
         API.MOD_ID + "/network_cable",

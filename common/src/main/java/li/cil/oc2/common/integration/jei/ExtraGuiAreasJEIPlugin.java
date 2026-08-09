@@ -18,7 +18,7 @@ import java.util.List;
 public class ExtraGuiAreasJEIPlugin implements IModPlugin {
     @Override
     public ResourceLocation getPluginUid() {
-        return new ResourceLocation(API.MOD_ID, "extra_gui_areas");
+        return ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "extra_gui_areas");
     }
 
     @Override

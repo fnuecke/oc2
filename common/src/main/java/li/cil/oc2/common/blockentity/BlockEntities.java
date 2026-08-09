@@ -7,25 +7,25 @@ import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import dev.architectury.registry.registries.DeferredRegister;
+import net.minecraft.core.registries.Registries;
+import dev.architectury.registry.registries.RegistrySupplier;
 
 public final class BlockEntities {
-    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = RegistryUtils.getInitializerFor(ForgeRegistries.BLOCK_ENTITIES);
+    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = RegistryUtils.getInitializerFor(Registries.BLOCK_ENTITY_TYPE);
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final RegistryObject<BlockEntityType<BusCableBlockEntity>> BUS_CABLE = register(Blocks.BUS_CABLE, BusCableBlockEntity::new);
-    public static final RegistryObject<BlockEntityType<ChargerBlockEntity>> CHARGER = register(Blocks.CHARGER, ChargerBlockEntity::new);
-    public static final RegistryObject<BlockEntityType<ComputerBlockEntity>> COMPUTER = register(Blocks.COMPUTER, ComputerBlockEntity::new);
-    public static final RegistryObject<BlockEntityType<CreativeEnergyBlockEntity>> CREATIVE_ENERGY = register(Blocks.CREATIVE_ENERGY, CreativeEnergyBlockEntity::new);
-    public static final RegistryObject<BlockEntityType<DiskDriveBlockEntity>> DISK_DRIVE = register(Blocks.DISK_DRIVE, DiskDriveBlockEntity::new);
-    public static final RegistryObject<BlockEntityType<KeyboardBlockEntity>> KEYBOARD = register(Blocks.KEYBOARD, KeyboardBlockEntity::new);
-    public static final RegistryObject<BlockEntityType<NetworkConnectorBlockEntity>> NETWORK_CONNECTOR = register(Blocks.NETWORK_CONNECTOR, NetworkConnectorBlockEntity::new);
-    public static final RegistryObject<BlockEntityType<NetworkHubBlockEntity>> NETWORK_HUB = register(Blocks.NETWORK_HUB, NetworkHubBlockEntity::new);
-    public static final RegistryObject<BlockEntityType<ProjectorBlockEntity>> PROJECTOR = register(Blocks.PROJECTOR, ProjectorBlockEntity::new);
-    public static final RegistryObject<BlockEntityType<RedstoneInterfaceBlockEntity>> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE, RedstoneInterfaceBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<BusCableBlockEntity>> BUS_CABLE = register(Blocks.BUS_CABLE, BusCableBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<ChargerBlockEntity>> CHARGER = register(Blocks.CHARGER, ChargerBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<ComputerBlockEntity>> COMPUTER = register(Blocks.COMPUTER, ComputerBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<CreativeEnergyBlockEntity>> CREATIVE_ENERGY = register(Blocks.CREATIVE_ENERGY, CreativeEnergyBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<DiskDriveBlockEntity>> DISK_DRIVE = register(Blocks.DISK_DRIVE, DiskDriveBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<KeyboardBlockEntity>> KEYBOARD = register(Blocks.KEYBOARD, KeyboardBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<NetworkConnectorBlockEntity>> NETWORK_CONNECTOR = register(Blocks.NETWORK_CONNECTOR, NetworkConnectorBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<NetworkHubBlockEntity>> NETWORK_HUB = register(Blocks.NETWORK_HUB, NetworkHubBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<ProjectorBlockEntity>> PROJECTOR = register(Blocks.PROJECTOR, ProjectorBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<RedstoneInterfaceBlockEntity>> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE, RedstoneInterfaceBlockEntity::new);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -35,7 +35,7 @@ public final class BlockEntities {
     ///////////////////////////////////////////////////////////////////
 
     @SuppressWarnings("ConstantConditions") // .build(null) is fine
-    private static <B extends Block, T extends BlockEntity> RegistryObject<BlockEntityType<T>> register(final RegistryObject<B> block, final BlockEntityType.BlockEntitySupplier<T> factory) {
+    private static <B extends Block, T extends BlockEntity> RegistrySupplier<BlockEntityType<T>> register(final RegistrySupplier<B> block, final BlockEntityType.BlockEntitySupplier<T> factory) {
         return BLOCK_ENTITIES.register(block.getId().getPath(), () -> BlockEntityType.Builder.of(factory, block.get()).build(null));
     }
 }

@@ -2,20 +2,15 @@
 
 package li.cil.oc2.common.util;
 
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrarBuilder;
+import dev.architectury.registry.registries.RegistrarManager;
 import li.cil.oc2.api.API;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 public abstract class RegistryUtils {
     private enum Phase {
@@ -27,18 +22,16 @@ public abstract class RegistryUtils {
     private static final List<DeferredRegister<?>> ENTRIES = new ArrayList<>();
     private static Phase phase = Phase.PRE_INIT;
 
-    public static <T extends IForgeRegistryEntry<T>> DeferredRegister<T> getInitializerFor(final ResourceKey<Registry<T>> key) {
-        if (phase != Phase.INIT) throw new IllegalStateException();
-
-        final DeferredRegister<T> entry = DeferredRegister.create(key, API.MOD_ID);
-        ENTRIES.add(entry);
-        return entry;
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    public static <T> RegistrarBuilder<T> builder(final ResourceKey<Registry<T>> key, final T... typeGetter) {
+        return RegistrarManager.get(API.MOD_ID).builder(key.location(), typeGetter);
     }
 
-    public static <T extends IForgeRegistryEntry<T>> DeferredRegister<T> getInitializerFor(final IForgeRegistry<T> registry) {
+    public static <T> DeferredRegister<T> getInitializerFor(final ResourceKey<Registry<T>> key) {
         if (phase != Phase.INIT) throw new IllegalStateException();
 
-        final DeferredRegister<T> entry = DeferredRegister.create(registry, API.MOD_ID);
+        final DeferredRegister<T> entry = DeferredRegister.create(API.MOD_ID, key);
         ENTRIES.add(entry);
         return entry;
     }
@@ -53,27 +46,10 @@ public abstract class RegistryUtils {
         phase = Phase.POST_INIT;
 
         for (final DeferredRegister<?> register : ENTRIES) {
-            register.register(FMLJavaModLoadingContext.get().getModEventBus());
+            register.register();
         }
 
         ENTRIES.clear();
-    }
-
-    public static <T> String key(final IForgeRegistryEntry<T> registryEntry) {
-        return Objects.requireNonNull(registryEntry.getRegistryName()).toString();
-    }
-
-    public static <T> Optional<String> optionalKey(@Nullable final IForgeRegistryEntry<T> registryEntry) {
-        if (registryEntry == null) {
-            return Optional.empty();
-        }
-
-        final ResourceLocation providerName = registryEntry.getRegistryName();
-        if (providerName == null) {
-            return Optional.empty();
-        }
-
-        return Optional.of(providerName.toString());
     }
 
     private RegistryUtils() {

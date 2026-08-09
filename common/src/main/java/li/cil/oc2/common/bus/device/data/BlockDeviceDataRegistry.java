@@ -2,29 +2,25 @@
 
 package li.cil.oc2.common.bus.device.data;
 
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.Registrar;
+import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.util.Registries;
 import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.RegistryBuilder;
-import net.minecraftforge.registries.RegistryObject;
 
 import javax.annotation.Nullable;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public final class BlockDeviceDataRegistry {
+    private static final Registrar<BlockDeviceData> REGISTRY = RegistryUtils.builder(Registries.BLOCK_DEVICE_DATA).build();
     private static final DeferredRegister<BlockDeviceData> INITIALIZER = RegistryUtils.getInitializerFor(Registries.BLOCK_DEVICE_DATA);
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final Supplier<IForgeRegistry<BlockDeviceData>> REGISTRY = INITIALIZER.makeRegistry(BlockDeviceData.class, RegistryBuilder::new);
-
-    ///////////////////////////////////////////////////////////////////
-
-    public static final RegistryObject<BlockDeviceData> BUILDROOT = INITIALIZER.register("buildroot", BuildrootBlockDeviceData::new);
+    public static final RegistrySupplier<BlockDeviceData> BUILDROOT = INITIALIZER.register("buildroot", BuildrootBlockDeviceData::new);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -33,12 +29,21 @@ public final class BlockDeviceDataRegistry {
 
     @Nullable
     public static ResourceLocation getKey(final BlockDeviceData data) {
-        return data.getRegistryName();
+        final ResourceLocation id = REGISTRY.getId(data);
+        if (id != null) {
+            return id;
+        }
+
+        if (data instanceof final ResourceBlockDeviceData resourceData) {
+            return resourceData.getLocation();
+        }
+
+        return null;
     }
 
     @Nullable
     public static BlockDeviceData getValue(final ResourceLocation location) {
-        final BlockDeviceData value = REGISTRY.get().getValue(location);
+        final BlockDeviceData value = REGISTRY.get(location);
         if (value != null) {
             return value;
         }
@@ -47,7 +52,7 @@ public final class BlockDeviceDataRegistry {
 
     public static Stream<BlockDeviceData> values() {
         return Stream.concat(
-            REGISTRY.get().getValues().stream(),
+            StreamSupport.stream(REGISTRY.spliterator(), false),
             FileSystems.getBlockData().values().stream());
     }
 }

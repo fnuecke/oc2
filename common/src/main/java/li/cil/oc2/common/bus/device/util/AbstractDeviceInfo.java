@@ -3,12 +3,11 @@
 package li.cil.oc2.common.bus.device.util;
 
 import li.cil.oc2.api.bus.device.Device;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-public abstract class AbstractDeviceInfo<TProvider extends IForgeRegistryEntry<TProvider>, TDevice extends Device> {
+public abstract class AbstractDeviceInfo<TProvider, TDevice extends Device> {
     @Nullable public final TProvider provider;
     public final TDevice device;
 

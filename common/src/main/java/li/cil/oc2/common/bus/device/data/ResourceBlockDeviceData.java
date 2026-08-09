@@ -8,13 +8,12 @@ import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-public final class ResourceBlockDeviceData implements IForgeRegistryEntry<BlockDeviceData>, BlockDeviceData, AutoCloseable {
+public final class ResourceBlockDeviceData implements BlockDeviceData, AutoCloseable {
     private final ResourceLocation location;
     private final String name;
     private final BlockDevice blockDevice;
@@ -26,20 +25,8 @@ public final class ResourceBlockDeviceData implements IForgeRegistryEntry<BlockD
         this.blockDevice = ByteBufferBlockDevice.createFromStream(stream, true);
     }
 
-    @Override
-    public BlockDeviceData setRegistryName(final ResourceLocation name) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Nullable
-    @Override
-    public ResourceLocation getRegistryName() {
+    public ResourceLocation getLocation() {
         return location;
-    }
-
-    @Override
-    public Class<BlockDeviceData> getRegistryType() {
-        return BlockDeviceData.class;
     }
 
     @Override

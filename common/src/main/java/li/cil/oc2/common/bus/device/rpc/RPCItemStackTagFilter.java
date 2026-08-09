@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.rpc;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -26,7 +27,7 @@ public final class RPCItemStackTagFilter {
             return null;
         }
 
-        if (item != null && !Objects.equals(stack.getItem().getRegistryName(), item)) {
+        if (item != null && !BuiltInRegistries.ITEM.getKey(Objects.equals(stack.getItem()), item)) {
             return null;
         }
 

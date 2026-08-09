@@ -53,7 +53,7 @@ import java.util.List;
 import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
 import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
-import static li.cil.oc2.common.util.RegistryUtils.key;
+import static li.cil.oc2.common.bus.device.DeviceTypes.key;
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class ComputerBlock extends HorizontalDirectionalBlock implements EntityBlock {

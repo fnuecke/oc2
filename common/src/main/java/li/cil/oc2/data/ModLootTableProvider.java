@@ -2,6 +2,7 @@
 
 package li.cil.oc2.data;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import com.mojang.datafixers.util.Pair;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
@@ -64,7 +65,7 @@ public final class ModLootTableProvider extends LootTableProvider {
         @Override
         protected Iterable<Block> getKnownBlocks() {
             return StreamSupport.stream(super.getKnownBlocks().spliterator(), false)
-                .filter(block -> requireNonNull(block.getRegistryName()).getNamespace().equals(API.MOD_ID))
+                .filter(block -> requireNonNull(BuiltInRegistries.BLOCK.getKey(block)).getNamespace().equals(API.MOD_ID))
                 .filter(block -> block != Blocks.BUS_CABLE.get()) // All bus drops depend on block state.
                 .collect(Collectors.toList());
         }

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
@@ -20,7 +21,7 @@ import net.minecraftforge.registries.IForgeRegistry;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static li.cil.oc2.common.util.RegistryUtils.optionalKey;
+import static li.cil.oc2.common.bus.device.provider.ProviderRegistry.optionalKey;
 
 public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDeviceBusElement<AbstractItemDeviceBusElement.ItemEntry, ItemDeviceQuery> {
     public AbstractItemDeviceBusElement(final int groupCount) {
@@ -90,7 +91,7 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
             return;
         }
 
-        final ResourceLocation registryName = query.getItemStack().getItem().getRegistryName();
+        final ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(query.getItemStack().getItem());
         if (registryName != null) {
             final String itemName = registryName.toString();
             entries.add(new ItemEntry(new ItemDeviceInfo(null, new TypeNameRPCDevice(itemName), 0)));

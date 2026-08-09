@@ -14,7 +14,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.model.generators.*;
 import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.registries.RegistryObject;
+import dev.architectury.registry.registries.RegistrySupplier;
 
 public final class ModBlockStateProvider extends BlockStateProvider {
     private static final ResourceLocation CABLE_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/cable_base");
@@ -170,17 +170,17 @@ public final class ModBlockStateProvider extends BlockStateProvider {
             .end();
     }
 
-    private <T extends Block> ItemModelBuilder horizontalBlock(final RegistryObject<T> block, final RegistryObject<Item> item, final ResourceLocation modelFileLocation) {
+    private <T extends Block> ItemModelBuilder horizontalBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item, final ResourceLocation modelFileLocation) {
         horizontalBlock(block.get(), models().getExistingFile(modelFileLocation));
         return itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }
 
-    private <T extends Block> ItemModelBuilder horizontalFaceBlock(final RegistryObject<T> block, final RegistryObject<Item> item, final ResourceLocation modelFileLocation) {
+    private <T extends Block> ItemModelBuilder horizontalFaceBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item, final ResourceLocation modelFileLocation) {
         horizontalFaceBlock(block.get(), models().getExistingFile(modelFileLocation));
         return itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }
 
-    private <T extends Block> void simpleBlock(final RegistryObject<T> block, final RegistryObject<Item> item) {
+    private <T extends Block> void simpleBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item) {
         simpleBlock(block.get());
         itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }

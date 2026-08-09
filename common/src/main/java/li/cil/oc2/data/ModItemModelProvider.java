@@ -11,7 +11,7 @@ import net.minecraft.world.item.Item;
 import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.registries.RegistryObject;
+import dev.architectury.registry.registries.RegistrySupplier;
 
 public final class ModItemModelProvider extends ItemModelProvider {
     public ModItemModelProvider(final DataGenerator generator, final ExistingFileHelper existingFileHelper) {
@@ -57,11 +57,11 @@ public final class ModItemModelProvider extends ItemModelProvider {
         withExistingParent(Entities.ROBOT.getId().getPath(), "template_shulker_box");
     }
 
-    private <T extends Item> void simple(final RegistryObject<T> item) {
+    private <T extends Item> void simple(final RegistrySupplier<T> item) {
         simple(item, "item/" + item.getId().getPath());
     }
 
-    private <T extends Item> ItemModelBuilder simple(final RegistryObject<T> item, final String texturePath) {
+    private <T extends Item> ItemModelBuilder simple(final RegistrySupplier<T> item, final String texturePath) {
         return singleTexture(item.getId().getPath(),
             ResourceLocation.withDefaultNamespace("item/generated"),
             "layer0",

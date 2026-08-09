@@ -20,7 +20,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -87,14 +87,14 @@ public final class WrenchRecipeBuilder {
     }
 
     public void save(final Consumer<FinishedRecipe> consumerIn) {
-        final ResourceLocation key = ForgeRegistries.ITEMS.getKey(this.result);
+        final ResourceLocation key = BuiltInRegistries.ITEM.getKey(this.result);
         if (key != null) {
             this.save(consumerIn, key);
         }
     }
 
     public void save(final Consumer<FinishedRecipe> consumerIn, final String save) {
-        final ResourceLocation resourcelocation = ForgeRegistries.ITEMS.getKey(this.result);
+        final ResourceLocation resourcelocation = BuiltInRegistries.ITEM.getKey(this.result);
         if ((ResourceLocation.parse(save)).equals(resourcelocation)) {
             throw new IllegalStateException("Shapeless Recipe " + save + " should remove its 'save' argument");
         } else {
@@ -149,7 +149,7 @@ public final class WrenchRecipeBuilder {
 
             json.add("ingredients", jsonarray);
             final JsonObject jsonobject = new JsonObject();
-            final ResourceLocation key = ForgeRegistries.ITEMS.getKey(this.result);
+            final ResourceLocation key = BuiltInRegistries.ITEM.getKey(this.result);
             if (key != null) {
                 jsonobject.addProperty("item", key.toString());
             }

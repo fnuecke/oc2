@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.util;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
@@ -35,7 +36,7 @@ public final class LevelUtils {
 
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity != null) {
-            final ResourceLocation registryName = blockEntity.getType().getRegistryName();
+            final ResourceLocation registryName = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(blockEntity.getType());
             if (registryName != null) {
                 return registryName.toString();
             }
@@ -43,7 +44,7 @@ public final class LevelUtils {
 
         final Block block = level.getBlockState(pos).getBlock();
         {
-            final ResourceLocation registryName = block.getRegistryName();
+            final ResourceLocation registryName = BuiltInRegistries.BLOCK.getKey(block);
             if (registryName != null) {
                 return registryName.toString();
             }

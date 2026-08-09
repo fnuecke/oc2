@@ -21,8 +21,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
 
 @Environment(EnvType.CLIENT)
 public final class Manuals {
@@ -30,7 +30,7 @@ public final class Manuals {
 
     ///////////////////////////////////////////////////////////////////
 
-    public static final RegistryObject<ManualModel> MANUAL = MANUALS.register("manual", Manual::new);
+    public static final RegistrySupplier<ManualModel> MANUAL = MANUALS.register("manual", Manual::new);
 
     ///////////////////////////////////////////////////////////////////
 

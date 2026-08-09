@@ -28,7 +28,7 @@ import net.minecraftforge.registries.IForgeRegistry;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static li.cil.oc2.common.util.RegistryUtils.optionalKey;
+import static li.cil.oc2.common.bus.device.provider.ProviderRegistry.optionalKey;
 
 public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDeviceBusElement<AbstractBlockDeviceBusElement.BlockEntry, BlockDeviceQuery> implements BlockDeviceBusElement {
     public AbstractBlockDeviceBusElement() {

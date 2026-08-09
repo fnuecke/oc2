@@ -1,0 +1,51 @@
+[versions]
+minecraft = "1.21.1"
+parchment-minecraft = "1.21.1"
+parchment-mappings = "2024.11.17"
+
+architectury = "13.0.11"
+manual = "1.2.6"
+
+ceres = "0.0.4"
+sedna = "2.0.9"
+sedna-buildroot = "0.0.8"
+
+fabric-loader = "0.19.3"
+fabric-api = "0.116.15+1.21.1"
+
+fabric-rei = "16.0.799"
+
+fabric-markdownManual = "MC1.21.1-fabric-1.2.6"
+
+neoforge-platform = "21.1.248"
+neoforge-loader = "4"
+
+neoforge-markdownManual = "MC1.21.1-neoforge-1.2.6"
+
+[plugins]
+loom = { id = "dev.architectury.loom", version = "1.11-SNAPSHOT" }
+architectury = { id = "architectury-plugin", version = "3.4-SNAPSHOT" }
+shadow = { id = "com.gradleup.shadow", version = "9.4.1" }
+spotless = { id = "com.diffplug.spotless", version = "6.22.0" }
+
+[libraries]
+minecraft = { group = "com.mojang", name = "minecraft", version.ref = "minecraft" }
+architectury-api = { group = "dev.architectury", name = "architectury", version.ref = "architectury" }
+
+# Fallbacks for when the sibling checkouts are absent; these need gpr.user / gpr.key.
+ceres = { group = "li.cil.ceres", name = "ceres", version.ref = "ceres" }
+sedna = { group = "li.cil.sedna", name = "sedna", version.ref = "sedna" }
+sedna-buildroot = { group = "li.cil.sedna", name = "sedna-buildroot", version.ref = "sedna-buildroot" }
+
+fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
+fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
+fabric-architectury = { group = "dev.architectury", name = "architectury-fabric", version.ref = "architectury" }
+
+fabric-manual = { group = "maven.modrinth", name = "markdownmanual", version.ref = "fabric-markdownManual" }
+fabric-roughlyEnoughItems = { group = "me.shedaniel", name = "RoughlyEnoughItems-fabric", version.ref = "fabric-rei" }
+fabric-roughlyEnoughItems-api = { group = "me.shedaniel", name = "RoughlyEnoughItems-api-fabric", version.ref = "fabric-rei" }
+
+neoforge-platform = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-platform" }
+neoforge-architectury = { group = "dev.architectury", name = "architectury-neoforge", version.ref = "architectury" }
+
+neoforge-manual = { group = "maven.modrinth", name = "markdownmanual", version.ref = "neoforge-markdownManual" }

@@ -1,0 +1,51 @@
+modLoader = "javafml"
+loaderVersion = "[${loaderVersion},)"
+issueTrackerURL = "https://github.com/fnuecke/oc2/issues"
+license = "MIT"
+
+[[mods]]
+modId = "oc2"
+version = "${version}"
+displayName = "OpenComputers II"
+authors = "Sangar"
+description = '''
+Modern computers for the modern player.
+
+This mod uses the Terminus Font under the Open Font License. The full license can be found in the JAR of this mod.
+'''
+
+[[dependencies.oc2]]
+modId = "neoforge"
+type = "required"
+versionRange = "[${neoforgeVersion},)"
+ordering = "NONE"
+side = "BOTH"
+[[dependencies.oc2]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraftVersion}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.oc2]]
+modId = "architectury"
+type = "required"
+versionRange = "[${architecturyVersion},)"
+ordering = "AFTER"
+side = "BOTH"
+[[dependencies.oc2]]
+modId = "markdown_manual"
+type = "required"
+versionRange = "[${manualVersion},)"
+ordering = "AFTER"
+side = "CLIENT"
+
+[[mixins]]
+config = "oc2.mixins.json"
+
+[mc-publish]
+curseforge = 437654
+dependencies = [
+    "architectury@>=${architecturyVersion}(required){curseforge:419699}",
+    "markdown_manual@>=${manualVersion}(required){curseforge:502485}"
+]

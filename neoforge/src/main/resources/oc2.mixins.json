@@ -1,0 +1,17 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "package": "li.cil.oc2.common.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+        "ServerChunkCacheMixin"
+    ],
+    "client": [
+        "FrustumMixin",
+        "LevelRendererMixin",
+        "MinecraftMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

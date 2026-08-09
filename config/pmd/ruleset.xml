@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<ruleset name="TIS-3D"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>Dead code and redundancy only.</description>
+
+    <!-- Dead code. -->
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateField"/>
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
+    <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
+    <rule ref="category/java/bestpractices.xml/UnusedFormalParameter">
+        <properties>
+            <property name="violationSuppressXPath"
+                      value="ancestor::MethodDeclaration[1]/ModifierList/Annotation[@SimpleName='ExpectPlatform']"/>
+        </properties>
+    </rule>
+    <rule ref="category/java/bestpractices.xml/UnusedAssignment"/>
+    <rule ref="category/java/bestpractices.xml/UnusedLabel"/>
+    <rule ref="category/java/bestpractices.xml/UnnecessaryWarningSuppression"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryImport"/>
+
+    <!-- Redundancy. -->
+    <rule ref="category/java/codestyle.xml/UnnecessaryModifier"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryBoxing"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryCast"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryConstructor"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryReturn"/>
+    <rule ref="category/java/codestyle.xml/UnnecessarySemicolon"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryAnnotationValueElement"/>
+    <rule ref="category/java/codestyle.xml/UselessParentheses"/>
+    <rule ref="category/java/codestyle.xml/UselessQualifiedThis"/>
+    <rule ref="category/java/bestpractices.xml/UnnecessaryVarargsArrayCreation"/>
+    <rule ref="category/java/design.xml/UselessOverridingMethod"/>
+    <rule ref="category/java/performance.xml/RedundantFieldInitializer"/>
+    <rule ref="category/java/performance.xml/UselessStringValueOf"/>
+
+    <!-- Suspicious emptiness. -->
+    <rule ref="category/java/errorprone.xml/EmptyCatchBlock"/>
+    <rule ref="category/java/codestyle.xml/EmptyControlStatement"/>
+
+    <!-- Likely mistakes that are cheap to check and never fire on correct code. -->
+    <rule ref="category/java/errorprone.xml/UselessPureMethodCall"/>
+    <rule ref="category/java/errorprone.xml/UnusedNullCheckInEquals"/>
+    <rule ref="category/java/errorprone.xml/CompareObjectsWithEquals">
+        <properties>
+            <property name="typesThatCompareByReference"
+                      value="java.lang.Enum,java.lang.Class,net.minecraft.world.level.block.state.BlockState,net.minecraft.world.item.Item,net.minecraft.world.item.ItemStack,net.minecraft.world.level.Level,net.minecraft.world.level.block.entity.BlockEntity,li.cil.tis3d.api.module.Module"/>
+        </properties>
+    </rule>
+    <rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashcode"/>
+</ruleset>

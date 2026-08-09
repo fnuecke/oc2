@@ -28,10 +28,12 @@ logs
 
 # Files from Forge MDK
 forge*changelog.txt
-/src/generated/
+
+# generated resources
+**/src/generated/
 
 #vscode
 .vscode
 
 # Don't ignore bin from scripts
-!/src/main/scripts/bin/
+!/common/src/main/scripts/bin/

@@ -7,12 +7,12 @@ import li.cil.oc2.common.util.ColorUtils;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.DyeableLeatherItem;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 
-public final class HardDriveItem extends AbstractStorageItem implements DyeableLeatherItem {
+public final class HardDriveItem extends AbstractStorageItem implements ColoredItem {
     private final int defaultColor;
     @Nullable private String descriptionId;
 
@@ -27,7 +27,7 @@ public final class HardDriveItem extends AbstractStorageItem implements DyeableL
 
     @Override
     public int getColor(final ItemStack stack) {
-        return hasCustomColor(stack) ? DyeableLeatherItem.super.getColor(stack) : defaultColor;
+        return DyedItemColor.getOrDefault(stack, defaultColor);
     }
 
     ///////////////////////////////////////////////////////////////////

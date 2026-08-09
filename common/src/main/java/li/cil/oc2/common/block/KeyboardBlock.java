@@ -22,7 +22,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -42,7 +42,8 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
     ///////////////////////////////////////////////////////////////////
 
     public KeyboardBlock() {
-        super(Properties.of(Material.METAL).sound(SoundType.METAL).strength(1.5f, 6.0f));
+        super(Properties.of()
+            .mapColor(MapColor.METAL).sound(SoundType.METAL).strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 

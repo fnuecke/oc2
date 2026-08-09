@@ -10,13 +10,13 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.DyeableLeatherItem;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem implements DyeableLeatherItem {
+public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem implements ColoredItem {
     private final int defaultColor;
     @Nullable private String descriptionId;
 
@@ -45,7 +45,7 @@ public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem
 
     @Override
     public int getColor(final ItemStack stack) {
-        return hasCustomColor(stack) ? DyeableLeatherItem.super.getColor(stack) : defaultColor;
+        return DyedItemColor.getOrDefault(stack, defaultColor);
     }
 
     ///////////////////////////////////////////////////////////////////

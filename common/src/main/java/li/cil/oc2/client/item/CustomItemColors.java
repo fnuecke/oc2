@@ -6,7 +6,9 @@ import li.cil.oc2.common.item.Items;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.DyeableLeatherItem;
+import net.minecraft.core.component.DataComponents;
+import li.cil.oc2.common.item.ColoredItem;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -68,7 +70,7 @@ public final class CustomItemColors {
 
     public static int getColor(final ItemStack stack) {
         final Item item = stack.getItem();
-        if (item instanceof final DyeableLeatherItem coloredItem) {
+        if (item instanceof final ColoredItem coloredItem) {
             return coloredItem.getColor(stack);
         }
         return GREY;
@@ -80,8 +82,8 @@ public final class CustomItemColors {
 
     public static ItemStack withColor(final ItemStack stack, final int color) {
         final Item item = stack.getItem();
-        if (item instanceof final DyeableLeatherItem coloredItem) {
-            coloredItem.setColor(stack, color);
+        if (item instanceof ColoredItem) {
+            stack.set(DataComponents.DYED_COLOR, new DyedItemColor(color, true));
         }
         return stack;
     }

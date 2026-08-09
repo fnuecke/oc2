@@ -2,13 +2,13 @@
 
 package li.cil.oc2.common.network.message;
 
+import net.minecraft.network.chat.MutableComponent;
 import li.cil.oc2.client.gui.FileChooserScreen;
 import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.network.Network;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.network.NetworkEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,7 +21,7 @@ import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class RequestImportedFileMessage extends AbstractMessage {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final TranslatableComponent FILE_TOO_LARGE_TEXT = text("message.{mod}.import_file.file_too_large");
+    private static final MutableComponent FILE_TOO_LARGE_TEXT = text("message.{mod}.import_file.file_too_large");
 
     ///////////////////////////////////////////////////////////////////
 

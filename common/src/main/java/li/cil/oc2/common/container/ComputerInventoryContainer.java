@@ -9,7 +9,6 @@ import li.cil.oc2.common.vm.VMItemStackHandlers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,7 +23,7 @@ public final class ComputerInventoryContainer extends AbstractComputerContainer 
         NetworkHooks.openGui(player, new MenuProvider() {
             @Override
             public Component getDisplayName() {
-                return new TranslatableComponent(computer.getBlockState().getBlock().getDescriptionId());
+                return Component.translatable(computer.getBlockState().getBlock().getDescriptionId());
             }
 
             @Override

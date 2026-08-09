@@ -2,6 +2,7 @@
 
 package li.cil.oc2.client.gui;
 
+import net.minecraft.network.chat.MutableComponent;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -24,7 +25,6 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -159,7 +159,7 @@ public final class NetworkInterfaceCardScreen extends Screen {
 
         if (focusedSide != null) {
             final Component enabledComponent = getConfiguration(focusedSide) ? CONNECTIVITY_ENABLED_TEXT : CONNECTIVITY_DISABLED_TEXT;
-            final TranslatableComponent tooltip = new TranslatableComponent(SIDE_STATE_TEXT, enabledComponent);
+            final MutableComponent tooltip = Component.translatable(SIDE_STATE_TEXT, enabledComponent);
             renderTooltip(stack, tooltip, mouseX, mouseY);
         }
 

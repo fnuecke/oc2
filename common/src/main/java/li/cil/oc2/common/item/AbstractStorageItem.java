@@ -7,7 +7,6 @@ import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.TextFormatUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.item.ItemStack;
 
 public abstract class AbstractStorageItem extends ModItem {
@@ -51,7 +50,7 @@ public abstract class AbstractStorageItem extends ModItem {
     @Override
     public Component getName(final ItemStack stack) {
         final int capacity = getCapacity(stack);
-        return new TextComponent("")
+        return Component.literal("")
             .append(super.getName(stack))
             .append(" (")
             .append(TextFormatUtils.formatSize(capacity))

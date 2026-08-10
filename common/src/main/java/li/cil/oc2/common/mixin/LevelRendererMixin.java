@@ -4,9 +4,9 @@ package li.cil.oc2.common.mixin;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
 import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -72,16 +72,16 @@ public abstract class LevelRendererMixin {
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiling/ProfilerFiller;popPush(Ljava/lang/String;)V", args = {"ldc=destroyProgress"}), cancellable = true)
     private void captureDepthAndEarlyExit(
-        final PoseStack stack,
-        final float partialTicks,
-        final long startNanos,
+        final DeltaTracker deltaTracker,
         final boolean shouldRenderBlockOutline,
         final Camera camera,
         final GameRenderer gameRenderer,
         final LightTexture lightTexture,
+        final Matrix4f frustumMatrix,
         final Matrix4f projectionMatrix,
         final CallbackInfo ci
     ) {
+        final float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(false);
         if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {
             // If we're rendering depth, we can skip most of the rest here: we don't need destruction progress,
             // transparency, hit result, debug stuff, clouds.

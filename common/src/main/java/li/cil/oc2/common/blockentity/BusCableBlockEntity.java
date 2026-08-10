@@ -179,7 +179,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
             // we can just do this.
             setInterfaceName(side, "");
 
-            invalidateCapabilities();
+            Capabilities.invalidate(this);
 
             final NeighborTracker tracker = neighborTrackers[side.get3DDataValue()];
             tracker.updateListener();

@@ -98,10 +98,6 @@ public abstract class ModBlockEntity extends BlockEntity {
 
     ///////////////////////////////////////////////////////////////////
 
-    protected void invalidateCapabilities() {
-        Capabilities.invalidate(this);
-    }
-
     protected void onUnload(final boolean isRemove) {
         if (level != null && !level.isClientSide()) {
             unloadServer(isRemove);

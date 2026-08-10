@@ -9,15 +9,11 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraftforge.event.world.ChunkEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class ChunkUtils {
     /**
      * All chunks marked for lazy saving. The lazy unsaved state will be applied when
@@ -120,9 +116,7 @@ public final class ChunkUtils {
         UNSAVED_CHUNKS.clear();
     }
 
-    @SubscribeEvent
-    public static void handleChunkUnload(final ChunkEvent.Unload event) {
-        final ChunkAccess chunk = event.getChunk();
+    public static void onChunkUnload(final ChunkAccess chunk) {
         if (UNSAVED_CHUNKS.remove(chunk)) {
             chunk.setUnsaved(true);
         }

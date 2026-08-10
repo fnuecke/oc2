@@ -4,12 +4,8 @@ package li.cil.oc2.common.util;
 
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.server.ServerStoppedEvent;
-import net.minecraftforge.event.world.ChunkEvent;
-import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import dev.architectury.event.events.common.LifecycleEvent;
+import dev.architectury.event.events.common.TickEvent;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -22,10 +18,6 @@ public final class ServerScheduler {
     private static final WeakHashMap<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> chunkUnloadSchedulers = new WeakHashMap<>();
 
     ///////////////////////////////////////////////////////////////////
-
-    public static void initialize() {
-        MinecraftForge.EVENT_BUS.register(EventHandler.class);
-    }
 
     public static void schedule(final Runnable runnable) {
         schedule(runnable, 0);
@@ -115,20 +107,16 @@ public final class ServerScheduler {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static final class EventHandler {
-        @SubscribeEvent
-        public static void handleServerStoppedEvent(final ServerStoppedEvent event) {
+    public static void initialize() {
+        LifecycleEvent.SERVER_STOPPED.register(server -> {
             globalTickScheduler.clear();
             levelTickSchedulers.clear();
             levelUnloadSchedulers.clear();
             chunkLoadSchedulers.clear();
             chunkUnloadSchedulers.clear();
-        }
+        });
 
-        @SubscribeEvent
-        public static void handleLevelUnload(final WorldEvent.Unload event) {
-            final LevelAccessor level = event.getWorld();
-
+        LifecycleEvent.SERVER_LEVEL_UNLOAD.register(level -> {
             levelTickSchedulers.remove(level);
             chunkLoadSchedulers.remove(level);
             chunkUnloadSchedulers.remove(level);
@@ -137,57 +125,44 @@ public final class ServerScheduler {
             if (scheduler != null) {
                 scheduler.run();
             }
-        }
+        });
 
-        @SubscribeEvent
-        public static void handleChunkLoad(final ChunkEvent.Load event) {
-            final HashMap<ChunkPos, ListenerCollection> chunkMap = chunkLoadSchedulers.get(event.getWorld());
-            if (chunkMap == null) {
-                return;
+        TickEvent.SERVER_PRE.register(server -> {
+            globalTickScheduler.tick();
+
+            for (final TickScheduler scheduler : levelTickSchedulers.values()) {
+                scheduler.tick();
             }
+        });
 
-            final ListenerCollection listeners = chunkMap.get(event.getChunk().getPos());
-            if (listeners != null) {
-                listeners.run();
-            }
-        }
-
-        @SubscribeEvent
-        public static void handleChunkUnload(final ChunkEvent.Unload event) {
-            final HashMap<ChunkPos, ListenerCollection> chunkMap = chunkUnloadSchedulers.get(event.getWorld());
-            if (chunkMap == null) {
-                return;
-            }
-
-            final ListenerCollection listeners = chunkMap.get(event.getChunk().getPos());
-            if (listeners != null) {
-                listeners.run();
-            }
-        }
-
-        @SubscribeEvent
-        public static void handleServerTick(final TickEvent.ServerTickEvent event) {
-            if (event.phase == TickEvent.Phase.START) {
-                globalTickScheduler.tick();
-
-                for (final TickScheduler scheduler : levelTickSchedulers.values()) {
-                    scheduler.tick();
-                }
-            }
-        }
-
-        @SubscribeEvent
-        public static void handleLevelTick(final TickEvent.WorldTickEvent event) {
-            if (event.phase != TickEvent.Phase.START) {
-                return;
-            }
-
+        TickEvent.SERVER_LEVEL_PRE.register(level -> {
             globalTickScheduler.processQueue();
 
-            final TickScheduler scheduler = levelTickSchedulers.get(event.world);
+            final TickScheduler scheduler = levelTickSchedulers.get(level);
             if (scheduler != null) {
                 scheduler.processQueue();
             }
+        });
+    }
+
+    public static void onChunkLoad(final LevelAccessor level, final ChunkPos chunkPos) {
+        runChunkListeners(chunkLoadSchedulers, level, chunkPos);
+    }
+
+    public static void onChunkUnload(final LevelAccessor level, final ChunkPos chunkPos) {
+        runChunkListeners(chunkUnloadSchedulers, level, chunkPos);
+    }
+
+    private static void runChunkListeners(final Map<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> schedulers,
+                                          final LevelAccessor level, final ChunkPos chunkPos) {
+        final HashMap<ChunkPos, ListenerCollection> chunkMap = schedulers.get(level);
+        if (chunkMap == null) {
+            return;
+        }
+
+        final ListenerCollection listeners = chunkMap.get(chunkPos);
+        if (listeners != null) {
+            listeners.run();
         }
     }
 

@@ -2,13 +2,11 @@
 
 package li.cil.oc2.common.serialization;
 
+import dev.architectury.event.events.common.LifecycleEvent;
+
 import li.cil.oc2.api.API;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
-import net.minecraftforge.event.server.ServerAboutToStartEvent;
-import net.minecraftforge.event.server.ServerStoppedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,7 +24,6 @@ import java.util.concurrent.CompletableFuture;
 /**
  * This class facilitates storing binary chunks of data in an efficient, parallelized fashion.
  */
-@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class BlobStorage {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -154,13 +151,16 @@ public final class BlobStorage {
 
     ///////////////////////////////////////////////////////////////////
 
-    @SubscribeEvent
-    public static void handleServerAboutToStart(final ServerAboutToStartEvent event) {
+    public static void initialize() {
+        LifecycleEvent.SERVER_BEFORE_START.register(server -> handleServerAboutToStart());
+        LifecycleEvent.SERVER_STOPPED.register(server -> handleServerStopped());
+    }
+
+    private static void handleServerAboutToStart() {
         BlobStorage.setServer(event.getServer());
     }
 
-    @SubscribeEvent
-    public static void handleServerStopped(final ServerStoppedEvent event) {
+    private static void handleServerStopped() {
         BlobStorage.close();
     }
 }

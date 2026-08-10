@@ -2,6 +2,10 @@
 
 package li.cil.oc2.common.bus.device.data;
 
+import dev.architectury.event.events.common.LifecycleEvent;
+import dev.architectury.registry.ReloadListenerRegistry;
+import net.minecraft.server.packs.PackType;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -16,10 +20,6 @@ import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.event.server.ServerStoppedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,7 +31,6 @@ import java.util.concurrent.Executor;
 
 import static li.cil.oc2.common.util.TextFormatUtils.formatSize;
 
-@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class FileSystems {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final LayeredFileSystem LAYERED_FILE_SYSTEM = new LayeredFileSystem();
@@ -62,13 +61,13 @@ public final class FileSystems {
 
     ///////////////////////////////////////////////////////////////////
 
-    @SubscribeEvent
-    public static void handleAddReloadListenerEvent(final AddReloadListenerEvent event) {
-        event.addListener(ReloadListener.INSTANCE);
+    public static void initialize() {
+        ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
+            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "file_systems"));
+        LifecycleEvent.SERVER_STOPPED.register(server -> handleServerStopped());
     }
 
-    @SubscribeEvent
-    public static void handleServerStopped(final ServerStoppedEvent event) {
+    private static void handleServerStopped() {
         reset();
     }
 

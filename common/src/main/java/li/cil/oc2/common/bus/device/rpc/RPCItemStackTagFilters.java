@@ -2,6 +2,9 @@
 
 package li.cil.oc2.common.bus.device.rpc;
 
+import dev.architectury.registry.ReloadListenerRegistry;
+import net.minecraft.server.packs.PackType;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -12,16 +15,12 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Map;
 
-@Mod.EventBusSubscriber(modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class RPCItemStackTagFilters {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final ArrayList<RPCItemStackTagFilter> FILTERS = new ArrayList<>();
@@ -42,9 +41,9 @@ public final class RPCItemStackTagFilters {
 
     ///////////////////////////////////////////////////////////////////
 
-    @SubscribeEvent
-    public static void handleAddReloadListenerEvent(final AddReloadListenerEvent event) {
-        event.addListener(ReloadListener.INSTANCE);
+    public static void initialize() {
+        ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
+            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "item_stack_tag_filters"));
     }
 
     ///////////////////////////////////////////////////////////////////

@@ -18,6 +18,12 @@ import li.cil.oc2.common.item.crafting.RecipeSerializers;
 import li.cil.oc2.common.serialization.ceres.Serializers;
 import li.cil.oc2.common.tags.BlockTags;
 import li.cil.oc2.common.tags.ItemTags;
+import li.cil.oc2.common.util.ServerScheduler;
+import li.cil.oc2.common.vm.Allocator;
+import li.cil.oc2.common.serialization.BlobStorage;
+import li.cil.oc2.common.network.ProjectorLoadBalancer;
+import li.cil.oc2.common.bus.device.data.FileSystems;
+import li.cil.oc2.common.bus.device.rpc.RPCItemStackTagFilters;
 import li.cil.oc2.common.util.RegistryUtils;
 import li.cil.oc2.common.util.SoundEvents;
 import li.cil.oc2.common.vm.provider.DeviceTreeProviders;
@@ -57,6 +63,13 @@ public final class Main {
         RegistryUtils.finish();
 
         ItemRenameHandler.initialize();
+
+        ServerScheduler.initialize();
+        Allocator.initialize();
+        BlobStorage.initialize();
+        ProjectorLoadBalancer.initialize();
+        FileSystems.initialize();
+        RPCItemStackTagFilters.initialize();
     }
 
     private Main() {

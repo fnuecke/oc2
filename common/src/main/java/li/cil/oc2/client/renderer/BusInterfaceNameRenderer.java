@@ -2,6 +2,7 @@
 
 package li.cil.oc2.client.renderer;
 
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import org.joml.Matrix4f;
@@ -79,7 +80,7 @@ public enum BusInterfaceNameRenderer {
         final Matrix4f matrix = stack.last().pose();
 
         final Font font = Minecraft.getInstance().font;
-        final MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
+        final MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(new ByteBufferBuilder(256));
 
         final float horizontalTextOffset = -font.width(name) * 0.5f;
         final float backgroundOpacity = Minecraft.getInstance().options.getBackgroundOpacity(0.25F);

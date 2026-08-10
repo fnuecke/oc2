@@ -2,7 +2,7 @@
 
 package li.cil.oc2.client.neoforge;
 
-import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import com.mojang.blaze3d.pipeline.RenderTarget;
 
 public final class ClientPlatformImpl {
     private static boolean isHotbarVisible = true;
@@ -13,6 +13,14 @@ public final class ClientPlatformImpl {
 
     public static boolean isHotbarVisible() {
         return isHotbarVisible;
+    }
+
+    public static boolean isStencilEnabled(final RenderTarget target) {
+        return target.isStencilEnabled();
+    }
+
+    public static void enableStencil(final RenderTarget target) {
+        target.enableStencil();
     }
 
     private ClientPlatformImpl() {

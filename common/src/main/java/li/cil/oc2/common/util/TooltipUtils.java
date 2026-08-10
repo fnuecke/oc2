@@ -11,7 +11,9 @@ import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.EnergyConsumingBlock;
+import li.cil.oc2.common.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.device.util.Devices;
+import li.cil.oc2.common.energy.EnergyStorage;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.tags.ItemTags;
 import net.minecraft.ChatFormatting;
@@ -20,6 +22,7 @@ import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.locale.Language;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.*;
@@ -28,9 +31,11 @@ import net.minecraft.world.item.ItemStack;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.stream.StreamSupport;
 import java.util.List;
 
 import static li.cil.oc2.common.Constants.*;
+import static java.util.Objects.requireNonNull;
 import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
 
 public final class TooltipUtils {
@@ -62,15 +67,12 @@ public final class TooltipUtils {
         final int targetWidth = Math.min(availableWidth, widthHint);
         final Font font = minecraft.font;
 
+        final StringSplitter splitter = font.getSplitter();
         final boolean needsWrapping = tooltip.stream().anyMatch(line -> font.width(line) > targetWidth);
-        if (!needsWrapping) {
-            graphics.renderComponentTooltip(font, tooltip, x, y, itemStack);
-        } else {
-            final StringSplitter splitter = font.getSplitter();
-            final List<? extends FormattedText> wrappedTooltip = tooltip.stream().flatMap(line ->
-                splitter.splitLines(line, targetWidth, Style.EMPTY).stream()).toList();
-            graphics.renderComponentTooltip(font, wrappedTooltip, x, y, itemStack);
-        }
+        final List<? extends FormattedText> lines = needsWrapping
+            ? tooltip.stream().flatMap(line -> splitter.splitLines(line, targetWidth, Style.EMPTY).stream()).toList()
+            : tooltip;
+        graphics.renderTooltip(font, lines.stream().map(Language.getInstance()::getVisualOrder).toList(), x, y);
     }
 
     public static void tryAddDescription(final ItemStack stack, final List<Component> tooltip) {
@@ -143,14 +145,13 @@ public final class TooltipUtils {
     }
 
     public static void addEntityEnergyInformation(final ItemStack stack, final List<Component> tooltip) {
-        stack.getCapability(Capabilities.ENERGY_STORAGE).ifPresent(energy -> {
-            if (energy.getEnergyStored() == 0) {
-                return;
-            }
+        final EnergyStorage energy = Capabilities.get(stack, Capabilities.ENERGY_STORAGE);
+        if (energy == null || energy.getEnergyStored() == 0) {
+            return;
+        }
 
-            final MutableComponent value = withFormat(energy.getEnergyStored() + "/" + energy.getMaxEnergyStored(), ChatFormatting.GREEN);
-            tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_ENERGY, value), ChatFormatting.GRAY));
-        });
+        final MutableComponent value = withFormat(energy.getEnergyStored() + "/" + energy.getMaxEnergyStored(), ChatFormatting.GREEN);
+        tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_ENERGY, value), ChatFormatting.GRAY));
     }
 
     public static void addEnergyConsumption(final double value, final List<Component> tooltip) {
@@ -162,25 +163,25 @@ public final class TooltipUtils {
     ///////////////////////////////////////////////////////////////////
 
     private static String[] getDeviceTypeNames() {
-        final ForgeRegistry<DeviceType> registry = RegistryManager.ACTIVE.getRegistry(DeviceType.REGISTRY);
-        if (registry != null) {
-            return registry.getValues().stream().map(RegistryUtils::key).toArray(String[]::new);
-        } else {
-            return new String[0];
-        }
+        return StreamSupport.stream(DeviceTypes.DEVICE_TYPE_REGISTRY.spliterator(), false)
+            .map(DeviceTypes::key)
+            .toArray(String[]::new);
     }
 
     private static void collectItemStacks(final CompoundTag tag, final List<ItemStack> stacks, final IntList stackSizes) {
+        final HolderLookup.Provider registries = requireNonNull(Minecraft.getInstance().level).registryAccess();
         final ListTag itemsTag = tag.getList("Items", NBTTagIds.TAG_COMPOUND);
         for (int i = 0; i < itemsTag.size(); i++) {
             final CompoundTag itemTag = itemsTag.getCompound(i);
-            final ItemStack itemStack = ItemStack.of(itemTag);
+            final ItemStack itemStack = ItemStack.parse(registries, itemTag).orElse(ItemStack.EMPTY);
+            if (itemStack.isEmpty()) {
+                continue;
+            }
 
             boolean didMerge = false;
             for (int j = 0; j < stacks.size(); j++) {
                 final ItemStack existingStack = stacks.get(j);
-                if (ItemStack.matches(existingStack, itemStack) &&
-                    ItemStack.matches(existingStack, itemStack)) {
+                if (ItemStack.isSameItemSameComponents(existingStack, itemStack)) {
                     final int existingCount = stackSizes.getInt(j);
                     stackSizes.set(j, existingCount + itemStack.getCount());
                     didMerge = true;

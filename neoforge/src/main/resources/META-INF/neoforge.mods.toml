@@ -43,6 +43,9 @@ side = "CLIENT"
 [[mixins]]
 config = "oc2.mixins.json"
 
+[[mixins]]
+config = "oc2.neoforge.mixins.json"
+
 [mc-publish]
 curseforge = 437654
 dependencies = [

@@ -25,9 +25,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -357,17 +357,29 @@ public final class BusCableBlock extends BaseEntityBlock {
         return shapes[getShapeIndex(state)];
     }
 
-    @Override
-    public ItemStack getCloneItemStack(final LevelReader level, final BlockPos pos, final BlockState state) {
-        final BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof final BusCableBlockEntity busCable) {
-            final ItemStack facadeItem = busCable.getFacade();
-            if (!facadeItem.isEmpty()) {
-                return facadeItem;
-            }
+    public static ItemStack getPickedStack(final BlockGetter level, final BlockPos pos, final Player player) {
+        if (!(level.getBlockEntity(pos) instanceof final BusCableBlockEntity busCable)) {
+            return ItemStack.EMPTY;
         }
 
-        return super.getCloneItemStack(level, pos, state);
+        final ItemStack facadeItem = busCable.getFacade();
+        if (!facadeItem.isEmpty()) {
+            return facadeItem.copy();
+        }
+
+        final Vec3 from = player.getEyePosition();
+        final Vec3 to = from.add(player.getViewVector(1).scale(player.blockInteractionRange() + 1));
+        final BlockHitResult hit = level.clip(new ClipContext(from, to, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
+        if (hit.getType() != HitResult.Type.BLOCK || !hit.getBlockPos().equals(pos)) {
+            return ItemStack.EMPTY;
+        }
+
+        final BlockState state = level.getBlockState(pos);
+        if (getConnectionType(state, getHitSide(pos, hit)) == ConnectionType.INTERFACE) {
+            return new ItemStack(Items.BUS_INTERFACE.get());
+        }
+
+        return ItemStack.EMPTY;
     }
 
     ///////////////////////////////////////////////////////////////////

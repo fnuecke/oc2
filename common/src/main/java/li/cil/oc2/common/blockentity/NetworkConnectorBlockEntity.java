@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -51,6 +52,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
 
     private static final String CONNECTIONS_TAG_NAME = "connections";
     private static final String IS_OWNER_TAG_NAME = "is_owner";
+    private static final String POSITION_TAG_NAME = "position";
 
     private static final int RETRY_UNLOADED_CHUNK_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(5));
     private static final int MAX_CONNECTION_COUNT = 2;
@@ -208,7 +210,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
 
         final ListTag connections = new ListTag();
         for (final BlockPos position : connectorPositions) {
-            final CompoundTag connectionTag = NbtUtils.writeBlockPos(position);
+            final CompoundTag connectionTag = new CompoundTag();
+            connectionTag.put(POSITION_TAG_NAME, NbtUtils.writeBlockPos(position));
             connections.add(connectionTag);
         }
         tag.put(CONNECTIONS_TAG_NAME, connections);
@@ -223,7 +226,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
 
         final ListTag connections = new ListTag();
         for (final BlockPos position : connectorPositions) {
-            final CompoundTag connectionTag = NbtUtils.writeBlockPos(position);
+            final CompoundTag connectionTag = new CompoundTag();
+            connectionTag.put(POSITION_TAG_NAME, NbtUtils.writeBlockPos(position));
             if (ownedCables.contains(position)) {
                 connectionTag.putBoolean(IS_OWNER_TAG_NAME, true);
             }
@@ -239,7 +243,11 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         final ListTag connections = tag.getList(CONNECTIONS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
         for (int i = 0; i < Math.min(connections.size(), MAX_CONNECTION_COUNT); i++) {
             final CompoundTag connectionTag = connections.getCompound(i);
-            final BlockPos position = NbtUtils.readBlockPos(connectionTag);
+            final BlockPos position = NbtUtils.readBlockPos(connectionTag, POSITION_TAG_NAME).orElse(null);
+            if (position == null) {
+                continue;
+            }
+
             connectorPositions.add(position);
             dirtyConnectors.add(position);
             if (connectionTag.getBoolean(IS_OWNER_TAG_NAME)) {
@@ -248,16 +256,14 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         }
     }
 
-    @Override
-    public AABB getRenderBoundingBox() {
-        if (Minecraft.useShaderTransparency()) {
-            return new AABB(
-                getBlockPos().offset(-MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE, -MAX_CONNECTION_DISTANCE),
-                getBlockPos().offset(1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE, 1 + MAX_CONNECTION_DISTANCE)
-            );
-        } else {
-            return super.getRenderBoundingBox();
+    @Nullable
+    @Environment(EnvType.CLIENT)
+    public AABB getExpandedRenderBoundingBox() {
+        if (!Minecraft.useShaderTransparency()) {
+            return null;
         }
+
+        return new AABB(getBlockPos()).inflate(MAX_CONNECTION_DISTANCE);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -380,14 +386,14 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
             vb.subtract(ab),
             ClipContext.Block.COLLIDER,
             ClipContext.Fluid.NONE,
-            null
+            (Entity) null
         ));
         final BlockHitResult hitBA = level.clip(new ClipContext(
             vb.subtract(ab),
             va.add(ab),
             ClipContext.Block.COLLIDER,
             ClipContext.Fluid.NONE,
-            null
+            (Entity) null
         ));
 
         return hitAB.getType() != HitResult.Type.MISS ||

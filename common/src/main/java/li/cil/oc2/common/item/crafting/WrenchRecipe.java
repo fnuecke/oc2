@@ -2,30 +2,33 @@
 
 package li.cil.oc2.common.item.crafting;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.integration.Wrenches;
 import net.minecraft.core.NonNullList;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Function;
 
 public final class WrenchRecipe extends ShapelessRecipe {
     public WrenchRecipe(final ShapelessRecipe recipe) {
-        super(recipe.getId(), recipe.getGroup(), recipe.getResultItem(), recipe.getIngredients());
+        super(recipe.getGroup(), recipe.category(), recipe.result, recipe.getIngredients());
     }
 
-    @Override
-    public NonNullList<ItemStack> getRemainingItems(final CraftingContainer inventory) {
-        final NonNullList<ItemStack> result = NonNullList.withSize(inventory.getContainerSize(), ItemStack.EMPTY);
+    ///////////////////////////////////////////////////////////////////
 
-        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-            final ItemStack stack = inventory.getItem(slot);
-            if (stack.hasContainerItem()) {
-                result.set(slot, stack.getContainerItem());
+    @Override
+    public NonNullList<ItemStack> getRemainingItems(final CraftingInput input) {
+        final NonNullList<ItemStack> result = NonNullList.withSize(input.size(), ItemStack.EMPTY);
+
+        for (int slot = 0; slot < input.size(); slot++) {
+            final ItemStack stack = input.getItem(slot);
+            if (stack.getItem().hasCraftingRemainingItem()) {
+                result.set(slot, new ItemStack(stack.getItem().getCraftingRemainingItem()));
             } else if (Wrenches.isWrench(stack)) {
                 final ItemStack copy = stack.copy();
                 copy.setCount(1);
@@ -41,28 +44,24 @@ public final class WrenchRecipe extends ShapelessRecipe {
         return Serializer.INSTANCE;
     }
 
+    ///////////////////////////////////////////////////////////////////
+
     public static final class Serializer implements RecipeSerializer<WrenchRecipe> {
         public static final Serializer INSTANCE = new Serializer();
 
-        @Override
-        public WrenchRecipe fromJson(final ResourceLocation location, final JsonObject json) {
-            return new WrenchRecipe(SHAPELESS_RECIPE.fromJson(location, json));
-        }
+        private static final MapCodec<WrenchRecipe> CODEC = RecipeSerializer.SHAPELESS_RECIPE.codec()
+            .xmap(WrenchRecipe::new, Function.identity());
+        private static final StreamCodec<RegistryFriendlyByteBuf, WrenchRecipe> STREAM_CODEC = RecipeSerializer.SHAPELESS_RECIPE.streamCodec()
+            .map(WrenchRecipe::new, Function.identity());
 
-        @Nullable
         @Override
-        public WrenchRecipe fromNetwork(final ResourceLocation location, final FriendlyByteBuf buffer) {
-            final ShapelessRecipe recipe = SHAPELESS_RECIPE.fromNetwork(location, buffer);
-            if (recipe == null) {
-                return null;
-            }
-
-            return new WrenchRecipe(recipe);
+        public MapCodec<WrenchRecipe> codec() {
+            return CODEC;
         }
 
         @Override
-        public void toNetwork(final FriendlyByteBuf buffer, final WrenchRecipe recipe) {
-            SHAPELESS_RECIPE.toNetwork(buffer, recipe);
+        public StreamCodec<RegistryFriendlyByteBuf, WrenchRecipe> streamCodec() {
+            return STREAM_CODEC;
         }
     }
 }

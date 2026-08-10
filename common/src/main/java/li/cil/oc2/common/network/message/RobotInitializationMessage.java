@@ -13,11 +13,14 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 
+import javax.annotation.Nullable;
+import java.util.Optional;
+
 public final class RobotInitializationMessage extends AbstractMessage {
     private int entityId;
     private CommonDeviceBusController.BusState busState;
     private VMRunState runState;
-    private Component bootError;
+    @Nullable private Component bootError;
     private CompoundTag terminal;
 
     ///////////////////////////////////////////////////////////////////
@@ -41,7 +44,7 @@ public final class RobotInitializationMessage extends AbstractMessage {
         entityId = buffer.readVarInt();
         busState = buffer.readEnum(CommonDeviceBusController.BusState.class);
         runState = buffer.readEnum(VMRunState.class);
-        bootError = ComponentSerialization.STREAM_CODEC.decode(buffer);
+        bootError = ComponentSerialization.OPTIONAL_STREAM_CODEC.decode(buffer).orElse(null);
         terminal = buffer.readNbt();
     }
 
@@ -50,7 +53,7 @@ public final class RobotInitializationMessage extends AbstractMessage {
         buffer.writeVarInt(entityId);
         buffer.writeEnum(busState);
         buffer.writeEnum(runState);
-        ComponentSerialization.STREAM_CODEC.encode(buffer, bootError);
+        ComponentSerialization.OPTIONAL_STREAM_CODEC.encode(buffer, Optional.ofNullable(bootError));
         buffer.writeNbt(terminal);
     }
 

@@ -10,10 +10,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public final class RobotBootErrorMessage extends AbstractMessage {
     private int entityId;
-    private Component value;
+    @Nullable private Component value;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -31,13 +32,13 @@ public final class RobotBootErrorMessage extends AbstractMessage {
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         entityId = buffer.readVarInt();
-        value = ComponentSerialization.STREAM_CODEC.decode(buffer);
+        value = ComponentSerialization.OPTIONAL_STREAM_CODEC.decode(buffer).orElse(null);
     }
 
     @Override
     public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeVarInt(entityId);
-        ComponentSerialization.STREAM_CODEC.encode(buffer, value);
+        ComponentSerialization.OPTIONAL_STREAM_CODEC.encode(buffer, Optional.ofNullable(value));
     }
 
     ///////////////////////////////////////////////////////////////////

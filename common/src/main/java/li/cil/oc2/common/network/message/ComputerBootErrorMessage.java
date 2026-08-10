@@ -11,10 +11,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public final class ComputerBootErrorMessage extends AbstractMessage {
     private BlockPos pos;
-    private Component value;
+    @Nullable private Component value;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -32,13 +33,13 @@ public final class ComputerBootErrorMessage extends AbstractMessage {
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
-        value = ComponentSerialization.STREAM_CODEC.decode(buffer);
+        value = ComponentSerialization.OPTIONAL_STREAM_CODEC.decode(buffer).orElse(null);
     }
 
     @Override
     public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
-        ComponentSerialization.STREAM_CODEC.encode(buffer, value);
+        ComponentSerialization.OPTIONAL_STREAM_CODEC.encode(buffer, Optional.ofNullable(value));
     }
 
     ///////////////////////////////////////////////////////////////////

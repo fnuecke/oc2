@@ -2,7 +2,7 @@ package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import net.minecraftforge.common.util.LazyOptional;
+import li.cil.oc2.api.util.Invalidatable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -63,11 +63,11 @@ public class CommonDeviceBusControllerTests {
         final DeviceBusElement busElement1 = mock(DeviceBusElement.class);
         final DeviceBusElement busElement2 = mock(DeviceBusElement.class);
 
-        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busElement1))));
-        when(busElement1.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busControllerBusElement))));
+        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement1))));
+        when(busElement1.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busControllerBusElement))));
 
-        when(busElement1.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busElement2))));
-        when(busElement2.getNeighbors()).thenReturn(Optional.of(Collections.singleton(LazyOptional.of(() -> busElement1))));
+        when(busElement1.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement2))));
+        when(busElement2.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement1))));
 
         busController.scan();
         assertEquals(CommonDeviceBusController.BusState.READY, busController.getState());

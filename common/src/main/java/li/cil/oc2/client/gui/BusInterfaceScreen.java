@@ -2,18 +2,18 @@
 
 package li.cil.oc2.client.gui;
 
-import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.GuiGraphics;
 import li.cil.oc2.client.gui.widget.ImageButton;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.BusInterfaceNameMessage;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 
@@ -86,11 +86,6 @@ public final class BusInterfaceScreen extends Screen {
                 onClose();
             }
         }).withTooltip(Component.translatable(Constants.TOOLTIP_CANCEL));
-    }
-
-    @Override
-    public void onClose() {
-        super.onClose();
     }
 
     @Override

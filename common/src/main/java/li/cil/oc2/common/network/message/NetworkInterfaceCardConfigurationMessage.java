@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.network.message;
 
+import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.NetworkInterfaceCardItem;
 import net.minecraft.core.Direction;
@@ -9,7 +10,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import dev.architectury.networking.NetworkManager;
 
 public final class NetworkInterfaceCardConfigurationMessage extends AbstractMessage {
     private InteractionHand hand;

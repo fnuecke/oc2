@@ -16,16 +16,15 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.neoforged.neoforge.client.MinecraftForgeClient;
-import net.neoforged.neoforge.client.model.data.IDynamicBakedModel;
-import net.neoforged.neoforge.client.model.data.IModelData;
-import net.neoforged.neoforge.client.model.data.ModelDataMap;
+import net.neoforged.neoforge.client.model.IDynamicBakedModel;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
 
 import javax.annotation.Nonnull;
@@ -33,7 +32,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 public record BusCableBakedModel(
     BakedModel proxy,
@@ -47,13 +45,11 @@ public record BusCableBakedModel(
 
     @Override
     @Nonnull
-    public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, final Random rand, final IModelData extraData) {
-        final RenderType layer = MinecraftForgeClient.getRenderType();
-
-        if (extraData.hasProperty(BUS_CABLE_FACADE_PROPERTY)) {
-            final BusCableFacade facade = extraData.getData(BUS_CABLE_FACADE_PROPERTY);
-            if (facade != null && (layer == null || ItemBlockRenderTypes.canRenderInLayer(facade.blockState, layer))) {
-                return facade.model.getQuads(facade.blockState, side, rand, facade.data);
+    public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, final RandomSource rand, final ModelData extraData, @Nullable final RenderType layer) {
+        if (extraData.has(BUS_CABLE_FACADE_PROPERTY)) {
+            final BusCableFacade facade = extraData.get(BUS_CABLE_FACADE_PROPERTY);
+            if (facade != null && (layer == null || ItemBlockRenderTypes.getRenderLayers(facade.blockState).contains(layer))) {
+                return facade.model.getQuads(facade.blockState, side, rand, facade.data, layer);
             } else {
                 return Collections.emptyList();
             }
@@ -66,15 +62,15 @@ public record BusCableBakedModel(
         for (int i = 0; i < Constants.AXES.length; i++) {
             final Direction.Axis axis = Constants.AXES[i];
             if (isStraightAlongAxis(state, axis)) {
-                return straightModelByAxis[i].getQuads(state, side, rand, extraData);
+                return straightModelByAxis[i].getQuads(state, side, rand, extraData, layer);
             }
         }
 
-        final ArrayList<BakedQuad> quads = new ArrayList<>(proxy.getQuads(state, side, rand, extraData));
+        final ArrayList<BakedQuad> quads = new ArrayList<>(proxy.getQuads(state, side, rand, extraData, layer));
 
-        final BusCableSupportSide supportSide = extraData.getData(BUS_CABLE_SUPPORT_PROPERTY);
+        final BusCableSupportSide supportSide = extraData.get(BUS_CABLE_SUPPORT_PROPERTY);
         if (supportSide != null) {
-            quads.addAll(supportModelByFace[supportSide.value.get3DDataValue()].getQuads(state, side, rand, extraData));
+            quads.addAll(supportModelByFace[supportSide.value.get3DDataValue()].getQuads(state, side, rand, extraData, layer));
         }
 
         return quads;
@@ -113,7 +109,7 @@ public record BusCableBakedModel(
 
     @Override
     @Nonnull
-    public IModelData getModelData(final BlockAndTintGetter level, final BlockPos pos, final BlockState state, final IModelData blockEntityData) {
+    public ModelData getModelData(final BlockAndTintGetter level, final BlockPos pos, final BlockState state, final ModelData blockEntityData) {
         if (state.hasProperty(BusCableBlock.HAS_FACADE) && state.getValue(BusCableBlock.HAS_FACADE)) {
             final BlockEntity blockEntity = level.getBlockEntity(pos);
 
@@ -128,11 +124,9 @@ public record BusCableBakedModel(
 
             final BlockModelShaper shapes = Minecraft.getInstance().getBlockRenderer().getBlockModelShaper();
             final BakedModel model = shapes.getBlockModel(facadeState);
-            final IModelData data = model.getModelData(level, pos, facadeState, blockEntityData);
+            final ModelData data = model.getModelData(level, pos, facadeState, blockEntityData);
 
-            return new ModelDataMap.Builder()
-                .withInitial(BUS_CABLE_FACADE_PROPERTY, new BusCableFacade(facadeState, model, data))
-                .build();
+            return ModelData.of(BUS_CABLE_FACADE_PROPERTY, new BusCableFacade(facadeState, model, data));
         }
 
         Direction supportSide = null;
@@ -150,9 +144,7 @@ public record BusCableBakedModel(
         }
 
         if (supportSide != null) {
-            return new ModelDataMap.Builder()
-                .withInitial(BUS_CABLE_SUPPORT_PROPERTY, new BusCableSupportSide(supportSide))
-                .build();
+            return ModelData.of(BUS_CABLE_SUPPORT_PROPERTY, new BusCableSupportSide(supportSide));
         }
 
         return blockEntityData;
@@ -186,5 +178,5 @@ public record BusCableBakedModel(
 
     private record BusCableSupportSide(Direction value) { }
 
-    private record BusCableFacade(BlockState blockState, BakedModel model, IModelData data) { }
+    private record BusCableFacade(BlockState blockState, BakedModel model, ModelData data) { }
 }

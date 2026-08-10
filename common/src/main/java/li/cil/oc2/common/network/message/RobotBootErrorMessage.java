@@ -2,12 +2,12 @@
 
 package li.cil.oc2.common.network.message;
 
+import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
-import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import dev.architectury.networking.NetworkManager;
+import net.minecraft.network.chat.ComponentSerialization;
 
 import javax.annotation.Nullable;
 

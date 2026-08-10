@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.util;
 
-import li.cil.oc2.api.API;
 import li.cil.oc2.common.mixin.ServerChunkCacheMixin;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;

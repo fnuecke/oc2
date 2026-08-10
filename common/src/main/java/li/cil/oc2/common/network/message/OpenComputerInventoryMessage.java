@@ -2,11 +2,11 @@
 
 package li.cil.oc2.common.network.message;
 
+import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import dev.architectury.networking.NetworkManager;
 
 public final class OpenComputerInventoryMessage extends AbstractMessage {
     private BlockPos pos;

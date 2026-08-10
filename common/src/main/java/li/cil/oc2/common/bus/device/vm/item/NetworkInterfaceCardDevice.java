@@ -7,7 +7,6 @@ import li.cil.oc2.common.item.NetworkInterfaceCardItem;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public final class NetworkInterfaceCardDevice extends AbstractNetworkInterfaceDevice {

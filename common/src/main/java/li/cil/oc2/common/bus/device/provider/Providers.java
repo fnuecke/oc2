@@ -2,14 +2,17 @@
 
 package li.cil.oc2.common.bus.device.provider;
 
+import dev.architectury.injectables.annotations.ExpectPlatform;
+import dev.architectury.registry.registries.Registrar;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.block.BlockEntityCapabilityDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.item.*;
 import li.cil.oc2.common.bus.device.rpc.block.*;
-import dev.architectury.injectables.annotations.ExpectPlatform;
-import dev.architectury.registry.registries.Registrar;
+import net.minecraft.resources.ResourceLocation;
 
+import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -21,6 +24,27 @@ public final class Providers {
     public static Registrar<ItemDeviceProvider> itemDeviceProviderRegistry() {
         return ProviderRegistry.ITEM_DEVICE_PROVIDER_REGISTRY;
     }
+
+    public static Optional<String> optionalKey(@Nullable final BlockDeviceProvider provider) {
+        return optionalKey(blockDeviceProviderRegistry(), provider);
+    }
+
+    public static Optional<String> optionalKey(@Nullable final ItemDeviceProvider provider) {
+        return optionalKey(itemDeviceProviderRegistry(), provider);
+    }
+
+    ///////////////////////////////////////////////////////////////////
+
+    private static <T> Optional<String> optionalKey(final Registrar<T> registrar, @Nullable final T value) {
+        if (value == null) {
+            return Optional.empty();
+        }
+
+        final ResourceLocation id = registrar.getId(value);
+        return id == null ? Optional.empty() : Optional.of(id.toString());
+    }
+
+    ///////////////////////////////////////////////////////////////////
 
     public static void registerBlockDeviceProviders(final BiConsumer<String, Supplier<BlockDeviceProvider>> registry) {
         registry.accept("block", BlockStateObjectDeviceProvider::new);

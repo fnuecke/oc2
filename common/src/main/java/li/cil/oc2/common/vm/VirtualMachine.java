@@ -3,9 +3,9 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import net.minecraft.network.chat.Component;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nullable;
 

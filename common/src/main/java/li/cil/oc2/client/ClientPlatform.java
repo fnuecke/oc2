@@ -3,10 +3,10 @@
 package li.cil.oc2.client;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import dev.architectury.injectables.annotations.ExpectPlatform;
 
 public final class ClientPlatform {
     @ExpectPlatform

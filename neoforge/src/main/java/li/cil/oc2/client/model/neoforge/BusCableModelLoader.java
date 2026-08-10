@@ -3,18 +3,25 @@
 package li.cil.oc2.client.model.neoforge;
 
 import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.neoforged.neoforge.client.model.IModelLoader;
-import net.neoforged.neoforge.client.model.ModelLoaderRegistry;
+import net.minecraft.client.renderer.block.model.BlockElement;
+import net.minecraft.util.GsonHelper;
+import net.neoforged.neoforge.client.model.geometry.IGeometryLoader;
 
-public final class BusCableModelLoader implements IModelLoader<BusCableModel> {
-    @Override
-    public void onResourceManagerReload(final ResourceManager resourceManager) {
-    }
+import java.util.ArrayList;
+import java.util.List;
 
+public final class BusCableModelLoader implements IGeometryLoader<BusCableModel> {
     @Override
-    public BusCableModel read(final JsonDeserializationContext context, final JsonObject modelContents) {
-        return new BusCableModel(ModelLoaderRegistry.VanillaProxy.Loader.INSTANCE.read(context, modelContents));
+    public BusCableModel read(final JsonObject json, final JsonDeserializationContext context) {
+        final List<BlockElement> elements = new ArrayList<>();
+        if (json.has("elements")) {
+            for (final JsonElement element : GsonHelper.getAsJsonArray(json, "elements")) {
+                elements.add(context.deserialize(element, BlockElement.class));
+            }
+        }
+
+        return new BusCableModel(elements);
     }
 }

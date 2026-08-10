@@ -4,9 +4,9 @@ package li.cil.oc2.common.bus.device.rpc;
 
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
+import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import net.minecraft.world.item.ItemStack;
-import li.cil.oc2.api.inventory.ItemHandler;
 
 import java.util.Collection;
 import java.util.Collections;

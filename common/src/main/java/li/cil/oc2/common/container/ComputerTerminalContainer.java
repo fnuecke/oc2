@@ -2,20 +2,19 @@
 
 package li.cil.oc2.common.container;
 
+import dev.architectury.registry.menu.ExtendedMenuProvider;
+import dev.architectury.registry.menu.MenuRegistry;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
+import li.cil.oc2.common.energy.EnergyStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import li.cil.oc2.common.energy.EnergyStorage;
-import dev.architectury.registry.menu.ExtendedMenuProvider;
-import dev.architectury.registry.menu.MenuRegistry;
 
 public final class ComputerTerminalContainer extends AbstractComputerContainer {
     public static void createServer(final ComputerBlockEntity computer, final EnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {

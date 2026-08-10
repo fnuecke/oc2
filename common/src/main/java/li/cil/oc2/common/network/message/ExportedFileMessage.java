@@ -2,9 +2,9 @@
 
 package li.cil.oc2.common.network.message;
 
+import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.client.gui.FileChooserScreen;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import dev.architectury.networking.NetworkManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

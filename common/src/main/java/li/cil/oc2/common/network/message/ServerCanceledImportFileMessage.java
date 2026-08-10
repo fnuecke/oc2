@@ -2,12 +2,11 @@
 
 package li.cil.oc2.common.network.message;
 
+import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import dev.architectury.networking.NetworkManager;
 
-import java.util.function.Supplier;
 
 public final class ServerCanceledImportFileMessage extends AbstractMessage {
     private int id;

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.util;
 
+import dev.architectury.registry.registries.Registrar;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
@@ -18,7 +19,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import dev.architectury.registry.registries.Registrar;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

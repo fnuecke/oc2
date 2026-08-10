@@ -2,15 +2,14 @@
 
 package li.cil.oc2.common.bus.device.rpc;
 
-import dev.architectury.registry.ReloadListenerRegistry;
-import net.minecraft.server.packs.PackType;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import dev.architectury.registry.ReloadListenerRegistry;
 import li.cil.oc2.api.API;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;

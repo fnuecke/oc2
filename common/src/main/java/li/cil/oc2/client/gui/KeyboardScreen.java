@@ -2,25 +2,22 @@
 
 package li.cil.oc2.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.vertex.*;
+import li.cil.oc2.client.ClientPlatform;
 import li.cil.oc2.common.blockentity.KeyboardBlockEntity;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.KeyboardInputMessage;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
-import li.cil.oc2.client.ClientPlatform;
 import org.lwjgl.glfw.GLFW;
-
-import net.minecraft.util.RandomSource;
 
 public final class KeyboardScreen extends Screen {
     private static final int BORDER_SIZE = 4;

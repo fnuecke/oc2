@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.bus.device.vm.item;
 
-import net.minecraft.network.chat.Component;
 import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.data.Firmware;
@@ -15,6 +14,7 @@ import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.sedna.api.memory.MemoryMap;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 public final class FirmwareFlashStorageDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, FirmwareLoader {

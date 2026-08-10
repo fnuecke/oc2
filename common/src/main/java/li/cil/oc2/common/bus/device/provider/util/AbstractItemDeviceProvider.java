@@ -2,12 +2,12 @@
 
 package li.cil.oc2.common.bus.device.provider.util;
 
+import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import dev.architectury.registry.registries.RegistrySupplier;
 
 import java.util.Optional;
 import java.util.function.Predicate;

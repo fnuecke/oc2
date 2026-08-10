@@ -3,22 +3,23 @@
 package li.cil.oc2.data.neoforge;
 
 import li.cil.oc2.api.API;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.tags.BlockTagsProvider;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.PackOutput;
+import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
-import javax.annotation.Nullable;
+import java.util.concurrent.CompletableFuture;
 
 import static li.cil.oc2.common.block.Blocks.*;
 import static li.cil.oc2.common.tags.BlockTags.*;
 
 public final class ModBlockTagsProvider extends BlockTagsProvider {
-    public ModBlockTagsProvider(final DataGenerator generatorIn, @Nullable final ExistingFileHelper existingFileHelper) {
-        super(generatorIn, API.MOD_ID, existingFileHelper);
+    public ModBlockTagsProvider(final PackOutput output, final CompletableFuture<HolderLookup.Provider> lookupProvider, final ExistingFileHelper existingFileHelper) {
+        super(output, lookupProvider, API.MOD_ID, existingFileHelper);
     }
 
     @Override
-    protected void addTags() {
+    protected void addTags(final HolderLookup.Provider provider) {
         tag(DEVICES).add(
             COMPUTER.get(),
             REDSTONE_INTERFACE.get(),

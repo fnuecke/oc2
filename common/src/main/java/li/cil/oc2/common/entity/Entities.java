@@ -2,13 +2,13 @@
 
 package li.cil.oc2.common.entity;
 
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.common.util.RegistryUtils;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import dev.architectury.registry.registries.DeferredRegister;
-import net.minecraft.core.registries.Registries;
-import dev.architectury.registry.registries.RegistrySupplier;
 
 import java.util.function.Function;
 

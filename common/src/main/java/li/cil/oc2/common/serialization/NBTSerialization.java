@@ -192,7 +192,7 @@ public final class NBTSerialization {
             }
         }
 
-        @Contract(value = "_, null -> true")
+        @Contract("_, null -> true")
         private boolean putIsNull(final String name, @Nullable final Object value) {
             final boolean isNull = value == null;
             if (isNull) {

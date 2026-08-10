@@ -2,11 +2,10 @@
 
 package li.cil.oc2.common.network.message;
 
+import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import dev.architectury.networking.NetworkManager;
 
-import java.util.function.Supplier;
 
 public final class ImportedFileMessage extends AbstractMessage {
     private static final int MAX_NAME_LENGTH = 256;

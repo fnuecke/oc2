@@ -2,13 +2,11 @@
 
 package li.cil.oc2.common.bus.device.data;
 
-import dev.architectury.event.events.common.LifecycleEvent;
-import dev.architectury.registry.ReloadListenerRegistry;
-import net.minecraft.server.packs.PackType;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import dev.architectury.event.events.common.LifecycleEvent;
+import dev.architectury.registry.ReloadListenerRegistry;
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
@@ -16,6 +14,7 @@ import li.cil.oc2.common.vm.fs.LayeredFileSystem;
 import li.cil.sedna.fs.FileSystem;
 import li.cil.sedna.fs.ZipStreamFileSystem;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -25,7 +24,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.InputStream;
 import java.io.Reader;
-import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -89,7 +87,7 @@ public final class FileSystems {
             LOGGER.info("Found [{}]", fileSystemDescriptorLocation);
             try {
                 final JsonObject json;
-                try (final Reader reader = entry.getValue().openAsReader()) {
+                try (Reader reader = entry.getValue().openAsReader()) {
                     json = JsonParser.parseReader(reader).getAsJsonObject();
                 }
                 final String type = json.getAsJsonPrimitive("type").getAsString();
@@ -98,7 +96,7 @@ public final class FileSystems {
                         final ResourceLocation location = ResourceLocation.parse(json.getAsJsonPrimitive("location").getAsString());
 
                         final ZipStreamFileSystem fileSystem;
-                        try (final InputStream stream = resourceManager.getResourceOrThrow(location).open()) {
+                        try (InputStream stream = resourceManager.getResourceOrThrow(location).open()) {
                             fileSystem = new ZipStreamFileSystem(stream);
                         }
 

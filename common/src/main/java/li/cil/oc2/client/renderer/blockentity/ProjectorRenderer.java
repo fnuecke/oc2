@@ -2,14 +2,9 @@
 
 package li.cil.oc2.client.renderer.blockentity;
 
-import com.mojang.math.Axis;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import org.joml.Matrix4f;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
-import li.cil.oc2.api.API;
+import com.mojang.math.Axis;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
 import li.cil.oc2.common.block.ProjectorBlock;
@@ -19,6 +14,9 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector4f;
 
 public class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlockEntity> {
     private static final int LIGHT_COLOR_NEAR = 0x22FFFFFF;

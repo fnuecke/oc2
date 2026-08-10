@@ -2,15 +2,10 @@
 
 package li.cil.oc2.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.chat.MutableComponent;
 import com.mojang.blaze3d.platform.GlStateManager;
-import org.joml.Matrix4fStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 import li.cil.oc2.client.gui.widget.Texture;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.common.item.Items;
@@ -18,23 +13,28 @@ import li.cil.oc2.common.item.NetworkInterfaceCardItem;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.NetworkInterfaceCardConfigurationMessage;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4fStack;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 
@@ -207,8 +207,8 @@ public final class NetworkInterfaceCardScreen extends Screen {
             quaternion.conjugate();
 
             // Move ray in screen space to mouse position.
-            final float relMouseX = -mouseX / (float) BLOCK_RENDER_SIZE;
-            final float relMouseY = -mouseY / (float) BLOCK_RENDER_SIZE;
+            final float relMouseX = -mouseX / BLOCK_RENDER_SIZE;
+            final float relMouseY = -mouseY / BLOCK_RENDER_SIZE;
 
             final Vector3f source = new Vector3f();
             source.add(relMouseX, relMouseY, 1);

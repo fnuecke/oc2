@@ -3,8 +3,8 @@
 package li.cil.oc2.client.item;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.item.Items;
 import li.cil.oc2.client.ClientPlatform;
+import li.cil.oc2.common.item.Items;
 import net.minecraft.resources.ResourceLocation;
 
 public final class CustomItemModelProperties {

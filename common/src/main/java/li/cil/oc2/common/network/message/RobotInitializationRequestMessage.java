@@ -2,12 +2,12 @@
 
 package li.cil.oc2.common.network.message;
 
-import li.cil.oc2.common.entity.Robot;
-import li.cil.oc2.common.network.Network;
-import li.cil.oc2.common.network.MessageUtils;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import dev.architectury.networking.NetworkManager;
+import li.cil.oc2.common.entity.Robot;
+import li.cil.oc2.common.network.MessageUtils;
+import li.cil.oc2.common.network.Network;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 
 public final class RobotInitializationRequestMessage extends AbstractMessage {
     private int entityId;

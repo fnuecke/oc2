@@ -9,8 +9,8 @@ import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.bus.device.provider.util.AbstractBlockEntityCapabilityDeviceProvider;
 import li.cil.oc2.common.bus.device.rpc.EnergyStorageDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import li.cil.oc2.common.energy.EnergyStorage;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 public final class EnergyStorageBlockDeviceProvider extends AbstractBlockEntityCapabilityDeviceProvider<EnergyStorage, BlockEntity> {
     public EnergyStorageBlockDeviceProvider() {

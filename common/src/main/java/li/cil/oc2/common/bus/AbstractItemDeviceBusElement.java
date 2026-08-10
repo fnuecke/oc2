@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.bus;
 
-import net.minecraft.core.registries.BuiltInRegistries;
+import dev.architectury.registry.registries.Registrar;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
@@ -13,15 +13,15 @@ import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.NBTTagIds;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import dev.architectury.registry.registries.Registrar;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static li.cil.oc2.common.bus.device.provider.ProviderRegistry.optionalKey;
+import static li.cil.oc2.common.bus.device.provider.Providers.optionalKey;
 
 public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDeviceBusElement<AbstractItemDeviceBusElement.ItemEntry, ItemDeviceQuery> {
     public AbstractItemDeviceBusElement(final int groupCount) {

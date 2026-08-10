@@ -2,16 +2,18 @@
 
 package li.cil.oc2.common.blockentity;
 
-import net.minecraft.core.HolderLookup;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
+import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.energy.EnergyStorage;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.util.ChunkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
@@ -19,8 +21,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import li.cil.oc2.common.energy.EnergyStorage;
-import li.cil.oc2.api.inventory.ItemHandler;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

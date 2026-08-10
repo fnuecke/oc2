@@ -4,8 +4,6 @@ package li.cil.oc2.common.network;
 
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
-
-import li.cil.oc2.api.API;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
 import li.cil.oc2.common.network.message.ProjectorFramebufferMessage;

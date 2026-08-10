@@ -2,28 +2,22 @@
 
 package li.cil.oc2.common.item;
 
-import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.capabilities.CapabilityProvider;
-import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.client.renderer.entity.RobotWithoutLevelRenderer;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.energy.EnergyStorageItemStack;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.entity.robot.RobotActions;
+import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.TooltipUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -34,12 +28,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.phys.Vec3;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static li.cil.oc2.common.Constants.*;
-import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
 import static li.cil.oc2.common.bus.device.DeviceTypes.key;
+import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
 
 public final class RobotItem extends ModItem implements CreativeTabItemProvider {
     @Override

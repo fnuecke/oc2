@@ -3,8 +3,6 @@
 package li.cil.oc2.common.vm;
 
 import dev.architectury.event.events.common.LifecycleEvent;
-
-import li.cil.oc2.api.API;
 import li.cil.oc2.common.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -2,15 +2,15 @@
 
 package li.cil.oc2.common.item;
 
-import net.minecraft.network.chat.Component;
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.util.EntityUtils;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity.ConnectionResult;
+import li.cil.oc2.common.util.EntityUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;

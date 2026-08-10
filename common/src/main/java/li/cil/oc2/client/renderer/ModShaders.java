@@ -3,12 +3,11 @@
 package li.cil.oc2.client.renderer;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import org.joml.Matrix4f;
 import li.cil.oc2.api.API;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
+import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
 

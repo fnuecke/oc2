@@ -3,12 +3,12 @@
 package li.cil.oc2.common.util;
 
 import com.mojang.authlib.GameProfile;
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.Config;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import dev.architectury.injectables.annotations.ExpectPlatform;
 
 public final class FakePlayerUtils {
     private static final String FAKE_PLAYER_NAME = "[" + API.MOD_ID + "]";

@@ -2,17 +2,17 @@
 
 package li.cil.oc2.common.blockentity;
 
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.common.block.Blocks;
-
-import java.util.ArrayList;
-import java.util.List;
 import li.cil.oc2.common.util.RegistryUtils;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import dev.architectury.registry.registries.DeferredRegister;
-import net.minecraft.core.registries.Registries;
-import dev.architectury.registry.registries.RegistrySupplier;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class BlockEntities {
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = RegistryUtils.getInitializerFor(Registries.BLOCK_ENTITY_TYPE);

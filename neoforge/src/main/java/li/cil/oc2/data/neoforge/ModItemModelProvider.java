@@ -2,20 +2,20 @@
 
 package li.cil.oc2.data.neoforge;
 
+import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.item.Items;
-import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
-import dev.architectury.registry.registries.RegistrySupplier;
 
 public final class ModItemModelProvider extends ItemModelProvider {
-    public ModItemModelProvider(final DataGenerator generator, final ExistingFileHelper existingFileHelper) {
-        super(generator, API.MOD_ID, existingFileHelper);
+    public ModItemModelProvider(final PackOutput output, final ExistingFileHelper existingFileHelper) {
+        super(output, API.MOD_ID, existingFileHelper);
     }
 
     @Override

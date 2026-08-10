@@ -2,12 +2,12 @@
 
 package li.cil.oc2.common.util;
 
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.API;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import dev.architectury.registry.registries.DeferredRegister;
-import net.minecraft.core.registries.Registries;
-import dev.architectury.registry.registries.RegistrySupplier;
 
 public final class SoundEvents {
     private static final DeferredRegister<SoundEvent> SOUNDS = RegistryUtils.getInitializerFor(Registries.SOUND_EVENT);

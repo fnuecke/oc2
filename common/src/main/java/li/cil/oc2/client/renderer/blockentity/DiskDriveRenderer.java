@@ -2,20 +2,19 @@
 
 package li.cil.oc2.client.renderer.blockentity;
 
-import com.mojang.math.Axis;
 import com.mojang.blaze3d.vertex.PoseStack;
-import org.joml.Vector3f;
+import com.mojang.math.Axis;
 import li.cil.oc2.common.block.DiskDriveBlock;
 import li.cil.oc2.common.blockentity.DiskDriveBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 public final class DiskDriveRenderer implements BlockEntityRenderer<DiskDriveBlockEntity> {

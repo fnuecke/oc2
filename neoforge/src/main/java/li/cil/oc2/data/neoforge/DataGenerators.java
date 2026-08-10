@@ -2,9 +2,6 @@
 
 package li.cil.oc2.data.neoforge;
 
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.tags.BlockTagsProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
@@ -13,19 +10,22 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 public final class DataGenerators {
     @SubscribeEvent
     public static void gatherData(final GatherDataEvent event) {
-        final DataGenerator generator = event.getGenerator();
-        final ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
+        final var generator = event.getGenerator();
+        final var output = generator.getPackOutput();
+        final var lookupProvider = event.getLookupProvider();
+        final var existingFileHelper = event.getExistingFileHelper();
 
-        if (event.includeServer()) {
-            generator.addProvider(new ModLootTableProvider(generator));
-            final BlockTagsProvider blockTagProvider = new ModBlockTagsProvider(generator, existingFileHelper);
-            generator.addProvider(blockTagProvider);
-            generator.addProvider(new ModItemTagsProvider(generator, blockTagProvider, existingFileHelper));
-            generator.addProvider(new ModRecipesProvider(generator));
-        }
-        if (event.includeClient()) {
-            generator.addProvider(new ModBlockStateProvider(generator, existingFileHelper));
-            generator.addProvider(new ModItemModelProvider(generator, existingFileHelper));
-        }
+        final var blockTags = generator.addProvider(event.includeServer(),
+            new ModBlockTagsProvider(output, lookupProvider, existingFileHelper));
+        generator.addProvider(event.includeServer(),
+            new ModItemTagsProvider(output, lookupProvider, blockTags.contentsGetter(), existingFileHelper));
+        generator.addProvider(event.includeServer(), new ModLootTableProvider(output, lookupProvider));
+        generator.addProvider(event.includeServer(), new ModRecipesProvider(output, lookupProvider));
+
+        generator.addProvider(event.includeClient(), new ModBlockStateProvider(output, existingFileHelper));
+        generator.addProvider(event.includeClient(), new ModItemModelProvider(output, existingFileHelper));
+    }
+
+    private DataGenerators() {
     }
 }

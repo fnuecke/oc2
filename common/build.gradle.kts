@@ -29,9 +29,11 @@ dependencies {
 
     compileOnly(libs.jei.common.api)
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-    testImplementation("org.mockito:mockito-inline:4.3.1")
+    testCompileOnly("com.google.code.findbugs:jsr305:3.0.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.2")
+    testImplementation("org.mockito:mockito-core:5.11.0")
 }
 
 tasks {

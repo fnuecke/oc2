@@ -3,7 +3,6 @@
 package li.cil.oc2.common.serialization;
 
 import dev.architectury.event.events.common.LifecycleEvent;
-
 import li.cil.oc2.api.API;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;

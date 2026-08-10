@@ -2,14 +2,14 @@
 
 package li.cil.oc2.common.network.message;
 
-import net.minecraft.network.chat.MutableComponent;
+import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.client.gui.FileChooserScreen;
 import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.network.Network;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
-import dev.architectury.networking.NetworkManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

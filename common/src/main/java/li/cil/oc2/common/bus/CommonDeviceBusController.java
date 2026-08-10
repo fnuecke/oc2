@@ -2,10 +2,10 @@
 
 package li.cil.oc2.common.bus;
 
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.util.Event;
 import li.cil.oc2.common.util.ParameterizedEvent;
 import li.cil.oc2.common.util.TickUtils;

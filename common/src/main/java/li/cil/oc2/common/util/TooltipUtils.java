@@ -2,40 +2,39 @@
 
 package li.cil.oc2.common.util;
 
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.client.gui.GuiGraphics;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.EnergyConsumingBlock;
 import li.cil.oc2.common.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.device.util.Devices;
-import li.cil.oc2.common.energy.EnergyStorage;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.energy.EnergyStorage;
 import li.cil.oc2.common.tags.ItemTags;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.locale.Language;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.stream.StreamSupport;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
-import static li.cil.oc2.common.Constants.*;
 import static java.util.Objects.requireNonNull;
+import static li.cil.oc2.common.Constants.*;
 import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
 
 public final class TooltipUtils {

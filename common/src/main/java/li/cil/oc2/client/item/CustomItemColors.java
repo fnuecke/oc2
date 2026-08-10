@@ -2,14 +2,14 @@
 
 package li.cil.oc2.client.item;
 
-import li.cil.oc2.common.item.Items;
 import dev.architectury.registry.client.rendering.ColorHandlerRegistry;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.core.component.DataComponents;
 import li.cil.oc2.common.item.ColoredItem;
-import net.minecraft.world.item.component.DyedItemColor;
+import li.cil.oc2.common.item.Items;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.DyedItemColor;
 
 public final class CustomItemColors {
     public static final int BLACK = 0xFF404040;

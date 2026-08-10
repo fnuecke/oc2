@@ -2,20 +2,18 @@
 
 package li.cil.oc2.common.bus.device.vm.item;
 
-import dev.architectury.event.events.common.LifecycleEvent;
-import dev.architectury.event.events.common.TickEvent;
-
-import li.cil.oc2.common.capabilities.CapabilityType;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import dev.architectury.event.events.common.LifecycleEvent;
+import dev.architectury.event.events.common.TickEvent;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.api.capabilities.NetworkInterface;
+import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.item.NetworkTunnelItem;
 import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;

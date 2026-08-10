@@ -2,9 +2,9 @@
 
 package li.cil.oc2.common.util;
 
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
 
 public final class TextFormatUtils {

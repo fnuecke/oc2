@@ -2,7 +2,8 @@
 
 package li.cil.oc2.client.manual;
 
-import net.minecraft.network.chat.Component;
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.manual.api.ManualModel;
 import li.cil.manual.api.Tab;
 import li.cil.manual.api.prefab.Manual;
@@ -17,12 +18,11 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.RegistryUtils;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import dev.architectury.registry.registries.DeferredRegister;
-import dev.architectury.registry.registries.RegistrySupplier;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 
 @Environment(EnvType.CLIENT)
 public final class Manuals {

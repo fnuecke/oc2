@@ -3,7 +3,6 @@
 package li.cil.oc2.common.block;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;

@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.neoforge;
 
-import li.cil.oc2.api.API;
 import li.cil.oc2.common.config.ConfigType;
 import li.cil.oc2.common.config.Max;
 import li.cil.oc2.common.config.Min;
@@ -18,10 +17,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;

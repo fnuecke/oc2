@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.network;
 
+import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.common.util.LevelUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -10,7 +11,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import dev.architectury.networking.NetworkManager;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;

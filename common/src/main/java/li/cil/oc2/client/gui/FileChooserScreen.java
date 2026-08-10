@@ -2,14 +2,14 @@
 
 package li.cil.oc2.client.gui;
 
-import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import org.apache.logging.log4j.LogManager;
@@ -265,11 +265,11 @@ public final class FileChooserScreen extends Screen {
         });
     }
 
-    private void handleOkPressed(final Button button) {
+    private void handleOkPressed(final Button button) { //NOPMD - required by Button.OnPress
         confirm();
     }
 
-    private void handleCancelPressed(final Button button) {
+    private void handleCancelPressed(final Button button) { //NOPMD - required by Button.OnPress
         cancel();
     }
 

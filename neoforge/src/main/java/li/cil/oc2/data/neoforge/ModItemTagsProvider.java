@@ -5,23 +5,24 @@ package li.cil.oc2.data.neoforge;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tags.BlockTags;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.tags.BlockTagsProvider;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
+import net.minecraft.data.tags.TagsProvider;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
-import javax.annotation.Nullable;
+import java.util.concurrent.CompletableFuture;
 
 import static li.cil.oc2.common.tags.ItemTags.*;
 
 public final class ModItemTagsProvider extends ItemTagsProvider {
-    public ModItemTagsProvider(final DataGenerator generator, final BlockTagsProvider blockTagProvider, @Nullable final ExistingFileHelper existingFileHelper) {
-        super(generator, blockTagProvider, API.MOD_ID, existingFileHelper);
+    public ModItemTagsProvider(final PackOutput output, final CompletableFuture<HolderLookup.Provider> lookupProvider, final CompletableFuture<TagsProvider.TagLookup<Block>> blockTags, final ExistingFileHelper existingFileHelper) {
+        super(output, lookupProvider, blockTags, API.MOD_ID, existingFileHelper);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    protected void addTags() {
+    protected void addTags(final HolderLookup.Provider provider) {
         copy(BlockTags.CABLES, CABLES);
 
         copy(BlockTags.DEVICES, DEVICES);

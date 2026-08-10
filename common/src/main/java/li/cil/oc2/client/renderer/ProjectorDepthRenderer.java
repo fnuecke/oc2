@@ -2,8 +2,6 @@
 
 package li.cil.oc2.client.renderer;
 
-import com.mojang.math.Axis;
-import dev.architectury.event.events.client.ClientTickEvent;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
@@ -15,9 +13,8 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import org.joml.Matrix4f;
-import org.joml.Matrix4fStack;
-import org.joml.Vector3f;
+import com.mojang.math.Axis;
+import dev.architectury.event.events.client.ClientTickEvent;
 import li.cil.oc2.client.ClientPlatform;
 import li.cil.oc2.common.block.ProjectorBlock;
 import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
@@ -44,6 +41,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4f;
+import org.joml.Matrix4fStack;
 
 import java.time.Duration;
 import java.util.ArrayList;

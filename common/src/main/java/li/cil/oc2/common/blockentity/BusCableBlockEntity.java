@@ -2,8 +2,6 @@
 
 package li.cil.oc2.common.blockentity;
 
-import net.minecraft.core.HolderLookup;
-import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
@@ -21,6 +19,7 @@ import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.ServerScheduler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;

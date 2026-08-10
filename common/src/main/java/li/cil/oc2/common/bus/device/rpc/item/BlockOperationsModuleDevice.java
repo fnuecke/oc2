@@ -2,13 +2,17 @@
 
 package li.cil.oc2.common.bus.device.rpc.item;
 
+import dev.architectury.event.events.common.BlockEvent;
+import dev.architectury.utils.value.IntValue;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
+import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.util.FakePlayerUtils;
 import li.cil.oc2.common.util.TickUtils;
+import li.cil.oc2.common.util.ToolTiers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -34,11 +38,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import dev.architectury.event.events.common.BlockEvent;
-import dev.architectury.utils.value.IntValue;
-import li.cil.oc2.api.inventory.ItemHandler;
-import li.cil.oc2.common.util.ToolTiers;
-import li.cil.oc2.common.container.ItemStackHandler;
 
 import javax.annotation.Nullable;
 import java.time.Duration;

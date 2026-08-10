@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus;
 
+import dev.architectury.registry.registries.Registrar;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
@@ -25,15 +26,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.registries.IForgeRegistry;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.mockito.stubbing.OngoingStubbing;
 
 import java.util.*;
 
@@ -43,7 +39,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 public class BlockDeviceBusControllerTests {
-    public static final ResourceLocation TEST_PROVIDER_REGISTRY_NAME = new ResourceLocation(API.MOD_ID, "test");
+    public static final ResourceLocation TEST_PROVIDER_REGISTRY_NAME = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "test");
 
     private static MockedStatic<Capabilities> capabilitiesMock;
     private static MockedStatic<Providers> providersMock;
@@ -58,33 +54,22 @@ public class BlockDeviceBusControllerTests {
     @BeforeEach
     public void setupEach() {
         capabilitiesMock = mockStatic(Capabilities.class);
-        registerCapability(capabilitiesMock.when(Capabilities::energyStorage));
-        registerCapability(capabilitiesMock.when(Capabilities::fluidHandler));
-        registerCapability(capabilitiesMock.when(Capabilities::itemHandler));
-        registerCapability(capabilitiesMock.when(Capabilities::deviceBusElement));
-        registerCapability(capabilitiesMock.when(Capabilities::device));
-        registerCapability(capabilitiesMock.when(Capabilities::redstoneEmitter));
-        registerCapability(capabilitiesMock.when(Capabilities::networkInterface));
-        registerCapability(capabilitiesMock.when(Capabilities::terminalUserProvider));
-        registerCapability(capabilitiesMock.when(Capabilities::robot));
 
         providersMock = mockStatic(Providers.class);
-        final IForgeRegistry<BlockDeviceProvider> blockDeviceProviderRegistry = createBlockDeviceProviderRegistry();
+        final Registrar<BlockDeviceProvider> blockDeviceProviderRegistry = createBlockDeviceProviderRegistry();
         providersMock.when(Providers::blockDeviceProviderRegistry).thenReturn(blockDeviceProviderRegistry);
-        final IForgeRegistry<ItemDeviceProvider> itemDeviceProviderRegistry = createItemDeviceProviderRegistry();
+        final Registrar<ItemDeviceProvider> itemDeviceProviderRegistry = createItemDeviceProviderRegistry();
         providersMock.when(Providers::itemDeviceProviderRegistry).thenReturn(itemDeviceProviderRegistry);
+        providersMock.when(() -> Providers.optionalKey((BlockDeviceProvider) any()))
+            .thenReturn(Optional.of(TEST_PROVIDER_REGISTRY_NAME.toString()));
+        providersMock.when(() -> Providers.optionalKey((ItemDeviceProvider) any()))
+            .thenReturn(Optional.of(TEST_PROVIDER_REGISTRY_NAME.toString()));
 
         levelUtilsMock = mockStatic(LevelUtils.class);
         levelUtilsMock.when(() -> LevelUtils.getBlockName(any(), any())).thenReturn("test_block");
 
         fakeLevel = new FakeLevel();
         level = fakeLevel.getLevel();
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> void registerCapability(final OngoingStubbing<Capability<T>> stubbing) {
-        final Capability<T> capability = mock(Capability.class);
-        stubbing.thenReturn(capability);
     }
 
     @AfterEach
@@ -216,7 +201,8 @@ public class BlockDeviceBusControllerTests {
 
         final BlockPos elementPos = controllerPos.east();
         final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
-        when(busElementInfo.getBlockEntity().getCapability(eq(Capabilities.deviceBusElement()), any())).thenReturn(LazyOptional.of(busElementInfo::getBusElement));
+        capabilitiesMock.when(() -> Capabilities.get(eq(busElementInfo.getBlockEntity()), eq(Capabilities.DEVICE_BUS_ELEMENT), any()))
+            .thenAnswer(a -> busElementInfo.getBusElement());
 
         final BlockPos devicePos = elementPos.east();
         final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
@@ -234,7 +220,8 @@ public class BlockDeviceBusControllerTests {
 
         final BlockPos elementPos = controllerPos.west();
         final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
-        when(busElementInfo.getBlockEntity().getCapability(eq(Capabilities.deviceBusElement()), any())).thenReturn(LazyOptional.of(busElementInfo::getBusElement));
+        capabilitiesMock.when(() -> Capabilities.get(eq(busElementInfo.getBlockEntity()), eq(Capabilities.DEVICE_BUS_ELEMENT), any()))
+            .thenAnswer(a -> busElementInfo.getBusElement());
 
         final BlockPos devicePos = elementPos.west();
         final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
@@ -344,7 +331,7 @@ public class BlockDeviceBusControllerTests {
 
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
 
-        final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().getValue(TEST_PROVIDER_REGISTRY_NAME);
+        final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().get(TEST_PROVIDER_REGISTRY_NAME);
         verify(provider, times(1)).unmount(any(), any());
     }
 
@@ -384,7 +371,7 @@ public class BlockDeviceBusControllerTests {
         fakeLevel.removeBlockEntity(elementPos);
         busElementInfo.getBusElement().setRemoved();
 
-        final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().getValue(TEST_PROVIDER_REGISTRY_NAME);
+        final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().get(TEST_PROVIDER_REGISTRY_NAME);
         verify(provider, times(1)).unmount(any(), any());
     }
 
@@ -417,7 +404,7 @@ public class BlockDeviceBusControllerTests {
 
         verify(objectDevice, times(1)).dispose();
 
-        final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().getValue(TEST_PROVIDER_REGISTRY_NAME);
+        final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().get(TEST_PROVIDER_REGISTRY_NAME);
         verify(provider, never()).unmount(any(), any());
     }
 
@@ -449,7 +436,7 @@ public class BlockDeviceBusControllerTests {
 
         verify(objectDevice, times(1)).dispose();
 
-        final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().getValue(TEST_PROVIDER_REGISTRY_NAME);
+        final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().get(TEST_PROVIDER_REGISTRY_NAME);
         verify(provider, never()).unmount(any(), any());
     }
 
@@ -510,27 +497,29 @@ public class BlockDeviceBusControllerTests {
     ///////////////////////////////////////////////////////////////////
 
     @SuppressWarnings("unchecked")
-    private static IForgeRegistry<BlockDeviceProvider> createBlockDeviceProviderRegistry() {
-        final IForgeRegistry<BlockDeviceProvider> registry = mock(IForgeRegistry.class);
+    private static Registrar<BlockDeviceProvider> createBlockDeviceProviderRegistry() {
+        final Registrar<BlockDeviceProvider> registry = mock(Registrar.class);
 
         final Map<ResourceLocation, BlockDeviceProvider> blockDeviceProviders = new HashMap<>();
         blockDeviceProviders.put(TEST_PROVIDER_REGISTRY_NAME, spy(new TestBlockDeviceProvider()));
 
-        when(registry.getValues()).thenReturn(blockDeviceProviders.values());
-        when(registry.getValue(notNull())).then(a -> blockDeviceProviders.get(a.<ResourceLocation>getArgument(0)));
+        when(registry.iterator()).then(a -> blockDeviceProviders.values().iterator());
+        when(registry.get(notNull())).then(a -> blockDeviceProviders.get(a.<ResourceLocation>getArgument(0)));
+        when(registry.getId(notNull())).thenReturn(TEST_PROVIDER_REGISTRY_NAME);
 
         return registry;
     }
 
     @SuppressWarnings("unchecked")
-    private static IForgeRegistry<ItemDeviceProvider> createItemDeviceProviderRegistry() {
-        final IForgeRegistry<ItemDeviceProvider> registry = mock(IForgeRegistry.class);
+    private static Registrar<ItemDeviceProvider> createItemDeviceProviderRegistry() {
+        final Registrar<ItemDeviceProvider> registry = mock(Registrar.class);
 
         final Map<ResourceLocation, ItemDeviceProvider> itemDeviceProviders = new HashMap<>();
         itemDeviceProviders.put(TEST_PROVIDER_REGISTRY_NAME, spy(new TestItemDeviceProvider()));
 
-        when(registry.getValues()).thenReturn(itemDeviceProviders.values());
-        when(registry.getValue(notNull())).then(a -> itemDeviceProviders.get(a.<ResourceLocation>getArgument(0)));
+        when(registry.iterator()).then(a -> itemDeviceProviders.values().iterator());
+        when(registry.get(notNull())).then(a -> itemDeviceProviders.get(a.<ResourceLocation>getArgument(0)));
+        when(registry.getId(notNull())).thenReturn(TEST_PROVIDER_REGISTRY_NAME);
 
         return registry;
     }
@@ -579,9 +568,6 @@ public class BlockDeviceBusControllerTests {
         public TestBlockEntity(final BlockPos pos) {
             blockEntity = mock(BlockEntity.class);
             when(blockEntity.getBlockPos()).thenReturn(pos);
-            when(blockEntity.getCapability(any(), any())).thenReturn(LazyOptional.empty());
-            when(blockEntity.getCapability(any())).thenCallRealMethod();
-
             fakeLevel.addBlockEntity(blockEntity);
             fakeLevel.setChunkLoaded(new ChunkPos(pos), true);
         }
@@ -598,12 +584,9 @@ public class BlockDeviceBusControllerTests {
         public TestBusElementBlockEntity(final BlockPos pos) {
             super(pos);
             busElement = spy(new TestBlockDeviceBusElement(level, pos));
-            when(getBlockEntity().getCapability(eq(Capabilities.deviceBusElement()), any())).then(a -> {
-                if (enabledSides[a.<Direction>getArgument(1).get3DDataValue()]) {
-                    return LazyOptional.of(() -> busElement);
-                } else {
-                    return LazyOptional.empty();
-                }
+            capabilitiesMock.when(() -> Capabilities.get(eq(getBlockEntity()), eq(Capabilities.DEVICE_BUS_ELEMENT), any())).then(a -> {
+                final Direction side = a.getArgument(2);
+                return side != null && enabledSides[side.get3DDataValue()] ? busElement : null;
             });
             Arrays.fill(enabledSides, true);
         }
@@ -638,7 +621,8 @@ public class BlockDeviceBusControllerTests {
             super(pos);
             testDevice = new TestDevice();
             objectDevice = new ObjectDevice(testDevice);
-            when(getBlockEntity().getCapability(eq(Capabilities.device()), any())).thenReturn(LazyOptional.of(() -> objectDevice));
+            capabilitiesMock.when(() -> Capabilities.get(eq(getBlockEntity()), eq(Capabilities.DEVICE), any()))
+                .thenAnswer(a -> objectDevice);
         }
 
         public TestDevice getTestDevice() {
@@ -676,50 +660,18 @@ public class BlockDeviceBusControllerTests {
 
     private static class TestBlockDeviceProvider implements BlockDeviceProvider {
         @Override
-        public BlockDeviceProvider setRegistryName(final ResourceLocation name) {
-            return this;
-        }
-
-        @Nullable
-        @Override
-        public ResourceLocation getRegistryName() {
-            return TEST_PROVIDER_REGISTRY_NAME;
-        }
-
-        @Override
-        public Class<BlockDeviceProvider> getRegistryType() {
-            return BlockDeviceProvider.class;
-        }
-
-        @Override
         public Invalidatable<Device> getDevice(final BlockDeviceQuery query) {
             final LevelAccessor level = query.getLevel();
             final BlockEntity blockEntity = level.getBlockEntity(query.getQueryPosition());
             if (blockEntity != null) {
-                final Optional<Device> optional = blockEntity.getCapability(Capabilities.device()).resolve();
-                return optional.map(Invalidatable::of).orElseGet(Invalidatable::empty);
+                final Device device = Capabilities.get(blockEntity, Capabilities.DEVICE, null);
+                return device != null ? Invalidatable.of(device) : Invalidatable.empty();
             }
             return Invalidatable.empty();
         }
     }
 
     private static class TestItemDeviceProvider implements ItemDeviceProvider {
-        @Override
-        public ItemDeviceProvider setRegistryName(final ResourceLocation name) {
-            return this;
-        }
-
-        @Nullable
-        @Override
-        public ResourceLocation getRegistryName() {
-            return TEST_PROVIDER_REGISTRY_NAME;
-        }
-
-        @Override
-        public Class<ItemDeviceProvider> getRegistryType() {
-            return ItemDeviceProvider.class;
-        }
-
         @Override
         public Optional<ItemDevice> getDevice(final ItemDeviceQuery query) {
             return Optional.empty();

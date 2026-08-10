@@ -2,8 +2,8 @@
 
 package li.cil.oc2.common.bus.device.rpc;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import li.cil.oc2.common.util.NBTTagIds;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;

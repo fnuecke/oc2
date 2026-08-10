@@ -3,11 +3,11 @@
 package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.GuiGraphics;
 import li.cil.oc2.client.gui.widget.ImageButton;
 import li.cil.oc2.common.container.NetworkTunnelContainer;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.NetworkTunnelLinkMessage;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;

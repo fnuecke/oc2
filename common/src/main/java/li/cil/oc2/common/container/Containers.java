@@ -2,12 +2,12 @@
 
 package li.cil.oc2.common.container;
 
-import li.cil.oc2.common.util.RegistryUtils;
-import net.minecraft.world.inventory.MenuType;
 import dev.architectury.registry.menu.MenuRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
-import net.minecraft.core.registries.Registries;
 import dev.architectury.registry.registries.RegistrySupplier;
+import li.cil.oc2.common.util.RegistryUtils;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.inventory.MenuType;
 
 public final class Containers {
     private static final DeferredRegister<MenuType<?>> CONTAINERS = RegistryUtils.getInitializerFor(Registries.MENU);

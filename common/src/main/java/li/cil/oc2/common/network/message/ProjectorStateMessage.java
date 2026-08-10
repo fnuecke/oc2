@@ -2,11 +2,11 @@
 
 package li.cil.oc2.common.network.message;
 
+import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import dev.architectury.networking.NetworkManager;
 
 public class ProjectorStateMessage extends AbstractMessage {
     private BlockPos pos;

@@ -2,11 +2,11 @@
 
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.common.util.RegistryUtils;
-import net.minecraft.world.level.block.Block;
 import dev.architectury.registry.registries.DeferredRegister;
-import net.minecraft.core.registries.Registries;
 import dev.architectury.registry.registries.RegistrySupplier;
+import li.cil.oc2.common.util.RegistryUtils;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.block.Block;
 
 public final class Blocks {
     private static final DeferredRegister<Block> BLOCKS = RegistryUtils.getInitializerFor(Registries.BLOCK);

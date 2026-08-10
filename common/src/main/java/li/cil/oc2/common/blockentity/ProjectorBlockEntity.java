@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.blockentity;
 
-import net.minecraft.core.HolderLookup;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.block.ProjectorBlock;
 import li.cil.oc2.common.bus.device.vm.block.ProjectorDevice;
@@ -19,6 +18,7 @@ import li.cil.oc2.jcodec.common.model.ColorSpace;
 import li.cil.oc2.jcodec.common.model.Picture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.Block;

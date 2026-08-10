@@ -2,21 +2,21 @@
 
 package li.cil.oc2.common.vm;
 
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
+import li.cil.oc2.api.inventory.ItemHandler;
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.AbstractItemDeviceBusElement;
 import li.cil.oc2.common.container.AbstractDeviceItemStackHandler;
 import li.cil.oc2.common.container.AbstractTypedDeviceItemStackHandler;
+import li.cil.oc2.common.container.CombinedItemHandler;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import li.cil.oc2.common.container.CombinedItemHandler;
-import li.cil.oc2.api.inventory.ItemHandler;
 
 import java.util.*;
 import java.util.stream.Collectors;

@@ -44,7 +44,7 @@ final class GlobalEventBus implements VMLifecycleEventBus, EventManager {
 
     ///////////////////////////////////////////////////////////////////
 
-    private void handleEventBusException(final Throwable throwable, final SubscriberExceptionContext context) {
+    private void handleEventBusException(final Throwable throwable, final SubscriberExceptionContext context) { //NOPMD - required by SubscriberExceptionHandler
         if (throwable instanceof final VMInitializationException exception) {
             initializationException = exception;
         } else {

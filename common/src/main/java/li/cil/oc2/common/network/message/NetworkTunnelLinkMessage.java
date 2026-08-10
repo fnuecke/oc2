@@ -2,11 +2,11 @@
 
 package li.cil.oc2.common.network.message;
 
+import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.common.container.NetworkTunnelContainer;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import dev.architectury.networking.NetworkManager;
 
 public final class NetworkTunnelLinkMessage extends AbstractMessage {
     private int containerId;

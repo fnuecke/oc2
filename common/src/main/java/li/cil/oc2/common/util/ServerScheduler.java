@@ -2,10 +2,10 @@
 
 package li.cil.oc2.common.util;
 
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.LevelAccessor;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.LevelAccessor;
 
 import javax.annotation.Nullable;
 import java.util.*;

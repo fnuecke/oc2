@@ -2,12 +2,12 @@
 
 package li.cil.oc2.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
 import li.cil.oc2.common.container.ComputerInventoryContainer;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Inventory;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
 
 @Environment(EnvType.CLIENT)
 public final class ComputerContainerScreen extends AbstractMachineInventoryScreen<ComputerInventoryContainer> {

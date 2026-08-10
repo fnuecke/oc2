@@ -2,9 +2,9 @@
 
 package li.cil.oc2.common.util;
 
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Component;
 import li.cil.oc2.api.API;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 public final class TranslationUtils {
     public static String key(final String pattern) {

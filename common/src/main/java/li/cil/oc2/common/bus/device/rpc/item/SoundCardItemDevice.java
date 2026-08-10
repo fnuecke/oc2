@@ -7,12 +7,12 @@ import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.util.BlockLocation;
 import li.cil.oc2.common.util.TickUtils;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.core.registries.BuiltInRegistries;
 
 import javax.annotation.Nullable;
 import java.time.Duration;

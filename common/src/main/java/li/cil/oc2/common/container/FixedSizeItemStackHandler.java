@@ -7,7 +7,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import li.cil.oc2.common.container.ItemStackHandler;
 
 public class FixedSizeItemStackHandler extends ItemStackHandler {
     private static final String SIZE_TAG_NAME = "Size";

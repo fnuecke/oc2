@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.bus.device.vm.item;
 
-import net.minecraft.network.chat.Component;
 import com.google.common.eventbus.Subscribe;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.FirmwareLoader;
@@ -19,6 +18,7 @@ import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.device.flash.FlashMemoryDevice;
 import li.cil.sedna.memory.MemoryMaps;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import java.nio.ByteBuffer;

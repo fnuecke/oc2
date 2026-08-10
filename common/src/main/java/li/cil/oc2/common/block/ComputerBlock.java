@@ -13,6 +13,8 @@ import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.TooltipUtils;
 import li.cil.oc2.common.util.VoxelShapeUtils;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -37,12 +39,12 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -175,6 +177,22 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
         }
 
         return InteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    @Override
+    protected List<ItemStack> getDrops(final BlockState state, final LootParams.Builder builder) {
+        // The old loot table copied the block entity's NBT into the item with CopyNbtFunction; under
+        // data components there is no loot function that writes BLOCK_ENTITY_DATA, so do it here.
+        final List<ItemStack> drops = super.getDrops(state, builder);
+        if (builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof final ComputerBlockEntity computer) {
+            for (final ItemStack drop : drops) {
+                if (drop.getItem() == Items.COMPUTER.get()) {
+                    computer.exportToItemStack(drop);
+                }
+            }
+        }
+
+        return drops;
     }
 
     @Override

@@ -2,18 +2,12 @@
 
 package li.cil.oc2.common.blockentity;
 
-import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.api.util.Invalidatable;
-import net.minecraft.core.HolderLookup;
-
-import static java.util.Objects.requireNonNull;
-import li.cil.oc2.common.capabilities.CapabilityProvider;
-import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.client.audio.LoopingSoundManager;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.block.ComputerBlock;
@@ -22,20 +16,24 @@ import li.cil.oc2.common.bus.BlockDeviceBusController;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.capabilities.CapabilityProvider;
+import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.container.ComputerInventoryContainer;
 import li.cil.oc2.common.container.ComputerTerminalContainer;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
-import li.cil.oc2.common.network.message.AbstractMessage;
 import li.cil.oc2.common.network.Network;
+import li.cil.oc2.common.network.message.AbstractMessage;
 import li.cil.oc2.common.network.message.ComputerBootErrorMessage;
 import li.cil.oc2.common.network.message.ComputerBusStateMessage;
 import li.cil.oc2.common.network.message.ComputerRunStateMessage;
 import li.cil.oc2.common.network.message.ComputerTerminalOutputMessage;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.*;
+import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -44,14 +42,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.*;
 
-import static li.cil.oc2.common.Constants.BLOCK_ENTITY_TAG_NAME_IN_ITEM;
+import static java.util.Objects.requireNonNull;
 import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 
 public final class ComputerBlockEntity extends ModBlockEntity implements TerminalUserProvider, TickableBlockEntity {
@@ -248,8 +245,10 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     public void exportToItemStack(final ItemStack stack) {
         final HolderLookup.Provider registries = requireNonNull(getLevel()).registryAccess();
-        ItemStackUtils.modifyBlockEntityDataTag(stack, tag ->
-            deviceItems.saveItems(registries, NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME)));
+        ItemStackUtils.modifyBlockEntityDataTag(stack, tag -> {
+            deviceItems.saveItems(registries, NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME));
+            tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
+        });
     }
 
     ///////////////////////////////////////////////////////////////////

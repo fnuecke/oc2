@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus;
 
+import dev.architectury.registry.registries.Registrar;
 import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
@@ -22,12 +23,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import dev.architectury.registry.registries.Registrar;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static li.cil.oc2.common.bus.device.provider.ProviderRegistry.optionalKey;
+import static li.cil.oc2.common.bus.device.provider.Providers.optionalKey;
 
 public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDeviceBusElement<AbstractBlockDeviceBusElement.BlockEntry, BlockDeviceQuery> implements BlockDeviceBusElement {
     public AbstractBlockDeviceBusElement() {

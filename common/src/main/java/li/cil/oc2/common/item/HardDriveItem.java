@@ -3,12 +3,11 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.util.ColorUtils;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.DyedItemColor;
 
 import javax.annotation.Nullable;
 

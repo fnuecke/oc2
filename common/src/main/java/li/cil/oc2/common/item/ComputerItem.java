@@ -5,6 +5,7 @@ package li.cil.oc2.common.item;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTUtils;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -22,19 +23,19 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void addCreativeTabItems(final CreativeModeTab.Output output) {
-        output.accept(withFlash());
-        output.accept(preconfigured());
+    public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
+        output.accept(withFlash(parameters.holders()));
+        output.accept(preconfigured(parameters.holders()));
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    private ItemStack withFlash() {
+    private ItemStack withFlash(final HolderLookup.Provider provider) {
         final ItemStack computer = new ItemStack(this);
 
         ItemStackUtils.modifyBlockEntityDataTag(computer, tag -> {
             final var itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
-            itemsTag.put(key(DeviceTypes.FLASH_MEMORY), makeInventoryTag(
+            itemsTag.put(key(DeviceTypes.FLASH_MEMORY), makeInventoryTag(provider,
                 new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
             ));
         });
@@ -42,21 +43,21 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
         return computer;
     }
 
-    private ItemStack preconfigured() {
-        final ItemStack computer = withFlash();
+    private ItemStack preconfigured(final HolderLookup.Provider provider) {
+        final ItemStack computer = withFlash(provider);
 
         ItemStackUtils.modifyBlockEntityDataTag(computer, tag -> {
             final var itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
-            itemsTag.put(key(DeviceTypes.MEMORY), makeInventoryTag(
+            itemsTag.put(key(DeviceTypes.MEMORY), makeInventoryTag(provider,
                 new ItemStack(Items.MEMORY_LARGE.get()),
                 new ItemStack(Items.MEMORY_LARGE.get()),
                 new ItemStack(Items.MEMORY_LARGE.get()),
                 new ItemStack(Items.MEMORY_LARGE.get())
             ));
-            itemsTag.put(key(DeviceTypes.HARD_DRIVE), makeInventoryTag(
+            itemsTag.put(key(DeviceTypes.HARD_DRIVE), makeInventoryTag(provider,
                 new ItemStack(Items.HARD_DRIVE_CUSTOM.get())
             ));
-            itemsTag.put(key(DeviceTypes.CARD), makeInventoryTag(
+            itemsTag.put(key(DeviceTypes.CARD), makeInventoryTag(provider,
                 new ItemStack(Items.NETWORK_INTERFACE_CARD.get())
             ));
         });

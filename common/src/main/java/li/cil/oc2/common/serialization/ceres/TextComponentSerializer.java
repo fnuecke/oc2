@@ -6,6 +6,7 @@ import li.cil.ceres.api.DeserializationVisitor;
 import li.cil.ceres.api.SerializationException;
 import li.cil.ceres.api.SerializationVisitor;
 import li.cil.ceres.api.Serializer;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nullable;
@@ -13,7 +14,7 @@ import javax.annotation.Nullable;
 public final class TextComponentSerializer implements Serializer<Component> {
     @Override
     public void serialize(final SerializationVisitor visitor, final Class<Component> type, final Object value) throws SerializationException {
-        final String json = Component.Serializer.toJson((Component) value);
+        final String json = Component.Serializer.toJson((Component) value, RegistryAccess.EMPTY);
         visitor.putObject("value", String.class, json);
     }
 
@@ -29,6 +30,6 @@ public final class TextComponentSerializer implements Serializer<Component> {
             return (Component) value;
         }
 
-        return Component.Serializer.fromJson(json);
+        return Component.Serializer.fromJson(json, RegistryAccess.EMPTY);
     }
 }

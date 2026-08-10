@@ -49,7 +49,7 @@ public final class RobotRenderer extends EntityRenderer<Robot> {
         model.setupAnim(entity, 0, 0, 0, 0, 0);
 
         final VertexConsumer consumer = bufferSource.getBuffer(model.renderType(getTextureLocation(entity)));
-        model.renderToBuffer(stack, consumer, packedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
+        model.renderToBuffer(stack, consumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 
         stack.popPose();
     }

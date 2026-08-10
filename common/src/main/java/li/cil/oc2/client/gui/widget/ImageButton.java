@@ -105,7 +105,7 @@ public abstract class ImageButton extends AbstractButton {
         background.draw(graphics, getX(), getY());
 
         if (!Objects.equals(getMessage(), CommonComponents.EMPTY)) {
-            drawCenteredString(graphics, Minecraft.getInstance().font, getMessage(),
+            graphics.drawCenteredString(Minecraft.getInstance().font, getMessage(),
                 getX() + width / 2, getY() + (height - 8) / 2,
                 (active ? 0xFFFFFF : 0xA0A0A0) | Mth.ceil(alpha * 255) << 24);
         }

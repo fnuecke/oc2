@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.network.Network;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import dev.architectury.networking.NetworkManager;
@@ -22,6 +23,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Utility wrapper message for client to server messages exceeding the regular custom payload size.
@@ -67,7 +70,8 @@ public final class MultipartMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static void sendToServer(final AbstractMessage message) {
-        final RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer());
+        final RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(),
+            requireNonNull(Minecraft.getInstance().level).registryAccess());
         message.toBytes(buffer);
         if (buffer.readableBytes() <= MAX_PAYLOAD_SIZE) {
             // Message fits into one custom payload packet, send it as is.
@@ -141,7 +145,7 @@ public final class MultipartMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final Supplier<NetworkManager.PacketContext> contextSupplier) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         try {
             final ByteBuf buffer = MULTIPART_MESSAGE_BUFFER_CACHE.get(lastAssignedMultipartMessageId, Unpooled::buffer);
             if (buffer.capacity() == 0) {
@@ -150,7 +154,7 @@ public final class MultipartMessage extends AbstractMessage {
 
             buffer.writeBytes(data);
             if (buffer.readableBytes() > MAX_MULTIPART_MESSAGE_SIZE) {
-                LOGGER.error("Received over-sized multipart message from client [{}], ignoring.", contextSupplier.get().getPlayer());
+                LOGGER.error("Received over-sized multipart message from client [{}], ignoring.", context.getPlayer());
                 MULTIPART_MESSAGE_BUFFER_CACHE.put(lastAssignedMultipartMessageId, Unpooled.buffer(0));
                 return;
             }
@@ -160,14 +164,14 @@ public final class MultipartMessage extends AbstractMessage {
 
                 final Entry entry = ENTRY_BY_ID.get(messageId);
                 if (entry == null) {
-                    LOGGER.error("Received multipart message for unregistered message from client [{}]. Are the mod version on the server and client the same?", contextSupplier.get().getPlayer());
+                    LOGGER.error("Received multipart message for unregistered message from client [{}]. Are the mod version on the server and client the same?", context.getPlayer());
                     return;
                 }
 
-                entry.factory.apply(new RegistryFriendlyByteBuf(buffer)).handleMessage(contextSupplier);
+                entry.factory.apply(new RegistryFriendlyByteBuf(buffer, context.registryAccess())).handleMessage(context);
             }
         } catch (final ExecutionException e) {
-            LOGGER.error("Error when handling multipart message received from client [{}]: {}", contextSupplier.get().getPlayer(), e);
+            LOGGER.error("Error when handling multipart message received from client [{}]: {}", context.getPlayer(), e);
         }
     }
 

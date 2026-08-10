@@ -48,7 +48,7 @@ public final class ImportedFileMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final Supplier<NetworkManager.PacketContext> context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         FileImportExportCardItemDevice.setImportedFile(id, name, data);
     }
 }

@@ -38,7 +38,7 @@ public final class BlockEntities {
     }
 
     public static List<BlockEntityType<?>> getAll() {
-        return ALL.stream().map(RegistrySupplier::get).map(type -> (BlockEntityType<?>) type).toList();
+        return ALL.stream().<BlockEntityType<?>>map(RegistrySupplier::get).toList();
     }
 
     ///////////////////////////////////////////////////////////////////

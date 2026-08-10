@@ -152,12 +152,12 @@ public final class BlobStorage {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        LifecycleEvent.SERVER_BEFORE_START.register(server -> handleServerAboutToStart());
+        LifecycleEvent.SERVER_BEFORE_START.register(BlobStorage::handleServerAboutToStart);
         LifecycleEvent.SERVER_STOPPED.register(server -> handleServerStopped());
     }
 
-    private static void handleServerAboutToStart() {
-        BlobStorage.setServer(event.getServer());
+    private static void handleServerAboutToStart(final MinecraftServer server) {
+        BlobStorage.setServer(server);
     }
 
     private static void handleServerStopped() {

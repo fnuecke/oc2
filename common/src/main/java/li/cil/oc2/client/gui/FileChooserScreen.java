@@ -375,7 +375,7 @@ public final class FileChooserScreen extends Screen {
             @Override
             public void render(final GuiGraphics graphics, final int index, final int top, final int left, final int width, final int height,
                                final int mouseX, final int mouseY, final boolean isHovered, final float deltaTime) {
-                font.drawShadow(graphics, displayName, left, top, 0xFFFFFFFF);
+                graphics.drawString(font, displayName, left, top, 0xFFFFFFFF, true);
             }
 
             @Override
@@ -404,7 +404,7 @@ public final class FileChooserScreen extends Screen {
                 } else {
                     return;
                 }
-                fileNameTextField.moveCursorToStart();
+                fileNameTextField.moveCursorToStart(false);
                 fileNameTextField.setHighlightPos(0);
                 setSelected(this);
             }

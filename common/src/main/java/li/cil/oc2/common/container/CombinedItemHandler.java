@@ -49,6 +49,12 @@ public final class CombinedItemHandler implements ItemHandler {
         return handlers[index].extractItem(slot - baseSlot[index], amount, simulate);
     }
 
+    @Override
+    public int getSlotLimit(final int slot) {
+        final int index = indexOf(slot);
+        return handlers[index].getSlotLimit(slot - baseSlot[index]);
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     private int indexOf(final int slot) {

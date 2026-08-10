@@ -23,6 +23,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -42,8 +43,8 @@ import static li.cil.oc2.common.bus.device.DeviceTypes.key;
 
 public final class RobotItem extends ModItem implements CreativeTabItemProvider {
     @Override
-    public void addCreativeTabItems(final CreativeModeTab.Output output) {
-        output.accept(getRobotWithFlash());
+    public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
+        output.accept(getRobotWithFlash(parameters.holders()));
     }
 
     @Override
@@ -82,7 +83,7 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
             robot.importFromItemStack(context.getItemInHand());
 
             level.addFreshEntity(robot);
-            LevelUtils.playSound(level, new BlockPos(position), SoundType.METAL, SoundType::getPlaceSound);
+            LevelUtils.playSound(level, BlockPos.containing(position), SoundType.METAL, SoundType::getPlaceSound);
 
             if (context.getPlayer() == null || !context.getPlayer().isCreative()) {
                 context.getItemInHand().shrink(1);
@@ -104,13 +105,15 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
 
     ///////////////////////////////////////////////////////////////////
 
-    private ItemStack getRobotWithFlash() {
+    private ItemStack getRobotWithFlash(final HolderLookup.Provider provider) {
         final ItemStack robot = new ItemStack(this);
 
-        final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(ItemStackUtils.getModDataTag(robot), ITEMS_TAG_NAME);
-        itemsTag.put(key(DeviceTypes.FLASH_MEMORY), makeInventoryTag(
-            new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
-        ));
+        ItemStackUtils.modifyModDataTag(robot, tag -> {
+            final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
+            itemsTag.put(key(DeviceTypes.FLASH_MEMORY), makeInventoryTag(provider,
+                new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
+            ));
+        });
 
         return robot;
     }

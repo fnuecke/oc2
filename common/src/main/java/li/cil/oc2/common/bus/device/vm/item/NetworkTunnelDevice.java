@@ -51,7 +51,8 @@ public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
     }
 
     ///////////////////////////////////////////////////////////////
-    static final class TunnelManager {
+
+    public static final class TunnelManager {
         private static final int BYTES_PER_TICK = 32 * 1024 / TickUtils.toTicks(Duration.ofSeconds(1)); // bytes / sec -> bytes / tick
         private static final int MIN_ETHERNET_FRAME_SIZE = 42;
 

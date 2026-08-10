@@ -22,12 +22,12 @@ public final class EnergyStorageDevice extends IdentityProxy<EnergyStorage> impl
 
     @Callback
     public int getEnergyStored() {
-        return identity.getEnergyStored();
+        return (int) identity.getEnergyStored();
     }
 
     @Callback
     public int getMaxEnergyStored() {
-        return identity.getMaxEnergyStored();
+        return (int) identity.getMaxEnergyStored();
     }
 
     @Callback

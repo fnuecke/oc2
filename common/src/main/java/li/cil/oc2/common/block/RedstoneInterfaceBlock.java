@@ -45,15 +45,13 @@ public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock imp
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public boolean isSignalSource(final BlockState state) {
+    protected boolean isSignalSource(final BlockState state) {
         return true;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public int getSignal(final BlockState state, final BlockGetter level, final BlockPos pos, final Direction side) {
+    protected int getSignal(final BlockState state, final BlockGetter level, final BlockPos pos, final Direction side) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof final RedstoneInterfaceBlockEntity redstoneInterface) {
             // Redstone requests info for faces with external perspective. We treat
@@ -65,13 +63,7 @@ public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock imp
     }
 
     @Override
-    public boolean shouldCheckWeakPower(final BlockState state, final LevelReader level, final BlockPos pos, final Direction side) {
-        return false;
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public int getDirectSignal(final BlockState state, final BlockGetter level, final BlockPos pos, final Direction side) {
+    protected int getDirectSignal(final BlockState state, final BlockGetter level, final BlockPos pos, final Direction side) {
         return getSignal(state, level, pos, side);
     }
 

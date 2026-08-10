@@ -5,6 +5,7 @@ package li.cil.oc2.client.gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.MutableComponent;
 import com.mojang.blaze3d.platform.GlStateManager;
+import org.joml.Matrix4fStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -234,19 +235,19 @@ public final class NetworkInterfaceCardScreen extends Screen {
             final Vector3f renderRotation = new Vector3f(rotation);
             renderRotation.add(0, 180, 0);
 
-            final PoseStack stack = RenderSystem.getModelViewStack();
-            stack.pushPose();
+            final Matrix4fStack stack = RenderSystem.getModelViewStack();
+            stack.pushMatrix();
             stack.translate(x, y, 0);
-            stack.mulPose(fromXYZDegrees(renderRotation));
+            stack.rotate(fromXYZDegrees(renderRotation));
             stack.scale(BLOCK_RENDER_SIZE, -BLOCK_RENDER_SIZE, BLOCK_RENDER_SIZE);
             RenderSystem.applyModelViewMatrix();
 
             final MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
             renderBlock(bufferSource);
-            renderOverlays(stack, bufferSource);
+            renderOverlays(new PoseStack(), bufferSource);
             bufferSource.endBatch();
 
-            stack.popPose();
+            stack.popMatrix();
             RenderSystem.applyModelViewMatrix();
         }
 

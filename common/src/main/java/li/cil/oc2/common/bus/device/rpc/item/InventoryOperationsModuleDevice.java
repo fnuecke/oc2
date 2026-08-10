@@ -226,7 +226,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     }
 
     private Stream<ItemHandler> getBlockItemHandlersAt(final Vec3 position, final Direction side) {
-        final BlockPos pos = new BlockPos(position);
+        final BlockPos pos = BlockPos.containing(position);
         final BlockEntity blockEntity = entity.level().getBlockEntity(pos);
         if (blockEntity == null) {
             return Stream.empty();

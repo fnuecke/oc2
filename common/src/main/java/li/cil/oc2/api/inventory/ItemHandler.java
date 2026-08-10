@@ -44,4 +44,14 @@ public interface ItemHandler {
      * @return the extracted stack; {@link ItemStack#EMPTY} if nothing was extracted.
      */
     ItemStack extractItem(int slot, int amount, boolean simulate);
+
+    /**
+     * The maximum number of items the specified slot can hold.
+     *
+     * @param slot the slot to get the limit for.
+     * @return the slot's capacity.
+     */
+    default int getSlotLimit(final int slot) {
+        return 64;
+    }
 }

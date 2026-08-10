@@ -84,8 +84,8 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
             @Override
             public int getInt(final int index) {
                 return switch (index) {
-                    case AbstractMachineContainer.ENERGY_STORED_INDEX -> energy.getEnergyStored();
-                    case AbstractMachineContainer.ENERGY_CAPACITY_INDEX -> energy.getMaxEnergyStored();
+                    case AbstractMachineContainer.ENERGY_STORED_INDEX -> (int) energy.getEnergyStored();
+                    case AbstractMachineContainer.ENERGY_CAPACITY_INDEX -> (int) energy.getMaxEnergyStored();
                     case AbstractMachineContainer.ENERGY_CONSUMPTION_INDEX -> busController.getEnergyConsumption();
                     default -> 0;
                 };

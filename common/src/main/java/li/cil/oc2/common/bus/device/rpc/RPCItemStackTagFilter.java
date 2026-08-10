@@ -27,7 +27,7 @@ public final class RPCItemStackTagFilter {
             return null;
         }
 
-        if (item != null && !BuiltInRegistries.ITEM.getKey(Objects.equals(stack.getItem()), item)) {
+        if (item != null && !Objects.equals(BuiltInRegistries.ITEM.getKey(stack.getItem()), item)) {
             return null;
         }
 

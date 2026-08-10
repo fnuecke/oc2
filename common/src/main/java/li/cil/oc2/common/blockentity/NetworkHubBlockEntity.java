@@ -105,9 +105,9 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
             final BlockEntity neighborBlockEntity = LevelUtils.getBlockEntityIfChunkExists(level, pos.relative(side));
             if (neighborBlockEntity != null) {
                 final NetworkInterface neighborInterface = Capabilities.get(neighborBlockEntity, Capabilities.NETWORK_INTERFACE, side.getOpposite());
-                optional.ifPresent(adjacentInterface -> {
-                    adjacentBlockInterfaces[side.get3DDataValue()] = adjacentInterface;
-                });
+                if (neighborInterface != null) {
+                    adjacentBlockInterfaces[side.get3DDataValue()] = neighborInterface;
+                }
             }
         }
     }

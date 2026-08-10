@@ -32,7 +32,7 @@ public final class RobotWithoutLevelRenderer extends BlockEntityWithoutLevelRend
         poseStack.translate(0.5, 0, 0.5);
 
         final VertexConsumer consumer = bufferSource.getBuffer(model.renderType(RobotModel.ROBOT_ENTITY_TEXTURE));
-        model.renderToBuffer(poseStack, consumer, combinedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
+        model.renderToBuffer(poseStack, consumer, combinedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 
         poseStack.popPose();
     }

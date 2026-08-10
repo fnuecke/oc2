@@ -89,7 +89,7 @@ public abstract class LevelRendererMixin {
 
             // We do want particles and weather (rain) though, because that's a neat effect.
             final MultiBufferSource.BufferSource bufferSource = renderBuffers.bufferSource();
-            minecraft.particleEngine.render(stack, bufferSource, lightTexture, camera, partialTicks, cullingFrustum);
+            minecraft.particleEngine.render(lightTexture, camera, partialTicks);
             bufferSource.endBatch();
 
             final Vec3 cameraPosition = camera.getPosition();

@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class ImmutableHorizontalBlock extends HorizontalDirectionalBlock {
-    public static final MapCodec<ImmutableHorizontalBlock> CODEC = MapCodec.unit(ImmutableHorizontalBlock::new);
+    public static final MapCodec<ImmutableHorizontalBlock> CODEC = simpleCodec(ImmutableHorizontalBlock::new);
 
     @Override
     protected MapCodec<? extends ImmutableHorizontalBlock> codec() {

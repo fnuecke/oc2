@@ -19,6 +19,7 @@ import li.cil.oc2.common.serialization.ceres.Serializers;
 import li.cil.oc2.common.tags.BlockTags;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.ServerScheduler;
+import li.cil.oc2.common.util.ServerUtils;
 import li.cil.oc2.common.vm.Allocator;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.network.ProjectorLoadBalancer;
@@ -64,6 +65,7 @@ public final class Main {
 
         RegistryUtils.finish();
 
+        ServerUtils.initialize();
         ServerScheduler.initialize();
         Allocator.initialize();
         BlobStorage.initialize();

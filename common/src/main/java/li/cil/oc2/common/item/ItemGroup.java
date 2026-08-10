@@ -28,7 +28,7 @@ public final class ItemGroup {
             builder.displayItems((parameters, output) -> BuiltInRegistries.ITEM.entrySet().stream()
                 .filter(entry -> entry.getKey().location().getNamespace().equals(API.MOD_ID))
                 .map(Map.Entry::getValue)
-                .forEach(item -> addItem(item, output)));
+                .forEach(item -> addItem(item, parameters, output)));
         }));
 
     ///////////////////////////////////////////////////////////////////
@@ -38,9 +38,9 @@ public final class ItemGroup {
 
     ///////////////////////////////////////////////////////////////////
 
-    private static void addItem(final Item item, final CreativeModeTab.Output output) {
+    private static void addItem(final Item item, final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
         if (item instanceof final CreativeTabItemProvider provider) {
-            provider.addCreativeTabItems(output);
+            provider.addCreativeTabItems(parameters, output);
         } else {
             output.accept(new ItemStack(item));
         }

@@ -36,7 +36,7 @@ public final class NetworkTunnelContainer extends AbstractContainer {
 
             @Override
             public void saveExtraData(final FriendlyByteBuf buffer) {
-                buffer.writeBlockPos(b -> b.writeEnum(hand));
+                buffer.writeEnum(hand);
             }
         });
     }

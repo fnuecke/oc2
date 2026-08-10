@@ -121,7 +121,6 @@ public final class KeyboardScreen extends Screen {
     }
 
     private void grabMouse() {
-        final Minecraft minecraft = minecraft;
         final MouseHandler mouseHandler = minecraft.mouseHandler;
         mouseHandler.mouseGrabbed = true;
         InputConstants.grabOrReleaseMouse(minecraft.getWindow().getWindow(), InputConstants.CURSOR_DISABLED, mouseHandler.xpos(), mouseHandler.ypos());
@@ -136,7 +135,6 @@ public final class KeyboardScreen extends Screen {
     }
 
     private void swingArm() {
-        final Minecraft minecraft = minecraft;
         final LocalPlayer player = minecraft.player;
         if (player == null) {
             return;

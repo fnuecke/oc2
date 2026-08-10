@@ -50,6 +50,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
@@ -525,7 +526,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         public float topRenderRotationSpeed;
         public float topRenderHover = -(hashCode() & 0xFFFF); // init to "random" to avoid synchronous hovering
 
-        public void update(final float deltaTime, final Random random) {
+        public void update(final float deltaTime, final RandomSource random) {
             if (getVirtualMachine().isRunning() || actionProcessor.hasQueuedActions()) {
                 topRenderHover = topRenderHover + deltaTime * HOVER_ANIMATION_SPEED;
                 final float topOffsetY = Mth.sin(topRenderHover) / 32f;

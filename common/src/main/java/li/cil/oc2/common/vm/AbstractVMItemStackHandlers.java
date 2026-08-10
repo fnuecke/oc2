@@ -15,6 +15,7 @@ import li.cil.oc2.common.container.AbstractTypedDeviceItemStackHandler;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import li.cil.oc2.common.container.CombinedItemHandler;
 import li.cil.oc2.api.inventory.ItemHandler;
 
 import java.util.*;

@@ -23,13 +23,13 @@ public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem
 
     public HardDriveWithExternalDataItem(final ResourceLocation defaultData, final DyeColor defaultColor) {
         super(defaultData);
-        this.defaultColor = ColorUtils.textureDiffuseColorsToRGB(defaultColor.getTextureDiffuseColors());
+        this.defaultColor = defaultColor.getTextureDiffuseColor();
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void addCreativeTabItems(final CreativeModeTab.Output output) {
+    public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
         output.accept(new ItemStack(this));
 
         BlockDeviceDataRegistry.values().forEach(data -> {

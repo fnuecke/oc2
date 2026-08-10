@@ -3,6 +3,7 @@
 package li.cil.oc2.common.util;
 
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import li.cil.oc2.common.container.ItemStackHandler;
@@ -57,7 +58,7 @@ public final class NBTUtils {
         return childTag;
     }
 
-    public static CompoundTag makeInventoryTag(final ItemStack... items) {
-        return new ItemStackHandler(NonNullList.of(ItemStack.EMPTY, items)).serializeNBT();
+    public static CompoundTag makeInventoryTag(final HolderLookup.Provider provider, final ItemStack... items) {
+        return new ItemStackHandler(NonNullList.of(ItemStack.EMPTY, items)).serializeNBT(provider);
     }
 }

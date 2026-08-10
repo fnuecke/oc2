@@ -35,7 +35,7 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
 
             @Override
             public void saveExtraData(final FriendlyByteBuf buffer) {
-                buffer.writeBlockPos(b -> b.writeVarInt(robot.getId()));
+                buffer.writeVarInt(robot.getId());
             }
         });
     }

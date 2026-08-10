@@ -3,7 +3,7 @@
 package li.cil.oc2.common.tags;
 
 import li.cil.oc2.api.API;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
@@ -21,6 +21,6 @@ public final class BlockTags {
     ///////////////////////////////////////////////////////////////////
 
     private static TagKey<Block> tag(final String name) {
-        return TagKey.create(Registry.BLOCK_REGISTRY, ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name));
+        return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name));
     }
 }

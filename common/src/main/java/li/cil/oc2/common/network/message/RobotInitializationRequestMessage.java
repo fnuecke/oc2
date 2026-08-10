@@ -3,7 +3,9 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.entity.Robot;
+import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.MessageUtils;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import dev.architectury.networking.NetworkManager;
 
@@ -36,7 +38,11 @@ public final class RobotInitializationRequestMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
+        if (!(context.getPlayer() instanceof final ServerPlayer player)) {
+            return;
+        }
+
         MessageUtils.withServerEntity(context, entityId, Robot.class,
-            robot -> reply(new RobotInitializationMessage(robot), context));
+            robot -> Network.sendToClient(new RobotInitializationMessage(robot), player));
     }
 }

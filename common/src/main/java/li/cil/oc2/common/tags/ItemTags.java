@@ -3,7 +3,7 @@
 package li.cil.oc2.common.tags;
 
 import li.cil.oc2.api.API;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -30,6 +30,6 @@ public final class ItemTags {
     ///////////////////////////////////////////////////////////////////
 
     private static TagKey<Item> tag(final String name) {
-        return TagKey.create(Registry.ITEM_REGISTRY, ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name));
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name));
     }
 }

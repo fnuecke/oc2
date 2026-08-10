@@ -68,16 +68,12 @@ public final class BusInterfaceItem extends ModBlockItem implements CreativeTabI
     }
 
     @Override
-    public void addCreativeTabItems(final CreativeModeTab.Output output) {
+    public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
         output.accept(new ItemStack(this));
     }
 
     @Override
     public void registerBlocks(final Map<Block, Item> map, final Item item) {
-    }
-
-    @Override
-    public void removeFromBlockToItemMap(final Map<Block, Item> map, final Item item) {
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -115,7 +111,7 @@ public final class BusInterfaceItem extends ModBlockItem implements CreativeTabI
             CriteriaTriggers.PLACED_BLOCK.trigger(serverPlayer, pos, stack);
         }
 
-        LevelUtils.playSound(level, pos, state.getSoundType(level, pos, player), SoundType::getPlaceSound);
+        LevelUtils.playSound(level, pos, state.getSoundType(), SoundType::getPlaceSound);
 
         if (player == null || !player.getAbilities().instabuild) {
             stack.shrink(1);

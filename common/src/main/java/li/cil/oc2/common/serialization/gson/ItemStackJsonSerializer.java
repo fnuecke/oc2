@@ -12,6 +12,10 @@ import net.minecraft.world.item.ItemStack;
 
 import java.lang.reflect.Type;
 
+import li.cil.oc2.common.util.ServerUtils;
+
+import net.minecraft.nbt.CompoundTag;
+
 public final class ItemStackJsonSerializer implements JsonSerializer<ItemStack> {
     @Override
     public JsonElement serialize(final ItemStack src, final Type typeOfSrc, final JsonSerializationContext context) {
@@ -19,7 +23,7 @@ public final class ItemStackJsonSerializer implements JsonSerializer<ItemStack> 
             return JsonNull.INSTANCE;
         }
 
-        final JsonElement json = NBTToJsonConverter.convert(RPCItemStackTagFilters.getFilteredTag(src, src.serializeNBT()));
+        final JsonElement json = NBTToJsonConverter.convert(RPCItemStackTagFilters.getFilteredTag(src, (CompoundTag) src.save(ServerUtils.getRegistryAccess())));
 
         // Manually patch the count: the NBT conversion truncates it to byte, but some mods use larger stack sizes.
         json.getAsJsonObject().addProperty("Count", src.getCount());

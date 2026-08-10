@@ -38,8 +38,7 @@ public final class OpenRobotTerminalMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
-        final ServerPlayer player = context.getPlayer();
-        if (player != null) {
+        if (context.getPlayer() instanceof final ServerPlayer player) {
             MessageUtils.withNearbyServerEntity(context, entityId, Robot.class,
                 robot -> robot.openTerminalScreen(player));
         }

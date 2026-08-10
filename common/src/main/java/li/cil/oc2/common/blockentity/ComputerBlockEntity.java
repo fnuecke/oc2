@@ -25,6 +25,7 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ComputerInventoryContainer;
 import li.cil.oc2.common.container.ComputerTerminalContainer;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
+import li.cil.oc2.common.network.message.AbstractMessage;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerBootErrorMessage;
 import li.cil.oc2.common.network.message.ComputerBusStateMessage;
@@ -302,7 +303,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     ///////////////////////////////////////////////////////////////////
 
-    private <T> void sendToClientsTrackingComputer(final T message) {
+    private <T extends AbstractMessage> void sendToClientsTrackingComputer(final T message) {
         if (chunk != null) {
             Network.sendToClientsTrackingChunk(message, chunk);
         }

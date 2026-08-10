@@ -5,9 +5,9 @@ package li.cil.oc2.common.network.message;
 import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.network.NetworkEvent;
+import dev.architectury.networking.NetworkManager;
 
 public final class BusCableFacadeMessage extends AbstractMessage {
     private BlockPos pos;
@@ -20,20 +20,20 @@ public final class BusCableFacadeMessage extends AbstractMessage {
         this.stack = stack;
     }
 
-    public BusCableFacadeMessage(final FriendlyByteBuf buffer) {
+    public BusCableFacadeMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         stack = buffer.readItem();
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeItem(stack);
     }
@@ -41,7 +41,7 @@ public final class BusCableFacadeMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final NetworkEvent.Context context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, BusCableBlockEntity.class,
             busCable -> busCable.setFacade(stack));
     }

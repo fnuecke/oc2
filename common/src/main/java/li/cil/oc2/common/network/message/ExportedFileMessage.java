@@ -3,8 +3,8 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.client.gui.FileChooserScreen;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import dev.architectury.networking.NetworkManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,27 +26,27 @@ public final class ExportedFileMessage extends AbstractMessage {
         this.data = data;
     }
 
-    public ExportedFileMessage(final FriendlyByteBuf buffer) {
+    public ExportedFileMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         name = buffer.readUtf();
         data = buffer.readByteArray();
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeUtf(name);
         buffer.writeByteArray(data);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    protected void handleMessage(final NetworkEvent.Context context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         FileChooserScreen.openFileChooserForSave(name, path -> {
             try {
                 Files.write(path, data);

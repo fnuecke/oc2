@@ -15,11 +15,12 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import li.cil.oc2.common.container.ItemStackHandler;
-import net.minecraftforge.network.NetworkHooks;
+import dev.architectury.registry.menu.ExtendedMenuProvider;
+import dev.architectury.registry.menu.MenuRegistry;
 
 public final class RobotTerminalContainer extends AbstractRobotContainer {
     public static void createServer(final Robot robot, final FixedEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
-        NetworkHooks.openGui(player, new MenuProvider() {
+        MenuRegistry.openExtendedMenu(player, new ExtendedMenuProvider() {
             @Override
             public Component getDisplayName() {
                 return robot.getName();
@@ -29,7 +30,12 @@ public final class RobotTerminalContainer extends AbstractRobotContainer {
             public AbstractContainerMenu createMenu(final int id, final Inventory inventory, final Player player) {
                 return new RobotTerminalContainer(id, player, robot, createEnergyInfo(energy, busController));
             }
-        }, b -> b.writeVarInt(robot.getId()));
+
+            @Override
+            public void saveExtraData(final FriendlyByteBuf buffer) {
+                buffer.writeBlockPos(b -> b.writeVarInt(robot.getId()));
+            }
+        });
     }
 
     public static RobotTerminalContainer createClient(final int id, final Inventory inventory, final FriendlyByteBuf data) {

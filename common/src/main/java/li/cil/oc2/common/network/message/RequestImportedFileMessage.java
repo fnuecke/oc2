@@ -7,9 +7,9 @@ import li.cil.oc2.client.gui.FileChooserScreen;
 import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.network.Network;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.TextColor;
-import net.minecraftforge.network.NetworkEvent;
+import dev.architectury.networking.NetworkManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,26 +33,26 @@ public final class RequestImportedFileMessage extends AbstractMessage {
         this.id = id;
     }
 
-    public RequestImportedFileMessage(final FriendlyByteBuf buffer) {
+    public RequestImportedFileMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         id = buffer.readVarInt();
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeVarInt(id);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final NetworkEvent.Context context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         FileChooserScreen.openFileChooserForLoad(new FileChooserScreen.FileChooserCallback() {
             @Override
             public void onFileSelected(final Path path) {

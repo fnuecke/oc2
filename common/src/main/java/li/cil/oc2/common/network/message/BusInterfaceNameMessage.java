@@ -6,8 +6,8 @@ import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import dev.architectury.networking.NetworkManager;
 
 public abstract class BusInterfaceNameMessage extends AbstractMessage {
     protected BlockPos pos;
@@ -22,21 +22,21 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
         this.value = value;
     }
 
-    protected BusInterfaceNameMessage(final FriendlyByteBuf buffer) {
+    protected BusInterfaceNameMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         side = buffer.readEnum(Direction.class);
         value = buffer.readUtf(32);
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeEnum(side);
         buffer.writeUtf(value, 32);
@@ -49,12 +49,12 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
             super(busCable, side, value);
         }
 
-        public ToClient(final FriendlyByteBuf buffer) {
+        public ToClient(final RegistryFriendlyByteBuf buffer) {
             super(buffer);
         }
 
         @Override
-        protected void handleMessage(final NetworkEvent.Context context) {
+        protected void handleMessage(final NetworkManager.PacketContext context) {
             MessageUtils.withClientBlockEntityAt(pos, BusCableBlockEntity.class,
                 busCable -> busCable.setInterfaceName(side, value));
         }
@@ -65,12 +65,12 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
             super(busCable, side, value);
         }
 
-        public ToServer(final FriendlyByteBuf buffer) {
+        public ToServer(final RegistryFriendlyByteBuf buffer) {
             super(buffer);
         }
 
         @Override
-        protected void handleMessage(final NetworkEvent.Context context) {
+        protected void handleMessage(final NetworkManager.PacketContext context) {
             MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos, BusCableBlockEntity.class,
                 (player, busCable) -> busCable.setInterfaceName(side, value));
         }

@@ -5,9 +5,9 @@ package li.cil.oc2.common.network.message;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.network.NetworkEvent;
+import dev.architectury.networking.NetworkManager;
 
 import javax.annotation.Nullable;
 
@@ -22,20 +22,20 @@ public final class ComputerBootErrorMessage extends AbstractMessage {
         this.value = value;
     }
 
-    public ComputerBootErrorMessage(final FriendlyByteBuf buffer) {
+    public ComputerBootErrorMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         value = buffer.readComponent();
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeComponent(value);
     }
@@ -43,7 +43,7 @@ public final class ComputerBootErrorMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final NetworkEvent.Context context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, ComputerBlockEntity.class,
             computer -> computer.getVirtualMachine().setBootErrorClient(value));
     }

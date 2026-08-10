@@ -6,8 +6,8 @@ import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.vm.VMRunState;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import dev.architectury.networking.NetworkManager;
 
 public final class ComputerRunStateMessage extends AbstractMessage {
     private BlockPos pos;
@@ -20,20 +20,20 @@ public final class ComputerRunStateMessage extends AbstractMessage {
         this.value = value;
     }
 
-    public ComputerRunStateMessage(final FriendlyByteBuf buffer) {
+    public ComputerRunStateMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         value = buffer.readEnum(VMRunState.class);
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeEnum(value);
     }
@@ -41,7 +41,7 @@ public final class ComputerRunStateMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final NetworkEvent.Context context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, ComputerBlockEntity.class,
             computer -> computer.getVirtualMachine().setRunStateClient(value));
     }

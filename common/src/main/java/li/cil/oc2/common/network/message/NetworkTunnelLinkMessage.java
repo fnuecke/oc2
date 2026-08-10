@@ -3,10 +3,10 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.container.NetworkTunnelContainer;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraftforge.network.NetworkEvent;
+import dev.architectury.networking.NetworkManager;
 
 public final class NetworkTunnelLinkMessage extends AbstractMessage {
     private int containerId;
@@ -17,26 +17,26 @@ public final class NetworkTunnelLinkMessage extends AbstractMessage {
         this.containerId = containerId;
     }
 
-    public NetworkTunnelLinkMessage(final FriendlyByteBuf buffer) {
+    public NetworkTunnelLinkMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         containerId = buffer.readVarInt();
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeVarInt(containerId);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final NetworkEvent.Context context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         final ServerPlayer player = context.getSender();
         if (player == null) {
             return;

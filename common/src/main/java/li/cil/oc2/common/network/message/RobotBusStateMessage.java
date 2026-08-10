@@ -5,8 +5,8 @@ package li.cil.oc2.common.network.message;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import dev.architectury.networking.NetworkManager;
 
 public final class RobotBusStateMessage extends AbstractMessage {
     private int entityId;
@@ -19,20 +19,20 @@ public final class RobotBusStateMessage extends AbstractMessage {
         this.value = value;
     }
 
-    public RobotBusStateMessage(final FriendlyByteBuf buffer) {
+    public RobotBusStateMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         entityId = buffer.readVarInt();
         value = buffer.readEnum(CommonDeviceBusController.BusState.class);
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeVarInt(entityId);
         buffer.writeEnum(value);
     }
@@ -40,7 +40,7 @@ public final class RobotBusStateMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final NetworkEvent.Context context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientEntity(entityId, Robot.class,
             robot -> robot.getVirtualMachine().setBusStateClient(value));
     }

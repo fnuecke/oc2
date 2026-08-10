@@ -3,8 +3,8 @@
 package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import dev.architectury.networking.NetworkManager;
 
 import java.util.function.Supplier;
 
@@ -25,21 +25,21 @@ public final class ImportedFileMessage extends AbstractMessage {
         this.data = data;
     }
 
-    public ImportedFileMessage(final FriendlyByteBuf buffer) {
+    public ImportedFileMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         id = buffer.readVarInt();
         name = buffer.readUtf(MAX_NAME_LENGTH);
         data = buffer.readByteArray();
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeVarInt(id);
         buffer.writeUtf(name, MAX_NAME_LENGTH);
         buffer.writeByteArray(data);
@@ -48,7 +48,7 @@ public final class ImportedFileMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final Supplier<NetworkEvent.Context> context) {
+    protected void handleMessage(final Supplier<NetworkManager.PacketContext> context) {
         FileImportExportCardItemDevice.setImportedFile(id, name, data);
     }
 }

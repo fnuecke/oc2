@@ -10,13 +10,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.network.NetworkEvent;
+import dev.architectury.networking.NetworkManager;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class MessageUtils {
-    public static <T extends BlockEntity> void withNearbyServerBlockEntityForInteraction(final NetworkEvent.Context context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
+    public static <T extends BlockEntity> void withNearbyServerBlockEntityForInteraction(final NetworkManager.PacketContext context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
         final ServerPlayer player = context.getSender();
         if (player == null || !pos.closerToCenterThan(player.position(), 8)) {
             return;
@@ -26,7 +26,7 @@ public final class MessageUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends BlockEntity> void withNearbyServerBlockEntity(final NetworkEvent.Context context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
+    public static <T extends BlockEntity> void withNearbyServerBlockEntity(final NetworkManager.PacketContext context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
         final ServerPlayer player = context.getSender();
         if (player == null) {
             return;
@@ -40,7 +40,7 @@ public final class MessageUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Entity> void withServerEntity(final NetworkEvent.Context context, final int id, final Class<T> type, final Consumer<T> callback) {
+    public static <T extends Entity> void withServerEntity(final NetworkManager.PacketContext context, final int id, final Class<T> type, final Consumer<T> callback) {
         final ServerPlayer player = context.getSender();
         if (player == null) {
             return;
@@ -54,7 +54,7 @@ public final class MessageUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Entity> void withNearbyServerEntity(final NetworkEvent.Context context, final int id, final Class<T> type, final Consumer<T> callback) {
+    public static <T extends Entity> void withNearbyServerEntity(final NetworkManager.PacketContext context, final int id, final Class<T> type, final Consumer<T> callback) {
         final ServerPlayer player = context.getSender();
         if (player == null) {
             return;

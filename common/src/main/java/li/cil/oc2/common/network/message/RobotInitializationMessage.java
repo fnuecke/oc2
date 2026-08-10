@@ -8,9 +8,9 @@ import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.vm.VMRunState;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.network.NetworkEvent;
+import dev.architectury.networking.NetworkManager;
 
 public final class RobotInitializationMessage extends AbstractMessage {
     private int entityId;
@@ -29,14 +29,14 @@ public final class RobotInitializationMessage extends AbstractMessage {
         this.terminal = NBTSerialization.serialize(robot.getTerminal());
     }
 
-    public RobotInitializationMessage(final FriendlyByteBuf buffer) {
+    public RobotInitializationMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         entityId = buffer.readVarInt();
         busState = buffer.readEnum(CommonDeviceBusController.BusState.class);
         runState = buffer.readEnum(VMRunState.class);
@@ -45,7 +45,7 @@ public final class RobotInitializationMessage extends AbstractMessage {
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeVarInt(entityId);
         buffer.writeEnum(busState);
         buffer.writeEnum(runState);
@@ -56,7 +56,7 @@ public final class RobotInitializationMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final NetworkEvent.Context context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientEntity(entityId, Robot.class,
             robot -> {
                 robot.getVirtualMachine().setBusStateClient(busState);

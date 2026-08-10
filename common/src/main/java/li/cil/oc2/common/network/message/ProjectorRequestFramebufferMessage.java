@@ -6,8 +6,8 @@ import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.network.ProjectorLoadBalancer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import dev.architectury.networking.NetworkManager;
 
 public final class ProjectorRequestFramebufferMessage extends AbstractMessage {
     private BlockPos pos;
@@ -18,26 +18,26 @@ public final class ProjectorRequestFramebufferMessage extends AbstractMessage {
         this.pos = projector.getBlockPos();
     }
 
-    public ProjectorRequestFramebufferMessage(final FriendlyByteBuf buffer) {
+    public ProjectorRequestFramebufferMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final NetworkEvent.Context context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withNearbyServerBlockEntity(context, pos, ProjectorBlockEntity.class,
             (player, projector) -> ProjectorLoadBalancer.updateWatcher(projector, player));
     }

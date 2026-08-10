@@ -4,8 +4,8 @@ package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import dev.architectury.networking.NetworkManager;
 
 import java.nio.ByteBuffer;
 
@@ -14,14 +14,14 @@ public final class ComputerTerminalOutputMessage extends AbstractTerminalBlockMe
         super(computer, data);
     }
 
-    public ComputerTerminalOutputMessage(final FriendlyByteBuf buffer) {
+    public ComputerTerminalOutputMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final NetworkEvent.Context context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, ComputerBlockEntity.class,
             computer -> computer.getTerminal().putOutput(ByteBuffer.wrap(data)));
     }

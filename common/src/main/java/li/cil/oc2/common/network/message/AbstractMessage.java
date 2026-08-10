@@ -2,44 +2,38 @@
 
 package li.cil.oc2.common.network.message;
 
+import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.common.network.Network;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.apache.commons.lang3.NotImplementedException;
 
-import java.util.function.Supplier;
-
-public abstract class AbstractMessage {
+public abstract class AbstractMessage implements CustomPacketPayload {
     protected AbstractMessage() {
     }
 
-    protected AbstractMessage(final FriendlyByteBuf buffer) {
+    protected AbstractMessage(final RegistryFriendlyByteBuf buffer) {
         fromBytes(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
-    public static boolean handleMessage(final AbstractMessage message, final Supplier<NetworkEvent.Context> contextSupplier) {
-        message.handleMessage(contextSupplier);
-        return true;
+    public abstract void fromBytes(final RegistryFriendlyByteBuf buffer);
+
+    public abstract void toBytes(final RegistryFriendlyByteBuf buffer);
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return Network.getMessageType(getClass());
     }
-
-    public abstract void fromBytes(final FriendlyByteBuf buffer);
-
-    public abstract void toBytes(final FriendlyByteBuf buffer);
 
     ///////////////////////////////////////////////////////////////////
 
-    protected void handleMessage(final Supplier<NetworkEvent.Context> contextSupplier) {
-        final NetworkEvent.Context context = contextSupplier.get();
-        context.enqueueWork(() -> handleMessage(context));
+    protected void handleMessage(final NetworkManager.PacketContext context) {
+        throw new NotImplementedException("Message does not implement handleMessage().");
     }
 
-    protected void handleMessage(final NetworkEvent.Context context) {
-        throw new NotImplementedException("Message implements neither asynchronous nor synchronous handleMessage() method.");
-    }
-
-    protected <T> void reply(final T message, final NetworkEvent.Context context) {
-        Network.INSTANCE.reply(message, context);
+    public void handle(final NetworkManager.PacketContext context) {
+        handleMessage(context);
     }
 }

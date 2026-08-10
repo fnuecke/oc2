@@ -4,7 +4,7 @@ package li.cil.oc2.common.network.message;
 
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 
 import java.nio.ByteBuffer;
 
@@ -19,20 +19,20 @@ public abstract class AbstractTerminalBlockMessage extends AbstractMessage {
         this.data = data.array();
     }
 
-    protected AbstractTerminalBlockMessage(final FriendlyByteBuf buffer) {
+    protected AbstractTerminalBlockMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         data = buffer.readByteArray();
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeByteArray(data);
     }

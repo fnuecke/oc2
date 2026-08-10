@@ -10,9 +10,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.network.Network;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.game.ServerboundCustomPayloadPacket;
-import net.minecraftforge.network.NetworkEvent;
+import dev.architectury.networking.NetworkManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -54,7 +54,7 @@ public final class MultipartMessage extends AbstractMessage {
     private static final Int2ObjectMap<Entry> ENTRY_BY_ID = new Int2ObjectArrayMap<>();
     private static int lastAssignedId;
 
-    public static <T extends AbstractMessage> void registerMessage(final Class<T> type, final Function<FriendlyByteBuf, T> factory) {
+    public static <T extends AbstractMessage> void registerMessage(final Class<T> type, final Function<RegistryFriendlyByteBuf, T> factory) {
         if (ENTRY_BY_TYPE.containsKey(type)) {
             throw new IllegalArgumentException("Message of this type has already been registered.");
         }
@@ -67,7 +67,7 @@ public final class MultipartMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     public static void sendToServer(final AbstractMessage message) {
-        final FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+        final RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer());
         message.toBytes(buffer);
         if (buffer.readableBytes() <= MAX_PAYLOAD_SIZE) {
             // Message fits into one custom payload packet, send it as is.
@@ -113,14 +113,14 @@ public final class MultipartMessage extends AbstractMessage {
         this.data = data;
     }
 
-    public MultipartMessage(final FriendlyByteBuf buffer) {
+    public MultipartMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         isFinalPart = buffer.readableBytes() < MAX_PAYLOAD_SIZE - 1 /* forge message index */;
 
         messageId = buffer.readInt();
@@ -131,7 +131,7 @@ public final class MultipartMessage extends AbstractMessage {
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeInt(messageId);
         buffer.writeInt(multipartMessageId);
         buffer.writeShort(data.length);
@@ -141,7 +141,7 @@ public final class MultipartMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final Supplier<NetworkEvent.Context> contextSupplier) {
+    protected void handleMessage(final Supplier<NetworkManager.PacketContext> contextSupplier) {
         try {
             final ByteBuf buffer = MULTIPART_MESSAGE_BUFFER_CACHE.get(lastAssignedMultipartMessageId, Unpooled::buffer);
             if (buffer.capacity() == 0) {
@@ -164,7 +164,7 @@ public final class MultipartMessage extends AbstractMessage {
                     return;
                 }
 
-                entry.factory.apply(new FriendlyByteBuf(buffer)).handleMessage(contextSupplier);
+                entry.factory.apply(new RegistryFriendlyByteBuf(buffer)).handleMessage(contextSupplier);
             }
         } catch (final ExecutionException e) {
             LOGGER.error("Error when handling multipart message received from client [{}]: {}", contextSupplier.get().getSender(), e);
@@ -173,5 +173,5 @@ public final class MultipartMessage extends AbstractMessage {
 
     ///////////////////////////////////////////////////////////////////
 
-    private record Entry(int id, Function<FriendlyByteBuf, ? extends AbstractMessage> factory) { }
+    private record Entry(int id, Function<RegistryFriendlyByteBuf, ? extends AbstractMessage> factory) { }
 }

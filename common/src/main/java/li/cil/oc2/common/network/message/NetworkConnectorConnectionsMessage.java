@@ -5,8 +5,8 @@ package li.cil.oc2.common.network.message;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import dev.architectury.networking.NetworkManager;
 
 import java.util.ArrayList;
 
@@ -21,14 +21,14 @@ public final class NetworkConnectorConnectionsMessage extends AbstractMessage {
         this.connectedPositions = new ArrayList<>(networkConnector.getConnectedPositions());
     }
 
-    public NetworkConnectorConnectionsMessage(final FriendlyByteBuf buffer) {
+    public NetworkConnectorConnectionsMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         connectedPositions = new ArrayList<>();
         final int positionCount = buffer.readVarInt();
@@ -39,7 +39,7 @@ public final class NetworkConnectorConnectionsMessage extends AbstractMessage {
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeVarInt(connectedPositions.size());
         for (final BlockPos pos : connectedPositions) {
@@ -50,7 +50,7 @@ public final class NetworkConnectorConnectionsMessage extends AbstractMessage {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final NetworkEvent.Context context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, NetworkConnectorBlockEntity.class,
             networkConnector -> networkConnector.setConnectedPositionsClient(connectedPositions));
     }

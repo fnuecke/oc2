@@ -5,11 +5,11 @@ package li.cil.oc2.common.network.message;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.NetworkInterfaceCardItem;
 import net.minecraft.core.Direction;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.network.NetworkEvent;
+import dev.architectury.networking.NetworkManager;
 
 public final class NetworkInterfaceCardConfigurationMessage extends AbstractMessage {
     private InteractionHand hand;
@@ -24,21 +24,21 @@ public final class NetworkInterfaceCardConfigurationMessage extends AbstractMess
         this.value = value;
     }
 
-    public NetworkInterfaceCardConfigurationMessage(final FriendlyByteBuf buffer) {
+    public NetworkInterfaceCardConfigurationMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fromBytes(final FriendlyByteBuf buffer) {
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         hand = buffer.readEnum(InteractionHand.class);
         side = buffer.readEnum(Direction.class);
         value = buffer.readBoolean();
     }
 
     @Override
-    public void toBytes(final FriendlyByteBuf buffer) {
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeEnum(hand);
         buffer.writeEnum(side);
         buffer.writeBoolean(value);
@@ -47,7 +47,7 @@ public final class NetworkInterfaceCardConfigurationMessage extends AbstractMess
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void handleMessage(final NetworkEvent.Context context) {
+    protected void handleMessage(final NetworkManager.PacketContext context) {
         final ServerPlayer player = context.getSender();
         if (player == null) {
             return;

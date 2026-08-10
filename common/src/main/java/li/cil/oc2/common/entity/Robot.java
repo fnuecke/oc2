@@ -201,13 +201,13 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     public void start() {
-        if (!level.isClientSide()) {
+        if (!level().isClientSide()) {
             virtualMachine.start();
         }
     }
 
     public void stop() {
-        if (!level.isClientSide()) {
+        if (!level().isClientSide()) {
             virtualMachine.stop();
         }
     }
@@ -248,7 +248,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     @Override
     public void tick() {
-        final boolean isClient = level.isClientSide();
+        final boolean isClient = level().isClientSide();
 
         if (firstTick) {
             if (isClient) {
@@ -320,7 +320,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     @Override
     public InteractionResult interact(final Player player, final InteractionHand hand) {
         final ItemStack stack = player.getItemInHand(hand);
-        if (!level.isClientSide()) {
+        if (!level().isClientSide()) {
             if (Wrenches.isWrench(stack)) {
                 if (player.isShiftKeyDown()) {
                     dropSelf();
@@ -336,7 +336,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             }
         }
 
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.sidedSuccess(level().isClientSide());
     }
 
     @Override
@@ -345,10 +345,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     @Override
-    public void setRemoved(final RemovalReason reason) {
-        super.setRemoved(reason);
+    public void remove(final RemovalReason reason) {
+        super.remove(reason);
 
-        if (!level.isClientSide()) {
+        if (!level().isClientSide()) {
             // Full unload to release out-of-nbt persisted runtime-only data such as ram.
             virtualMachine.stop();
             virtualMachine.dispose();
@@ -404,11 +404,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void defineSynchedData() {
-        final SynchedEntityData dataManager = getEntityData();
-        dataManager.define(TARGET_POSITION, BlockPos.ZERO);
-        dataManager.define(TARGET_DIRECTION, Direction.NORTH);
-        dataManager.define(SELECTED_SLOT, (byte) 0);
+    protected void defineSynchedData(final SynchedEntityData.Builder builder) {
+        builder.define(TARGET_POSITION, BlockPos.ZERO);
+        builder.define(TARGET_DIRECTION, Direction.NORTH);
+        builder.define(SELECTED_SLOT, (byte) 0);
     }
 
     @Override
@@ -420,10 +419,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         tag.put(COMMAND_PROCESSOR_TAG_NAME, actionProcessor.serialize());
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.serialize());
-        tag.put(ITEMS_TAG_NAME, deviceItems.saveItems());
+        final HolderLookup.Provider registries = level().registryAccess();
+        tag.put(ITEMS_TAG_NAME, deviceItems.saveItems(registries));
         tag.put(DEVICES_TAG_NAME, deviceItems.saveDevices());
         tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
-        tag.put(INVENTORY_TAG_NAME, inventory.serializeNBT());
+        tag.put(INVENTORY_TAG_NAME, inventory.serializeNBT(registries));
         tag.putByte(SELECTED_SLOT_TAG_NAME, getEntityData().get(SELECTED_SLOT));
     }
 
@@ -433,10 +433,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
         actionProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
         busElement.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME));
-        deviceItems.loadItems(tag.getCompound(ITEMS_TAG_NAME));
+        final HolderLookup.Provider registries = level().registryAccess();
+        deviceItems.loadItems(registries, tag.getCompound(ITEMS_TAG_NAME));
         deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
         energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
-        inventory.deserializeNBT(tag.getCompound(INVENTORY_TAG_NAME));
+        inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG_NAME));
         setSelectedSlot(tag.getByte(SELECTED_SLOT_TAG_NAME));
     }
 
@@ -452,7 +453,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     @Override
     protected Vec3 limitPistonMovement(final Vec3 pos) {
-        lastPistonMovement = level.getGameTime();
+        lastPistonMovement = level().getGameTime();
         return super.limitPistonMovement(pos);
     }
 
@@ -607,7 +608,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         public void tick() {
-            if (level.isClientSide()) {
+            if (level().isClientSide()) {
                 RobotActions.performClient(Robot.this);
             } else {
                 if (action != null) {
@@ -690,7 +691,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         private boolean addAction(final AbstractRobotAction action) {
-            if (level.isClientSide()) {
+            if (level().isClientSide()) {
                 return false;
             }
 
@@ -729,7 +730,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         @Override
         protected void onChanged() {
             super.onChanged();
-            if (!level.isClientSide()) {
+            if (!level().isClientSide()) {
                 virtualMachine.busController.scheduleBusScan();
             }
         }
@@ -837,12 +838,12 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     public final class RobotDevice {
         @Callback(synchronize = false)
         public int getEnergyStored() {
-            return energy.getEnergyStored();
+            return (int) energy.getEnergyStored();
         }
 
         @Callback(synchronize = false)
         public int getEnergyCapacity() {
-            return energy.getMaxEnergyStored();
+            return (int) energy.getMaxEnergyStored();
         }
 
         @Callback(synchronize = false)

@@ -1,1 +1,12 @@
-accessWidener  v2  named
+accessWidener	v2	named
+
+# The projector swaps the game renderer's camera while rendering depth from each projector's view.
+accessible	field	net/minecraft/client/renderer/GameRenderer	mainCamera	Lnet/minecraft/client/Camera;
+mutable	field	net/minecraft/client/renderer/GameRenderer	mainCamera	Lnet/minecraft/client/Camera;
+
+# The keyboard screen grabs the mouse so the player can still look around while typing.
+accessible	field	net/minecraft/client/MouseHandler	mouseGrabbed	Z
+mutable	field	net/minecraft/client/MouseHandler	mouseGrabbed	Z
+
+# MultipartMessage splits payloads on the vanilla limit.
+accessible	field	net/minecraft/network/protocol/common/ServerboundCustomPayloadPacket	MAX_PAYLOAD_SIZE	I

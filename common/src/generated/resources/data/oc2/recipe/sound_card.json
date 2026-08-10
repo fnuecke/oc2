@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "oc2:circuit_board"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "S": {
+      "item": "minecraft:note_block"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    }
+  },
+  "pattern": [
+    "IST",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:sound_card"
+  }
+}

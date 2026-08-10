@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "oc2:circuit_board"
+    },
+    "D": {
+      "item": "minecraft:dispenser"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    },
+    "U": {
+      "tag": "minecraft:buttons"
+    },
+    "X": {
+      "item": "oc2:bus_interface"
+    }
+  },
+  "pattern": [
+    "IUI",
+    "XTD",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:disk_drive"
+  }
+}

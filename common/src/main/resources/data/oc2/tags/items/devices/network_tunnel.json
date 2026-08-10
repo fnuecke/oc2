@@ -1,7 +1,0 @@
-{
-  "replace": false,
-  "values": [
-    "oc2:network_tunnel_card",
-    "oc2:network_tunnel_module"
-  ]
-}

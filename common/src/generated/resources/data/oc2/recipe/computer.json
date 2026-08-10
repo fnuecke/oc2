@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "oc2:circuit_board"
+    },
+    "C": {
+      "tag": "c:chests/wooden"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    },
+    "X": {
+      "item": "oc2:bus_interface"
+    }
+  },
+  "pattern": [
+    "ICI",
+    "XTX",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:computer"
+  }
+}

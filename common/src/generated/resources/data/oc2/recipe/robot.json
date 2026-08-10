@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "oc2:circuit_board"
+    },
+    "C": {
+      "tag": "c:chests/wooden"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "P": {
+      "item": "minecraft:piston"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    }
+  },
+  "pattern": [
+    "ICI",
+    "PTP",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:robot"
+  }
+}

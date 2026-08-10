@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_network_connector": {
+      "conditions": {
+        "items": [
+          {
+            "items": "oc2:network_connector"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "oc2:network_hub"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_network_connector"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "oc2:network_hub"
+    ]
+  }
+}

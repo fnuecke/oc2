@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "oc2:circuit_board"
+    },
+    "E": {
+      "tag": "c:ender_pearls"
+    },
+    "G": {
+      "tag": "c:ingots/gold"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    }
+  },
+  "pattern": [
+    "TEG",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:network_tunnel_module"
+  }
+}

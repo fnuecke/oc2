@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "oc2:circuit_board"
+    },
+    "D": {
+      "tag": "c:gems/diamond"
+    },
+    "G": {
+      "tag": "c:ingots/gold"
+    },
+    "L": {
+      "item": "minecraft:redstone_lamp"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    },
+    "X": {
+      "item": "oc2:bus_interface"
+    }
+  },
+  "pattern": [
+    "GLG",
+    "XTD",
+    "GBG"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:projector"
+  }
+}

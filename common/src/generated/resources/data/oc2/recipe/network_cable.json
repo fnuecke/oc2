@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": {
+      "tag": "c:glass_blocks"
+    },
+    "S": {
+      "tag": "c:strings"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    }
+  },
+  "pattern": [
+    "SSS",
+    "GTG",
+    "SSS"
+  ],
+  "result": {
+    "count": 8,
+    "id": "oc2:network_cable"
+  }
+}

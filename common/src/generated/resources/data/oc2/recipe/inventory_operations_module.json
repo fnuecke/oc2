@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "oc2:circuit_board"
+    },
+    "C": {
+      "tag": "c:chests/wooden"
+    },
+    "G": {
+      "tag": "c:ingots/gold"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    }
+  },
+  "pattern": [
+    "TCG",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:inventory_operations_module"
+  }
+}

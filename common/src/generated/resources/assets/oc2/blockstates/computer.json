@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "oc2:block/computer",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "oc2:block/computer"
+    },
+    "facing=south": {
+      "model": "oc2:block/computer",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "oc2:block/computer",
+      "y": 270
+    }
+  }
+}

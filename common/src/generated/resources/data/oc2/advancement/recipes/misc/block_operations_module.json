@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_robot": {
+      "conditions": {
+        "items": [
+          {
+            "items": "oc2:robot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "oc2:block_operations_module"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_robot"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "oc2:block_operations_module"
+    ]
+  }
+}

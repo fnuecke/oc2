@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_computer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "oc2:computer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "oc2:sound_card"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_computer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "oc2:sound_card"
+    ]
+  }
+}

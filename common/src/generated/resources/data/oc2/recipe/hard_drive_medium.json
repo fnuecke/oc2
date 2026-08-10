@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "oc2:circuit_board"
+    },
+    "E": {
+      "tag": "c:gems/emerald"
+    },
+    "G": {
+      "tag": "c:ingots/gold"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    }
+  },
+  "pattern": [
+    "GTG",
+    "EBE"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:hard_drive_medium"
+  }
+}

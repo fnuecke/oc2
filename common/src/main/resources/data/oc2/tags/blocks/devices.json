@@ -1,9 +1,0 @@
-{
-  "replace": false,
-  "values": [
-    "oc2:computer",
-    "oc2:redstone_interface",
-    "oc2:disk_drive",
-    "oc2:projector"
-  ]
-}

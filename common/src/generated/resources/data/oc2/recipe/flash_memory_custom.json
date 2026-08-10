@@ -1,0 +1,16 @@
+{
+  "type": "oc2:wrench",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "oc2:wrench"
+    },
+    {
+      "item": "oc2:flash_memory"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:flash_memory_custom"
+  }
+}

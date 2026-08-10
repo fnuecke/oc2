@@ -7,9 +7,6 @@
         "BusCableBlockMixin",
         "WrenchItemMixin"
     ],
-    "client": [
-        "ModBlockEntityMixin"
-    ],
     "injectors": {
         "defaultRequire": 1
     }

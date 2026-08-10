@@ -6,9 +6,9 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.api.imc.RPCMethodParameterTypeAdapter;
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
 import net.minecraft.Util;
-import net.minecraftforge.fml.InterModComms;
-import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import li.cil.oc2.common.neoforge.ModEventBus;
+import net.neoforged.fml.InterModComms;
+import net.neoforged.fml.event.lifecycle.InterModProcessEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,7 +22,7 @@ public final class IMCNeoForge {
     private static final HashMap<String, Consumer<InterModComms.IMCMessage>> METHODS = Util.make(() -> {
         HashMap<String, Consumer<InterModComms.IMCMessage>> map = new HashMap<>();
 
-        map.put(API.IMC_ADD_RPC_METHOD_PARAMETER_TYPE_ADAPTER, IMC::addRPCMethodParameterTypeAdapter);
+        map.put(API.IMC_ADD_RPC_METHOD_PARAMETER_TYPE_ADAPTER, IMCNeoForge::addRPCMethodParameterTypeAdapter);
 
         return map;
     });
@@ -30,7 +30,7 @@ public final class IMCNeoForge {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(IMC::handleIMCMessages);
+        ModEventBus.INSTANCE.addListener(IMCNeoForge::handleIMCMessages);
     }
 
     ///////////////////////////////////////////////////////////////////

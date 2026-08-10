@@ -2,14 +2,15 @@
 
 package li.cil.oc2.common.neoforge;
 
-import dev.architectury.utils.EnvExecutor;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.neoforge.ClientSetupNeoForge;
 import li.cil.oc2.common.Main;
-import net.fabricmc.api.EnvType;
+import li.cil.oc2.common.integration.neoforge.IMCNeoForge;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 @Mod(API.MOD_ID)
 public final class MainNeoForge {
@@ -18,8 +19,12 @@ public final class MainNeoForge {
         ModEventBus.MOD_CONTAINER = modContainer;
 
         Main.initialize();
+        ConfigManagerImpl.initialize();
+        IMCNeoForge.initialize();
 
         modEventBus.register(CommonSetupNeoForge.class);
-        EnvExecutor.runInEnv(EnvType.CLIENT, () -> () -> modEventBus.register(ClientSetupNeoForge.class));
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            modEventBus.register(ClientSetupNeoForge.class);
+        }
     }
 }

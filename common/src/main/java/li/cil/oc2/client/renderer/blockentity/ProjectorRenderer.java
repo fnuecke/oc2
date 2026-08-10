@@ -20,7 +20,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 
-public final class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlockEntity> {
+public class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlockEntity> {
     private static final int LIGHT_COLOR_NEAR = 0x22FFFFFF;
     private static final int LIGHT_COLOR_FAR = 0x00FFFFFF;
     private static final int LENS_COLOR = 0xDDFFFFFF;

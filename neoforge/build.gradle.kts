@@ -28,6 +28,11 @@ dependencies {
     neoForge(libs.neoforge.platform)
     modImplementation(libs.neoforge.architectury)
 
+    bundledLibs().forEach {
+        "shadowBundle"(it)
+        forgeRuntimeLibrary(it)
+    }
+
     if (useLocalMarkdownManual) {
         modImplementation(files(markdownManualJar("neoforge", "markdown_manual-MC*-neoforge-*.jar")))
     } else {

@@ -19,7 +19,6 @@ public final class MainNeoForge {
         ModEventBus.MOD_CONTAINER = modContainer;
 
         Main.initialize();
-        ConfigManagerImpl.initialize();
         IMCNeoForge.initialize();
 
         modEventBus.register(CommonSetupNeoForge.class);

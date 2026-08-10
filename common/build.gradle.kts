@@ -9,17 +9,11 @@ loom {
     accessWidenerPath.set(file("src/main/resources/${modId}.accesswidener"))
 }
 
-val ceresJar = localLibJar("../ceres/build/libs", "ceres-*.jar")
-val sednaJar = localLibJar("../sedna/build/libs", "sedna-*.jar")
-val buildrootJar = localLibJar("../buildroot/build/libs", "sedna-buildroot-*.jar")
-
 dependencies {
     modImplementation(libs.fabric.loader)
     modApi(libs.architectury.api)
 
-    if (ceresJar != null) api(files(ceresJar)) else api(libs.ceres)
-    if (sednaJar != null) api(files(sednaJar)) else api(libs.sedna)
-    if (buildrootJar != null) api(files(buildrootJar)) else api(libs.sedna.buildroot)
+    bundledLibs().forEach { api(it) }
 
     if (useLocalMarkdownManual) {
         compileOnly(files(markdownManualJar("common", "markdown_manual-MC*-common-*-api.jar")))

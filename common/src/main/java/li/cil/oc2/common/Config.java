@@ -2,10 +2,8 @@
 
 package li.cil.oc2.common;
 
-import li.cil.oc2.common.ConfigManager.Path;
+import li.cil.oc2.common.config.Path;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Tiers;
-import net.minecraftforge.common.TierSortingRegistry;
 
 import java.util.UUID;
 
@@ -34,7 +32,7 @@ public final class Config {
     @Path("energy.items") public static int inventoryOperationsModuleEnergyPerTick = 1;
     @Path("energy.items") public static int networkTunnelEnergyPerTick = 2;
 
-    @Path("gameplay") public static ResourceLocation blockOperationsModuleToolTier = TierSortingRegistry.getName(Tiers.DIAMOND);
+    @Path("gameplay") public static ResourceLocation blockOperationsModuleToolTier = ResourceLocation.withDefaultNamespace("diamond");
     @Path("gameplay") public static long soundCardCoolDownSeconds = 2;
 
     @Path("admin") public static UUID fakePlayerUUID = UUID.fromString("e39dd9a7-514f-4a2d-aa5e-b6030621416d");

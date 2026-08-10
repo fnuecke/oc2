@@ -8,7 +8,7 @@ import li.cil.oc2.common.Config;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraftforge.common.util.FakePlayerFactory;
+import dev.architectury.injectables.annotations.ExpectPlatform;
 
 public final class FakePlayerUtils {
     private static final String FAKE_PLAYER_NAME = "[" + API.MOD_ID + "]";
@@ -25,8 +25,9 @@ public final class FakePlayerUtils {
         return player;
     }
 
+    @ExpectPlatform
     public static ServerPlayer getFakePlayer(final ServerLevel level) {
-        return FakePlayerFactory.get(level, getFakePlayerProfile());
+        throw new AssertionError();
     }
 
     public static GameProfile getFakePlayerProfile() {

@@ -34,9 +34,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.TierSortingRegistry;
-import net.minecraftforge.event.ForgeEventFactory;
+import dev.architectury.event.events.common.BlockEvent;
+import dev.architectury.utils.value.IntValue;
 import li.cil.oc2.api.inventory.ItemHandler;
+import li.cil.oc2.common.util.ToolTiers;
 import li.cil.oc2.common.container.ItemStackHandler;
 
 import javax.annotation.Nullable;
@@ -231,8 +232,8 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         }
 
         final ServerPlayer player = FakePlayerUtils.getFakePlayer(level, entity);
-        final int experience = net.minecraftforge.common.ForgeHooks.onBlockBreakEvent(level, GameType.DEFAULT_MODE, player, blockPos);
-        if (experience == -1) {
+        final IntValue experience = new IntValue.MutableIntValue(0);
+        if (BlockEvent.BREAK.invoker().breakBlock(level, blockPos, blockState, player, experience).isFalse()) {
             return false;
         }
 
@@ -247,8 +248,8 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
             return false;
         }
 
-        final Tier toolTier = TierSortingRegistry.byName(Config.blockOperationsModuleToolTier);
-        if (toolTier == null || !TierSortingRegistry.isCorrectTierForDrops(toolTier, blockState)) {
+        final Tier toolTier = ToolTiers.byName(Config.blockOperationsModuleToolTier);
+        if (toolTier == null || blockState.is(toolTier.getIncorrectBlocksForDrops())) {
             return false;
         }
 

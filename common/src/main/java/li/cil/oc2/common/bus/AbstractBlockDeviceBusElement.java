@@ -22,7 +22,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.registries.IForgeRegistry;
+import dev.architectury.registry.registries.Registrar;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -161,8 +161,8 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
     protected void onEntryRemoved(final String dataKey, final CompoundTag tag, @Nullable final BlockDeviceQuery query) {
         super.onEntryRemoved(dataKey, tag, query);
         assert query != null : "Passed null query for block device bus element.";
-        final IForgeRegistry<BlockDeviceProvider> registry = Providers.blockDeviceProviderRegistry();
-        final BlockDeviceProvider provider = registry.getValue(ResourceLocation.parse(dataKey));
+        final Registrar<BlockDeviceProvider> registry = Providers.blockDeviceProviderRegistry();
+        final BlockDeviceProvider provider = registry.get(ResourceLocation.parse(dataKey));
         if (provider != null) {
             provider.unmount(query, tag);
         }

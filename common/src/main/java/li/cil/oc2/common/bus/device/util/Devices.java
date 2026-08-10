@@ -18,7 +18,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.registries.IForgeRegistry;
+import dev.architectury.registry.registries.Registrar;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -57,9 +57,9 @@ public final class Devices {
             return Optional.empty();
         }
 
-        final IForgeRegistry<BlockDeviceProvider> registry = Providers.blockDeviceProviderRegistry();
+        final Registrar<BlockDeviceProvider> registry = Providers.blockDeviceProviderRegistry();
         final ArrayList<Invalidatable<BlockDeviceInfo>> devices = new ArrayList<>();
-        for (final BlockDeviceProvider provider : registry.getValues()) {
+        for (final BlockDeviceProvider provider : registry) {
             final Invalidatable<Device> device = provider.getDevice(query);
             if (device.isPresent()) {
                 devices.add(device.mapWithDependency(d -> new BlockDeviceInfo(provider, d)));
@@ -74,9 +74,9 @@ public final class Devices {
             return Collections.emptyList();
         }
 
-        final IForgeRegistry<ItemDeviceProvider> registry = Providers.itemDeviceProviderRegistry();
+        final Registrar<ItemDeviceProvider> registry = Providers.itemDeviceProviderRegistry();
         final ArrayList<ItemDeviceInfo> devices = new ArrayList<>();
-        for (final ItemDeviceProvider provider : registry.getValues()) {
+        for (final ItemDeviceProvider provider : registry) {
             final Optional<ItemDevice> device = provider.getDevice(query);
             device.ifPresent(d -> devices.add(new ItemDeviceInfo(provider, d, provider.getEnergyConsumption(query))));
         }
@@ -88,9 +88,9 @@ public final class Devices {
             return 0;
         }
 
-        final IForgeRegistry<ItemDeviceProvider> registry = Providers.itemDeviceProviderRegistry();
+        final Registrar<ItemDeviceProvider> registry = Providers.itemDeviceProviderRegistry();
         long accumulator = 0;
-        for (final ItemDeviceProvider provider : registry.getValues()) {
+        for (final ItemDeviceProvider provider : registry) {
             accumulator += Math.max(0, provider.getEnergyConsumption(query));
         }
         if (accumulator > Integer.MAX_VALUE) {

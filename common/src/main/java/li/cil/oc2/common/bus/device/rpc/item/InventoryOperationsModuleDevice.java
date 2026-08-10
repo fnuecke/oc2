@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import li.cil.oc2.api.inventory.ItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
+import li.cil.oc2.common.container.ItemHandlerUtils;
 import li.cil.oc2.common.container.ItemStackHandler;
 
 import javax.annotation.Nullable;
@@ -90,7 +90,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         final Direction direction = RobotOperationSide.toGlobal(entity, side);
         final List<ItemHandler> itemHandlers = getItemStackHandlersInDirection(direction).toList();
         for (final ItemHandler handler : itemHandlers) {
-            stack = ItemHandlerHelper.insertItemStacked(handler, stack, false);
+            stack = ItemHandlerUtils.insertItemStacked(handler, stack, false);
 
             if (stack.isEmpty()) {
                 break;

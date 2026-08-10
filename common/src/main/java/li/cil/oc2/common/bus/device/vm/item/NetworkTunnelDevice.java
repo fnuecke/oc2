@@ -2,6 +2,9 @@
 
 package li.cil.oc2.common.bus.device.vm.item;
 
+import dev.architectury.event.events.common.LifecycleEvent;
+import dev.architectury.event.events.common.TickEvent;
+
 import li.cil.oc2.common.capabilities.CapabilityType;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -12,10 +15,6 @@ import li.cil.oc2.common.item.NetworkTunnelItem;
 import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.server.ServerStoppedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +53,7 @@ public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
     ///////////////////////////////////////////////////////////////
 
     @Mod.EventBusSubscriber
-    private static final class TunnelManager {
+    static final class TunnelManager {
         private static final int BYTES_PER_TICK = 32 * 1024 / TickUtils.toTicks(Duration.ofSeconds(1)); // bytes / sec -> bytes / tick
         private static final int MIN_ETHERNET_FRAME_SIZE = 42;
 
@@ -71,16 +70,9 @@ public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
             }
         }
 
-        @SubscribeEvent
-        public static void handleServerTick(final TickEvent.ServerTickEvent event) {
-            if (event.phase == TickEvent.Phase.START) {
-                pumpMessages();
-            }
-        }
-
-        @SubscribeEvent
-        public static void handleServerStopped(final ServerStoppedEvent event) {
-            TUNNELS.clear();
+        public static void initialize() {
+            TickEvent.SERVER_PRE.register(server -> pumpMessages());
+            LifecycleEvent.SERVER_STOPPED.register(server -> TUNNELS.clear());
         }
 
         private static void pumpMessages() {

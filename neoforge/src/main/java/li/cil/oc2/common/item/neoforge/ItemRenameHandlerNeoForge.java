@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.item;
+package li.cil.oc2.common.item.neoforge;
 
 import li.cil.oc2.api.API;
 import net.minecraft.Util;
@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public final class ItemRenameHandler {
+public final class ItemRenameHandlerNeoForge {
     private static final Map<String, Supplier<Item>> RENAMES = Util.make(() -> {
         final Map<String, Supplier<Item>> map = new HashMap<>();
 

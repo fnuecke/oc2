@@ -15,7 +15,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import li.cil.oc2.api.inventory.ItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,7 +47,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
             itemHandlers.put(group.deviceType, new VMItemHandler(group.count, group.deviceType));
         }
 
-        combinedItemHandlers = new CombinedInvWrapper(itemHandlers.values().toArray(new IItemHandlerModifiable[0]));
+        combinedItemHandlers = new CombinedItemHandler(itemHandlers.values().toArray(new ItemHandler[0]));
     }
 
     ///////////////////////////////////////////////////////////////////

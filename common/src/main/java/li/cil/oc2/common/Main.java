@@ -12,7 +12,6 @@ import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.bus.device.provider.ProviderRegistry;
 import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
-import li.cil.oc2.common.item.ItemRenameHandler;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.RecipeSerializers;
 import li.cil.oc2.common.serialization.ceres.Serializers;
@@ -24,6 +23,7 @@ import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.network.ProjectorLoadBalancer;
 import li.cil.oc2.common.bus.device.data.FileSystems;
 import li.cil.oc2.common.bus.device.rpc.RPCItemStackTagFilters;
+import li.cil.oc2.common.bus.device.vm.item.NetworkTunnelDevice;
 import li.cil.oc2.common.util.RegistryUtils;
 import li.cil.oc2.common.util.SoundEvents;
 import li.cil.oc2.common.vm.provider.DeviceTreeProviders;
@@ -62,14 +62,13 @@ public final class Main {
 
         RegistryUtils.finish();
 
-        ItemRenameHandler.initialize();
-
         ServerScheduler.initialize();
         Allocator.initialize();
         BlobStorage.initialize();
         ProjectorLoadBalancer.initialize();
         FileSystems.initialize();
         RPCItemStackTagFilters.initialize();
+        NetworkTunnelDevice.TunnelManager.initialize();
     }
 
     private Main() {

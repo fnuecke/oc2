@@ -69,10 +69,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.world.ChunkEvent;
-import net.minecraftforge.event.world.WorldEvent;
 import li.cil.oc2.common.container.ItemStackHandler;
+import li.cil.oc2.common.util.ServerScheduler;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.server.level.ServerEntity;
@@ -110,8 +108,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     ///////////////////////////////////////////////////////////////////
 
-    private final Consumer<ChunkEvent.Unload> chunkUnloadListener = this::handleChunkUnload;
-    private final Consumer<WorldEvent.Unload> worldUnloadListener = this::handleWorldUnload;
+    // ServerScheduler rather than the event bus: Architectury events cannot be unregistered, and
+    // these are per-entity listeners that must go away with the entity.
+    private final Runnable unloadListener = this::handleUnload;
     private final BlockPos.MutableBlockPos mutablePosition = new BlockPos.MutableBlockPos();
 
     private final AnimationState animationState = new AnimationState();
@@ -464,35 +463,16 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     private void registerListeners() {
-        MinecraftForge.EVENT_BUS.addListener(chunkUnloadListener);
-        MinecraftForge.EVENT_BUS.addListener(worldUnloadListener);
+        ServerScheduler.scheduleOnUnload(level(), unloadListener);
+        ServerScheduler.subscribeOnUnload(level(), new ChunkPos(blockPosition()), unloadListener);
     }
 
     private void unregisterListeners() {
-        MinecraftForge.EVENT_BUS.unregister(chunkUnloadListener);
-        MinecraftForge.EVENT_BUS.unregister(worldUnloadListener);
+        ServerScheduler.cancelOnUnload(level(), unloadListener);
+        ServerScheduler.unsubscribeOnUnload(level(), new ChunkPos(blockPosition()), unloadListener);
     }
 
-    private void handleChunkUnload(final ChunkEvent.Unload event) {
-        if (event.getWorld() != level) {
-            return;
-        }
-
-        final ChunkPos chunkPos = new ChunkPos(blockPosition());
-        if (!Objects.equals(chunkPos, event.getChunk().getPos())) {
-            return;
-        }
-
-        unregisterListeners();
-        virtualMachine.suspend();
-        virtualMachine.dispose();
-    }
-
-    private void handleWorldUnload(final WorldEvent.Unload event) {
-        if (event.getWorld() != level) {
-            return;
-        }
-
+    private void handleUnload() {
         unregisterListeners();
         virtualMachine.suspend();
         virtualMachine.dispose();

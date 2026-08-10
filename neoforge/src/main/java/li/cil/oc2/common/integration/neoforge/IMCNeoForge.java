@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.integration;
+package li.cil.oc2.common.integration.neoforge;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.imc.RPCMethodParameterTypeAdapter;
@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public final class IMC {
+public final class IMCNeoForge {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final HashMap<String, Consumer<InterModComms.IMCMessage>> METHODS = Util.make(() -> {

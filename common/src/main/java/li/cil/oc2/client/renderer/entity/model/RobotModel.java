@@ -16,7 +16,8 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.model.TransformationHelper;
+import net.minecraft.util.Mth;
+import org.joml.Quaternionf;
 
 public final class RobotModel extends EntityModel<Robot> {
     public static final ModelLayerLocation ROBOT_MODEL_LAYER = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "robot"), "main");
@@ -70,7 +71,8 @@ public final class RobotModel extends EntityModel<Robot> {
     public void renderToBuffer(final PoseStack stack, final VertexConsumer consumer, final int packedLight, final int packedOverlay, final float red, final float green, final float blue, final float alpha) {
         stack.pushPose();
         stack.translate(0, topY, 0);
-        stack.mulPose(TransformationHelper.quatFromXYZ(topRotation, true));
+        stack.mulPose(new Quaternionf().rotationXYZ(
+            topRotation.x() * Mth.DEG_TO_RAD, topRotation.y() * Mth.DEG_TO_RAD, topRotation.z() * Mth.DEG_TO_RAD));
         topRenderer.render(stack, consumer, packedLight, packedOverlay);
         stack.popPose();
 

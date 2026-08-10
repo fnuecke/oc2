@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.data;
+package li.cil.oc2.data.neoforge;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.item.Items;
@@ -8,7 +8,7 @@ import li.cil.oc2.common.tags.BlockTags;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraft.data.tags.ItemTagsProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import javax.annotation.Nullable;
 

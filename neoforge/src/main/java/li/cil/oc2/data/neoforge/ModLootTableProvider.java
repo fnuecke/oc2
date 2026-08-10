@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.data;
+package li.cil.oc2.data.neoforge;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import com.mojang.datafixers.util.Pair;

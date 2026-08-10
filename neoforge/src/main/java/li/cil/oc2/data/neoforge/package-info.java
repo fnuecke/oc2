@@ -2,7 +2,7 @@
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package li.cil.oc2.data;
+package li.cil.oc2.data.neoforge;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 

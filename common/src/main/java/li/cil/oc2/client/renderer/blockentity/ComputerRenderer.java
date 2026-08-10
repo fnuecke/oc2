@@ -2,6 +2,8 @@
 
 package li.cil.oc2.client.renderer.blockentity;
 
+import dev.architectury.event.events.client.ClientTickEvent;
+
 import com.mojang.math.Axis;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -30,16 +32,11 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlockEntity> {
     public static final ResourceLocation OVERLAY_POWER_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/computer/computer_overlay_power");
     public static final ResourceLocation OVERLAY_STATUS_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/computer/computer_overlay_status");
@@ -244,9 +241,8 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
             .setUv(1, 0);
     }
 
-    @SubscribeEvent
-    public static void updateCache(final TickEvent.ClientTickEvent event) {
-        rendererViews.cleanUp();
+    public static void initialize() {
+        ClientTickEvent.CLIENT_POST.register(minecraft -> rendererViews.cleanUp());
     }
 
     private static void handleNoLongerRendering(final RemovalNotification<Terminal, Terminal.RendererView> notification) {

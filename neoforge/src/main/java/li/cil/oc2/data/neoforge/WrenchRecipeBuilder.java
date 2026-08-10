@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.data;
+package li.cil.oc2.data.neoforge;
 
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;

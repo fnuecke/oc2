@@ -1,0 +1,19 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+
+[[mods]]
+modId = "oc2instrumentation"
+version = "0.0.0"
+displayName = "OpenComputers II Instrumentation"
+description = '''
+Devtime test framework. Forwards commands from a server console to connected clients and adds
+client-side commands (screenshot, hidegui) for automated testing.
+'''
+
+[[dependencies.oc2instrumentation]]
+modId = "architectury"
+type = "required"
+versionRange = "[1,)"
+ordering = "AFTER"
+side = "BOTH"

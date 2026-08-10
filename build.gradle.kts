@@ -1,6 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
 import net.fabricmc.loom.task.RemapJarTask
+import java.util.concurrent.Callable
 
 plugins {
     java
@@ -196,6 +197,41 @@ for (platform in enabledPlatforms.split(',')) {
             .withVariantsFromConfiguration(configurations["shadowRuntimeElements"]) {
                 skip()
             }
+    }
+}
+
+for (platform in enabledPlatforms.split(',')) {
+    project(":instrumentation-$platform") {
+        architectury {
+            platformSetupLoomIde()
+            loader(platform)
+        }
+
+        val common: Configuration by configurations.creating
+        val bundle: Configuration by configurations.creating
+
+        configurations {
+            common.isCanBeResolved = true
+            common.isCanBeConsumed = false
+
+            compileClasspath.get().extendsFrom(common)
+            runtimeClasspath.get().extendsFrom(common)
+            getByName("development${projectConfigurations[platform]}").extendsFrom(common)
+
+            bundle.isCanBeResolved = true
+            bundle.isCanBeConsumed = false
+        }
+
+        dependencies {
+            common(project(path = ":instrumentation-common", configuration = "namedElements")) { isTransitive = false }
+            bundle(
+                project(
+                    path = ":instrumentation-common",
+                    configuration = "transformProduction${projectConfigurations[platform]}"
+                )
+            ) { isTransitive = false }
+        }
+
     }
 }
 

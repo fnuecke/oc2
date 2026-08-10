@@ -33,5 +33,10 @@ for (enabledPlatform in enabledPlatforms.split(",")) {
     include(enabledPlatform)
 }
 
+for (module in listOf("common") + enabledPlatforms.split(",")) {
+    include("instrumentation-$module")
+    project(":instrumentation-$module").projectDir = file("instrumentation/$module")
+}
+
 val modId: String by settings
 rootProject.name = modId

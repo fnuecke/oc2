@@ -9,6 +9,9 @@ loom {
     accessWidenerPath.set(project(":common").loom.accessWidenerPath)
 
     runs {
+        named("client") { runDir = "run/client" }
+        named("server") { runDir = "run/server" }
+
         create("data") {
             data()
             programArgs("--all")
@@ -32,6 +35,8 @@ dependencies {
         "shadowBundle"(it)
         forgeRuntimeLibrary(it)
     }
+
+    runtimeOnly(project(":instrumentation-neoforge"))
 
     if (useLocalMarkdownManual) {
         modImplementation(files(markdownManualJar("neoforge", "markdown_manual-MC*-neoforge-*.jar")))

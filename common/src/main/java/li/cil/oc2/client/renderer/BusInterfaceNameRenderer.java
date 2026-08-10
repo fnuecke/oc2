@@ -33,7 +33,7 @@ public enum BusInterfaceNameRenderer {
             return;
         }
 
-        final Level level = player.level;
+        final Level level = player.level();
 
         if (!Wrenches.isHoldingWrench(player)) {
             return;

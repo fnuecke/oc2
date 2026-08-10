@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.blockentity;
 
+import li.cil.oc2.common.util.ItemStackUtils;
+import li.cil.oc2.api.util.Invalidatable;
 import net.minecraft.core.HolderLookup;
 
 import static java.util.Objects.requireNonNull;

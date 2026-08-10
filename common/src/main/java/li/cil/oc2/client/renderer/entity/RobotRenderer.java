@@ -35,7 +35,7 @@ public final class RobotRenderer extends EntityRenderer<Robot> {
     @Override
     public void render(final Robot entity, final float entityYaw, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int packedLight) {
         final Robot.AnimationState state = entity.getAnimationState();
-        state.update(partialTicks, entity.level.random);
+        state.update(partialTicks, entity.level().random);
 
         stack.pushPose();
         // NB: we don't entityYaw given to use because that uses a plain lerp which can lead to ugly

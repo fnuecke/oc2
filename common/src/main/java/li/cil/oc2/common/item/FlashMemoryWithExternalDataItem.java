@@ -60,7 +60,7 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
             return ItemStack.EMPTY;
         }
 
-        ItemStackUtils.getOrCreateModDataTag(stack).putString(FIRMWARE_TAG_NAME, key.toString());
+        ItemStackUtils.modifyModDataTag(stack, tag -> tag.putString(FIRMWARE_TAG_NAME, key.toString()));
 
         return stack;
     }

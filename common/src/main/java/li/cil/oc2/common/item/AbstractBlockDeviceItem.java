@@ -62,7 +62,7 @@ public abstract class AbstractBlockDeviceItem extends ModItem {
             return ItemStack.EMPTY;
         }
 
-        ItemStackUtils.getOrCreateModDataTag(stack).putString(DATA_TAG_NAME, key.toString());
+        ItemStackUtils.modifyModDataTag(stack, tag -> tag.putString(DATA_TAG_NAME, key.toString()));
 
         return stack;
     }

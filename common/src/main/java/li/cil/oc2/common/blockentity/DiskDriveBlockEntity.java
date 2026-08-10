@@ -194,7 +194,7 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
             if (stack.isEmpty()) {
                 device.removeBlockDevice();
             } else {
-                final CompoundTag tag = ItemStackUtils.getOrCreateModDataTag(stack).getCompound(DATA_TAG_NAME);
+                final CompoundTag tag = ItemStackUtils.getModDataTag(stack).getCompound(DATA_TAG_NAME);
                 device.updateBlockDevice(tag);
             }
 
@@ -214,7 +214,7 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
 
             final CompoundTag tag = new CompoundTag();
             device.exportToItemStack(tag);
-            ItemStackUtils.getOrCreateModDataTag(stack).put(DATA_TAG_NAME, tag);
+            ItemStackUtils.modifyModDataTag(stack, modTag -> modTag.put(DATA_TAG_NAME, tag));
         }
     }
 }

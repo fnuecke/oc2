@@ -36,7 +36,7 @@ public final class NetworkInterfaceCardItem extends ModItem {
     public static void setSideConfiguration(final ItemStack stack, final Direction side, final boolean enabled) {
         final int index = side.get3DDataValue();
 
-        final CompoundTag tag = ItemStackUtils.getOrCreateModDataTag(stack);
+        final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
         final byte[] values;
         if (tag.contains(SIDE_CONFIGURATION_TAG_NAME, NBTTagIds.TAG_BYTE_ARRAY) &&
             tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME).length == Constants.BLOCK_FACE_COUNT) {
@@ -95,13 +95,13 @@ public final class NetworkInterfaceCardItem extends ModItem {
     public InteractionResultHolder<ItemStack> use(final Level level, final Player player, final InteractionHand hand) {
         final ItemStack itemStack = player.getItemInHand(hand);
 
-        if (player.getLevel().isClientSide()) {
+        if (player.level().isClientSide()) {
             if (itemStack.is(Items.NETWORK_INTERFACE_CARD.get())) {
                 openConfigurationScreen(player, hand);
             }
         }
 
-        return InteractionResultHolder.sidedSuccess(itemStack, player.getLevel().isClientSide());
+        return InteractionResultHolder.sidedSuccess(itemStack, player.level().isClientSide());
     }
 
     ///////////////////////////////////////////////////////////////////

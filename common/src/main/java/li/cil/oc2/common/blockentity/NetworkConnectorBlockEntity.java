@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.blockentity;
 
+import li.cil.oc2.common.util.ItemStackUtils;
 import net.minecraft.core.HolderLookup;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.block;
 
+import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.common.Config;

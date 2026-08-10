@@ -115,7 +115,7 @@ public final class FileChooserScreen extends Screen {
         }
 
         if (previousScreen != null) {
-            getMinecraft().tell(() -> getMinecraft().setScreen(previousScreen));
+            minecraft.tell(() -> minecraft.setScreen(previousScreen));
         }
     }
 
@@ -137,7 +137,7 @@ public final class FileChooserScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        getMinecraft().keyboardHandler.setSendRepeatsToGui(true);
+        minecraft.keyboardHandler.setSendRepeatsToGui(true);
 
         final int widgetsWidth = width - MARGIN * 2;
         final int listHeight = height - MARGIN - WIDGET_SPACING - TEXT_FIELD_HEIGHT - WIDGET_SPACING - BUTTON_HEIGHT - MARGIN;
@@ -277,7 +277,7 @@ public final class FileChooserScreen extends Screen {
 
     private final class FileList extends ObjectSelectionList<FileList.FileEntry> {
         public FileList(final int y, final int height, final int slotHeight) {
-            super(FileChooserScreen.this.getMinecraft(), FileChooserScreen.this.width, FileChooserScreen.this.height, y, y + height, slotHeight);
+            super(FileChooserScreen.this.minecraft, FileChooserScreen.this.width, FileChooserScreen.this.height, y, y + height, slotHeight);
         }
 
         public void refreshFiles(@Nullable final Path directory) {

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.item;
 
+import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.capabilities.CapabilityProvider;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.DeviceTypes;
@@ -53,16 +54,6 @@ public final class RobotItem extends ModItem {
         TooltipUtils.addEnergyConsumption(Config.robotEnergyPerTick, tooltip);
         TooltipUtils.addEntityEnergyInformation(stack, tooltip);
         TooltipUtils.addEntityInventoryInformation(stack, tooltip);
-    }
-
-    @Nullable
-    @Override
-    public ICapabilityProvider initCapabilities(final ItemStack stack, @Nullable final CompoundTag nbt) {
-        if (Config.robotsUseEnergy()) {
-            return new EnergyStorageItemStack(stack, Config.robotEnergyStorage, MOD_TAG_NAME, ENERGY_TAG_NAME);
-        } else {
-            return null;
-        }
     }
 
     @Override

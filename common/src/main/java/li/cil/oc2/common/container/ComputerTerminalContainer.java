@@ -39,7 +39,7 @@ public final class ComputerTerminalContainer extends AbstractComputerContainer {
 
     public static ComputerTerminalContainer createClient(final int id, final Inventory inventory, final FriendlyByteBuf data) {
         final BlockPos pos = data.readBlockPos();
-        final BlockEntity blockEntity = inventory.player.level.getBlockEntity(pos);
+        final BlockEntity blockEntity = inventory.player.level().getBlockEntity(pos);
         if (blockEntity instanceof final ComputerBlockEntity computer) {
             return new ComputerTerminalContainer(id, inventory.player, computer, createClientEnergyInfo());
         }

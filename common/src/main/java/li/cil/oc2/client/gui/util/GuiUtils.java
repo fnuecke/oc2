@@ -50,7 +50,7 @@ public final class GuiUtils {
     }
 
     public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final GuiGraphics graphics, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final Component tooltip) {
-        final Minecraft minecraft = screen.getMinecraft();
+        final Minecraft minecraft = screen.minecraft;
         if (minecraft.player == null) {
             return;
         }

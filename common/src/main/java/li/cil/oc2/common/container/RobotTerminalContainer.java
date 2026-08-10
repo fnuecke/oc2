@@ -40,7 +40,7 @@ public final class RobotTerminalContainer extends AbstractRobotContainer {
 
     public static RobotTerminalContainer createClient(final int id, final Inventory inventory, final FriendlyByteBuf data) {
         final int entityId = data.readVarInt();
-        final Entity entity = inventory.player.level.getEntity(entityId);
+        final Entity entity = inventory.player.level().getEntity(entityId);
         if (entity instanceof final Robot robot) {
             return new RobotTerminalContainer(id, inventory.player, robot, createClientEnergyInfo());
         }

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.vm;
 
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;

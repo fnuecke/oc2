@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public record BlockLocation(WeakReference<LevelAccessor> level, BlockPos blockPos) {
     public static BlockLocation of(final Entity entity) {
-        return new BlockLocation(new WeakReference<>(entity.level), entity.blockPosition());
+        return new BlockLocation(new WeakReference<>(entity.level()), entity.blockPosition());
     }
 
     public static BlockLocation of(final BlockEntity blockEntity) {

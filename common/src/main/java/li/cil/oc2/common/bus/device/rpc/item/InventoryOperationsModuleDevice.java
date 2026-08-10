@@ -220,14 +220,14 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
     private Stream<ItemHandler> getEntityItemHandlersAt(final Vec3 position, final Direction side) {
         final AABB bounds = AABB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
-        return entity.level.getEntities(entity, bounds).stream()
+        return entity.level().getEntities(entity, bounds).stream()
             .map(e -> Capabilities.get(e, Capabilities.ITEM_HANDLER, side))
             .filter(Objects::nonNull);
     }
 
     private Stream<ItemHandler> getBlockItemHandlersAt(final Vec3 position, final Direction side) {
         final BlockPos pos = new BlockPos(position);
-        final BlockEntity blockEntity = entity.level.getBlockEntity(pos);
+        final BlockEntity blockEntity = entity.level().getBlockEntity(pos);
         if (blockEntity == null) {
             return Stream.empty();
         }
@@ -237,7 +237,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     }
 
     private List<ItemEntity> getItemsInRange() {
-        return entity.level.getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(1));
+        return entity.level().getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(1));
     }
 
     private int takeFromWorld(final int count) {

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.entity;
 
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.capabilities.CapabilityProvider;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.api.bus.DeviceBusElement;

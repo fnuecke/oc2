@@ -47,7 +47,7 @@ public final class NetworkTunnelItem extends ModItem {
     }
 
     public static void setTunnelId(final ItemStack stack, final UUID value) {
-        ItemStackUtils.getOrCreateModDataTag(stack).putUUID(TUNNEL_ID_TAG_NAME, value);
+        ItemStackUtils.modifyModDataTag(stack, tag -> tag.putUUID(TUNNEL_ID_TAG_NAME, value));
     }
 
     ///////////////////////////////////////////////////////////////////

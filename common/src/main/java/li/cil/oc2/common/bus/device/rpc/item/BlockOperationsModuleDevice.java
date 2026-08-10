@@ -74,7 +74,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
     @Override
     public void deserializeNBT(final CompoundTag tag) {
-        lastOperation = Mth.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.level.getGameTime());
+        lastOperation = Mth.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.level().getGameTime());
     }
 
     @Callback
@@ -90,7 +90,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
         beginCooldown();
 
-        final Level level = entity.level;
+        final Level level = entity.level();
         if (!(level instanceof final ServerLevel serverLevel)) {
             return false;
         }
@@ -130,7 +130,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
         beginCooldown();
 
-        final Level level = entity.level;
+        final Level level = entity.level();
         if (!(level instanceof final ServerLevel serverLevel)) {
             return false;
         }
@@ -213,15 +213,15 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
     ///////////////////////////////////////////////////////////////////
 
     private void beginCooldown() {
-        lastOperation = entity.level.getGameTime();
+        lastOperation = entity.level().getGameTime();
     }
 
     private boolean isOnCooldown() {
-        return entity.level.getGameTime() - lastOperation < COOLDOWN;
+        return entity.level().getGameTime() - lastOperation < COOLDOWN;
     }
 
     private List<ItemEntity> getItemsInRange() {
-        return entity.level.getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(2));
+        return entity.level().getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(2));
     }
 
     private boolean tryHarvestBlock(final ServerLevel level, final BlockPos blockPos) {

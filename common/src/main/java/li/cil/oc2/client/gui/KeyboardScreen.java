@@ -60,8 +60,8 @@ public final class KeyboardScreen extends Screen {
 
         final Vec3 keyboardCenter = Vec3.atCenterOf(keyboard.getBlockPos());
         if (!keyboard.isValid() ||
-            getMinecraft().player == null ||
-            getMinecraft().player.distanceToSqr(keyboardCenter) > 8 * 8) {
+            minecraft.player == null ||
+            minecraft.player.distanceToSqr(keyboardCenter) > 8 * 8) {
             onClose();
         }
     }
@@ -121,7 +121,7 @@ public final class KeyboardScreen extends Screen {
     }
 
     private void grabMouse() {
-        final Minecraft minecraft = getMinecraft();
+        final Minecraft minecraft = minecraft;
         final MouseHandler mouseHandler = minecraft.mouseHandler;
         mouseHandler.mouseGrabbed = true;
         InputConstants.grabOrReleaseMouse(minecraft.getWindow().getWindow(), InputConstants.CURSOR_DISABLED, mouseHandler.xpos(), mouseHandler.ypos());
@@ -136,7 +136,7 @@ public final class KeyboardScreen extends Screen {
     }
 
     private void swingArm() {
-        final Minecraft minecraft = getMinecraft();
+        final Minecraft minecraft = minecraft;
         final LocalPlayer player = minecraft.player;
         if (player == null) {
             return;

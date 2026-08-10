@@ -39,7 +39,7 @@ public abstract class AbstractStorageItem extends ModItem {
     }
 
     public ItemStack withCapacity(final ItemStack stack, final int capacity) {
-        ItemStackUtils.getOrCreateModDataTag(stack).putInt(CAPACITY_TAG_NAME, capacity);
+        ItemStackUtils.modifyModDataTag(stack, tag -> tag.putInt(CAPACITY_TAG_NAME, capacity));
         return stack;
     }
 

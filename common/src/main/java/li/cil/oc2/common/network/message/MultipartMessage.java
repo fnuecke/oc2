@@ -11,7 +11,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.network.Network;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.protocol.game.ServerboundCustomPayloadPacket;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import dev.architectury.networking.NetworkManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -150,7 +150,7 @@ public final class MultipartMessage extends AbstractMessage {
 
             buffer.writeBytes(data);
             if (buffer.readableBytes() > MAX_MULTIPART_MESSAGE_SIZE) {
-                LOGGER.error("Received over-sized multipart message from client [{}], ignoring.", contextSupplier.get().getSender());
+                LOGGER.error("Received over-sized multipart message from client [{}], ignoring.", contextSupplier.get().getPlayer());
                 MULTIPART_MESSAGE_BUFFER_CACHE.put(lastAssignedMultipartMessageId, Unpooled.buffer(0));
                 return;
             }
@@ -160,14 +160,14 @@ public final class MultipartMessage extends AbstractMessage {
 
                 final Entry entry = ENTRY_BY_ID.get(messageId);
                 if (entry == null) {
-                    LOGGER.error("Received multipart message for unregistered message from client [{}]. Are the mod version on the server and client the same?", contextSupplier.get().getSender());
+                    LOGGER.error("Received multipart message for unregistered message from client [{}]. Are the mod version on the server and client the same?", contextSupplier.get().getPlayer());
                     return;
                 }
 
                 entry.factory.apply(new RegistryFriendlyByteBuf(buffer)).handleMessage(contextSupplier);
             }
         } catch (final ExecutionException e) {
-            LOGGER.error("Error when handling multipart message received from client [{}]: {}", contextSupplier.get().getSender(), e);
+            LOGGER.error("Error when handling multipart message received from client [{}]: {}", contextSupplier.get().getPlayer(), e);
         }
     }
 

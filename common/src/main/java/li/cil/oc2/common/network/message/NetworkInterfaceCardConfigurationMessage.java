@@ -48,7 +48,7 @@ public final class NetworkInterfaceCardConfigurationMessage extends AbstractMess
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
-        final ServerPlayer player = context.getSender();
+        final ServerPlayer player = context.getPlayer();
         if (player == null) {
             return;
         }

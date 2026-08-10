@@ -38,7 +38,7 @@ public final class ServerCanceledImportFileMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final Supplier<NetworkManager.PacketContext> context) {
-        final ServerPlayer player = context.get().getSender();
+        final ServerPlayer player = context.get().getPlayer();
         if (player != null) {
             FileImportExportCardItemDevice.cancelImport(player, id);
         }

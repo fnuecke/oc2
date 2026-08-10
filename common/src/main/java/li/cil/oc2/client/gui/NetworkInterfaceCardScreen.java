@@ -19,7 +19,7 @@ import li.cil.oc2.common.network.message.NetworkInterfaceCardConfigurationMessag
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
@@ -251,7 +251,7 @@ public final class NetworkInterfaceCardScreen extends Screen {
         }
 
         private void renderBlock(final MultiBufferSource.BufferSource bufferSource) {
-            itemRenderer.render(computerItemStack, ItemTransforms.TransformType.NONE, false, new PoseStack(), bufferSource, 0xF000F0, OverlayTexture.NO_OVERLAY, model);
+            itemRenderer.render(computerItemStack, ItemDisplayContext.NONE, false, new PoseStack(), bufferSource, 0xF000F0, OverlayTexture.NO_OVERLAY, model);
         }
 
         private void renderOverlays(final PoseStack poseStack, final MultiBufferSource.BufferSource bufferSource) {

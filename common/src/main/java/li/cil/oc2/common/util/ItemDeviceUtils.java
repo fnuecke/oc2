@@ -15,6 +15,6 @@ public final class ItemDeviceUtils {
     }
 
     public static void setItemDeviceData(final ItemStack stack, final CompoundTag data) {
-        ItemStackUtils.getOrCreateModDataTag(stack).put(ITEM_DEVICE_DATA_TAG_NAME, data);
+        ItemStackUtils.modifyModDataTag(stack, tag -> tag.put(ITEM_DEVICE_DATA_TAG_NAME, data));
     }
 }

@@ -131,7 +131,7 @@ public final class RobotItem extends ModItem {
     private ItemStack getRobotWithFlash() {
         final ItemStack robot = new ItemStack(this);
 
-        final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(robot.getOrCreateTag(), API.MOD_ID, ITEMS_TAG_NAME);
+        final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(ItemStackUtils.getModDataTag(robot), ITEMS_TAG_NAME);
         itemsTag.put(key(DeviceTypes.FLASH_MEMORY), makeInventoryTag(
             new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
         ));

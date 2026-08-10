@@ -230,7 +230,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
     private ItemStack getComputerWithFlash() {
         final ItemStack computer = new ItemStack(this);
 
-        final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(computer.getOrCreateTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME);
+        final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(ItemStackUtils.getBlockEntityDataTag(computer), ITEMS_TAG_NAME);
         itemsTag.put(key(DeviceTypes.FLASH_MEMORY), makeInventoryTag(
             new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
         ));
@@ -241,7 +241,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
     private ItemStack getPreconfiguredComputer() {
         final ItemStack computer = getComputerWithFlash();
 
-        final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(computer.getOrCreateTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME);
+        final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(ItemStackUtils.getBlockEntityDataTag(computer), ITEMS_TAG_NAME);
         itemsTag.put(key(DeviceTypes.MEMORY), makeInventoryTag(
             new ItemStack(Items.MEMORY_LARGE.get()),
             new ItemStack(Items.MEMORY_LARGE.get()),

@@ -22,8 +22,9 @@ public final class EnergyStorageItemStack implements EnergyStorage {
         final long receiveLimit = capacity - stored;
         final long receive = Math.min(maxReceive, receiveLimit);
         if (!simulate) {
-            NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), tagPath)
-                .putInt(FixedEnergyStorage.STORED_TAG_NAME, (int) (stored + receive));
+            ItemStackUtils.modifyModDataTag(stack, tag ->
+                NBTUtils.getOrCreateChildTag(tag, tagPath)
+                    .putInt(FixedEnergyStorage.STORED_TAG_NAME, (int) (stored + receive)));
         }
         return receive;
     }
@@ -35,7 +36,7 @@ public final class EnergyStorageItemStack implements EnergyStorage {
 
     @Override
     public long getEnergyStored() {
-        return NBTUtils.getChildTag(stack.getTag(), tagPath).getInt(FixedEnergyStorage.STORED_TAG_NAME);
+        return NBTUtils.getChildTag(ItemStackUtils.getModDataTag(stack), tagPath).getInt(FixedEnergyStorage.STORED_TAG_NAME);
     }
 
     @Override

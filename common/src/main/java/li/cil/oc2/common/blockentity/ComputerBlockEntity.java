@@ -3,6 +3,8 @@
 package li.cil.oc2.common.blockentity;
 
 import net.minecraft.core.HolderLookup;
+
+import static java.util.Objects.requireNonNull;
 import li.cil.oc2.common.capabilities.CapabilityProvider;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.api.bus.DeviceBusElement;
@@ -242,7 +244,9 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        deviceItems.saveItems(NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), BLOCK_ENTITY_TAG_NAME_IN_ITEM, ITEMS_TAG_NAME));
+        final HolderLookup.Provider registries = requireNonNull(getLevel()).registryAccess();
+        ItemStackUtils.modifyBlockEntityDataTag(stack, tag ->
+            deviceItems.saveItems(registries, NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME)));
     }
 
     ///////////////////////////////////////////////////////////////////

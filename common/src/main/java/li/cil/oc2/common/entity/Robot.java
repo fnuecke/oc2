@@ -29,12 +29,14 @@ import li.cil.oc2.common.network.message.*;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.NBTTagIds;
+import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.TerminalUtils;
 import li.cil.oc2.common.vm.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Cursor3D;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
@@ -376,20 +378,25 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME, ITEMS_TAG_NAME);
-        deviceItems.saveItems(itemsTag); // Puts one tag per device type, as expected by TooltipUtils.
-        itemsTag.put(INVENTORY_TAG_NAME, inventory.serializeNBT()); // Won't show up in tooltip.
+        final HolderLookup.Provider registries = level().registryAccess();
+        ItemStackUtils.modifyModDataTag(stack, modTag -> {
+            final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(modTag, ITEMS_TAG_NAME);
+            deviceItems.saveItems(registries, itemsTag); // One tag per device type, as TooltipUtils expects.
+            itemsTag.put(INVENTORY_TAG_NAME, inventory.serializeNBT(registries)); // Won't show up in tooltip.
 
-        NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME)
-            .put(ENERGY_TAG_NAME, energy.serializeNBT());
+            modTag.put(ENERGY_TAG_NAME, energy.serializeNBT());
+        });
     }
 
     public void importFromItemStack(final ItemStack stack) {
-        final CompoundTag itemsTag = NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ITEMS_TAG_NAME);
-        deviceItems.loadItems(itemsTag);
-        inventory.deserializeNBT(itemsTag.getCompound(INVENTORY_TAG_NAME));
+        final HolderLookup.Provider registries = level().registryAccess();
+        final CompoundTag modTag = ItemStackUtils.getModDataTag(stack);
 
-        energy.deserializeNBT(NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME, ENERGY_TAG_NAME));
+        final CompoundTag itemsTag = NBTUtils.getChildTag(modTag, ITEMS_TAG_NAME);
+        deviceItems.loadItems(registries, itemsTag);
+        inventory.deserializeNBT(registries, itemsTag.getCompound(INVENTORY_TAG_NAME));
+
+        energy.deserializeNBT(NBTUtils.getChildTag(modTag, ENERGY_TAG_NAME));
     }
 
     ///////////////////////////////////////////////////////////////////

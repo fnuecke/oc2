@@ -11,6 +11,7 @@ import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.AbstractItemDeviceBusElement;
 import li.cil.oc2.common.container.AbstractDeviceItemStackHandler;
 import li.cil.oc2.common.container.AbstractTypedDeviceItemStackHandler;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import li.cil.oc2.api.inventory.ItemHandler;
@@ -100,23 +101,23 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         }
     }
 
-    public void saveItems(final CompoundTag tag) {
+    public void saveItems(final HolderLookup.Provider registries, final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) -> {
             if (!handler.isEmpty()) {
-                tag.put(key(deviceType), handler.saveItems());
+                tag.put(key(deviceType), handler.saveItems(registries));
             }
         });
     }
 
-    public CompoundTag saveItems() {
+    public CompoundTag saveItems(final HolderLookup.Provider registries) {
         final CompoundTag tag = new CompoundTag();
-        saveItems(tag);
+        saveItems(registries, tag);
         return tag;
     }
 
-    public void loadItems(final CompoundTag tag) {
+    public void loadItems(final HolderLookup.Provider registries, final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
-            handler.loadItems(tag.getCompound(key(deviceType))));
+            handler.loadItems(registries, tag.getCompound(key(deviceType))));
     }
 
     public void saveDevices(final CompoundTag tag) {

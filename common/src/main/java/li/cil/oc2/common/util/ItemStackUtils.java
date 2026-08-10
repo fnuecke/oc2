@@ -3,10 +3,12 @@
 package li.cil.oc2.common.util;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -15,16 +17,26 @@ import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Consumer;
 
 import static li.cil.oc2.common.Constants.MOD_TAG_NAME;
 
 public final class ItemStackUtils {
     public static CompoundTag getModDataTag(final ItemStack stack) {
-        return NBTUtils.getChildTag(stack.getTag(), MOD_TAG_NAME);
+        return NBTUtils.getChildTag(stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag(), MOD_TAG_NAME);
     }
 
-    public static CompoundTag getOrCreateModDataTag(final ItemStack stack) {
-        return NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), MOD_TAG_NAME);
+    public static void modifyModDataTag(final ItemStack stack, final Consumer<CompoundTag> modifier) {
+        CustomData.update(DataComponents.CUSTOM_DATA, stack,
+            tag -> modifier.accept(NBTUtils.getOrCreateChildTag(tag, MOD_TAG_NAME)));
+    }
+
+    public static CompoundTag getBlockEntityDataTag(final ItemStack stack) {
+        return stack.getOrDefault(DataComponents.BLOCK_ENTITY_DATA, CustomData.EMPTY).copyTag();
+    }
+
+    public static void modifyBlockEntityDataTag(final ItemStack stack, final Consumer<CompoundTag> modifier) {
+        CustomData.update(DataComponents.BLOCK_ENTITY_DATA, stack, modifier);
     }
 
     @Nullable

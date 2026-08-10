@@ -3,6 +3,9 @@
 package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.common.block.Blocks;
+
+import java.util.ArrayList;
+import java.util.List;
 import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -13,6 +16,8 @@ import dev.architectury.registry.registries.RegistrySupplier;
 
 public final class BlockEntities {
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = RegistryUtils.getInitializerFor(Registries.BLOCK_ENTITY_TYPE);
+
+    private static final List<RegistrySupplier<? extends BlockEntityType<?>>> ALL = new ArrayList<>();
 
     ///////////////////////////////////////////////////////////////////
 
@@ -32,10 +37,17 @@ public final class BlockEntities {
     public static void initialize() {
     }
 
+    public static List<BlockEntityType<?>> getAll() {
+        return ALL.stream().map(RegistrySupplier::get).map(type -> (BlockEntityType<?>) type).toList();
+    }
+
     ///////////////////////////////////////////////////////////////////
 
     @SuppressWarnings("ConstantConditions") // .build(null) is fine
     private static <B extends Block, T extends BlockEntity> RegistrySupplier<BlockEntityType<T>> register(final RegistrySupplier<B> block, final BlockEntityType.BlockEntitySupplier<T> factory) {
-        return BLOCK_ENTITIES.register(block.getId().getPath(), () -> BlockEntityType.Builder.of(factory, block.get()).build(null));
+        final RegistrySupplier<BlockEntityType<T>> type = BLOCK_ENTITIES.register(
+            block.getId().getPath(), () -> BlockEntityType.Builder.of(factory, block.get()).build(null));
+        ALL.add(type);
+        return type;
     }
 }

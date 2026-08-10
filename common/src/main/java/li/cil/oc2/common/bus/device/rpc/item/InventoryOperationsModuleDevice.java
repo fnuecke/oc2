@@ -15,12 +15,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
+import li.cil.oc2.api.inventory.ItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
+import li.cil.oc2.common.container.ItemStackHandler;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -88,8 +88,8 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
         final int originalStackSize = stack.getCount();
         final Direction direction = RobotOperationSide.toGlobal(entity, side);
-        final List<IItemHandler> itemHandlers = getItemStackHandlersInDirection(direction).toList();
-        for (final IItemHandler handler : itemHandlers) {
+        final List<ItemHandler> itemHandlers = getItemStackHandlersInDirection(direction).toList();
+        for (final ItemHandler handler : itemHandlers) {
             stack = ItemHandlerHelper.insertItemStacked(handler, stack, false);
 
             if (stack.isEmpty()) {
@@ -136,7 +136,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
         final int originalStackSize = stack.getCount();
         final Direction direction = RobotOperationSide.toGlobal(entity, side);
-        final Optional<IItemHandler> optional = getItemStackHandlersInDirection(direction).findFirst();
+        final Optional<ItemHandler> optional = getItemStackHandlersInDirection(direction).findFirst();
         if (optional.isPresent()) {
             stack = optional.get().insertItem(intoSlot, stack, false);
         }
@@ -169,7 +169,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         }
 
         final Direction direction = RobotOperationSide.toGlobal(entity, side);
-        final List<IItemHandler> handlers = getItemStackHandlersInDirection(direction).collect(Collectors.toList());
+        final List<ItemHandler> handlers = getItemStackHandlersInDirection(direction).collect(Collectors.toList());
         if (handlers.isEmpty()) {
             return takeFromWorld(count);
         } else {
@@ -198,7 +198,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
     ///////////////////////////////////////////////////////////////////
 
-    private ItemStack insertStartingAt(final IItemHandler handler, ItemStack stack, final int startSlot, final boolean simulate) {
+    private ItemStack insertStartingAt(final ItemHandler handler, ItemStack stack, final int startSlot, final boolean simulate) {
         for (int i = 0; i < handler.getSlots(); i++) {
             final int slot = (startSlot + i) % handler.getSlots();
             stack = handler.insertItem(slot, stack, simulate);
@@ -210,35 +210,30 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         return stack;
     }
 
-    private Stream<IItemHandler> getItemStackHandlersInDirection(final Direction direction) {
+    private Stream<ItemHandler> getItemStackHandlersInDirection(final Direction direction) {
         return getItemStackHandlersAt(Vec3.atCenterOf(entity.blockPosition().relative(direction)), direction.getOpposite());
     }
 
-    private Stream<IItemHandler> getItemStackHandlersAt(final Vec3 position, final Direction side) {
+    private Stream<ItemHandler> getItemStackHandlersAt(final Vec3 position, final Direction side) {
         return Stream.concat(getEntityItemHandlersAt(position, side), getBlockItemHandlersAt(position, side));
     }
 
-    private Stream<IItemHandler> getEntityItemHandlersAt(final Vec3 position, final Direction side) {
+    private Stream<ItemHandler> getEntityItemHandlersAt(final Vec3 position, final Direction side) {
         final AABB bounds = AABB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
         return entity.level.getEntities(entity, bounds).stream()
-            .map(e -> e.getCapability(Capabilities.itemHandler(), side))
-            .filter(LazyOptional::isPresent)
-            .map(c -> c.orElseThrow(AssertionError::new));
+            .map(e -> Capabilities.get(e, Capabilities.ITEM_HANDLER, side))
+            .filter(Objects::nonNull);
     }
 
-    private Stream<IItemHandler> getBlockItemHandlersAt(final Vec3 position, final Direction side) {
+    private Stream<ItemHandler> getBlockItemHandlersAt(final Vec3 position, final Direction side) {
         final BlockPos pos = new BlockPos(position);
         final BlockEntity blockEntity = entity.level.getBlockEntity(pos);
         if (blockEntity == null) {
             return Stream.empty();
         }
 
-        final LazyOptional<IItemHandler> capability = blockEntity.getCapability(Capabilities.itemHandler(), side);
-        if (capability.isPresent()) {
-            return Stream.of(capability.orElseThrow(AssertionError::new));
-        }
-
-        return Stream.empty();
+        final ItemHandler itemHandler = Capabilities.get(blockEntity, Capabilities.ITEM_HANDLER, side);
+        return itemHandler != null ? Stream.of(itemHandler) : Stream.empty();
     }
 
     private List<ItemEntity> getItemsInRange() {
@@ -270,12 +265,12 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         return count - remaining;
     }
 
-    private int takeFromInventories(final int count, final List<IItemHandler> handlers) {
+    private int takeFromInventories(final int count, final List<ItemHandler> handlers) {
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
         final ItemStackHandler inventory = robot.getInventory();
 
         int remaining = count;
-        for (final IItemHandler handler : handlers) {
+        for (final ItemHandler handler : handlers) {
             for (int fromSlot = 0; fromSlot < handler.getSlots(); fromSlot++) {
                 // Do simulation run, getting actual amount possible to take.
                 ItemStack extracted = handler.extractItem(fromSlot, remaining, true);
@@ -311,7 +306,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         return count - remaining;
     }
 
-    private int takeFromInventory(final int count, final IItemHandler handler, final int slot) {
+    private int takeFromInventory(final int count, final ItemHandler handler, final int slot) {
         final ItemStackHandler inventory = robot.getInventory();
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
 

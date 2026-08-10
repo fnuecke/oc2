@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.blockentity;
 
+import net.minecraft.core.HolderLookup;
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.Config;
@@ -34,7 +35,6 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -180,7 +180,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
             // we can just do this.
             setInterfaceName(side, "");
 
-            invalidateCapability(Capabilities.deviceBusElement(), side);
+            invalidateCapability(Capabilities.DEVICE_BUS_ELEMENT, side);
 
             final NeighborTracker tracker = neighborTrackers[side.get3DDataValue()];
             tracker.updateListener();
@@ -193,8 +193,8 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        final CompoundTag tag = super.getUpdateTag();
+    public CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
+        final CompoundTag tag = super.getUpdateTag(registries);
 
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
         tag.put(FACADE_TAG_NAME, facade.serializeNBT());
@@ -202,15 +202,10 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         return tag;
     }
 
-    @Override
-    public void handleUpdateTag(final CompoundTag tag) {
-        deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
-        setFacade(ItemStack.of(tag.getCompound(FACADE_TAG_NAME)));
-    }
 
     @Override
-    protected void saveAdditional(final CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
 
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.save());
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
@@ -218,8 +213,8 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     }
 
     @Override
-    public void load(final CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
         facade = ItemStack.of(tag.getCompound(FACADE_TAG_NAME));
@@ -230,7 +225,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         if (BusCableBlock.getConnectionType(getBlockState(), direction) != BusCableBlock.ConnectionType.NONE) {
-            collector.offer(Capabilities.deviceBusElement(), busElement);
+            collector.offer(Capabilities.DEVICE_BUS_ELEMENT, busElement);
         }
     }
 
@@ -298,9 +293,10 @@ public final class BusCableBlockEntity extends ModBlockEntity {
                     continue;
                 }
 
-                final LazyOptional<DeviceBusElement> capability = blockEntity
-                    .getCapability(Capabilities.deviceBusElement(), direction.getOpposite());
-                capability.ifPresent(DeviceBus::scheduleScan);
+                final DeviceBusElement busElement = Capabilities.get(blockEntity, Capabilities.DEVICE_BUS_ELEMENT, direction.getOpposite());
+                if (busElement != null) {
+                    busElement.scheduleScan();
+                }
             }
         });
     }

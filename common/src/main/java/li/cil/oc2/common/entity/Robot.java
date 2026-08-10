@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.entity;
 
+import li.cil.oc2.common.capabilities.CapabilityProvider;
+import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
@@ -66,12 +68,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.items.ItemStackHandler;
+import li.cil.oc2.common.container.ItemStackHandler;
 import net.minecraftforge.network.NetworkHooks;
 
 import javax.annotation.Nonnull;
@@ -168,34 +167,29 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         getEntityData().set(SELECTED_SLOT, (byte) Mth.clamp(value, 0, INVENTORY_SIZE - 1));
     }
 
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
-        if (capability == Capabilities.itemHandler()) {
-            return LazyOptional.of(() -> inventory).cast();
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public <T> T getCapability(final CapabilityType<T> capability, @Nullable final Direction side) {
+        if (capability == Capabilities.ITEM_HANDLER) {
+            return (T) inventory;
         }
-        if (capability == Capabilities.energyStorage() && Config.robotsUseEnergy()) {
-            return LazyOptional.of(() -> energy).cast();
+        if (capability == Capabilities.ENERGY_STORAGE && Config.robotsUseEnergy()) {
+            return (T) energy;
         }
-        if (capability == Capabilities.robot()) {
-            return LazyOptional.of(() -> this).cast();
-        }
-
-        final LazyOptional<T> optional = super.getCapability(capability, side);
-        if (optional.isPresent()) {
-            return optional;
+        if (capability == Capabilities.ROBOT) {
+            return (T) this;
         }
 
         for (final Device device : virtualMachine.busController.getDevices()) {
-            if (device instanceof final ICapabilityProvider capabilityProvider) {
-                final LazyOptional<T> value = capabilityProvider.getCapability(capability, side);
-                if (value.isPresent()) {
+            if (device instanceof final CapabilityProvider capabilityProvider) {
+                final T value = capabilityProvider.getCapability(capability, side);
+                if (value != null) {
                     return value;
                 }
             }
         }
 
-        return LazyOptional.empty();
+        return null;
     }
 
     public long getLastPistonMovement() {
@@ -758,8 +752,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         private UUID deviceId = UUID.randomUUID();
 
         @Override
-        public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
-            return Optional.of(singleton(LazyOptional.of(() -> deviceItems.busElement)));
+        public Optional<Collection<Invalidatable<DeviceBusElement>>> getNeighbors() {
+            return Optional.of(singleton(Invalidatable.of(deviceItems.busElement)));
         }
 
         @Override

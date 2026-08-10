@@ -10,17 +10,17 @@ import li.cil.oc2.common.bus.device.provider.util.AbstractBlockEntityCapabilityD
 import li.cil.oc2.common.bus.device.rpc.EnergyStorageDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.energy.IEnergyStorage;
+import li.cil.oc2.common.energy.EnergyStorage;
 
-public final class EnergyStorageBlockDeviceProvider extends AbstractBlockEntityCapabilityDeviceProvider<IEnergyStorage, BlockEntity> {
+public final class EnergyStorageBlockDeviceProvider extends AbstractBlockEntityCapabilityDeviceProvider<EnergyStorage, BlockEntity> {
     public EnergyStorageBlockDeviceProvider() {
-        super(Capabilities::energyStorage);
+        super(Capabilities.ENERGY_STORAGE);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final IEnergyStorage value) {
+    protected Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final EnergyStorage value) {
         return Invalidatable.of(new ObjectDevice(new EnergyStorageDevice(value)));
     }
 }

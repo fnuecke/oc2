@@ -6,13 +6,13 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
+import li.cil.oc2.api.inventory.ItemHandler;
 
 import java.util.Collection;
 import java.util.Collections;
 
-public final class ItemHandlerDevice extends IdentityProxy<IItemHandler> implements NamedDevice {
-    public ItemHandlerDevice(final IItemHandler identity) {
+public final class ItemHandlerDevice extends IdentityProxy<ItemHandler> implements NamedDevice {
+    public ItemHandlerDevice(final ItemHandler identity) {
         super(identity);
     }
 

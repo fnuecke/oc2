@@ -2,6 +2,9 @@
 
 package li.cil.oc2.common.blockentity;
 
+import net.minecraft.core.HolderLookup;
+import li.cil.oc2.common.capabilities.CapabilityProvider;
+import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
@@ -36,9 +39,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -138,29 +138,29 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
     }
 
-    @NotNull
+    @Nullable
     @Override
-    public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
+    public <T> T getCapability(final CapabilityType<T> capability, @Nullable final Direction side) {
         if (!isValid()) {
-            return LazyOptional.empty();
+            return null;
         }
 
-        final LazyOptional<T> optional = super.getCapability(capability, side);
-        if (optional.isPresent()) {
-            return optional;
+        final T own = super.getCapability(capability, side);
+        if (own != null) {
+            return own;
         }
 
         final Direction localSide = HorizontalBlockUtils.toLocal(getBlockState(), side);
         for (final Device device : virtualMachine.busController.getDevices()) {
-            if (device instanceof final ICapabilityProvider capabilityProvider) {
-                final LazyOptional<T> value = capabilityProvider.getCapability(capability, localSide);
-                if (value.isPresent()) {
+            if (device instanceof final CapabilityProvider capabilityProvider) {
+                final T value = capabilityProvider.getCapability(capability, localSide);
+                if (value != null) {
                     return value;
                 }
             }
         }
 
-        return LazyOptional.empty();
+        return null;
     }
 
     @Override
@@ -194,8 +194,8 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        final CompoundTag tag = super.getUpdateTag();
+    public CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
+        final CompoundTag tag = super.getUpdateTag(registries);
 
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.putInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME, virtualMachine.getBusState().ordinal());
@@ -205,19 +205,10 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         return tag;
     }
 
-    @Override
-    public void handleUpdateTag(final CompoundTag tag) {
-        super.handleUpdateTag(tag);
-
-        NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
-        virtualMachine.setBusStateClient(CommonDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME)]);
-        virtualMachine.setRunStateClient(VMRunState.values()[tag.getInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME)]);
-        virtualMachine.setBootErrorClient(Component.Serializer.fromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)));
-    }
 
     @Override
-    protected void saveAdditional(final CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
 
         if (virtualMachine.getRunState() != VMRunState.STOPPED) {
             tag.put(STATE_TAG_NAME, virtualMachine.serialize());
@@ -226,20 +217,27 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.save());
-        tag.put(ITEMS_TAG_NAME, deviceItems.saveItems());
+        tag.put(ITEMS_TAG_NAME, deviceItems.saveItems(registries));
         tag.put(DEVICES_TAG_NAME, deviceItems.saveDevices());
     }
 
     @Override
-    public void load(final CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
 
         energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
         virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
         NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
+
+        // Client-visible state, only present in the tag produced by getUpdateTag().
+        if (tag.contains(AbstractVirtualMachine.BUS_STATE_TAG_NAME)) {
+            virtualMachine.setBusStateClient(CommonDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME)]);
+            virtualMachine.setRunStateClient(VMRunState.values()[tag.getInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME)]);
+            virtualMachine.setBootErrorClient(Component.Serializer.fromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)));
+        }
         busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
 
-        deviceItems.loadItems(tag.getCompound(ITEMS_TAG_NAME));
+        deviceItems.loadItems(registries, tag.getCompound(ITEMS_TAG_NAME));
         deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
     }
 
@@ -251,12 +249,12 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        collector.offer(Capabilities.itemHandler(), deviceItems.combinedItemHandlers);
-        collector.offer(Capabilities.deviceBusElement(), busElement);
-        collector.offer(Capabilities.terminalUserProvider(), this);
+        collector.offer(Capabilities.ITEM_HANDLER, deviceItems.combinedItemHandlers);
+        collector.offer(Capabilities.DEVICE_BUS_ELEMENT, busElement);
+        collector.offer(Capabilities.TERMINAL_USER_PROVIDER, this);
 
         if (Config.computersUseEnergy()) {
-            collector.offer(Capabilities.energyStorage(), energy);
+            collector.offer(Capabilities.ENERGY_STORAGE, energy);
         }
     }
 
@@ -356,12 +354,12 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
 
         @Override
-        public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
+        public Optional<Collection<Invalidatable<DeviceBusElement>>> getNeighbors() {
             return super.getNeighbors().map(neighbors -> {
                 // If we have valid neighbors (complete bus) also add a connection to the bus
                 // element hosting our item devices.
-                final ArrayList<LazyOptional<DeviceBusElement>> list = new ArrayList<>(neighbors);
-                list.add(LazyOptional.of(() -> deviceItems.busElement));
+                final ArrayList<Invalidatable<DeviceBusElement>> list = new ArrayList<>(neighbors);
+                list.add(Invalidatable.of(deviceItems.busElement));
                 return list;
             });
         }

@@ -7,19 +7,19 @@ import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.bus.device.rpc.EnergyStorageDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraftforge.energy.IEnergyStorage;
+import li.cil.oc2.common.energy.EnergyStorage;
 
 import java.util.Optional;
 
-public final class EnergyStorageItemDeviceProvider extends AbstractItemStackCapabilityDeviceProvider<IEnergyStorage> {
+public final class EnergyStorageItemDeviceProvider extends AbstractItemStackCapabilityDeviceProvider<EnergyStorage> {
     public EnergyStorageItemDeviceProvider() {
-        super(Capabilities::energyStorage);
+        super(Capabilities.ENERGY_STORAGE);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query, final IEnergyStorage value) {
+    protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query, final EnergyStorage value) {
         return Optional.of(new ObjectDevice(new EnergyStorageDevice(value)));
     }
 }

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.blockentity;
 
+import net.minecraft.core.HolderLookup;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
@@ -43,15 +44,15 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected void saveAdditional(final CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
 
         tag.putByteArray(OUTPUT_TAG_NAME, output);
     }
 
     @Override
-    public void load(final CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         final byte[] serializedOutput = tag.getByteArray(OUTPUT_TAG_NAME);
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
     }

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.vm.item;
 
+import li.cil.oc2.common.capabilities.CapabilityType;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
@@ -11,8 +12,6 @@ import li.cil.oc2.common.item.NetworkTunnelItem;
 import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -30,10 +29,10 @@ public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
 
     ///////////////////////////////////////////////////////////////
 
-    @NotNull
+    @Nullable
     @Override
-    public <T> LazyOptional<T> getCapability(final Capability<T> cap, @Nullable final Direction side) {
-        return LazyOptional.empty();
+    public <T> T getCapability(final CapabilityType<T> capability, @Nullable final Direction side) {
+        return null;
     }
 
     @Override

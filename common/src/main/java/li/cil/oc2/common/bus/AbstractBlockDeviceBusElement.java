@@ -22,7 +22,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.registries.IForgeRegistry;
 
 import javax.annotation.Nullable;
@@ -39,13 +38,13 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
     // DeviceBusElement
 
     @Override
-    public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
+    public Optional<Collection<Invalidatable<DeviceBusElement>>> getNeighbors() {
         final LevelAccessor level = getLevel();
         if (level == null || level.isClientSide()) {
             return Optional.empty();
         }
 
-        final ArrayList<LazyOptional<DeviceBusElement>> neighbors = new ArrayList<>();
+        final ArrayList<Invalidatable<DeviceBusElement>> neighbors = new ArrayList<>();
         for (final Direction neighborDirection : Constants.DIRECTIONS) {
             if (!canScanContinueTowards(neighborDirection)) {
                 continue;
@@ -63,9 +62,9 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
                 continue;
             }
 
-            final LazyOptional<DeviceBusElement> capability = blockEntity.getCapability(Capabilities.deviceBusElement(), neighborDirection.getOpposite());
-            if (capability.isPresent()) {
-                neighbors.add(capability);
+            final DeviceBusElement neighbor = Capabilities.get(blockEntity, Capabilities.DEVICE_BUS_ELEMENT, neighborDirection.getOpposite());
+            if (neighbor != null) {
+                neighbors.add(Invalidatable.of(neighbor));
             }
         }
 

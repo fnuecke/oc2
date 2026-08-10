@@ -2,21 +2,10 @@
 
 package li.cil.oc2.common.energy;
 
-import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.NBTUtils;
-import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-public final class EnergyStorageItemStack implements IEnergyStorage, ICapabilityProvider {
-    private final LazyOptional<IEnergyStorage> optional = LazyOptional.of(() -> this);
-
+public final class EnergyStorageItemStack implements EnergyStorage {
     private final ItemStack stack;
     private final int capacity;
     private final String[] tagPath;
@@ -28,29 +17,29 @@ public final class EnergyStorageItemStack implements IEnergyStorage, ICapability
     }
 
     @Override
-    public int receiveEnergy(final int maxReceive, final boolean simulate) {
-        final int stored = getEnergyStored();
-        final int receiveLimit = capacity - stored;
-        final int receive = Math.min(maxReceive, receiveLimit);
+    public long receiveEnergy(final long maxReceive, final boolean simulate) {
+        final long stored = getEnergyStored();
+        final long receiveLimit = capacity - stored;
+        final long receive = Math.min(maxReceive, receiveLimit);
         if (!simulate) {
             NBTUtils.getOrCreateChildTag(stack.getOrCreateTag(), tagPath)
-                .putInt(FixedEnergyStorage.STORED_TAG_NAME, stored + receive);
+                .putInt(FixedEnergyStorage.STORED_TAG_NAME, (int) (stored + receive));
         }
         return receive;
     }
 
     @Override
-    public int extractEnergy(final int maxExtract, final boolean simulate) {
+    public long extractEnergy(final long maxExtract, final boolean simulate) {
         return 0;
     }
 
     @Override
-    public int getEnergyStored() {
+    public long getEnergyStored() {
         return NBTUtils.getChildTag(stack.getTag(), tagPath).getInt(FixedEnergyStorage.STORED_TAG_NAME);
     }
 
     @Override
-    public int getMaxEnergyStored() {
+    public long getMaxEnergyStored() {
         return capacity;
     }
 
@@ -62,11 +51,5 @@ public final class EnergyStorageItemStack implements IEnergyStorage, ICapability
     @Override
     public boolean canReceive() {
         return true;
-    }
-
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(final Capability<T> capability, @Nullable final Direction side) {
-        return Capabilities.energyStorage().orEmpty(capability, optional);
     }
 }

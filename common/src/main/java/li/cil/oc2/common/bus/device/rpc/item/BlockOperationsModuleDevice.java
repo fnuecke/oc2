@@ -36,8 +36,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.TierSortingRegistry;
 import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import li.cil.oc2.api.inventory.ItemHandler;
+import li.cil.oc2.common.container.ItemStackHandler;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
@@ -283,7 +283,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         return null;
     }
 
-    private ItemStack insertStartingAt(final IItemHandler handler, ItemStack stack, final int startSlot, final boolean simulate) {
+    private ItemStack insertStartingAt(final ItemHandler handler, ItemStack stack, final int startSlot, final boolean simulate) {
         for (int i = 0; i < handler.getSlots(); i++) {
             final int slot = (startSlot + i) % handler.getSlots();
             stack = handler.insertItem(slot, stack, simulate);

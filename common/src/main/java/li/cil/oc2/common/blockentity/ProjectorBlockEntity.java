@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.blockentity;
 
+import net.minecraft.core.HolderLookup;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.block.ProjectorBlock;
 import li.cil.oc2.common.bus.device.vm.block.ProjectorDevice;
@@ -163,8 +164,8 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        final CompoundTag tag = super.getUpdateTag();
+    public CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
+        final CompoundTag tag = super.getUpdateTag(registries);
 
         tag.putBoolean(IS_PROJECTING_TAG_NAME, isMounted);
         tag.putBoolean(HAS_ENERGY_TAG_NAME, hasEnergy);
@@ -172,26 +173,26 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         return tag;
     }
 
-    @Override
-    public void handleUpdateTag(final CompoundTag tag) {
-        super.handleUpdateTag(tag);
-
-        isMounted = tag.getBoolean(IS_PROJECTING_TAG_NAME);
-        hasEnergy = tag.getBoolean(HAS_ENERGY_TAG_NAME);
-    }
 
     @Override
-    protected void saveAdditional(final CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
 
         tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
     }
 
     @Override
-    public void load(final CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
 
         energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
+
+        if (tag.contains(IS_PROJECTING_TAG_NAME)) {
+            isMounted = tag.getBoolean(IS_PROJECTING_TAG_NAME);
+        }
+        if (tag.contains(HAS_ENERGY_TAG_NAME)) {
+            hasEnergy = tag.getBoolean(HAS_ENERGY_TAG_NAME);
+        }
     }
 
     @Override
@@ -253,11 +254,11 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         if (Config.projectorsUseEnergy()) {
-            collector.offer(Capabilities.energyStorage(), energy);
+            collector.offer(Capabilities.ENERGY_STORAGE, energy);
         }
 
         if (direction == getBlockState().getValue(ProjectorBlock.FACING).getOpposite()) {
-            collector.offer(Capabilities.device(), projectorDevice);
+            collector.offer(Capabilities.DEVICE, projectorDevice);
         }
     }
 

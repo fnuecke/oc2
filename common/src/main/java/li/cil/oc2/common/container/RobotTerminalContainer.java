@@ -14,7 +14,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraftforge.items.ItemStackHandler;
+import li.cil.oc2.common.container.ItemStackHandler;
 import net.minecraftforge.network.NetworkHooks;
 
 public final class RobotTerminalContainer extends AbstractRobotContainer {

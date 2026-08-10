@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.blockentity;
 
+import net.minecraft.core.HolderLookup;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.common.Config;
@@ -29,7 +30,6 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
@@ -62,7 +62,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
 
     private final NetworkConnectorNetworkInterface networkInterface = new NetworkConnectorNetworkInterface();
 
-    private LazyOptional<NetworkInterface> adjacentInterface = LazyOptional.empty();
+    @Nullable private NetworkInterface adjacentInterface;
     private boolean isAdjacentInterfaceDirty = true;
 
     private final HashSet<BlockPos> connectorPositions = new HashSet<>();
@@ -191,7 +191,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
             }
         }
 
-        final NetworkInterface source = adjacentInterface.orElse(NullNetworkInterface.INSTANCE);
+        final NetworkInterface source = adjacentInterface != null ? adjacentInterface : NullNetworkInterface.INSTANCE;
 
         int byteBudget = BYTES_PER_TICK;
         byte[] frame;
@@ -202,8 +202,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        final CompoundTag tag = super.getUpdateTag();
+    public CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
+        final CompoundTag tag = super.getUpdateTag(registries);
 
         final ListTag connections = new ListTag();
         for (final BlockPos position : connectorPositions) {
@@ -215,22 +215,10 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         return tag;
     }
 
-    @Override
-    public void handleUpdateTag(final CompoundTag tag) {
-        super.handleUpdateTag(tag);
-
-        final ListTag connections = tag.getList(CONNECTIONS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
-        for (int i = 0; i < Math.min(connections.size(), MAX_CONNECTION_COUNT); i++) {
-            final CompoundTag connectionTag = connections.getCompound(i);
-            final BlockPos position = NbtUtils.readBlockPos(connectionTag);
-            connectorPositions.add(position);
-            dirtyConnectors.add(position);
-        }
-    }
 
     @Override
-    protected void saveAdditional(final CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
 
         final ListTag connections = new ListTag();
         for (final BlockPos position : connectorPositions) {
@@ -244,8 +232,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     }
 
     @Override
-    public void load(final CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
 
         final ListTag connections = tag.getList(CONNECTIONS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
         for (int i = 0; i < Math.min(connections.size(), MAX_CONNECTION_COUNT); i++) {
@@ -276,7 +264,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         if (direction == NetworkConnectorBlock.getFacing(getBlockState()).getOpposite()) {
-            collector.offer(Capabilities.networkInterface(), networkInterface);
+            collector.offer(Capabilities.NETWORK_INTERFACE, networkInterface);
         }
     }
 
@@ -318,7 +306,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     private void resolveLocalInterface() {
         assert level != null;
 
-        adjacentInterface = LazyOptional.empty();
+        adjacentInterface = null;
 
         if (!isValid()) {
             return;
@@ -337,10 +325,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
             return;
         }
 
-        adjacentInterface = blockEntity.getCapability(Capabilities.networkInterface(), facing);
-        if (adjacentInterface.isPresent()) {
-            LazyOptionalUtils.addWeakListener(adjacentInterface, this, (connector, unused) -> connector.setNeighborChanged());
-        }
+        adjacentInterface = Capabilities.get(blockEntity, Capabilities.NETWORK_INTERFACE, facing);
     }
 
     private void resolveConnectedInterface(final BlockPos connectedPosition) {
@@ -442,12 +427,13 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
                 return;
             }
 
-            adjacentInterface.ifPresent(dst -> {
+            if (adjacentInterface != null) {
+                final NetworkInterface dst = adjacentInterface;
                 if (dst == source) {
                     return;
                 }
                 dst.writeEthernetFrame(this, frame, timeToLive - TTL_COST);
-            });
+            }
 
             for (final NetworkConnectorBlockEntity dst : connectors.values()) {
                 if (!dst.isValid() || dst.networkInterface == source) {

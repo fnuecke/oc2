@@ -13,10 +13,8 @@ import li.cil.oc2.common.container.AbstractDeviceItemStackHandler;
 import li.cil.oc2.common.container.AbstractTypedDeviceItemStackHandler;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
+import li.cil.oc2.api.inventory.ItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,7 +38,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
     //     This is relevant when assigning default addresses for devices.
     private final LinkedHashMap<DeviceType, AbstractDeviceItemStackHandler> itemHandlers = new LinkedHashMap<>();
 
-    public final IItemHandler combinedItemHandlers;
+    public final ItemHandler combinedItemHandlers;
 
     ///////////////////////////////////////////////////////////////////
 
@@ -55,7 +53,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public Optional<IItemHandler> getItemHandler(final DeviceType deviceType) {
+    public Optional<ItemHandler> getItemHandler(final DeviceType deviceType) {
         return Optional.ofNullable(itemHandlers.get(deviceType));
     }
 
@@ -179,9 +177,9 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     private final class VMBusElement extends AbstractDeviceBusElement {
         @Override
-        public Optional<Collection<LazyOptional<DeviceBusElement>>> getNeighbors() {
+        public Optional<Collection<Invalidatable<DeviceBusElement>>> getNeighbors() {
             return Optional.of(itemHandlers.values().stream()
-                .map(handler -> LazyOptional.of(() -> (DeviceBusElement) handler.getBusElement()))
+                .map(handler -> Invalidatable.of((DeviceBusElement) handler.getBusElement()))
                 .collect(Collectors.toList()));
         }
     }

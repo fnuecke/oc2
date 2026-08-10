@@ -15,11 +15,11 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.energy.IEnergyStorage;
+import li.cil.oc2.common.energy.EnergyStorage;
 import net.minecraftforge.network.NetworkHooks;
 
 public final class ComputerInventoryContainer extends AbstractComputerContainer {
-    public static void createServer(final ComputerBlockEntity computer, final IEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
+    public static void createServer(final ComputerBlockEntity computer, final EnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
         NetworkHooks.openGui(player, new MenuProvider() {
             @Override
             public Component getDisplayName() {

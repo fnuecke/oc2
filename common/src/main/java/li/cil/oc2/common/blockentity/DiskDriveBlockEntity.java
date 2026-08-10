@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.blockentity;
 
+import net.minecraft.core.HolderLookup;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.DiskDriveBlock;
 import li.cil.oc2.common.bus.device.vm.block.DiskDriveContainer;
@@ -102,38 +103,33 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
-        collector.offer(Capabilities.itemHandler(), itemHandler);
+        collector.offer(Capabilities.ITEM_HANDLER, itemHandler);
 
         if (direction == getBlockState().getValue(DiskDriveBlock.FACING).getOpposite()) {
-            collector.offer(Capabilities.device(), device);
+            collector.offer(Capabilities.DEVICE, device);
         }
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        final CompoundTag tag = super.getUpdateTag();
-        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
+    public CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
+        final CompoundTag tag = super.getUpdateTag(registries);
+        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT(registries));
         return tag;
     }
 
+
     @Override
-    public void handleUpdateTag(final CompoundTag tag) {
-        super.handleUpdateTag(tag);
-        itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
+    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+
+        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT(registries));
     }
 
     @Override
-    protected void saveAdditional(final CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
 
-        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT());
-    }
-
-    @Override
-    public void load(final CompoundTag tag) {
-        super.load(tag);
-
-        itemHandler.deserializeNBT(tag.getCompound(Constants.ITEMS_TAG_NAME));
+        itemHandler.deserializeNBT(registries, tag.getCompound(Constants.ITEMS_TAG_NAME));
     }
 
     @Override

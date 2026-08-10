@@ -7,18 +7,19 @@ import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.block.BlockEntityCapabilityDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.item.*;
 import li.cil.oc2.common.bus.device.rpc.block.*;
-import net.minecraftforge.registries.IForgeRegistry;
+import dev.architectury.injectables.annotations.ExpectPlatform;
+import dev.architectury.registry.registries.Registrar;
 
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 public final class Providers {
-    public static IForgeRegistry<BlockDeviceProvider> blockDeviceProviderRegistry() {
-        return ProviderRegistry.BLOCK_DEVICE_PROVIDER_REGISTRY.get();
+    public static Registrar<BlockDeviceProvider> blockDeviceProviderRegistry() {
+        return ProviderRegistry.BLOCK_DEVICE_PROVIDER_REGISTRY;
     }
 
-    public static IForgeRegistry<ItemDeviceProvider> itemDeviceProviderRegistry() {
-        return ProviderRegistry.ITEM_DEVICE_PROVIDER_REGISTRY.get();
+    public static Registrar<ItemDeviceProvider> itemDeviceProviderRegistry() {
+        return ProviderRegistry.ITEM_DEVICE_PROVIDER_REGISTRY;
     }
 
     public static void registerBlockDeviceProviders(final BiConsumer<String, Supplier<BlockDeviceProvider>> registry) {
@@ -27,8 +28,22 @@ public final class Providers {
 
         registry.accept("block_entity/capability", BlockEntityCapabilityDeviceProvider::new);
         registry.accept("energy_storage", EnergyStorageBlockDeviceProvider::new);
-        registry.accept("fluid_handler", FluidHandlerBlockDeviceProvider::new);
         registry.accept("item_handler", ItemHandlerBlockDeviceProvider::new);
+
+        registerPlatformBlockDeviceProviders(registry);
+    }
+
+    @ExpectPlatform
+    public static void registerPlatformBlockDeviceProviders(final BiConsumer<String, Supplier<BlockDeviceProvider>> registry) {
+        throw new AssertionError();
+    }
+
+    /**
+     * @see #registerPlatformBlockDeviceProviders(BiConsumer)
+     */
+    @ExpectPlatform
+    public static void registerPlatformItemDeviceProviders(final BiConsumer<String, Supplier<ItemDeviceProvider>> registry) {
+        throw new AssertionError();
     }
 
     public static void registerItemDeviceProviders(final BiConsumer<String, Supplier<ItemDeviceProvider>> registry) {
@@ -49,7 +64,8 @@ public final class Providers {
 
         registry.accept("item_stack/capability", ItemStackCapabilityDeviceProvider::new);
         registry.accept("energy_storage", EnergyStorageItemDeviceProvider::new);
-        registry.accept("fluid_handler", FluidHandlerItemDeviceProvider::new);
         registry.accept("item_handler", ItemHandlerItemDeviceProvider::new);
+
+        registerPlatformItemDeviceProviders(registry);
     }
 }

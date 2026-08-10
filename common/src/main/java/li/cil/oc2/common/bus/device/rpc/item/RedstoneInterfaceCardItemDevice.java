@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.bus.device.rpc.item;
 
+import li.cil.oc2.common.capabilities.CapabilityProvider;
+import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
@@ -18,9 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,15 +54,15 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
 
     ///////////////////////////////////////////////////////////////////
 
-    @Nonnull
+    @Nullable
+    @SuppressWarnings("unchecked")
     @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull final Capability<T> capability, @Nullable final Direction side) {
-        if (capability == Capabilities.redstoneEmitter() && side != null) {
-            final int index = side.get3DDataValue();
-            return LazyOptional.of(() -> capabilities[index]).cast();
+    public <T> T getCapability(final CapabilityType<T> capability, @Nullable final Direction side) {
+        if (capability == Capabilities.REDSTONE_EMITTER && side != null) {
+            return (T) capabilities[side.get3DDataValue()];
         }
 
-        return LazyOptional.empty();
+        return null;
     }
 
     @Override

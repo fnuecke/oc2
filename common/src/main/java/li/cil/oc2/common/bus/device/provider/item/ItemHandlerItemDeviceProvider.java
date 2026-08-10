@@ -7,19 +7,19 @@ import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.bus.device.rpc.ItemHandlerDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraftforge.items.IItemHandler;
+import li.cil.oc2.api.inventory.ItemHandler;
 
 import java.util.Optional;
 
-public final class ItemHandlerItemDeviceProvider extends AbstractItemStackCapabilityDeviceProvider<IItemHandler> {
+public final class ItemHandlerItemDeviceProvider extends AbstractItemStackCapabilityDeviceProvider<ItemHandler> {
     public ItemHandlerItemDeviceProvider() {
-        super(Capabilities::itemHandler);
+        super(Capabilities.ITEM_HANDLER);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query, final IItemHandler value) {
+    protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query, final ItemHandler value) {
         return Optional.of(new ObjectDevice(new ItemHandlerDevice(value)));
     }
 }

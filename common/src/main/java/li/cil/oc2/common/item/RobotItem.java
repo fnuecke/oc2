@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.item;
 
+import li.cil.oc2.common.capabilities.CapabilityProvider;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.renderer.entity.RobotWithoutLevelRenderer;
@@ -31,7 +32,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.IItemRenderProperties;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
 
 import javax.annotation.Nullable;
 import java.util.List;

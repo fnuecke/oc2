@@ -10,17 +10,17 @@ import li.cil.oc2.common.bus.device.provider.util.AbstractBlockEntityCapabilityD
 import li.cil.oc2.common.bus.device.rpc.ItemHandlerDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.items.IItemHandler;
+import li.cil.oc2.api.inventory.ItemHandler;
 
-public final class ItemHandlerBlockDeviceProvider extends AbstractBlockEntityCapabilityDeviceProvider<IItemHandler, BlockEntity> {
+public final class ItemHandlerBlockDeviceProvider extends AbstractBlockEntityCapabilityDeviceProvider<ItemHandler, BlockEntity> {
     public ItemHandlerBlockDeviceProvider() {
-        super(Capabilities::itemHandler);
+        super(Capabilities.ITEM_HANDLER);
     }
 
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    protected Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final IItemHandler value) {
+    protected Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final ItemHandler value) {
         return Invalidatable.of(new ObjectDevice(new ItemHandlerDevice(value)));
     }
 }

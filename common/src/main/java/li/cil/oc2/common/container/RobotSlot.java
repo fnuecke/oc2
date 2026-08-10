@@ -3,11 +3,11 @@
 package li.cil.oc2.common.container;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
+import li.cil.oc2.api.inventory.ItemHandler;
+import li.cil.oc2.common.container.SlotItemHandler;
 
 public final class RobotSlot extends SlotItemHandler {
-    public RobotSlot(final IItemHandler itemHandler, final int index, final int xPosition, final int yPosition) {
+    public RobotSlot(final ItemHandler itemHandler, final int index, final int xPosition, final int yPosition) {
         super(itemHandler, index, xPosition, yPosition);
     }
 

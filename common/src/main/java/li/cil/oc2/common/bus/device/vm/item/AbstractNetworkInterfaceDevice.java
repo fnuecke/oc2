@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.bus.device.vm.item;
 
+import li.cil.oc2.common.capabilities.CapabilityProvider;
+import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
@@ -17,9 +19,6 @@ import li.cil.sedna.device.virtio.VirtIONetworkDevice;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,14 +46,15 @@ public abstract class AbstractNetworkInterfaceDevice extends IdentityProxy<ItemS
 
     ///////////////////////////////////////////////////////////////
 
-    @Nonnull
+    @Nullable
+    @SuppressWarnings("unchecked")
     @Override
-    public <T> LazyOptional<T> getCapability(final Capability<T> cap, @Nullable final Direction side) {
-        if (cap == Capabilities.networkInterface()) {
-            return LazyOptional.of(() -> networkInterface).cast();
+    public <T> T getCapability(final CapabilityType<T> capability, @Nullable final Direction side) {
+        if (capability == Capabilities.NETWORK_INTERFACE) {
+            return (T) networkInterface;
         }
 
-        return LazyOptional.empty();
+        return null;
     }
 
     @Override

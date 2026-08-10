@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.provider.item;
+package li.cil.oc2.common.bus.device.provider.neoforge;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;

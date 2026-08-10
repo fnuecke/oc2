@@ -3,10 +3,11 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.util.NBTTagIds;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.ItemStackHandler;
+import li.cil.oc2.common.container.ItemStackHandler;
 
 public class FixedSizeItemStackHandler extends ItemStackHandler {
     private static final String SIZE_TAG_NAME = "Size";
@@ -33,14 +34,14 @@ public class FixedSizeItemStackHandler extends ItemStackHandler {
     }
 
     @Override
-    public void deserializeNBT(final CompoundTag tag) {
+    public void deserializeNBT(final HolderLookup.Provider registries, final CompoundTag tag) {
         // Our size is fixed, don't trust NBT data we're loading.
         if (tag.contains(SIZE_TAG_NAME, NBTTagIds.TAG_INT)) {
             final CompoundTag safeTag = tag.copy();
             safeTag.remove(SIZE_TAG_NAME);
-            super.deserializeNBT(safeTag);
+            super.deserializeNBT(registries, safeTag);
         } else {
-            super.deserializeNBT(tag);
+            super.deserializeNBT(registries, tag);
         }
     }
 }

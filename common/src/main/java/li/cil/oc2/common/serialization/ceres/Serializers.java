@@ -9,7 +9,7 @@ import li.cil.sedna.api.memory.MemoryRange;
 import net.minecraft.network.chat.Component;
 
 public final class Serializers {
-    private static boolean isInitialized = false;
+    private static boolean isInitialized;
 
     static {
         initialize();

@@ -176,8 +176,8 @@ public final class NetworkInterfaceCardScreen extends Screen {
     ///////////////////////////////////////////////////////////////////
 
     private boolean isMouseInBlockArea(final double mouseX, final double mouseY) {
-        return mouseX >= left + 37 && mouseX <= left + (37 + 102) &&
-            mouseY >= top + 10 && mouseY <= top + (10 + 102);
+        return mouseX >= left + 37 && mouseX <= left + 37 + 102 &&
+            mouseY >= top + 10 && mouseY <= top + 10 + 102;
     }
 
     private boolean getConfiguration(@Nullable final Direction side) {

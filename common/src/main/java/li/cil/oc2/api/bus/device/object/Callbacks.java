@@ -216,7 +216,7 @@ public final class Callbacks {
                 final boolean hasName = annotation != null && Strings.isNotBlank(annotation.value());
                 final boolean hasDescription = annotation != null && Strings.isNotBlank(annotation.description());
 
-                this.name = hasName ? annotation.value() : (parameter.isNamePresent() ? parameter.getName() : null);
+                this.name = hasName ? annotation.value() : parameter.isNamePresent() ? parameter.getName() : null;
 
                 if (parameterDescriptions.containsKey(this.name)) {
                     this.description = parameterDescriptions.get(this.name);

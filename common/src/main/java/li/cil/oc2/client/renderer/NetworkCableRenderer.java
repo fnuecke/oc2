@@ -222,7 +222,7 @@ public final class NetworkCableRenderer {
     }
 
     private static Vec3 animateCableSwing(final Vec3 c, @Nullable final Vec3 right, final float swingAmount, final int seed) {
-        final float relTime = ((System.currentTimeMillis() + seed) % CABLE_SWING_INTERVAL) / (float) CABLE_SWING_INTERVAL;
+        final float relTime = (System.currentTimeMillis() + seed) % CABLE_SWING_INTERVAL / (float) CABLE_SWING_INTERVAL;
         final float relRadialTime = relTime * 2 * (float) Math.PI;
 
         if (right == null) {

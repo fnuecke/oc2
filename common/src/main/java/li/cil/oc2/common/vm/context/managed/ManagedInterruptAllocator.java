@@ -63,7 +63,7 @@ final class ManagedInterruptAllocator implements InterruptAllocator, InterruptVa
         }
 
         managedInterrupts.set(interrupt);
-        managedMask |= (1 << interrupt);
+        managedMask |= 1 << interrupt;
         return true;
     }
 
@@ -76,7 +76,7 @@ final class ManagedInterruptAllocator implements InterruptAllocator, InterruptVa
         final OptionalInt result = parent.claimInterrupt();
         result.ifPresent(interrupt -> {
             managedInterrupts.set(interrupt);
-            managedMask |= (1 << interrupt);
+            managedMask |= 1 << interrupt;
         });
         return result;
     }

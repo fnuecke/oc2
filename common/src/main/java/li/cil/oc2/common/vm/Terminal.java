@@ -98,9 +98,9 @@ public final class Terminal {
     private final boolean[] tabs = new boolean[WIDTH];
     private State state = State.NORMAL;
     private final int[] args = new int[4];
-    private int argCount = 0;
+    private int argCount;
     private int modes;
-    private int scrollFirst = 0, scrollLast = HEIGHT - 1;
+    private int scrollFirst, scrollLast = HEIGHT - 1;
     private int x, y;
     private int savedX, savedY;
 
@@ -497,7 +497,7 @@ public final class Terminal {
                 putResponse("\033[0n"); // Ready, No malfunctions detected
             case 6 -> { // Report cursor position
                 if (getMode(Mode.DECOM)) {
-                    putResponse(String.format("\033[%d;%dR", (y - scrollFirst) + 1, x + 1));
+                    putResponse(String.format("\033[%d;%dR", y - scrollFirst + 1, x + 1));
                 } else {
                     putResponse(String.format("\033[%d;%dR", (y % HEIGHT) + 1, x + 1));
                 }
@@ -687,6 +687,8 @@ public final class Terminal {
         private static final ResourceLocation LOCATION_FONT_TEXTURE = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/font/terminus.png");
         private static final int TEXTURE_RESOLUTION = 256;
         private static final float ONE_OVER_TEXTURE_RESOLUTION = 1.0f / TEXTURE_RESOLUTION;
+        private static final float CHAR_WIDTH_IN_UV = CHAR_WIDTH * ONE_OVER_TEXTURE_RESOLUTION;
+        private static final float CHAR_HEIGHT_IN_UV = CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION;
         private static final int TEXTURE_COLUMNS = 16;
         private static final int TEXTURE_BOLD_SHIFT = TEXTURE_COLUMNS; // Bold chars are in right half of texture.
 
@@ -891,10 +893,10 @@ public final class Terminal {
             if (isPrintableCharacter((char) character)) {
                 final int x = character % TEXTURE_COLUMNS + ((style & STYLE_BOLD_MASK) != 0 ? TEXTURE_BOLD_SHIFT : 0);
                 final int y = character / TEXTURE_COLUMNS;
-                final float u0 = x * (CHAR_WIDTH * ONE_OVER_TEXTURE_RESOLUTION);
-                final float u1 = (x + 1) * (CHAR_WIDTH * ONE_OVER_TEXTURE_RESOLUTION);
-                final float v0 = y * (CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION);
-                final float v1 = (y + 1) * (CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION);
+                final float u0 = x * CHAR_WIDTH_IN_UV;
+                final float u1 = (x + 1) * CHAR_WIDTH_IN_UV;
+                final float v0 = y * CHAR_HEIGHT_IN_UV;
+                final float v1 = (y + 1) * CHAR_HEIGHT_IN_UV;
 
                 buffer.addVertex(matrix, offset, CHAR_HEIGHT, 0).setColor(r, g, b, 1).setUv(u0, v1);
                 buffer.addVertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT, 0).setColor(r, g, b, 1).setUv(u1, v1);
@@ -931,7 +933,7 @@ public final class Terminal {
             final int foreground = COLORS[Color.WHITE];
             final float r = ((foreground >> 16) & 0xFF) / 255f;
             final float g = ((foreground >> 8) & 0xFF) / 255f;
-            final float b = ((foreground) & 0xFF) / 255f;
+            final float b = (foreground & 0xFF) / 255f;
 
             buffer.addVertex(matrix, 0, CHAR_HEIGHT, 0).setColor(r, g, b, 1);
             buffer.addVertex(matrix, CHAR_WIDTH, CHAR_HEIGHT, 0).setColor(r, g, b, 1);

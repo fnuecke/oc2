@@ -25,6 +25,7 @@ eclipse
 run
 logs
 /assets/
+.architectury-transformer/
 
 # Files from Forge MDK
 forge*changelog.txt

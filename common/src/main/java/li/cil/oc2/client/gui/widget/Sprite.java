@@ -40,7 +40,7 @@ public final class Sprite {
 
     public void drawFillY(final GuiGraphics graphics, final int x, final int y, final float value) {
         final int h = (int) (this.height * Mth.clamp(value, 0, 1));
-        blit(graphics, x, y + (height - h), u0, v0 + (height - h), width, h);
+        blit(graphics, x, y + height - h, u0, v0 + height - h, width, h);
     }
 
     private void blit(final GuiGraphics graphics, final int x, final int y, final int u0, final int v0, final int width, final int height) {

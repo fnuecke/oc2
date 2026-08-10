@@ -225,7 +225,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     }
 
     private void renderStatus(final Matrix4f matrix, final MultiBufferSource bufferSource, final int frequency) {
-        if (frequency <= 0 || (((System.currentTimeMillis() + hashCode()) / frequency) % 2) == 1) {
+        if (frequency <= 0 || (System.currentTimeMillis() + hashCode()) / frequency % 2 == 1) {
             renderQuad(matrix, TEXTURE_STATUS.buffer(bufferSource, ModRenderType::getUnlitBlock));
         }
     }

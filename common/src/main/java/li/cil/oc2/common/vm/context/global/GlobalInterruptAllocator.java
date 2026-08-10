@@ -42,7 +42,7 @@ final class GlobalInterruptAllocator implements InterruptAllocator, InterruptVal
         }
 
         claimedInterrupts.set(interrupt);
-        managedMask |= (1 << interrupt);
+        managedMask |= 1 << interrupt;
         return true;
     }
 
@@ -58,7 +58,7 @@ final class GlobalInterruptAllocator implements InterruptAllocator, InterruptVal
         }
 
         claimedInterrupts.set(interrupt);
-        managedMask |= (1 << interrupt);
+        managedMask |= 1 << interrupt;
 
         return OptionalInt.of(interrupt);
     }

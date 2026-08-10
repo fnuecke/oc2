@@ -21,8 +21,8 @@ public final class RobotContainerScreen extends AbstractMachineInventoryScreen<R
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1, 1, 1, 1);
 
-        final int slotX = (selectedSlot % columns) * SLOT_SIZE;
-        final int slotY = (selectedSlot / columns) * SLOT_SIZE;
+        final int slotX = selectedSlot % columns * SLOT_SIZE;
+        final int slotY = selectedSlot / columns * SLOT_SIZE;
         final int offset = SLOT_SIZE * (int) (15 * (System.currentTimeMillis() % 1000) / 1000);
         Sprites.SLOT_SELECTION.draw(graphics, x + slotX, y + slotY, 0, offset);
     }

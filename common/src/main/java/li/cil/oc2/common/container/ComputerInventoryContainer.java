@@ -69,7 +69,7 @@ public final class ComputerInventoryContainer extends AbstractComputerContainer 
 
         handlers.getItemHandler(DeviceTypes.HARD_DRIVE).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE, slot, 100 + (slot % 2) * SLOT_SIZE, 60 + (slot / 2) * SLOT_SIZE));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE, slot, 100 + slot % 2 * SLOT_SIZE, 60 + slot / 2 * SLOT_SIZE));
             }
         });
 

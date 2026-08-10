@@ -365,7 +365,7 @@ public final class FileChooserScreen extends Screen {
             @Nullable private final Path file;
             private final Component displayName;
 
-            private long lastEntryClickTime = 0;
+            private long lastEntryClickTime;
 
             public FileEntry(@Nullable final Path file, final Component displayName) {
                 this.file = file;

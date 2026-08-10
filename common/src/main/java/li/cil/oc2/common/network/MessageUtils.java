@@ -17,8 +17,8 @@ import java.util.function.Consumer;
 
 public final class MessageUtils {
     public static <T extends BlockEntity> void withNearbyServerBlockEntityForInteraction(final NetworkManager.PacketContext context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
-        final ServerPlayer player = context.getPlayer();
-        if (player == null || !pos.closerToCenterThan(player.position(), 8)) {
+        if (!(context.getPlayer() instanceof final ServerPlayer player)
+            || !pos.closerToCenterThan(player.position(), 8)) {
             return;
         }
 
@@ -27,12 +27,11 @@ public final class MessageUtils {
 
     @SuppressWarnings("unchecked")
     public static <T extends BlockEntity> void withNearbyServerBlockEntity(final NetworkManager.PacketContext context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
-        final ServerPlayer player = context.getPlayer();
-        if (player == null) {
+        if (!(context.getPlayer() instanceof final ServerPlayer player)) {
             return;
         }
 
-        final ServerLevel level = player.level();
+        final ServerLevel level = player.serverLevel();
         final BlockEntity blockEntity = LevelUtils.getBlockEntityIfChunkExists(level, pos);
         if (type.isInstance(blockEntity)) {
             callback.accept(player, (T) blockEntity);
@@ -41,12 +40,11 @@ public final class MessageUtils {
 
     @SuppressWarnings("unchecked")
     public static <T extends Entity> void withServerEntity(final NetworkManager.PacketContext context, final int id, final Class<T> type, final Consumer<T> callback) {
-        final ServerPlayer player = context.getPlayer();
-        if (player == null) {
+        if (!(context.getPlayer() instanceof final ServerPlayer player)) {
             return;
         }
 
-        final ServerLevel level = player.level();
+        final ServerLevel level = player.serverLevel();
         final Entity entity = level.getEntity(id);
         if (type.isInstance(entity)) {
             callback.accept((T) entity);
@@ -55,12 +53,11 @@ public final class MessageUtils {
 
     @SuppressWarnings("unchecked")
     public static <T extends Entity> void withNearbyServerEntity(final NetworkManager.PacketContext context, final int id, final Class<T> type, final Consumer<T> callback) {
-        final ServerPlayer player = context.getPlayer();
-        if (player == null) {
+        if (!(context.getPlayer() instanceof final ServerPlayer player)) {
             return;
         }
 
-        final ServerLevel level = player.level();
+        final ServerLevel level = player.serverLevel();
         final Entity entity = level.getEntity(id);
         if (type.isInstance(entity) && entity.closerThan(player, 8)) {
             callback.accept((T) entity);

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.block;
 
+import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
@@ -27,6 +28,13 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 
 public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirectionalBlock implements EntityBlock {
+    public static final MapCodec<NetworkConnectorBlock> CODEC = MapCodec.unit(NetworkConnectorBlock::new);
+
+    @Override
+    protected MapCodec<? extends NetworkConnectorBlock> codec() {
+        return CODEC;
+    }
+
     private static final VoxelShape NEG_Z_SHAPE = Block.box(5, 5, 7, 11, 11, 16);
     private static final VoxelShape POS_Z_SHAPE = Block.box(5, 5, 0, 11, 11, 9);
     private static final VoxelShape NEG_X_SHAPE = Block.box(7, 5, 5, 16, 11, 11);

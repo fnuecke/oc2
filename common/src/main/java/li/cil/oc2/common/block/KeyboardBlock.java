@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.block;
 
+import com.mojang.serialization.MapCodec;
 import li.cil.oc2.client.gui.KeyboardScreen;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.KeyboardBlockEntity;
@@ -32,6 +33,13 @@ import net.fabricmc.api.Environment;
 import org.jetbrains.annotations.Nullable;
 
 public final class KeyboardBlock extends HorizontalDirectionalBlock implements EntityBlock {
+    public static final MapCodec<KeyboardBlock> CODEC = MapCodec.unit(KeyboardBlock::new);
+
+    @Override
+    protected MapCodec<? extends KeyboardBlock> codec() {
+        return CODEC;
+    }
+
     private static final VoxelShape NEG_Z_SHAPE = Shapes.or(Block.box(0, 0, 0, 16, 8, 16), // main body
         Block.box(0, 8, 8, 16, 12, 16) // top
     );

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.block;
 
+import com.mojang.serialization.MapCodec;
 import com.google.common.collect.Maps;
 import li.cil.oc2.client.gui.BusInterfaceScreen;
 import li.cil.oc2.common.Constants;
@@ -57,6 +58,13 @@ import java.util.Map;
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class BusCableBlock extends BaseEntityBlock {
+    public static final MapCodec<BusCableBlock> CODEC = MapCodec.unit(BusCableBlock::new);
+
+    @Override
+    protected MapCodec<? extends BusCableBlock> codec() {
+        return CODEC;
+    }
+
     public enum ConnectionType implements StringRepresentable {
         NONE,
         CABLE,

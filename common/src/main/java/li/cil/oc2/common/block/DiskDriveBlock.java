@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.block;
 
+import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.DiskDriveBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -25,6 +26,13 @@ import net.minecraft.world.phys.BlockHitResult;
 import javax.annotation.Nullable;
 
 public final class DiskDriveBlock extends HorizontalDirectionalBlock implements EntityBlock {
+    public static final MapCodec<DiskDriveBlock> CODEC = MapCodec.unit(DiskDriveBlock::new);
+
+    @Override
+    protected MapCodec<? extends DiskDriveBlock> codec() {
+        return CODEC;
+    }
+
     public DiskDriveBlock() {
         super(Properties
             .of()

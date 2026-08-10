@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.block;
 
+import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
@@ -30,6 +31,13 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 
 public final class ProjectorBlock extends HorizontalDirectionalBlock implements EntityBlock, EnergyConsumingBlock {
+    public static final MapCodec<ProjectorBlock> CODEC = MapCodec.unit(ProjectorBlock::new);
+
+    @Override
+    protected MapCodec<? extends ProjectorBlock> codec() {
+        return CODEC;
+    }
+
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
     // We bake the visual indents on the front and sides into the collision shape, to prevent stuff being

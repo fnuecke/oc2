@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.block;
 
+import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.NetworkHubBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -20,6 +21,13 @@ import net.minecraft.world.level.material.MapColor;
 import javax.annotation.Nullable;
 
 public final class NetworkHubBlock extends HorizontalDirectionalBlock implements EntityBlock {
+    public static final MapCodec<NetworkHubBlock> CODEC = MapCodec.unit(NetworkHubBlock::new);
+
+    @Override
+    protected MapCodec<? extends NetworkHubBlock> codec() {
+        return CODEC;
+    }
+
     public NetworkHubBlock() {
         super(Properties
             .of()

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.block;
 
+import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.RedstoneInterfaceBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -21,6 +22,13 @@ import net.minecraft.world.level.material.MapColor;
 import javax.annotation.Nullable;
 
 public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock implements EntityBlock {
+    public static final MapCodec<RedstoneInterfaceBlock> CODEC = MapCodec.unit(RedstoneInterfaceBlock::new);
+
+    @Override
+    protected MapCodec<? extends RedstoneInterfaceBlock> codec() {
+        return CODEC;
+    }
+
     public RedstoneInterfaceBlock() {
         super(Properties
             .of()

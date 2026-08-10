@@ -2,12 +2,21 @@
 
 package li.cil.oc2.common.block;
 
+import com.mojang.serialization.MapCodec;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class ImmutableHorizontalBlock extends HorizontalDirectionalBlock {
+    public static final MapCodec<ImmutableHorizontalBlock> CODEC = MapCodec.unit(ImmutableHorizontalBlock::new);
+
+    @Override
+    protected MapCodec<? extends ImmutableHorizontalBlock> codec() {
+        return CODEC;
+    }
+
     public ImmutableHorizontalBlock(final Properties properties) {
         super(properties);
     }

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.block;
 
+import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
@@ -58,6 +59,13 @@ import static li.cil.oc2.common.bus.device.DeviceTypes.key;
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class ComputerBlock extends HorizontalDirectionalBlock implements EntityBlock {
+    public static final MapCodec<ComputerBlock> CODEC = MapCodec.unit(ComputerBlock::new);
+
+    @Override
+    protected MapCodec<? extends ComputerBlock> codec() {
+        return CODEC;
+    }
+
     // We bake the "screen" indent on the front into the collision shape, to prevent stuff being
     // placeable on that side, such as network connectors, torches, etc.
     private static final VoxelShape NEG_Z_SHAPE = Shapes.or(

@@ -17,7 +17,7 @@ import java.util.List;
 
 public class ModBlockItem extends BlockItem {
     public ModBlockItem(final Block block, final Properties properties) {
-        super(block, properties.tab(ItemGroup.COMMON));
+        super(block, properties);
     }
 
     public ModBlockItem(final Block block) {

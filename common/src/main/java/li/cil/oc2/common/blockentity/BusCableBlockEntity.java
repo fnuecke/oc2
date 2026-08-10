@@ -130,7 +130,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
             stack = ItemStack.EMPTY;
         }
 
-        if (ItemStack.isSame(stack, facade)) {
+        if (ItemStack.isSameItemSameComponents(stack, facade)) {
             return;
         }
 
@@ -167,7 +167,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
 
     public void handleNeighborChanged(final BlockPos pos) {
         final BlockPos toPos = pos.subtract(getBlockPos());
-        final Direction side = Direction.fromNormal(toPos.getX(), toPos.getY(), toPos.getZ());
+        final Direction side = Direction.fromDelta(toPos.getX(), toPos.getY(), toPos.getZ());
         if (side != null) {
             busElement.updateDevicesForNeighbor(side);
         }
@@ -180,7 +180,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
             // we can just do this.
             setInterfaceName(side, "");
 
-            invalidateCapability(Capabilities.DEVICE_BUS_ELEMENT, side);
+            invalidateCapabilities();
 
             final NeighborTracker tracker = neighborTrackers[side.get3DDataValue()];
             tracker.updateListener();
@@ -197,7 +197,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         final CompoundTag tag = super.getUpdateTag(registries);
 
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
-        tag.put(FACADE_TAG_NAME, facade.serializeNBT());
+        tag.put(FACADE_TAG_NAME, facade.isEmpty() ? new CompoundTag() : (CompoundTag) facade.save(registries));
 
         return tag;
     }
@@ -209,7 +209,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
 
         tag.put(BUS_ELEMENT_TAG_NAME, busElement.save());
         tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
-        tag.put(FACADE_TAG_NAME, facade.serializeNBT());
+        tag.put(FACADE_TAG_NAME, facade.isEmpty() ? new CompoundTag() : (CompoundTag) facade.save(registries));
     }
 
     @Override
@@ -217,7 +217,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         super.loadAdditional(tag, registries);
         busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
         deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
-        facade = ItemStack.of(tag.getCompound(FACADE_TAG_NAME));
+        facade = ItemStack.parse(registries, tag.getCompound(FACADE_TAG_NAME)).orElse(ItemStack.EMPTY);
     }
 
     ///////////////////////////////////////////////////////////////////

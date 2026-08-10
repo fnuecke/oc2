@@ -48,8 +48,8 @@ public abstract class ModBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void onLoad() {
-        super.onLoad();
+    public void clearRemoved() {
+        super.clearRemoved();
 
         if (level == null) {
             return;
@@ -66,9 +66,7 @@ public abstract class ModBlockEntity extends BlockEntity {
         }
     }
 
-    @Override
     public void onChunkUnloaded() {
-        super.onChunkUnloaded();
         Capabilities.invalidate(this);
         onUnload(false);
         isUnloaded = true;

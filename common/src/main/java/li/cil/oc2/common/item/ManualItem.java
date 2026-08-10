@@ -22,7 +22,7 @@ import java.util.List;
 
 public final class ManualItem extends AbstractManualItem {
     public ManualItem() {
-        super(new Properties().tab(ItemGroup.COMMON));
+        super(new Properties());
     }
 
     ///////////////////////////////////////////////////////////////////

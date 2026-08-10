@@ -19,7 +19,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.stats.Stats;
@@ -40,12 +39,10 @@ import static li.cil.oc2.common.Constants.*;
 import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
 import static li.cil.oc2.common.bus.device.DeviceTypes.key;
 
-public final class RobotItem extends ModItem {
+public final class RobotItem extends ModItem implements CreativeTabItemProvider {
     @Override
-    public void fillItemCategory(final CreativeModeTab tab, final NonNullList<ItemStack> items) {
-        if (allowdedIn(tab)) {
-            items.add(getRobotWithFlash());
-        }
+    public void addCreativeTabItems(final CreativeModeTab.Output output) {
+        output.accept(getRobotWithFlash());
     }
 
     @Override

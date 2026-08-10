@@ -6,7 +6,6 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.util.ColorUtils;
 import net.minecraft.Util;
-import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.DyeColor;
@@ -16,7 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem implements ColoredItem {
+public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem implements ColoredItem, CreativeTabItemProvider {
     private final int defaultColor;
     @Nullable private String descriptionId;
 
@@ -30,14 +29,14 @@ public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void fillItemCategory(final CreativeModeTab tab, final NonNullList<ItemStack> items) {
-        super.fillItemCategory(tab, items);
+    public void addCreativeTabItems(final CreativeModeTab.Output output) {
+        output.accept(new ItemStack(this));
 
         BlockDeviceDataRegistry.values().forEach(data -> {
             if (!Objects.equals(BlockDeviceDataRegistry.getKey(data), getDefaultData())) {
                 final ItemStack stack = withData(data);
                 if (!stack.isEmpty()) {
-                    items.add(stack);
+                    output.accept(stack);
                 }
             }
         });

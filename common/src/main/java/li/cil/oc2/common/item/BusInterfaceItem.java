@@ -11,7 +11,6 @@ import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -35,7 +34,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
-public final class BusInterfaceItem extends ModBlockItem {
+public final class BusInterfaceItem extends ModBlockItem implements CreativeTabItemProvider {
     public BusInterfaceItem() {
         super(Blocks.BUS_CABLE.get());
     }
@@ -69,10 +68,8 @@ public final class BusInterfaceItem extends ModBlockItem {
     }
 
     @Override
-    public void fillItemCategory(final CreativeModeTab tab, final NonNullList<ItemStack> items) {
-        if (allowdedIn(tab)) {
-            items.add(new ItemStack(this));
-        }
+    public void addCreativeTabItems(final CreativeModeTab.Output output) {
+        output.accept(new ItemStack(this));
     }
 
     @Override

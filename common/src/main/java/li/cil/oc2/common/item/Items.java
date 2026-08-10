@@ -25,7 +25,7 @@ public final class Items {
     public static final RegistrySupplier<Item> BUS_CABLE = register(Blocks.BUS_CABLE, BusCableItem::new);
     public static final RegistrySupplier<BusInterfaceItem> BUS_INTERFACE = register("bus_interface", BusInterfaceItem::new);
     public static final RegistrySupplier<Item> CHARGER = register(Blocks.CHARGER, ChargerItem::new);
-    public static final RegistrySupplier<Item> COMPUTER = register(Blocks.COMPUTER);
+    public static final RegistrySupplier<Item> COMPUTER = register(Blocks.COMPUTER, ComputerItem::new);
     public static final RegistrySupplier<Item> CREATIVE_ENERGY = register(Blocks.CREATIVE_ENERGY);
     public static final RegistrySupplier<Item> DISK_DRIVE = register(Blocks.DISK_DRIVE);
     public static final RegistrySupplier<Item> KEYBOARD = register(Blocks.KEYBOARD);

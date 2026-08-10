@@ -3,6 +3,8 @@
 package li.cil.oc2.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Camera;
+import org.joml.Matrix4f;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -19,12 +21,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.*;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.event.world.ChunkEvent;
-import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -37,7 +33,6 @@ import java.util.function.Predicate;
 // fall back to letting the TESRs trigger the cable rendering. We still use the data
 // structures with precomputed data and such, it's just that they need much larger
 // render bounds and require an addition hash map look-up.
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = API.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class NetworkCableRenderer {
     private static final int MAX_RENDER_DISTANCE = 100;
     private static final int CABLE_VERTEX_COUNT = 9;
@@ -78,11 +73,8 @@ public final class NetworkCableRenderer {
 
     ///////////////////////////////////////////////////////////////////
 
-    @SubscribeEvent
-    public static void handleChunkUnloadEvent(final ChunkEvent.Unload event) {
-        if (event.getWorld().isClientSide()) {
-            final ChunkPos chunkPos = event.getChunk().getPos();
-
+    public static void onChunkUnload(final ChunkPos chunkPos) {
+        {
             final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
             for (final NetworkConnectorBlockEntity connector : list) {
                 final ChunkPos connectorChunkPos = new ChunkPos(connector.getBlockPos());
@@ -95,11 +87,8 @@ public final class NetworkCableRenderer {
         }
     }
 
-    @SubscribeEvent
-    public static void handleWorldUnloadEvent(final WorldEvent.Unload event) {
-        if (event.getWorld().isClientSide()) {
-            final LevelAccessor level = event.getWorld();
-
+    public static void onLevelUnload(final LevelAccessor level) {
+        {
             final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
             for (final NetworkConnectorBlockEntity connector : list) {
                 if (connector.getLevel() == level) {
@@ -111,12 +100,7 @@ public final class NetworkCableRenderer {
         }
     }
 
-    @SubscribeEvent
-    public static void handleRenderWorld(final RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) {
-            return;
-        }
-
+    public static void render(final PoseStack poseStack, final Camera camera, final Matrix4f projectionMatrix) {
         validateConnectors();
         validatePairs();
 
@@ -130,11 +114,11 @@ public final class NetworkCableRenderer {
             return;
         }
 
-        final PoseStack stack = event.getPoseStack();
+        final PoseStack stack = poseStack;
 
-        final Vec3 eye = event.getCamera().getPosition();
+        final Vec3 eye = camera.getPosition();
 
-        final Frustum frustum = new Frustum(stack.last().pose(), event.getProjectionMatrix());
+        final Frustum frustum = new Frustum(stack.last().pose(), projectionMatrix);
         frustum.prepare(eye.x, eye.y, eye.z);
 
         stack.pushPose();

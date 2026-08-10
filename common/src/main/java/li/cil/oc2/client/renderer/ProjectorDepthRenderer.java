@@ -3,6 +3,7 @@
 package li.cil.oc2.client.renderer;
 
 import com.mojang.math.Axis;
+import dev.architectury.event.events.client.ClientTickEvent;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
@@ -41,12 +42,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.event.EntityViewRenderEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.event.RenderNameplateEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -165,11 +160,7 @@ public final class ProjectorDepthRenderer {
      * Renders the projected images of {@link ProjectorBlockEntity} instances that were registered via
      * {@link #addProjector(ProjectorBlockEntity)} this frame.
      */
-    @SubscribeEvent
-    public static void renderProjectors(final RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
-            return;
-        }
+    public static void renderProjectors(final PoseStack poseStack, final Matrix4f projectionMatrix, final float partialTick) {
         if (isIsRenderingProjectorDepth()) {
             return;
         }
@@ -192,8 +183,8 @@ public final class ProjectorDepthRenderer {
             });
 
             final int projectorCount = Math.min(VISIBLE_PROJECTORS.size(), ModShaders.MAX_PROJECTORS);
-            renderProjectorDepths(minecraft, level, event.getPartialTick(), projectorCount);
-            renderProjectorColors(minecraft, event.getPoseStack().last().pose(), event.getProjectionMatrix(), projectorCount);
+            renderProjectorDepths(minecraft, level, partialTick, projectorCount);
+            renderProjectorColors(minecraft, poseStack.last().pose(), projectionMatrix, projectorCount);
         } finally {
             VISIBLE_PROJECTORS.clear();
             Arrays.fill(PROJECTOR_COLOR_TARGETS, null);
@@ -203,8 +194,7 @@ public final class ProjectorDepthRenderer {
     /**
      * Suppresses fog rendering while rendering depth buffer for projectors.
      */
-    @SubscribeEvent
-    public static void handleFog(final EntityViewRenderEvent.RenderFogEvent event) {
+    public static void handleFog() {
         if (isRenderingProjectorDepth) {
             FogRenderer.setupNoFog();
         }
@@ -213,19 +203,15 @@ public final class ProjectorDepthRenderer {
     /**
      * Suppresses nameplate rendering while rendering depth buffer for projectors.
      */
-    @SubscribeEvent
-    public static void handleNameplate(final RenderNameplateEvent event) {
-        if (isRenderingProjectorDepth) {
-            event.setResult(Event.Result.DENY);
-        }
+    public static boolean shouldSuppressNameplates() {
+        return isRenderingProjectorDepth;
     }
 
     /**
      * Updates cached rendering info, such as textures holding image data for projectors, to allow expiration.
      */
-    @SubscribeEvent
-    public static void handleClientTick(final TickEvent.ClientTickEvent event) {
-        RENDER_INFO.cleanUp();
+    public static void initialize() {
+        ClientTickEvent.CLIENT_POST.register(minecraft -> RENDER_INFO.cleanUp());
     }
 
     ///////////////////////////////////////////////////////////////////

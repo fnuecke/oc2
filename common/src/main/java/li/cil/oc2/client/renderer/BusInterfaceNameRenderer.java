@@ -20,25 +20,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public enum BusInterfaceNameRenderer {
     INSTANCE;
 
     ///////////////////////////////////////////////////////////////////
 
-    public static void initialize() {
-        MinecraftForge.EVENT_BUS.register(INSTANCE);
-    }
-
-    @SubscribeEvent
-    public void handleRenderLastEvent(final RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
-            return;
-        }
-
+    public void render(final PoseStack poseStack) {
         final Minecraft mc = Minecraft.getInstance();
         final Player player = mc.player;
         if (player == null) {
@@ -71,7 +59,7 @@ public enum BusInterfaceNameRenderer {
             return;
         }
 
-        final PoseStack stack = event.getPoseStack();
+        final PoseStack stack = poseStack;
         stack.pushPose();
 
         stack.translate(0.5, 1, 0.5);

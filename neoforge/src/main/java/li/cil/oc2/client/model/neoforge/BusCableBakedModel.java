@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.client.model;
+package li.cil.oc2.client.model.neoforge;
 
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.BusCableBlock;
@@ -22,11 +22,11 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraftforge.client.MinecraftForgeClient;
-import net.minecraftforge.client.model.data.IDynamicBakedModel;
-import net.minecraftforge.client.model.data.IModelData;
-import net.minecraftforge.client.model.data.ModelDataMap;
-import net.minecraftforge.client.model.data.ModelProperty;
+import net.neoforged.neoforge.client.MinecraftForgeClient;
+import net.neoforged.neoforge.client.model.data.IDynamicBakedModel;
+import net.neoforged.neoforge.client.model.data.IModelData;
+import net.neoforged.neoforge.client.model.data.ModelDataMap;
+import net.neoforged.neoforge.client.model.data.ModelProperty;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.client.model;
+package li.cil.oc2.client.model.neoforge;
 
 import com.mojang.datafixers.util.Pair;
 import li.cil.oc2.api.API;
@@ -8,10 +8,10 @@ import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.client.model.CompositeModelState;
-import net.minecraftforge.client.model.IModelConfiguration;
-import net.minecraftforge.client.model.ModelLoaderRegistry;
-import net.minecraftforge.client.model.geometry.IModelGeometry;
+import net.neoforged.neoforge.client.model.CompositeModelState;
+import net.neoforged.neoforge.client.model.IModelConfiguration;
+import net.neoforged.neoforge.client.model.ModelLoaderRegistry;
+import net.neoforged.neoforge.client.model.geometry.IModelGeometry;
 
 import java.util.ArrayList;
 import java.util.Collection;

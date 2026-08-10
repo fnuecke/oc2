@@ -3,6 +3,7 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTUtils;
 import net.minecraft.core.HolderLookup;
@@ -33,7 +34,7 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
     private ItemStack withFlash(final HolderLookup.Provider provider) {
         final ItemStack computer = new ItemStack(this);
 
-        ItemStackUtils.modifyBlockEntityDataTag(computer, tag -> {
+        ItemStackUtils.modifyBlockEntityDataTag(computer, BlockEntities.COMPUTER.get(), tag -> {
             final var itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
             itemsTag.put(key(DeviceTypes.FLASH_MEMORY), makeInventoryTag(provider,
                 new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
@@ -46,7 +47,7 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
     private ItemStack preconfigured(final HolderLookup.Provider provider) {
         final ItemStack computer = withFlash(provider);
 
-        ItemStackUtils.modifyBlockEntityDataTag(computer, tag -> {
+        ItemStackUtils.modifyBlockEntityDataTag(computer, BlockEntities.COMPUTER.get(), tag -> {
             final var itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
             itemsTag.put(key(DeviceTypes.MEMORY), makeInventoryTag(provider,
                 new ItemStack(Items.MEMORY_LARGE.get()),

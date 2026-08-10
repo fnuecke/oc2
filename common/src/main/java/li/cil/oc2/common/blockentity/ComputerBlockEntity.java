@@ -250,7 +250,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     public void exportToItemStack(final ItemStack stack) {
         final HolderLookup.Provider registries = requireNonNull(getLevel()).registryAccess();
-        ItemStackUtils.modifyBlockEntityDataTag(stack, tag -> {
+        ItemStackUtils.modifyBlockEntityDataTag(stack, getType(), tag -> {
             deviceItems.saveItems(registries, NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME));
             tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
         });

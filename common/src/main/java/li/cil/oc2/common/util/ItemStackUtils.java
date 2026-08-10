@@ -5,6 +5,7 @@ package li.cil.oc2.common.util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -12,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -19,6 +21,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import static java.util.Objects.requireNonNull;
 import static li.cil.oc2.common.Constants.MOD_TAG_NAME;
 
 public final class ItemStackUtils {
@@ -35,8 +38,11 @@ public final class ItemStackUtils {
         return stack.getOrDefault(DataComponents.BLOCK_ENTITY_DATA, CustomData.EMPTY).copyTag();
     }
 
-    public static void modifyBlockEntityDataTag(final ItemStack stack, final Consumer<CompoundTag> modifier) {
-        CustomData.update(DataComponents.BLOCK_ENTITY_DATA, stack, modifier);
+    public static void modifyBlockEntityDataTag(final ItemStack stack, final BlockEntityType<?> type, final Consumer<CompoundTag> modifier) {
+        CustomData.update(DataComponents.BLOCK_ENTITY_DATA, stack, tag -> {
+            tag.putString("id", requireNonNull(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(type)).toString());
+            modifier.accept(tag);
+        });
     }
 
     @Nullable

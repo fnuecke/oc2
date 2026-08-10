@@ -64,7 +64,7 @@ public final class ProjectorDepthRenderer {
     private static final DynamicTexture[] PROJECTOR_COLOR_TARGETS = new DynamicTexture[ModShaders.MAX_PROJECTORS];
     private static final Matrix4f[] PROJECTOR_CAMERA_MATRICES = new Matrix4f[ModShaders.MAX_PROJECTORS];
     private static final Camera PROJECTOR_DEPTH_CAMERA = new Camera();
-    private static DepthOnlyRenderTarget MAIN_CAMERA_DEPTH = new DepthOnlyRenderTarget(MainTarget.DEFAULT_WIDTH, MainTarget.DEFAULT_HEIGHT);
+    private static DepthOnlyRenderTarget mainCameraDepth;
     private static final float PROJECTOR_FORWARD_SHIFT = 7 / 16f; // From center of projector block.
     private static final float PROJECTOR_NEAR = 0.5f - PROJECTOR_FORWARD_SHIFT;
     private static final float PROJECTOR_FAR = ProjectorBlockEntity.MAX_RENDER_DISTANCE;
@@ -100,9 +100,24 @@ public final class ProjectorDepthRenderer {
 
     static {
         for (int i = 0; i < ModShaders.MAX_PROJECTORS; i++) {
-            PROJECTOR_DEPTH_TARGETS[i] = new DepthOnlyRenderTarget(DEPTH_CAPTURE_SIZE, DEPTH_CAPTURE_SIZE);
             PROJECTOR_CAMERA_MATRICES[i] = new Matrix4f();
         }
+    }
+
+    private static DepthOnlyRenderTarget[] projectorDepthTargets() {
+        if (PROJECTOR_DEPTH_TARGETS[0] == null) {
+            for (int i = 0; i < ModShaders.MAX_PROJECTORS; i++) {
+                PROJECTOR_DEPTH_TARGETS[i] = new DepthOnlyRenderTarget(DEPTH_CAPTURE_SIZE, DEPTH_CAPTURE_SIZE);
+            }
+        }
+        return PROJECTOR_DEPTH_TARGETS;
+    }
+
+    private static DepthOnlyRenderTarget mainCameraDepth() {
+        if (mainCameraDepth == null) {
+            mainCameraDepth = new DepthOnlyRenderTarget(MainTarget.DEFAULT_WIDTH, MainTarget.DEFAULT_HEIGHT);
+        }
+        return mainCameraDepth;
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -144,16 +159,16 @@ public final class ProjectorDepthRenderer {
      */
     public static void captureMainCameraDepth() {
         final RenderTarget mainRenderTarget = Minecraft.getInstance().getMainRenderTarget();
-        if (mainRenderTarget.width != MAIN_CAMERA_DEPTH.width || mainRenderTarget.height != MAIN_CAMERA_DEPTH.height) {
-            MAIN_CAMERA_DEPTH.resize(mainRenderTarget.width, mainRenderTarget.height, Minecraft.ON_OSX);
+        if (mainRenderTarget.width != mainCameraDepth().width || mainRenderTarget.height != mainCameraDepth().height) {
+            mainCameraDepth().resize(mainRenderTarget.width, mainRenderTarget.height, Minecraft.ON_OSX);
         }
         if (ClientPlatform.isStencilEnabled(mainRenderTarget)) {
-            ClientPlatform.enableStencil(MAIN_CAMERA_DEPTH);
-        } else if (ClientPlatform.isStencilEnabled(MAIN_CAMERA_DEPTH)) {
-            MAIN_CAMERA_DEPTH.destroyBuffers();
-            MAIN_CAMERA_DEPTH = new DepthOnlyRenderTarget(mainRenderTarget.width, mainRenderTarget.height);
+            ClientPlatform.enableStencil(mainCameraDepth());
+        } else if (ClientPlatform.isStencilEnabled(mainCameraDepth())) {
+            mainCameraDepth().destroyBuffers();
+            mainCameraDepth = new DepthOnlyRenderTarget(mainRenderTarget.width, mainRenderTarget.height);
         }
-        MAIN_CAMERA_DEPTH.copyDepthFrom(mainRenderTarget);
+        mainCameraDepth().copyDepthFrom(mainRenderTarget);
         mainRenderTarget.bindWrite(false);
     }
 
@@ -313,7 +328,7 @@ public final class ProjectorDepthRenderer {
     }
 
     private static void bindProjectorDepthRenderTarget(final int projectorIndex, final Minecraft minecraft) {
-        final DepthOnlyRenderTarget projectorDepthTarget = PROJECTOR_DEPTH_TARGETS[projectorIndex];
+        final DepthOnlyRenderTarget projectorDepthTarget = projectorDepthTargets()[projectorIndex];
         projectorDepthTarget.bindWrite(true);
         ((MinecraftExt) minecraft).setMainRenderTargetOverride(projectorDepthTarget);
     }
@@ -354,10 +369,10 @@ public final class ProjectorDepthRenderer {
 
             RenderSystem.setShader(ModShaders::getProjectorsShader);
             ModShaders.configureProjectorsShader(
-                MAIN_CAMERA_DEPTH,
+                mainCameraDepth(),
                 constructInverseMainCameraMatrix(modelViewMatrix, projectionMatrix),
                 PROJECTOR_COLOR_TARGETS,
-                PROJECTOR_DEPTH_TARGETS,
+                projectorDepthTargets(),
                 PROJECTOR_CAMERA_MATRICES,
                 projectorCount
             );
@@ -416,9 +431,9 @@ public final class ProjectorDepthRenderer {
         final BufferBuilder builder = Tesselator.getInstance()
             .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         builder.addVertex(0, 0, 0).setUv(0, 1);
-        builder.addVertex(0, MAIN_CAMERA_DEPTH.height, 0).setUv(0, 0);
-        builder.addVertex(MAIN_CAMERA_DEPTH.width, MAIN_CAMERA_DEPTH.height, 0).setUv(1, 0);
-        builder.addVertex(MAIN_CAMERA_DEPTH.width, 0, 0).setUv(1, 1);
+        builder.addVertex(0, mainCameraDepth().height, 0).setUv(0, 0);
+        builder.addVertex(mainCameraDepth().width, mainCameraDepth().height, 0).setUv(1, 0);
+        builder.addVertex(mainCameraDepth().width, 0, 0).setUv(1, 1);
         BufferUploader.drawWithShader(builder.buildOrThrow());
     }
 

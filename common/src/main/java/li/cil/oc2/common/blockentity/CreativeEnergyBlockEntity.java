@@ -3,6 +3,7 @@
 package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.energy.EnergyStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.ChunkPos;
@@ -30,8 +31,10 @@ public final class CreativeEnergyBlockEntity extends ModBlockEntity implements T
             if (level.hasChunk(neighborChunkPos.x, neighborChunkPos.z)) {
                 final BlockEntity blockEntity = level.getBlockEntity(neighborPos);
                 if (blockEntity != null) {
-                    blockEntity.getCapability(Capabilities.ENERGY_STORAGE, side.getOpposite()).ifPresent(energy ->
-                        energy.receiveEnergy(Integer.MAX_VALUE, false));
+                    final EnergyStorage energy = Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, side.getOpposite());
+                    if (energy != null) {
+                        energy.receiveEnergy(Integer.MAX_VALUE, false);
+                    }
                 }
             }
         }

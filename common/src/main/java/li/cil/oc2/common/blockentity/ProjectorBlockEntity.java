@@ -195,8 +195,9 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         }
     }
 
+    @Nullable
     @Override
-    public AABB getRenderBoundingBox() {
+    public AABB getExpandedRenderBoundingBox() {
         return renderBounds;
     }
 

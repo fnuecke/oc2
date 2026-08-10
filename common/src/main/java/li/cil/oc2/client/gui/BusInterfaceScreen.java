@@ -48,8 +48,6 @@ public final class BusInterfaceScreen extends Screen {
     protected void init() {
         super.init();
 
-        minecraft.keyboardHandler.setSendRepeatsToGui(true);
-
         left = (width - Sprites.BUS_INTERFACE_SCREEN.width) / 2;
         top = (height - Sprites.BUS_INTERFACE_SCREEN.height) / 2;
 
@@ -93,14 +91,11 @@ public final class BusInterfaceScreen extends Screen {
     @Override
     public void onClose() {
         super.onClose();
-
-        minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
     @Override
     public void tick() {
         super.tick();
-        nameField.tick();
 
         final Vec3 busCableCenter = Vec3.atCenterOf(busCable.getBlockPos());
         if (!busCable.isValid() ||
@@ -124,7 +119,7 @@ public final class BusInterfaceScreen extends Screen {
 
     @Override
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground(graphics);
+        renderBackground(graphics, mouseX, mouseY, partialTicks);
         Sprites.BUS_INTERFACE_SCREEN.draw(graphics, left, top);
 
         super.render(graphics, mouseX, mouseY, partialTicks);

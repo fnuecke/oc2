@@ -8,6 +8,7 @@ import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.vm.VMRunState;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import dev.architectury.networking.NetworkManager;
@@ -40,7 +41,7 @@ public final class RobotInitializationMessage extends AbstractMessage {
         entityId = buffer.readVarInt();
         busState = buffer.readEnum(CommonDeviceBusController.BusState.class);
         runState = buffer.readEnum(VMRunState.class);
-        bootError = buffer.readComponent();
+        bootError = ComponentSerialization.STREAM_CODEC.decode(buffer);
         terminal = buffer.readNbt();
     }
 
@@ -49,7 +50,7 @@ public final class RobotInitializationMessage extends AbstractMessage {
         buffer.writeVarInt(entityId);
         buffer.writeEnum(busState);
         buffer.writeEnum(runState);
-        buffer.writeComponent(bootError);
+        ComponentSerialization.STREAM_CODEC.encode(buffer, bootError);
         buffer.writeNbt(terminal);
     }
 

@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -77,24 +78,27 @@ public final class FileSystems {
         reset();
 
         LOGGER.info("Searching for datapack filesystems...");
-        final Collection<ResourceLocation> fileSystemDescriptorLocations = resourceManager
-            .listResources("file_systems", s -> s.endsWith(".json"));
+        final Map<ResourceLocation, Resource> fileSystemDescriptors = resourceManager
+            .listResources("file_systems", location -> location.getPath().endsWith(".json"));
 
         final ArrayList<ZipStreamFileSystem> fileSystems = new ArrayList<>();
         final Object2IntArrayMap<ZipStreamFileSystem> fileSystemOrder = new Object2IntArrayMap<>();
 
-        for (final ResourceLocation fileSystemDescriptorLocation : fileSystemDescriptorLocations) {
+        for (final Map.Entry<ResourceLocation, Resource> entry : fileSystemDescriptors.entrySet()) {
+            final ResourceLocation fileSystemDescriptorLocation = entry.getKey();
             LOGGER.info("Found [{}]", fileSystemDescriptorLocation);
             try {
-                final Resource fileSystemDescriptor = resourceManager.getResource(fileSystemDescriptorLocation);
-                final JsonObject json = JsonParser.parseReader(new InputStreamReader(fileSystemDescriptor.getInputStream())).getAsJsonObject();
+                final JsonObject json;
+                try (final Reader reader = entry.getValue().openAsReader()) {
+                    json = JsonParser.parseReader(reader).getAsJsonObject();
+                }
                 final String type = json.getAsJsonPrimitive("type").getAsString();
                 switch (type) {
                     case "layer" -> {
                         final ResourceLocation location = ResourceLocation.parse(json.getAsJsonPrimitive("location").getAsString());
 
                         final ZipStreamFileSystem fileSystem;
-                        try (final InputStream stream = resourceManager.getResource(location).getInputStream()) {
+                        try (final InputStream stream = resourceManager.getResourceOrThrow(location).open()) {
                             fileSystem = new ZipStreamFileSystem(stream);
                         }
 

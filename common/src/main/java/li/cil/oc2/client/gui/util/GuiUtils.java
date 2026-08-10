@@ -40,8 +40,8 @@ public final class GuiUtils {
         graphics.pose().pushPose();
         graphics.pose().translate(0, 0, 100);
         findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> icon.draw(graphics,
-            screen.getGuiLeft() + slot.x - 1 + RELATIVE_ICON_POSITION,
-            screen.getGuiTop() + slot.y - 1 + RELATIVE_ICON_POSITION));
+            screen.leftPos + slot.x - 1 + RELATIVE_ICON_POSITION,
+            screen.topPos + slot.y - 1 + RELATIVE_ICON_POSITION));
         graphics.pose().popPose();
     }
 
@@ -50,7 +50,7 @@ public final class GuiUtils {
     }
 
     public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final GuiGraphics graphics, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final Component tooltip) {
-        final Minecraft minecraft = screen.minecraft;
+        final Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
             return;
         }
@@ -60,7 +60,7 @@ public final class GuiUtils {
             return;
         }
 
-        final Slot hoveredSlot = screen.getSlotUnderMouse();
+        final Slot hoveredSlot = screen.hoveredSlot;
         if (hoveredSlot != null && hoveredSlot.hasItem()) {
             return;
         }

@@ -132,14 +132,10 @@ public final class RobotMovementAction extends AbstractRobotAction {
         direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, MovementDirection.class);
         if (direction == null) direction = MovementDirection.FORWARD;
         direction = direction.resolve();
-        if (tag.contains(ORIGIN_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            origin = NbtUtils.readBlockPos(tag.getCompound(ORIGIN_TAG_NAME));
-        }
-        if (tag.contains(START_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            start = NbtUtils.readBlockPos(tag.getCompound(START_TAG_NAME));
-        }
-        if (tag.contains(TARGET_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            target = NbtUtils.readBlockPos(tag.getCompound(TARGET_TAG_NAME));
+        origin = NbtUtils.readBlockPos(tag, ORIGIN_TAG_NAME).orElse(null);
+        start = NbtUtils.readBlockPos(tag, START_TAG_NAME).orElse(null);
+        target = NbtUtils.readBlockPos(tag, TARGET_TAG_NAME).orElse(null);
+        if (target != null) {
             targetPos = getTargetPositionInBlock(target);
         }
     }

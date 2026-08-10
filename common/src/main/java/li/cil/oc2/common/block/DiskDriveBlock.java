@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -49,32 +50,43 @@ public final class DiskDriveBlock extends HorizontalDirectionalBlock implements 
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public InteractionResult use(final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
+    protected ItemInteractionResult useItemOn(final ItemStack heldStack, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (!(blockEntity instanceof final DiskDriveBlockEntity diskDrive)) {
-            return super.use(state, level, pos, player, hand, hit);
+            return super.useItemOn(heldStack, state, level, pos, player, hand, hit);
         }
 
-        final ItemStack heldStack = player.getItemInHand(hand);
         if (player.isShiftKeyDown()) {
             if (diskDrive.canEject()) {
                 if (!level.isClientSide()) {
                     diskDrive.eject(player);
                 }
-                return InteractionResult.sidedSuccess(level.isClientSide());
+                return ItemInteractionResult.sidedSuccess(level.isClientSide());
             }
         } else {
             if (diskDrive.canInsert(heldStack)) {
                 if (!level.isClientSide()) {
                     player.setItemInHand(hand, diskDrive.insert(heldStack, player));
                 }
-                return InteractionResult.sidedSuccess(level.isClientSide());
+                return ItemInteractionResult.sidedSuccess(level.isClientSide());
             }
         }
 
-        return super.use(state, level, pos, player, hand, hit);
+        return super.useItemOn(heldStack, state, level, pos, player, hand, hit);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(final BlockState state, final Level level, final BlockPos pos, final Player player, final BlockHitResult hit) {
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof final DiskDriveBlockEntity diskDrive && player.isShiftKeyDown() && diskDrive.canEject()) {
+            if (!level.isClientSide()) {
+                diskDrive.eject(player);
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide());
+        }
+
+        return super.useWithoutItem(state, level, pos, player, hit);
     }
 
     ///////////////////////////////////////////////////////////////////

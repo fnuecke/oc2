@@ -61,7 +61,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -243,7 +243,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         spawnAtLocation(stack);
 
         discard();
-        LevelUtils.playSound(level, blockPosition(), SoundType.METAL, SoundType::getBreakSound);
+        LevelUtils.playSound(level(), blockPosition(), SoundType.METAL, SoundType::getBreakSound);
     }
 
     @Override
@@ -274,7 +274,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         actionProcessor.tick();
 
-        if (!isClient && level instanceof final ServerLevel serverLevel) {
+        if (!isClient && level() instanceof final ServerLevel serverLevel) {
             final VoxelShape shape = Shapes.create(getBoundingBox());
             final Cursor3D iterator = getBlockPosIterator();
             while (iterator.advance()) {
@@ -292,8 +292,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                 final VoxelShape blockShape = blockState.getCollisionShape(serverLevel, mutablePosition);
                 if (Shapes.joinIsNotEmpty(shape, blockShape.move(x, y, z), BooleanOp.AND)) {
                     final BlockEntity blockEntity = serverLevel.getBlockEntity(mutablePosition);
-                    final LootContext.Builder builder = new LootContext.Builder(serverLevel)
-                        .withRandom(serverLevel.random)
+                    final LootParams.Builder builder = new LootParams.Builder(serverLevel)
                         .withParameter(LootContextParams.THIS_ENTITY, this)
                         .withParameter(LootContextParams.ORIGIN, position())
                         .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)

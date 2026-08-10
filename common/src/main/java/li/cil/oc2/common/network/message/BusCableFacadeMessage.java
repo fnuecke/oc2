@@ -29,13 +29,13 @@ public final class BusCableFacadeMessage extends AbstractMessage {
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
-        stack = buffer.readItem();
+        stack = ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer);
     }
 
     @Override
     public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
-        buffer.writeItem(stack);
+        ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, stack);
     }
 
     ///////////////////////////////////////////////////////////////////

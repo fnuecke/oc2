@@ -19,7 +19,9 @@ import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.vm.Terminal;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -95,7 +97,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         if (computer.getVirtualMachine().isRunning()) {
             renderTerminal(computer, stack, bufferSource, cameraPosition);
         } else {
-            renderStatusText(computer, stack, cameraPosition);
+            renderStatusText(computer, stack, bufferSource, cameraPosition);
         }
 
         stack.translate(0, 0, -0.1f);
@@ -175,7 +177,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         }
     }
 
-    private void renderStatusText(final ComputerBlockEntity computer, final PoseStack stack, final Vec3 cameraPosition) {
+    private void renderStatusText(final ComputerBlockEntity computer, final PoseStack stack, final MultiBufferSource bufferSource, final Vec3 cameraPosition) {
         if (!Vec3.atCenterOf(computer.getBlockPos()).closerThan(cameraPosition, 12f)) {
             return;
         }
@@ -188,29 +190,36 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         stack.pushPose();
         stack.translate(3, 3, -0.9f);
 
-        drawText(stack, bootError);
+        drawText(stack, bufferSource, bootError);
 
         stack.popPose();
     }
 
-    private void drawText(final PoseStack stack, final Component text) {
+    private void drawText(final PoseStack stack, final MultiBufferSource bufferSource, final Component text) {
         final int maxWidth = 100;
 
         stack.pushPose();
         stack.scale(10f / maxWidth, 10f / maxWidth, 10f / maxWidth);
 
-        final Font fontRenderer = renderer.font;
+        final Font fontRenderer = Minecraft.getInstance().font;
+        final Matrix4f matrix = stack.last().pose();
         final List<FormattedText> wrappedText = fontRenderer.getSplitter().splitLines(text, maxWidth, Style.EMPTY);
         if (wrappedText.size() == 1) {
             final int textWidth = fontRenderer.width(text);
-            fontRenderer.draw(stack, text, (maxWidth - textWidth) * 0.5f, 0, 0xEE3322);
+            drawTextLine(fontRenderer, text.getString(), (maxWidth - textWidth) * 0.5f, 0, matrix, bufferSource);
         } else {
             for (int i = 0; i < wrappedText.size(); i++) {
-                fontRenderer.draw(stack, wrappedText.get(i).getString(), 0, i * fontRenderer.lineHeight, 0xEE3322);
+                drawTextLine(fontRenderer, wrappedText.get(i).getString(), 0, i * fontRenderer.lineHeight, matrix, bufferSource);
             }
         }
 
         stack.popPose();
+    }
+
+    private static void drawTextLine(final Font font, final String text, final float x, final float y,
+                                     final Matrix4f matrix, final MultiBufferSource bufferSource) {
+        font.drawInBatch(text, x, y, 0xFFEE3322, false, matrix, bufferSource,
+            Font.DisplayMode.NORMAL, 0, LightTexture.pack(15, 15));
     }
 
     private void renderStatus(final Matrix4f matrix, final MultiBufferSource bufferSource) {

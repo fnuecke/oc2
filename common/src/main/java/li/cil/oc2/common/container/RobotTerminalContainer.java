@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.container;
 
+import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.client.gui.Sprites;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
@@ -33,7 +34,7 @@ public final class RobotTerminalContainer extends AbstractRobotContainer {
 
             @Override
             public void saveExtraData(final FriendlyByteBuf buffer) {
-                buffer.writeBlockPos(b -> b.writeVarInt(robot.getId()));
+                buffer.writeVarInt(robot.getId());
             }
         });
     }
@@ -58,7 +59,7 @@ public final class RobotTerminalContainer extends AbstractRobotContainer {
         final int terminalScreenWidth = Sprites.TERMINAL_SCREEN.width;
         final int terminalScreenHeight = Sprites.TERMINAL_SCREEN.height;
 
-        final ItemStackHandler inventory = robot.getInventory();
+        final ItemHandler inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             final int x = (terminalScreenWidth - inventory.getSlots() * SLOT_SIZE) / 2 + 1 + slot * SLOT_SIZE;
             addSlot(new RobotSlot(inventory, slot, x, terminalScreenHeight + 4));

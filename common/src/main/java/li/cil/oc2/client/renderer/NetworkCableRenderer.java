@@ -167,13 +167,13 @@ public final class NetworkCableRenderer {
                 final Vec3 p = quadraticBezier(p0, p1, p2, t);
                 final Vec3 n = getExtrusionVector(eye, p, connection.forward);
 
-                final BlockPos blockPos = new BlockPos(p);
+                final BlockPos blockPos = BlockPos.containing(p);
                 final int blockLight = level.getBrightness(LightLayer.BLOCK, blockPos);
                 final int skyLight = level.getBrightness(LightLayer.SKY, blockPos);
                 final int packedLight = LightTexture.pack(blockLight, skyLight);
 
-                final Vector3f v0 = new Vector3f(p.subtract(n));
-                final Vector3f v1 = new Vector3f(p.add(n));
+                final Vector3f v0 = toVector3f(p.subtract(n));
+                final Vector3f v1 = toVector3f(p.add(n));
 
                 cablePoints.add(new CablePoint(v0, v1, packedLight));
             }
@@ -320,4 +320,8 @@ public final class NetworkCableRenderer {
     }
 
     private record CablePoint(Vector3f v0, Vector3f v1, int packedLight) { }
+
+    private static Vector3f toVector3f(final Vec3 v) {
+        return new Vector3f((float) v.x, (float) v.y, (float) v.z);
+    }
 }

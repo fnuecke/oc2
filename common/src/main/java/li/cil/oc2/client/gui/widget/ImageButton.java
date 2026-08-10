@@ -88,7 +88,7 @@ public abstract class ImageButton extends AbstractButton {
     }
 
     @Override
-    public void updateNarration(final NarrationElementOutput element) {
+    protected void updateWidgetNarration(final NarrationElementOutput element) {
         this.defaultButtonNarrationText(element);
     }
 
@@ -102,12 +102,12 @@ public abstract class ImageButton extends AbstractButton {
             background = pressedImage;
         }
 
-        background.draw(graphics, x, y);
+        background.draw(graphics, getX(), getY());
 
         if (!Objects.equals(getMessage(), CommonComponents.EMPTY)) {
             drawCenteredString(graphics, Minecraft.getInstance().font, getMessage(),
-                x + width / 2, y + (height - 8) / 2,
-                getFGColor() | Mth.ceil(alpha * 255) << 24);
+                getX() + width / 2, getY() + (height - 8) / 2,
+                (active ? 0xFFFFFF : 0xA0A0A0) | Mth.ceil(alpha * 255) << 24);
         }
     }
 }

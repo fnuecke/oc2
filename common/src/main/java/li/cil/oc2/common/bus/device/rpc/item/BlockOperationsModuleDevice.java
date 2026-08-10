@@ -96,7 +96,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         }
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ItemHandler inventory = robot.getInventory();
 
         final List<ItemEntity> oldItems = getItemsInRange();
 
@@ -136,7 +136,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         }
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ItemHandler inventory = robot.getInventory();
 
         final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);
         if (extracted.isEmpty() || !(extracted.getItem() instanceof final BlockItem blockItem)) {
@@ -186,7 +186,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         }
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ItemHandler inventory = robot.getInventory();
 
         final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);
 
@@ -232,7 +232,18 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         }
 
         final ServerPlayer player = FakePlayerUtils.getFakePlayer(level, entity);
-        final IntValue experience = new IntValue.MutableIntValue(0);
+        final int[] experienceValue = {0};
+        final IntValue experience = new IntValue() {
+            @Override
+            public int getAsInt() {
+                return experienceValue[0];
+            }
+
+            @Override
+            public void accept(final int value) {
+                experienceValue[0] = value;
+            }
+        };
         if (BlockEvent.BREAK.invoker().breakBlock(level, blockPos, blockState, player, experience).isFalse()) {
             return false;
         }
@@ -253,15 +264,14 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
             return false;
         }
 
-        if (!ForgeEventFactory.doPlayerHarvestCheck(player, blockState, true)) {
+
+        if (identity.getDamageValue() + 1 >= identity.getMaxDamage()) {
             return false;
         }
+        identity.setDamageValue(identity.getDamageValue() + 1);
 
-        if (identity.hurt(1, level.random, null)) {
-            return false;
-        }
-
-        if (!blockState.onDestroyedByPlayer(level, blockPos, player, true, level.getFluidState(blockPos))) {
+        block.playerWillDestroy(level, blockPos, blockState, player);
+        if (!level.removeBlock(blockPos, false)) {
             return false;
         }
 

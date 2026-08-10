@@ -121,7 +121,7 @@ public final class FileChooserScreen extends Screen {
 
     @Override
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        super.renderBackground(graphics);
+        super.renderBackground(graphics, mouseX, mouseY, partialTicks);
         fileList.render(graphics, mouseX, mouseY, partialTicks);
         fileNameTextField.render(graphics, mouseX, mouseY, partialTicks);
         super.render(graphics, mouseX, mouseY, partialTicks);
@@ -137,7 +137,6 @@ public final class FileChooserScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        minecraft.keyboardHandler.setSendRepeatsToGui(true);
 
         final int widgetsWidth = width - MARGIN * 2;
         final int listHeight = height - MARGIN - WIDGET_SPACING - TEXT_FIELD_HEIGHT - WIDGET_SPACING - BUTTON_HEIGHT - MARGIN;
@@ -156,8 +155,10 @@ public final class FileChooserScreen extends Screen {
         final int buttonTop = fileNameTop + TEXT_FIELD_HEIGHT + WIDGET_SPACING;
         final int buttonCount = 2;
         final int buttonWidth = widgetsWidth / buttonCount - (buttonCount - 1) * WIDGET_SPACING;
-        okButton = addRenderableWidget(new Button(MARGIN, buttonTop, buttonWidth, BUTTON_HEIGHT, CommonComponents.EMPTY, this::handleOkPressed));
-        addRenderableWidget(new Button(MARGIN + buttonWidth + WIDGET_SPACING, buttonTop, buttonWidth, BUTTON_HEIGHT, CANCEL_TEXT, this::handleCancelPressed));
+        okButton = addRenderableWidget(Button.builder(CommonComponents.EMPTY, this::handleOkPressed)
+            .bounds(MARGIN, buttonTop, buttonWidth, BUTTON_HEIGHT).build());
+        addRenderableWidget(Button.builder(CANCEL_TEXT, this::handleCancelPressed)
+            .bounds(MARGIN + buttonWidth + WIDGET_SPACING, buttonTop, buttonWidth, BUTTON_HEIGHT).build());
 
         fileList.refreshFiles(directory);
 
@@ -245,7 +246,6 @@ public final class FileChooserScreen extends Screen {
     private void updateButtons() {
         okButton.active = false;
         okButton.setMessage(isLoad ? LOAD_TEXT : SAVE_TEXT);
-        okButton.clearFGColor();
 
         if (isParentPath()) {
             okButton.active = true;
@@ -258,8 +258,8 @@ public final class FileChooserScreen extends Screen {
             } else {
                 okButton.active = true;
                 if (Files.isRegularFile(path)) {
-                    okButton.setMessage(OVERWRITE_TEXT);
-                    okButton.setFGColor(0xFF0000);
+                    // setFGColor is a loader extension; style the message instead.
+                    okButton.setMessage(OVERWRITE_TEXT.copy().withStyle(ChatFormatting.RED));
                 }
             }
         });
@@ -277,7 +277,7 @@ public final class FileChooserScreen extends Screen {
 
     private final class FileList extends ObjectSelectionList<FileList.FileEntry> {
         public FileList(final int y, final int height, final int slotHeight) {
-            super(FileChooserScreen.this.minecraft, FileChooserScreen.this.width, FileChooserScreen.this.height, y, y + height, slotHeight);
+            super(FileChooserScreen.this.minecraft, FileChooserScreen.this.width, height, y, slotHeight);
         }
 
         public void refreshFiles(@Nullable final Path directory) {

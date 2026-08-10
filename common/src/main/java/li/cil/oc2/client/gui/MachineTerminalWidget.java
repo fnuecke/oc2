@@ -60,7 +60,7 @@ public final class MachineTerminalWidget {
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, @Nullable final Component error) {
         if (container.getVirtualMachine().isRunning()) {
             final PoseStack terminalStack = new PoseStack();
-            terminalStack.translate(leftPos + TERMINAL_X, topPos + TERMINAL_Y, getClient().getItemRenderer().blitOffset);
+            terminalStack.translate(leftPos + TERMINAL_X, topPos + TERMINAL_Y, 0);
             terminalStack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
 
             if (rendererView == null) {
@@ -123,12 +123,9 @@ public final class MachineTerminalWidget {
     public void init() {
         this.leftPos = (parent.width - WIDTH) / 2;
         this.topPos = (parent.height - HEIGHT) / 2;
-
-        getClient().keyboardHandler.setSendRepeatsToGui(true);
     }
 
     public void onClose() {
-        getClient().keyboardHandler.setSendRepeatsToGui(false);
         if (rendererView != null) {
             terminal.releaseRenderer(rendererView);
             rendererView = null;
@@ -138,7 +135,7 @@ public final class MachineTerminalWidget {
     ///////////////////////////////////////////////////////////////////
 
     private Minecraft getClient() {
-        return parent.getMinecraft();
+        return Minecraft.getInstance();
     }
 
     private boolean shouldCaptureInput() {

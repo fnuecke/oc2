@@ -204,7 +204,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         tag.putInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME, virtualMachine.getBusState().ordinal());
         tag.putInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME, virtualMachine.getRunState().ordinal());
-        tag.putString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME, Component.Serializer.toJson(virtualMachine.getBootError()));
+        tag.putString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME, Component.Serializer.toJson(virtualMachine.getBootError(), registries));
 
         return tag;
     }
@@ -237,7 +237,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         if (tag.contains(AbstractVirtualMachine.BUS_STATE_TAG_NAME)) {
             virtualMachine.setBusStateClient(CommonDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME)]);
             virtualMachine.setRunStateClient(VMRunState.values()[tag.getInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME)]);
-            virtualMachine.setBootErrorClient(Component.Serializer.fromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)));
+            virtualMachine.setBootErrorClient(Component.Serializer.fromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME), registries));
         }
         busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
 

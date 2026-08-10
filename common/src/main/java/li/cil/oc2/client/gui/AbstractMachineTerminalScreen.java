@@ -87,8 +87,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
 
         // Don't close with inventory binding since we usually want to use that as terminal input
         // even without input capture enabled.
-        final InputConstants.Key input = InputConstants.getKey(keyCode, scanCode);
-        if (minecraft.options.keyInventory.isActiveAndMatches(input)) {
+        if (minecraft.options.keyInventory.matches(keyCode, scanCode)) {
             return true;
         }
 
@@ -101,7 +100,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         terminalWidget.init();
 
         final EditBox focusIndicatorEditBox = new EditBox(font, 0, 0, 0, 0, CommonComponents.EMPTY);
-        focusIndicatorEditBox.setFocus(true);
+        focusIndicatorEditBox.setFocused(true);
         setFocusIndicatorEditBox(focusIndicatorEditBox);
 
         addRenderableWidget(new ToggleImageButton(

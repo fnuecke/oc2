@@ -3,8 +3,7 @@
 package li.cil.oc2.client.item;
 
 import li.cil.oc2.common.item.Items;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.color.item.ItemColors;
+import dev.architectury.registry.client.rendering.ColorHandlerRegistry;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.core.component.DataComponents;
 import li.cil.oc2.common.item.ColoredItem;
@@ -38,13 +37,12 @@ public final class CustomItemColors {
     ///////////////////////////////////////////////////////////////////
 
     public static void initialize() {
-        final ItemColors itemColors = Minecraft.getInstance().getItemColors();
-        itemColors.register((stack, layer) -> layer == 1 ? getColor(stack) : NO_TINT,
-            Items.HARD_DRIVE_SMALL.get(),
-            Items.HARD_DRIVE_MEDIUM.get(),
-            Items.HARD_DRIVE_LARGE.get(),
-            Items.HARD_DRIVE_CUSTOM.get(),
-            Items.FLOPPY.get());
+        ColorHandlerRegistry.registerItemColors((stack, layer) -> layer == 1 ? getColor(stack) : NO_TINT,
+            Items.HARD_DRIVE_SMALL,
+            Items.HARD_DRIVE_MEDIUM,
+            Items.HARD_DRIVE_LARGE,
+            Items.HARD_DRIVE_CUSTOM,
+            Items.FLOPPY);
     }
 
     public static int getColorByDye(final DyeColor dye) {

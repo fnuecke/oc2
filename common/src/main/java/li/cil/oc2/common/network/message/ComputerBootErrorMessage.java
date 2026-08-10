@@ -5,6 +5,7 @@ package li.cil.oc2.common.network.message;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import dev.architectury.networking.NetworkManager;
@@ -31,13 +32,13 @@ public final class ComputerBootErrorMessage extends AbstractMessage {
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
-        value = buffer.readComponent();
+        value = ComponentSerialization.STREAM_CODEC.decode(buffer);
     }
 
     @Override
     public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
-        buffer.writeComponent(value);
+        ComponentSerialization.STREAM_CODEC.encode(buffer, value);
     }
 
     ///////////////////////////////////////////////////////////////////

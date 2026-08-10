@@ -4,6 +4,7 @@ package li.cil.oc2.common.item;
 
 import net.minecraft.network.chat.Component;
 import li.cil.oc2.api.API;
+import li.cil.oc2.common.util.EntityUtils;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity.ConnectionResult;
@@ -31,7 +32,7 @@ public final class NetworkCableItem extends ModItem {
     public InteractionResultHolder<ItemStack> use(final Level level, final Player player, final InteractionHand hand) {
         if (player.isShiftKeyDown()) {
             if (player instanceof final ServerPlayer serverPlayer) {
-                final CompoundTag persistentData = serverPlayer.getPersistentData();
+                final CompoundTag persistentData = EntityUtils.getPersistentData(serverPlayer);
                 persistentData.remove(LINK_START_TAG_NAME);
             }
 
@@ -62,11 +63,10 @@ public final class NetworkCableItem extends ModItem {
         }
 
         if (!level.isClientSide() && player instanceof final ServerPlayer serverPlayer) {
-            final CompoundTag persistentData = serverPlayer.getPersistentData();
-            final CompoundTag startPosTag = persistentData.getCompound(LINK_START_TAG_NAME);
-            final BlockPos startPos = NbtUtils.readBlockPos(startPosTag);
+            final CompoundTag persistentData = EntityUtils.getPersistentData(serverPlayer);
+            final BlockPos startPos = NbtUtils.readBlockPos(persistentData, LINK_START_TAG_NAME).orElse(null);
             persistentData.remove(LINK_START_TAG_NAME);
-            if (startPosTag.isEmpty() || Objects.equals(startPos, currentPos)) {
+            if (startPos == null || Objects.equals(startPos, currentPos)) {
                 if (currentConnector.canConnectMore()) {
                     persistentData.put(LINK_START_TAG_NAME, NbtUtils.writeBlockPos(currentPos));
                 } else {

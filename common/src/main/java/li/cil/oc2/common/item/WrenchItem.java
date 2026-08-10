@@ -20,21 +20,20 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.Objects;
 
 public final class WrenchItem extends ModItem {
-    @Override
-    public InteractionResult onItemUseFirst(final ItemStack stack, final UseOnContext context) {
+    public InteractionResult tryRotate(final UseOnContext context) {
         final Level level = context.getLevel();
         final BlockPos pos = context.getClickedPos();
         final Direction face = context.getClickedFace();
         if (face == Direction.UP || face == Direction.DOWN) {
             final BlockState blockState = level.getBlockState(pos);
-            final BlockState rotatedState = blockState.rotate(level, pos, face == Direction.UP ? Rotation.CLOCKWISE_90 : Rotation.COUNTERCLOCKWISE_90);
+            final BlockState rotatedState = blockState.rotate(face == Direction.UP ? Rotation.CLOCKWISE_90 : Rotation.COUNTERCLOCKWISE_90);
             if (!Objects.equals(blockState, rotatedState)) {
                 level.setBlockAndUpdate(pos, rotatedState);
                 return InteractionResult.sidedSuccess(level.isClientSide());
             }
         }
 
-        return super.onItemUseFirst(stack, context);
+        return InteractionResult.PASS;
     }
 
     @Override
@@ -67,8 +66,4 @@ public final class WrenchItem extends ModItem {
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    @Override
-    public boolean doesSneakBypassUse(final ItemStack stack, final LevelReader level, final BlockPos pos, final Player player) {
-        return true;
-    }
 }

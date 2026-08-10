@@ -925,8 +925,8 @@ public final class Terminal {
             stack.translate(terminal.x * CHAR_WIDTH, terminal.y * CHAR_HEIGHT, 0);
 
             final Matrix4f matrix = stack.last().pose();
-            final BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-            buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+            final BufferBuilder buffer = Tesselator.getInstance()
+                .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 
             final int foreground = COLORS[Color.WHITE];
             final float r = ((foreground >> 16) & 0xFF) / 255f;
@@ -938,8 +938,7 @@ public final class Terminal {
             buffer.addVertex(matrix, CHAR_WIDTH, 0, 0).setColor(r, g, b, 1);
             buffer.addVertex(matrix, 0, 0, 0).setColor(r, g, b, 1);
 
-            buffer.end();
-            BufferUploader.end(buffer);
+            BufferUploader.drawWithShader(buffer.buildOrThrow());
 
             stack.popPose();
 

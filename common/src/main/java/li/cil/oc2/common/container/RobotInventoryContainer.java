@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.container;
 
+import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
@@ -80,7 +81,7 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
             }
         });
 
-        final ItemStackHandler inventory = robot.getInventory();
+        final ItemHandler inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             final int x = 116 + (slot % 3) * SLOT_SIZE;
             final int y = 24 + (slot / 3) * SLOT_SIZE;

@@ -51,6 +51,6 @@ public final class ModManualStyle implements ManualStyle {
 
     @Override
     public SoundEvent getPageChangeSound() {
-        return SoundEvents.UI_BUTTON_CLICK;
+        return SoundEvents.UI_BUTTON_CLICK.value();
     }
 }

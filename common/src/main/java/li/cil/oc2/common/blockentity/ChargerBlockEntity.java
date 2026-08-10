@@ -178,8 +178,9 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
         }
     }
 
+    @Nullable
     @Override
-    public AABB getRenderBoundingBox() {
+    public AABB getExpandedRenderBoundingBox() {
         return renderBoundingBox;
     }
 }

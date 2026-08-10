@@ -86,7 +86,7 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
             ItemStackUtils.spawnAsEntity(level, getBlockPos().relative(facing), stack, facing).ifPresent(entity -> {
                 if (player != null) {
                     entity.setNoPickUpDelay();
-                    entity.setOwner(player.getUUID());
+                    entity.setTarget(player.getUUID());
                 }
             });
         }
@@ -177,9 +177,9 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(final HolderLookup.Provider provider) {
             exportDeviceDataToItemStack(getStackInSlotRaw(0));
-            return super.serializeNBT();
+            return super.serializeNBT(provider);
         }
 
         @Override

@@ -34,7 +34,7 @@ public abstract class ToggleImageButton extends ImageButton {
     protected void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         super.renderBackground(graphics, mouseX, mouseY, partialTicks);
         if (isToggled()) {
-            activeImage.draw(graphics, x, y);
+            activeImage.draw(graphics, getX(), getY());
         }
     }
 }

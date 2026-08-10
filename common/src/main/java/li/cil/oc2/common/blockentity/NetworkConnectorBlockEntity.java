@@ -257,6 +257,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     }
 
     @Nullable
+    @Override
     @Environment(EnvType.CLIENT)
     public AABB getExpandedRenderBoundingBox() {
         if (!Minecraft.useShaderTransparency()) {

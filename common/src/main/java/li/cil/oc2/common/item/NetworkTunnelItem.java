@@ -14,6 +14,7 @@ import net.minecraft.util.StringUtil;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
@@ -53,8 +54,8 @@ public final class NetworkTunnelItem extends ModItem {
     ///////////////////////////////////////////////////////////////////
 
     @Override
-    public void appendHoverText(final ItemStack stack, @Nullable final Level level, final List<Component> tooltip, final TooltipFlag flag) {
-        super.appendHoverText(stack, level, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip, final TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
         getTunnelId(stack).ifPresent(id -> {
             final String idString = StringUtil.truncateStringIfNecessary(id.toString(), 8 + 3, true);
             final MutableComponent idComponent = TextFormatUtils.withFormat(idString, ChatFormatting.GREEN);

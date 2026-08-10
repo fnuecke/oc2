@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -35,8 +36,8 @@ public final class BusCableItem extends ModBlockItem {
 
     @Environment(EnvType.CLIENT)
     @Override
-    public void appendHoverText(final ItemStack stack, final @Nullable Level level, final List<Component> tooltip, final TooltipFlag flag) {
-        super.appendHoverText(stack, level, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip, final TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
         TooltipUtils.addEnergyConsumption(Config.busCableEnergyPerTick, tooltip);
     }
 
@@ -70,7 +71,7 @@ public final class BusCableItem extends ModBlockItem {
             CriteriaTriggers.PLACED_BLOCK.trigger(serverPlayer, pos, stack);
         }
 
-        LevelUtils.playSound(level, pos, state.getSoundType(level, pos, player), SoundType::getPlaceSound);
+        LevelUtils.playSound(level, pos, state.getSoundType(), SoundType::getPlaceSound);
 
         if (player == null || !player.getAbilities().instabuild) {
             stack.shrink(1);

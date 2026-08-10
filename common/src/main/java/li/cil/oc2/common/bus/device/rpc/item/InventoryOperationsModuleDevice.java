@@ -48,7 +48,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
             return;
         }
 
-        final ItemStackHandler inventory = robot.getInventory();
+        final ItemHandler inventory = robot.getInventory();
 
         // Do simulation run, validating slot indices and getting actual amount possible to move.
         ItemStack extracted = inventory.extractItem(fromSlot, count, true);
@@ -242,7 +242,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
     private int takeFromWorld(final int count) {
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ItemHandler inventory = robot.getInventory();
 
         int remaining = count;
         for (final ItemEntity itemEntity : getItemsInRange()) {
@@ -267,7 +267,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
     private int takeFromInventories(final int count, final List<ItemHandler> handlers) {
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemStackHandler inventory = robot.getInventory();
+        final ItemHandler inventory = robot.getInventory();
 
         int remaining = count;
         for (final ItemHandler handler : handlers) {
@@ -307,7 +307,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     }
 
     private int takeFromInventory(final int count, final ItemHandler handler, final int slot) {
-        final ItemStackHandler inventory = robot.getInventory();
+        final ItemHandler inventory = robot.getInventory();
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
 
         // Do simulation run, getting actual amount possible to take.

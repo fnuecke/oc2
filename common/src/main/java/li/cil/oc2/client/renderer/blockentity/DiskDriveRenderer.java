@@ -45,7 +45,8 @@ public final class DiskDriveRenderer implements BlockEntityRenderer<DiskDriveBlo
         stack.translate(0.0f, 0.2375f, 2.5f / 16f);
         stack.scale(0.55f, 0.55f, 0.55f);
 
-        itemRenderer.renderStatic(floppy, ItemDisplayContext.FIXED, neighborLight, overlay, stack, bufferSource, (int) diskDrive.getBlockPos().asLong());
+        itemRenderer.renderStatic(floppy, ItemDisplayContext.FIXED, neighborLight, overlay, stack, bufferSource,
+            diskDrive.getLevel(), (int) diskDrive.getBlockPos().asLong());
 
         stack.popPose();
     }

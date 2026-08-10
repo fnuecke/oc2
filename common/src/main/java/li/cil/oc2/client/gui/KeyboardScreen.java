@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 import li.cil.oc2.client.ClientPlatform;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.Random;
+import net.minecraft.util.RandomSource;
 
 public final class KeyboardScreen extends Screen {
     private static final int BORDER_SIZE = 4;
@@ -142,7 +142,7 @@ public final class KeyboardScreen extends Screen {
             return;
         }
 
-        final Random random = player.getRandom();
+        final RandomSource random = player.getRandom();
         if (random.nextFloat() < ARM_SWING_RATE) {
             return;
         }

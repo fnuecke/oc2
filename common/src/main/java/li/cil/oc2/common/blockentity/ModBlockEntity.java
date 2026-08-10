@@ -10,6 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -88,6 +89,11 @@ public abstract class ModBlockEntity extends BlockEntity {
 
     public boolean isValid() {
         return !isRemoved() && !isUnloaded;
+    }
+
+    @Nullable
+    public AABB getExpandedRenderBoundingBox() {
+        return null;
     }
 
     ///////////////////////////////////////////////////////////////////

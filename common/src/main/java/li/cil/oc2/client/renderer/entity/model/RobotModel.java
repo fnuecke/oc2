@@ -68,18 +68,18 @@ public final class RobotModel extends EntityModel<Robot> {
     }
 
     @Override
-    public void renderToBuffer(final PoseStack stack, final VertexConsumer consumer, final int packedLight, final int packedOverlay, final float red, final float green, final float blue, final float alpha) {
+    public void renderToBuffer(final PoseStack stack, final VertexConsumer consumer, final int packedLight, final int packedOverlay, final int color) {
         stack.pushPose();
         stack.translate(0, topY, 0);
         stack.mulPose(new Quaternionf().rotationXYZ(
-            topRotation.x() * Mth.DEG_TO_RAD, topRotation.y() * Mth.DEG_TO_RAD, topRotation.z() * Mth.DEG_TO_RAD));
-        topRenderer.render(stack, consumer, packedLight, packedOverlay);
+            topRotation[0] * Mth.DEG_TO_RAD, topRotation[1] * Mth.DEG_TO_RAD, topRotation[2] * Mth.DEG_TO_RAD));
+        topRenderer.render(stack, consumer, packedLight, packedOverlay, color);
         stack.popPose();
 
         stack.pushPose();
         stack.translate(0, baseY, 0);
-        baseRenderer.render(stack, consumer, packedLight, packedOverlay);
-        coreRenderer.render(stack, consumer, LightTexture.pack(15, 15), packedOverlay);
+        baseRenderer.render(stack, consumer, packedLight, packedOverlay, color);
+        coreRenderer.render(stack, consumer, LightTexture.pack(15, 15), packedOverlay, color);
         stack.popPose();
     }
 }

@@ -78,6 +78,10 @@ public final class Instrumentation {
                 .then(Commands.argument("pos", BlockPosArgument.blockPos())
                     .then(Commands.literal("start").executes(ctx -> computer(ctx, true)))
                     .then(Commands.literal("stop").executes(ctx -> computer(ctx, false)))
+                    .then(Commands.literal("inventory")
+                        .executes(ctx -> openScreen(ctx, true)))
+                    .then(Commands.literal("terminal")
+                        .executes(ctx -> openScreen(ctx, false)))
                     .then(Commands.literal("gdb")
                         .then(Commands.argument("port", IntegerArgumentType.integer(1024, 65535))
                             .executes(ctx -> gdb(ctx, IntegerArgumentType.getInteger(ctx, "port"))))))));
@@ -116,6 +120,26 @@ public final class Instrumentation {
         ((AbstractVirtualMachine) computer.getVirtualMachine()).state.board.enableGDB(port, false);
         ctx.getSource().sendSuccess(() -> Component.literal("GDB stub listening on port " + port), false);
         return 1;
+    }
+
+    private static int openScreen(final CommandContext<CommandSourceStack> ctx, final boolean inventory) throws CommandSyntaxException {
+        final BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "pos");
+        final BlockEntity blockEntity = ctx.getSource().getLevel().getBlockEntity(pos);
+        if (!(blockEntity instanceof final ComputerBlockEntity computer)) {
+            ctx.getSource().sendFailure(Component.literal("No computer at " + pos.toShortString()));
+            return 0;
+        }
+
+        int n = 0;
+        for (final ServerPlayer player : ctx.getSource().getServer().getPlayerList().getPlayers()) {
+            if (inventory) {
+                computer.openInventoryScreen(player);
+            } else {
+                computer.openTerminalScreen(player);
+            }
+            n++;
+        }
+        return n;
     }
 
     public record RunClientCommandPayload(String command) implements CustomPacketPayload {

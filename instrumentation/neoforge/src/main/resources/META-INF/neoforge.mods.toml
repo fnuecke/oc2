@@ -17,3 +17,10 @@ type = "required"
 versionRange = "[1,)"
 ordering = "AFTER"
 side = "BOTH"
+
+[[dependencies.oc2instrumentation]]
+modId = "oc2"
+type = "required"
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "BOTH"

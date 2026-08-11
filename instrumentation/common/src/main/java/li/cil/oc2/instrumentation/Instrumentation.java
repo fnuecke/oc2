@@ -9,14 +9,21 @@ import dev.architectury.platform.Platform;
 import dev.architectury.utils.Env;
 import dev.architectury.utils.EnvExecutor;
 import net.fabricmc.api.EnvType;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import java.util.Collection;
 
@@ -63,10 +70,35 @@ public final class Instrumentation {
                             return players.size();
                         })))));
 
+        CommandRegistrationEvent.EVENT.register((dispatcher, context, selection) ->
+            dispatcher.register(Commands.literal("oc2computer")
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                    .then(Commands.literal("start").executes(ctx -> computer(ctx, true)))
+                    .then(Commands.literal("stop").executes(ctx -> computer(ctx, false))))));
+
         EnvExecutor.runInEnv(EnvType.CLIENT, () -> InstrumentationClient::initialize);
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    private static int computer(final CommandContext<CommandSourceStack> ctx, final boolean start) throws CommandSyntaxException {
+        final BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "pos");
+        final BlockEntity blockEntity = ctx.getSource().getLevel().getBlockEntity(pos);
+        if (!(blockEntity instanceof final ComputerBlockEntity computer)) {
+            ctx.getSource().sendFailure(Component.literal("No computer at " + pos.toShortString()));
+            return 0;
+        }
+
+        if (start) {
+            computer.start();
+        } else {
+            computer.stop();
+        }
+        ctx.getSource().sendSuccess(() -> Component.literal(
+            (start ? "Started" : "Stopped") + " computer at " + pos.toShortString()), false);
+        return 1;
+    }
 
     public record RunClientCommandPayload(String command) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<RunClientCommandPayload> TYPE =

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.instrumentation;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.networking.NetworkManager;
@@ -22,6 +23,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
+import li.cil.oc2.common.vm.AbstractVirtualMachine;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
@@ -75,7 +77,10 @@ public final class Instrumentation {
                 .requires(source -> source.hasPermission(2))
                 .then(Commands.argument("pos", BlockPosArgument.blockPos())
                     .then(Commands.literal("start").executes(ctx -> computer(ctx, true)))
-                    .then(Commands.literal("stop").executes(ctx -> computer(ctx, false))))));
+                    .then(Commands.literal("stop").executes(ctx -> computer(ctx, false)))
+                    .then(Commands.literal("gdb")
+                        .then(Commands.argument("port", IntegerArgumentType.integer(1024, 65535))
+                            .executes(ctx -> gdb(ctx, IntegerArgumentType.getInteger(ctx, "port"))))))));
 
         EnvExecutor.runInEnv(EnvType.CLIENT, () -> InstrumentationClient::initialize);
     }
@@ -97,6 +102,19 @@ public final class Instrumentation {
         }
         ctx.getSource().sendSuccess(() -> Component.literal(
             (start ? "Started" : "Stopped") + " computer at " + pos.toShortString()), false);
+        return 1;
+    }
+
+    private static int gdb(final CommandContext<CommandSourceStack> ctx, final int port) throws CommandSyntaxException {
+        final BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "pos");
+        final BlockEntity blockEntity = ctx.getSource().getLevel().getBlockEntity(pos);
+        if (!(blockEntity instanceof final ComputerBlockEntity computer)) {
+            ctx.getSource().sendFailure(Component.literal("No computer at " + pos.toShortString()));
+            return 0;
+        }
+
+        ((AbstractVirtualMachine) computer.getVirtualMachine()).state.board.enableGDB(port, false);
+        ctx.getSource().sendSuccess(() -> Component.literal("GDB stub listening on port " + port), false);
         return 1;
     }
 

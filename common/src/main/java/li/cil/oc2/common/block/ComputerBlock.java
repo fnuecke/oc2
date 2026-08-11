@@ -152,8 +152,10 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
             if (!level.isClientSide() && player instanceof final ServerPlayer serverPlayer) {
                 computer.openInventoryScreen(serverPlayer);
             }
-        } else {
-            if (!level.isClientSide() && player instanceof final ServerPlayer serverPlayer) {
+        } else if (!level.isClientSide()) {
+            if (player.isShiftKeyDown()) {
+                computer.start();
+            } else if (player instanceof final ServerPlayer serverPlayer) {
                 computer.openTerminalScreen(serverPlayer);
             }
         }

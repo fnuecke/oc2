@@ -86,7 +86,7 @@ public final class Terminal {
     }
 
     public interface RendererView {
-        void render(final PoseStack stack, final Matrix4f projectionMatrix);
+        void render(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix);
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -730,9 +730,9 @@ public final class Terminal {
         ///////////////////////////////////////////////////////////////
 
         @Override
-        public void render(final PoseStack stack, final Matrix4f projectionMatrix) {
+        public void render(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
             validateLineCache();
-            renderBuffer(stack, projectionMatrix);
+            renderBuffer(stack, modelViewBase, projectionMatrix);
 
             if ((System.currentTimeMillis() + terminal.hashCode()) % 1000 > 500) {
                 renderCursor(stack);
@@ -757,7 +757,7 @@ public final class Terminal {
 
         ///////////////////////////////////////////////////////////////
 
-        private void renderBuffer(final PoseStack stack, final Matrix4f projectionMatrix) {
+        private void renderBuffer(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
             final ShaderInstance shader = GameRenderer.getPositionTexColorShader();
             if (shader == null) {
                 return;
@@ -766,11 +766,15 @@ public final class Terminal {
             RenderSystem.depthMask(false);
             RenderSystem.setShaderTexture(0, LOCATION_FONT_TEXTURE);
 
+            final Matrix4f modelView = new Matrix4f(modelViewBase).mul(stack.last().pose());
+
             for (final VertexBuffer line : lines) {
                 if (line != null) {
-                    line.drawWithShader(stack.last().pose(), projectionMatrix, shader);
+                    line.bind();
+                    line.drawWithShader(modelView, projectionMatrix, shader);
                 }
             }
+            VertexBuffer.unbind();
 
             RenderSystem.depthMask(true);
         }

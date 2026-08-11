@@ -68,7 +68,7 @@ public final class MachineTerminalWidget {
             }
 
             final Matrix4f projectionMatrix = new Matrix4f().setOrtho(0, parent.width, parent.height, 0, -10, 10f);
-            rendererView.render(terminalStack, projectionMatrix);
+            rendererView.render(terminalStack, new Matrix4f(), projectionMatrix);
         } else {
             final Font font = getClient().font;
             if (error != null) {

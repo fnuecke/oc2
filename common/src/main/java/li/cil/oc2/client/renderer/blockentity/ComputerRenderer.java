@@ -158,7 +158,8 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
             RenderSystem.enableDepthTest();
 
             try {
-                rendererViews.get(terminal, terminal::getRenderer).render(stack, RenderSystem.getProjectionMatrix());
+                rendererViews.get(terminal, terminal::getRenderer)
+                    .render(stack, RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix());
             } catch (final ExecutionException e) {
                 throw new RuntimeException(e);
             }

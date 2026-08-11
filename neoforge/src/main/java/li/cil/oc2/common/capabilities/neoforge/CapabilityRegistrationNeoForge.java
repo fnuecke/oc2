@@ -18,8 +18,6 @@ import java.util.List;
 @EventBusSubscriber(modid = API.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public final class CapabilityRegistrationNeoForge {
     private static final List<CapabilityType<?>> BLOCK_ENTITY_CAPABILITIES = List.of(
-        Capabilities.ENERGY_STORAGE,
-        Capabilities.ITEM_HANDLER,
         Capabilities.DEVICE_BUS_ELEMENT,
         Capabilities.DEVICE,
         Capabilities.REDSTONE_EMITTER,
@@ -33,6 +31,7 @@ public final class CapabilityRegistrationNeoForge {
             for (final CapabilityType<?> capability : BLOCK_ENTITY_CAPABILITIES) {
                 registerBlockEntity(event, type, capability);
             }
+            registerInteropBlockEntity(event, type);
         }
 
         event.registerEntity(CapabilitiesImpl.entity(Capabilities.ROBOT), Entities.ROBOT.get(),
@@ -44,6 +43,27 @@ public final class CapabilityRegistrationNeoForge {
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    private static <B extends net.minecraft.world.level.block.entity.BlockEntity> void registerInteropBlockEntity(
+        final RegisterCapabilitiesEvent event, final BlockEntityType<B> type) {
+        event.registerBlockEntity(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK, type,
+            (blockEntity, side) -> {
+                if (!(blockEntity instanceof final ModBlockEntity modBlockEntity)) {
+                    return null;
+                }
+                final var energy = modBlockEntity.getCapability(Capabilities.ENERGY_STORAGE, side);
+                return energy != null ? NeoForgeCapabilityAdapters.toNeoForge(energy) : null;
+            });
+
+        event.registerBlockEntity(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK, type,
+            (blockEntity, side) -> {
+                if (!(blockEntity instanceof final ModBlockEntity modBlockEntity)) {
+                    return null;
+                }
+                final var items = modBlockEntity.getCapability(Capabilities.ITEM_HANDLER, side);
+                return items != null ? NeoForgeCapabilityAdapters.toNeoForge(items) : null;
+            });
+    }
 
     private static <T, B extends net.minecraft.world.level.block.entity.BlockEntity> void registerBlockEntity(
         final RegisterCapabilitiesEvent event, final BlockEntityType<B> type, final CapabilityType<T> capability) {

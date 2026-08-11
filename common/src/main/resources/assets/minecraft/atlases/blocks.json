@@ -1,0 +1,32 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:single",
+      "resource": "oc2:gui/icon/card"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "oc2:gui/icon/flash_memory"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "oc2:gui/icon/floppy"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "oc2:gui/icon/hard_drive"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "oc2:gui/icon/memory"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "oc2:gui/icon/network_tunnel"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "oc2:gui/icon/robot_module"
+    }
+  ]
+}

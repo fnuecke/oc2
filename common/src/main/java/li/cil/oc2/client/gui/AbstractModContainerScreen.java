@@ -18,11 +18,6 @@ public abstract class AbstractModContainerScreen<T extends AbstractContainerMenu
 
     ///////////////////////////////////////////////////////////////////
 
-    @Override
-    public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        renderTransparentBackground(graphics);
-    }
-
     public boolean isMouseOver(final int mouseX, final int mouseY, final int x, final int y, final int width, final int height) {
         final int localMouseX = mouseX - leftPos;
         final int localMouseY = mouseY - topPos;

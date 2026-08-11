@@ -767,7 +767,9 @@ public final class Terminal {
             RenderSystem.setShaderTexture(0, LOCATION_FONT_TEXTURE);
 
             for (final VertexBuffer line : lines) {
-                line.drawWithShader(stack.last().pose(), projectionMatrix, shader);
+                if (line != null) {
+                    line.drawWithShader(stack.last().pose(), projectionMatrix, shader);
+                }
             }
 
             RenderSystem.depthMask(true);
@@ -794,6 +796,10 @@ public final class Terminal {
 
                 final MeshData mesh = builder.build();
                 if (mesh == null) {
+                    if (lines[row] != null) {
+                        lines[row].close();
+                        lines[row] = null;
+                    }
                     continue;
                 }
 

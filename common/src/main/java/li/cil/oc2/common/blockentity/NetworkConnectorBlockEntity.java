@@ -435,12 +435,9 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
                 return;
             }
 
-            if (adjacentInterface != null) {
-                final NetworkInterface dst = adjacentInterface;
-                if (dst == source) {
-                    return;
-                }
-                dst.writeEthernetFrame(this, frame, timeToLive - TTL_COST);
+            final NetworkInterface local = adjacentInterface;
+            if (local != null && local != source) {
+                local.writeEthernetFrame(this, frame, timeToLive - TTL_COST);
             }
 
             for (final NetworkConnectorBlockEntity dst : connectors.values()) {

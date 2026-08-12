@@ -14,12 +14,14 @@ import li.cil.oc2.common.network.Network;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
+import net.minecraft.world.entity.player.Player;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
@@ -33,10 +35,11 @@ public final class MultipartMessage extends AbstractMessage {
 
     private static final int MAX_MULTIPART_MESSAGE_SIZE = 1024 * Constants.KILOBYTE;
     private static final int MAX_PAYLOAD_SIZE = ServerboundCustomPayloadPacket.MAX_PAYLOAD_SIZE;
+    private static final int MAX_IN_FLIGHT_PER_CLIENT = 4;
     private static final int HEADER_SIZE =
-            1 /* forge message index */ +
-                    4 /* message id */ +
+            4 /* message id */ +
                     4 /* multipart message id */ +
+                    1 /* is final part */ +
                     2 /* length */;
 
     // ------------------------------------------------------------- //
@@ -44,9 +47,13 @@ public final class MultipartMessage extends AbstractMessage {
     /**
      * Cache for collecting multipart messages on the server into one big buffer again. Discard them after some
      * time to avoid malicious clients being able to grow the memory used by this cache to grow infinitely.
+     * <p>
+     * Keyed by sender <em>and</em> packet id: multiple clients can be uploading at the same time, and a single
+     * client may interleave uploads.
      */
-    private static final Cache<Integer, ByteBuf> MULTIPART_MESSAGE_BUFFER_CACHE = CacheBuilder.newBuilder()
+    private static final Cache<BufferKey, ByteBuf> MULTIPART_MESSAGE_BUFFER_CACHE = CacheBuilder.newBuilder()
             .expireAfterAccess(Duration.ofSeconds(30))
+            .maximumSize(256) // max across all clients
             .build();
     private static int lastAssignedMultipartMessageId;
 
@@ -66,6 +73,15 @@ public final class MultipartMessage extends AbstractMessage {
         ENTRY_BY_ID.put(id, entry);
     }
 
+    static int messageIdOf(final Class<? extends AbstractMessage> type) {
+        final Entry entry = ENTRY_BY_TYPE.get(type);
+        if (entry == null) {
+            throw new IllegalArgumentException("Trying to send multipart message of unregistered message (" + type.getName() + ").");
+        }
+
+        return entry.id();
+    }
+
     // ------------------------------------------------------------- //
 
     public static void sendToServer(final AbstractMessage message) {
@@ -81,27 +97,19 @@ public final class MultipartMessage extends AbstractMessage {
             throw new IllegalArgumentException("Message too large.");
         }
 
-        final Entry entry = ENTRY_BY_TYPE.get(message.getClass());
-        if (entry == null) {
-            throw new IllegalArgumentException("Trying to send multipart message of unregistered message (" + message.getClass().getName() + ").");
-        }
-
-        final int messageId = entry.id();
+        final int messageId = messageIdOf(message.getClass());
         final int multipartMessageId = ++lastAssignedMultipartMessageId;
 
         while (buffer.readableBytes() > 0) {
             final int dataLength = Math.min(buffer.readableBytes(), MAX_PAYLOAD_SIZE - HEADER_SIZE);
             final byte[] data = new byte[dataLength];
             buffer.readBytes(data);
-            Network.sendToServer(new MultipartMessage(messageId, multipartMessageId, data));
+            Network.sendToServer(new MultipartMessage(messageId, multipartMessageId, buffer.readableBytes() == 0, data));
         }
     }
 
     // ------------------------------------------------------------- //
 
-    /**
-     * Automatically computed on client. Implicit because all but last packets are max size.
-     */
     private boolean isFinalPart;
 
     private int messageId;
@@ -110,9 +118,10 @@ public final class MultipartMessage extends AbstractMessage {
 
     // ------------------------------------------------------------- //
 
-    public MultipartMessage(final int messageId, final int multipartMessageId, final byte[] data) {
+    public MultipartMessage(final int messageId, final int multipartMessageId, final boolean isFinalPart, final byte[] data) {
         this.messageId = messageId;
         this.multipartMessageId = multipartMessageId;
+        this.isFinalPart = isFinalPart;
         this.data = data;
     }
 
@@ -124,10 +133,9 @@ public final class MultipartMessage extends AbstractMessage {
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
-        isFinalPart = buffer.readableBytes() < MAX_PAYLOAD_SIZE - 1 /* forge message index */;
-
         messageId = buffer.readInt();
         multipartMessageId = buffer.readInt();
+        isFinalPart = buffer.readBoolean();
         final int length = buffer.readUnsignedShort();
         data = new byte[length];
         buffer.readBytes(data);
@@ -137,6 +145,7 @@ public final class MultipartMessage extends AbstractMessage {
     public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeInt(messageId);
         buffer.writeInt(multipartMessageId);
+        buffer.writeBoolean(isFinalPart);
         buffer.writeShort(data.length);
         buffer.writeBytes(data);
     }
@@ -145,36 +154,58 @@ public final class MultipartMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
+        final Player player = context.getPlayer();
+        if (player == null) {
+            return;
+        }
+
+        final Entry entry = ENTRY_BY_ID.get(messageId);
+        if (entry == null) {
+            LOGGER.error("Received multipart message for unregistered message from client [{}]. Are the mod version on the server and client the same?", player);
+            return;
+        }
+
+        final BufferKey key = new BufferKey(player.getUUID(), multipartMessageId);
+
         try {
-            final ByteBuf buffer = MULTIPART_MESSAGE_BUFFER_CACHE.get(lastAssignedMultipartMessageId, Unpooled::buffer);
+            final ByteBuf buffer = MULTIPART_MESSAGE_BUFFER_CACHE.get(key, Unpooled::buffer);
             if (buffer.capacity() == 0) {
                 return; // Invalidated entry due to being over-sized.
             }
 
+            if (buffer.readableBytes() == 0 && countInFlight(player.getUUID()) > MAX_IN_FLIGHT_PER_CLIENT) {
+                LOGGER.error("Client [{}] has too many multipart messages in flight, ignoring.", player);
+                MULTIPART_MESSAGE_BUFFER_CACHE.put(key, Unpooled.buffer(0));
+                return;
+            }
+
             buffer.writeBytes(data);
             if (buffer.readableBytes() > MAX_MULTIPART_MESSAGE_SIZE) {
-                LOGGER.error("Received over-sized multipart message from client [{}], ignoring.", context.getPlayer());
-                MULTIPART_MESSAGE_BUFFER_CACHE.put(lastAssignedMultipartMessageId, Unpooled.buffer(0));
+                LOGGER.error("Received over-sized multipart message from client [{}], ignoring.", player);
+                MULTIPART_MESSAGE_BUFFER_CACHE.put(key, Unpooled.buffer(0));
                 return;
             }
 
             if (isFinalPart) {
-                MULTIPART_MESSAGE_BUFFER_CACHE.invalidate(lastAssignedMultipartMessageId);
-
-                final Entry entry = ENTRY_BY_ID.get(messageId);
-                if (entry == null) {
-                    LOGGER.error("Received multipart message for unregistered message from client [{}]. Are the mod version on the server and client the same?", context.getPlayer());
-                    return;
-                }
+                MULTIPART_MESSAGE_BUFFER_CACHE.invalidate(key);
 
                 entry.factory.apply(new RegistryFriendlyByteBuf(buffer, context.registryAccess())).handleMessage(context);
             }
         } catch (final ExecutionException e) {
-            LOGGER.error("Error when handling multipart message received from client [{}]: {}", context.getPlayer(), e);
+            LOGGER.error("Error when handling multipart message received from client [{}]: {}", player, e);
         }
     }
 
+    private static long countInFlight(final UUID player) {
+        return MULTIPART_MESSAGE_BUFFER_CACHE.asMap().keySet().stream()
+                .filter(key -> key.player().equals(player))
+                .count();
+    }
+
     // ------------------------------------------------------------- //
+
+    private record BufferKey(UUID player, int multipartMessageId) {
+    }
 
     private record Entry(int id, Function<RegistryFriendlyByteBuf, ? extends AbstractMessage> factory) {
     }

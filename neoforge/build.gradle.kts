@@ -12,6 +12,13 @@ loom {
         named("client") { runDir = "run/client" }
         named("server") { runDir = "run/server" }
 
+        create("gameTestServer") {
+            server()
+            runDir = "run/gametest"
+            property("neoforge.gameTestServer", "true")
+            property("neoforge.enabledGameTestNamespaces", "oc2gametest")
+        }
+
         create("data") {
             data()
             programArgs("--all")
@@ -37,6 +44,7 @@ dependencies {
     }
 
     runtimeOnly(project(":instrumentation-neoforge"))
+    runtimeOnly(project(":gametest-neoforge"))
 
     if (useLocalMarkdownManual) {
         modImplementation(files(markdownManualJar("neoforge", "markdown_manual-MC*-neoforge-*.jar")))

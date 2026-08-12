@@ -200,38 +200,40 @@ for (platform in enabledPlatforms.split(',')) {
     }
 }
 
-for (platform in enabledPlatforms.split(',')) {
-    project(":instrumentation-$platform") {
-        architectury {
-            platformSetupLoomIde()
-            loader(platform)
+for (extraModule in listOf("instrumentation", "gametest")) {
+    for (platform in enabledPlatforms.split(',')) {
+        project(":$extraModule-$platform") {
+            architectury {
+                platformSetupLoomIde()
+                loader(platform)
+            }
+
+            val common: Configuration by configurations.creating
+            val bundle: Configuration by configurations.creating
+
+            configurations {
+                common.isCanBeResolved = true
+                common.isCanBeConsumed = false
+
+                compileClasspath.get().extendsFrom(common)
+                runtimeClasspath.get().extendsFrom(common)
+                getByName("development${projectConfigurations[platform]}").extendsFrom(common)
+
+                bundle.isCanBeResolved = true
+                bundle.isCanBeConsumed = false
+            }
+
+            dependencies {
+                common(project(path = ":$extraModule-common", configuration = "namedElements")) { isTransitive = false }
+                bundle(
+                    project(
+                        path = ":$extraModule-common",
+                        configuration = "transformProduction${projectConfigurations[platform]}"
+                    )
+                ) { isTransitive = false }
+            }
+
         }
-
-        val common: Configuration by configurations.creating
-        val bundle: Configuration by configurations.creating
-
-        configurations {
-            common.isCanBeResolved = true
-            common.isCanBeConsumed = false
-
-            compileClasspath.get().extendsFrom(common)
-            runtimeClasspath.get().extendsFrom(common)
-            getByName("development${projectConfigurations[platform]}").extendsFrom(common)
-
-            bundle.isCanBeResolved = true
-            bundle.isCanBeConsumed = false
-        }
-
-        dependencies {
-            common(project(path = ":instrumentation-common", configuration = "namedElements")) { isTransitive = false }
-            bundle(
-                project(
-                    path = ":instrumentation-common",
-                    configuration = "transformProduction${projectConfigurations[platform]}"
-                )
-            ) { isTransitive = false }
-        }
-
     }
 }
 

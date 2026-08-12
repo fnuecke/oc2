@@ -25,7 +25,7 @@ public final class ClientRenderEventsNeoForge {
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
             BusInterfaceNameRenderer.INSTANCE.render(event.getPoseStack(), event.getModelViewMatrix());
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
-            ProjectorDepthRenderer.renderProjectors(event.getPoseStack(), event.getProjectionMatrix(), Minecraft.getInstance().getTimer());
+            ProjectorDepthRenderer.renderProjectors(event.getModelViewMatrix(), event.getProjectionMatrix(), Minecraft.getInstance().getTimer());
         }
     }
 

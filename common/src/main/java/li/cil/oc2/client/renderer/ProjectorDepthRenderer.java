@@ -176,7 +176,7 @@ public final class ProjectorDepthRenderer {
      * Renders the projected images of {@link ProjectorBlockEntity} instances that were registered via
      * {@link #addProjector(ProjectorBlockEntity)} this frame.
      */
-    public static void renderProjectors(final PoseStack poseStack, final Matrix4f projectionMatrix, final DeltaTracker deltaTracker) {
+    public static void renderProjectors(final Matrix4f modelViewMatrix, final Matrix4f projectionMatrix, final DeltaTracker deltaTracker) {
         if (isIsRenderingProjectorDepth()) {
             return;
         }
@@ -200,7 +200,7 @@ public final class ProjectorDepthRenderer {
 
             final int projectorCount = Math.min(VISIBLE_PROJECTORS.size(), ModShaders.MAX_PROJECTORS);
             renderProjectorDepths(minecraft, level, deltaTracker, projectorCount);
-            renderProjectorColors(minecraft, poseStack.last().pose(), projectionMatrix, projectorCount);
+            renderProjectorColors(minecraft, modelViewMatrix, projectionMatrix, projectorCount);
         } finally {
             VISIBLE_PROJECTORS.clear();
             Arrays.fill(PROJECTOR_COLOR_TARGETS, null);

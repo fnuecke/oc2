@@ -98,6 +98,7 @@ public abstract class LevelRendererMixin {
             // Clean up anything regular return would also clean up.
             RenderSystem.depthMask(true);
             RenderSystem.disableBlend();
+            RenderSystem.getModelViewStack().popMatrix();
             RenderSystem.applyModelViewMatrix();
             FogRenderer.setupNoFog();
             ci.cancel();

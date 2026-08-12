@@ -3,6 +3,7 @@
 package li.cil.oc2.client.model.neoforge;
 
 import li.cil.oc2.api.API;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockElement;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -12,6 +13,7 @@ import net.minecraft.client.resources.model.Material;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.client.RenderTypeGroup;
 import net.neoforged.neoforge.client.model.IModelBuilder;
@@ -39,7 +41,7 @@ public record BusCableModel(List<BlockElement> elements) implements IUnbakedGeom
             context.useAmbientOcclusion(), context.useBlockLight(), context.isGui3d(),
             context.getTransforms(), overrides,
             spriteGetter.apply(context.getMaterial("particle")), RenderTypeGroup.EMPTY);
-        UnbakedGeometryHelper.bakeElements(builder, elements, spriteGetter, modelState);
+        bakeElementsResolvingTextureRefs(builder, spriteGetter, modelState, context);
         final BakedModel bakedBaseModel = builder.build();
 
         final BakedModel[] straightModelByAxis = {
@@ -66,6 +68,23 @@ public record BusCableModel(List<BlockElement> elements) implements IUnbakedGeom
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    private void bakeElementsResolvingTextureRefs(final IModelBuilder<?> builder,
+                                                  final Function<Material, TextureAtlasSprite> spriteGetter,
+                                                  final ModelState modelState,
+                                                  final IGeometryBakingContext context) {
+        for (final BlockElement element : elements) {
+            element.faces.forEach((side, face) -> {
+                final TextureAtlasSprite sprite = spriteGetter.apply(context.getMaterial(face.texture()));
+                final BakedQuad quad = UnbakedGeometryHelper.bakeElementFace(element, face, sprite, side, modelState);
+                if (face.cullForDirection() == null) {
+                    builder.addUnculledFace(quad);
+                } else {
+                    builder.addCulledFace(Direction.rotate(modelState.getRotation().getMatrix(), face.cullForDirection()), quad);
+                }
+            });
+        }
+    }
 
     private static BakedModel bake(final ModelBaker baker, final ResourceLocation model,
                                    final ModelState modelState, final BlockModelRotation rotation) {

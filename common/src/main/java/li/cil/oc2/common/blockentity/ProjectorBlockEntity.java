@@ -71,7 +71,8 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     // Video encoding.
     private final H264Encoder encoder = new H264Encoder(new CQPRateControl(12));
     private final ByteBuffer encoderBuffer = ByteBuffer.allocateDirect(1024 * 1024); // Re-used decompression buffer.
-    private boolean needsIDR; // Whether we need to send a keyframe next.
+    // Set on the server thread (setRequiresKeyframe), read and cleared on the encoder thread.
+    private volatile boolean needsIDR; // Whether we need to send a keyframe next.
 
     // Video decoding.
     private final H264Decoder decoder = new H264Decoder();
@@ -305,8 +306,9 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         final ByteBuffer frameData;
         try {
             if (needsIDR) {
-                frameData = encoder.encodeIDRFrame(picture, encoderBuffer);
+                // Cleared before encoding so a keyframe requested while we encode is not swallowed.
                 needsIDR = false;
+                frameData = encoder.encodeIDRFrame(picture, encoderBuffer);
             } else {
                 frameData = encoder.encodeFrame(picture, encoderBuffer).data();
             }

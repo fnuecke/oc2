@@ -105,7 +105,7 @@ public class CommonDeviceBusController implements DeviceBusController {
             for (final Device device : element.getLocalDevices()) {
                 newDevices.add(device);
                 element.getDeviceIdentifier(device).ifPresent(identifier -> newDeviceIds
-                    .computeIfAbsent(device, unused -> new HashSet<>()).add(identifier));
+                        .computeIfAbsent(device, unused -> new HashSet<>()).add(identifier));
             }
         }
 
@@ -126,7 +126,7 @@ public class CommonDeviceBusController implements DeviceBusController {
             didDeviceIdsChange = true;
         } else {
             didDeviceIdsChange = deviceIds.entrySet().stream().anyMatch(entry ->
-                !Objects.equals(entry.getValue(), newDeviceIds.get(entry.getKey())));
+                    !Objects.equals(entry.getValue(), newDeviceIds.get(entry.getKey())));
         }
 
         if (didDeviceIdsChange) {
@@ -332,7 +332,9 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     // ------------------------------------------------------------- //
 
-    public record AfterDeviceScanEvent(boolean didDevicesChange) { }
+    public record AfterDeviceScanEvent(boolean didDevicesChange) {
+    }
 
-    public record DevicesChangedEvent(Collection<Device> devices) { }
+    public record DevicesChangedEvent(Collection<Device> devices) {
+    }
 }

@@ -31,11 +31,16 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
     // ------------------------------------------------------------- //
 
-    @Nullable private MovementDirection direction;
-    @Nullable private BlockPos origin;
-    @Nullable private BlockPos start;
-    @Nullable private BlockPos target;
-    @Nullable private Vec3 targetPos;
+    @Nullable
+    private MovementDirection direction;
+    @Nullable
+    private BlockPos origin;
+    @Nullable
+    private BlockPos start;
+    @Nullable
+    private BlockPos target;
+    @Nullable
+    private Vec3 targetPos;
 
     // ------------------------------------------------------------- //
 
@@ -149,7 +154,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
         final boolean didCollide = robot.horizontalCollision || robot.verticalCollision;
         final long gameTime = robot.level().getGameTime();
         if (didCollide && !robot.level().isClientSide()
-            && robot.getLastPistonMovement() < gameTime - 1) {
+                && robot.getLastPistonMovement() < gameTime - 1) {
             final BlockPos newStart = target;
             target = start;
             start = newStart;
@@ -161,7 +166,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
     private void validateTarget(final Robot robot) {
         final BlockPos currentPosition = robot.blockPosition();
         if (start == null || Objects.equals(currentPosition, start) ||
-            target == null || Objects.equals(currentPosition, target)) {
+                target == null || Objects.equals(currentPosition, target)) {
             return;
         }
 

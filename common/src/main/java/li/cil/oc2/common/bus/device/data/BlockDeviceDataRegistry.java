@@ -52,7 +52,7 @@ public final class BlockDeviceDataRegistry {
 
     public static Stream<BlockDeviceData> values() {
         return Stream.concat(
-            StreamSupport.stream(REGISTRY.spliterator(), false),
-            FileSystems.getBlockData().values().stream());
+                StreamSupport.stream(REGISTRY.spliterator(), false),
+                FileSystems.getBlockData().values().stream());
     }
 }

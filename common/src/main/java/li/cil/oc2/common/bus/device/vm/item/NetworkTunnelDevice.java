@@ -37,7 +37,7 @@ public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
         final VMDeviceLoadResult result = super.mount(context);
         if (result.wasSuccessful()) {
             NetworkTunnelItem.getTunnelId(identity).ifPresent(id ->
-                TunnelManager.registerEndpoint(id, getNetworkInterface()));
+                    TunnelManager.registerEndpoint(id, getNetworkInterface()));
         }
         return result;
     }
@@ -58,7 +58,7 @@ public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
 
         public static void registerEndpoint(final UUID id, final NetworkInterface networkInterface) {
             TUNNELS.computeIfAbsent(id, unused -> new HashSet<>())
-                .add(networkInterface);
+                    .add(networkInterface);
         }
 
         public static void unregisterEndpoint(final NetworkInterface networkInterface) {

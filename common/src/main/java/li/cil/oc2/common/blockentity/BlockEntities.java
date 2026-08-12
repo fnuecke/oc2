@@ -46,7 +46,7 @@ public final class BlockEntities {
     @SuppressWarnings("ConstantConditions") // .build(null) is fine
     private static <B extends Block, T extends BlockEntity> RegistrySupplier<BlockEntityType<T>> register(final RegistrySupplier<B> block, final BlockEntityType.BlockEntitySupplier<T> factory) {
         final RegistrySupplier<BlockEntityType<T>> type = BLOCK_ENTITIES.register(
-            block.getId().getPath(), () -> BlockEntityType.Builder.of(factory, block.get()).build(null));
+                block.getId().getPath(), () -> BlockEntityType.Builder.of(factory, block.get()).build(null));
         ALL.add(type);
         return type;
     }

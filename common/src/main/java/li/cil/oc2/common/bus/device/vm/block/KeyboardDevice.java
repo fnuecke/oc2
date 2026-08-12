@@ -23,7 +23,8 @@ public final class KeyboardDevice<T> extends IdentityProxy<T> implements VMDevic
 
     // ------------------------------------------------------------- //
 
-    @Nullable private VirtIOKeyboardDevice device;
+    @Nullable
+    private VirtIOKeyboardDevice device;
 
     // ------------------------------------------------------------- //
 

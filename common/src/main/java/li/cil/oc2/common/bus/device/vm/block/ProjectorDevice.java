@@ -33,12 +33,14 @@ public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements
 
     private final BooleanConsumer onMountedChanged;
 
-    @Nullable private SimpleFramebufferDevice device;
+    @Nullable
+    private SimpleFramebufferDevice device;
 
     // ------------------------------------------------------------- //
 
     private final OptionalAddress address = new OptionalAddress();
-    @Nullable private UUID blobHandle;
+    @Nullable
+    private UUID blobHandle;
 
     // ------------------------------------------------------------- //
 

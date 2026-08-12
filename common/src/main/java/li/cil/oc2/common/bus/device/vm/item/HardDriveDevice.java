@@ -27,7 +27,7 @@ public class HardDriveDevice extends AbstractBlockStorageDevice<ByteBufferBlockD
         super(identity, readonly);
         this.size = size;
         this.soundEmitter = new ThrottledSoundEmitter(location, SoundEvents.HDD_ACCESS.get())
-            .withMinInterval(Duration.ofSeconds(1));
+                .withMinInterval(Duration.ofSeconds(1));
     }
 
     // ------------------------------------------------------------- //

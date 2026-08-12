@@ -23,6 +23,6 @@ public final class RobotTerminalInputMessage extends AbstractTerminalEntityMessa
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withNearbyServerEntity(context, entityId, Robot.class,
-            robot -> robot.getTerminal().putInput(ByteBuffer.wrap(data)));
+                robot -> robot.getTerminal().putInput(ByteBuffer.wrap(data)));
     }
 }

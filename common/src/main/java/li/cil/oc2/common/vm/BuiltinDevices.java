@@ -28,9 +28,12 @@ public final class BuiltinDevices {
 
     // ------------------------------------------------------------- //
 
-    @Serialized public VirtIOConsoleDevice rpcSerialDevice;
-    @Serialized public UART16550A uart;
-    @Serialized public VirtIOFileSystemDevice vfs;
+    @Serialized
+    public VirtIOConsoleDevice rpcSerialDevice;
+    @Serialized
+    public UART16550A uart;
+    @Serialized
+    public VirtIOFileSystemDevice vfs;
 
     // ------------------------------------------------------------- //
 

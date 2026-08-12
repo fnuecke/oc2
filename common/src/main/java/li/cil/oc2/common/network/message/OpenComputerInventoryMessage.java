@@ -37,6 +37,6 @@ public final class OpenComputerInventoryMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos, ComputerBlockEntity.class,
-            (player, computer) -> computer.openInventoryScreen(player));
+                (player, computer) -> computer.openInventoryScreen(player));
     }
 }

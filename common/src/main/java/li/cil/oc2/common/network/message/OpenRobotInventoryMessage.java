@@ -39,7 +39,7 @@ public final class OpenRobotInventoryMessage extends AbstractMessage {
     protected void handleMessage(final NetworkManager.PacketContext context) {
         if (context.getPlayer() instanceof final ServerPlayer player) {
             MessageUtils.withNearbyServerEntity(context, entityId, Robot.class,
-                robot -> robot.openInventoryScreen(player));
+                    robot -> robot.openInventoryScreen(player));
         }
     }
 }

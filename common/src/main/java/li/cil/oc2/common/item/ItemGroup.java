@@ -22,14 +22,14 @@ public final class ItemGroup {
     // ------------------------------------------------------------- //
 
     public static final RegistrySupplier<CreativeModeTab> COMMON = TABS.register("common", () ->
-        CreativeTabRegistry.create(builder -> {
-            builder.icon(() -> new ItemStack(Items.COMPUTER.get()));
-            builder.title(Component.translatable("itemGroup." + API.MOD_ID + ".common"));
-            builder.displayItems((parameters, output) -> BuiltInRegistries.ITEM.entrySet().stream()
-                .filter(entry -> entry.getKey().location().getNamespace().equals(API.MOD_ID))
-                .map(Map.Entry::getValue)
-                .forEach(item -> addItem(item, parameters, output)));
-        }));
+            CreativeTabRegistry.create(builder -> {
+                builder.icon(() -> new ItemStack(Items.COMPUTER.get()));
+                builder.title(Component.translatable("itemGroup." + API.MOD_ID + ".common"));
+                builder.displayItems((parameters, output) -> BuiltInRegistries.ITEM.entrySet().stream()
+                        .filter(entry -> entry.getKey().location().getNamespace().equals(API.MOD_ID))
+                        .map(Map.Entry::getValue)
+                        .forEach(item -> addItem(item, parameters, output)));
+            }));
 
     // ------------------------------------------------------------- //
 

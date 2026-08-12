@@ -94,8 +94,8 @@ public final class MBlockDecoderUtils {
             return mvC(c, comp);
 
         return mvC(a, comp) + mvC(b, comp) + mvC(c, comp)
-            - MathUtil.min3(mvC(a, comp), mvC(b, comp), mvC(c, comp))
-            - MathUtil.max3(mvC(a, comp), mvC(b, comp), mvC(c, comp));
+                - MathUtil.min3(mvC(a, comp), mvC(b, comp), mvC(c, comp))
+                - MathUtil.max3(mvC(a, comp), mvC(b, comp), mvC(c, comp));
     }
 
     static void saveMvs(final DeblockerInput di, final MvList x, final int mbX, final int mbY) {

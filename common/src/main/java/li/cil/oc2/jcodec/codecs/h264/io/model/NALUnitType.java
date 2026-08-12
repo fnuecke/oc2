@@ -32,7 +32,7 @@ public final class NALUnitType {
 
     static {
         values = new NALUnitType[]{NON_IDR_SLICE, SLICE_PART_A, SLICE_PART_B, SLICE_PART_C, IDR_SLICE, SEI, SPS, PPS,
-            ACC_UNIT_DELIM, END_OF_SEQ, END_OF_STREAM, FILLER_DATA, SEQ_PAR_SET_EXT, AUX_SLICE, FU_A};
+                ACC_UNIT_DELIM, END_OF_SEQ, END_OF_STREAM, FILLER_DATA, SEQ_PAR_SET_EXT, AUX_SLICE, FU_A};
         lut = new NALUnitType[256];
         for (final NALUnitType nalUnitType : values) {
             lut[nalUnitType.value] = nalUnitType;

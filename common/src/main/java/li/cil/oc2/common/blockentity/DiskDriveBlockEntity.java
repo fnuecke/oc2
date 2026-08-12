@@ -46,11 +46,11 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
         super(BlockEntities.DISK_DRIVE.get(), pos, state);
 
         this.accessSoundEmitter = new ThrottledSoundEmitter(LocationSupplierUtils.of(this),
-            SoundEvents.FLOPPY_ACCESS.get()).withMinInterval(Duration.ofSeconds(1));
+                SoundEvents.FLOPPY_ACCESS.get()).withMinInterval(Duration.ofSeconds(1));
         this.insertSoundEmitter = new ThrottledSoundEmitter(LocationSupplierUtils.of(this),
-            SoundEvents.FLOPPY_INSERT.get()).withMinInterval(Duration.ofMillis(100));
+                SoundEvents.FLOPPY_INSERT.get()).withMinInterval(Duration.ofMillis(100));
         this.ejectSoundEmitter = new ThrottledSoundEmitter(LocationSupplierUtils.of(this),
-            SoundEvents.FLOPPY_EJECT.get()).withMinInterval(Duration.ofMillis(100));
+                SoundEvents.FLOPPY_EJECT.get()).withMinInterval(Duration.ofMillis(100));
     }
 
     // ------------------------------------------------------------- //

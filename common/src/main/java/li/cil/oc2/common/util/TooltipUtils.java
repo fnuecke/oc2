@@ -23,8 +23,6 @@ import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.*;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 
@@ -34,13 +32,13 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 
 import static java.util.Objects.requireNonNull;
-import static li.cil.oc2.common.Constants.*;
+import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
 
 public final class TooltipUtils {
     private static final MutableComponent DEVICE_NEEDS_REBOOT =
-        Component.translatable(Constants.TOOLTIP_DEVICE_NEEDS_REBOOT)
-            .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.YELLOW)));
+            Component.translatable(Constants.TOOLTIP_DEVICE_NEEDS_REBOOT)
+                    .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.YELLOW)));
 
     private static final ThreadLocal<List<ItemStack>> ITEM_STACKS = ThreadLocal.withInitial(ArrayList::new);
     private static final ThreadLocal<IntList> ITEM_STACKS_SIZES = ThreadLocal.withInitial(IntArrayList::new);
@@ -69,8 +67,8 @@ public final class TooltipUtils {
         final StringSplitter splitter = font.getSplitter();
         final boolean needsWrapping = tooltip.stream().anyMatch(line -> font.width(line) > targetWidth);
         final List<? extends FormattedText> lines = needsWrapping
-            ? tooltip.stream().flatMap(line -> splitter.splitLines(line, targetWidth, Style.EMPTY).stream()).toList()
-            : tooltip;
+                ? tooltip.stream().flatMap(line -> splitter.splitLines(line, targetWidth, Style.EMPTY).stream()).toList()
+                : tooltip;
         graphics.renderTooltip(font, lines.stream().map(Language.getInstance()::getVisualOrder).toList(), x, y);
     }
 
@@ -92,7 +90,7 @@ public final class TooltipUtils {
 
         final int energyConsumption;
         if (stack.getItem() instanceof BlockItem blockItem &&
-            blockItem.getBlock() instanceof EnergyConsumingBlock energyConsumingBlock) {
+                blockItem.getBlock() instanceof EnergyConsumingBlock energyConsumingBlock) {
             energyConsumption = energyConsumingBlock.getEnergyConsumption();
         } else {
             final ItemDeviceQuery query = Devices.makeQuery(stack);
@@ -134,11 +132,11 @@ public final class TooltipUtils {
         for (int i = 0; i < itemStacks.size(); i++) {
             final ItemStack itemStack = itemStacks.get(i);
             tooltip.add(Component.literal("- ")
-                .append(itemStack.getDisplayName())
-                .withStyle(style -> style.withColor(TextColor.fromLegacyFormat(ChatFormatting.GRAY)))
-                .append(Component.literal(" x")
-                    .append(String.valueOf(itemStackSizes.getInt(i)))
-                    .withStyle(style -> style.withColor(TextColor.fromLegacyFormat(ChatFormatting.DARK_GRAY))))
+                    .append(itemStack.getDisplayName())
+                    .withStyle(style -> style.withColor(TextColor.fromLegacyFormat(ChatFormatting.GRAY)))
+                    .append(Component.literal(" x")
+                            .append(String.valueOf(itemStackSizes.getInt(i)))
+                            .withStyle(style -> style.withColor(TextColor.fromLegacyFormat(ChatFormatting.DARK_GRAY))))
             );
         }
     }
@@ -163,8 +161,8 @@ public final class TooltipUtils {
 
     private static String[] getDeviceTypeNames() {
         return StreamSupport.stream(DeviceTypes.DEVICE_TYPE_REGISTRY.spliterator(), false)
-            .map(DeviceTypes::key)
-            .toArray(String[]::new);
+                .map(DeviceTypes::key)
+                .toArray(String[]::new);
     }
 
     private static void collectItemStacks(final CompoundTag tag, final List<ItemStack> stacks, final IntList stackSizes) {

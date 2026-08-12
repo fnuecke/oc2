@@ -126,7 +126,8 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
     // ------------------------------------------------------------- //
 
     protected final class ItemQueryResult extends QueryResult {
-        @Nullable private final ItemDeviceQuery query;
+        @Nullable
+        private final ItemDeviceQuery query;
         private final Set<ItemEntry> entries;
 
         public ItemQueryResult(@Nullable final ItemDeviceQuery query, final Set<ItemEntry> entries) {

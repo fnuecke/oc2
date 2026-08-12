@@ -31,8 +31,8 @@ import static java.util.Collections.singletonList;
 
 public final class ChargerBlockEntity extends ModBlockEntity implements NamedDevice, TickableBlockEntity {
     private static final Predicate<Entity> ENTITY_PREDICATE =
-        EntitySelector.NO_SPECTATORS
-            .and(EntitySelector.ENTITY_STILL_ALIVE);
+            EntitySelector.NO_SPECTATORS
+                    .and(EntitySelector.ENTITY_STILL_ALIVE);
 
     // ------------------------------------------------------------- //
 

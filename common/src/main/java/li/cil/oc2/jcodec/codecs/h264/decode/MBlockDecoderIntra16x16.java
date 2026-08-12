@@ -34,7 +34,7 @@ public final class MBlockDecoderIntra16x16 extends MBlockDecoderBase {
         residualLumaI16x16(mBlock);
 
         Intra16x16PredictionBuilder.predictWithMode(mBlock.luma16x16Mode, mBlock.ac[0], leftAvailable, topAvailable,
-            s.leftRow[0], s.topLine[0], s.topLeft[0], mbX << 4, mb.getPlaneData(0));
+                s.leftRow[0], s.topLine[0], s.topLeft[0], mbX << 4, mb.getPlaneData(0));
 
         decodeChroma(mBlock, mbX, mbY, leftAvailable, topAvailable, mb, s.qp);
         di.mbTypes[address] = mBlock.curMbType;

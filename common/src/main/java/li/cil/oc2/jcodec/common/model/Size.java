@@ -8,4 +8,5 @@ package li.cil.oc2.jcodec.common.model;
  *
  * @author The JCodec project
  */
-public record Size(int width, int height) { }
+public record Size(int width, int height) {
+}

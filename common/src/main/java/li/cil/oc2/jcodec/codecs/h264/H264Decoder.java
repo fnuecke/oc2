@@ -144,7 +144,7 @@ public final class H264Decoder extends VideoDecoder {
             di = new DeblockerInput(activeSps);
 
             final Frame result = createFrame(activeSps, buffer, firstSliceHeader.frameNum,
-                di.mvs, di.refsUsed, dec.poc.calcPOC(firstSliceHeader, firstNu));
+                    di.mvs, di.refsUsed, dec.poc.calcPOC(firstSliceHeader, firstNu));
 
             filter = new DeblockingFilter(di);
 
@@ -278,7 +278,7 @@ public final class H264Decoder extends VideoDecoder {
 
         private void convert(final int shortNo, final int longNo) {
             final int ind = MathUtil.wrap(firstSliceHeader.frameNum - shortNo,
-                1 << (firstSliceHeader.sps.log2MaxFrameNumMinus4 + 4));
+                    1 << (firstSliceHeader.sps.log2MaxFrameNumMinus4 + 4));
             releaseRef(dec.lRefs.get(longNo));
             dec.lRefs.put(longNo, dec.sRefs[ind]);
             dec.sRefs[ind] = null;
@@ -292,7 +292,7 @@ public final class H264Decoder extends VideoDecoder {
 
         private void unrefShortTerm(final int shortNo) {
             final int ind = MathUtil.wrap(firstSliceHeader.frameNum - shortNo,
-                1 << (firstSliceHeader.sps.log2MaxFrameNumMinus4 + 4));
+                    1 << (firstSliceHeader.sps.log2MaxFrameNumMinus4 + 4));
             releaseRef(dec.sRefs[ind]);
             dec.sRefs[ind] = null;
         }

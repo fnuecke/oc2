@@ -160,10 +160,10 @@ public final class SliceDecoder {
                 decoderInter8x8.decode(mBlock, references, mb, SliceType.B);
             } else if ((mBlock.mbType & 1) == 0) {
                 decoderInter.decode16x8(mBlock, mb, references, H264Const.bPredModes[mBlock.mbType][0],
-                    H264Const.bPredModes[mBlock.mbType][1]);
+                        H264Const.bPredModes[mBlock.mbType][1]);
             } else {
                 decoderInter.decode8x16(mBlock, mb, references, H264Const.bPredModes[mBlock.mbType][0],
-                    H264Const.bPredModes[mBlock.mbType][1]);
+                        H264Const.bPredModes[mBlock.mbType][1]);
             }
         }
     }

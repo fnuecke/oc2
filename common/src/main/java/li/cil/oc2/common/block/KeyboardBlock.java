@@ -43,7 +43,7 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
     }
 
     private static final VoxelShape NEG_Z_SHAPE = Shapes.or(Block.box(0, 0, 0, 16, 8, 16), // main body
-        Block.box(0, 8, 8, 16, 12, 16) // top
+            Block.box(0, 8, 8, 16, 12, 16) // top
     );
     private static final VoxelShape NEG_X_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_Z_SHAPE);
     private static final VoxelShape POS_Z_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_X_SHAPE);
@@ -53,7 +53,7 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
 
     public KeyboardBlock() {
         super(Properties.of()
-            .mapColor(MapColor.METAL).sound(SoundType.METAL).strength(1.5f, 6.0f));
+                .mapColor(MapColor.METAL).sound(SoundType.METAL).strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 

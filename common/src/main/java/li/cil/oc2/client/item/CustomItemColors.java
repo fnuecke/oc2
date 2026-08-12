@@ -38,11 +38,11 @@ public final class CustomItemColors {
 
     public static void initialize() {
         ColorHandlerRegistry.registerItemColors((stack, layer) -> layer == 1 ? getColor(stack) : NO_TINT,
-            Items.HARD_DRIVE_SMALL,
-            Items.HARD_DRIVE_MEDIUM,
-            Items.HARD_DRIVE_LARGE,
-            Items.HARD_DRIVE_CUSTOM,
-            Items.FLOPPY);
+                Items.HARD_DRIVE_SMALL,
+                Items.HARD_DRIVE_MEDIUM,
+                Items.HARD_DRIVE_LARGE,
+                Items.HARD_DRIVE_CUSTOM,
+                Items.FLOPPY);
     }
 
     public static int getColorByDye(final DyeColor dye) {

@@ -75,9 +75,11 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     // Video decoding.
     private final H264Decoder decoder = new H264Decoder();
-    @Nullable private CompletableFuture<?> runningDecode; // Current decoding operation, if any, to avoid race conditions.
+    @Nullable
+    private CompletableFuture<?> runningDecode; // Current decoding operation, if any, to avoid race conditions.
     private final ByteBuffer decoderBuffer = ByteBuffer.allocateDirect(1024 * 1024); // Re-used decompression buffer.
-    @Nullable private FrameConsumer frameConsumer; // Where to throw received frames.
+    @Nullable
+    private FrameConsumer frameConsumer; // Where to throw received frames.
 
     private AABB renderBounds; // Maximum possible render bounds, assuming we project on furthest away surface.
     private long lastKeepAliveSentAt;
@@ -332,8 +334,8 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         final BlockPos screenBasePos = projectorPos.relative(blockFacing, MAX_RENDER_DISTANCE);
         final BlockPos screenMinPos = screenBasePos.relative(canvasLeft.getOpposite(), MAX_WIDTH / 2);
         final BlockPos screenMaxPos = screenBasePos.relative(canvasLeft, MAX_WIDTH / 2)
-            // -1 for the MAX_HEIGHT padding, -1 for auto-expansion of AABB constructor
-            .relative(canvasUp, MAX_HEIGHT - 2);
+                // -1 for the MAX_HEIGHT padding, -1 for auto-expansion of AABB constructor
+                .relative(canvasUp, MAX_HEIGHT - 2);
 
         renderBounds = new AABB(getBlockPos()).minmax(new AABB(screenMinPos)).minmax(new AABB(screenMaxPos));
     }

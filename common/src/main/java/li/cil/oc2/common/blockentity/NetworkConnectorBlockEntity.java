@@ -10,8 +10,10 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.NetworkConnectorConnectionsMessage;
-import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.util.ItemStackUtils;
+import li.cil.oc2.common.util.NBTTagIds;
+import li.cil.oc2.common.util.ServerScheduler;
+import li.cil.oc2.common.util.TickUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -65,7 +67,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
 
     private final NetworkConnectorNetworkInterface networkInterface = new NetworkConnectorNetworkInterface();
 
-    @Nullable private NetworkInterface adjacentInterface;
+    @Nullable
+    private NetworkInterface adjacentInterface;
     private boolean isAdjacentInterfaceDirty = true;
 
     private final HashSet<BlockPos> connectorPositions = new HashSet<>();
@@ -383,22 +386,22 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         // symmetric. In particular when grazing corners perfectly, e.g. two connectors
         // attached to the same block at a 90-degree angle. So we check both ways.
         final BlockHitResult hitAB = level.clip(new ClipContext(
-            va.add(ab),
-            vb.subtract(ab),
-            ClipContext.Block.COLLIDER,
-            ClipContext.Fluid.NONE,
-            CollisionContext.empty()
+                va.add(ab),
+                vb.subtract(ab),
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                CollisionContext.empty()
         ));
         final BlockHitResult hitBA = level.clip(new ClipContext(
-            vb.subtract(ab),
-            va.add(ab),
-            ClipContext.Block.COLLIDER,
-            ClipContext.Fluid.NONE,
-            CollisionContext.empty()
+                vb.subtract(ab),
+                va.add(ab),
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                CollisionContext.empty()
         ));
 
         return hitAB.getType() != HitResult.Type.MISS ||
-            hitBA.getType() != HitResult.Type.MISS;
+                hitBA.getType() != HitResult.Type.MISS;
     }
 
     private void onConnectedPositionsChanged() {

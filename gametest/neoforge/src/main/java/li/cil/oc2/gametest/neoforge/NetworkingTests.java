@@ -39,21 +39,21 @@ public final class NetworkingTests {
         placeLink(helper);
 
         helper.startSequence()
-            .thenExecuteAfter(40, () -> {
-                final NetworkHubBlockEntity hubB = helper.getBlockEntity(HUB_B);
-                final int before = framesReceived(hubB);
+                .thenExecuteAfter(40, () -> {
+                    final NetworkHubBlockEntity hubB = helper.getBlockEntity(HUB_B);
+                    final int before = framesReceived(hubB);
 
-                connectorInterface(helper, CONNECTOR_A)
-                    .writeEthernetFrame(helper.getBlockEntity(HUB_A), FRAME, 12);
+                    connectorInterface(helper, CONNECTOR_A)
+                            .writeEthernetFrame(helper.getBlockEntity(HUB_A), FRAME, 12);
 
-                final int after = framesReceived(hubB);
-                if (after <= before) {
-                    throw new GameTestAssertException(
-                        "a frame sent from the connector's own adjacent interface never reached "
-                            + "the far end of the cable (hub frame count " + before + " -> " + after + ")");
-                }
-            })
-            .thenSucceed();
+                    final int after = framesReceived(hubB);
+                    if (after <= before) {
+                        throw new GameTestAssertException(
+                                "a frame sent from the connector's own adjacent interface never reached "
+                                        + "the far end of the cable (hub frame count " + before + " -> " + after + ")");
+                    }
+                })
+                .thenSucceed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
@@ -61,19 +61,19 @@ public final class NetworkingTests {
         placeLink(helper);
 
         helper.startSequence()
-            .thenExecuteAfter(40, () -> {
-                final NetworkHubBlockEntity hubA = helper.getBlockEntity(HUB_A);
-                final int before = framesReceived(hubA);
+                .thenExecuteAfter(40, () -> {
+                    final NetworkHubBlockEntity hubA = helper.getBlockEntity(HUB_A);
+                    final int before = framesReceived(hubA);
 
-                connectorInterface(helper, CONNECTOR_A)
-                    .writeEthernetFrame(connectorInterface(helper, CONNECTOR_B), FRAME, 12);
+                    connectorInterface(helper, CONNECTOR_A)
+                            .writeEthernetFrame(connectorInterface(helper, CONNECTOR_B), FRAME, 12);
 
-                if (framesReceived(hubA) <= before) {
-                    throw new GameTestAssertException(
-                        "a frame arriving over the cable was not delivered to the local block");
-                }
-            })
-            .thenSucceed();
+                    if (framesReceived(hubA) <= before) {
+                        throw new GameTestAssertException(
+                                "a frame arriving over the cable was not delivered to the local block");
+                    }
+                })
+                .thenSucceed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
@@ -81,19 +81,19 @@ public final class NetworkingTests {
         placeLink(helper);
 
         helper.startSequence()
-            .thenExecuteAfter(40, () -> {
-                final NetworkHubBlockEntity hubA = helper.getBlockEntity(HUB_A);
-                final int before = framesReceived(hubA);
+                .thenExecuteAfter(40, () -> {
+                    final NetworkHubBlockEntity hubA = helper.getBlockEntity(HUB_A);
+                    final int before = framesReceived(hubA);
 
-                connectorInterface(helper, CONNECTOR_A)
-                    .writeEthernetFrame(helper.getBlockEntity(HUB_A), FRAME, 12);
+                    connectorInterface(helper, CONNECTOR_A)
+                            .writeEthernetFrame(helper.getBlockEntity(HUB_A), FRAME, 12);
 
-                if (framesReceived(hubA) != before) {
-                    throw new GameTestAssertException(
-                        "a frame was echoed back to the interface it came from");
-                }
-            })
-            .thenSucceed();
+                    if (framesReceived(hubA) != before) {
+                        throw new GameTestAssertException(
+                                "a frame was echoed back to the interface it came from");
+                    }
+                })
+                .thenSucceed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
@@ -101,18 +101,18 @@ public final class NetworkingTests {
         placeLink(helper);
 
         helper.startSequence()
-            .thenExecuteAfter(40, () -> {
-                final NetworkHubBlockEntity hubB = helper.getBlockEntity(HUB_B);
-                final int before = framesReceived(hubB);
+                .thenExecuteAfter(40, () -> {
+                    final NetworkHubBlockEntity hubB = helper.getBlockEntity(HUB_B);
+                    final int before = framesReceived(hubB);
 
-                connectorInterface(helper, CONNECTOR_A)
-                    .writeEthernetFrame(helper.getBlockEntity(HUB_A), FRAME, 0);
+                    connectorInterface(helper, CONNECTOR_A)
+                            .writeEthernetFrame(helper.getBlockEntity(HUB_A), FRAME, 0);
 
-                if (framesReceived(hubB) != before) {
-                    throw new GameTestAssertException("a frame with no time to live was forwarded");
-                }
-            })
-            .thenSucceed();
+                    if (framesReceived(hubB) != before) {
+                        throw new GameTestAssertException("a frame with no time to live was forwarded");
+                    }
+                })
+                .thenSucceed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
@@ -125,36 +125,36 @@ public final class NetworkingTests {
         place(helper, player, new ItemStack(Items.NETWORK_CONNECTOR.get()), COMPUTER_POS.above());
 
         helper.startSequence()
-            .thenExecuteAfter(40, () -> {
-                if (computerNetworkInterface(helper) != null) {
-                    throw new GameTestAssertException(
-                        "a computer with no network card must not expose a network interface");
-                }
+                .thenExecuteAfter(40, () -> {
+                    if (computerNetworkInterface(helper) != null) {
+                        throw new GameTestAssertException(
+                                "a computer with no network card must not expose a network interface");
+                    }
 
-                final ItemStack leftover = ((ComputerBlockEntity) helper.getBlockEntity(COMPUTER_POS))
-                    .getItemStackHandlers()
-                    .getItemHandler(DeviceTypes.CARD)
-                    .orElseThrow(() -> new GameTestAssertException("no card slot"))
-                    .insertItem(0, new ItemStack(Items.NETWORK_INTERFACE_CARD.get()), false);
-                if (!leftover.isEmpty()) {
-                    throw new GameTestAssertException("could not install the network card");
-                }
-            })
-            .thenExecuteAfter(80, () -> {
-                final NetworkInterface card = computerNetworkInterface(helper);
-                if (card == null) {
-                    throw new GameTestAssertException(
-                        "an installed network card is not reachable as a block capability");
-                }
+                    final ItemStack leftover = ((ComputerBlockEntity) helper.getBlockEntity(COMPUTER_POS))
+                            .getItemStackHandlers()
+                            .getItemHandler(DeviceTypes.CARD)
+                            .orElseThrow(() -> new GameTestAssertException("no card slot"))
+                            .insertItem(0, new ItemStack(Items.NETWORK_INTERFACE_CARD.get()), false);
+                    if (!leftover.isEmpty()) {
+                        throw new GameTestAssertException("could not install the network card");
+                    }
+                })
+                .thenExecuteAfter(80, () -> {
+                    final NetworkInterface card = computerNetworkInterface(helper);
+                    if (card == null) {
+                        throw new GameTestAssertException(
+                                "an installed network card is not reachable as a block capability");
+                    }
 
-                final Object resolved = adjacentInterfaceOf(helper, COMPUTER_POS.above());
-                if (resolved != card) {
-                    throw new GameTestAssertException(
-                        "the connector did not resolve the computer's network card (resolved "
-                            + resolved + ", card " + card + ")");
-                }
-            })
-            .thenSucceed();
+                    final Object resolved = adjacentInterfaceOf(helper, COMPUTER_POS.above());
+                    if (resolved != card) {
+                        throw new GameTestAssertException(
+                                "the connector did not resolve the computer's network card (resolved "
+                                        + resolved + ", card " + card + ")");
+                    }
+                })
+                .thenSucceed();
     }
 
     // ------------------------------------------------------------- //
@@ -162,7 +162,7 @@ public final class NetworkingTests {
     @Nullable
     private static NetworkInterface computerNetworkInterface(final GameTestHelper helper) {
         return Capabilities.get(helper.getBlockEntity(COMPUTER_POS),
-            Capabilities.NETWORK_INTERFACE, Direction.UP);
+                Capabilities.NETWORK_INTERFACE, Direction.UP);
     }
 
     private static void placeLink(final GameTestHelper helper) {
@@ -175,7 +175,7 @@ public final class NetworkingTests {
         place(helper, player, new ItemStack(Items.NETWORK_CONNECTOR.get()), CONNECTOR_B);
 
         final ConnectionResult result = NetworkConnectorBlockEntity.connect(
-            helper.getBlockEntity(CONNECTOR_A), helper.getBlockEntity(CONNECTOR_B));
+                helper.getBlockEntity(CONNECTOR_A), helper.getBlockEntity(CONNECTOR_B));
         if (result != ConnectionResult.SUCCESS) {
             throw new GameTestAssertException("could not link the connectors: " + result);
         }
@@ -183,7 +183,7 @@ public final class NetworkingTests {
 
     private static NetworkInterface connectorInterface(final GameTestHelper helper, final BlockPos pos) {
         final NetworkInterface networkInterface = Capabilities.get(
-            helper.getBlockEntity(pos), Capabilities.NETWORK_INTERFACE, Direction.DOWN);
+                helper.getBlockEntity(pos), Capabilities.NETWORK_INTERFACE, Direction.DOWN);
         if (networkInterface == null) {
             throw new GameTestAssertException("connector at " + pos + " exposes no network interface");
         }
@@ -195,7 +195,7 @@ public final class NetworkingTests {
         // Only used here, so let's just grab it with reflection...
         try {
             final java.lang.reflect.Field field =
-                NetworkConnectorBlockEntity.class.getDeclaredField("adjacentInterface");
+                    NetworkConnectorBlockEntity.class.getDeclaredField("adjacentInterface");
             field.setAccessible(true);
             return field.get(helper.getBlockEntity(pos));
         } catch (final ReflectiveOperationException e) {
@@ -207,7 +207,7 @@ public final class NetworkingTests {
         // Only used here, so let's just grab it with reflection...
         try {
             final java.lang.reflect.Field field =
-                NetworkHubBlockEntity.class.getDeclaredField("frameCount");
+                    NetworkHubBlockEntity.class.getDeclaredField("frameCount");
             field.setAccessible(true);
             return (Integer) field.get(hub);
         } catch (final ReflectiveOperationException e) {

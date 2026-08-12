@@ -16,4 +16,5 @@ import java.lang.reflect.Type;
  * used for serialization/deserialization of parameters, i.e. the specified
  * {@link #typeAdapter}s should be valid for passing to {@link GsonBuilder#registerTypeAdapter(Type, Object)}.
  */
-public record RPCMethodParameterTypeAdapter(Class<?> type, Object typeAdapter) { }
+public record RPCMethodParameterTypeAdapter(Class<?> type, Object typeAdapter) {
+}

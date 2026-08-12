@@ -21,10 +21,10 @@ import javax.annotation.Nullable;
 public final class ChargerBlock extends HalfTransparentBlock implements EntityBlock {
     public ChargerBlock() {
         super(Properties
-            .of()
-            .mapColor(MapColor.METAL)
-            .sound(SoundType.METAL)
-            .strength(1.5f, 6.0f));
+                .of()
+                .mapColor(MapColor.METAL)
+                .sound(SoundType.METAL)
+                .strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any().setValue(HorizontalDirectionalBlock.FACING, Direction.NORTH));
     }
 

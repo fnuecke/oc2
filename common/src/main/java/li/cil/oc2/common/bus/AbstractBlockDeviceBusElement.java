@@ -81,8 +81,8 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
 
         final int index = side.get3DDataValue();
         collectDevices(level, getPosition().relative(side), side).ifPresentOrElse(
-            queryResult -> setEntriesForGroup(index, queryResult),
-            () -> setEntriesForGroupUnloaded(index)
+                queryResult -> setEntriesForGroup(index, queryResult),
+                () -> setEntriesForGroupUnloaded(index)
         );
     }
 
@@ -191,9 +191,11 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
 
     protected final class BlockEntry implements Entry {
         private final Invalidatable<BlockDeviceInfo> deviceInfo;
-        @Nullable private final String dataKey;
+        @Nullable
+        private final String dataKey;
         private final Device device;
-        @Nullable private final Direction side;
+        @Nullable
+        private final Direction side;
         private Invalidatable.ListenerToken token;
 
         public BlockEntry(final Invalidatable<BlockDeviceInfo> deviceInfo, @Nullable final Direction side) {

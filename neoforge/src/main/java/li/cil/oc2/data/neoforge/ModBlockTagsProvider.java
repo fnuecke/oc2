@@ -21,23 +21,23 @@ public final class ModBlockTagsProvider extends BlockTagsProvider {
     @Override
     protected void addTags(final HolderLookup.Provider provider) {
         tag(DEVICES).add(
-            COMPUTER.get(),
-            REDSTONE_INTERFACE.get(),
-            DISK_DRIVE.get(),
-            PROJECTOR.get()
+                COMPUTER.get(),
+                REDSTONE_INTERFACE.get(),
+                DISK_DRIVE.get(),
+                PROJECTOR.get()
         );
         tag(CABLES).add(
-            BUS_CABLE.get()
+                BUS_CABLE.get()
         );
         tag(WRENCH_BREAKABLE).add(
-            COMPUTER.get(),
-            BUS_CABLE.get(),
-            NETWORK_CONNECTOR.get(),
-            NETWORK_HUB.get(),
-            REDSTONE_INTERFACE.get(),
-            DISK_DRIVE.get(),
-            CHARGER.get(),
-            PROJECTOR.get()
+                COMPUTER.get(),
+                BUS_CABLE.get(),
+                NETWORK_CONNECTOR.get(),
+                NETWORK_HUB.get(),
+                REDSTONE_INTERFACE.get(),
+                DISK_DRIVE.get(),
+                CHARGER.get(),
+                PROJECTOR.get()
         );
     }
 }

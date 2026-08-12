@@ -15,7 +15,8 @@ import java.util.Optional;
 
 public final class ComputerBootErrorMessage extends AbstractMessage {
     private BlockPos pos;
-    @Nullable private Component value;
+    @Nullable
+    private Component value;
 
     // ------------------------------------------------------------- //
 
@@ -47,6 +48,6 @@ public final class ComputerBootErrorMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, ComputerBlockEntity.class,
-            computer -> computer.getVirtualMachine().setBootErrorClient(value));
+                computer -> computer.getVirtualMachine().setBootErrorClient(value));
     }
 }

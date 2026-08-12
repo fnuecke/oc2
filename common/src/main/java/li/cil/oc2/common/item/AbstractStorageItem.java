@@ -51,9 +51,9 @@ public abstract class AbstractStorageItem extends ModItem {
     public Component getName(final ItemStack stack) {
         final int capacity = getCapacity(stack);
         return Component.literal("")
-            .append(super.getName(stack))
-            .append(" (")
-            .append(TextFormatUtils.formatSize(capacity))
-            .append(")");
+                .append(super.getName(stack))
+                .append(" (")
+                .append(TextFormatUtils.formatSize(capacity))
+                .append(")");
     }
 }

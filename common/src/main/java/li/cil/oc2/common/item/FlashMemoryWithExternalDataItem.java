@@ -20,7 +20,8 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
     // ------------------------------------------------------------- //
 
     private final ResourceLocation defaultData;
-    @Nullable private String descriptionId;
+    @Nullable
+    private String descriptionId;
 
     // ------------------------------------------------------------- //
 
@@ -74,10 +75,10 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
         final Firmware firmware = getFirmware(stack);
         if (firmware != null) {
             return Component.literal("")
-                .append(super.getName(stack))
-                .append(" (")
-                .append(firmware.getDisplayName())
-                .append(")");
+                    .append(super.getName(stack))
+                    .append(" (")
+                    .append(firmware.getDisplayName())
+                    .append(")");
         } else {
             return super.getName(stack);
         }

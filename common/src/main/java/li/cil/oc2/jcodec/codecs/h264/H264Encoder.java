@@ -254,8 +254,8 @@ public final class H264Encoder extends VideoEncoder {
                     mv = estimator.mvEstimate(pic, mbX, mbY);
 
                 final NonRdVector params = new NonRdVector(mv, IntraPredEstimator.getLumaMode(pic, context, mbX, mbY),
-                    IntraPredEstimator.getLumaPred4x4(pic, context, mbX, mbY, mbQp),
-                    IntraPredEstimator.getChromaMode(pic, context, mbX, mbY));
+                        IntraPredEstimator.getLumaPred4x4(pic, context, mbX, mbY, mbQp),
+                        IntraPredEstimator.getChromaMode(pic, context, mbX, mbY));
 
                 final EncodedMB outMB = new EncodedMB();
                 outMB.setPos(mbX, mbY);
@@ -277,7 +277,7 @@ public final class H264Encoder extends VideoEncoder {
                 context.update(outMB);
 
                 new MBDeblocker().deblockMBP(outMB, mbX > 0 ? topEncoded[mbX - 1] : null,
-                    mbY > 0 ? topEncoded[mbX] : null);
+                        mbY > 0 ? topEncoded[mbX] : null);
                 addToReference(outMB, mbX, mbY);
             }
         }
@@ -295,7 +295,7 @@ public final class H264Encoder extends VideoEncoder {
             final byte[] outPix = out.getPixels().getData()[p];
             final int luma = p == 0 ? 1 : 0;
             MBEncoderHelper.take(pic.getPlaneData(p), pic.getPlaneWidth(p), pic.getPlaneHeight(p), mbX << (3 + luma),
-                mbY << (3 + luma), patch, 8 << luma, 8 << luma);
+                    mbY << (3 + luma), patch, 8 << luma, 8 << luma);
             for (int i = 0; i < (64 << (luma * 2)); i++) {
                 final int q = outPix[i] - patch[i];
                 out_se[p] += q * q;
@@ -331,7 +331,7 @@ public final class H264Encoder extends VideoEncoder {
                               final BitWriter candidate, final int sliceQp, final int mbQp, final NonRdVector params) {
         if (!enableRdo) {
             final RdVector vector = sliceType == SliceType.P ? new RdVector(MBType.P_16x16, mbQp)
-                : new RdVector(MBType.I_16x16, mbQp);
+                    : new RdVector(MBType.I_16x16, mbQp);
             encodeCand(ctx, outMB, sliceType, pic, mbX, mbY, candidate, params, vector);
             return;
         }

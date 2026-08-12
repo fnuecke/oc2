@@ -42,15 +42,15 @@ public final class RPCItemStackTagFilters {
 
     public static void initialize() {
         ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
-            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "item_stack_tag_filters"));
+                ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "item_stack_tag_filters"));
     }
 
     // ------------------------------------------------------------- //
 
     private static final class ReloadListener extends SimpleJsonResourceReloadListener {
         private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
-            .create();
+                .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
+                .create();
 
         public static final ReloadListener INSTANCE = new ReloadListener();
 

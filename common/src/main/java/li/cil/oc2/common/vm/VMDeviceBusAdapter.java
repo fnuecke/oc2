@@ -37,7 +37,7 @@ public final class VMDeviceBusAdapter {
     public VMDeviceLoadResult mountDevices() {
         for (final VMDevice device : unmountedDevices) {
             final ManagedVMContext context = new ManagedVMContext(globalContext, globalContext,
-                () -> baseAddressProvider.getBaseAddress(device));
+                    () -> baseAddressProvider.getBaseAddress(device));
 
             final VMDeviceLoadResult result = device.mount(context);
             context.freeze();

@@ -41,7 +41,7 @@ public final class CQPRateControl implements RateControl {
         }
         final byte[] patch = new byte[256];
         MBEncoderHelper.take(pic.getPlaneData(0), pic.getPlaneWidth(0), pic.getPlaneHeight(0), mbX << 4, mbY << 4,
-            patch, 16, 16);
+                patch, 16, 16);
         final int avg = calcAvg(patch);
         double var = calcVar(patch, avg);
         final double bright = calcBright(avg);

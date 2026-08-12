@@ -30,7 +30,8 @@ public final class WrenchRecipeBuilder implements RecipeBuilder {
     private final int count;
     private final NonNullList<Ingredient> ingredients = NonNullList.create();
     private final Map<String, Criterion<?>> criteria = new LinkedHashMap<>();
-    @Nullable private String group;
+    @Nullable
+    private String group;
 
     // ------------------------------------------------------------- //
 
@@ -96,16 +97,16 @@ public final class WrenchRecipeBuilder implements RecipeBuilder {
         }
 
         final Advancement.Builder advancement = output.advancement()
-            .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
-            .rewards(AdvancementRewards.Builder.recipe(id))
-            .requirements(AdvancementRequirements.Strategy.OR);
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
+                .rewards(AdvancementRewards.Builder.recipe(id))
+                .requirements(AdvancementRequirements.Strategy.OR);
         criteria.forEach(advancement::addCriterion);
 
         final ShapelessRecipe shapeless = new ShapelessRecipe(
-            group == null ? "" : group,
-            RecipeBuilder.determineBookCategory(RecipeCategory.MISC),
-            new ItemStack(result, count),
-            ingredients);
+                group == null ? "" : group,
+                RecipeBuilder.determineBookCategory(RecipeCategory.MISC),
+                new ItemStack(result, count),
+                ingredients);
 
         output.accept(id, new WrenchRecipe(shapeless), advancement.build(id.withPrefix("recipes/misc/")));
     }

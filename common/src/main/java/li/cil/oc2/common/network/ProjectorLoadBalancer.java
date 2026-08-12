@@ -70,7 +70,8 @@ public final class ProjectorLoadBalancer {
      * used to do the round-robin load balancing, by advancing it to the next projector until we find one
      * that can send something every tick.
      */
-    @Nullable private static ProjectorInfo lastSender;
+    @Nullable
+    private static ProjectorInfo lastSender;
 
     // ------------------------------------------------------------- //
 
@@ -79,8 +80,8 @@ public final class ProjectorLoadBalancer {
      */
     public static void updateWatcher(final ProjectorBlockEntity projector, final ServerPlayer player) {
         PROJECTOR_INFO
-            .computeIfAbsent(projector, ProjectorLoadBalancer::addProjectorInfo)
-            .handleWatchedBy(player);
+                .computeIfAbsent(projector, ProjectorLoadBalancer::addProjectorInfo)
+                .handleWatchedBy(player);
     }
 
     /**
@@ -212,8 +213,10 @@ public final class ProjectorLoadBalancer {
          */
         private int skipCount;
 
-        @Nullable private Supplier<ByteBuffer> nextFrameSupplier;
-        @Nullable private Future<?> runningEncode;
+        @Nullable
+        private Supplier<ByteBuffer> nextFrameSupplier;
+        @Nullable
+        private Future<?> runningEncode;
 
         public ProjectorInfo(final BlockPos projectorPos) {
             next = previous = this;

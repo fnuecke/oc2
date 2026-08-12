@@ -31,18 +31,18 @@ public final class NetworkConnectorTests {
         placeConnectors(helper, CONNECTOR_A, CONNECTOR_B);
 
         final ConnectionResult result = NetworkConnectorBlockEntity.connect(
-            connector(helper, CONNECTOR_A), connector(helper, CONNECTOR_B));
+                connector(helper, CONNECTOR_A), connector(helper, CONNECTOR_B));
         if (result != ConnectionResult.SUCCESS) {
             throw new GameTestAssertException("connecting two connectors with a clear line of "
-                + "sight returned " + result);
+                    + "sight returned " + result);
         }
 
         if (!connector(helper, CONNECTOR_A).getConnectedPositions()
-            .contains(helper.absolutePos(CONNECTOR_B))) {
+                .contains(helper.absolutePos(CONNECTOR_B))) {
             throw new GameTestAssertException("connector A does not list B as connected");
         }
         if (!connector(helper, CONNECTOR_B).getConnectedPositions()
-            .contains(helper.absolutePos(CONNECTOR_A))) {
+                .contains(helper.absolutePos(CONNECTOR_A))) {
             throw new GameTestAssertException("connector B does not list A as connected");
         }
 
@@ -55,10 +55,10 @@ public final class NetworkConnectorTests {
         place(helper, player, new ItemStack(net.minecraft.world.item.Items.STONE), OBSTRUCTION);
 
         final ConnectionResult result = NetworkConnectorBlockEntity.connect(
-            connector(helper, CONNECTOR_A), connector(helper, CONNECTOR_B));
+                connector(helper, CONNECTOR_A), connector(helper, CONNECTOR_B));
         if (result != ConnectionResult.FAILURE_OBSTRUCTED) {
             throw new GameTestAssertException("a solid block between two connectors should block "
-                + "the link, got " + result);
+                    + "the link, got " + result);
         }
 
         helper.succeed();
@@ -69,10 +69,10 @@ public final class NetworkConnectorTests {
         placeConnectors(helper, CONNECTOR_A, CONNECTOR_TOO_FAR);
 
         final ConnectionResult result = NetworkConnectorBlockEntity.connect(
-            connector(helper, CONNECTOR_A), connector(helper, CONNECTOR_TOO_FAR));
+                connector(helper, CONNECTOR_A), connector(helper, CONNECTOR_TOO_FAR));
         if (result != ConnectionResult.FAILURE_TOO_FAR) {
             throw new GameTestAssertException("connectors further apart than the maximum cable "
-                + "length should not link, got " + result);
+                    + "length should not link, got " + result);
         }
 
         helper.succeed();
@@ -88,9 +88,9 @@ public final class NetworkConnectorTests {
         useOn(helper, player, cable, CONNECTOR_B, Direction.UP);
 
         if (!connector(helper, CONNECTOR_A).getConnectedPositions()
-            .contains(helper.absolutePos(CONNECTOR_B))) {
+                .contains(helper.absolutePos(CONNECTOR_B))) {
             throw new GameTestAssertException("using a network cable on two connectors did not "
-                + "link them");
+                    + "link them");
         }
 
         helper.succeed();

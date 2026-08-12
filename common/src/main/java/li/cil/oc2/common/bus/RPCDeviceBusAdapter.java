@@ -48,9 +48,12 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     // ------------------------------------------------------------- //
 
-    @Serialized private final ByteBuffer transmitBuffer; // for data written to device by VM
-    @Serialized private ByteBuffer receiveBuffer; // for data written by device to VM
-    @Serialized private MethodInvocation synchronizedInvocation; // pending main thread invocation
+    @Serialized
+    private final ByteBuffer transmitBuffer; // for data written to device by VM
+    @Serialized
+    private ByteBuffer receiveBuffer; // for data written by device to VM
+    @Serialized
+    private MethodInvocation synchronizedInvocation; // pending main thread invocation
 
     // ------------------------------------------------------------- //
 
@@ -62,14 +65,14 @@ public final class RPCDeviceBusAdapter implements Steppable {
         this.serialDevice = serialDevice;
         this.transmitBuffer = ByteBuffer.allocate(maxMessageSize);
         this.gson = RPCMethodParameterTypeAdapters.beginBuildGson()
-            .registerTypeAdapter(byte[].class, new UnsignedByteArrayJsonSerializer())
-            .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
-            .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
-            .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
-            .registerTypeHierarchyAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
-            .registerTypeAdapter(EmptyMethodGroup.class, new EmptyRPCMethodGroupSerializer())
-            .registerTypeAdapter(Side.class, new SideJsonDeserializer())
-            .create();
+                .registerTypeAdapter(byte[].class, new UnsignedByteArrayJsonSerializer())
+                .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
+                .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
+                .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
+                .registerTypeHierarchyAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
+                .registerTypeAdapter(EmptyMethodGroup.class, new EmptyRPCMethodGroupSerializer())
+                .registerTypeAdapter(Side.class, new SideJsonDeserializer())
+                .create();
     }
 
     // ------------------------------------------------------------- //
@@ -142,8 +145,8 @@ public final class RPCDeviceBusAdapter implements Steppable {
                 final Set<UUID> identifiers = controller.getDeviceIdentifiers(device);
                 for (final UUID identifier : identifiers) {
                     devicesByIdentifier
-                        .computeIfAbsent(identifier, unused -> new ArrayList<>())
-                        .add(rpcDevice);
+                            .computeIfAbsent(identifier, unused -> new ArrayList<>())
+                            .add(rpcDevice);
                 }
             }
         }
@@ -160,8 +163,8 @@ public final class RPCDeviceBusAdapter implements Steppable {
             }
 
             identifiersByDevice
-                .computeIfAbsent(device, unused -> new ArrayList<>())
-                .add(identifier);
+                    .computeIfAbsent(device, unused -> new ArrayList<>())
+                    .add(identifier);
         });
 
         // Rebuild devices lists.
@@ -411,9 +414,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     // ------------------------------------------------------------- //
 
-    public record RPCDeviceWithIdentifier(UUID identifier, RPCDevice device) { }
+    public record RPCDeviceWithIdentifier(UUID identifier, RPCDevice device) {
+    }
 
-    public record EmptyMethodGroup(String name) { }
+    public record EmptyMethodGroup(String name) {
+    }
 
     public record Message(String type, @Nullable Object data) {
         // Device -> VM

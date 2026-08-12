@@ -50,9 +50,9 @@ public final class WrenchRecipe extends ShapelessRecipe {
         public static final Serializer INSTANCE = new Serializer();
 
         private static final MapCodec<WrenchRecipe> CODEC = RecipeSerializer.SHAPELESS_RECIPE.codec()
-            .xmap(WrenchRecipe::new, Function.identity());
+                .xmap(WrenchRecipe::new, Function.identity());
         private static final StreamCodec<RegistryFriendlyByteBuf, WrenchRecipe> STREAM_CODEC = RecipeSerializer.SHAPELESS_RECIPE.streamCodec()
-            .map(WrenchRecipe::new, Function.identity());
+                .map(WrenchRecipe::new, Function.identity());
 
         @Override
         public MapCodec<WrenchRecipe> codec() {

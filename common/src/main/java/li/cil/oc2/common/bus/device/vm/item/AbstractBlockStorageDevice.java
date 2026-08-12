@@ -60,7 +60,8 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     private CompoundTag deviceTag;
 
     // Offline persisted data.
-    @Nullable protected UUID blobHandle;
+    @Nullable
+    protected UUID blobHandle;
 
     // ------------------------------------------------------------- //
 

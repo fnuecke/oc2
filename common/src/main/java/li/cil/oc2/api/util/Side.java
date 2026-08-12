@@ -52,7 +52,8 @@ public enum Side {
     r(EAST),
     ;
 
-    @Nullable private final Side base;
+    @Nullable
+    private final Side base;
     private final Direction direction;
 
     Side(final Direction direction) {

@@ -72,14 +72,14 @@ public abstract class LevelRendererMixin {
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiling/ProfilerFiller;popPush(Ljava/lang/String;)V", args = {"ldc=destroyProgress"}), cancellable = true)
     private void captureDepthAndEarlyExit(
-        final DeltaTracker deltaTracker,
-        final boolean shouldRenderBlockOutline,
-        final Camera camera,
-        final GameRenderer gameRenderer,
-        final LightTexture lightTexture,
-        final Matrix4f frustumMatrix,
-        final Matrix4f projectionMatrix,
-        final CallbackInfo ci
+            final DeltaTracker deltaTracker,
+            final boolean shouldRenderBlockOutline,
+            final Camera camera,
+            final GameRenderer gameRenderer,
+            final LightTexture lightTexture,
+            final Matrix4f frustumMatrix,
+            final Matrix4f projectionMatrix,
+            final CallbackInfo ci
     ) {
         final float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(false);
         if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {

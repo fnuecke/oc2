@@ -23,12 +23,12 @@ public final class H264Const {
     public final static VLC coeffTokenChromaDCY422;
     public final static VLC[] run;
     public static final int[] lambda = new int[]{14, 18, 23, 29, 36, 46, 58, 73, 91, 115, 145, 183, 230, 290, 366, 461, 581,
-        731, 922, 1161, 1463, 1843, 2322, 2926, 3686, 4645, 5852, 7373, 9289, 11704, 14746, 18578, 23407, 29491,
-        37157, 46814, 58982, 74313, 93629, 117965, 148626, 187257, 235930, 297253, 374515, 471859, 594505, 749030,
-        943718, 1189011, 1498060, 1887437, 2378021, 2996119, 3774874, 4756043, 5992238, 7549747, 9512085, 11984477,
-        15099494, 19024171, 23968953, 30198989, 38048342, 47937907, 60397978, 76096683, 95875813, 120795955,
-        120795955, 120795955, 120795955, 120795955, 120795955, 120795955, 120795955, 120795955, 120795955,
-        120795955, 120795955, 120795955};
+            731, 922, 1161, 1463, 1843, 2322, 2926, 3686, 4645, 5852, 7373, 9289, 11704, 14746, 18578, 23407, 29491,
+            37157, 46814, 58982, 74313, 93629, 117965, 148626, 187257, 235930, 297253, 374515, 471859, 594505, 749030,
+            943718, 1189011, 1498060, 1887437, 2378021, 2996119, 3774874, 4756043, 5992238, 7549747, 9512085, 11984477,
+            15099494, 19024171, 23968953, 30198989, 38048342, 47937907, 60397978, 76096683, 95875813, 120795955,
+            120795955, 120795955, 120795955, 120795955, 120795955, 120795955, 120795955, 120795955, 120795955,
+            120795955, 120795955, 120795955};
 
     static {
         final VLCBuilder vbl = new VLCBuilder();
@@ -357,109 +357,109 @@ public final class H264Const {
 
     static {
         run = new VLC[]{new VLCBuilder().set(0, "1").set(1, "0").getVLC(),
-            new VLCBuilder().set(0, "1").set(1, "01").set(2, "00").getVLC(),
-            new VLCBuilder().set(0, "11").set(1, "10").set(2, "01").set(3, "00").getVLC(),
-            new VLCBuilder().set(0, "11").set(1, "10").set(2, "01").set(3, "001").set(4, "000").getVLC(),
-            new VLCBuilder().set(0, "11").set(1, "10").set(2, "011").set(3, "010").set(4, "001").set(5, "000")
-                .getVLC(),
-            new VLCBuilder().set(0, "11").set(1, "000").set(2, "001").set(3, "011").set(4, "010").set(5, "101")
-                .set(6, "100").getVLC(),
-            new VLCBuilder().set(0, "111").set(1, "110").set(2, "101").set(3, "100").set(4, "011").set(5, "010")
-                .set(6, "001").set(7, "0001").set(8, "00001").set(9, "000001").set(10, "0000001")
-                .set(11, "00000001").set(12, "000000001").set(13, "0000000001").set(14, "00000000001")
-                .getVLC()};
+                new VLCBuilder().set(0, "1").set(1, "01").set(2, "00").getVLC(),
+                new VLCBuilder().set(0, "11").set(1, "10").set(2, "01").set(3, "00").getVLC(),
+                new VLCBuilder().set(0, "11").set(1, "10").set(2, "01").set(3, "001").set(4, "000").getVLC(),
+                new VLCBuilder().set(0, "11").set(1, "10").set(2, "011").set(3, "010").set(4, "001").set(5, "000")
+                        .getVLC(),
+                new VLCBuilder().set(0, "11").set(1, "000").set(2, "001").set(3, "011").set(4, "010").set(5, "101")
+                        .set(6, "100").getVLC(),
+                new VLCBuilder().set(0, "111").set(1, "110").set(2, "101").set(3, "100").set(4, "011").set(5, "010")
+                        .set(6, "001").set(7, "0001").set(8, "00001").set(9, "000001").set(10, "0000001")
+                        .set(11, "00000001").set(12, "000000001").set(13, "0000000001").set(14, "00000000001")
+                        .getVLC()};
     }
 
     public final static VLC[] totalZeros16 = {
 
-        new VLCBuilder().set(0, "1").set(1, "011").set(2, "010").set(3, "0011").set(4, "0010").set(5, "00011")
-            .set(6, "00010").set(7, "000011").set(8, "000010").set(9, "0000011").set(10, "0000010")
-            .set(11, "00000011").set(12, "00000010").set(13, "000000011").set(14, "000000010")
-            .set(15, "000000001").getVLC(),
+            new VLCBuilder().set(0, "1").set(1, "011").set(2, "010").set(3, "0011").set(4, "0010").set(5, "00011")
+                    .set(6, "00010").set(7, "000011").set(8, "000010").set(9, "0000011").set(10, "0000010")
+                    .set(11, "00000011").set(12, "00000010").set(13, "000000011").set(14, "000000010")
+                    .set(15, "000000001").getVLC(),
 
-        new VLCBuilder().set(0, "111").set(1, "110").set(2, "101").set(3, "100").set(4, "011").set(5, "0101")
-            .set(6, "0100").set(7, "0011").set(8, "0010").set(9, "00011").set(10, "00010").set(11, "000011")
-            .set(12, "000010").set(13, "000001").set(14, "000000").getVLC(),
+            new VLCBuilder().set(0, "111").set(1, "110").set(2, "101").set(3, "100").set(4, "011").set(5, "0101")
+                    .set(6, "0100").set(7, "0011").set(8, "0010").set(9, "00011").set(10, "00010").set(11, "000011")
+                    .set(12, "000010").set(13, "000001").set(14, "000000").getVLC(),
 
-        new VLCBuilder().set(0, "0101").set(1, "111").set(2, "110").set(3, "101").set(4, "0100").set(5, "0011")
-            .set(6, "100").set(7, "011").set(8, "0010").set(9, "00011").set(10, "00010").set(11, "000001")
-            .set(12, "00001").set(13, "000000").getVLC(),
+            new VLCBuilder().set(0, "0101").set(1, "111").set(2, "110").set(3, "101").set(4, "0100").set(5, "0011")
+                    .set(6, "100").set(7, "011").set(8, "0010").set(9, "00011").set(10, "00010").set(11, "000001")
+                    .set(12, "00001").set(13, "000000").getVLC(),
 
-        new VLCBuilder().set(0, "00011").set(1, "111").set(2, "0101").set(3, "0100").set(4, "110").set(5, "101")
-            .set(6, "100").set(7, "0011").set(8, "011").set(9, "0010").set(10, "00010").set(11, "00001")
-            .set(12, "00000").getVLC(),
+            new VLCBuilder().set(0, "00011").set(1, "111").set(2, "0101").set(3, "0100").set(4, "110").set(5, "101")
+                    .set(6, "100").set(7, "0011").set(8, "011").set(9, "0010").set(10, "00010").set(11, "00001")
+                    .set(12, "00000").getVLC(),
 
-        new VLCBuilder().set(0, "0101").set(1, "0100").set(2, "0011").set(3, "111").set(4, "110").set(5, "101")
-            .set(6, "100").set(7, "011").set(8, "0010").set(9, "00001").set(10, "0001").set(11, "00000")
-            .getVLC(),
+            new VLCBuilder().set(0, "0101").set(1, "0100").set(2, "0011").set(3, "111").set(4, "110").set(5, "101")
+                    .set(6, "100").set(7, "011").set(8, "0010").set(9, "00001").set(10, "0001").set(11, "00000")
+                    .getVLC(),
 
-        new VLCBuilder().set(0, "000001").set(1, "00001").set(2, "111").set(3, "110").set(4, "101").set(5, "100")
-            .set(6, "011").set(7, "010").set(8, "0001").set(9, "001").set(10, "000000").getVLC(),
+            new VLCBuilder().set(0, "000001").set(1, "00001").set(2, "111").set(3, "110").set(4, "101").set(5, "100")
+                    .set(6, "011").set(7, "010").set(8, "0001").set(9, "001").set(10, "000000").getVLC(),
 
-        new VLCBuilder().set(0, "000001").set(1, "00001").set(2, "101").set(3, "100").set(4, "011").set(5, "11")
-            .set(6, "010").set(7, "0001").set(8, "001").set(9, "000000").getVLC(),
+            new VLCBuilder().set(0, "000001").set(1, "00001").set(2, "101").set(3, "100").set(4, "011").set(5, "11")
+                    .set(6, "010").set(7, "0001").set(8, "001").set(9, "000000").getVLC(),
 
-        new VLCBuilder().set(0, "000001").set(1, "0001").set(2, "00001").set(3, "011").set(4, "11").set(5, "10")
-            .set(6, "010").set(7, "001").set(8, "000000").getVLC(),
+            new VLCBuilder().set(0, "000001").set(1, "0001").set(2, "00001").set(3, "011").set(4, "11").set(5, "10")
+                    .set(6, "010").set(7, "001").set(8, "000000").getVLC(),
 
-        new VLCBuilder().set(0, "000001").set(1, "000000").set(2, "0001").set(3, "11").set(4, "10").set(5, "001")
-            .set(6, "01").set(7, "00001").getVLC(),
+            new VLCBuilder().set(0, "000001").set(1, "000000").set(2, "0001").set(3, "11").set(4, "10").set(5, "001")
+                    .set(6, "01").set(7, "00001").getVLC(),
 
-        new VLCBuilder().set(0, "00001").set(1, "00000").set(2, "001").set(3, "11").set(4, "10").set(5, "01")
-            .set(6, "0001").getVLC(),
+            new VLCBuilder().set(0, "00001").set(1, "00000").set(2, "001").set(3, "11").set(4, "10").set(5, "01")
+                    .set(6, "0001").getVLC(),
 
-        new VLCBuilder().set(0, "0000").set(1, "0001").set(2, "001").set(3, "010").set(4, "1").set(5, "011")
-            .getVLC(),
+            new VLCBuilder().set(0, "0000").set(1, "0001").set(2, "001").set(3, "010").set(4, "1").set(5, "011")
+                    .getVLC(),
 
-        new VLCBuilder().set(0, "0000").set(1, "0001").set(2, "01").set(3, "1").set(4, "001").getVLC(),
+            new VLCBuilder().set(0, "0000").set(1, "0001").set(2, "01").set(3, "1").set(4, "001").getVLC(),
 
-        new VLCBuilder().set(0, "000").set(1, "001").set(2, "1").set(3, "01").getVLC(),
+            new VLCBuilder().set(0, "000").set(1, "001").set(2, "1").set(3, "01").getVLC(),
 
-        new VLCBuilder().set(0, "00").set(1, "01").set(2, "1").getVLC(),
+            new VLCBuilder().set(0, "00").set(1, "01").set(2, "1").getVLC(),
 
-        new VLCBuilder().set(0, "0").set(1, "1").getVLC()};
+            new VLCBuilder().set(0, "0").set(1, "1").getVLC()};
 
     public final static VLC[] totalZeros4 = {
-        new VLCBuilder().set(0, "1").set(1, "01").set(2, "001").set(3, "000").getVLC(),
+            new VLCBuilder().set(0, "1").set(1, "01").set(2, "001").set(3, "000").getVLC(),
 
-        new VLCBuilder().set(0, "1").set(1, "01").set(2, "00").getVLC(),
+            new VLCBuilder().set(0, "1").set(1, "01").set(2, "00").getVLC(),
 
-        new VLCBuilder().set(0, "1").set(1, "0").getVLC()};
+            new VLCBuilder().set(0, "1").set(1, "0").getVLC()};
 
     public final static VLC[] totalZeros8 = {
-        new VLCBuilder().set(0, "1").set(1, "010").set(2, "011").set(3, "0010").set(4, "0011").set(5, "0001")
-            .set(6, "00001").set(7, "00000").getVLC(),
+            new VLCBuilder().set(0, "1").set(1, "010").set(2, "011").set(3, "0010").set(4, "0011").set(5, "0001")
+                    .set(6, "00001").set(7, "00000").getVLC(),
 
-        new VLCBuilder().set(0, "000").set(1, "01").set(2, "001").set(3, "100").set(4, "101").set(5, "110")
-            .set(6, "111").getVLC(),
+            new VLCBuilder().set(0, "000").set(1, "01").set(2, "001").set(3, "100").set(4, "101").set(5, "110")
+                    .set(6, "111").getVLC(),
 
-        new VLCBuilder().set(0, "000").set(1, "001").set(2, "01").set(3, "10").set(4, "110").set(5, "111").getVLC(),
+            new VLCBuilder().set(0, "000").set(1, "001").set(2, "01").set(3, "10").set(4, "110").set(5, "111").getVLC(),
 
-        new VLCBuilder().set(0, "110").set(1, "00").set(2, "01").set(3, "10").set(4, "111").getVLC(),
+            new VLCBuilder().set(0, "110").set(1, "00").set(2, "01").set(3, "10").set(4, "111").getVLC(),
 
-        new VLCBuilder().set(0, "00").set(1, "01").set(2, "10").set(3, "11").getVLC(),
+            new VLCBuilder().set(0, "00").set(1, "01").set(2, "10").set(3, "11").getVLC(),
 
-        new VLCBuilder().set(0, "00").set(1, "01").set(2, "1").getVLC(),
+            new VLCBuilder().set(0, "00").set(1, "01").set(2, "1").getVLC(),
 
-        new VLCBuilder().set(0, "0").set(1, "1").getVLC()};
+            new VLCBuilder().set(0, "0").set(1, "1").getVLC()};
 
     public enum PartPred {
         L0, L1, Bi, Direct
     }
 
     public final static PartPred[][] bPredModes = {null, {PartPred.L0}, {PartPred.L1}, {PartPred.Bi},
-        {PartPred.L0, PartPred.L0}, {PartPred.L0, PartPred.L0}, {PartPred.L1, PartPred.L1},
-        {PartPred.L1, PartPred.L1}, {PartPred.L0, PartPred.L1}, {PartPred.L0, PartPred.L1},
-        {PartPred.L1, PartPred.L0}, {PartPred.L1, PartPred.L0}, {PartPred.L0, PartPred.Bi},
-        {PartPred.L0, PartPred.Bi}, {PartPred.L1, PartPred.Bi}, {PartPred.L1, PartPred.Bi},
-        {PartPred.Bi, PartPred.L0}, {PartPred.Bi, PartPred.L0}, {PartPred.Bi, PartPred.L1},
-        {PartPred.Bi, PartPred.L1}, {PartPred.Bi, PartPred.Bi}, {PartPred.Bi, PartPred.Bi}};
+            {PartPred.L0, PartPred.L0}, {PartPred.L0, PartPred.L0}, {PartPred.L1, PartPred.L1},
+            {PartPred.L1, PartPred.L1}, {PartPred.L0, PartPred.L1}, {PartPred.L0, PartPred.L1},
+            {PartPred.L1, PartPred.L0}, {PartPred.L1, PartPred.L0}, {PartPred.L0, PartPred.Bi},
+            {PartPred.L0, PartPred.Bi}, {PartPred.L1, PartPred.Bi}, {PartPred.L1, PartPred.Bi},
+            {PartPred.Bi, PartPred.L0}, {PartPred.Bi, PartPred.L0}, {PartPred.Bi, PartPred.L1},
+            {PartPred.Bi, PartPred.L1}, {PartPred.Bi, PartPred.Bi}, {PartPred.Bi, PartPred.Bi}};
 
     public final static MBType[] bMbTypes = {MBType.B_Direct_16x16, MBType.B_L0_16x16, MBType.B_L1_16x16,
-        MBType.B_Bi_16x16, MBType.B_L0_L0_16x8, MBType.B_L0_L0_8x16, MBType.B_L1_L1_16x8, MBType.B_L1_L1_8x16,
-        MBType.B_L0_L1_16x8, MBType.B_L0_L1_8x16, MBType.B_L1_L0_16x8, MBType.B_L1_L0_8x16, MBType.B_L0_Bi_16x8,
-        MBType.B_L0_Bi_8x16, MBType.B_L1_Bi_16x8, MBType.B_L1_Bi_8x16, MBType.B_Bi_L0_16x8, MBType.B_Bi_L0_8x16,
-        MBType.B_Bi_L1_16x8, MBType.B_Bi_L1_8x16, MBType.B_Bi_Bi_16x8, MBType.B_Bi_Bi_8x16, MBType.B_8x8};
+            MBType.B_Bi_16x16, MBType.B_L0_L0_16x8, MBType.B_L0_L0_8x16, MBType.B_L1_L1_16x8, MBType.B_L1_L1_8x16,
+            MBType.B_L0_L1_16x8, MBType.B_L0_L1_8x16, MBType.B_L1_L0_16x8, MBType.B_L1_L0_8x16, MBType.B_L0_Bi_16x8,
+            MBType.B_L0_Bi_8x16, MBType.B_L1_Bi_16x8, MBType.B_L1_Bi_8x16, MBType.B_Bi_L0_16x8, MBType.B_Bi_L0_8x16,
+            MBType.B_Bi_L1_16x8, MBType.B_Bi_L1_8x16, MBType.B_Bi_Bi_16x8, MBType.B_Bi_Bi_8x16, MBType.B_8x8};
 
     public final static int[] BLK_X = new int[]{0, 4, 0, 4, 8, 12, 8, 12, 0, 4, 0, 4, 8, 12, 8, 12};
     public final static int[] BLK_Y = new int[]{0, 0, 4, 4, 0, 0, 4, 4, 8, 8, 12, 12, 8, 8, 12, 12};
@@ -473,31 +473,31 @@ public final class H264Const {
     public final static int[] MB_DISP_OFF_TOP = new int[]{0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 3, 3, 2, 2, 3, 3};
 
     public final static int[] QP_SCALE_CR = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-        21, 22, 23, 24, 25, 26, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 34, 35, 35, 36, 36, 37, 37, 37, 38, 38, 38,
-        39, 39, 39, 39};
+            21, 22, 23, 24, 25, 26, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 34, 35, 35, 36, 36, 37, 37, 37, 38, 38, 38,
+            39, 39, 39, 39};
 
     public static final Picture NO_PIC = Picture.createPicture(0, 0, null, null);
     public static final int[] BLK_8x8_MB_OFF_LUMA = {0, 8, 128, 136};
     public static final int[] BLK_8x8_MB_OFF_CHROMA = {0, 4, 32, 36};
     public static final int[] BLK_4x4_MB_OFF_LUMA = {0, 4, 8, 12, 64, 68, 72, 76, 128, 132, 136, 140, 192, 196, 200,
-        204};
+            204};
     public static final int[] BLK_8x8_IND = {0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 3, 3, 2, 2, 3, 3};
     public static final int[][] BLK8x8_BLOCKS = {{0, 1, 4, 5}, {2, 3, 6, 7}, {8, 9, 12, 13},
-        {10, 11, 14, 15}};
+            {10, 11, 14, 15}};
     public static final int[][] ARRAY = {{0}, {1}, {2}, {3}};
 
     public static final int[] CODED_BLOCK_PATTERN_INTRA_COLOR = new int[]{47, 31, 15, 0, 23, 27, 29, 30, 7, 11, 13,
-        14, 39, 43, 45, 46, 16, 3, 5, 10, 12, 19, 21, 26, 28, 35, 37, 42, 44, 1, 2, 4, 8, 17, 18, 20, 24, 6, 9, 22,
-        25, 32, 33, 34, 36, 40, 38, 41};
+            14, 39, 43, 45, 46, 16, 3, 5, 10, 12, 19, 21, 26, 28, 35, 37, 42, 44, 1, 2, 4, 8, 17, 18, 20, 24, 6, 9, 22,
+            25, 32, 33, 34, 36, 40, 38, 41};
 
     public static final int[] CODED_BLOCK_PATTERN_INTRA_COLOR_INV = new int[]{3, 29, 30, 17, 31, 18, 37, 8, 32, 38,
-        19, 9, 20, 10, 11, 2, 16, 33, 34, 21, 35, 22, 39, 4, 36, 40, 23, 5, 24, 6, 7, 1, 41, 42, 43, 25, 44, 26, 46,
-        12, 45, 47, 27, 13, 28, 14, 15, 0
+            19, 9, 20, 10, 11, 2, 16, 33, 34, 21, 35, 22, 39, 4, 36, 40, 23, 5, 24, 6, 7, 1, 41, 42, 43, 25, 44, 26, 46,
+            12, 45, 47, 27, 13, 28, 14, 15, 0
     };
 
     public static final int[] CODED_BLOCK_PATTERN_INTER_COLOR = new int[]{0, 16, 1, 2, 4, 8, 32, 3, 5, 10, 12, 15, 47,
-        7, 11, 13, 14, 6, 9, 31, 35, 37, 42, 44, 33, 34, 36, 40, 39, 43, 45, 46, 17, 18, 20, 24, 19, 21, 26, 28, 23,
-        27, 29, 30, 22, 25, 38, 41};
+            7, 11, 13, 14, 6, 9, 31, 35, 37, 42, 44, 33, 34, 36, 40, 39, 43, 45, 46, 17, 18, 20, 24, 19, 21, 26, 28, 23,
+            27, 29, 30, 22, 25, 38, 41};
 
     private static int[] inverse(final int[] arr) {
         final int[] inv = new int[arr.length];
@@ -510,12 +510,12 @@ public final class H264Const {
     public static final int[] CODED_BLOCK_PATTERN_INTER_COLOR_INV = inverse(CODED_BLOCK_PATTERN_INTER_COLOR);
 
     public static final int[] sig_coeff_map_8x8 = {0, 1, 2, 3, 4, 5, 5, 4, 4, 3, 3, 4, 4, 4, 5, 5, 4, 4, 4, 4, 3, 3, 6,
-        7, 7, 7, 8, 9, 10, 9, 8, 7, 7, 6, 11, 12, 13, 11, 6, 7, 8, 9, 14, 10, 9, 8, 6, 11, 12, 13, 11, 6, 9, 14, 10,
-        9, 11, 12, 13, 11, 14, 10, 12};
+            7, 7, 7, 8, 9, 10, 9, 8, 7, 7, 6, 11, 12, 13, 11, 6, 7, 8, 9, 14, 10, 9, 8, 6, 11, 12, 13, 11, 6, 9, 14, 10,
+            9, 11, 12, 13, 11, 14, 10, 12};
 
     public static final int[] last_sig_coeff_map_8x8 = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
-        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7,
-        7, 7, 7, 8, 8, 8};
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7,
+            7, 7, 7, 8, 8, 8};
 
     public static final int[] identityMapping16 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
     public static final int[] identityMapping4 = {0, 1, 2, 3};
@@ -576,8 +576,8 @@ public final class H264Const {
 
     private static int[][] buildPixSplitMap4x4() {
         final int[][] result = new int[][]{{0, 1, 2, 3, 16, 17, 18, 19, 32, 33, 34, 35, 48, 49, 50, 51}, new int[16],
-            new int[16], new int[16], new int[16], new int[16], new int[16], new int[16], new int[16], new int[16],
-            new int[16], new int[16], new int[16], new int[16], new int[16], new int[16]};
+                new int[16], new int[16], new int[16], new int[16], new int[16], new int[16], new int[16], new int[16],
+                new int[16], new int[16], new int[16], new int[16], new int[16], new int[16]};
         for (int blkY = 0, blk = 0, off = 0; blkY < 4; ++blkY) {
             for (int blkX = 0; blkX < 4; ++blkX, ++blk, off += 4) {
                 for (int i = 0; i < 16; i++)
@@ -590,7 +590,7 @@ public final class H264Const {
 
     private static int[][] buildPixSplitMap2x2() {
         final int[][] result = new int[][]{{0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27}, new int[16],
-            new int[16], new int[16]};
+                new int[16], new int[16]};
         for (int blkY = 0, blk = 0, off = 0; blkY < 2; ++blkY) {
             for (int blkX = 0; blkX < 2; ++blkX, ++blk, off += 4) {
                 for (int i = 0; i < 16; i++)
@@ -622,13 +622,13 @@ public final class H264Const {
     public static final int PROFILE_HIGH_444 = 244;
 
     public static final int[] defaultScalingList4x4Intra = {6, 13, 13, 20, 20, 20, 28, 28, 28, 28, 32, 32, 32, 37, 37,
-        42};
+            42};
     public static final int[] defaultScalingList4x4Inter = {10, 14, 14, 20, 20, 20, 24, 24, 24, 24, 27, 27, 27, 30, 30,
-        34};
+            34};
     public static final int[] defaultScalingList8x8Intra = {6, 10, 10, 13, 11, 13, 16, 16, 16, 16, 18, 18, 18, 18, 18,
-        23, 23, 23, 23, 23, 23, 25, 25, 25, 25, 25, 25, 25, 27, 27, 27, 27, 27, 27, 27, 27, 29, 29, 29, 29, 29, 29,
-        29, 31, 31, 31, 31, 31, 31, 33, 33, 33, 33, 33, 36, 36, 36, 36, 38, 38, 38, 40, 40, 42};
+            23, 23, 23, 23, 23, 23, 25, 25, 25, 25, 25, 25, 25, 27, 27, 27, 27, 27, 27, 27, 27, 29, 29, 29, 29, 29, 29,
+            29, 31, 31, 31, 31, 31, 31, 33, 33, 33, 33, 33, 36, 36, 36, 36, 38, 38, 38, 40, 40, 42};
     public static final int[] defaultScalingList8x8Inter = {9, 13, 13, 15, 13, 15, 17, 17, 17, 17, 19, 19, 19, 19, 19,
-        21, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22, 22, 24, 24, 24, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25,
-        25, 27, 27, 27, 27, 27, 27, 28, 28, 28, 28, 28, 30, 30, 30, 30, 32, 32, 32, 33, 33, 35};
+            21, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22, 22, 24, 24, 24, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25,
+            25, 27, 27, 27, 27, 27, 27, 28, 28, 28, 28, 28, 30, 30, 30, 30, 32, 32, 32, 33, 33, 35};
 }

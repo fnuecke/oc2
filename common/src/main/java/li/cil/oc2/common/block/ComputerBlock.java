@@ -61,11 +61,11 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
     // We bake the "screen" indent on the front into the collision shape, to prevent stuff being
     // placeable on that side, such as network connectors, torches, etc.
     private static final VoxelShape NEG_Z_SHAPE = Shapes.or(
-        Block.box(0, 0, 1, 16, 16, 16), // main body
-        Block.box(0, 15, 0, 16, 16, 1), // across top
-        Block.box(0, 0, 0, 16, 6, 1), // across bottom
-        Block.box(0, 0, 0, 1, 16, 1), // up left
-        Block.box(15, 0, 0, 16, 16, 1) // up right
+            Block.box(0, 0, 1, 16, 16, 16), // main body
+            Block.box(0, 15, 0, 16, 16, 1), // across top
+            Block.box(0, 0, 0, 16, 6, 1), // across bottom
+            Block.box(0, 0, 0, 1, 16, 1), // up left
+            Block.box(15, 0, 0, 16, 16, 1) // up right
     );
     private static final VoxelShape NEG_X_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_Z_SHAPE);
     private static final VoxelShape POS_Z_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_X_SHAPE);
@@ -75,11 +75,11 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
 
     public ComputerBlock() {
         super(Properties
-            .of()
-            .mapColor(MapColor.METAL)
-            .sound(SoundType.METAL)
-            .strength(1.5f, 6.0f)
-            .isRedstoneConductor((state, level, pos) -> false));
+                .of()
+                .mapColor(MapColor.METAL)
+                .sound(SoundType.METAL)
+                .strength(1.5f, 6.0f)
+                .isRedstoneConductor((state, level, pos) -> false));
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 

@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 public final class MessageUtils {
     public static <T extends BlockEntity> void withNearbyServerBlockEntityForInteraction(final NetworkManager.PacketContext context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
         if (!(context.getPlayer() instanceof final ServerPlayer player)
-            || !pos.closerToCenterThan(player.position(), 8)) {
+                || !pos.closerToCenterThan(player.position(), 8)) {
             return;
         }
 

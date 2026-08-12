@@ -41,10 +41,10 @@ public final class BlockInterpolator {
         final int yFp = y >> 2;
         if (xFp < 2 || yFp < 2 || xFp > pic.getWidth() - w - 5 || yFp > pic.getHeight() - h - 5) {
             unsafe[(yInd << 2) + xInd].getLuma(pic.getData()[0], pic.getWidth(), pic.getHeight(), out.getPlaneData(0),
-                off, out.getPlaneWidth(0), xFp, yFp, w, h);
+                    off, out.getPlaneWidth(0), xFp, yFp, w, h);
         } else {
             safe[(yInd << 2) + xInd].getLuma(pic.getData()[0], pic.getWidth(), pic.getHeight(), out.getPlaneData(0),
-                off, out.getPlaneWidth(0), xFp, yFp, w, h);
+                    off, out.getPlaneWidth(0), xFp, yFp, w, h);
         }
     }
 
@@ -225,7 +225,7 @@ public final class BlockInterpolator {
         final int picWx3 = picWx2 + picW;
         final int picWx4 = picWx3 + picW;
         final int picWx5 = picWx4
-            + picW;
+                + picW;
         for (int j = 0; j < blkH; j++) {
             for (int i = 0; i < blkW; i++) {
                 final int a = pic[off + i] + pic[off + i + picWx5];
@@ -249,7 +249,7 @@ public final class BlockInterpolator {
         final int picWx3 = picWx2 + picW;
         final int picWx4 = picWx3 + picW;
         final int picWx5 = picWx4
-            + picW;
+                + picW;
         for (int j = 0; j < blkH; j++) {
             for (int i = 0; i < blkW; i++) {
                 final int a = pic[off + i] + pic[off + i + picWx5];
@@ -270,7 +270,7 @@ public final class BlockInterpolator {
         final int picWx3 = picWx2 + picW;
         final int picWx4 = picWx3 + picW;
         final int picWx5 = picWx4
-            + picW;
+                + picW;
         for (int j = 0; j < blkH; j++) {
             for (int i = 0; i < blkW; i++) {
                 final int a = pic[off + i] + pic[off + i + picWx5];
@@ -887,7 +887,7 @@ public final class BlockInterpolator {
             for (int i = 0; i < blkW; i++) {
 
                 blk[blkOff + i] = (byte) ((eMx * eMy * pels[w00 + i] + fracX * eMy * pels[w10 + i] + eMx * fracY
-                    * pels[w01 + i] + fracX * fracY * pels[w11 + i] + 32) >> 6);
+                        * pels[w01 + i] + fracX * fracY * pels[w11 + i] + 32) >> 6);
             }
             blkOff += blkStride;
             w00 += picW;
@@ -913,7 +913,7 @@ public final class BlockInterpolator {
                 final int w11 = MathUtil.clip(fullY + j + 1, 0, maxH) * picW + MathUtil.clip(fullX + i + 1, 0, maxW);
 
                 blk[blkOff + i] = (byte) ((eMx * eMy * pels[w00] + fracX * eMy * pels[w10] + eMx * fracY * pels[w01]
-                    + fracX * fracY * pels[w11] + 32) >> 6);
+                        + fracX * fracY * pels[w11] + 32) >> 6);
             }
             blkOff += blkStride;
         }
@@ -927,30 +927,30 @@ public final class BlockInterpolator {
     private LumaInterpolator[] initSafe() {
         final BlockInterpolator self = this;
         return new LumaInterpolator[]{
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma00(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma10(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma20(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma30(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma01(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma11(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma21(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma31(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma02(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma12(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma22(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma32(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma03(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma13(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma23(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
-            (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma33(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH)};
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma00(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma10(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma20(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma30(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma01(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma11(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma21(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma31(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma02(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma12(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma22(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma32(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> BlockInterpolator.getLuma03(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma13(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma23(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH),
+                (pels, picW, imgH, blk, blkOff, blkStride, x, y, blkW, blkH) -> self.getLuma33(pels, picW, blk, blkOff, blkStride, x, y, blkW, blkH)};
     }
 
     private LumaInterpolator[] initUnsafe() {
         final BlockInterpolator self = this;
         return new LumaInterpolator[]{
-            BlockInterpolator::getLuma00Unsafe, self::getLuma10Unsafe, self::getLuma20Unsafe, self::getLuma30Unsafe,
-            self::getLuma01Unsafe, self::getLuma11Unsafe, self::getLuma21Unsafe, self::getLuma31Unsafe,
-            self::getLuma02Unsafe, self::getLuma12Unsafe, self::getLuma22Unsafe, self::getLuma32Unsafe,
-            self::getLuma03Unsafe, self::getLuma13Unsafe, self::getLuma23Unsafe, self::getLuma33Unsafe};
+                BlockInterpolator::getLuma00Unsafe, self::getLuma10Unsafe, self::getLuma20Unsafe, self::getLuma30Unsafe,
+                self::getLuma01Unsafe, self::getLuma11Unsafe, self::getLuma21Unsafe, self::getLuma31Unsafe,
+                self::getLuma02Unsafe, self::getLuma12Unsafe, self::getLuma22Unsafe, self::getLuma32Unsafe,
+                self::getLuma03Unsafe, self::getLuma13Unsafe, self::getLuma23Unsafe, self::getLuma33Unsafe};
     }
 }

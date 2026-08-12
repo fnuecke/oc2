@@ -74,7 +74,7 @@ public final class FrameReader {
         final Mapper mapper = new MapManager(sh.sps, sh.pps).getMapper(sh);
 
         final CAVLC[] cavlc = new CAVLC[]{new CAVLC(sh.sps, 2, 2), new CAVLC(sh.sps, 1, 1),
-            new CAVLC(sh.sps, 1, 1)};
+                new CAVLC(sh.sps, 1, 1)};
 
         final int mbWidth = sh.sps.picWidthInMbsMinus1 + 1;
         final CABAC cabac = new CABAC(mbWidth);

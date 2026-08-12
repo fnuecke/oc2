@@ -15,4 +15,5 @@ package li.cil.oc2.api.bus.device.vm.event;
  * their own threads modifying observable state will need to synchronize these
  * threads here.
  */
-public final class VMSynchronizeEvent { }
+public final class VMSynchronizeEvent {
+}

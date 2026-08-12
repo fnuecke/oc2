@@ -30,12 +30,7 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.*;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.LevelUtils;
-import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.util.NBTUtils;
-import li.cil.oc2.common.util.ServerScheduler;
-import li.cil.oc2.common.util.TerminalUtils;
+import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.vm.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -82,7 +77,8 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import static java.util.Collections.singleton;
-import static li.cil.oc2.common.Constants.*;
+import static li.cil.oc2.common.Constants.ENERGY_TAG_NAME;
+import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 
 public final class Robot extends Entity implements li.cil.oc2.api.capabilities.Robot, TerminalUserProvider {
     public static final EntityDataAccessor<BlockPos> TARGET_POSITION = SynchedEntityData.defineId(Robot.class, EntityDataSerializers.BLOCK_POS);
@@ -283,8 +279,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                 mutablePosition.set(x, y, z);
                 final BlockState blockState = serverLevel.getBlockState(mutablePosition);
                 if (blockState.isAir() ||
-                    blockState.is(Blocks.MOVING_PISTON) ||
-                    blockState.is(Blocks.PISTON_HEAD)) {
+                        blockState.is(Blocks.MOVING_PISTON) ||
+                        blockState.is(Blocks.PISTON_HEAD)) {
                     continue;
                 }
 
@@ -292,11 +288,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                 if (Shapes.joinIsNotEmpty(shape, blockShape.move(x, y, z), BooleanOp.AND)) {
                     final BlockEntity blockEntity = serverLevel.getBlockEntity(mutablePosition);
                     final LootParams.Builder builder = new LootParams.Builder(serverLevel)
-                        .withParameter(LootContextParams.THIS_ENTITY, this)
-                        .withParameter(LootContextParams.ORIGIN, position())
-                        .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
-                        .withParameter(LootContextParams.BLOCK_STATE, blockState)
-                        .withOptionalParameter(LootContextParams.BLOCK_ENTITY, blockEntity);
+                            .withParameter(LootContextParams.THIS_ENTITY, this)
+                            .withParameter(LootContextParams.ORIGIN, position())
+                            .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
+                            .withParameter(LootContextParams.BLOCK_STATE, blockState)
+                            .withOptionalParameter(LootContextParams.BLOCK_ENTITY, blockEntity);
                     final List<ItemStack> drops = blockState.getDrops(builder);
                     serverLevel.setBlockAndUpdate(mutablePosition, Blocks.AIR.defaultBlockState());
                     for (final ItemStack drop : drops) {
@@ -481,8 +477,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private Cursor3D getBlockPosIterator() {
         final AABB bounds = getBoundingBox();
         return new Cursor3D(
-            Mth.floor(bounds.minX), Mth.floor(bounds.minY), Mth.floor(bounds.minZ),
-            Mth.floor(bounds.maxX), Mth.floor(bounds.maxY), Mth.floor(bounds.maxZ)
+                Mth.floor(bounds.minX), Mth.floor(bounds.minY), Mth.floor(bounds.minZ),
+                Mth.floor(bounds.maxX), Mth.floor(bounds.maxY), Mth.floor(bounds.maxZ)
         );
     }
 
@@ -584,7 +580,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         private static final String LAST_ACTION_ID_TAG_NAME = "last_action_id";
 
         private final Queue<AbstractRobotAction> queue = new ArrayDeque<>(MAX_QUEUED_ACTIONS - 1);
-        @Nullable private AbstractRobotAction action;
+        @Nullable
+        private AbstractRobotAction action;
 
         private final Queue<RobotActionProcessorResult> results = new ArrayDeque<>(MAX_QUEUED_RESULTS);
         private int lastActionId;
@@ -713,10 +710,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final class RobotItemStackHandlers extends AbstractVMItemStackHandlers {
         public RobotItemStackHandlers() {
             super(
-                new GroupDefinition(DeviceTypes.MEMORY, MEMORY_SLOTS),
-                new GroupDefinition(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
-                new GroupDefinition(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS),
-                new GroupDefinition(DeviceTypes.ROBOT_MODULE, MODULE_SLOTS)
+                    new GroupDefinition(DeviceTypes.MEMORY, MEMORY_SLOTS),
+                    new GroupDefinition(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
+                    new GroupDefinition(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS),
+                    new GroupDefinition(DeviceTypes.ROBOT_MODULE, MODULE_SLOTS)
             );
         }
 
@@ -807,7 +804,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             super.stopRunnerAndReset();
 
             TerminalUtils.resetTerminal(terminal, output -> Network.sendToClientsTrackingEntity(
-                new RobotTerminalOutputMessage(Robot.this, output), Robot.this));
+                    new RobotTerminalOutputMessage(Robot.this, output), Robot.this));
 
             actionProcessor.clear();
         }

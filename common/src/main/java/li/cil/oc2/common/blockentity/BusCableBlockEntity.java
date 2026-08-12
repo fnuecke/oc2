@@ -106,9 +106,9 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
 
         if (level == null ||
-            state.getRenderShape() != RenderShape.MODEL ||
-            !state.isSolidRender(level, getBlockPos()) ||
-            state.getBlock() instanceof EntityBlock) {
+                state.getRenderShape() != RenderShape.MODEL ||
+                !state.isSolidRender(level, getBlockPos()) ||
+                state.getBlock() instanceof EntityBlock) {
             return FacadeType.INVALID_BLOCK;
         }
 
@@ -318,7 +318,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         public boolean canScanContinueTowards(@Nullable final Direction direction) {
             final BusCableBlock.ConnectionType connectionType = BusCableBlock.getConnectionType(getBlockState(), direction);
             return connectionType == BusCableBlock.ConnectionType.CABLE ||
-                connectionType == BusCableBlock.ConnectionType.INTERFACE;
+                    connectionType == BusCableBlock.ConnectionType.INTERFACE;
         }
 
         @Override
@@ -344,8 +344,8 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         @Override
         public double getEnergyConsumption() {
             return super.getEnergyConsumption()
-                + Config.busCableEnergyPerTick
-                + BusCableBlock.getInterfaceCount(getBlockState()) * Config.busInterfaceEnergyPerTick;
+                    + Config.busCableEnergyPerTick
+                    + BusCableBlock.getInterfaceCount(getBlockState()) * Config.busInterfaceEnergyPerTick;
         }
     }
 

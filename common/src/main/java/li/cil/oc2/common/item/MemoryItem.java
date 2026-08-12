@@ -9,7 +9,8 @@ import net.minecraft.resources.ResourceLocation;
 import javax.annotation.Nullable;
 
 public final class MemoryItem extends AbstractStorageItem {
-    @Nullable private String descriptionId;
+    @Nullable
+    private String descriptionId;
 
     // ------------------------------------------------------------- //
 

@@ -24,7 +24,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.InputStream;
 import java.io.Reader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -62,7 +65,7 @@ public final class FileSystems {
 
     public static void initialize() {
         ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
-            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "file_systems"));
+                ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "file_systems"));
         LifecycleEvent.SERVER_STOPPED.register(server -> handleServerStopped());
     }
 
@@ -77,7 +80,7 @@ public final class FileSystems {
 
         LOGGER.info("Searching for datapack filesystems...");
         final Map<ResourceLocation, Resource> fileSystemDescriptors = resourceManager
-            .listResources("file_systems", location -> location.getPath().endsWith(".json"));
+                .listResources("file_systems", location -> location.getPath().endsWith(".json"));
 
         final ArrayList<ZipStreamFileSystem> fileSystems = new ArrayList<>();
         final Object2IntArrayMap<ZipStreamFileSystem> fileSystemOrder = new Object2IntArrayMap<>();
@@ -153,8 +156,8 @@ public final class FileSystems {
         @Override
         public CompletableFuture<Void> reload(final PreparableReloadListener.PreparationBarrier stage, final ResourceManager resourceManager, final ProfilerFiller preparationsProfiler, final ProfilerFiller reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
             return CompletableFuture
-                .runAsync(() -> FileSystems.reload(resourceManager), backgroundExecutor)
-                .thenCompose(stage::wait);
+                    .runAsync(() -> FileSystems.reload(resourceManager), backgroundExecutor)
+                    .thenCompose(stage::wait);
         }
     }
 

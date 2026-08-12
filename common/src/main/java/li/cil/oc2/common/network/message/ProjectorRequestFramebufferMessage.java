@@ -39,6 +39,6 @@ public final class ProjectorRequestFramebufferMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withNearbyServerBlockEntity(context, pos, ProjectorBlockEntity.class,
-            (player, projector) -> ProjectorLoadBalancer.updateWatcher(projector, player));
+                (player, projector) -> ProjectorLoadBalancer.updateWatcher(projector, player));
     }
 }

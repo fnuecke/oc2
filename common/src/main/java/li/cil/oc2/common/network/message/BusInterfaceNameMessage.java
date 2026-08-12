@@ -56,7 +56,7 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
         @Override
         protected void handleMessage(final NetworkManager.PacketContext context) {
             MessageUtils.withClientBlockEntityAt(pos, BusCableBlockEntity.class,
-                busCable -> busCable.setInterfaceName(side, value));
+                    busCable -> busCable.setInterfaceName(side, value));
         }
     }
 
@@ -72,7 +72,7 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
         @Override
         protected void handleMessage(final NetworkManager.PacketContext context) {
             MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos, BusCableBlockEntity.class,
-                (player, busCable) -> busCable.setInterfaceName(side, value));
+                    (player, busCable) -> busCable.setInterfaceName(side, value));
         }
     }
 }

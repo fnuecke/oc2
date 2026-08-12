@@ -2,11 +2,7 @@
 
 package li.cil.oc2.common.neoforge;
 
-import li.cil.oc2.common.config.ConfigType;
-import li.cil.oc2.common.config.Max;
-import li.cil.oc2.common.config.Min;
-import li.cil.oc2.common.config.Path;
-import li.cil.oc2.common.config.Type;
+import li.cil.oc2.common.config.*;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.config.IConfigSpec;
 import net.neoforged.fml.config.ModConfig;

@@ -32,7 +32,8 @@ public final class Intra8x8PredictionBuilder {
                 checkState(leftAvailable, "");
                 predictHorizontal(residual, topLeftAvailable, topLeft, leftRow, blkX, blkY, pixOut);
             }
-            case 2 -> predictDC(residual, topLeftAvailable, topRightAvailable, leftAvailable, topAvailable, topLeft, leftRow, topLine, mbOffX, blkX, blkY, pixOut);
+            case 2 ->
+                    predictDC(residual, topLeftAvailable, topRightAvailable, leftAvailable, topAvailable, topLeft, leftRow, topLine, mbOffX, blkX, blkY, pixOut);
             case 3 -> {
                 checkState(topAvailable, "");
                 predictDiagonalDownLeft(residual, topLeftAvailable, topRightAvailable, topLeft, topLine, mbOffX, blkX, blkY, pixOut);

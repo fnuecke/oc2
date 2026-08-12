@@ -13,7 +13,8 @@ import javax.annotation.Nullable;
 
 public final class HardDriveItem extends AbstractStorageItem implements ColoredItem {
     private final int defaultColor;
-    @Nullable private String descriptionId;
+    @Nullable
+    private String descriptionId;
 
     // ------------------------------------------------------------- //
 

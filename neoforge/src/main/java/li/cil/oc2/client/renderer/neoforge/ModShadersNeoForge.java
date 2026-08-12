@@ -18,9 +18,9 @@ public final class ModShadersNeoForge {
     @SubscribeEvent
     public static void handleRegisterShaders(final RegisterShadersEvent event) throws IOException {
         event.registerShader(new ShaderInstance(
-            event.getResourceProvider(),
-            ModShaders.PROJECTORS_SHADER_LOCATION,
-            DefaultVertexFormat.POSITION_TEX
+                event.getResourceProvider(),
+                ModShaders.PROJECTORS_SHADER_LOCATION,
+                DefaultVertexFormat.POSITION_TEX
         ), ModShaders::setProjectorsShader);
     }
 

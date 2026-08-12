@@ -30,7 +30,8 @@ public final class VMDeviceLoadResult {
     }
 
     private final boolean wasSuccessful;
-    @Nullable private Component message;
+    @Nullable
+    private Component message;
 
     private VMDeviceLoadResult(final boolean wasSuccessful) {
         this.wasSuccessful = wasSuccessful;

@@ -42,6 +42,6 @@ public final class RobotRunStateMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientEntity(entityId, Robot.class,
-            robot -> robot.getVirtualMachine().setRunStateClient(value));
+                robot -> robot.getVirtualMachine().setRunStateClient(value));
     }
 }

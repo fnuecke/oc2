@@ -11,4 +11,5 @@ package li.cil.oc2.jcodec.codecs.h264.decode.aso;
  *
  * @author The JCodec project
  */
-public record MBToSliceGroupMap(int[] groups, int[] indices, int[][] inverse) { }
+public record MBToSliceGroupMap(int[] groups, int[] indices, int[][] inverse) {
+}

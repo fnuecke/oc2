@@ -57,7 +57,8 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     public final SerializedState state = new SerializedState();
     public AbstractTerminalVMRunner runner;
     private VMRunState runState = VMRunState.STOPPED;
-    @Nullable private Component bootError;
+    @Nullable
+    private Component bootError;
 
     // ------------------------------------------------------------- //
 
@@ -97,7 +98,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     @Override
     public boolean isRunning() {
         return getBusState() == CommonDeviceBusController.BusState.READY &&
-            getRunState() == VMRunState.RUNNING;
+                getRunState() == VMRunState.RUNNING;
     }
 
     @Override

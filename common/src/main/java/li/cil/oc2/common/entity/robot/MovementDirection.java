@@ -26,7 +26,8 @@ public enum MovementDirection {
     b(BACKWARD),
     ;
 
-    @Nullable private final MovementDirection parent;
+    @Nullable
+    private final MovementDirection parent;
 
     MovementDirection() {
         this.parent = null;

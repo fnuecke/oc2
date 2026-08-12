@@ -11,7 +11,8 @@ import net.minecraft.world.entity.player.Inventory;
 
 @Environment(EnvType.CLIENT)
 public final class ComputerTerminalScreen extends AbstractMachineTerminalScreen<ComputerTerminalContainer> {
-    @SuppressWarnings("all") private EditBox focusIndicatorEditBox;
+    @SuppressWarnings("all")
+    private EditBox focusIndicatorEditBox;
 
     // ------------------------------------------------------------- //
 

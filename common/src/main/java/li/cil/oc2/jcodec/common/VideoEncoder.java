@@ -21,7 +21,8 @@ public abstract class VideoEncoder {
      *
      * @author The JCodec project
      */
-    public record EncodedFrame(ByteBuffer data, boolean keyFrame) { }
+    public record EncodedFrame(ByteBuffer data, boolean keyFrame) {
+    }
 
     /**
      * Encode one video frame.

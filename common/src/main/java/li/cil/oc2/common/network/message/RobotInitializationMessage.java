@@ -20,7 +20,8 @@ public final class RobotInitializationMessage extends AbstractMessage {
     private int entityId;
     private CommonDeviceBusController.BusState busState;
     private VMRunState runState;
-    @Nullable private Component bootError;
+    @Nullable
+    private Component bootError;
     private CompoundTag terminal;
 
     // ------------------------------------------------------------- //
@@ -62,11 +63,11 @@ public final class RobotInitializationMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientEntity(entityId, Robot.class,
-            robot -> {
-                robot.getVirtualMachine().setBusStateClient(busState);
-                robot.getVirtualMachine().setRunStateClient(runState);
-                robot.getVirtualMachine().setBootErrorClient(bootError);
-                NBTSerialization.deserialize(terminal, robot.getTerminal());
-            });
+                robot -> {
+                    robot.getVirtualMachine().setBusStateClient(busState);
+                    robot.getVirtualMachine().setRunStateClient(runState);
+                    robot.getVirtualMachine().setBootErrorClient(bootError);
+                    NBTSerialization.deserialize(terminal, robot.getTerminal());
+                });
     }
 }

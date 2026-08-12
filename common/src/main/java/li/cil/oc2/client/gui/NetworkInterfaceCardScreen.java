@@ -65,7 +65,8 @@ public final class NetworkInterfaceCardScreen extends Screen {
 
     private Vector3f blockRotation = new Vector3f(-30, 45, 0);
     private int left, top;
-    @Nullable private Direction focusedSide;
+    @Nullable
+    private Direction focusedSide;
     private boolean isDraggingBlock, hasDraggedBlock;
     private double dragStartX, dragStartY;
 
@@ -119,7 +120,7 @@ public final class NetworkInterfaceCardScreen extends Screen {
                 final NetworkInterfaceCardConfigurationMessage message = new NetworkInterfaceCardConfigurationMessage(hand, focusedSide, !getConfiguration(focusedSide));
                 Network.sendToServer(message);
                 Minecraft.getInstance().getSoundManager()
-                    .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1));
+                        .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1));
             }
         }
 
@@ -137,9 +138,9 @@ public final class NetworkInterfaceCardScreen extends Screen {
             }
             if (hasDraggedBlock) {
                 blockRotation = new Vector3f(
-                    Mth.clamp(blockRotation.x() - (float) deltaY, -MAX_BLOCK_PITCH, MAX_BLOCK_PITCH),
-                    Mth.wrapDegrees(blockRotation.y() + (float) deltaX),
-                    blockRotation.z()
+                        Mth.clamp(blockRotation.x() - (float) deltaY, -MAX_BLOCK_PITCH, MAX_BLOCK_PITCH),
+                        Mth.wrapDegrees(blockRotation.y() + (float) deltaX),
+                        blockRotation.z()
                 );
             }
         }
@@ -177,7 +178,7 @@ public final class NetworkInterfaceCardScreen extends Screen {
 
     private boolean isMouseInBlockArea(final double mouseX, final double mouseY) {
         return mouseX >= left + 37 && mouseX <= left + 37 + 102 &&
-            mouseY >= top + 10 && mouseY <= top + 10 + 102;
+                mouseY >= top + 10 && mouseY <= top + 10 + 102;
     }
 
     private boolean getConfiguration(@Nullable final Direction side) {
@@ -195,9 +196,9 @@ public final class NetworkInterfaceCardScreen extends Screen {
 
         private static Quaternionf fromXYZDegrees(final Vector3f degrees) {
             return new Quaternionf().rotationXYZ(
-                (float) Math.toRadians(degrees.x()),
-                (float) Math.toRadians(degrees.y()),
-                (float) Math.toRadians(degrees.z()));
+                    (float) Math.toRadians(degrees.x()),
+                    (float) Math.toRadians(degrees.y()),
+                    (float) Math.toRadians(degrees.z()));
         }
 
         @Nullable
@@ -221,9 +222,9 @@ public final class NetworkInterfaceCardScreen extends Screen {
             // Intersect rotated ray with bounding box representing block.
             final AABB aabb = new AABB(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5);
             return aabb.clip(new Vec3(source), new Vec3(target))
-                .map(hit -> Direction.getNearest(hit.x, -hit.y(), hit.z()))
-                .filter(side -> side != Direction.SOUTH)
-                .orElse(null);
+                    .map(hit -> Direction.getNearest(hit.x, -hit.y(), hit.z()))
+                    .filter(side -> side != Direction.SOUTH)
+                    .orElse(null);
         }
 
         public void render(final int x, final int y, final Vector3f rotation) {

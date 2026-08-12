@@ -62,7 +62,7 @@ public final class MBWriterI16x16 {
         predictChroma(ctx, pic, ac2, pred2, 2, x, y, chrPred);
 
         chromaResidual(mbX, mbY, out, qp, ac1, ac2, ctx.cavlc[1], ctx.cavlc[2], ctx.leftMBType, ctx.topMBType[mbX],
-            curMBType);
+                curMBType);
 
         putChroma(outMB.getData()[1], ac1, pred1);
         putChroma(outMB.getData()[2], ac2, pred2);
@@ -96,13 +96,13 @@ public final class MBWriterI16x16 {
         final byte[][] pred = new byte[16][16];
 
         Intra16x16PredictionBuilder.lumaPred(predType, x != 0, y != 0, ctx.leftRow[0], ctx.topLine[0], ctx.topLeft[0],
-            x, pred);
+                x, pred);
 
         transform(pic, ac, pred, x, y);
         final int[] dc = extractDC(ac);
         writeDC(ctx.cavlc[0], out, qp, mbX << 2, mbY << 2, dc, ctx.leftMBType, ctx.topMBType[mbX]);
         writeACLum(ctx.cavlc[0], out, mbX << 2, mbY << 2, ac, qp, ctx.leftMBType, ctx.topMBType[mbX],
-            nc);
+                nc);
 
         restorePlane(dc, ac, qp);
 
@@ -156,8 +156,8 @@ public final class MBWriterI16x16 {
             final int blkOffLeft = MB_DISP_OFF_LEFT[bInd];
             final int blkOffTop = MB_DISP_OFF_TOP[bInd];
             cavlc.writeACBlock(out, mbLeftBlk + blkOffLeft, mbTopBlk + blkOffTop,
-                blkOffLeft == 0 ? leftMBType : curMBType, blkOffTop == 0 ? topMBType : curMBType, ac[bInd],
-                H264Const.totalZeros16, 1, 15, CoeffTransformer.zigzag4x4);
+                    blkOffLeft == 0 ? leftMBType : curMBType, blkOffTop == 0 ? topMBType : curMBType, ac[bInd],
+                    H264Const.totalZeros16, 1, 15, CoeffTransformer.zigzag4x4);
         }
     }
 
@@ -173,9 +173,9 @@ public final class MBWriterI16x16 {
                 final int blkOffLeft = MB_DISP_OFF_LEFT[bInd];
                 final int blkOffTop = MB_DISP_OFF_TOP[bInd];
                 nc[BLK_DISP_MAP[bInd]] = CAVLC
-                    .totalCoeff(cavlc.writeACBlock(out, mbLeftBlk + blkOffLeft, mbTopBlk + blkOffTop,
-                        blkOffLeft == 0 ? leftMBType : MBType.I_16x16, blkOffTop == 0 ? topMBType : MBType.I_16x16,
-                        ac[bInd], H264Const.totalZeros16, 1, 15, CoeffTransformer.zigzag4x4));
+                        .totalCoeff(cavlc.writeACBlock(out, mbLeftBlk + blkOffLeft, mbTopBlk + blkOffTop,
+                                blkOffLeft == 0 ? leftMBType : MBType.I_16x16, blkOffTop == 0 ? topMBType : MBType.I_16x16,
+                                ac[bInd], H264Const.totalZeros16, 1, 15, CoeffTransformer.zigzag4x4));
             }
         } else {
             for (int bInd = 0; bInd < 16; bInd++) {
@@ -209,7 +209,7 @@ public final class MBWriterI16x16 {
             CoeffTransformer.fvdDC4x4(dc);
             // TODO: calc here
             cavlc.writeLumaDCBlock(out, mbLeftBlk, mbTopBlk, leftMBType, topMBType, dc, H264Const.totalZeros16, 0, 16,
-                CoeffTransformer.zigzag4x4);
+                    CoeffTransformer.zigzag4x4);
         }
     }
 

@@ -70,15 +70,15 @@ public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> 
 
     private static void renderQuad(final Matrix4f matrix, final VertexConsumer consumer) {
         consumer.addVertex(matrix, -0.5f, 0, -0.5f)
-            .setUv(0, 0);
+                .setUv(0, 0);
 
         consumer.addVertex(matrix, -0.5f, 0, 0.5f)
-            .setUv(0, 1);
+                .setUv(0, 1);
 
         consumer.addVertex(matrix, 0.5f, 0, 0.5f)
-            .setUv(1, 1);
+                .setUv(1, 1);
 
         consumer.addVertex(matrix, 0.5f, 0, -0.5f)
-            .setUv(1, 0);
+                .setUv(1, 0);
     }
 }

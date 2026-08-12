@@ -41,12 +41,12 @@ public final class MBlockSkipDecoder extends MBlockDecoderBase {
 
         if (sliceType == P) {
             predictPSkip(refs, mbX, mbY, mapper.leftAvailable(mBlock.mbIdx), mapper.topAvailable(mBlock.mbIdx),
-                mapper.topLeftAvailable(mBlock.mbIdx), mapper.topRightAvailable(mBlock.mbIdx), mBlock.x, mb);
+                    mapper.topLeftAvailable(mBlock.mbIdx), mapper.topRightAvailable(mBlock.mbIdx), mBlock.x, mb);
             Arrays.fill(mBlock.partPreds, PartPred.L0);
         } else {
             bDirectDecoder.predictBDirect(refs, mbX, mbY, mapper.leftAvailable(mBlock.mbIdx),
-                mapper.topAvailable(mBlock.mbIdx), mapper.topLeftAvailable(mBlock.mbIdx),
-                mapper.topRightAvailable(mBlock.mbIdx), mBlock.x, mBlock.partPreds, mb, identityMapping4);
+                    mapper.topAvailable(mBlock.mbIdx), mapper.topLeftAvailable(mBlock.mbIdx),
+                    mapper.topRightAvailable(mBlock.mbIdx), mBlock.x, mBlock.partPreds, mb, identityMapping4);
             savePrediction8x8(s, mbX, mBlock.x);
         }
 

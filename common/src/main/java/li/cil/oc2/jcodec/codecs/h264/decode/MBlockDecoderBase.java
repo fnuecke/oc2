@@ -74,13 +74,13 @@ public class MBlockDecoderBase {
         if (sh2.sps.scalingMatrix == null && (sh2.pps.extended == null || sh2.pps.extended.scalingMatrix == null))
             return null;
         final int[][] merged = new int[][]{H264Const.defaultScalingList4x4Intra, null, null,
-            H264Const.defaultScalingList4x4Inter, null, null, H264Const.defaultScalingList8x8Intra,
-            H264Const.defaultScalingList8x8Inter, null, null, null, null};
+                H264Const.defaultScalingList4x4Inter, null, null, H264Const.defaultScalingList8x8Intra,
+                H264Const.defaultScalingList8x8Inter, null, null, null, null};
         for (int i = 0; i < 8; i++) {
             if (sh2.sps.scalingMatrix != null && sh2.sps.scalingMatrix[i] != null)
                 merged[i] = sh2.sps.scalingMatrix[i];
             if (sh2.pps.extended != null && sh2.pps.extended.scalingMatrix != null
-                && sh2.pps.extended.scalingMatrix[i] != null)
+                    && sh2.pps.extended.scalingMatrix[i] != null)
                 merged[i] = sh2.pps.extended.scalingMatrix[i];
         }
         if (merged[1] == null)
@@ -147,9 +147,9 @@ public class MBlockDecoderBase {
         di.mbQps[1][addr] = qp1;
         di.mbQps[2][addr] = qp2;
         ChromaPredictionBuilder.predictWithMode(mBlock.ac[1], mBlock.chromaPredictionMode, mbX, leftAvailable,
-            topAvailable, s.leftRow[1], s.topLine[1], s.topLeft[1], mb.getPlaneData(1));
+                topAvailable, s.leftRow[1], s.topLine[1], s.topLeft[1], mb.getPlaneData(1));
         ChromaPredictionBuilder.predictWithMode(mBlock.ac[2], mBlock.chromaPredictionMode, mbX, leftAvailable,
-            topAvailable, s.leftRow[2], s.topLine[2], s.topLeft[2], mb.getPlaneData(2));
+                topAvailable, s.leftRow[2], s.topLine[2], s.topLeft[2], mb.getPlaneData(2));
     }
 
     void decodeChromaResidual(final MBlock mBlock, final int crQp1, final int crQp2) {
@@ -160,9 +160,9 @@ public class MBlockDecoderBase {
             }
 
             chromaAC(mBlock.dc1, 1, crQp1, mBlock.curMbType,
-                (mBlock.cbpChroma() & 2) > 0, mBlock.ac[1]);
+                    (mBlock.cbpChroma() & 2) > 0, mBlock.ac[1]);
             chromaAC(mBlock.dc2, 2, crQp2, mBlock.curMbType,
-                (mBlock.cbpChroma() & 2) > 0, mBlock.ac[2]);
+                    (mBlock.cbpChroma() & 2) > 0, mBlock.ac[2]);
         }
     }
 
@@ -207,15 +207,15 @@ public class MBlockDecoderBase {
                     final int yy = ((y + blkPoy) << 3) + mvY(mv);
 
                     BlockInterpolator.getBlockChroma(ref.getPlaneData(comp), ref.getPlaneWidth(comp),
-                        ref.getPlaneHeight(comp), mbb[list].getPlaneData(comp), blkPoy * mb.getPlaneWidth(comp)
-                            + blkPox, mb.getPlaneWidth(comp), xx, yy, 2, 2);
+                            ref.getPlaneHeight(comp), mbb[list].getPlaneData(comp), blkPoy * mb.getPlaneWidth(comp)
+                                    + blkPox, mb.getPlaneWidth(comp), xx, yy, 2, 2);
                 }
             }
 
             final int blk4x4 = BLK8x8_BLOCKS[blk8x8][0];
             PredictionMerger.mergePrediction(sh, vectors.mv0R(blk4x4), vectors.mv1R(blk4x4), predType[blk8x8], comp,
-                mbb[0].getPlaneData(comp), mbb[1].getPlaneData(comp), BLK_8x8_MB_OFF_CHROMA[blk8x8],
-                mb.getPlaneWidth(comp), 4, 4, mb.getPlaneData(comp), refs, poc);
+                    mbb[0].getPlaneData(comp), mbb[1].getPlaneData(comp), BLK_8x8_MB_OFF_CHROMA[blk8x8],
+                    mb.getPlaneWidth(comp), 4, 4, mb.getPlaneData(comp), refs, poc);
         }
     }
 }

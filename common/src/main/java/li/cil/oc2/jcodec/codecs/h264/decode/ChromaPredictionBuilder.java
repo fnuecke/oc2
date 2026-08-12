@@ -66,9 +66,9 @@ public final class ChromaPredictionBuilder {
     public static int predDCSAD(final int mbX, final boolean leftAvailable, final boolean topAvailable,
                                 final byte[] leftRow, final byte[] topLine, final byte[] pixOut) {
         return predictDCInsideSAD(0, 0, mbX, leftAvailable, topAvailable, leftRow, topLine, pixOut)
-            + predictDCTopBorderSAD(1, 0, mbX, leftAvailable, topAvailable, leftRow, topLine, pixOut)
-            + predictDCLeftBorderSAD(0, 1, mbX, leftAvailable, topAvailable, leftRow, topLine, pixOut)
-            + predictDCInsideSAD(1, 1, mbX, leftAvailable, topAvailable, leftRow, topLine, pixOut);
+                + predictDCTopBorderSAD(1, 0, mbX, leftAvailable, topAvailable, leftRow, topLine, pixOut)
+                + predictDCLeftBorderSAD(0, 1, mbX, leftAvailable, topAvailable, leftRow, topLine, pixOut)
+                + predictDCInsideSAD(1, 1, mbX, leftAvailable, topAvailable, leftRow, topLine, pixOut);
     }
 
     public static void buildPredDC(final int mbX, final boolean leftAvailable, final boolean topAvailable,
@@ -83,7 +83,7 @@ public final class ChromaPredictionBuilder {
         for (int off = 0, j = 0; j < 8; j++) {
             for (int i = 0; i < 8; i++, off++)
                 pixOut[off] = (byte) MathUtil.clip(
-                    residual[CHROMA_BLOCK_LUT[off]][CHROMA_POS_LUT[off]] + topLine[(mbX << 3) + i], -128, 127);
+                        residual[CHROMA_BLOCK_LUT[off]][CHROMA_POS_LUT[off]] + topLine[(mbX << 3) + i], -128, 127);
         }
     }
 
@@ -419,7 +419,7 @@ public final class ChromaPredictionBuilder {
             for (int i = 0; i < 8; i++, off++) {
                 final int val = (a + b * (i - 3) + c * (j - 3) + 16) >> 5;
                 pixOut[off] = (byte) MathUtil.clip(residual[CHROMA_BLOCK_LUT[off]][CHROMA_POS_LUT[off]] + MathUtil.clip(val, -128, 127),
-                    -128, 127);
+                        -128, 127);
             }
         }
     }

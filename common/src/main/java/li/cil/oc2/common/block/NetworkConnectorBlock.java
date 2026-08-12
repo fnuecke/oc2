@@ -46,13 +46,13 @@ public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirection
 
     public NetworkConnectorBlock() {
         super(Properties
-            .of()
-            .mapColor(MapColor.METAL)
-            .sound(SoundType.METAL)
-            .strength(1.5f, 6.0f));
+                .of()
+                .mapColor(MapColor.METAL)
+                .sound(SoundType.METAL)
+                .strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any()
-            .setValue(FACING, Direction.NORTH)
-            .setValue(FACE, AttachFace.WALL));
+                .setValue(FACING, Direction.NORTH)
+                .setValue(FACE, AttachFace.WALL));
     }
 
     // ------------------------------------------------------------- //

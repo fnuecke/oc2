@@ -37,7 +37,7 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
         ItemStackUtils.modifyBlockEntityDataTag(computer, BlockEntities.COMPUTER.get(), tag -> {
             final var itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
             itemsTag.put(key(DeviceTypes.FLASH_MEMORY), makeInventoryTag(provider,
-                new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
+                    new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
             ));
         });
 
@@ -50,16 +50,16 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
         ItemStackUtils.modifyBlockEntityDataTag(computer, BlockEntities.COMPUTER.get(), tag -> {
             final var itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
             itemsTag.put(key(DeviceTypes.MEMORY), makeInventoryTag(provider,
-                new ItemStack(Items.MEMORY_LARGE.get()),
-                new ItemStack(Items.MEMORY_LARGE.get()),
-                new ItemStack(Items.MEMORY_LARGE.get()),
-                new ItemStack(Items.MEMORY_LARGE.get())
+                    new ItemStack(Items.MEMORY_LARGE.get()),
+                    new ItemStack(Items.MEMORY_LARGE.get()),
+                    new ItemStack(Items.MEMORY_LARGE.get()),
+                    new ItemStack(Items.MEMORY_LARGE.get())
             ));
             itemsTag.put(key(DeviceTypes.HARD_DRIVE), makeInventoryTag(provider,
-                new ItemStack(Items.HARD_DRIVE_CUSTOM.get())
+                    new ItemStack(Items.HARD_DRIVE_CUSTOM.get())
             ));
             itemsTag.put(key(DeviceTypes.CARD), makeInventoryTag(provider,
-                new ItemStack(Items.NETWORK_INTERFACE_CARD.get())
+                    new ItemStack(Items.NETWORK_INTERFACE_CARD.get())
             ));
         });
 

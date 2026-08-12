@@ -43,6 +43,6 @@ public final class BusCableFacadeMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, BusCableBlockEntity.class,
-            busCable -> busCable.setFacade(stack));
+                busCable -> busCable.setFacade(stack));
     }
 }

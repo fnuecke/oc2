@@ -166,8 +166,8 @@ public final class MBWriterP16x16 {
             final int blkOffLeft = MB_DISP_OFF_LEFT[bIndx];
             final int blkOffTop = MB_DISP_OFF_TOP[bIndx];
             final int coeffToken = ctx.cavlc[0].writeACBlock(out, mbLeftBlk + blkOffLeft, mbTopBlk + blkOffTop,
-                blkOffLeft == 0 ? ctx.leftMBType : MBType.P_16x16, blkOffTop == 0 ? ctx.topMBType[mbX] : MBType.P_16x16, ac[dIdx],
-                H264Const.totalZeros16, 0, 16, CoeffTransformer.zigzag4x4);
+                    blkOffLeft == 0 ? ctx.leftMBType : MBType.P_16x16, blkOffTop == 0 ? ctx.topMBType[mbX] : MBType.P_16x16, ac[dIdx],
+                    H264Const.totalZeros16, 0, 16, CoeffTransformer.zigzag4x4);
             nc[dIdx] = coeffToken >> 4; // total coeff
         }
     }

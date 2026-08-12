@@ -40,7 +40,7 @@ public class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlockEnti
     @Override
     public boolean shouldRender(final ProjectorBlockEntity projector, final Vec3 position) {
         return !ProjectorDepthRenderer.isIsRenderingProjectorDepth() &&
-            BlockEntityRenderer.super.shouldRender(projector, position);
+                BlockEntityRenderer.super.shouldRender(projector, position);
     }
 
     @Override

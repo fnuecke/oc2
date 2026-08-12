@@ -36,7 +36,7 @@ public final class Frame extends Picture {
     public static Frame createFrame(final Frame pic) {
         final Picture comp = pic.createCompatible();
         return new Frame(comp.getWidth(), comp.getHeight(), comp.getData(), comp.getColor(),
-            pic.frameNo, pic.mvs, pic.refsUsed, pic.poc);
+                pic.frameNo, pic.mvs, pic.refsUsed, pic.poc);
     }
 
     public void copyFromFrame(final Frame src) {

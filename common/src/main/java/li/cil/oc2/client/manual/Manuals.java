@@ -43,16 +43,16 @@ public final class Manuals {
         contentProviders.register("content_provider", () -> new NamespaceDocumentProvider(API.MOD_ID, "doc"));
 
         tabs.register("home", () -> new TextureTab(
-            ManualModel.LANGUAGE_KEY + "/index.md",
-            Component.translatable("manual." + API.MOD_ID + ".home"),
-            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/home.png")));
+                ManualModel.LANGUAGE_KEY + "/index.md",
+                Component.translatable("manual." + API.MOD_ID + ".home"),
+                ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/home.png")));
         tabs.register("blocks", () -> new ItemStackTab(
-            ManualModel.LANGUAGE_KEY + "/block/index.md",
-            Component.translatable("manual." + API.MOD_ID + ".blocks"),
-            new ItemStack(Blocks.COMPUTER.get())));
+                ManualModel.LANGUAGE_KEY + "/block/index.md",
+                Component.translatable("manual." + API.MOD_ID + ".blocks"),
+                new ItemStack(Blocks.COMPUTER.get())));
         tabs.register("modules", () -> new ItemStackTab(
-            ManualModel.LANGUAGE_KEY + "/item/index.md",
-            Component.translatable("manual." + API.MOD_ID + ".items"),
-            new ItemStack(Items.TRANSISTOR.get())));
+                ManualModel.LANGUAGE_KEY + "/item/index.md",
+                Component.translatable("manual." + API.MOD_ID + ".items"),
+                new ItemStack(Items.TRANSISTOR.get())));
     }
 }

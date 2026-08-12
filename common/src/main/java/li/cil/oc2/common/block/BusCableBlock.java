@@ -25,11 +25,7 @@ import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -132,10 +128,10 @@ public final class BusCableBlock extends BaseEntityBlock {
 
     public BusCableBlock() {
         super(Properties
-            .of()
-            .mapColor(MapColor.METAL)
-            .sound(SoundType.METAL)
-            .strength(1.5f, 6.0f));
+                .of()
+                .mapColor(MapColor.METAL)
+                .sound(SoundType.METAL)
+                .strength(1.5f, 6.0f));
 
         BlockState defaultState = getStateDefinition().any();
         for (final EnumProperty<ConnectionType> property : FACING_TO_CONNECTION_MAP.values()) {
@@ -210,7 +206,7 @@ public final class BusCableBlock extends BaseEntityBlock {
     @Override
     protected ItemInteractionResult useItemOn(final ItemStack heldItem, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
         if (heldItem.getItem() == Items.BUS_CABLE.get() ||
-            heldItem.getItem() == Items.BUS_INTERFACE.get()) {
+                heldItem.getItem() == Items.BUS_INTERFACE.get()) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
 
@@ -316,7 +312,7 @@ public final class BusCableBlock extends BaseEntityBlock {
             final Direction facing = entry.getKey();
             final BlockPos facingPos = position.relative(facing);
             if (context.getItemInHand().getItem() == Items.BUS_CABLE.get() &&
-                canHaveCableTo(level.getBlockState(facingPos), facing.getOpposite())) {
+                    canHaveCableTo(level.getBlockState(facingPos), facing.getOpposite())) {
                 state = state.setValue(entry.getValue(), ConnectionType.CABLE);
             }
         }
@@ -409,8 +405,8 @@ public final class BusCableBlock extends BaseEntityBlock {
 
     private static boolean canHaveCableTo(final BlockState state, final Direction side) {
         return state.getBlock() == Blocks.BUS_CABLE.get() &&
-            state.getValue(HAS_CABLE) &&
-            state.getValue(FACING_TO_CONNECTION_MAP.get(side)) != ConnectionType.INTERFACE;
+                state.getValue(HAS_CABLE) &&
+                state.getValue(FACING_TO_CONNECTION_MAP.get(side)) != ConnectionType.INTERFACE;
     }
 
     private static int getPartCount(final BlockState state) {
@@ -531,17 +527,17 @@ public final class BusCableBlock extends BaseEntityBlock {
         final Direction xDirection = zDirection.getAxis() == Direction.Axis.Y ? Direction.WEST : zDirection.getClockWise();
 
         final Vec3i min = new Vec3i(8, 8, 8)
-            .relative(xDirection, -xSize / 2)
-            .relative(yDirection, -ySize / 2)
-            .relative(zDirection, 8 - zSize);
+                .relative(xDirection, -xSize / 2)
+                .relative(yDirection, -ySize / 2)
+                .relative(zDirection, 8 - zSize);
         final Vec3i max = new Vec3i(8, 8, 8)
-            .relative(xDirection, xSize / 2)
-            .relative(yDirection, ySize / 2)
-            .relative(zDirection, 8);
+                .relative(xDirection, xSize / 2)
+                .relative(yDirection, ySize / 2)
+                .relative(zDirection, 8);
 
         final AABB bounds = new AABB(
-            Vec3.atLowerCornerOf(min).scale(1 / 16.0),
-            Vec3.atLowerCornerOf(max).scale(1 / 16.0)
+                Vec3.atLowerCornerOf(min).scale(1 / 16.0),
+                Vec3.atLowerCornerOf(max).scale(1 / 16.0)
         );
 
         return Shapes.create(bounds);
@@ -556,17 +552,17 @@ public final class BusCableBlock extends BaseEntityBlock {
         final Direction xDirection = zDirection.getAxis() == Direction.Axis.Y ? Direction.WEST : zDirection.getClockWise();
 
         final Vec3i min = new Vec3i(8, 8, 8)
-            .relative(xDirection, -xSize / 2)
-            .relative(yDirection, -ySize / 2)
-            .relative(zDirection, 8 - zSize);
+                .relative(xDirection, -xSize / 2)
+                .relative(yDirection, -ySize / 2)
+                .relative(zDirection, 8 - zSize);
         final Vec3i max = new Vec3i(8, 8, 8)
-            .relative(xDirection, xSize / 2)
-            .relative(yDirection, ySize / 2)
-            .relative(zDirection, 8);
+                .relative(xDirection, xSize / 2)
+                .relative(yDirection, ySize / 2)
+                .relative(zDirection, 8);
 
         final AABB bounds = new AABB(
-            Vec3.atLowerCornerOf(min).scale(1 / 16.0),
-            Vec3.atLowerCornerOf(max).scale(1 / 16.0)
+                Vec3.atLowerCornerOf(min).scale(1 / 16.0),
+                Vec3.atLowerCornerOf(max).scale(1 / 16.0)
         );
 
         return Shapes.or(getCableShape(zDirection), Shapes.create(bounds));

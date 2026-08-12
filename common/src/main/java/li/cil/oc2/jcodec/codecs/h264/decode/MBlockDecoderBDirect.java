@@ -60,7 +60,7 @@ public final class MBlockDecoderBDirect extends MBlockDecoderBase {
         di.mbQps[2][mbAddr] = qp2;
 
         MBlockDecoderUtils.mergeResidual(mb, mBlock.ac, mBlock.transform8x8Used ? COMP_BLOCK_8x8_LUT : COMP_BLOCK_4x4_LUT,
-            mBlock.transform8x8Used ? COMP_POS_8x8_LUT : COMP_POS_4x4_LUT);
+                mBlock.transform8x8Used ? COMP_POS_8x8_LUT : COMP_POS_4x4_LUT);
 
         MBlockDecoderUtils.collectPredictors(s, mb, mbX);
 
@@ -108,12 +108,12 @@ public final class MBlockDecoderBDirect extends MBlockDecoderBase {
                 final int blkPredY = (mbY << 6) + (blkIndY << 4);
 
                 interpolator.getBlockLuma(refs[0][x.mv0R(blk4x4_0)], mbb[0], BLK_4x4_MB_OFF_LUMA[blk4x4_0], blkPredX
-                    + x.mv0X(blk4x4_0), blkPredY + x.mv0Y(blk4x4_0), 8, 8);
+                        + x.mv0X(blk4x4_0), blkPredY + x.mv0Y(blk4x4_0), 8, 8);
                 interpolator.getBlockLuma(refs[1][0], mbb[1], BLK_4x4_MB_OFF_LUMA[blk4x4_0], blkPredX
-                    + x.mv1X(blk4x4_0), blkPredY + x.mv1Y(blk4x4_0), 8, 8);
+                        + x.mv1X(blk4x4_0), blkPredY + x.mv1Y(blk4x4_0), 8, 8);
             }
             PredictionMerger.mergePrediction(sh, x.mv0R(blk4x4_0), x.mv1R(blk4x4_0), Bi, 0, mbb[0].getPlaneData(0), mbb[1].getPlaneData(0),
-                BLK_4x4_MB_OFF_LUMA[blk4x4_0], 16, 8, 8, mb.getPlaneData(0), refs, poc);
+                    BLK_4x4_MB_OFF_LUMA[blk4x4_0], 16, 8, 8, mb.getPlaneData(0), refs, poc);
         }
     }
 
@@ -153,7 +153,7 @@ public final class MBlockDecoderBDirect extends MBlockDecoderBase {
             final int dsf = MathUtil.clip((tb * tx + 32) >> 6, -1024, 1023);
 
             x.setPair(blk4x4, packMv((dsf * mvX(mvCol) + 128) >> 8, (dsf * mvY(mvCol) + 128) >> 8, refIdxL0),
-                packMv((x.mv0X(blk4x4) - mvX(mvCol)), (x.mv0Y(blk4x4) - mvY(mvCol)), 0));
+                    packMv((x.mv0X(blk4x4) - mvX(mvCol)), (x.mv0Y(blk4x4) - mvY(mvCol)), 0));
         }
     }
 
@@ -189,11 +189,11 @@ public final class MBlockDecoderBDirect extends MBlockDecoderBase {
                 final int blkOffX = (blk8x8 & 1) << 5;
                 final int blkOffY = (blk8x8 >> 1) << 5;
                 interpolator.getBlockLuma(refs[0][0], mbb[0], BLK_8x8_MB_OFF_LUMA[blk8x8], (mbX << 6) + blkOffX,
-                    (mbY << 6) + blkOffY, 8, 8);
+                        (mbY << 6) + blkOffY, 8, 8);
                 interpolator.getBlockLuma(refs[1][0], mbb[1], BLK_8x8_MB_OFF_LUMA[blk8x8], (mbX << 6) + blkOffX,
-                    (mbY << 6) + blkOffY, 8, 8);
+                        (mbY << 6) + blkOffY, 8, 8);
                 PredictionMerger.mergePrediction(sh, 0, 0, PartPred.Bi, 0, mbb[0].getPlaneData(0), mbb[1].getPlaneData(0),
-                    BLK_8x8_MB_OFF_LUMA[blk8x8], 16, 8, 8, mb.getPlaneData(0), refs, poc);
+                        BLK_8x8_MB_OFF_LUMA[blk8x8], 16, 8, 8, mb.getPlaneData(0), refs, poc);
             }
             return;
         }
@@ -220,10 +220,10 @@ public final class MBlockDecoderBDirect extends MBlockDecoderBase {
 
                     if (refIdxL0 >= 0)
                         interpolator.getBlockLuma(refs[0][refIdxL0], mbb[0], BLK_4x4_MB_OFF_LUMA[blk4x4], blkPredX
-                            + x.mv0X(blk4x4), blkPredY + x.mv0Y(blk4x4), 4, 4);
+                                + x.mv0X(blk4x4), blkPredY + x.mv0Y(blk4x4), 4, 4);
                     if (refIdxL1 >= 0)
                         interpolator.getBlockLuma(refs[1][refIdxL1], mbb[1], BLK_4x4_MB_OFF_LUMA[blk4x4], blkPredX
-                            + x.mv1X(blk4x4), blkPredY + x.mv1Y(blk4x4), 4, 4);
+                                + x.mv1X(blk4x4), blkPredY + x.mv1Y(blk4x4), 4, 4);
                 }
             } else {
                 final int blk4x4Pred = BLK_DISP_MAP[blk8x8 * 5];
@@ -238,14 +238,14 @@ public final class MBlockDecoderBDirect extends MBlockDecoderBase {
 
                 if (refIdxL0 >= 0)
                     interpolator.getBlockLuma(refs[0][refIdxL0], mbb[0], BLK_4x4_MB_OFF_LUMA[blk4x4_0], blkPredX
-                        + x.mv0X(blk4x4_0), blkPredY + x.mv0Y(blk4x4_0), 8, 8);
+                            + x.mv0X(blk4x4_0), blkPredY + x.mv0Y(blk4x4_0), 8, 8);
                 if (refIdxL1 >= 0)
                     interpolator.getBlockLuma(refs[1][refIdxL1], mbb[1], BLK_4x4_MB_OFF_LUMA[blk4x4_0], blkPredX
-                        + x.mv1X(blk4x4_0), blkPredY + x.mv1Y(blk4x4_0), 8, 8);
+                            + x.mv1X(blk4x4_0), blkPredY + x.mv1Y(blk4x4_0), 8, 8);
             }
             PredictionMerger.mergePrediction(sh, x.mv0R(blk4x4_0), x.mv1R(blk4x4_0),
-                refIdxL0 >= 0 ? (refIdxL1 >= 0 ? Bi : L0) : L1, 0, mbb[0].getPlaneData(0), mbb[1].getPlaneData(0),
-                BLK_4x4_MB_OFF_LUMA[blk4x4_0], 16, 8, 8, mb.getPlaneData(0), refs, poc);
+                    refIdxL0 >= 0 ? (refIdxL1 >= 0 ? Bi : L0) : L1, 0, mbb[0].getPlaneData(0), mbb[1].getPlaneData(0),
+                    BLK_4x4_MB_OFF_LUMA[blk4x4_0], 16, 8, 8, mb.getPlaneData(0), refs, poc);
         }
     }
 
@@ -277,7 +277,7 @@ public final class MBlockDecoderBDirect extends MBlockDecoderBase {
             mvCol = col.getMvs().getMv(blkPosX, blkPosY, 1);
 
         final boolean colZero = col.isShortTerm() && mvRef(mvCol) == 0 && (MathUtil.abs(mvX(mvCol)) >> 1) == 0
-            && (MathUtil.abs(mvY(mvCol)) >> 1) == 0;
+                && (MathUtil.abs(mvY(mvCol)) >> 1) == 0;
 
         int x0 = packMv(0, 0, refL0), x1 = packMv(0, 0, refL1);
         if (refL0 > 0 || !colZero) {

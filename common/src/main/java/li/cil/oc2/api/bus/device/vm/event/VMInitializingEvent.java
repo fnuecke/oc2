@@ -21,4 +21,5 @@ import li.cil.oc2.api.bus.device.vm.context.VMContext;
  * <p>
  * <em>This is invoked from the worker thread running the VM.</em>
  */
-public record VMInitializingEvent(long programStartAddress) { }
+public record VMInitializingEvent(long programStartAddress) {
+}

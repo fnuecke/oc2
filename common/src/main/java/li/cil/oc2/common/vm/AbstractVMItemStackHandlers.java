@@ -24,7 +24,8 @@ import java.util.stream.Collectors;
 import static li.cil.oc2.common.bus.device.DeviceTypes.key;
 
 public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers {
-    public record GroupDefinition(DeviceType deviceType, int count) { }
+    public record GroupDefinition(DeviceType deviceType, int count) {
+    }
 
     // ------------------------------------------------------------- //
 
@@ -118,12 +119,12 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     public void loadItems(final HolderLookup.Provider registries, final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
-            handler.loadItems(registries, tag.getCompound(key(deviceType))));
+                handler.loadItems(registries, tag.getCompound(key(deviceType))));
     }
 
     public void saveDevices(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
-            tag.put(key(deviceType), handler.saveDevices()));
+                tag.put(key(deviceType), handler.saveDevices()));
     }
 
     public CompoundTag saveDevices() {
@@ -134,7 +135,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     public void loadDevices(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
-            handler.loadDevices(tag.getCompound(key(deviceType))));
+                handler.loadDevices(tag.getCompound(key(deviceType))));
     }
 
     // ------------------------------------------------------------- //
@@ -181,8 +182,8 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         @Override
         public Optional<Collection<Invalidatable<DeviceBusElement>>> getNeighbors() {
             return Optional.of(itemHandlers.values().stream()
-                .map(handler -> Invalidatable.of((DeviceBusElement) handler.getBusElement()))
-                .collect(Collectors.toList()));
+                    .map(handler -> Invalidatable.of((DeviceBusElement) handler.getBusElement()))
+                    .collect(Collectors.toList()));
         }
     }
 }

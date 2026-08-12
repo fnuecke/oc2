@@ -17,7 +17,8 @@ public final class RobotTerminalScreen extends AbstractMachineTerminalScreen<Rob
 
     // ------------------------------------------------------------- //
 
-    @SuppressWarnings("all") private EditBox focusIndicatorEditBox;
+    @SuppressWarnings("all")
+    private EditBox focusIndicatorEditBox;
 
     // ------------------------------------------------------------- //
 

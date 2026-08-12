@@ -52,7 +52,7 @@ public final class BlockDeviceBusController extends CommonDeviceBusController {
         super.setDeviceContainersChanged();
         for (final ChunkLocation location : busChunks) {
             location.tryGetLevel().ifPresent(level ->
-                ChunkUtils.setLazyUnsaved(level, location.position()));
+                    ChunkUtils.setLazyUnsaved(level, location.position()));
         }
     }
 

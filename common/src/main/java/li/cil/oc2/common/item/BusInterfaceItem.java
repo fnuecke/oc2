@@ -87,10 +87,10 @@ public final class BusInterfaceItem extends ModBlockItem implements CreativeTabI
         }
 
         final EnumProperty<ConnectionType> connectionTypeProperty =
-            BusCableBlock.FACING_TO_CONNECTION_MAP.get(context.getClickedFace().getOpposite());
+                BusCableBlock.FACING_TO_CONNECTION_MAP.get(context.getClickedFace().getOpposite());
         return state
-            .setValue(BusCableBlock.HAS_CABLE, false)
-            .setValue(connectionTypeProperty, ConnectionType.INTERFACE);
+                .setValue(BusCableBlock.HAS_CABLE, false)
+                .setValue(connectionTypeProperty, ConnectionType.INTERFACE);
     }
 
     // ------------------------------------------------------------- //

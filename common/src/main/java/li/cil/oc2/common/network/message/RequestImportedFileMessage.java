@@ -62,7 +62,7 @@ public final class RequestImportedFileMessage extends AbstractMessage {
                     if (data.length > FileImportExportCardItemDevice.MAX_TRANSFERRED_FILE_SIZE) {
                         Network.sendToServer(new ClientCanceledImportFileMessage(id));
                         Minecraft.getInstance().gui.getChat().addMessage(FILE_TOO_LARGE_TEXT
-                            .withStyle(s -> s.withColor(TextColor.fromRgb(0xFFA0A0))));
+                                .withStyle(s -> s.withColor(TextColor.fromRgb(0xFFA0A0))));
                     } else {
                         MultipartMessage.sendToServer(new ImportedFileMessage(id, fileName, data));
                     }

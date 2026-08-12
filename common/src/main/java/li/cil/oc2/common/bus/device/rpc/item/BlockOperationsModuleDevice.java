@@ -146,10 +146,10 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         final BlockPos blockPos = entity.blockPosition().relative(direction);
         final Direction oppositeDirection = direction.getOpposite();
         final BlockHitResult hit = new BlockHitResult(
-            Vec3.atCenterOf(blockPos).add(Vec3.atCenterOf(oppositeDirection.getNormal()).scale(0.5)),
-            oppositeDirection,
-            blockPos,
-            false);
+                Vec3.atCenterOf(blockPos).add(Vec3.atCenterOf(oppositeDirection.getNormal()).scale(0.5)),
+                oppositeDirection,
+                blockPos,
+                false);
 
         final ItemStack itemStack = extracted.copy();
         final ServerPlayer player = FakePlayerUtils.getFakePlayer(serverLevel, entity);

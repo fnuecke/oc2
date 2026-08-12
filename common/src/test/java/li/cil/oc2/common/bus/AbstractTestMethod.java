@@ -30,7 +30,8 @@ abstract class AbstractTestMethod extends AbstractRPCMethod {
     }
 
     private static final class TestParameter implements RPCParameter {
-        @Nullable private final String name;
+        @Nullable
+        private final String name;
         private final Class<?> type;
 
         public TestParameter(@Nullable final String name, final Class<?> type) {

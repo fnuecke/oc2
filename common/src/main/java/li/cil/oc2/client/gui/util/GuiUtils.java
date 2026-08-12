@@ -40,8 +40,8 @@ public final class GuiUtils {
         graphics.pose().pushPose();
         graphics.pose().translate(0, 0, 100);
         findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> icon.draw(graphics,
-            screen.leftPos + slot.x - 1 + RELATIVE_ICON_POSITION,
-            screen.topPos + slot.y - 1 + RELATIVE_ICON_POSITION));
+                screen.leftPos + slot.x - 1 + RELATIVE_ICON_POSITION,
+                screen.topPos + slot.y - 1 + RELATIVE_ICON_POSITION));
         graphics.pose().popPose();
     }
 

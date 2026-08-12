@@ -24,20 +24,20 @@ public final class PredictionMerger {
             weightPrediction(sh, refIdxL0, comp, pred0, off, stride, blkW, blkH, out);
         } else {
             if (!pps.weightedPredFlag || sh.pps.weightedBipredIdc == 0
-                || (sh.pps.weightedBipredIdc == 2 && predType != Bi)) {
+                    || (sh.pps.weightedBipredIdc == 2 && predType != Bi)) {
                 mergeAvg(pred0, pred1, stride, predType, off, blkW, blkH, out);
             } else if (sh.pps.weightedBipredIdc == 1) {
                 final PredictionWeightTable w = sh.predWeightTable;
                 final int w0 = refIdxL0 == -1 ? 0 : (comp == 0 ? w.lumaWeight[0][refIdxL0]
-                    : w.chromaWeight[0][comp - 1][refIdxL0]);
+                        : w.chromaWeight[0][comp - 1][refIdxL0]);
                 final int w1 = refIdxL1 == -1 ? 0 : (comp == 0 ? w.lumaWeight[1][refIdxL1]
-                    : w.chromaWeight[1][comp - 1][refIdxL1]);
+                        : w.chromaWeight[1][comp - 1][refIdxL1]);
                 final int o0 = refIdxL0 == -1 ? 0 : (comp == 0 ? w.lumaOffset[0][refIdxL0]
-                    : w.chromaOffset[0][comp - 1][refIdxL0]);
+                        : w.chromaOffset[0][comp - 1][refIdxL0]);
                 final int o1 = refIdxL1 == -1 ? 0 : (comp == 0 ? w.lumaOffset[1][refIdxL1]
-                    : w.chromaOffset[1][comp - 1][refIdxL1]);
+                        : w.chromaOffset[1][comp - 1][refIdxL1]);
                 mergeWeight(pred0, pred1, stride, predType, off, blkW, blkH, comp == 0 ? w.lumaLog2WeightDenom
-                    : w.chromaLog2WeightDenom, w0, w1, o0, o1, out);
+                        : w.chromaLog2WeightDenom, w0, w1, o0, o1, out);
             } else {
                 final int tb = MathUtil.clip(thisPoc - refs[0][refIdxL0].getPOC(), -128, 127);
                 final int td = MathUtil.clip(refs[1][refIdxL1].getPOC() - refs[0][refIdxL0].getPOC(), -128, 127);
@@ -63,9 +63,9 @@ public final class PredictionMerger {
         if (pps.weightedPredFlag && sh.predWeightTable != null) {
             final PredictionWeightTable w = sh.predWeightTable;
             weight(pred0, stride, off, blkW, blkH, comp == 0 ? w.lumaLog2WeightDenom
-                : w.chromaLog2WeightDenom, comp == 0 ? w.lumaWeight[0][refIdxL0]
-                : w.chromaWeight[0][comp - 1][refIdxL0], comp == 0 ? w.lumaOffset[0][refIdxL0]
-                : w.chromaOffset[0][comp - 1][refIdxL0], out);
+                    : w.chromaLog2WeightDenom, comp == 0 ? w.lumaWeight[0][refIdxL0]
+                    : w.chromaWeight[0][comp - 1][refIdxL0], comp == 0 ? w.lumaOffset[0][refIdxL0]
+                    : w.chromaOffset[0][comp - 1][refIdxL0], out);
         } else {
             copyPrediction(pred0, stride, off, blkW, blkH, out);
         }

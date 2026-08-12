@@ -15,5 +15,6 @@ public record RefPicMarking(Instruction[] instructions) {
         REMOVE_SHORT, REMOVE_LONG, CONVERT_INTO_LONG, TRUNK_LONG, CLEAR, MARK_LONG
     }
 
-    public record Instruction(InstrType type, int arg1, int arg2) { }
+    public record Instruction(InstrType type, int arg1, int arg2) {
+    }
 }

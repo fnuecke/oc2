@@ -9,10 +9,10 @@ import java.util.function.Consumer;
 
 public final class TerminalUtils {
     private static final ByteBuffer TERMINAL_RESET_SEQUENCE = ByteBuffer.wrap(new byte[]{
-        // Make sure we're in normal mode.
-        'J',
-        // Reset.
-        '\033', 'c',
+            // Make sure we're in normal mode.
+            'J',
+            // Reset.
+            '\033', 'c',
     });
 
     // ------------------------------------------------------------- //

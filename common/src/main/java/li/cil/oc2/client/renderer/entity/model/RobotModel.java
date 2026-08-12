@@ -43,17 +43,17 @@ public final class RobotModel extends EntityModel<Robot> {
         final MeshDefinition meshDefinition = new MeshDefinition();
         final PartDefinition partDefinition = meshDefinition.getRoot();
         partDefinition.addOrReplaceChild("top", CubeListBuilder.create()
-                .texOffs(1, 1)
-                .addBox(-7, 8, -7, 14, 6, 14),
-            PartPose.ZERO);
+                        .texOffs(1, 1)
+                        .addBox(-7, 8, -7, 14, 6, 14),
+                PartPose.ZERO);
         partDefinition.addOrReplaceChild("base", CubeListBuilder.create()
-                .texOffs(1, 23)
-                .addBox(-7, 0, -7, 14, 7, 14),
-            PartPose.ZERO);
+                        .texOffs(1, 23)
+                        .addBox(-7, 0, -7, 14, 7, 14),
+                PartPose.ZERO);
         partDefinition.addOrReplaceChild("core", CubeListBuilder.create()
-                .texOffs(1, 34)
-                .addBox(-6, 7, -6, 12, 1, 12),
-            PartPose.ZERO);
+                        .texOffs(1, 34)
+                        .addBox(-6, 7, -6, 12, 1, 12),
+                PartPose.ZERO);
         return LayerDefinition.create(meshDefinition, 64, 64);
     }
 
@@ -72,7 +72,7 @@ public final class RobotModel extends EntityModel<Robot> {
         stack.pushPose();
         stack.translate(0, topY, 0);
         stack.mulPose(new Quaternionf().rotationXYZ(
-            topRotation[0] * Mth.DEG_TO_RAD, topRotation[1] * Mth.DEG_TO_RAD, topRotation[2] * Mth.DEG_TO_RAD));
+                topRotation[0] * Mth.DEG_TO_RAD, topRotation[1] * Mth.DEG_TO_RAD, topRotation[2] * Mth.DEG_TO_RAD));
         topRenderer.render(stack, consumer, packedLight, packedOverlay, color);
         stack.popPose();
 

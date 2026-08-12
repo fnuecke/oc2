@@ -43,9 +43,9 @@ public final class ProjectorBlock extends HorizontalDirectionalBlock implements 
     // We bake the visual indents on the front and sides into the collision shape, to prevent stuff being
     // placeable on those sides, such as network connectors, torches, etc.
     private static final VoxelShape NEG_Z_SHAPE = Shapes.join(Shapes.block(), Shapes.or(
-        Shapes.box(0 / 16f, 2 / 16f, 2 / 16f, 1 / 16f, 6 / 16f, 14 / 16f),
-        Shapes.box(15 / 16f, 2 / 16f, 2 / 16f, 16 / 16f, 6 / 16f, 14 / 16f),
-        Shapes.box(4 / 16f, 4 / 16f, 0 / 16f, 12 / 16f, 12 / 16f, 2 / 16f)
+            Shapes.box(0 / 16f, 2 / 16f, 2 / 16f, 1 / 16f, 6 / 16f, 14 / 16f),
+            Shapes.box(15 / 16f, 2 / 16f, 2 / 16f, 16 / 16f, 6 / 16f, 14 / 16f),
+            Shapes.box(4 / 16f, 4 / 16f, 0 / 16f, 12 / 16f, 12 / 16f, 2 / 16f)
     ), (a, b) -> a && !b);
     private static final VoxelShape NEG_X_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_Z_SHAPE);
     private static final VoxelShape POS_Z_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_X_SHAPE);
@@ -53,14 +53,14 @@ public final class ProjectorBlock extends HorizontalDirectionalBlock implements 
 
     public ProjectorBlock() {
         super(Properties
-            .of()
-            .mapColor(MapColor.METAL)
-            .sound(SoundType.METAL)
-            .lightLevel(state -> state.getValue(LIT) ? 8 : 0)
-            .strength(1.5f, 6.0f));
+                .of()
+                .mapColor(MapColor.METAL)
+                .sound(SoundType.METAL)
+                .lightLevel(state -> state.getValue(LIT) ? 8 : 0)
+                .strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any()
-            .setValue(FACING, Direction.NORTH)
-            .setValue(LIT, false));
+                .setValue(FACING, Direction.NORTH)
+                .setValue(LIT, false));
     }
 
     // ------------------------------------------------------------- //

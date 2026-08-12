@@ -16,7 +16,8 @@ import java.util.Objects;
 
 public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem implements ColoredItem, CreativeTabItemProvider {
     private final int defaultColor;
-    @Nullable private String descriptionId;
+    @Nullable
+    private String descriptionId;
 
     // ------------------------------------------------------------- //
 

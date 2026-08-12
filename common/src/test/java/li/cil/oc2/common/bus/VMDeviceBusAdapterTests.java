@@ -283,7 +283,7 @@ public final class VMDeviceBusAdapterTests {
 
         final int someInterruptMask = 0x1;
         assertThrows(IllegalArgumentException.class, () ->
-            deviceData.context.getInterruptController().raiseInterrupts(someInterruptMask));
+                deviceData.context.getInterruptController().raiseInterrupts(someInterruptMask));
     }
 
     @Test
@@ -321,7 +321,7 @@ public final class VMDeviceBusAdapterTests {
             final VMContext context = invocation.getArgument(0);
 
             assertThrows(UnsupportedOperationException.class, () ->
-                context.getMemoryMap().addDevice(0, mock(MemoryMappedDevice.class)));
+                    context.getMemoryMap().addDevice(0, mock(MemoryMappedDevice.class)));
 
             return VMDeviceLoadResult.success();
         });

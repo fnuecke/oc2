@@ -47,12 +47,12 @@ public final class MBlockDecoderIntraNxN extends MBlockDecoderBase {
                 final int blkY = dInd & ~3;
 
                 final boolean trAvailable = ((bInd == 0 || bInd == 1 || bInd == 4) && topAvailable)
-                    || (bInd == 5 && topRightAvailable) || bInd == 2 || bInd == 6 || bInd == 8 || bInd == 9 || bInd == 10
-                    || bInd == 12 || bInd == 14;
+                        || (bInd == 5 && topRightAvailable) || bInd == 2 || bInd == 6 || bInd == 8 || bInd == 9 || bInd == 10
+                        || bInd == 12 || bInd == 14;
 
                 Intra4x4PredictionBuilder.predictWithMode(mBlock.lumaModes[bInd], mBlock.ac[0][bInd],
-                    blkX != 0 || leftAvailable, blkY != 0 || topAvailable, trAvailable, s.leftRow[0],
-                    s.topLine[0], s.topLeft[0], (mbX << 4), blkX, blkY, mb.getPlaneData(0));
+                        blkX != 0 || leftAvailable, blkY != 0 || topAvailable, trAvailable, s.leftRow[0],
+                        s.topLine[0], s.topLeft[0], (mbX << 4), blkX, blkY, mb.getPlaneData(0));
             }
         } else {
             for (int i = 0; i < 4; i++) {
@@ -63,8 +63,8 @@ public final class MBlockDecoderIntraNxN extends MBlockDecoderBase {
                 final boolean tlAvailable = i == 0 ? topLeftAvailable : (i == 1 ? topAvailable : (i != 2 || leftAvailable));
 
                 prediction8x8Builder.predictWithMode(mBlock.lumaModes[i], mBlock.ac[0][i],
-                    blkX != 0 || leftAvailable, blkY != 0 || topAvailable, tlAvailable, trAvailable,
-                    s.leftRow[0], s.topLine[0], s.topLeft[0], (mbX << 4), blkX << 2, blkY << 2, mb.getPlaneData(0));
+                        blkX != 0 || leftAvailable, blkY != 0 || topAvailable, tlAvailable, trAvailable,
+                        s.leftRow[0], s.topLine[0], s.topLeft[0], (mbX << 4), blkX << 2, blkY << 2, mb.getPlaneData(0));
             }
         }
 

@@ -48,10 +48,10 @@ public final class NetworkTunnelScreen extends AbstractModContainerScreen<Networ
         super.init();
 
         linkButton = addRenderableWidget(new ImageButton(
-            leftPos + LINK_BUTTON_LEFT, topPos + LINK_BUTTON_TOP,
-            Sprites.NETWORK_TUNNEL_LINK_BUTTON_INACTIVE.width, Sprites.NETWORK_TUNNEL_LINK_BUTTON_INACTIVE.height,
-            Sprites.NETWORK_TUNNEL_LINK_BUTTON_INACTIVE,
-            Sprites.NETWORK_TUNNEL_LINK_BUTTON_ACTIVE) {
+                leftPos + LINK_BUTTON_LEFT, topPos + LINK_BUTTON_TOP,
+                Sprites.NETWORK_TUNNEL_LINK_BUTTON_INACTIVE.width, Sprites.NETWORK_TUNNEL_LINK_BUTTON_INACTIVE.height,
+                Sprites.NETWORK_TUNNEL_LINK_BUTTON_INACTIVE,
+                Sprites.NETWORK_TUNNEL_LINK_BUTTON_ACTIVE) {
             @Override
             public void onPress() {
                 super.onPress();

@@ -34,12 +34,12 @@ public final class CapabilitiesImpl {
 
         if (type == Capabilities.ENERGY_STORAGE) {
             return (T) NeoForgeCapabilityAdapters.energy(
-                blockEntity.getLevel().getCapability(EnergyStorage.BLOCK, blockEntity.getBlockPos(), side));
+                    blockEntity.getLevel().getCapability(EnergyStorage.BLOCK, blockEntity.getBlockPos(), side));
         }
 
         if (type == Capabilities.ITEM_HANDLER) {
             return (T) NeoForgeCapabilityAdapters.items(
-                blockEntity.getLevel().getCapability(ItemHandler.BLOCK, blockEntity.getBlockPos(), side));
+                    blockEntity.getLevel().getCapability(ItemHandler.BLOCK, blockEntity.getBlockPos(), side));
         }
 
         final BlockCapability<T, Direction> capability = (BlockCapability<T, Direction>) BLOCK.get(type);
@@ -89,19 +89,19 @@ public final class CapabilitiesImpl {
     @SuppressWarnings("unchecked")
     static <T> BlockCapability<T, Direction> block(final CapabilityType<T> type) {
         return (BlockCapability<T, Direction>) BLOCK.computeIfAbsent(type,
-            t -> BlockCapability.createSided(t.id(), t.type()));
+                t -> BlockCapability.createSided(t.id(), t.type()));
     }
 
     @SuppressWarnings("unchecked")
     static <T> ItemCapability<T, Void> item(final CapabilityType<T> type) {
         return (ItemCapability<T, Void>) ITEM.computeIfAbsent(type,
-            t -> ItemCapability.createVoid(t.id(), t.type()));
+                t -> ItemCapability.createVoid(t.id(), t.type()));
     }
 
     @SuppressWarnings("unchecked")
     static <T> EntityCapability<T, Direction> entity(final CapabilityType<T> type) {
         return (EntityCapability<T, Direction>) ENTITY.computeIfAbsent(type,
-            t -> EntityCapability.createSided(t.id(), t.type()));
+                t -> EntityCapability.createSided(t.id(), t.type()));
     }
 
     private CapabilitiesImpl() {

@@ -34,12 +34,12 @@ public final class SimpleFramebufferDeviceProvider implements DeviceTreeProvider
     public void visit(final DeviceTree node, final MemoryMap memoryMap, final Device device) {
         final SimpleFramebufferDevice fb = (SimpleFramebufferDevice) device;
         node
-            .addProp(DevicePropertyNames.COMPATIBLE, "simple-framebuffer")
-            .addProp("width", fb.getWidth())
-            .addProp("height", fb.getHeight())
-            .addProp("stride", fb.getWidth() * SimpleFramebufferDevice.STRIDE)
-            .addProp("format", "r5g6b5")
-            .addProp("no-map")
-            .addProp(DevicePropertyNames.STATUS, "okay");
+                .addProp(DevicePropertyNames.COMPATIBLE, "simple-framebuffer")
+                .addProp("width", fb.getWidth())
+                .addProp("height", fb.getHeight())
+                .addProp("stride", fb.getWidth() * SimpleFramebufferDevice.STRIDE)
+                .addProp("format", "r5g6b5")
+                .addProp("no-map")
+                .addProp(DevicePropertyNames.STATUS, "okay");
     }
 }

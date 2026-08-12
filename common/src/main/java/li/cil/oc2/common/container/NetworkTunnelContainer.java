@@ -76,9 +76,9 @@ public final class NetworkTunnelContainer extends AbstractContainer {
         final ItemStack tunnelB = linkSlot.getItem(0);
 
         if (tunnelA.isEmpty() ||
-            tunnelB.isEmpty() ||
-            !tunnelA.is(ItemTags.DEVICES_NETWORK_TUNNEL) ||
-            !tunnelB.is(ItemTags.DEVICES_NETWORK_TUNNEL)) {
+                tunnelB.isEmpty() ||
+                !tunnelA.is(ItemTags.DEVICES_NETWORK_TUNNEL) ||
+                !tunnelB.is(ItemTags.DEVICES_NETWORK_TUNNEL)) {
             return;
         }
 

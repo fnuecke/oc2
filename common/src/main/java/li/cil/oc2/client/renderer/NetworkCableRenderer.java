@@ -149,10 +149,10 @@ public final class NetworkCableRenderer {
             }
 
             final Vec3 p2 = animateCableSwing(
-                lerp(p0, p1, 0.5f).subtract(0, computeCableHang(p0, p1), 0),
-                connection.right,
-                computeCableSwingAmount(p0, p1),
-                connection.hashCode());
+                    lerp(p0, p1, 0.5f).subtract(0, computeCableHang(p0, p1), 0),
+                    connection.right,
+                    computeCableSwingAmount(p0, p1),
+                    connection.hashCode());
 
             final VertexConsumer consumer = bufferSource.getBuffer(renderType);
 
@@ -179,17 +179,17 @@ public final class NetworkCableRenderer {
                 final CablePoint pb = cablePoints.get(i + 1);
 
                 consumer.addVertex(viewMatrix, pa.v0.x(), pa.v0.y(), pa.v0.z())
-                    .setColor(r, g, b, 1f)
-                    .setLight(pa.packedLight);
+                        .setColor(r, g, b, 1f)
+                        .setLight(pa.packedLight);
                 consumer.addVertex(viewMatrix, pa.v1.x(), pa.v1.y(), pa.v1.z())
-                    .setColor(r, g, b, 1f)
-                    .setLight(pa.packedLight);
+                        .setColor(r, g, b, 1f)
+                        .setLight(pa.packedLight);
                 consumer.addVertex(viewMatrix, pb.v1.x(), pb.v1.y(), pb.v1.z())
-                    .setColor(r, g, b, 1f)
-                    .setLight(pa.packedLight);
+                        .setColor(r, g, b, 1f)
+                        .setLight(pa.packedLight);
                 consumer.addVertex(viewMatrix, pb.v0.x(), pb.v0.y(), pb.v0.z())
-                    .setColor(r, g, b, 1f)
-                    .setLight(pa.packedLight);
+                        .setColor(r, g, b, 1f)
+                        .setLight(pa.packedLight);
             }
 
             bufferSource.endBatch(renderType);
@@ -226,12 +226,12 @@ public final class NetworkCableRenderer {
 
         if (right == null) {
             return c.add(swingAmount * Mth.sin(relRadialTime),
-                0,
-                swingAmount * Mth.cos(relRadialTime));
+                    0,
+                    swingAmount * Mth.cos(relRadialTime));
         } else {
             return c.add(swingAmount * Mth.cos(relRadialTime) * right.x,
-                0.5f * swingAmount * Mth.sin(relRadialTime * 2 - (float) Math.PI) - swingAmount,
-                swingAmount * Mth.cos(relRadialTime) * right.z);
+                    0.5f * swingAmount * Mth.sin(relRadialTime * 2 - (float) Math.PI) - swingAmount,
+                    swingAmount * Mth.cos(relRadialTime) * right.z);
         }
     }
 
@@ -297,7 +297,7 @@ public final class NetworkCableRenderer {
             to = Vec3.atCenterOf(toPos);
             forward = to.subtract(from).normalize();
             right = fromPos.getX() == toPos.getX() && fromPos.getZ() == toPos.getZ()
-                ? null : forward.cross(POS_Y);
+                    ? null : forward.cross(POS_Y);
             bounds = new AABB(from, to).inflate(0, CABLE_HANG_MAX, 0);
         }
 
@@ -315,7 +315,8 @@ public final class NetworkCableRenderer {
         }
     }
 
-    private record CablePoint(Vector3f v0, Vector3f v1, int packedLight) { }
+    private record CablePoint(Vector3f v0, Vector3f v1, int packedLight) {
+    }
 
     private static Vector3f toVector3f(final Vec3 v) {
         return new Vector3f((float) v.x, (float) v.y, (float) v.z);

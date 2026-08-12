@@ -150,12 +150,12 @@ public final class Intra4x4PredictionBuilder {
         final int val;
         if (leftAvailable && topAvailable) {
             val = (leftRow[blkY] + leftRow[blkY + 1] + leftRow[blkY + 2] + leftRow[blkY + 3] + topLine[mbOffX + blkX]
-                + topLine[mbOffX + blkX + 1] + topLine[mbOffX + blkX + 2] + topLine[mbOffX + blkX + 3] + 4) >> 3;
+                    + topLine[mbOffX + blkX + 1] + topLine[mbOffX + blkX + 2] + topLine[mbOffX + blkX + 3] + 4) >> 3;
         } else if (leftAvailable) {
             val = (leftRow[blkY] + leftRow[blkY + 1] + leftRow[blkY + 2] + leftRow[blkY + 3] + 2) >> 2;
         } else if (topAvailable) {
             val = (topLine[mbOffX + blkX] + topLine[mbOffX + blkX + 1] + topLine[mbOffX + blkX + 2]
-                + topLine[mbOffX + blkX + 3] + 2) >> 2;
+                    + topLine[mbOffX + blkX + 3] + 2) >> 2;
         } else {
             val = 0;
         }
@@ -266,7 +266,7 @@ public final class Intra4x4PredictionBuilder {
         final int c1 = ((topLeft[blkY >> 2] + (topLine[mbOffX + blkX] << 1) + topLine[mbOffX + blkX + 1] + 2) >> 2);
         final int c2 = ((topLine[mbOffX + blkX] + (topLine[mbOffX + blkX + 1] << 1) + topLine[mbOffX + blkX + 2] + 2) >> 2);
         final int c3 = ((topLine[mbOffX + blkX + 1] + (topLine[mbOffX + blkX + 2] << 1) + topLine[mbOffX + blkX + 3]
-            + 2) >> 2);
+                + 2) >> 2);
 
         pixOut[off] = (byte) MathUtil.clip(residual[0] + c0, -128, 127);
         pixOut[off + 1] = (byte) MathUtil.clip(residual[1] + c1, -128, 127);

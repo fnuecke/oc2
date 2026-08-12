@@ -3,11 +3,7 @@
 package li.cil.oc2.client.neoforge;
 
 import dev.architectury.registry.client.rendering.ColorHandlerRegistry;
-import li.cil.oc2.client.gui.ComputerContainerScreen;
-import li.cil.oc2.client.gui.ComputerTerminalScreen;
-import li.cil.oc2.client.gui.NetworkTunnelScreen;
-import li.cil.oc2.client.gui.RobotContainerScreen;
-import li.cil.oc2.client.gui.RobotTerminalScreen;
+import li.cil.oc2.client.gui.*;
 import li.cil.oc2.client.item.CustomItemColors;
 import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.neoforge.BusCableModelLoader;

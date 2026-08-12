@@ -113,8 +113,8 @@ public final class PictureParameterSet {
             }
         }
         pps.numRefIdxActiveMinus1 = new int[]{
-            CAVLCReader.readUE(_in), // PPS: num_ref_idx_l0_active_minus1
-            CAVLCReader.readUE(_in) // PPS: num_ref_idx_l1_active_minus1
+                CAVLCReader.readUE(_in), // PPS: num_ref_idx_l0_active_minus1
+                CAVLCReader.readUE(_in) // PPS: num_ref_idx_l1_active_minus1
         };
         pps.weightedPredFlag = CAVLCReader.readBool(_in); // PPS: weighted_pred_flag
         pps.weightedBipredIdc = CAVLCReader.readNBit(_in, 2); // PPS: weighted_bipred_idc

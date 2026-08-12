@@ -10,7 +10,8 @@ import net.minecraft.server.MinecraftServer;
 import javax.annotation.Nullable;
 
 public final class ServerUtils {
-    @Nullable private static MinecraftServer server;
+    @Nullable
+    private static MinecraftServer server;
 
     // ------------------------------------------------------------- //
 

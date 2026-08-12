@@ -34,10 +34,10 @@ public final class MultipartMessage extends AbstractMessage {
     private static final int MAX_MULTIPART_MESSAGE_SIZE = 1024 * Constants.KILOBYTE;
     private static final int MAX_PAYLOAD_SIZE = ServerboundCustomPayloadPacket.MAX_PAYLOAD_SIZE;
     private static final int HEADER_SIZE =
-        1 /* forge message index */ +
-            4 /* message id */ +
-            4 /* multipart message id */ +
-            2 /* length */;
+            1 /* forge message index */ +
+                    4 /* message id */ +
+                    4 /* multipart message id */ +
+                    2 /* length */;
 
     // ------------------------------------------------------------- //
 
@@ -46,8 +46,8 @@ public final class MultipartMessage extends AbstractMessage {
      * time to avoid malicious clients being able to grow the memory used by this cache to grow infinitely.
      */
     private static final Cache<Integer, ByteBuf> MULTIPART_MESSAGE_BUFFER_CACHE = CacheBuilder.newBuilder()
-        .expireAfterAccess(Duration.ofSeconds(30))
-        .build();
+            .expireAfterAccess(Duration.ofSeconds(30))
+            .build();
     private static int lastAssignedMultipartMessageId;
 
     // ------------------------------------------------------------- //
@@ -70,7 +70,7 @@ public final class MultipartMessage extends AbstractMessage {
 
     public static void sendToServer(final AbstractMessage message) {
         final RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(),
-            requireNonNull(Minecraft.getInstance().level).registryAccess());
+                requireNonNull(Minecraft.getInstance().level).registryAccess());
         message.toBytes(buffer);
         if (buffer.readableBytes() <= MAX_PAYLOAD_SIZE) {
             // Message fits into one custom payload packet, send it as is.
@@ -176,5 +176,6 @@ public final class MultipartMessage extends AbstractMessage {
 
     // ------------------------------------------------------------- //
 
-    private record Entry(int id, Function<RegistryFriendlyByteBuf, ? extends AbstractMessage> factory) { }
+    private record Entry(int id, Function<RegistryFriendlyByteBuf, ? extends AbstractMessage> factory) {
+    }
 }

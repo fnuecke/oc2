@@ -52,7 +52,7 @@ public final class Intra16x16PredictionBuilder {
         for (int j = 0; j < 16; j++) {
             for (int i = 0; i < 16; i++, off++)
                 pixOut[off] = (byte) MathUtil.clip(residual[LUMA_4x4_BLOCK_LUT[off]][LUMA_4x4_POS_LUT[off]] + topLine[x + i],
-                    -128, 127);
+                        -128, 127);
         }
     }
 
@@ -80,7 +80,7 @@ public final class Intra16x16PredictionBuilder {
         for (int j = 0; j < 16; j++) {
             for (int i = 0; i < 16; i++, off++)
                 pixOut[off] = (byte) MathUtil.clip(residual[LUMA_4x4_BLOCK_LUT[off]][LUMA_4x4_POS_LUT[off]] + leftRow[j], -128,
-                    127);
+                        127);
         }
     }
 

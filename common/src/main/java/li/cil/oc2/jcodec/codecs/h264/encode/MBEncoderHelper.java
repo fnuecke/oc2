@@ -134,7 +134,7 @@ public final class MBEncoderHelper {
             throw new RuntimeException("Incompatible color");
         for (int c = 0; c < dest.getColor().nComp; c++) {
             pubBlkOnePlane(dest.getPlaneData(c), dest.getPlaneWidth(c), src.getPlaneData(c), src.getPlaneWidth(c),
-                src.getPlaneHeight(c), x >> dest.getColor().compWidth[c], y >> dest.getColor().compHeight[c]);
+                    src.getPlaneHeight(c), x >> dest.getColor().compWidth[c], y >> dest.getColor().compHeight[c]);
         }
     }
 

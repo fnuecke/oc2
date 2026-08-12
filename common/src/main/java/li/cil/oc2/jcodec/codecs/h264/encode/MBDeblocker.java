@@ -19,28 +19,28 @@ import static li.cil.oc2.jcodec.codecs.h264.H264Const.QP_SCALE_CR;
  */
 public final class MBDeblocker {
     static final int[][] LOOKUP_IDX_P_V = new int[][]{
-        {3, 7, 11, 15},
-        {0, 4, 8, 12},
-        {1, 5, 9, 13},
-        {2, 6, 10, 14}
+            {3, 7, 11, 15},
+            {0, 4, 8, 12},
+            {1, 5, 9, 13},
+            {2, 6, 10, 14}
     };
     static final int[][] LOOKUP_IDX_Q_V = new int[][]{
-        {0, 4, 8, 12},
-        {1, 5, 9, 13},
-        {2, 6, 10, 14},
-        {3, 7, 11, 15}
+            {0, 4, 8, 12},
+            {1, 5, 9, 13},
+            {2, 6, 10, 14},
+            {3, 7, 11, 15}
     };
     static final int[][] LOOKUP_IDX_P_H = new int[][]{
-        {12, 13, 14, 15},
-        {0, 1, 2, 3},
-        {4, 5, 6, 7},
-        {8, 9, 10, 11}
+            {12, 13, 14, 15},
+            {0, 1, 2, 3},
+            {4, 5, 6, 7},
+            {8, 9, 10, 11}
     };
     static final int[][] LOOKUP_IDX_Q_H = new int[][]{
-        {0, 1, 2, 3},
-        {4, 5, 6, 7},
-        {8, 9, 10, 11},
-        {12, 13, 14, 15}
+            {0, 1, 2, 3},
+            {4, 5, 6, 7},
+            {8, 9, 10, 11},
+            {12, 13, 14, 15}
     };
 
     private static int calcQpChroma(final int qp) {
@@ -122,11 +122,11 @@ public final class MBDeblocker {
             if (boundary[b] == 4) {
                 for (int i = 0, ii = b << 2; i < 4; ++i, ++ii)
                     filterBs4(qp, qp, p, q, pTab[pi][ii] - inc3, pTab[pi][ii] - inc2, pTab[pi][ii] - inc1, pTab[pi][ii],
-                        qTab[qi][ii], qTab[qi][ii] + inc1, qTab[qi][ii] + inc2, qTab[qi][ii] + inc3);
+                            qTab[qi][ii], qTab[qi][ii] + inc1, qTab[qi][ii] + inc2, qTab[qi][ii] + inc3);
             } else if (boundary[b] > 0) {
                 for (int i = 0, ii = b << 2; i < 4; ++i, ++ii)
                     filterBs(boundary[b], qp, qp, p, q, pTab[pi][ii] - inc2, pTab[pi][ii] - inc1, pTab[pi][ii],
-                        qTab[qi][ii], qTab[qi][ii] + inc1, qTab[qi][ii] + inc2);
+                            qTab[qi][ii], qTab[qi][ii] + inc1, qTab[qi][ii] + inc2);
 
             }
         }

@@ -8,7 +8,8 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 
 public abstract class AbstractDeviceInfo<TProvider, TDevice extends Device> {
-    @Nullable public final TProvider provider;
+    @Nullable
+    public final TProvider provider;
     public final TDevice device;
 
     // ------------------------------------------------------------- //

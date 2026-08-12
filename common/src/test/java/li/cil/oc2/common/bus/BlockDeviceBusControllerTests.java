@@ -61,9 +61,9 @@ public class BlockDeviceBusControllerTests {
         final Registrar<ItemDeviceProvider> itemDeviceProviderRegistry = createItemDeviceProviderRegistry();
         providersMock.when(Providers::itemDeviceProviderRegistry).thenReturn(itemDeviceProviderRegistry);
         providersMock.when(() -> Providers.optionalKey((BlockDeviceProvider) any()))
-            .thenReturn(Optional.of(TEST_PROVIDER_REGISTRY_NAME.toString()));
+                .thenReturn(Optional.of(TEST_PROVIDER_REGISTRY_NAME.toString()));
         providersMock.when(() -> Providers.optionalKey((ItemDeviceProvider) any()))
-            .thenReturn(Optional.of(TEST_PROVIDER_REGISTRY_NAME.toString()));
+                .thenReturn(Optional.of(TEST_PROVIDER_REGISTRY_NAME.toString()));
 
         levelUtilsMock = mockStatic(LevelUtils.class);
         levelUtilsMock.when(() -> LevelUtils.getBlockName(any(), any())).thenReturn("test_block");
@@ -202,7 +202,7 @@ public class BlockDeviceBusControllerTests {
         final BlockPos elementPos = controllerPos.east();
         final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
         capabilitiesMock.when(() -> Capabilities.get(eq(busElementInfo.getBlockEntity()), eq(Capabilities.DEVICE_BUS_ELEMENT), any()))
-            .thenAnswer(a -> busElementInfo.getBusElement());
+                .thenAnswer(a -> busElementInfo.getBusElement());
 
         final BlockPos devicePos = elementPos.east();
         final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
@@ -221,7 +221,7 @@ public class BlockDeviceBusControllerTests {
         final BlockPos elementPos = controllerPos.west();
         final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
         capabilitiesMock.when(() -> Capabilities.get(eq(busElementInfo.getBlockEntity()), eq(Capabilities.DEVICE_BUS_ELEMENT), any()))
-            .thenAnswer(a -> busElementInfo.getBusElement());
+                .thenAnswer(a -> busElementInfo.getBusElement());
 
         final BlockPos devicePos = elementPos.west();
         final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
@@ -622,7 +622,7 @@ public class BlockDeviceBusControllerTests {
             testDevice = new TestDevice();
             objectDevice = new ObjectDevice(testDevice);
             capabilitiesMock.when(() -> Capabilities.get(eq(getBlockEntity()), eq(Capabilities.DEVICE), any()))
-                .thenAnswer(a -> objectDevice);
+                    .thenAnswer(a -> objectDevice);
         }
 
         public TestDevice getTestDevice() {

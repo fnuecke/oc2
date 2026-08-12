@@ -38,9 +38,9 @@ public final class DeblockingFilter {
     public static final int[] betaTab = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18};
 
     public static final int[][] tcs = new int[][]{
-        new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 6, 6, 7, 8, 9, 10, 11, 13},
-        new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 6, 7, 8, 8, 10, 11, 12, 13, 15, 17},
-        new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 6, 6, 7, 8, 9, 10, 11, 13, 14, 16, 18, 20, 23, 25}
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 6, 6, 7, 8, 9, 10, 11, 13},
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 6, 7, 8, 8, 10, 11, 12, 13, 15, 17},
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 6, 6, 7, 8, 9, 10, 11, 13, 14, 16, 18, 20, 23, 25}
     };
 
     private final DeblockerInput di;
@@ -130,9 +130,9 @@ public final class DeblockingFilter {
                 final int thisBlkY = (mbY << 2);
 
                 bs[0][blkX] = calcBoundaryStrenth(true, topIntra, thisIntra, di.nCoeff[thisBlkY][thisBlkX],
-                    di.nCoeff[thisBlkY - 1][thisBlkX], di.mvs.getMv(thisBlkX, thisBlkY, 0),
-                    di.mvs.getMv(thisBlkX, thisBlkY - 1, 0), di.mvs.getMv(thisBlkX, thisBlkY, 1),
-                    di.mvs.getMv(thisBlkX, thisBlkY - 1, 1), mbAddr, mbAddr - mbWidth);
+                        di.nCoeff[thisBlkY - 1][thisBlkX], di.mvs.getMv(thisBlkX, thisBlkY, 0),
+                        di.mvs.getMv(thisBlkX, thisBlkY - 1, 0), di.mvs.getMv(thisBlkX, thisBlkY, 1),
+                        di.mvs.getMv(thisBlkX, thisBlkY - 1, 1), mbAddr, mbAddr - mbWidth);
 
             }
         }
@@ -143,9 +143,9 @@ public final class DeblockingFilter {
                 final int thisBlkY = (mbY << 2) + blkY;
 
                 bs[blkY][blkX] = calcBoundaryStrenth(false, thisIntra, thisIntra, di.nCoeff[thisBlkY][thisBlkX],
-                    di.nCoeff[thisBlkY - 1][thisBlkX], di.mvs.getMv(thisBlkX, thisBlkY, 0),
-                    di.mvs.getMv(thisBlkX, thisBlkY - 1, 0), di.mvs.getMv(thisBlkX, thisBlkY, 1),
-                    di.mvs.getMv(thisBlkX, thisBlkY - 1, 1), mbAddr, mbAddr);
+                        di.nCoeff[thisBlkY - 1][thisBlkX], di.mvs.getMv(thisBlkX, thisBlkY, 0),
+                        di.mvs.getMv(thisBlkX, thisBlkY - 1, 0), di.mvs.getMv(thisBlkX, thisBlkY, 1),
+                        di.mvs.getMv(thisBlkX, thisBlkY - 1, 1), mbAddr, mbAddr);
             }
         }
     }
@@ -173,7 +173,7 @@ public final class DeblockingFilter {
                 final int thisBlkY = (mbY << 2);
 
                 filterBlockEdgeHoris(pic, comp, thisBlkX << cW, thisBlkY << cH, getIdxAlpha(alpha, avgQp),
-                    getIdxBeta(beta, avgQp), bs[0][blkX], 1 << cW);
+                        getIdxBeta(beta, avgQp), bs[0][blkX], 1 << cW);
             }
         }
 
@@ -188,7 +188,7 @@ public final class DeblockingFilter {
                 final int thisBlkY = (mbY << 2) + blkY;
 
                 filterBlockEdgeHoris(pic, comp, thisBlkX << cW, thisBlkY << cH, getIdxAlpha(alpha, curQp),
-                    getIdxBeta(beta, curQp), bs[blkY][blkX], 1 << cW);
+                        getIdxBeta(beta, curQp), bs[blkY][blkX], 1 << cW);
             }
         }
     }
@@ -209,9 +209,9 @@ public final class DeblockingFilter {
                 final int thisBlkX = (mbX << 2);
                 final int thisBlkY = (mbY << 2) + blkY;
                 bs[blkY][0] = calcBoundaryStrenth(true, leftIntra, thisIntra, di.nCoeff[thisBlkY][thisBlkX],
-                    di.nCoeff[thisBlkY][thisBlkX - 1], di.mvs.getMv(thisBlkX, thisBlkY, 0),
-                    di.mvs.getMv(thisBlkX - 1, thisBlkY, 0), di.mvs.getMv(thisBlkX, thisBlkY, 1),
-                    di.mvs.getMv(thisBlkX - 1, thisBlkY, 1), mbAddr, mbAddr - 1);
+                        di.nCoeff[thisBlkY][thisBlkX - 1], di.mvs.getMv(thisBlkX, thisBlkY, 0),
+                        di.mvs.getMv(thisBlkX - 1, thisBlkY, 0), di.mvs.getMv(thisBlkX, thisBlkY, 1),
+                        di.mvs.getMv(thisBlkX - 1, thisBlkY, 1), mbAddr, mbAddr - 1);
             }
         }
 
@@ -220,9 +220,9 @@ public final class DeblockingFilter {
                 final int thisBlkX = (mbX << 2) + blkX;
                 final int thisBlkY = (mbY << 2) + blkY;
                 bs[blkY][blkX] = calcBoundaryStrenth(false, thisIntra, thisIntra, di.nCoeff[thisBlkY][thisBlkX],
-                    di.nCoeff[thisBlkY][thisBlkX - 1], di.mvs.getMv(thisBlkX, thisBlkY, 0),
-                    di.mvs.getMv(thisBlkX - 1, thisBlkY, 0), di.mvs.getMv(thisBlkX, thisBlkY, 1),
-                    di.mvs.getMv(thisBlkX - 1, thisBlkY, 1), mbAddr, mbAddr);
+                        di.nCoeff[thisBlkY][thisBlkX - 1], di.mvs.getMv(thisBlkX, thisBlkY, 0),
+                        di.mvs.getMv(thisBlkX - 1, thisBlkY, 0), di.mvs.getMv(thisBlkX, thisBlkY, 1),
+                        di.mvs.getMv(thisBlkX - 1, thisBlkY, 1), mbAddr, mbAddr);
             }
         }
     }
@@ -249,7 +249,7 @@ public final class DeblockingFilter {
                 final int thisBlkX = (mbX << 2);
                 final int thisBlkY = (mbY << 2) + blkY;
                 filterBlockEdgeVert(pic, comp, thisBlkX << cW, thisBlkY << cH, getIdxAlpha(alpha, avgQpV),
-                    getIdxBeta(beta, avgQpV), bs[blkY][0], 1 << cH);
+                        getIdxBeta(beta, avgQpV), bs[blkY][0], 1 << cH);
             }
         }
         final boolean skip4x4 = comp == 0 && di.tr8x8Used[mbAddr] || cW == 1;
@@ -261,7 +261,7 @@ public final class DeblockingFilter {
                 final int thisBlkX = (mbX << 2) + blkX;
                 final int thisBlkY = (mbY << 2) + blkY;
                 filterBlockEdgeVert(pic, comp, thisBlkX << cW, thisBlkY << cH, getIdxAlpha(alpha, curQp),
-                    getIdxBeta(beta, curQp), bs[blkY][blkX], 1 << cH);
+                        getIdxBeta(beta, curQp), bs[blkY][blkX], 1 << cH);
             }
         }
     }
@@ -283,11 +283,11 @@ public final class DeblockingFilter {
                 final int q3Idx = offset + 3 * stride + pixOff;
 
                 filterBs4(indexAlpha, indexBeta, pic.getPlaneData(comp), pic.getPlaneData(comp), p3Idx, p2Idx, p1Idx,
-                    p0Idx, q0Idx, q1Idx, q2Idx, q3Idx, comp != 0);
+                        p0Idx, q0Idx, q1Idx, q2Idx, q3Idx, comp != 0);
             } else if (bs > 0) {
 
                 filterBs(bs, indexAlpha, indexBeta, pic.getPlaneData(comp), pic.getPlaneData(comp), p2Idx, p1Idx,
-                    p0Idx, q0Idx, q1Idx, q2Idx, comp != 0);
+                        p0Idx, q0Idx, q1Idx, q2Idx, comp != 0);
             }
         }
     }
@@ -307,10 +307,10 @@ public final class DeblockingFilter {
                 final int p3Idx = offsetQ - 4;
                 final int q3Idx = offsetQ + 3;
                 filterBs4(indexAlpha, indexBeta, pic.getPlaneData(comp), pic.getPlaneData(comp), p3Idx, p2Idx, p1Idx,
-                    p0Idx, q0Idx, q1Idx, q2Idx, q3Idx, comp != 0);
+                        p0Idx, q0Idx, q1Idx, q2Idx, q3Idx, comp != 0);
             } else if (bs > 0) {
                 filterBs(bs, indexAlpha, indexBeta, pic.getPlaneData(comp), pic.getPlaneData(comp), p2Idx, p1Idx,
-                    p0Idx, q0Idx, q1Idx, q2Idx, comp != 0);
+                        p0Idx, q0Idx, q1Idx, q2Idx, comp != 0);
             }
         }
     }

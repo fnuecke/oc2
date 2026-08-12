@@ -67,7 +67,7 @@ public final class SliceHeaderWriter {
             CAVLCWriter.writeBool(writer, sliceHeader.directSpatialMvPredFlag); // SH: direct_spatial_mv_pred_flag
         }
         if (sliceHeader.sliceType == SliceType.P || sliceHeader.sliceType == SliceType.SP
-            || sliceHeader.sliceType == SliceType.B) {
+                || sliceHeader.sliceType == SliceType.B) {
             CAVLCWriter.writeBool(writer, sliceHeader.numRefIdxActiveOverrideFlag); // SH: num_ref_idx_active_override_flag
             if (sliceHeader.numRefIdxActiveOverrideFlag) {
                 // SH: num_ref_idx_l0_active_minus1
@@ -80,7 +80,7 @@ public final class SliceHeaderWriter {
         }
         writeRefPicListReordering(sliceHeader, writer);
         if ((pps.weightedPredFlag && (sliceHeader.sliceType == SliceType.P || sliceHeader.sliceType == SliceType.SP))
-            || (pps.weightedBipredIdc == 1 && sliceHeader.sliceType == SliceType.B))
+                || (pps.weightedBipredIdc == 1 && sliceHeader.sliceType == SliceType.B))
             writePredWeightTable(sliceHeader, writer);
         if (nalRefIdc != 0)
             writeDecRefPicMarking(sliceHeader, idrSlice, writer);
@@ -109,9 +109,9 @@ public final class SliceHeaderWriter {
         }
         if (pps.numSliceGroupsMinus1 > 0 && pps.sliceGroupMapType >= 3 && pps.sliceGroupMapType <= 5) {
             int len = (sps.picHeightInMapUnitsMinus1 + 1) * (sps.picWidthInMbsMinus1 + 1)
-                / (pps.sliceGroupChangeRateMinus1 + 1);
+                    / (pps.sliceGroupChangeRateMinus1 + 1);
             if (((sps.picHeightInMapUnitsMinus1 + 1) * (sps.picWidthInMbsMinus1 + 1))
-                % (pps.sliceGroupChangeRateMinus1 + 1) > 0)
+                    % (pps.sliceGroupChangeRateMinus1 + 1) > 0)
                 len += 1;
 
             len = CeilLog2(len + 1);
@@ -206,7 +206,7 @@ public final class SliceHeaderWriter {
 
         for (int i = 0; i < sliceHeader.predWeightTable.lumaWeight[list].length; i++) {
             final boolean flagLuma = sliceHeader.predWeightTable.lumaWeight[list][i] != defaultLW
-                || sliceHeader.predWeightTable.lumaOffset[list][i] != 0;
+                    || sliceHeader.predWeightTable.lumaOffset[list][i] != 0;
             CAVLCWriter.writeBool(writer, flagLuma); // SH: luma_weight_l0_flag
             if (flagLuma) {
                 // SH: luma_weight_l {list}
@@ -216,9 +216,9 @@ public final class SliceHeaderWriter {
             }
             if (sps.chromaFormatIdc != ColorSpace.MONO) {
                 final boolean flagChroma = sliceHeader.predWeightTable.chromaWeight[list][0][i] != defaultCW
-                    || sliceHeader.predWeightTable.chromaOffset[list][0][i] != 0
-                    || sliceHeader.predWeightTable.chromaWeight[list][1][i] != defaultCW
-                    || sliceHeader.predWeightTable.chromaOffset[list][1][i] != 0;
+                        || sliceHeader.predWeightTable.chromaOffset[list][0][i] != 0
+                        || sliceHeader.predWeightTable.chromaWeight[list][1][i] != defaultCW
+                        || sliceHeader.predWeightTable.chromaOffset[list][1][i] != 0;
                 CAVLCWriter.writeBool(writer, flagChroma); // SH: chroma_weight_l0_flag
                 if (flagChroma)
                     for (int j = 0; j < 2; j++) {
@@ -234,14 +234,14 @@ public final class SliceHeaderWriter {
     private static void writeRefPicListReordering(final SliceHeader sliceHeader, final BitWriter writer) {
         if (sliceHeader.sliceType.isInter()) {
             final boolean l0ReorderingPresent = sliceHeader.refPicReordering != null
-                && sliceHeader.refPicReordering[0] != null;
+                    && sliceHeader.refPicReordering[0] != null;
             CAVLCWriter.writeBool(writer, l0ReorderingPresent); // SH: ref_pic_list_reordering_flag_l0
             if (l0ReorderingPresent)
                 writeReorderingList(sliceHeader.refPicReordering[0], writer);
         }
         if (sliceHeader.sliceType == SliceType.B) {
             final boolean l1ReorderingPresent = sliceHeader.refPicReordering != null
-                && sliceHeader.refPicReordering[1] != null;
+                    && sliceHeader.refPicReordering[1] != null;
             CAVLCWriter.writeBool(writer, l1ReorderingPresent); // SH: ref_pic_list_reordering_flag_l1
             if (l1ReorderingPresent)
                 writeReorderingList(sliceHeader.refPicReordering[1], writer);

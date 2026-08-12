@@ -156,9 +156,9 @@ public final class FileChooserScreen extends Screen {
         final int buttonCount = 2;
         final int buttonWidth = widgetsWidth / buttonCount - (buttonCount - 1) * WIDGET_SPACING;
         okButton = addRenderableWidget(Button.builder(CommonComponents.EMPTY, this::handleOkPressed)
-            .bounds(MARGIN, buttonTop, buttonWidth, BUTTON_HEIGHT).build());
+                .bounds(MARGIN, buttonTop, buttonWidth, BUTTON_HEIGHT).build());
         addRenderableWidget(Button.builder(CANCEL_TEXT, this::handleCancelPressed)
-            .bounds(MARGIN + buttonWidth + WIDGET_SPACING, buttonTop, buttonWidth, BUTTON_HEIGHT).build());
+                .bounds(MARGIN + buttonWidth + WIDGET_SPACING, buttonTop, buttonWidth, BUTTON_HEIGHT).build());
 
         fileList.refreshFiles(directory);
 
@@ -291,15 +291,15 @@ public final class FileChooserScreen extends Screen {
 
                 try {
                     final List<Path> files = Files.list(directory)
-                        .sorted((p1, p2) -> {
-                            if (Files.isDirectory(p1) && !Files.isDirectory(p2)) {
-                                return -1;
-                            }
-                            if (!Files.isDirectory(p1) && Files.isDirectory(p2)) {
-                                return 1;
-                            }
-                            return p1.getFileName().compareTo(p2.getFileName());
-                        }).toList();
+                            .sorted((p1, p2) -> {
+                                if (Files.isDirectory(p1) && !Files.isDirectory(p2)) {
+                                    return -1;
+                                }
+                                if (!Files.isDirectory(p1) && Files.isDirectory(p2)) {
+                                    return 1;
+                                }
+                                return p1.getFileName().compareTo(p2.getFileName());
+                            }).toList();
                     for (final Path path : files) {
                         try {
                             if (Files.isHidden(path)) {
@@ -332,10 +332,10 @@ public final class FileChooserScreen extends Screen {
             } else {
                 refreshFiles(path.getParent());
                 children().stream().filter(entry -> path.equals(entry.file))
-                    .findFirst().ifPresent(entry -> {
-                        entry.select();
-                        centerScrollOn(entry);
-                    });
+                        .findFirst().ifPresent(entry -> {
+                            entry.select();
+                            centerScrollOn(entry);
+                        });
             }
         }
 
@@ -355,14 +355,15 @@ public final class FileChooserScreen extends Screen {
 
         private FileList.FileEntry createDirectoryEntry(@Nullable final Path path, final String displayName) {
             final TextColor color = path != null && Files.exists(path)
-                ? TextColor.fromRgb(0xA0A0FF)
-                : TextColor.fromLegacyFormat(ChatFormatting.GRAY);
+                    ? TextColor.fromRgb(0xA0A0FF)
+                    : TextColor.fromLegacyFormat(ChatFormatting.GRAY);
             return new FileList.FileEntry(path, Component.literal(displayName)
-                .withStyle(s -> s.withColor(color)));
+                    .withStyle(s -> s.withColor(color)));
         }
 
         private final class FileEntry extends ObjectSelectionList.Entry<FileEntry> {
-            @Nullable private final Path file;
+            @Nullable
+            private final Path file;
             private final Component displayName;
 
             private long lastEntryClickTime;

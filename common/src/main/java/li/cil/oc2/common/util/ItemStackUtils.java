@@ -31,7 +31,7 @@ public final class ItemStackUtils {
 
     public static void modifyModDataTag(final ItemStack stack, final Consumer<CompoundTag> modifier) {
         CustomData.update(DataComponents.CUSTOM_DATA, stack,
-            tag -> modifier.accept(NBTUtils.getOrCreateChildTag(tag, MOD_TAG_NAME)));
+                tag -> modifier.accept(NBTUtils.getOrCreateChildTag(tag, MOD_TAG_NAME)));
     }
 
     public static CompoundTag getBlockEntityDataTag(final ItemStack stack) {
@@ -113,9 +113,9 @@ public final class ItemStackUtils {
         final ItemEntity entity = new ItemEntity(level, px, py, pz, stack);
 
         entity.setDeltaMovement(
-            0.0125 * (rng.nextDouble() - 0.5) + ox * 0.03,
-            0.0125 * (rng.nextDouble() - 0.5) + oy * 0.08 + (ox + oz) * 0.03,
-            0.0125 * (rng.nextDouble() - 0.5) + oz * 0.03
+                0.0125 * (rng.nextDouble() - 0.5) + ox * 0.03,
+                0.0125 * (rng.nextDouble() - 0.5) + oy * 0.08 + (ox + oz) * 0.03,
+                0.0125 * (rng.nextDouble() - 0.5) + oz * 0.03
         );
 
         entity.setDefaultPickUpDelay();

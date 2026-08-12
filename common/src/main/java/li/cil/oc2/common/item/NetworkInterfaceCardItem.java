@@ -40,7 +40,7 @@ public final class NetworkInterfaceCardItem extends ModItem {
         final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
         final byte[] values;
         if (tag.contains(SIDE_CONFIGURATION_TAG_NAME, NBTTagIds.TAG_BYTE_ARRAY) &&
-            tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME).length == Constants.BLOCK_FACE_COUNT) {
+                tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME).length == Constants.BLOCK_FACE_COUNT) {
             values = tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME);
         } else {
             values = new byte[Constants.BLOCK_FACE_COUNT];

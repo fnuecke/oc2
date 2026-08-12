@@ -25,8 +25,10 @@ public final class RobotRotationAction extends AbstractRobotAction {
 
     // ------------------------------------------------------------- //
 
-    @Nullable private RotationDirection direction;
-    @Nullable private Direction target;
+    @Nullable
+    private RotationDirection direction;
+    @Nullable
+    private Direction target;
 
     // ------------------------------------------------------------- //
 

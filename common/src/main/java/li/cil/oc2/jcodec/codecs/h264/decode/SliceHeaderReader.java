@@ -81,7 +81,7 @@ public final class SliceHeaderReader {
         }
         readRefPicListReordering(sh, in);
         if ((pps.weightedPredFlag && (sh.sliceType == SliceType.P || sh.sliceType == SliceType.SP))
-            || (pps.weightedBipredIdc == 1 && sh.sliceType == SliceType.B))
+                || (pps.weightedBipredIdc == 1 && sh.sliceType == SliceType.B))
             readPredWeightTable(sps, pps, sh, in);
         if (nalUnit.nal_ref_idc != 0)
             readDecoderPicMarking(nalUnit, sh, in);
@@ -137,21 +137,25 @@ public final class SliceHeaderReader {
                     memoryManagementControlOperation = CAVLCReader.readUE(_in); // SH: memory_management_control_operation
 
                     final Instruction instr = switch (memoryManagementControlOperation) {
-                        case 1 -> new Instruction(InstrType.REMOVE_SHORT, CAVLCReader.readUE(_in) + 1, 0); // SH: difference_of_pic_nums_minus1
-                        case 2 -> new Instruction(InstrType.REMOVE_LONG, CAVLCReader.readUE(_in), 0); // SH: long_term_pic_num
+                        case 1 ->
+                                new Instruction(InstrType.REMOVE_SHORT, CAVLCReader.readUE(_in) + 1, 0); // SH: difference_of_pic_nums_minus1
+                        case 2 ->
+                                new Instruction(InstrType.REMOVE_LONG, CAVLCReader.readUE(_in), 0); // SH: long_term_pic_num
                         case 3 -> new Instruction(InstrType.CONVERT_INTO_LONG,
-                            CAVLCReader.readUE(_in) + 1, // SH: difference_of_pic_nums_minus1
-                            CAVLCReader.readUE(_in)); // SH: long_term_frame_idx
-                        case 4 -> new Instruction(InstrType.TRUNK_LONG, CAVLCReader.readUE(_in) - 1, 0); // SH: max_long_term_frame_idx_plus1
+                                CAVLCReader.readUE(_in) + 1, // SH: difference_of_pic_nums_minus1
+                                CAVLCReader.readUE(_in)); // SH: long_term_frame_idx
+                        case 4 ->
+                                new Instruction(InstrType.TRUNK_LONG, CAVLCReader.readUE(_in) - 1, 0); // SH: max_long_term_frame_idx_plus1
                         case 5 -> new Instruction(InstrType.CLEAR, 0, 0);
-                        case 6 -> new Instruction(InstrType.MARK_LONG, CAVLCReader.readUE(_in), 0); // SH: long_term_frame_idx
+                        case 6 ->
+                                new Instruction(InstrType.MARK_LONG, CAVLCReader.readUE(_in), 0); // SH: long_term_frame_idx
                         default -> null;
                     };
 
                     if (instr != null)
                         mmops.add(instr);
                 } while (memoryManagementControlOperation != 0);
-                sh.refPicMarkingNonIDR = new RefPicMarking(mmops.toArray(new Instruction[]{ }));
+                sh.refPicMarkingNonIDR = new RefPicMarking(mmops.toArray(new Instruction[]{}));
             }
         }
     }

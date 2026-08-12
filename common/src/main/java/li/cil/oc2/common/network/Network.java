@@ -117,11 +117,11 @@ public final class Network {
 
         if (!level.getServer().isSameThread()) {
             throw new IllegalStateException(
-                "Attempting to send network message to BlockEntity from non-server " +
-                    "thread [" + Thread.currentThread() + "]. This is not supported, " +
-                    "because looking up the chunk from the level is required. " +
-                    "Consider caching the containing chunk and using " +
-                    "sendToClientsTrackingChunk() directly, instead.");
+                    "Attempting to send network message to BlockEntity from non-server " +
+                            "thread [" + Thread.currentThread() + "]. This is not supported, " +
+                            "because looking up the chunk from the level is required. " +
+                            "Consider caching the containing chunk and using " +
+                            "sendToClientsTrackingChunk() directly, instead.");
         }
 
         final BlockPos blockPos = blockEntity.getBlockPos();
@@ -142,8 +142,8 @@ public final class Network {
 
     private static String messageId(final Class<?> type) {
         final String name = type.getEnclosingClass() != null
-            ? type.getEnclosingClass().getSimpleName().replaceAll("Message$", "") + "_" + type.getSimpleName()
-            : type.getSimpleName().replaceAll("Message$", "");
+                ? type.getEnclosingClass().getSimpleName().replaceAll("Message$", "") + "_" + type.getSimpleName()
+                : type.getSimpleName().replaceAll("Message$", "");
         return name.replaceAll("(?<=[a-z0-9])(?=[A-Z])", "_").toLowerCase(Locale.ROOT);
     }
 
@@ -153,7 +153,7 @@ public final class Network {
         final ResourceLocation id = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, messageId(type));
         final CustomPacketPayload.Type<T> payloadType = new CustomPacketPayload.Type<>(id);
         final StreamCodec<RegistryFriendlyByteBuf, T> codec =
-            CustomPacketPayload.codec(AbstractMessage::toBytes, decoder::apply);
+                CustomPacketPayload.codec(AbstractMessage::toBytes, decoder::apply);
 
         MESSAGE_TYPES.put(type, payloadType);
 
@@ -161,7 +161,7 @@ public final class Network {
             NetworkManager.registerS2CPayloadType(payloadType, codec);
         } else {
             NetworkManager.registerReceiver(side, payloadType, codec,
-                (message, context) -> context.queue(() -> message.handle(context)));
+                    (message, context) -> context.queue(() -> message.handle(context)));
         }
     }
 }

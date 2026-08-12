@@ -13,7 +13,8 @@ public enum RotationDirection {
     right(RIGHT),
     r(RIGHT);
 
-    @Nullable private final RotationDirection parent;
+    @Nullable
+    private final RotationDirection parent;
 
     RotationDirection() {
         this.parent = null;

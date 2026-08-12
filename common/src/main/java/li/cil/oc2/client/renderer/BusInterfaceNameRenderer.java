@@ -68,9 +68,9 @@ public enum BusInterfaceNameRenderer {
 
         final Camera info = mc.gameRenderer.getMainCamera();
         stack.translate(
-            blockPos.getX() - info.getPosition().x,
-            blockPos.getY() - info.getPosition().y,
-            blockPos.getZ() - info.getPosition().z);
+                blockPos.getX() - info.getPosition().x,
+                blockPos.getY() - info.getPosition().y,
+                blockPos.getZ() - info.getPosition().z);
 
         final EntityRenderDispatcher renderManager = mc.getEntityRenderDispatcher();
         stack.mulPose(renderManager.cameraOrientation());
@@ -88,9 +88,9 @@ public enum BusInterfaceNameRenderer {
         final int packedLight = LightTexture.pack(15, 15);
 
         font.drawInBatch(name, horizontalTextOffset, 0, 0xffffffff,
-            false, matrix, buffer, Font.DisplayMode.SEE_THROUGH, backgroundColor, packedLight);
+                false, matrix, buffer, Font.DisplayMode.SEE_THROUGH, backgroundColor, packedLight);
         font.drawInBatch(name, horizontalTextOffset, 0, 0xffffffff,
-            false, matrix, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
+                false, matrix, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
         buffer.endBatch();
 

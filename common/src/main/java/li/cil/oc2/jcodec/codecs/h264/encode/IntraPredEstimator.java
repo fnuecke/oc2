@@ -39,7 +39,7 @@ public final class IntraPredEstimator {
             final boolean hasLeft = (dInd & 0x3) != 0 || mbX != 0;
             final boolean hasTop = dInd >= 4 || mbY != 0;
             final boolean hasTr = ((bInd == 0 || bInd == 1 || bInd == 4) && mbY != 0) || (bInd == 5 && mbX < ctx.mbWidth - 1)
-                || bInd == 2 || bInd == 6 || bInd == 8 || bInd == 9 || bInd == 10 || bInd == 12 || bInd == 14;
+                    || bInd == 2 || bInd == 6 || bInd == 8 || bInd == 9 || bInd == 10 || bInd == 12 || bInd == 14;
             predModes[bInd] = 2;
             final int blkX = (dInd & 0x3) << 2;
             final int blkY = (dInd >> 2) << 2;

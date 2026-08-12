@@ -7,7 +7,8 @@ import net.minecraft.Util;
 import javax.annotation.Nullable;
 
 public final class FlashMemoryItem extends AbstractStorageItem {
-    @Nullable private String descriptionId;
+    @Nullable
+    private String descriptionId;
 
     public FlashMemoryItem(final int defaultCapacity) {
         super(createProperties().stacksTo(1), defaultCapacity);

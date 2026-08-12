@@ -41,12 +41,12 @@ public final class RobotPowerMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withNearbyServerEntity(context, entityId, Robot.class,
-            robot -> {
-                if (power) {
-                    robot.start();
-                } else {
-                    robot.stop();
-                }
-            });
+                robot -> {
+                    if (power) {
+                        robot.start();
+                    } else {
+                        robot.stop();
+                    }
+                });
     }
 }

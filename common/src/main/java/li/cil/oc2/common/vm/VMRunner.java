@@ -42,11 +42,15 @@ public class VMRunner implements Runnable {
     // ------------------------------------------------------------- //
 
     private boolean firedResumedRunningEvent;
-    @Serialized private boolean firedInitializationEvent;
-    @Serialized private Component runtimeError;
+    @Serialized
+    private boolean firedInitializationEvent;
+    @Serialized
+    private Component runtimeError;
 
-    @Serialized private long cycleLimit;
-    @Serialized private long cycles;
+    @Serialized
+    private long cycleLimit;
+    @Serialized
+    private long cycles;
 
     // ------------------------------------------------------------- //
 

@@ -34,9 +34,9 @@ import java.util.Collections;
 import java.util.List;
 
 public record BusCableBakedModel(
-    BakedModel proxy,
-    BakedModel[] straightModelByAxis,
-    BakedModel[] supportModelByFace
+        BakedModel proxy,
+        BakedModel[] straightModelByAxis,
+        BakedModel[] supportModelByFace
 ) implements IDynamicBakedModel {
     private static final ModelProperty<BusCableSupportSide> BUS_CABLE_SUPPORT_PROPERTY = new ModelProperty<>();
     private static final ModelProperty<BusCableFacade> BUS_CABLE_FACADE_PROPERTY = new ModelProperty<>();
@@ -176,7 +176,9 @@ public record BusCableBakedModel(
 
     // ------------------------------------------------------------- //
 
-    private record BusCableSupportSide(Direction value) { }
+    private record BusCableSupportSide(Direction value) {
+    }
 
-    private record BusCableFacade(BlockState blockState, BakedModel model, ModelData data) { }
+    private record BusCableFacade(BlockState blockState, BakedModel model, ModelData data) {
+    }
 }

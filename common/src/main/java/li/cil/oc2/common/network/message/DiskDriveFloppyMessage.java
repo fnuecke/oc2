@@ -43,6 +43,6 @@ public final class DiskDriveFloppyMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, DiskDriveBlockEntity.class,
-            diskDrive -> diskDrive.setFloppyClient(floppy));
+                diskDrive -> diskDrive.setFloppyClient(floppy));
     }
 }

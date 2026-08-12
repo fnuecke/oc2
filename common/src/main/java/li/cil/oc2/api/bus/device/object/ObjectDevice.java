@@ -137,11 +137,11 @@ public final class ObjectDevice implements RPCDevice, ItemDevice {
 
     private static String toNiceTypeName(final Class<?> deviceClass) {
         final String name = deviceClass.getSimpleName()
-            .replaceFirst("VMDevice$", "")
-            .replaceFirst("RPCDevice$", "")
-            .replaceFirst("Device$", "");
+                .replaceFirst("VMDevice$", "")
+                .replaceFirst("RPCDevice$", "")
+                .replaceFirst("Device$", "");
         return name
-            .replaceAll("([a-z])([A-Z])", "$1_$2")
-            .toLowerCase(Locale.ROOT);
+                .replaceAll("([a-z])([A-Z])", "$1_$2")
+                .toLowerCase(Locale.ROOT);
     }
 }

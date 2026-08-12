@@ -10,4 +10,5 @@ package li.cil.oc2.jcodec.codecs.h264.io.model;
  *
  * @author The JCodec project
  */
-public record RefPicMarkingIDR(boolean discardDecodedPics, boolean useForlongTerm) { }
+public record RefPicMarkingIDR(boolean discardDecodedPics, boolean useForlongTerm) {
+}

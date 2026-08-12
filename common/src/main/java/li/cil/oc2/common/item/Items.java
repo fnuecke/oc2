@@ -43,28 +43,28 @@ public final class Items {
     public static final RegistrySupplier<NetworkCableItem> NETWORK_CABLE = register("network_cable", NetworkCableItem::new);
 
     public static final RegistrySupplier<MemoryItem> MEMORY_SMALL = register("memory_small", () ->
-        new MemoryItem(2 * Constants.MEGABYTE));
+            new MemoryItem(2 * Constants.MEGABYTE));
     public static final RegistrySupplier<MemoryItem> MEMORY_MEDIUM = register("memory_medium", () ->
-        new MemoryItem(4 * Constants.MEGABYTE));
+            new MemoryItem(4 * Constants.MEGABYTE));
     public static final RegistrySupplier<MemoryItem> MEMORY_LARGE = register("memory_large", () ->
-        new MemoryItem(8 * Constants.MEGABYTE));
+            new MemoryItem(8 * Constants.MEGABYTE));
 
     public static final RegistrySupplier<HardDriveItem> HARD_DRIVE_SMALL = register("hard_drive_small", () ->
-        new HardDriveItem(2 * Constants.MEGABYTE, DyeColor.LIGHT_GRAY));
+            new HardDriveItem(2 * Constants.MEGABYTE, DyeColor.LIGHT_GRAY));
     public static final RegistrySupplier<HardDriveItem> HARD_DRIVE_MEDIUM = register("hard_drive_medium", () ->
-        new HardDriveItem(4 * Constants.MEGABYTE, DyeColor.GREEN));
+            new HardDriveItem(4 * Constants.MEGABYTE, DyeColor.GREEN));
     public static final RegistrySupplier<HardDriveItem> HARD_DRIVE_LARGE = register("hard_drive_large", () ->
-        new HardDriveItem(8 * Constants.MEGABYTE, DyeColor.CYAN));
+            new HardDriveItem(8 * Constants.MEGABYTE, DyeColor.CYAN));
     public static final RegistrySupplier<HardDriveWithExternalDataItem> HARD_DRIVE_CUSTOM = register("hard_drive_custom", () ->
-        new HardDriveWithExternalDataItem(BlockDeviceDataRegistry.BUILDROOT.getId(), DyeColor.BROWN));
+            new HardDriveWithExternalDataItem(BlockDeviceDataRegistry.BUILDROOT.getId(), DyeColor.BROWN));
 
     public static final RegistrySupplier<FlashMemoryItem> FLASH_MEMORY = register("flash_memory", () ->
-        new FlashMemoryItem(4 * Constants.KILOBYTE));
+            new FlashMemoryItem(4 * Constants.KILOBYTE));
     public static final RegistrySupplier<FlashMemoryWithExternalDataItem> FLASH_MEMORY_CUSTOM = register("flash_memory_custom", () ->
-        new FlashMemoryWithExternalDataItem(FirmwareRegistry.BUILDROOT.getId()));
+            new FlashMemoryWithExternalDataItem(FirmwareRegistry.BUILDROOT.getId()));
 
     public static final RegistrySupplier<FloppyItem> FLOPPY = register("floppy", () ->
-        new FloppyItem(512 * Constants.KILOBYTE));
+            new FloppyItem(512 * Constants.KILOBYTE));
 
     public static final RegistrySupplier<Item> REDSTONE_INTERFACE_CARD = register("redstone_interface_card");
     public static final RegistrySupplier<Item> NETWORK_INTERFACE_CARD = register("network_interface_card", NetworkInterfaceCardItem::new);

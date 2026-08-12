@@ -14,7 +14,8 @@ import java.util.Optional;
 
 public final class RobotBootErrorMessage extends AbstractMessage {
     private int entityId;
-    @Nullable private Component value;
+    @Nullable
+    private Component value;
 
     // ------------------------------------------------------------- //
 
@@ -46,6 +47,6 @@ public final class RobotBootErrorMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientEntity(entityId, Robot.class,
-            robot -> robot.getVirtualMachine().setBootErrorClient(value));
+                robot -> robot.getVirtualMachine().setBootErrorClient(value));
     }
 }

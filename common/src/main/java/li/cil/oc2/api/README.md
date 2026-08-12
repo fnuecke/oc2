@@ -87,9 +87,9 @@ machines will always have to poll for changed data.
 ## The `BlockDeviceProvider` and `ItemDeviceProvider`
 
 So let's say you have some `RPCDevice` at hand (or a `VMDevice`). Now you want the computer to use it. The core
-functionality that makes `Devices` available to the mod are
-the [`BlockDeviceProvider`](bus/device/provider/BlockDeviceProvider.java) and
-the [`ItemDeviceProvider`](bus/device/provider/ItemDeviceProvider.java) interfaces.
+functionality that makes `Devices` available to the mod are the [
+`BlockDeviceProvider`](bus/device/provider/BlockDeviceProvider.java) and the [
+`ItemDeviceProvider`](bus/device/provider/ItemDeviceProvider.java) interfaces.
 
 There exists a registry for each, with which all block and item providers must be registered. These registries are
 queried to collect devices for a given block in the world, or an item in a machine inventory.
@@ -97,9 +97,9 @@ queried to collect devices for a given block in the world, or an item in a machi
 ### Block Devices
 
 Blocks devices are queried for all blocks adjacent to a `Bus Interface` that is connected to some computer via some
-`Bus Cable` and another `Bus Interface`. Connected `Bus Cables` with attached `Bus Interfaces` define
-a [`DeviceBus`](bus/DeviceBus.java). Computers collect all devices attached to the `DeviceBus` and make them available
-to the virtual machine they run. Each registered `BlockDeviceProvider` is queried for a block in question, and the found
+`Bus Cable` and another `Bus Interface`. Connected `Bus Cables` with attached `Bus Interfaces` define a [
+`DeviceBus`](bus/DeviceBus.java). Computers collect all devices attached to the `DeviceBus` and make them available to
+the virtual machine they run. Each registered `BlockDeviceProvider` is queried for a block in question, and the found
 `RPCDevices` are aggregated into one `RPCDevice` proxy.
 
 > `BusInterfaces` look for `Devices` using `BlockDeviceProviders`.
@@ -119,7 +119,8 @@ Item devices are queried for items inserted into computers and robots. For each 
 `ItemDeviceProvider` is queried for the item in question, and the found `RPCDevices` are aggregated into one `RPCDevice`
 proxy.
 
-> Note that such items must be tagged with the slot type they fit into, or they cannot be placed into computers and robots.
+> Note that such items must be tagged with the slot type they fit into, or they cannot be placed into computers and
+> robots.
 
 ## The `VMDevice`
 
@@ -129,11 +130,11 @@ operating system running in the virtual machines.
 > `VMDevices` are very low-level, and something most people can ignore.
 
 The core of the `VMDevice` system is the [`VMDevice`](bus/device/vm/VMDevice.java) interface itself. It defines a proxy
-used to load and unload actual emulated hardware. `VMDevices` use
-the [`VMContext`](bus/device/vm/context/VMContext.java) to properly bind hardware to the virtual machine upon
-initialization. This typically includes reserving an address block in memory, possibly hooking up interrupts and
-reserving host memory from the memory tracker. In most cases, `VMDevices` will add a `MemoryMappedDevice` to
-the `MemoryMap`, an interface used by [Sedna], the VM implementation used to run the computers in this mod.
+used to load and unload actual emulated hardware. `VMDevices` use the [
+`VMContext`](bus/device/vm/context/VMContext.java) to properly bind hardware to the virtual machine upon initialization.
+This typically includes reserving an address block in memory, possibly hooking up interrupts and reserving host memory
+from the memory tracker. In most cases, `VMDevices` will add a `MemoryMappedDevice` to the `MemoryMap`, an interface
+used by [Sedna], the VM implementation used to run the computers in this mod.
 
 On the off chance you wish to add a `VMDevice`, and the existing devices do not suffice for reference, open a discussion
 on Github. I'll skip more details here, since I doubt most people would care, and it might instead scare people off...

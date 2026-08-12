@@ -13,33 +13,33 @@ import net.minecraft.resources.ResourceLocation;
 @Environment(EnvType.CLIENT)
 public abstract class ModRenderType extends RenderType {
     private static final RenderType NETWORK_CABLE = create(
-        API.MOD_ID + "/network_cable",
-        DefaultVertexFormat.POSITION_COLOR_LIGHTMAP,
-        VertexFormat.Mode.QUADS,
-        256,
-        false,
-        false,
-        CompositeState.builder()
-            .setShaderState(POSITION_COLOR_LIGHTMAP_SHADER)
-            .setTextureState(NO_TEXTURE)
-            .setTransparencyState(NO_TRANSPARENCY)
-            .setCullState(NO_CULL)
-            .setLightmapState(LIGHTMAP)
-            .createCompositeState(false));
+            API.MOD_ID + "/network_cable",
+            DefaultVertexFormat.POSITION_COLOR_LIGHTMAP,
+            VertexFormat.Mode.QUADS,
+            256,
+            false,
+            false,
+            CompositeState.builder()
+                    .setShaderState(POSITION_COLOR_LIGHTMAP_SHADER)
+                    .setTextureState(NO_TEXTURE)
+                    .setTransparencyState(NO_TRANSPARENCY)
+                    .setCullState(NO_CULL)
+                    .setLightmapState(LIGHTMAP)
+                    .createCompositeState(false));
 
     private static final RenderType PROJECTOR_LIGHT = create(
-        API.MOD_ID + "/projector_light",
-        DefaultVertexFormat.POSITION_COLOR,
-        VertexFormat.Mode.QUADS,
-        256,
-        false,
-        true,
-        CompositeState.builder()
-            .setShaderState(RENDERTYPE_LIGHTNING_SHADER)
-            .setTransparencyState(LIGHTNING_TRANSPARENCY)
-            .setWriteMaskState(COLOR_WRITE)
-            .setCullState(NO_CULL)
-            .createCompositeState(false));
+            API.MOD_ID + "/projector_light",
+            DefaultVertexFormat.POSITION_COLOR,
+            VertexFormat.Mode.QUADS,
+            256,
+            false,
+            true,
+            CompositeState.builder()
+                    .setShaderState(RENDERTYPE_LIGHTNING_SHADER)
+                    .setTransparencyState(LIGHTNING_TRANSPARENCY)
+                    .setWriteMaskState(COLOR_WRITE)
+                    .setCullState(NO_CULL)
+                    .createCompositeState(false));
 
     // ------------------------------------------------------------- //
 
@@ -54,37 +54,37 @@ public abstract class ModRenderType extends RenderType {
     public static RenderType getUnlitBlock(final ResourceLocation location) {
         final TextureStateShard texture = new TextureStateShard(location, false, true);
         final RenderType.CompositeState state = RenderType.CompositeState.builder()
-            .setShaderState(POSITION_TEX_SHADER)
-            .setTextureState(texture)
-            .setTransparencyState(ADDITIVE_TRANSPARENCY)
-            .setCullState(NO_CULL)
-            .createCompositeState(false);
+                .setShaderState(POSITION_TEX_SHADER)
+                .setTextureState(texture)
+                .setTransparencyState(ADDITIVE_TRANSPARENCY)
+                .setCullState(NO_CULL)
+                .createCompositeState(false);
         return create(
-            API.MOD_ID + "/unlit_block",
-            DefaultVertexFormat.POSITION_TEX,
-            VertexFormat.Mode.QUADS,
-            256,
-            false,
-            true,
-            state);
+                API.MOD_ID + "/unlit_block",
+                DefaultVertexFormat.POSITION_TEX,
+                VertexFormat.Mode.QUADS,
+                256,
+                false,
+                true,
+                state);
     }
 
     public static RenderType getOverlay(final ResourceLocation location) {
         final TextureStateShard texture = new TextureStateShard(location, false, true);
         final RenderType.CompositeState state = RenderType.CompositeState.builder()
-            .setShaderState(POSITION_TEX_SHADER)
-            .setTextureState(texture)
-            .setOutputState(TRANSLUCENT_TARGET)
-            .setTransparencyState(ADDITIVE_TRANSPARENCY)
-            .createCompositeState(false);
+                .setShaderState(POSITION_TEX_SHADER)
+                .setTextureState(texture)
+                .setOutputState(TRANSLUCENT_TARGET)
+                .setTransparencyState(ADDITIVE_TRANSPARENCY)
+                .createCompositeState(false);
         return create(
-            API.MOD_ID + "/overlay",
-            DefaultVertexFormat.POSITION_TEX,
-            VertexFormat.Mode.QUADS,
-            256,
-            false,
-            true,
-            state);
+                API.MOD_ID + "/overlay",
+                DefaultVertexFormat.POSITION_TEX,
+                VertexFormat.Mode.QUADS,
+                256,
+                false,
+                true,
+                state);
     }
 
     // ------------------------------------------------------------- //

@@ -76,10 +76,10 @@ public abstract class AbstractBlockDeviceItem extends ModItem {
         final BlockDeviceData data = getData(stack);
         if (data != null) {
             return Component.literal("")
-                .append(super.getName(stack))
-                .append(" (")
-                .append(data.getDisplayName())
-                .append(")");
+                    .append(super.getName(stack))
+                    .append(" (")
+                    .append(data.getDisplayName())
+                    .append(")");
         } else {
             return super.getName(stack);
         }

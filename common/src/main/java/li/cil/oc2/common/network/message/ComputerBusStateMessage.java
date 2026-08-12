@@ -43,6 +43,6 @@ public final class ComputerBusStateMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, ComputerBlockEntity.class,
-            computer -> computer.getVirtualMachine().setBusStateClient(value));
+                computer -> computer.getVirtualMachine().setBusStateClient(value));
     }
 }

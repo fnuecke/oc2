@@ -13,7 +13,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.client.model.generators.*;
+import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
+import net.neoforged.neoforge.client.model.generators.ModelFile;
+import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 public final class ModBlockStateProvider extends BlockStateProvider {
@@ -42,18 +45,18 @@ public final class ModBlockStateProvider extends BlockStateProvider {
         horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE, DISK_DRIVE_MODEL);
         horizontalBlock(Blocks.KEYBOARD, Items.KEYBOARD, KEYBOARD_MODEL);
         horizontalFaceBlock(Blocks.NETWORK_CONNECTOR, Items.NETWORK_CONNECTOR, NETWORK_CONNECTOR_MODEL)
-            .transforms()
-            .transform(ItemDisplayContext.GUI)
-            .rotation(30, 315, 0)
-            .translation(0, 2, 0)
-            .scale(0.75f, 0.75f, 0.75f)
-            .end()
-            .transform(ItemDisplayContext.FIXED)
-            .rotation(270, 0, 0)
-            .translation(0, 0, -5)
-            .scale(1, 1, 1)
-            .end()
-            .end();
+                .transforms()
+                .transform(ItemDisplayContext.GUI)
+                .rotation(30, 315, 0)
+                .translation(0, 2, 0)
+                .scale(0.75f, 0.75f, 0.75f)
+                .end()
+                .transform(ItemDisplayContext.FIXED)
+                .rotation(270, 0, 0)
+                .translation(0, 0, -5)
+                .scale(1, 1, 1)
+                .end()
+                .end();
         horizontalBlock(Blocks.NETWORK_HUB, Items.NETWORK_HUB, NETWORK_HUB_MODEL);
         horizontalBlock(Blocks.PROJECTOR, Items.PROJECTOR, PROJECTOR_MODEL);
         horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE, REDSTONE_INTERFACE_MODEL);
@@ -73,9 +76,9 @@ public final class ModBlockStateProvider extends BlockStateProvider {
         //     insert supports where appropriate, as well as for replacing it with a facade block model.
 
         builder.part()
-            .modelFile(baseModel)
-            .addModel()
-            .end();
+                .modelFile(baseModel)
+                .addModel()
+                .end();
 
         BusCableBlock.FACING_TO_CONNECTION_MAP.forEach((direction, connectionType) -> {
             final int rotationY = (int) direction.toYRot();
@@ -89,85 +92,85 @@ public final class ModBlockStateProvider extends BlockStateProvider {
             }
 
             builder.part()
-                .modelFile(linkModel)
-                .rotationY(rotationY)
-                .rotationX(rotationX)
-                .addModel()
-                .condition(connectionType, BusCableBlock.ConnectionType.CABLE)
-                .condition(BusCableBlock.HAS_FACADE, false)
-                .end();
+                    .modelFile(linkModel)
+                    .rotationY(rotationY)
+                    .rotationX(rotationX)
+                    .addModel()
+                    .condition(connectionType, BusCableBlock.ConnectionType.CABLE)
+                    .condition(BusCableBlock.HAS_FACADE, false)
+                    .end();
 
             builder.part()
-                .modelFile(plugModel)
-                .rotationY(rotationY)
-                .rotationX(rotationX)
-                .addModel()
-                .condition(connectionType, BusCableBlock.ConnectionType.INTERFACE)
-                .condition(BusCableBlock.HAS_FACADE, false)
-                .end();
+                    .modelFile(plugModel)
+                    .rotationY(rotationY)
+                    .rotationX(rotationX)
+                    .addModel()
+                    .condition(connectionType, BusCableBlock.ConnectionType.INTERFACE)
+                    .condition(BusCableBlock.HAS_FACADE, false)
+                    .end();
         });
 
         itemModels().getBuilder(Items.BUS_CABLE.getId().getPath())
-            .parent(straightModel)
-            .transforms()
-            .transform(ItemDisplayContext.GUI)
-            .rotation(30, 225, 0)
-            .scale(0.75f)
-            .end()
-            .transform(ItemDisplayContext.GROUND)
-            .translation(0, 3, 0)
-            .scale(0.75f)
-            .end()
-            .transform(ItemDisplayContext.FIXED)
-            .rotation(0, 180, 0)
-            .scale(1.0f)
-            .end()
-            .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-            .rotation(75, 45, 0)
-            .translation(0, 2.5f, 0)
-            .scale(0.75f)
-            .end()
-            .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-            .rotation(0, 45, 0)
-            .scale(0.75f)
-            .end()
-            .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-            .rotation(0, 225, 0)
-            .scale(0.75f)
-            .end();
+                .parent(straightModel)
+                .transforms()
+                .transform(ItemDisplayContext.GUI)
+                .rotation(30, 225, 0)
+                .scale(0.75f)
+                .end()
+                .transform(ItemDisplayContext.GROUND)
+                .translation(0, 3, 0)
+                .scale(0.75f)
+                .end()
+                .transform(ItemDisplayContext.FIXED)
+                .rotation(0, 180, 0)
+                .scale(1.0f)
+                .end()
+                .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                .rotation(75, 45, 0)
+                .translation(0, 2.5f, 0)
+                .scale(0.75f)
+                .end()
+                .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                .rotation(0, 45, 0)
+                .scale(0.75f)
+                .end()
+                .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                .rotation(0, 225, 0)
+                .scale(0.75f)
+                .end();
 
         itemModels().getBuilder(Items.BUS_INTERFACE.getId().getPath())
-            .parent(plugModel)
-            .transforms()
-            .transform(ItemDisplayContext.GUI)
-            .rotation(30, 315, 0)
-            .translation(2, 1, 0)
-            .scale(0.75f)
-            .end()
-            .transform(ItemDisplayContext.GROUND)
-            .translation(0, 3, -5)
-            .scale(0.75f)
-            .end()
-            .transform(ItemDisplayContext.FIXED)
-            .rotation(0, 180, 0)
-            .translation(0, 0, 4)
-            .scale(1.0f)
-            .end()
-            .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-            .rotation(75, 180, 0)
-            .translation(0, -1, 0)
-            .scale(0.75f)
-            .end()
-            .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-            .rotation(0, 180, 0)
-            .translation(0, 0, 2)
-            .scale(0.75f)
-            .end()
-            .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-            .rotation(0, 180, 0)
-            .translation(0, 0, 2)
-            .scale(0.75f)
-            .end();
+                .parent(plugModel)
+                .transforms()
+                .transform(ItemDisplayContext.GUI)
+                .rotation(30, 315, 0)
+                .translation(2, 1, 0)
+                .scale(0.75f)
+                .end()
+                .transform(ItemDisplayContext.GROUND)
+                .translation(0, 3, -5)
+                .scale(0.75f)
+                .end()
+                .transform(ItemDisplayContext.FIXED)
+                .rotation(0, 180, 0)
+                .translation(0, 0, 4)
+                .scale(1.0f)
+                .end()
+                .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                .rotation(75, 180, 0)
+                .translation(0, -1, 0)
+                .scale(0.75f)
+                .end()
+                .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                .rotation(0, 180, 0)
+                .translation(0, 0, 2)
+                .scale(0.75f)
+                .end()
+                .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                .rotation(0, 180, 0)
+                .translation(0, 0, 2)
+                .scale(0.75f)
+                .end();
     }
 
     private <T extends Block> ItemModelBuilder horizontalBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item, final ResourceLocation modelFileLocation) {

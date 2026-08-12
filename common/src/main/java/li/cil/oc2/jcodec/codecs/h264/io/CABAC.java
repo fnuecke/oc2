@@ -152,9 +152,9 @@ public final class CABAC {
 
     public void initModels(final int[][] cm, final SliceType sliceType, final int cabacIdc, final int sliceQp) {
         final int[] tabA = sliceType.isIntra() ? CABACContst.cabac_context_init_I_A
-            : CABACContst.cabac_context_init_PB_A[cabacIdc];
+                : CABACContst.cabac_context_init_PB_A[cabacIdc];
         final int[] tabB = sliceType.isIntra() ? CABACContst.cabac_context_init_I_B
-            : CABACContst.cabac_context_init_PB_B[cabacIdc];
+                : CABACContst.cabac_context_init_PB_B[cabacIdc];
 
         for (int i = 0; i < 1024; i++) {
             final int preCtxState = MathUtil.clip(((tabA[i] * MathUtil.clip(sliceQp, 0, 51)) >> 4) + tabB[i], 1, 126);
@@ -219,7 +219,7 @@ public final class CABAC {
             return type + (decoder.decodeBin(ctxOff) << 1) + decoder.decodeBin(ctxOff);
         } else {
             return type + (decoder.decodeBin(ctxOff) << 2) + (decoder.decodeBin(ctxOff + 1) << 1)
-                + decoder.decodeBin(ctxOff + 1) + 4;
+                    + decoder.decodeBin(ctxOff + 1) + 4;
         }
     }
 
@@ -259,7 +259,7 @@ public final class CABAC {
     public int readMBQpDelta(final MDecoder decoder, final MBType prevMbType) {
         int ctx = 60;
         ctx += prevMbType == null || prevMbType == MBType.I_PCM || (prevMbType != MBType.I_16x16 && prevCBP == 0)
-            || prevMbQpDelta == 0 ? 0 : 1;
+                || prevMbQpDelta == 0 ? 0 : 1;
 
         int val = 0;
         if (decoder.decodeBin(ctx) == 1) {
@@ -339,14 +339,14 @@ public final class CABAC {
         final int tLeft;
         if (blkOffLeft == 0)
             tLeft = condTerm(cur, leftAvailable, left, left != null && left != MBType.I_PCM && cbp(leftCBPLuma, 3, blkOffTop),
-                codedBlkLeft[comp][blkOffTop]);
+                    codedBlkLeft[comp][blkOffTop]);
         else
             tLeft = condTerm(cur, true, cur, cbp(curCBPLuma, blkOffLeft - 1, blkOffTop), codedBlkLeft[comp][blkOffTop]);
 
         final int tTop;
         if (blkOffTop == 0)
             tTop = condTerm(cur, topAvailable, top, top != null && top != MBType.I_PCM && cbp(topCBPLuma, blkOffLeft, 3),
-                codedBlkTop[comp][blkX]);
+                    codedBlkTop[comp][blkX]);
         else
             tTop = condTerm(cur, true, cur, cbp(curCBPLuma, blkOffLeft, blkOffTop - 1), codedBlkTop[comp][blkX]);
 
@@ -372,13 +372,13 @@ public final class CABAC {
         final int tLeft;
         if (blkOffLeft == 0)
             tLeft = condTerm(cur, leftAvailable, left, left != null && left != MBType.I_PCM && (leftCBPChroma & 2) != 0,
-                codedBlkLeft[comp][blkOffTop]);
+                    codedBlkLeft[comp][blkOffTop]);
         else
             tLeft = condTerm(cur, true, cur, true, codedBlkLeft[comp][blkOffTop]);
         final int tTop;
         if (blkOffTop == 0)
             tTop = condTerm(cur, topAvailable, top, top != null && top != MBType.I_PCM && (topCBPChroma & 2) != 0,
-                codedBlkTop[comp][blkX]);
+                    codedBlkTop[comp][blkX]);
         else
             tTop = condTerm(cur, true, cur, true, codedBlkTop[comp][blkX]);
 
@@ -401,15 +401,15 @@ public final class CABAC {
     public int codedBlockPatternIntra(final MDecoder mDecoder, final boolean leftAvailable, final boolean topAvailable, final int cbpLeft,
                                       final int cbpTop, final MBType mbLeft, final MBType mbTop) {
         final int cbp0 = mDecoder.decodeBin(73 + _condTerm(leftAvailable, mbLeft, (cbpLeft >> 1) & 1) + 2
-            * _condTerm(topAvailable, mbTop, (cbpTop >> 2) & 1));
+                * _condTerm(topAvailable, mbTop, (cbpTop >> 2) & 1));
         final int cbp1 = mDecoder.decodeBin(73 + (1 - cbp0) + 2 * _condTerm(topAvailable, mbTop, (cbpTop >> 3) & 1));
         final int cbp2 = mDecoder.decodeBin(73 + _condTerm(leftAvailable, mbLeft, (cbpLeft >> 3) & 1) + 2 * (1 - cbp0));
         final int cbp3 = mDecoder.decodeBin(73 + (1 - cbp2) + 2 * (1 - cbp1));
 
         final int cr0 = mDecoder.decodeBin(77 + condTermCr0(leftAvailable, mbLeft, cbpLeft >> 4) + 2
-            * condTermCr0(topAvailable, mbTop, cbpTop >> 4));
+                * condTermCr0(topAvailable, mbTop, cbpTop >> 4));
         final int cr1 = cr0 != 0 ? mDecoder.decodeBin(81 + condTermCr1(leftAvailable, mbLeft, cbpLeft >> 4) + 2
-            * condTermCr1(topAvailable, mbTop, cbpTop >> 4)) : 0;
+                * condTermCr1(topAvailable, mbTop, cbpTop >> 4)) : 0;
 
         return cbp0 | (cbp1 << 1) | (cbp2 << 2) | (cbp3 << 3) | (cr0 << 4) | (cr1 << 5);
     }
@@ -438,15 +438,15 @@ public final class CABAC {
         final int partAbsX = (mbX << 2) + partX;
 
         final boolean predEqA = leftPred != null && leftPred != H264Const.PartPred.Direct
-            && (leftPred == H264Const.PartPred.Bi || leftPred == curPred || (curPred == H264Const.PartPred.Bi && H264Const.usesList(leftPred, list)));
+                && (leftPred == H264Const.PartPred.Bi || leftPred == curPred || (curPred == H264Const.PartPred.Bi && H264Const.usesList(leftPred, list)));
         final boolean predEqB = topPred != null && topPred != H264Const.PartPred.Direct
-            && (topPred == H264Const.PartPred.Bi || topPred == curPred || (curPred == H264Const.PartPred.Bi && H264Const.usesList(topPred, list)));
+                && (topPred == H264Const.PartPred.Bi || topPred == curPred || (curPred == H264Const.PartPred.Bi && H264Const.usesList(topPred, list)));
 
         // prefix and suffix as given by UEG3 with signedValFlag=1, uCoff=9
         int absMvdComp = !leftAvailable || leftType == null || leftType.isIntra() || !predEqA ? 0 : Math
-            .abs(mvdLeft[list][comp][partY]);
+                .abs(mvdLeft[list][comp][partY]);
         absMvdComp += !topAvailable || topType == null || topType.isIntra() || !predEqB ? 0 : Math
-            .abs(mvdTop[list][comp][partAbsX]);
+                .abs(mvdTop[list][comp][partAbsX]);
 
         int val, b = decoder.decodeBin(ctx + (absMvdComp < 3 ? 0 : (absMvdComp > 32 ? 2 : 1)));
         for (val = 0; b != 0 && val < 8; val++)
@@ -490,14 +490,14 @@ public final class CABAC {
         final int partAbsX = (mbX << 2) + partX;
 
         final boolean predEqA = leftPred != null && leftPred != H264Const.PartPred.Direct
-            && (leftPred == H264Const.PartPred.Bi || leftPred == curPred || (curPred == H264Const.PartPred.Bi && H264Const.usesList(leftPred, list)));
+                && (leftPred == H264Const.PartPred.Bi || leftPred == curPred || (curPred == H264Const.PartPred.Bi && H264Const.usesList(leftPred, list)));
         final boolean predEqB = topPred != null && topPred != H264Const.PartPred.Direct
-            && (topPred == H264Const.PartPred.Bi || topPred == curPred || (curPred == H264Const.PartPred.Bi && H264Const.usesList(topPred, list)));
+                && (topPred == H264Const.PartPred.Bi || topPred == curPred || (curPred == H264Const.PartPred.Bi && H264Const.usesList(topPred, list)));
 
         final int ctA = !leftAvailable || leftType == null || leftType.isIntra() || !predEqA || refIdxLeft[list][partY] == 0 ? 0
-            : 1;
+                : 1;
         final int ctB = !topAvailable || topType == null || topType.isIntra() || !predEqB || refIdxTop[list][partAbsX] == 0 ? 0
-            : 1;
+                : 1;
         final int b0 = mDecoder.decodeBin(54 + ctA + 2 * ctB);
         int val;
         if (b0 == 0)
@@ -507,7 +507,8 @@ public final class CABAC {
             if (b1 == 0)
                 val = 1;
             else {
-                for (val = 2; mDecoder.decodeBin(59) == 1; val++) { }
+                for (val = 2; mDecoder.decodeBin(59) == 1; val++) {
+                }
             }
         }
 
@@ -527,7 +528,7 @@ public final class CABAC {
         final int base = slType == SliceType.P ? 11 : 24;
 
         final boolean ret = mDecoder.decodeBin(base + (leftAvailable && !skipFlagLeft ? 1 : 0)
-            + (topAvailable && !skipFlagsTop[mbX] ? 1 : 0)) == 1;
+                + (topAvailable && !skipFlagsTop[mbX] ? 1 : 0)) == 1;
 
         skipFlagLeft = skipFlagsTop[mbX] = ret;
 
@@ -562,7 +563,7 @@ public final class CABAC {
     public boolean readTransform8x8Flag(final MDecoder mDecoder, final boolean leftAvailable, final boolean topAvailable,
                                         final MBType leftType, final MBType topType, final boolean is8x8Left, final boolean is8x8Top) {
         final int ctx = 399 + (leftAvailable && leftType != null && is8x8Left ? 1 : 0)
-            + (topAvailable && topType != null && is8x8Top ? 1 : 0);
+                + (topAvailable && topType != null && is8x8Top ? 1 : 0);
         return mDecoder.decodeBin(ctx) == 1;
     }
 

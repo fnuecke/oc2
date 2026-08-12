@@ -46,6 +46,6 @@ public final class KeyboardInputMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos, KeyboardBlockEntity.class,
-            (player, keyboard) -> keyboard.handleInput(keycode, isDown));
+                (player, keyboard) -> keyboard.handleInput(keycode, isDown));
     }
 }

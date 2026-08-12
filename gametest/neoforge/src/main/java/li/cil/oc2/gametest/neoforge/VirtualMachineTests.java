@@ -8,13 +8,13 @@ import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.AbstractVirtualMachine;
+import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VMRunState;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -40,23 +40,23 @@ public final class VirtualMachineTests {
         placeMachine(helper);
 
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(helper))
-            .thenExecuteAfter(20, () -> computer(helper).start())
-            .thenExecuteAfter(300, () -> {
-                final var vm = computer(helper).getVirtualMachine();
-                if (vm.getRunState() != VMRunState.RUNNING) {
-                    throw new GameTestAssertException("computer did not reach RUNNING, was "
-                        + vm.getRunState() + ", bootError=" + vm.getBootError());
-                }
-            })
-            .thenExecute(() -> computer(helper).stop())
-            .thenExecuteAfter(60, () -> {
-                final var vm = computer(helper).getVirtualMachine();
-                if (vm.getRunState() != VMRunState.STOPPED) {
-                    throw new GameTestAssertException("computer did not stop, was " + vm.getRunState());
-                }
-            })
-            .thenSucceed();
+                .thenExecuteAfter(20, () -> installHardware(helper))
+                .thenExecuteAfter(20, () -> computer(helper).start())
+                .thenExecuteAfter(300, () -> {
+                    final var vm = computer(helper).getVirtualMachine();
+                    if (vm.getRunState() != VMRunState.RUNNING) {
+                        throw new GameTestAssertException("computer did not reach RUNNING, was "
+                                + vm.getRunState() + ", bootError=" + vm.getBootError());
+                    }
+                })
+                .thenExecute(() -> computer(helper).stop())
+                .thenExecuteAfter(60, () -> {
+                    final var vm = computer(helper).getVirtualMachine();
+                    if (vm.getRunState() != VMRunState.STOPPED) {
+                        throw new GameTestAssertException("computer did not stop, was " + vm.getRunState());
+                    }
+                })
+                .thenSucceed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
@@ -65,23 +65,23 @@ public final class VirtualMachineTests {
 
         final long[] charged = new long[1];
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(helper))
-            .thenExecuteAfter(20, () -> computer(helper).start())
-            .thenExecuteAfter(200, () -> {
-                charged[0] = energy(helper);
-                if (charged[0] <= 0) {
-                    throw new GameTestAssertException("computer never charged from the creative source");
-                }
-                breakBlock(helper, POWER_POS);
-            })
-            .thenExecuteAfter(120, () -> {
-                final long drained = energy(helper);
-                if (drained >= charged[0]) {
-                    throw new GameTestAssertException("energy did not drain once the source was removed: "
-                        + charged[0] + " -> " + drained);
-                }
-            })
-            .thenSucceed();
+                .thenExecuteAfter(20, () -> installHardware(helper))
+                .thenExecuteAfter(20, () -> computer(helper).start())
+                .thenExecuteAfter(200, () -> {
+                    charged[0] = energy(helper);
+                    if (charged[0] <= 0) {
+                        throw new GameTestAssertException("computer never charged from the creative source");
+                    }
+                    breakBlock(helper, POWER_POS);
+                })
+                .thenExecuteAfter(120, () -> {
+                    final long drained = energy(helper);
+                    if (drained >= charged[0]) {
+                        throw new GameTestAssertException("energy did not drain once the source was removed: "
+                                + charged[0] + " -> " + drained);
+                    }
+                })
+                .thenSucceed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 1200)
@@ -90,46 +90,46 @@ public final class VirtualMachineTests {
 
         final CompoundTag[] saved = new CompoundTag[1];
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(helper))
-            .thenExecuteAfter(20, () -> computer(helper).start())
-            .thenExecuteAfter(300, () -> {
-                final var vm = computer(helper).getVirtualMachine();
-                if (vm.getRunState() != VMRunState.RUNNING) {
-                    throw new GameTestAssertException("precondition: computer is not running, was "
-                        + vm.getRunState() + ", bootError=" + vm.getBootError());
-                }
+                .thenExecuteAfter(20, () -> installHardware(helper))
+                .thenExecuteAfter(20, () -> computer(helper).start())
+                .thenExecuteAfter(300, () -> {
+                    final var vm = computer(helper).getVirtualMachine();
+                    if (vm.getRunState() != VMRunState.RUNNING) {
+                        throw new GameTestAssertException("precondition: computer is not running, was "
+                                + vm.getRunState() + ", bootError=" + vm.getBootError());
+                    }
 
-                final var registries = helper.getLevel().registryAccess();
-                saved[0] = computer(helper).saveWithFullMetadata(registries);
-                if (!saved[0].contains("state")) {
-                    throw new GameTestAssertException("saved tag carries no VM state");
-                }
+                    final var registries = helper.getLevel().registryAccess();
+                    saved[0] = computer(helper).saveWithFullMetadata(registries);
+                    if (!saved[0].contains("state")) {
+                        throw new GameTestAssertException("saved tag carries no VM state");
+                    }
 
-                // Immediate load to make sure VM doesn't tick; RAM and drive blob files
-                // could desync otherwise. Open todo to see if we can snapshot those...
-                computer(helper).loadWithComponents(saved[0], registries);
-            })
-            .thenExecuteAfter(200, () -> {
-                final var vm = computer(helper).getVirtualMachine();
-                if (vm.getRunState() != VMRunState.RUNNING) {
-                    throw new GameTestAssertException("computer did not survive the round trip, was "
-                        + vm.getRunState() + ", bootError=" + vm.getBootError());
-                }
-                if (vm.getError() != null) {
-                    throw new GameTestAssertException("VM reported an error after reload: " + vm.getError());
-                }
-            })
-            .thenSucceed();
+                    // Immediate load to make sure VM doesn't tick; RAM and drive blob files
+                    // could desync otherwise. Open todo to see if we can snapshot those...
+                    computer(helper).loadWithComponents(saved[0], registries);
+                })
+                .thenExecuteAfter(200, () -> {
+                    final var vm = computer(helper).getVirtualMachine();
+                    if (vm.getRunState() != VMRunState.RUNNING) {
+                        throw new GameTestAssertException("computer did not survive the round trip, was "
+                                + vm.getRunState() + ", bootError=" + vm.getBootError());
+                    }
+                    if (vm.getError() != null) {
+                        throw new GameTestAssertException("VM reported an error after reload: " + vm.getError());
+                    }
+                })
+                .thenSucceed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BOOT_BATCH)
     public static void computerBootsGuestKernel(final GameTestHelper helper) {
         placeMachine(helper);
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(helper))
-            .thenExecuteAfter(20, () -> computer(helper).start())
-            .thenWaitUntil(() -> requireBooted(helper))
-            .thenSucceed();
+                .thenExecuteAfter(20, () -> installHardware(helper))
+                .thenExecuteAfter(20, () -> computer(helper).start())
+                .thenWaitUntil(() -> requireBooted(helper))
+                .thenSucceed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BOOT_RELOAD_BATCH)
@@ -139,28 +139,28 @@ public final class VirtualMachineTests {
         final CompoundTag[] saved = new CompoundTag[1];
         final long[] instructionsAtReload = new long[1];
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(helper))
-            .thenExecuteAfter(20, () -> computer(helper).start())
-            .thenWaitUntil(() -> requireBooted(helper))
-            .thenExecute(() -> {
-                final var registries = helper.getLevel().registryAccess();
-                saved[0] = computer(helper).saveWithFullMetadata(registries);
+                .thenExecuteAfter(20, () -> installHardware(helper))
+                .thenExecuteAfter(20, () -> computer(helper).start())
+                .thenWaitUntil(() -> requireBooted(helper))
+                .thenExecute(() -> {
+                    final var registries = helper.getLevel().registryAccess();
+                    saved[0] = computer(helper).saveWithFullMetadata(registries);
 
-                // Immediate load to make sure VM doesn't tick; RAM and drive blob files
-                // could desync otherwise. Open todo to see if we can snapshot those...
-                computer(helper).loadWithComponents(saved[0], registries);
-                instructionsAtReload[0] = guestInstructions(helper);
-            })
-            .thenWaitUntil(() -> {
-                assertNoPanic(helper);
-                if (computer(helper).getVirtualMachine().getRunState() != VMRunState.RUNNING) {
-                    throw new GameTestAssertException("computer stopped after reload");
-                }
-                if (guestInstructions(helper) <= instructionsAtReload[0]) {
-                    throw new GameTestAssertException("guest is not retiring instructions after reload");
-                }
-            })
-            .thenSucceed();
+                    // Immediate load to make sure VM doesn't tick; RAM and drive blob files
+                    // could desync otherwise. Open todo to see if we can snapshot those...
+                    computer(helper).loadWithComponents(saved[0], registries);
+                    instructionsAtReload[0] = guestInstructions(helper);
+                })
+                .thenWaitUntil(() -> {
+                    assertNoPanic(helper);
+                    if (computer(helper).getVirtualMachine().getRunState() != VMRunState.RUNNING) {
+                        throw new GameTestAssertException("computer stopped after reload");
+                    }
+                    if (guestInstructions(helper) <= instructionsAtReload[0]) {
+                        throw new GameTestAssertException("guest is not retiring instructions after reload");
+                    }
+                })
+                .thenSucceed();
     }
 
     // ------------------------------------------------------------- //
@@ -175,7 +175,7 @@ public final class VirtualMachineTests {
 
     private static long guestInstructions(final GameTestHelper helper) {
         return ((AbstractVirtualMachine) computer(helper).getVirtualMachine())
-            .state.board.getCpu().getInstructionsRetired();
+                .state.board.getCpu().getInstructionsRetired();
     }
 
     private static void assertNoPanic(final GameTestHelper helper) {
@@ -216,9 +216,9 @@ public final class VirtualMachineTests {
 
     private static void install(final GameTestHelper helper, final DeviceType type, final ItemStack stack) {
         final ItemStack leftover = computer(helper).getItemStackHandlers()
-            .getItemHandler(type)
-            .orElseThrow(() -> new GameTestAssertException("no item handler for " + type))
-            .insertItem(0, stack, false);
+                .getItemHandler(type)
+                .orElseThrow(() -> new GameTestAssertException("no item handler for " + type))
+                .insertItem(0, stack, false);
         if (!leftover.isEmpty()) {
             throw new GameTestAssertException("could not install " + stack);
         }

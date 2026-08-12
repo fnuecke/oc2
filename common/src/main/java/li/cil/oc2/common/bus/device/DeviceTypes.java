@@ -43,9 +43,9 @@ public final class DeviceTypes {
     private static void register(final TagKey<Item> tag, final Consumer<DeviceType> setter) {
         final String id = tag.location().getPath().replaceFirst("^devices/", "");
         DEVICE_TYPES.register(id, () -> (DeviceType) new DeviceTypeImpl(
-            tag,
-            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "gui/icon/" + id),
-            text("gui.{mod}.device_type." + id)
+                tag,
+                ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "gui/icon/" + id),
+                text("gui.{mod}.device_type." + id)
         )).listen(setter);
     }
 }

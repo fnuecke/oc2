@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.blockentity;
 
+import dev.architectury.utils.EnvExecutor;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
@@ -22,15 +23,11 @@ import li.cil.oc2.common.container.ComputerInventoryContainer;
 import li.cil.oc2.common.container.ComputerTerminalContainer;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.network.Network;
-import li.cil.oc2.common.network.message.AbstractMessage;
-import li.cil.oc2.common.network.message.ComputerBootErrorMessage;
-import li.cil.oc2.common.network.message.ComputerBusStateMessage;
-import li.cil.oc2.common.network.message.ComputerRunStateMessage;
-import li.cil.oc2.common.network.message.ComputerTerminalOutputMessage;
+import li.cil.oc2.common.network.message.*;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.*;
-import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.vm.*;
+import net.fabricmc.api.EnvType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -236,11 +233,13 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         // Client-visible state, only present in the tag produced by getUpdateTag().
         if (tag.contains(AbstractVirtualMachine.BUS_STATE_TAG_NAME)) {
-            virtualMachine.setBusStateClient(CommonDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME)]);
-            virtualMachine.setRunStateClient(VMRunState.values()[tag.getInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME)]);
-            virtualMachine.setBootErrorClient(tag.contains(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)
-                ? Component.Serializer.fromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME), registries)
-                : null);
+            EnvExecutor.runInEnv(EnvType.CLIENT, () -> () -> {
+                virtualMachine.setBusStateClient(CommonDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME)]);
+                virtualMachine.setRunStateClient(VMRunState.values()[tag.getInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME)]);
+                virtualMachine.setBootErrorClient(tag.contains(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)
+                        ? Component.Serializer.fromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME), registries)
+                        : null);
+            });
         }
         busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
 

@@ -291,12 +291,12 @@ public final class MotionEstimator {
             for (int i = 0; i < maxSearchRange; i++) {
                 final int score1 = bestMvX > 0 ? sad(searchPatch, patchW, patch, bestMvX - 1, bestMvY) : Integer.MAX_VALUE;
                 final int score2 = bestMvX < patchW - 1
-                    ? sad(searchPatch, patchW, patch, bestMvX + 1, bestMvY)
-                    : Integer.MAX_VALUE;
+                        ? sad(searchPatch, patchW, patch, bestMvX + 1, bestMvY)
+                        : Integer.MAX_VALUE;
                 final int score3 = bestMvY > 0 ? sad(searchPatch, patchW, patch, bestMvX, bestMvY - 1) : Integer.MAX_VALUE;
                 final int score4 = bestMvY < patchH - 1
-                    ? sad(searchPatch, patchW, patch, bestMvX, bestMvY + 1)
-                    : Integer.MAX_VALUE;
+                        ? sad(searchPatch, patchW, patch, bestMvX, bestMvY + 1)
+                        : Integer.MAX_VALUE;
                 final int min = min(min(min(score1, score2), score3), score4);
                 if (min > bestScore)
                     break;

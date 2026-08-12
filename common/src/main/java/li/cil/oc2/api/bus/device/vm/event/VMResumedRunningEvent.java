@@ -15,4 +15,5 @@ import li.cil.oc2.api.bus.device.vm.context.VMContext;
  * May also be used in combination with {@link VMSynchronizeEvent}, to re-enable external
  * interactions after VM state is guaranteed to be safe to modify again.
  */
-public final class VMResumedRunningEvent { }
+public final class VMResumedRunningEvent {
+}

@@ -42,7 +42,7 @@ public final class MapManager {
                 map = SliceGroupMapBuilder.buildDispersedMap(picWidthInMbs, picHeightInMbs, numGroups);
             } else if (pps.sliceGroupMapType == 2) {
                 map = SliceGroupMapBuilder.buildForegroundMap(picWidthInMbs, picHeightInMbs, numGroups, pps.topLeft,
-                    pps.bottomRight);
+                        pps.bottomRight);
             } else if (pps.sliceGroupMapType >= 3 && pps.sliceGroupMapType <= 5) {
                 return null;
             } else if (pps.sliceGroupMapType == 6) {
@@ -83,7 +83,7 @@ public final class MapManager {
         final int numGroups = pps.numSliceGroupsMinus1 + 1;
 
         if (numGroups > 1 && mapType >= 3 && mapType <= 5
-            && (sh.sliceGroupChangeCycle != prevSliceGroupChangeCycle || mbToSliceGroupMap == null)) {
+                && (sh.sliceGroupChangeCycle != prevSliceGroupChangeCycle || mbToSliceGroupMap == null)) {
 
             prevSliceGroupChangeCycle = sh.sliceGroupChangeCycle;
 
@@ -94,19 +94,19 @@ public final class MapManager {
             mapUnitsInSliceGroup0 = Math.min(mapUnitsInSliceGroup0, picSizeInMapUnits);
 
             final int sizeOfUpperLeftGroup = pps.sliceGroupChangeDirectionFlag
-                ? picSizeInMapUnits - mapUnitsInSliceGroup0
-                : mapUnitsInSliceGroup0;
+                    ? picSizeInMapUnits - mapUnitsInSliceGroup0
+                    : mapUnitsInSliceGroup0;
 
             final int[] map;
             if (mapType == 3) {
                 map = SliceGroupMapBuilder.buildBoxOutMap(picWidthInMbs, picHeightInMbs,
-                    pps.sliceGroupChangeDirectionFlag, mapUnitsInSliceGroup0);
+                        pps.sliceGroupChangeDirectionFlag, mapUnitsInSliceGroup0);
             } else if (mapType == 4) {
                 map = SliceGroupMapBuilder.buildRasterScanMap(picWidthInMbs, picHeightInMbs, sizeOfUpperLeftGroup,
-                    pps.sliceGroupChangeDirectionFlag);
+                        pps.sliceGroupChangeDirectionFlag);
             } else {
                 map = SliceGroupMapBuilder.buildWipeMap(picWidthInMbs, picHeightInMbs, sizeOfUpperLeftGroup,
-                    pps.sliceGroupChangeDirectionFlag);
+                        pps.sliceGroupChangeDirectionFlag);
             }
 
             this.mbToSliceGroupMap = buildMapIndices(map, numGroups);

@@ -61,10 +61,10 @@ public final class BusInterfaceScreen extends Screen {
         setInitialFocus(nameField);
 
         addRenderableWidget(new ImageButton(
-            left + CONFIRM_LEFT, top + CONFIRM_TOP,
-            Sprites.CONFIRM_BASE.width, Sprites.CONFIRM_BASE.height,
-            Sprites.CONFIRM_BASE,
-            Sprites.CONFIRM_PRESSED
+                left + CONFIRM_LEFT, top + CONFIRM_TOP,
+                Sprites.CONFIRM_BASE.width, Sprites.CONFIRM_BASE.height,
+                Sprites.CONFIRM_BASE,
+                Sprites.CONFIRM_PRESSED
         ) {
             @Override
             public void onPress() {
@@ -75,10 +75,10 @@ public final class BusInterfaceScreen extends Screen {
         }).withTooltip(Component.translatable(Constants.TOOLTIP_CONFIRM));
 
         addRenderableWidget(new ImageButton(
-            left + CANCEL_LEFT, top + CANCEL_TOP,
-            Sprites.CANCEL_BASE.width, Sprites.CANCEL_BASE.height,
-            Sprites.CANCEL_BASE,
-            Sprites.CANCEL_PRESSED
+                left + CANCEL_LEFT, top + CANCEL_TOP,
+                Sprites.CANCEL_BASE.width, Sprites.CANCEL_BASE.height,
+                Sprites.CANCEL_BASE,
+                Sprites.CANCEL_PRESSED
         ) {
             @Override
             public void onPress() {
@@ -94,8 +94,8 @@ public final class BusInterfaceScreen extends Screen {
 
         final Vec3 busCableCenter = Vec3.atCenterOf(busCable.getBlockPos());
         if (!busCable.isValid() ||
-            minecraft.player == null ||
-            minecraft.player.distanceToSqr(busCableCenter) > 8 * 8) {
+                minecraft.player == null ||
+                minecraft.player.distanceToSqr(busCableCenter) > 8 * 8) {
             onClose();
         }
     }
@@ -103,7 +103,7 @@ public final class BusInterfaceScreen extends Screen {
     @Override
     public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
         if (keyCode == GLFW.GLFW_KEY_ENTER ||
-            keyCode == GLFW.GLFW_KEY_KP_ENTER) {
+                keyCode == GLFW.GLFW_KEY_KP_ENTER) {
             setInterfaceName(nameField.getValue());
             onClose();
             return true;

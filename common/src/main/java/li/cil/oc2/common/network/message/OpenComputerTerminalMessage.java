@@ -38,6 +38,6 @@ public final class OpenComputerTerminalMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos, ComputerBlockEntity.class,
-            (player, computer) -> computer.openTerminalScreen(player));
+                (player, computer) -> computer.openTerminalScreen(player));
     }
 }

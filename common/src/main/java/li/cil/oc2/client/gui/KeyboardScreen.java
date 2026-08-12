@@ -57,8 +57,8 @@ public final class KeyboardScreen extends Screen {
 
         final Vec3 keyboardCenter = Vec3.atCenterOf(keyboard.getBlockPos());
         if (!keyboard.isValid() ||
-            minecraft.player == null ||
-            minecraft.player.distanceToSqr(keyboardCenter) > 8 * 8) {
+                minecraft.player == null ||
+                minecraft.player.distanceToSqr(keyboardCenter) > 8 * 8) {
             onClose();
         }
     }
@@ -92,8 +92,8 @@ public final class KeyboardScreen extends Screen {
         renderBorderOverlay(graphics);
 
         graphics.drawWordWrap(font, CLOSE_INFO,
-            BORDER_SIZE * 3, height - BORDER_SIZE * 3 - font.lineHeight,
-            width - BORDER_SIZE * 6, 0x88FFFFFF);
+                BORDER_SIZE * 3, height - BORDER_SIZE * 3 - font.lineHeight,
+                width - BORDER_SIZE * 6, 0x88FFFFFF);
     }
 
     @Override

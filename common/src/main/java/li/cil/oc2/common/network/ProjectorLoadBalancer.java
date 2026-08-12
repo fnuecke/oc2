@@ -13,10 +13,7 @@ import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -274,6 +271,7 @@ public final class ProjectorLoadBalancer {
             final Supplier<ByteBuffer> frameSupplier = nextFrameSupplier;
             nextFrameSupplier = null;
 
+            final List<ServerPlayer> recipients = List.copyOf(players.keySet());
             assert runningEncode == null || runningEncode.isDone();
             runningEncode = ENCODER_WORKERS.submit(() -> {
                 final ByteBuffer frame = frameSupplier.get();
@@ -281,11 +279,11 @@ public final class ProjectorLoadBalancer {
                     return;
                 }
 
-                final int budgetCost = frame.limit() * players.size();
+                final int budgetCost = frame.limit() * recipients.size();
                 BUDGET.accumulateAndGet(budgetCost, (budget, cost) -> budget - cost);
 
                 final ProjectorFramebufferMessage message = new ProjectorFramebufferMessage(projectorPos, frame);
-                for (final ServerPlayer player : players.keySet()) {
+                for (final ServerPlayer player : recipients) {
                     Network.sendToClient(message, player);
                 }
             });

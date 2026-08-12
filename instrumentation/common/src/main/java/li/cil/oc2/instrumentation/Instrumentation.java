@@ -12,7 +12,12 @@ import dev.architectury.utils.EnvExecutor;
 import net.fabricmc.api.EnvType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.blocks.BlockStateArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import li.cil.oc2.common.blockentity.BusCableBlockEntity;
+import javax.annotation.Nullable;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -58,6 +63,12 @@ public final class Instrumentation {
         CommandRegistrationEvent.EVENT.register((dispatcher, context, selection) ->
             dispatcher.register(Commands.literal("oc2debug")
                 .requires(source -> source.hasPermission(2))
+                .then(Commands.literal("facade")
+                    .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                        .then(Commands.argument("block", BlockStateArgument.block(context))
+                            .executes(ctx -> facade(ctx, BlockStateArgument.getBlock(ctx, "block")
+                                .getState().getBlock().asItem())))
+                        .executes(ctx -> facade(ctx, null))))
                 .then(Commands.literal("client")
                     .then(Commands.argument("command", StringArgumentType.greedyString())
                         .executes(ctx -> {
@@ -90,6 +101,20 @@ public final class Instrumentation {
     }
 
     ///////////////////////////////////////////////////////////////////
+
+    private static int facade(final CommandContext<CommandSourceStack> ctx, @Nullable final Item item) throws CommandSyntaxException {
+        final BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "pos");
+        final BlockEntity blockEntity = ctx.getSource().getLevel().getBlockEntity(pos);
+        if (!(blockEntity instanceof final BusCableBlockEntity busCable)) {
+            ctx.getSource().sendFailure(Component.literal("No bus cable at " + pos.toShortString()));
+            return 0;
+        }
+
+        busCable.setFacade(item == null ? ItemStack.EMPTY : new ItemStack(item));
+        ctx.getSource().sendSuccess(() -> Component.literal(
+            (item == null ? "Cleared" : "Set") + " facade at " + pos.toShortString()), false);
+        return 1;
+    }
 
     private static int computer(final CommandContext<CommandSourceStack> ctx, final boolean start) throws CommandSyntaxException {
         final BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "pos");

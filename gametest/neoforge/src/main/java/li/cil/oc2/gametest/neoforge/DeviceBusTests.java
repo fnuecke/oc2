@@ -2,16 +2,16 @@
 
 package li.cil.oc2.gametest.neoforge;
 
-import li.cil.oc2.common.block.Blocks;
-import li.cil.oc2.common.block.BusCableBlock;
-import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
+import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.vm.AbstractVirtualMachine;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import static li.cil.oc2.gametest.TestSupport.*;
@@ -26,7 +26,7 @@ public final class DeviceBusTests {
         final int[] base = new int[1];
         helper.startSequence()
             .thenExecuteAfter(60, () -> base[0] = deviceCount(helper))
-            .thenExecute(() -> helper.setBlock(DEVICE_POS, Blocks.REDSTONE_INTERFACE.get()))
+            .thenExecute(() -> placeDevice(helper))
             .thenExecuteAfter(60, () -> {
                 final int withNeighbor = deviceCount(helper);
                 if (withNeighbor <= base[0]) {
@@ -35,7 +35,7 @@ public final class DeviceBusTests {
                             + ", attached=" + withNeighbor + ")");
                 }
             })
-            .thenExecute(() -> helper.setBlock(DEVICE_POS, net.minecraft.world.level.block.Blocks.AIR))
+            .thenExecute(() -> breakBlock(helper, DEVICE_POS))
             .thenExecuteAfter(60, () -> {
                 final int after = deviceCount(helper);
                 if (after != base[0]) {
@@ -54,10 +54,10 @@ public final class DeviceBusTests {
 
         final int[] attached = new int[1];
         helper.startSequence()
-            .thenExecuteAfter(40, () -> helper.setBlock(DEVICE_POS, Blocks.REDSTONE_INTERFACE.get()))
+            .thenExecuteAfter(40, () -> placeDevice(helper))
             .thenExecuteAfter(60, () -> attached[0] = deviceCount(helper))
-            .thenExecute(() -> helper.setBlock(DEVICE_POS, net.minecraft.world.level.block.Blocks.AIR))
-            .thenExecuteAfter(60, () -> helper.setBlock(DEVICE_POS, Blocks.REDSTONE_INTERFACE.get()))
+            .thenExecute(() -> breakBlock(helper, DEVICE_POS))
+            .thenExecuteAfter(60, () -> placeDevice(helper))
             .thenExecuteAfter(60, () -> {
                 final int rediscovered = deviceCount(helper);
                 if (rediscovered < attached[0]) {
@@ -72,12 +72,15 @@ public final class DeviceBusTests {
     ///////////////////////////////////////////////////////////////////
 
     private static void placeComputerAndCable(final GameTestHelper helper) {
-        helper.setBlock(COMPUTER_POS, Blocks.COMPUTER.get().defaultBlockState()
-            .setValue(ComputerBlock.FACING, Direction.NORTH));
-        helper.setBlock(CABLE_POS, Blocks.BUS_CABLE.get().defaultBlockState()
-            .setValue(BusCableBlock.HAS_CABLE, true)
-            .setValue(BusCableBlock.CONNECTION_WEST, BusCableBlock.ConnectionType.CABLE)
-            .setValue(BusCableBlock.CONNECTION_EAST, BusCableBlock.ConnectionType.INTERFACE));
+        final Player player = fakePlayer(helper);
+        place(helper, player, new ItemStack(Items.COMPUTER.get()), COMPUTER_POS);
+        place(helper, player, new ItemStack(Items.BUS_CABLE.get()), CABLE_POS);
+        useOn(helper, player, new ItemStack(Items.BUS_INTERFACE.get()), CABLE_POS, Direction.WEST);
+        useOn(helper, player, new ItemStack(Items.BUS_INTERFACE.get()), CABLE_POS, Direction.EAST);
+    }
+
+    private static void placeDevice(final GameTestHelper helper) {
+        place(helper, fakePlayer(helper), new ItemStack(Items.REDSTONE_INTERFACE.get()), DEVICE_POS);
     }
 
     private static int deviceCount(final GameTestHelper helper) {

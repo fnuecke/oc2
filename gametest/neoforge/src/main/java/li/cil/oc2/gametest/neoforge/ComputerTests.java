@@ -4,13 +4,10 @@ package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.inventory.ItemHandler;
-import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.vm.VMRunState;
-import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -43,7 +40,7 @@ public final class ComputerTests {
 
     @GameTest(template = TEMPLATE, timeoutTicks = 200)
     public static void computerInitializesCleanly(final GameTestHelper helper) {
-        helper.setBlock(COMPUTER_POS, Blocks.COMPUTER.get());
+        placeComputer(helper);
         helper.startSequence()
             .thenExecuteAfter(20, () -> {
                 final ComputerBlockEntity computer = helper.getBlockEntity(COMPUTER_POS);
@@ -60,7 +57,7 @@ public final class ComputerTests {
 
     @GameTest(template = TEMPLATE, timeoutTicks = 200)
     public static void updateTagRoundTripsWithoutError(final GameTestHelper helper) {
-        helper.setBlock(COMPUTER_POS, Blocks.COMPUTER.get());
+        placeComputer(helper);
         helper.startSequence()
             .thenExecuteAfter(10, () -> {
                 final ComputerBlockEntity computer = helper.getBlockEntity(COMPUTER_POS);
@@ -75,7 +72,7 @@ public final class ComputerTests {
     @GameTest(template = TEMPLATE, timeoutTicks = 300)
     public static void breakingComputerKeepsContents(final GameTestHelper helper) {
         final Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        helper.setBlock(COMPUTER_POS, Blocks.COMPUTER.get());
+        placeComputer(helper);
         helper.startSequence()
             .thenExecuteAfter(20, () -> {
                 final ComputerBlockEntity computer = helper.getBlockEntity(COMPUTER_POS);
@@ -108,9 +105,9 @@ public final class ComputerTests {
                     throw new GameTestAssertException("dropped computer carries no energy tag");
                 }
 
-                player.setItemInHand(InteractionHand.MAIN_HAND, dropped);
                 helper.killAllEntities();
-                helper.placeAt(player, dropped, COMPUTER_POS.below(), Direction.UP);
+
+                place(helper, player, dropped, COMPUTER_POS);
             })
             .thenExecuteAfter(20, () -> {
                 final ComputerBlockEntity computer = helper.getBlockEntity(COMPUTER_POS);
@@ -126,7 +123,7 @@ public final class ComputerTests {
     @GameTest(template = TEMPLATE, timeoutTicks = 300)
     public static void normalInteractionDoesNotStart(final GameTestHelper helper) {
         final Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        helper.setBlock(COMPUTER_POS, Blocks.COMPUTER.get());
+        placeComputer(helper);
         helper.startSequence()
             .thenExecuteAfter(20, () -> {
                 helper.useBlock(COMPUTER_POS, player);
@@ -143,7 +140,7 @@ public final class ComputerTests {
     @GameTest(template = TEMPLATE, timeoutTicks = 300)
     public static void sneakInteractStarts(final GameTestHelper helper) {
         final Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        helper.setBlock(COMPUTER_POS, Blocks.COMPUTER.get());
+        placeComputer(helper);
         helper.startSequence()
             .thenExecuteAfter(20, () -> {
                 player.setShiftKeyDown(true);
@@ -167,6 +164,10 @@ public final class ComputerTests {
             throw new GameTestAssertException("expected exactly one dropped stack, found " + items.size());
         }
         return items.get(0).getItem();
+    }
+
+    private static void placeComputer(final GameTestHelper helper) {
+        place(helper, fakePlayer(helper), new ItemStack(Items.COMPUTER.get()), COMPUTER_POS);
     }
 
     private ComputerTests() {

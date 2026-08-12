@@ -7,6 +7,9 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.vm.Terminal;
+import li.cil.oc2.common.vm.AbstractVirtualMachine;
 import li.cil.oc2.common.vm.VMRunState;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.gametest.framework.GameTest;
@@ -22,6 +25,8 @@ import static li.cil.oc2.gametest.TestSupport.*;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class VirtualMachineTests {
+    private static final int BOOT_TIMEOUT_TICKS = 60000;
+
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void computerWithHardwareRunsAndStops(final GameTestHelper helper) {
         placeMachine(helper);
@@ -106,7 +111,82 @@ public final class VirtualMachineTests {
             .thenSucceed();
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS)
+    public static void computerBootsGuestKernel(final GameTestHelper helper) {
+        placeMachine(helper);
+        helper.startSequence()
+            .thenExecuteAfter(20, () -> installHardware(helper))
+            .thenExecuteAfter(20, () -> computer(helper).start())
+            .thenWaitUntil(() -> requireBooted(helper))
+            .thenSucceed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS)
+    public static void bootedGuestSurvivesSaveAndLoad(final GameTestHelper helper) {
+        placeMachine(helper);
+
+        final CompoundTag[] saved = new CompoundTag[1];
+        final long[] instructionsAtReload = new long[1];
+        helper.startSequence()
+            .thenExecuteAfter(20, () -> installHardware(helper))
+            .thenExecuteAfter(20, () -> computer(helper).start())
+            .thenWaitUntil(() -> requireBooted(helper))
+            .thenExecute(() -> saved[0] =
+                computer(helper).saveWithFullMetadata(helper.getLevel().registryAccess()))
+            .thenExecute(() -> {
+                computer(helper).loadWithComponents(saved[0], helper.getLevel().registryAccess());
+                instructionsAtReload[0] = guestInstructions(helper);
+            })
+            .thenWaitUntil(() -> {
+                assertNoPanic(helper);
+                if (computer(helper).getVirtualMachine().getRunState() != VMRunState.RUNNING) {
+                    throw new GameTestAssertException("computer stopped after reload");
+                }
+                if (guestInstructions(helper) <= instructionsAtReload[0]) {
+                    throw new GameTestAssertException("guest is not retiring instructions after reload");
+                }
+            })
+            .thenSucceed();
+    }
+
     ///////////////////////////////////////////////////////////////////
+
+    private static void requireBooted(final GameTestHelper helper) {
+        assertNoPanic(helper);
+        final String text = screen(helper);
+        if (!text.contains("Mounted root") || !text.contains("Run /sbin/init")) {
+            throw new GameTestAssertException("guest has not handed off to userspace; screen:\n" + text);
+        }
+    }
+
+    private static long guestInstructions(final GameTestHelper helper) {
+        return ((AbstractVirtualMachine) computer(helper).getVirtualMachine())
+            .state.board.getCpu().getInstructionsRetired();
+    }
+
+    private static void assertNoPanic(final GameTestHelper helper) {
+        final String text = screen(helper);
+        for (final String marker : new String[]{"Kernel panic", "Oops", "BUG:", "Call Trace"}) {
+            if (text.contains(marker)) {
+                throw new GameTestAssertException("guest reported '" + marker + "':\n" + text);
+            }
+        }
+    }
+
+    private static String screen(final GameTestHelper helper) {
+        final CompoundTag tag = NBTSerialization.serialize(computer(helper).getTerminal());
+        final byte[] buffer = tag.getByteArray("buffer");
+        final StringBuilder text = new StringBuilder();
+        for (int row = 0; row < Terminal.HEIGHT; row++) {
+            for (int column = 0; column < Terminal.WIDTH; column++) {
+                final int index = row * Terminal.WIDTH + column;
+                final byte value = index < buffer.length ? buffer[index] : 0;
+                text.append(value == 0 ? ' ' : (char) (value & 0xFF));
+            }
+            text.append('\n');
+        }
+        return text.toString();
+    }
 
     private static void placeMachine(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);

@@ -25,7 +25,15 @@ import static li.cil.oc2.gametest.TestSupport.*;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class VirtualMachineTests {
-    private static final int BOOT_TIMEOUT_TICKS = 60000;
+    // Generous because a passing test stops as soon as the milestone appears, so the bound only
+    // costs time when something is actually broken.
+    private static final int BOOT_TIMEOUT_TICKS = 150000;
+
+    // Tests within a batch run simultaneously, batches run one after another. The two tests that
+    // wait on real boot progress get a batch each: five emulators competing for cores made the
+    // milestone miss its deadline intermittently.
+    private static final String BOOT_BATCH = "oc2_boot";
+    private static final String BOOT_RELOAD_BATCH = "oc2_boot_reload";
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void computerWithHardwareRunsAndStops(final GameTestHelper helper) {
@@ -91,13 +99,16 @@ public final class VirtualMachineTests {
                         + vm.getRunState() + ", bootError=" + vm.getBootError());
                 }
 
-                saved[0] = computer(helper).saveWithFullMetadata(helper.getLevel().registryAccess());
+                final var registries = helper.getLevel().registryAccess();
+                saved[0] = computer(helper).saveWithFullMetadata(registries);
                 if (!saved[0].contains("state")) {
                     throw new GameTestAssertException("saved tag carries no VM state");
                 }
+
+                // Immediate load to make sure VM doesn't tick; RAM and drive blob files
+                // could desync otherwise. Open todo to see if we can snapshot those...
+                computer(helper).loadWithComponents(saved[0], registries);
             })
-            .thenExecute(() -> computer(helper)
-                .loadWithComponents(saved[0], helper.getLevel().registryAccess()))
             .thenExecuteAfter(200, () -> {
                 final var vm = computer(helper).getVirtualMachine();
                 if (vm.getRunState() != VMRunState.RUNNING) {
@@ -111,7 +122,7 @@ public final class VirtualMachineTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS)
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BOOT_BATCH)
     public static void computerBootsGuestKernel(final GameTestHelper helper) {
         placeMachine(helper);
         helper.startSequence()
@@ -121,7 +132,7 @@ public final class VirtualMachineTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS)
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BOOT_RELOAD_BATCH)
     public static void bootedGuestSurvivesSaveAndLoad(final GameTestHelper helper) {
         placeMachine(helper);
 
@@ -131,10 +142,13 @@ public final class VirtualMachineTests {
             .thenExecuteAfter(20, () -> installHardware(helper))
             .thenExecuteAfter(20, () -> computer(helper).start())
             .thenWaitUntil(() -> requireBooted(helper))
-            .thenExecute(() -> saved[0] =
-                computer(helper).saveWithFullMetadata(helper.getLevel().registryAccess()))
             .thenExecute(() -> {
-                computer(helper).loadWithComponents(saved[0], helper.getLevel().registryAccess());
+                final var registries = helper.getLevel().registryAccess();
+                saved[0] = computer(helper).saveWithFullMetadata(registries);
+
+                // Immediate load to make sure VM doesn't tick; RAM and drive blob files
+                // could desync otherwise. Open todo to see if we can snapshot those...
+                computer(helper).loadWithComponents(saved[0], registries);
                 instructionsAtReload[0] = guestInstructions(helper);
             })
             .thenWaitUntil(() -> {

@@ -23,13 +23,6 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
-// Note on cable rendering and Fabulous rendering mode: sadly at the time of writing,
-// there is no hook to render before the Fabulous shaders. And those sadly appear to
-// completely flatten / break the depth buffer. So using the RenderWorldLastEvent will
-// not work anymore for rendering cables in one nice efficient batch. So instead we
-// fall back to letting the TESRs trigger the cable rendering. We still use the data
-// structures with precomputed data and such, it's just that they need much larger
-// render bounds and require an addition hash map look-up.
 public final class NetworkCableRenderer {
     private static final int MAX_RENDER_DISTANCE = 100;
     private static final int CABLE_VERTEX_COUNT = 9;
@@ -47,7 +40,6 @@ public final class NetworkCableRenderer {
     private static boolean isDirty;
 
     private static final ArrayList<Connection> connections = new ArrayList<>();
-    private static final WeakHashMap<NetworkConnectorBlockEntity, ArrayList<Connection>> connectionsByConnector = new WeakHashMap<>();
     private static final ArrayList<CablePoint> cablePoints = new ArrayList<>();
 
     // ------------------------------------------------------------- //
@@ -59,13 +51,6 @@ public final class NetworkCableRenderer {
 
     public static void invalidateConnections() {
         isDirty = true;
-    }
-
-    public static void renderCablesFor(final BlockAndTintGetter level, final PoseStack stack, final Vec3 eye, final NetworkConnectorBlockEntity connector) {
-        final ArrayList<Connection> connections = connectionsByConnector.get(connector);
-        if (connections != null) {
-            renderCables(level, stack, eye, connections, unused -> true);
-        }
     }
 
     // ------------------------------------------------------------- //
@@ -240,7 +225,6 @@ public final class NetworkCableRenderer {
         for (final NetworkConnectorBlockEntity connector : list) {
             if (!connector.isValid()) {
                 connectors.remove(connector);
-                connectionsByConnector.remove(connector);
                 invalidateConnections();
             }
         }
@@ -260,7 +244,6 @@ public final class NetworkCableRenderer {
 
         isDirty = false;
         connections.clear();
-        connectionsByConnector.clear();
 
         final HashSet<Connection> seen = new HashSet<>();
         for (final NetworkConnectorBlockEntity connector : connectors) {
@@ -269,7 +252,6 @@ public final class NetworkCableRenderer {
                 final Connection connection = new Connection(position, connectedPosition);
                 if (seen.add(connection)) {
                     connections.add(connection);
-                    connectionsByConnector.computeIfAbsent(connector, unused -> new ArrayList<>()).add(connection);
                 }
             }
         }

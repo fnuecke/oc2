@@ -16,7 +16,6 @@ import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.util.TickUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -29,7 +28,6 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -257,17 +255,6 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
                 ownedCables.add(position);
             }
         }
-    }
-
-    @Nullable
-    @Override
-    @Environment(EnvType.CLIENT)
-    public AABB getExpandedRenderBoundingBox() {
-        if (!Minecraft.useShaderTransparency()) {
-            return null;
-        }
-
-        return new AABB(getBlockPos()).inflate(MAX_CONNECTION_DISTANCE);
     }
 
     // ------------------------------------------------------------- //

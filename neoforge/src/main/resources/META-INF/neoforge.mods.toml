@@ -38,7 +38,7 @@ modId = "markdown_manual"
 type = "required"
 versionRange = "[${manualVersion},)"
 ordering = "AFTER"
-side = "CLIENT"
+side = "BOTH"
 
 [[mixins]]
 config = "oc2.mixins.json"

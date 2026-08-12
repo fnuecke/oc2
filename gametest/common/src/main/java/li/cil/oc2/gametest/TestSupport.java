@@ -19,10 +19,13 @@ import javax.annotation.Nullable;
 public final class TestSupport {
     public static final String MOD_ID = "oc2gametest";
     public static final String TEMPLATE = "empty";
-    public static final BlockPos COMPUTER_POS = new BlockPos(4, 2, 4);
-    public static final BlockPos CABLE_POS = new BlockPos(5, 2, 4);
-    public static final BlockPos DEVICE_POS = new BlockPos(6, 2, 4);
-    public static final BlockPos POWER_POS = new BlockPos(3, 2, 4);
+    public static final int WORK_Y = 2;
+    public static final int MAX_X = 39;
+
+    public static final BlockPos POWER_POS = new BlockPos(1, WORK_Y, 2);
+    public static final BlockPos COMPUTER_POS = new BlockPos(2, WORK_Y, 2);
+    public static final BlockPos CABLE_POS = new BlockPos(3, WORK_Y, 2);
+    public static final BlockPos DEVICE_POS = new BlockPos(4, WORK_Y, 2);
 
     public static Player fakePlayer(final GameTestHelper helper) {
         final Player player = helper.makeMockPlayer(GameType.SURVIVAL);

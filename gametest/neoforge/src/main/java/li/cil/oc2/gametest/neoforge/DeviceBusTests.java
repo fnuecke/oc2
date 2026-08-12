@@ -8,6 +8,7 @@ import li.cil.oc2.common.vm.AbstractVirtualMachine;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -64,6 +65,40 @@ public final class DeviceBusTests {
                     throw new GameTestAssertException(
                         "neighbour not rediscovered after being replaced: first attach="
                             + attached[0] + ", after replace=" + rediscovered);
+                }
+            })
+            .thenSucceed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 900)
+    public static void busReachesAcrossChunkBoundary(final GameTestHelper helper) {
+        final Player player = fakePlayer(helper);
+        place(helper, player, new ItemStack(Items.COMPUTER.get()), COMPUTER_POS);
+
+        final int z = CABLE_POS.getZ();
+        final BlockPos lastCable = new BlockPos(MAX_X - 1, WORK_Y, z);
+        final BlockPos farDevice = new BlockPos(MAX_X, WORK_Y, z);
+        for (int x = CABLE_POS.getX(); x <= lastCable.getX(); x++) {
+            place(helper, player, new ItemStack(Items.BUS_CABLE.get()), new BlockPos(x, WORK_Y, z));
+        }
+        useOn(helper, player, new ItemStack(Items.BUS_INTERFACE.get()), CABLE_POS, Direction.WEST);
+        useOn(helper, player, new ItemStack(Items.BUS_INTERFACE.get()), lastCable, Direction.EAST);
+
+        if (helper.absolutePos(CABLE_POS).getX() >> 4 == helper.absolutePos(lastCable).getX() >> 4) {
+            throw new GameTestAssertException("the cable run does not cross a chunk boundary");
+        }
+
+        final int[] base = new int[1];
+        helper.startSequence()
+            .thenExecuteAfter(80, () -> base[0] = deviceCount(helper))
+            .thenExecute(() -> place(helper, fakePlayer(helper),
+                new ItemStack(Items.REDSTONE_INTERFACE.get()), farDevice))
+            .thenExecuteAfter(80, () -> {
+                final int reached = deviceCount(helper);
+                if (reached <= base[0]) {
+                    throw new GameTestAssertException(
+                        "device at the far end of a cross-chunk cable run was not found (run="
+                            + base[0] + ", with device=" + reached + ")");
                 }
             })
             .thenSucceed();

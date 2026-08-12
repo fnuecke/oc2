@@ -9,6 +9,7 @@ import net.minecraft.world.level.LevelAccessor;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Consumer;
 
 public final class ServerScheduler {
     private static final TickScheduler globalTickScheduler = new TickScheduler();
@@ -16,6 +17,7 @@ public final class ServerScheduler {
     private static final WeakHashMap<LevelAccessor, SimpleScheduler> levelUnloadSchedulers = new WeakHashMap<>();
     private static final WeakHashMap<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> chunkLoadSchedulers = new WeakHashMap<>();
     private static final WeakHashMap<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> chunkUnloadSchedulers = new WeakHashMap<>();
+    private static final WeakHashMap<LevelAccessor, ChunkListenerCollection> anyChunkUnloadObservers = new WeakHashMap<>();
 
     // ------------------------------------------------------------- //
 
@@ -105,6 +107,23 @@ public final class ServerScheduler {
         }
     }
 
+    public static void subscribeOnAnyChunkUnload(final LevelAccessor level, final Consumer<ChunkPos> listener) {
+        anyChunkUnloadObservers
+                .computeIfAbsent(level, unused -> new ChunkListenerCollection())
+                .add(listener);
+    }
+
+    public static void unsubscribeOnAnyChunkUnload(@Nullable final LevelAccessor level, final Consumer<ChunkPos> listener) {
+        if (level == null) {
+            return;
+        }
+
+        final ChunkListenerCollection listeners = anyChunkUnloadObservers.get(level);
+        if (listeners != null) {
+            listeners.remove(listener);
+        }
+    }
+
     // ------------------------------------------------------------- //
 
     public static void initialize() {
@@ -114,12 +133,14 @@ public final class ServerScheduler {
             levelUnloadSchedulers.clear();
             chunkLoadSchedulers.clear();
             chunkUnloadSchedulers.clear();
+            anyChunkUnloadObservers.clear();
         });
 
         LifecycleEvent.SERVER_LEVEL_UNLOAD.register(level -> {
             levelTickSchedulers.remove(level);
             chunkLoadSchedulers.remove(level);
             chunkUnloadSchedulers.remove(level);
+            anyChunkUnloadObservers.remove(level);
 
             final SimpleScheduler scheduler = levelUnloadSchedulers.remove(level);
             if (scheduler != null) {
@@ -151,6 +172,11 @@ public final class ServerScheduler {
 
     public static void onChunkUnload(final LevelAccessor level, final ChunkPos chunkPos) {
         runChunkListeners(chunkUnloadSchedulers, level, chunkPos);
+
+        final ChunkListenerCollection observers = anyChunkUnloadObservers.get(level);
+        if (observers != null) {
+            observers.run(chunkPos);
+        }
     }
 
     private static void runChunkListeners(final Map<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> schedulers,
@@ -197,34 +223,14 @@ public final class ServerScheduler {
         }
     }
 
-    private static final class SimpleScheduler {
-        private final Set<Runnable> listeners = Collections.newSetFromMap(new WeakHashMap<>());
+    private static abstract class Listeners<T> {
+        private final Set<T> listeners = Collections.newSetFromMap(new WeakHashMap<>());
 
-        public void add(final Runnable listener) {
+        public void add(final T listener) {
             listeners.add(listener);
         }
 
-        public void remove(final Runnable listener) {
-            listeners.remove(listener);
-        }
-
-        public void run() {
-            for (final Runnable runnable : listeners) {
-                runnable.run();
-            }
-
-            listeners.clear();
-        }
-    }
-
-    private static final class ListenerCollection {
-        private final Set<Runnable> listeners = Collections.newSetFromMap(new WeakHashMap<>());
-
-        public void add(final Runnable listener) {
-            listeners.add(listener);
-        }
-
-        public void remove(final Runnable listener) {
+        public void remove(final T listener) {
             listeners.remove(listener);
         }
 
@@ -232,10 +238,34 @@ public final class ServerScheduler {
             return listeners.isEmpty();
         }
 
-        public void run() {
-            for (final Runnable runnable : listeners) {
-                runnable.run();
+        public void clear() {
+            listeners.clear();
+        }
+
+        public void run(final Consumer<? super T> invoker) {
+            // Snapshot: listeners may unregister from inside their callback.
+            for (final T listener : List.copyOf(listeners)) {
+                invoker.accept(listener);
             }
+        }
+    }
+
+    private static final class SimpleScheduler extends Listeners<Runnable> {
+        public void run() {
+            super.run(Runnable::run);
+            clear();
+        }
+    }
+
+    private static final class ListenerCollection extends Listeners<Runnable> {
+        public void run() {
+            super.run(Runnable::run);
+        }
+    }
+
+    private static final class ChunkListenerCollection extends Listeners<Consumer<ChunkPos>> {
+        public void run(final ChunkPos chunkPos) {
+            super.run(consumer -> consumer.accept(chunkPos));
         }
     }
 }

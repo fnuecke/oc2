@@ -38,6 +38,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Cursor3D;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
@@ -75,6 +76,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static java.util.Collections.singleton;
 import static li.cil.oc2.common.Constants.ENERGY_TAG_NAME;
@@ -104,9 +106,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     // ------------------------------------------------------------- //
 
-    // ServerScheduler rather than the event bus: Architectury events cannot be unregistered, and
-    // these are per-entity listeners that must go away with the entity.
     private final Runnable unloadListener = this::handleUnload;
+    private final Consumer<ChunkPos> chunkUnloadListener = this::handleChunkUnload;
     private final BlockPos.MutableBlockPos mutablePosition = new BlockPos.MutableBlockPos();
 
     private final AnimationState animationState = new AnimationState();
@@ -460,12 +461,21 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     private void registerListeners() {
         ServerScheduler.scheduleOnUnload(level(), unloadListener);
-        ServerScheduler.subscribeOnUnload(level(), new ChunkPos(blockPosition()), unloadListener);
+        ServerScheduler.subscribeOnAnyChunkUnload(level(), chunkUnloadListener);
     }
 
     private void unregisterListeners() {
         ServerScheduler.cancelOnUnload(level(), unloadListener);
-        ServerScheduler.unsubscribeOnUnload(level(), new ChunkPos(blockPosition()), unloadListener);
+        ServerScheduler.unsubscribeOnAnyChunkUnload(level(), chunkUnloadListener);
+    }
+
+    private void handleChunkUnload(final ChunkPos chunkPos) {
+        if (chunkPos.x != SectionPos.blockToSectionCoord(getBlockX()) ||
+            chunkPos.z != SectionPos.blockToSectionCoord(getBlockZ())) {
+            return;
+        }
+
+        handleUnload();
     }
 
     private void handleUnload() {

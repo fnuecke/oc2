@@ -26,7 +26,7 @@ public enum BusInterfaceNameRenderer {
 
     ///////////////////////////////////////////////////////////////////
 
-    public void render(final PoseStack poseStack) {
+    public void render(final PoseStack poseStack, final Matrix4f modelViewMatrix) {
         final Minecraft mc = Minecraft.getInstance();
         final Player player = mc.player;
         if (player == null) {
@@ -61,6 +61,7 @@ public enum BusInterfaceNameRenderer {
 
         final PoseStack stack = poseStack;
         stack.pushPose();
+        stack.mulPose(modelViewMatrix);
 
         stack.translate(0.5, 1, 0.5);
         stack.translate(side.getStepX() * 0.5f, 0, side.getStepZ() * 0.5f);

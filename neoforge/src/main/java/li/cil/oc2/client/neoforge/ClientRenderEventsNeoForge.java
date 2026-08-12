@@ -19,9 +19,11 @@ import net.neoforged.neoforge.common.util.TriState;
 public final class ClientRenderEventsNeoForge {
     @SubscribeEvent
     public static void handleRenderLevelStage(final RenderLevelStageEvent event) {
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
-            NetworkCableRenderer.render(event.getPoseStack(), event.getCamera(), event.getProjectionMatrix());
-            BusInterfaceNameRenderer.INSTANCE.render(event.getPoseStack());
+        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) {
+            NetworkCableRenderer.render(event.getPoseStack(), event.getCamera(),
+                event.getModelViewMatrix(), event.getFrustum());
+        } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
+            BusInterfaceNameRenderer.INSTANCE.render(event.getPoseStack(), event.getModelViewMatrix());
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             ProjectorDepthRenderer.renderProjectors(event.getPoseStack(), event.getProjectionMatrix(), Minecraft.getInstance().getTimer());
         }

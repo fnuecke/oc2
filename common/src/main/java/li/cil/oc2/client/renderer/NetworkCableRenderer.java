@@ -97,7 +97,8 @@ public final class NetworkCableRenderer {
         }
     }
 
-    public static void render(final PoseStack poseStack, final Camera camera, final Matrix4f projectionMatrix) {
+    public static void render(final PoseStack poseStack, final Camera camera,
+                              final Matrix4f modelViewMatrix, final Frustum frustum) {
         validateConnectors();
         validatePairs();
 
@@ -115,10 +116,8 @@ public final class NetworkCableRenderer {
 
         final Vec3 eye = camera.getPosition();
 
-        final Frustum frustum = new Frustum(stack.last().pose(), projectionMatrix);
-        frustum.prepare(eye.x, eye.y, eye.z);
-
         stack.pushPose();
+        stack.mulPose(modelViewMatrix);
         stack.translate(-eye.x, -eye.y, -eye.z);
 
         renderCables(level, stack, eye, connections, frustum::isVisible);

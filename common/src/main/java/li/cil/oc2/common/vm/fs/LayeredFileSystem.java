@@ -18,7 +18,7 @@ public final class LayeredFileSystem implements FileSystem {
     // ------------------------------------------------------------- //
 
     public void addLayer(final FileSystem fileSystem) {
-        fileSystems.add(0, fileSystem);
+        fileSystems.addFirst(fileSystem);
     }
 
     public void clear() {

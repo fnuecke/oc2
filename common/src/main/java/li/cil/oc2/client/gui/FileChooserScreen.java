@@ -120,11 +120,8 @@ public final class FileChooserScreen extends Screen {
     }
 
     @Override
-    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
+    public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         renderTransparentBackground(graphics);
-        fileList.render(graphics, mouseX, mouseY, partialTicks);
-        fileNameTextField.render(graphics, mouseX, mouseY, partialTicks);
-        super.render(graphics, mouseX, mouseY, partialTicks);
     }
 
     @Override
@@ -141,7 +138,7 @@ public final class FileChooserScreen extends Screen {
         final int widgetsWidth = width - MARGIN * 2;
         final int listHeight = height - MARGIN - WIDGET_SPACING - TEXT_FIELD_HEIGHT - WIDGET_SPACING - BUTTON_HEIGHT - MARGIN;
         fileList = new FileList(MARGIN, listHeight, LIST_ENTRY_HEIGHT);
-        addWidget(fileList);
+        addRenderableWidget(fileList);
 
         final int fileNameTop = MARGIN + listHeight + WIDGET_SPACING;
         fileNameTextField = new EditBox(font, MARGIN, fileNameTop, widgetsWidth, TEXT_FIELD_HEIGHT, FILE_NAME_TEXT);
@@ -150,7 +147,7 @@ public final class FileChooserScreen extends Screen {
             updateButtons();
         });
         fileNameTextField.setMaxLength(1024);
-        addWidget(fileNameTextField);
+        addRenderableWidget(fileNameTextField);
 
         final int buttonTop = fileNameTop + TEXT_FIELD_HEIGHT + WIDGET_SPACING;
         final int buttonCount = 2;

@@ -86,6 +86,11 @@ public final class KeyboardScreen extends Screen {
     }
 
     @Override
+    public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
+        // This page intentionally left blank.
+    }
+
+    @Override
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         super.render(graphics, mouseX, mouseY, partialTicks);
 

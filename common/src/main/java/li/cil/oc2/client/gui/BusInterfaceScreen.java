@@ -113,10 +113,13 @@ public final class BusInterfaceScreen extends Screen {
     }
 
     @Override
-    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
+    public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         renderTransparentBackground(graphics);
         Sprites.BUS_INTERFACE_SCREEN.draw(graphics, left, top);
+    }
 
+    @Override
+    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         super.render(graphics, mouseX, mouseY, partialTicks);
 
         RenderSystem.disableBlend();

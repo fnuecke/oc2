@@ -163,7 +163,7 @@ public final class ComputerTests {
         if (items.size() != 1) {
             throw new GameTestAssertException("expected exactly one dropped stack, found " + items.size());
         }
-        return items.get(0).getItem();
+        return items.getFirst().getItem();
     }
 
     private static void placeComputer(final GameTestHelper helper) {

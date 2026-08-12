@@ -13,13 +13,16 @@ import dev.architectury.utils.Env;
 import dev.architectury.utils.EnvExecutor;
 import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
+import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.vm.AbstractVirtualMachine;
+import li.cil.oc2.common.vm.Terminal;
 import net.fabricmc.api.EnvType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.blocks.BlockStateArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -32,6 +35,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
 public final class Instrumentation {
@@ -93,6 +97,12 @@ public final class Instrumentation {
                                         .executes(ctx -> openScreen(ctx, true)))
                                 .then(Commands.literal("terminal")
                                         .executes(ctx -> openScreen(ctx, false)))
+                                .then(Commands.literal("status").executes(Instrumentation::status))
+                                .then(Commands.literal("screen").executes(Instrumentation::screen))
+                                .then(Commands.literal("type")
+                                        .then(Commands.argument("text", StringArgumentType.greedyString())
+                                                .executes(ctx -> type(ctx, StringArgumentType.getString(ctx, "text")))))
+                                .then(Commands.literal("enter").executes(ctx -> type(ctx, "")))
                                 .then(Commands.literal("gdb")
                                         .then(Commands.argument("port", IntegerArgumentType.integer(1024, 65535))
                                                 .executes(ctx -> gdb(ctx, IntegerArgumentType.getInteger(ctx, "port"))))))));
@@ -116,11 +126,68 @@ public final class Instrumentation {
         return 1;
     }
 
+    private static int status(final CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        final ComputerBlockEntity computer = requireComputer(ctx);
+        if (computer == null) {
+            return 0;
+        }
+
+        final var vm = computer.getVirtualMachine();
+        final StringBuilder report = new StringBuilder("computer ")
+                .append(BlockPosArgument.getLoadedBlockPos(ctx, "pos").toShortString())
+                .append("\n  runState=").append(vm.getRunState())
+                .append("\n  busState=").append(vm.getBusState())
+                .append("\n  bootError=").append(vm.getBootError() == null ? "none" : vm.getBootError().getString())
+                .append("\n  bus devices:");
+        for (final var device : ((AbstractVirtualMachine) vm).busController.getDevices()) {
+            report.append("\n    ").append(device.getClass().getSimpleName());
+        }
+
+        ctx.getSource().sendSuccess(() -> Component.literal(report.toString()), false);
+        return 1;
+    }
+
+    private static int screen(final CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        final ComputerBlockEntity computer = requireComputer(ctx);
+        if (computer == null) {
+            return 0;
+        }
+
+        final CompoundTag tag = NBTSerialization.serialize(computer.getTerminal());
+        final byte[] buffer = tag.getByteArray("buffer");
+        final StringBuilder text = new StringBuilder();
+        for (int row = 0; row < Terminal.HEIGHT; row++) {
+            for (int column = 0; column < Terminal.WIDTH; column++) {
+                final int index = row * Terminal.WIDTH + column;
+                final byte value = index < buffer.length ? buffer[index] : 0;
+                text.append(value == 0 ? ' ' : (char) (value & 0xFF));
+            }
+            text.append('\n');
+        }
+
+        ctx.getSource().sendSuccess(() -> Component.literal(text.toString()), false);
+        return 1;
+    }
+
+    private static int type(final CommandContext<CommandSourceStack> ctx, final String text) throws CommandSyntaxException {
+        final ComputerBlockEntity computer = requireComputer(ctx);
+        if (computer == null) {
+            return 0;
+        }
+
+        final Terminal terminal = computer.getTerminal();
+        for (final byte value : text.getBytes(StandardCharsets.UTF_8)) {
+            terminal.putInput(value);
+        }
+        terminal.putInput((byte) '\r');
+
+        ctx.getSource().sendSuccess(() -> Component.literal("typed: " + text), false);
+        return 1;
+    }
+
     private static int computer(final CommandContext<CommandSourceStack> ctx, final boolean start) throws CommandSyntaxException {
-        final BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "pos");
-        final BlockEntity blockEntity = ctx.getSource().getLevel().getBlockEntity(pos);
-        if (!(blockEntity instanceof final ComputerBlockEntity computer)) {
-            ctx.getSource().sendFailure(Component.literal("No computer at " + pos.toShortString()));
+        final ComputerBlockEntity computer = requireComputer(ctx);
+        if (computer == null) {
             return 0;
         }
 
@@ -130,8 +197,20 @@ public final class Instrumentation {
             computer.stop();
         }
         ctx.getSource().sendSuccess(() -> Component.literal(
-                (start ? "Started" : "Stopped") + " computer at " + pos.toShortString()), false);
+                (start ? "Started" : "Stopped") + " computer at "
+                        + computer.getBlockPos().toShortString()), false);
         return 1;
+    }
+
+    @Nullable
+    private static ComputerBlockEntity requireComputer(final CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        final BlockPos pos = BlockPosArgument.getLoadedBlockPos(ctx, "pos");
+        final BlockEntity blockEntity = ctx.getSource().getLevel().getBlockEntity(pos);
+        if (!(blockEntity instanceof final ComputerBlockEntity computer)) {
+            ctx.getSource().sendFailure(Component.literal("No computer at " + pos.toShortString()));
+            return null;
+        }
+        return computer;
     }
 
     private static int gdb(final CommandContext<CommandSourceStack> ctx, final int port) throws CommandSyntaxException {

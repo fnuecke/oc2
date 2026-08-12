@@ -21,7 +21,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ClipContext;
@@ -32,6 +31,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
@@ -387,14 +387,14 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
             vb.subtract(ab),
             ClipContext.Block.COLLIDER,
             ClipContext.Fluid.NONE,
-            (Entity) null
+            CollisionContext.empty()
         ));
         final BlockHitResult hitBA = level.clip(new ClipContext(
             vb.subtract(ab),
             va.add(ab),
             ClipContext.Block.COLLIDER,
             ClipContext.Fluid.NONE,
-            (Entity) null
+            CollisionContext.empty()
         ));
 
         return hitAB.getType() != HitResult.Type.MISS ||

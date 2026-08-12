@@ -22,6 +22,7 @@ public final class TestSupport {
     public static final BlockPos COMPUTER_POS = new BlockPos(4, 2, 4);
     public static final BlockPos CABLE_POS = new BlockPos(5, 2, 4);
     public static final BlockPos DEVICE_POS = new BlockPos(6, 2, 4);
+    public static final BlockPos POWER_POS = new BlockPos(3, 2, 4);
 
     public static Player fakePlayer(final GameTestHelper helper) {
         final Player player = helper.makeMockPlayer(GameType.SURVIVAL);

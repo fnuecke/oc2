@@ -4,6 +4,7 @@ package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.capabilities.NetworkInterface;
+import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity.ConnectionResult;
@@ -157,7 +158,50 @@ public final class NetworkingTests {
                 .thenSucceed();
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 600)
+    public static void aConnectorNoticesTheNetworkCardBeingRemoved(final GameTestHelper helper) {
+        final Player player = fakePlayer(helper);
+        place(helper, player, new ItemStack(Items.COMPUTER.get()), COMPUTER_POS);
+        place(helper, player, new ItemStack(Items.CREATIVE_ENERGY.get()), POWER_POS);
+
+        player.setXRot(90);
+        place(helper, player, new ItemStack(Items.NETWORK_CONNECTOR.get()), COMPUTER_POS.above());
+
+        helper.startSequence()
+                .thenExecuteAfter(20, () -> cardSlot(helper)
+                        .insertItem(0, new ItemStack(Items.NETWORK_INTERFACE_CARD.get()), false))
+                .thenExecuteAfter(80, () -> {
+                    if (adjacentInterfaceOf(helper, COMPUTER_POS.above()) == null) {
+                        throw new GameTestAssertException(
+                                "the connector did not find the installed network card");
+                    }
+                })
+                .thenExecute(() -> {
+                    if (cardSlot(helper).extractItem(0, 1, false).isEmpty()) {
+                        throw new GameTestAssertException("could not remove the network card");
+                    }
+                })
+                .thenExecuteAfter(80, () -> {
+                    if (computerNetworkInterface(helper) != null) {
+                        throw new GameTestAssertException(
+                                "the computer still exposes an interface after card removal");
+                    }
+                    if (adjacentInterfaceOf(helper, COMPUTER_POS.above()) != null) {
+                        throw new GameTestAssertException(
+                                "the connector is still holding the interface of a card that has been removed");
+                    }
+                })
+                .thenSucceed();
+    }
+
+
     // ------------------------------------------------------------- //
+
+    private static ItemHandler cardSlot(final GameTestHelper helper) {
+        return ((ComputerBlockEntity) helper.getBlockEntity(COMPUTER_POS)).getItemStackHandlers()
+                .getItemHandler(DeviceTypes.CARD)
+                .orElseThrow(() -> new GameTestAssertException("no card slot"));
+    }
 
     @Nullable
     private static NetworkInterface computerNetworkInterface(final GameTestHelper helper) {

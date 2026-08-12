@@ -26,13 +26,13 @@ import static li.cil.oc2.common.bus.device.DeviceTypes.key;
 public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers {
     public record GroupDefinition(DeviceType deviceType, int count) { }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final long ITEM_DEVICE_BASE_ADDRESS = 0x20000000L;
     private static final int ITEM_DEVICE_STRIDE = 0x1000;
     private static final long OTHER_DEVICE_BASE_ADDRESS = 0x30000000L;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public final AbstractDeviceBusElement busElement = new VMBusElement();
 
@@ -42,7 +42,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     public final ItemHandler combinedItemHandlers;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public AbstractVMItemStackHandlers(final GroupDefinition... groups) {
         for (final GroupDefinition group : groups) {
@@ -52,7 +52,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         combinedItemHandlers = new CombinedItemHandler(itemHandlers.values().toArray(new ItemHandler[0]));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public Optional<ItemHandler> getItemHandler(final DeviceType deviceType) {
@@ -137,14 +137,14 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
             handler.loadDevices(tag.getCompound(key(deviceType))));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected abstract ItemDeviceQuery makeQuery(final ItemStack stack);
 
     protected void onChanged() {
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final class VMItemHandler extends AbstractTypedDeviceItemStackHandler {
         private final VMItemBusElement busElement;

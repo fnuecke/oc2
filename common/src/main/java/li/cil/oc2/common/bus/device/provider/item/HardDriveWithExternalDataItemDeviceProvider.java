@@ -22,7 +22,7 @@ public final class HardDriveWithExternalDataItemDeviceProvider extends AbstractI
         super(HardDriveWithExternalDataItem.class);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void unmount(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
@@ -30,7 +30,7 @@ public final class HardDriveWithExternalDataItemDeviceProvider extends AbstractI
         HardDriveDeviceWithInitialData.unmount(tag);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {

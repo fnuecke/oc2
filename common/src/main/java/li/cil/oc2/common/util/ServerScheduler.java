@@ -17,7 +17,7 @@ public final class ServerScheduler {
     private static final WeakHashMap<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> chunkLoadSchedulers = new WeakHashMap<>();
     private static final WeakHashMap<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> chunkUnloadSchedulers = new WeakHashMap<>();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void schedule(final Runnable runnable) {
         schedule(runnable, 0);
@@ -105,7 +105,7 @@ public final class ServerScheduler {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
         LifecycleEvent.SERVER_STOPPED.register(server -> {

@@ -21,7 +21,7 @@ public class HardDriveDevice extends AbstractBlockStorageDevice<ByteBufferBlockD
     private final int size;
     private final ThrottledSoundEmitter soundEmitter;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public HardDriveDevice(final ItemStack identity, final int size, final boolean readonly, final Supplier<Optional<BlockLocation>> location) {
         super(identity, readonly);
@@ -30,7 +30,7 @@ public class HardDriveDevice extends AbstractBlockStorageDevice<ByteBufferBlockD
             .withMinInterval(Duration.ofSeconds(1));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected CompletableFuture<ByteBufferBlockDevice> createBlockDevice() {

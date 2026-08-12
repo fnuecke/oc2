@@ -13,7 +13,7 @@ public final class ComputerRunStateMessage extends AbstractMessage {
     private BlockPos pos;
     private VMRunState value;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ComputerRunStateMessage(final ComputerBlockEntity computer, final VMRunState value) {
         this.pos = computer.getBlockPos();
@@ -24,7 +24,7 @@ public final class ComputerRunStateMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -38,7 +38,7 @@ public final class ComputerRunStateMessage extends AbstractMessage {
         buffer.writeEnum(value);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

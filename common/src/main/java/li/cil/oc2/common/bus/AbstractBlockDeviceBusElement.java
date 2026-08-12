@@ -34,7 +34,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         super(Constants.BLOCK_FACE_COUNT);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
     // DeviceBusElement
 
     @Override
@@ -71,7 +71,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         return Optional.of(neighbors);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void updateDevicesForNeighbor(final Direction side) {
         final LevelAccessor level = getLevel();
@@ -102,7 +102,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         scheduleScan();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected boolean canScanContinueTowards(@Nullable final Direction direction) {
         return true;
@@ -168,7 +168,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected final class BlockQueryResult extends QueryResult {
         private final BlockDeviceQuery query;

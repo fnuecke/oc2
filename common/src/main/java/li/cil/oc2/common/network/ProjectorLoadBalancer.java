@@ -72,7 +72,7 @@ public final class ProjectorLoadBalancer {
      */
     @Nullable private static ProjectorInfo lastSender;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     /**
      * Updates timestamp of a player currently watching a projector.
@@ -112,7 +112,7 @@ public final class ProjectorLoadBalancer {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static int getMaxBudget() {
         // We allow over-budgeting projectors to some degree, to allow short bursts of larger frame changes.
@@ -177,7 +177,7 @@ public final class ProjectorLoadBalancer {
         } while (lastSender != start);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     /**
      * Tracks info for a single projector. This class is an entry in a circular double linked list,

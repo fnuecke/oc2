@@ -20,7 +20,7 @@ import java.util.Objects;
 public final class RobotMovementAction extends AbstractRobotAction {
     public static final double TARGET_EPSILON = 0.0001;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final float MOVEMENT_SPEED = 1f / TickUtils.toTicks(Duration.ofSeconds(1)); // blocks per tick
 
@@ -29,7 +29,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
     private static final String START_TAG_NAME = "start";
     private static final String TARGET_TAG_NAME = "target";
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Nullable private MovementDirection direction;
     @Nullable private BlockPos origin;
@@ -37,7 +37,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
     @Nullable private BlockPos target;
     @Nullable private Vec3 targetPos;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public RobotMovementAction(final MovementDirection direction) {
         super(RobotActions.MOVEMENT);
@@ -48,7 +48,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
         super(RobotActions.MOVEMENT, tag);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static Vec3 getTargetPositionInBlock(final BlockPos position) {
         return Vec3.atBottomCenterOf(position).add(0, 0.5f * (1 - Entities.ROBOT.get().getHeight()), 0);
@@ -63,7 +63,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
         robot.move(MoverType.SELF, delta);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void initialize(final Robot robot) {

@@ -22,7 +22,7 @@ public final class NetworkTunnelScreen extends AbstractModContainerScreen<Networ
 
     private ImageButton linkButton;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public NetworkTunnelScreen(final NetworkTunnelContainer container, final Inventory inventory, final Component title) {
         super(container, inventory, title);
@@ -32,19 +32,16 @@ public final class NetworkTunnelScreen extends AbstractModContainerScreen<Networ
         inventoryLabelY = imageHeight - 94;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground(graphics, mouseX, mouseY, partialTicks);
-
         linkButton.active = getMenu().hasLinkSlotItem();
 
         super.render(graphics, mouseX, mouseY, partialTicks);
-        renderTooltip(graphics, mouseX, mouseY);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void init() {
@@ -71,7 +68,7 @@ public final class NetworkTunnelScreen extends AbstractModContainerScreen<Networ
         Sprites.NETWORK_TUNNEL_SCREEN.draw(graphics, leftPos, topPos);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void createTunnel() {
         final NetworkTunnelLinkMessage message = new NetworkTunnelLinkMessage(getMenu().containerId);

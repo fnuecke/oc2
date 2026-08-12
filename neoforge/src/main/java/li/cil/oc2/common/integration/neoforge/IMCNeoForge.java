@@ -27,13 +27,13 @@ public final class IMCNeoForge {
         return map;
     });
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
         ModEventBus.INSTANCE.addListener(IMCNeoForge::handleIMCMessages);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static void handleIMCMessages(final InterModProcessEvent event) {
         event.getIMCStream().forEach(message -> {

@@ -19,7 +19,7 @@ public final class RPCItemStackTagFilter {
 
     private String[][] paths; // Cache of resolved paths specified in tags.
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Nullable
     public CompoundTag apply(final ItemStack stack, final CompoundTag tag) {
@@ -44,7 +44,7 @@ public final class RPCItemStackTagFilter {
         return filtered;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Nullable
     private CompoundTag filterPath(final String[] path, final CompoundTag source) {

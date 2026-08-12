@@ -106,7 +106,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private static final int MODULE_SLOTS = 4;
     private static final int INVENTORY_SIZE = 12;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     // ServerScheduler rather than the event bus: Architectury events cannot be unregistered, and
     // these are per-entity listeners that must go away with the entity.
@@ -124,7 +124,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
     private long lastPistonMovement;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public Robot(final EntityType<?> type, final Level world) {
         super(type, world);
@@ -136,7 +136,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         virtualMachine.state.builtinDevices.rtcMinecraft.setLevel(world);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     public AnimationState getAnimationState() {
@@ -399,7 +399,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         energy.deserializeNBT(NBTUtils.getChildTag(modTag, ENERGY_TAG_NAME));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void defineSynchedData(final SynchedEntityData.Builder builder) {
@@ -455,7 +455,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         return super.limitPistonMovement(pos);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     private void requestInitialState() {
@@ -504,7 +504,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public final class AnimationState {
         private static final float TOP_IDLE_Y = -2f / 16f;

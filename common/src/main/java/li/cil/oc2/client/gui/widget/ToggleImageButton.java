@@ -8,7 +8,7 @@ public abstract class ToggleImageButton extends ImageButton {
     private final Sprite activeImage;
     private boolean isToggled;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ToggleImageButton(
         final int x, final int y,
@@ -20,7 +20,7 @@ public abstract class ToggleImageButton extends ImageButton {
         this.activeImage = activeImage;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public boolean isToggled() {
         return isToggled;

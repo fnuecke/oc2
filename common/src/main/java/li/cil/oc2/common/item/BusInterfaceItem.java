@@ -39,7 +39,7 @@ public final class BusInterfaceItem extends ModBlockItem implements CreativeTabI
         super(Blocks.BUS_CABLE.get());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     @Override
@@ -76,7 +76,7 @@ public final class BusInterfaceItem extends ModBlockItem implements CreativeTabI
     public void registerBlocks(final Map<Block, Item> map, final Item item) {
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Nullable
     @Override
@@ -93,7 +93,7 @@ public final class BusInterfaceItem extends ModBlockItem implements CreativeTabI
             .setValue(connectionTypeProperty, ConnectionType.INTERFACE);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static InteractionResult tryAddToBlock(final UseOnContext context, final Direction side) {
         final Level level = context.getLevel();

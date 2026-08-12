@@ -18,7 +18,7 @@ public final class RobotTerminalInputMessage extends AbstractTerminalEntityMessa
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

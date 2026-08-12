@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 public abstract class AbstractBlockEntityCapabilityDeviceProvider<TCapability, TBlockEntity extends BlockEntity> extends AbstractBlockEntityDeviceProvider<TBlockEntity> {
     private final CapabilityType<TCapability> capability;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected AbstractBlockEntityCapabilityDeviceProvider(final BlockEntityType<TBlockEntity> blockEntityType, final CapabilityType<TCapability> capability) {
         super(blockEntityType);
@@ -24,7 +24,7 @@ public abstract class AbstractBlockEntityCapabilityDeviceProvider<TCapability, T
         this.capability = capability;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected final Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final BlockEntity blockEntity) {

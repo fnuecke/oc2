@@ -11,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 public final class ClientCanceledImportFileMessage extends AbstractMessage {
     private int id;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ClientCanceledImportFileMessage(final int id) {
         this.id = id;
@@ -21,7 +21,7 @@ public final class ClientCanceledImportFileMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -33,7 +33,7 @@ public final class ClientCanceledImportFileMessage extends AbstractMessage {
         buffer.writeVarInt(id);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

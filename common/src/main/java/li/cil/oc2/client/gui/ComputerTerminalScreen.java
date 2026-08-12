@@ -13,13 +13,13 @@ import net.minecraft.world.entity.player.Inventory;
 public final class ComputerTerminalScreen extends AbstractMachineTerminalScreen<ComputerTerminalContainer> {
     @SuppressWarnings("all") private EditBox focusIndicatorEditBox;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ComputerTerminalScreen(final ComputerTerminalContainer container, final Inventory playerInventory, final Component title) {
         super(container, playerInventory, title);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void setFocusIndicatorEditBox(final EditBox editBox) {

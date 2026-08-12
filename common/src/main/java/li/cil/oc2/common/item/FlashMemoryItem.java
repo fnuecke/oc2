@@ -14,7 +14,7 @@ public final class FlashMemoryItem extends AbstractStorageItem {
     }
 
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected String getOrCreateDescriptionId() {

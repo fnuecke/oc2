@@ -26,27 +26,27 @@ import java.nio.ByteBuffer;
 public final class ByteBufferFlashStorageDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, FirmwareLoader {
     public static final String DATA_TAG_NAME = "data";
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final int size;
     private MemoryMap memoryMap;
     private ByteBuffer data;
     private FlashMemoryDevice device;
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     // Online persisted data.
     private CompoundTag deviceTag;
     private final OptionalAddress address = new OptionalAddress();
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ByteBufferFlashStorageDevice(final ItemStack identity, final int size) {
         super(identity);
         this.size = size;
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public VMDeviceLoadResult mount(final VMContext context) {
@@ -104,7 +104,7 @@ public final class ByteBufferFlashStorageDevice extends IdentityProxy<ItemStack>
         bufferData.put(data, 0, Math.min(bufferData.limit(), data.length));
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private boolean allocateDevice(final VMContext context) {
         if (!context.getMemoryAllocator().claimMemory(size)) {

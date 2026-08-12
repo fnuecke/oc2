@@ -23,7 +23,7 @@ public final class ThrottledSoundEmitter {
 
     private long lastEmittedTime;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ThrottledSoundEmitter(final Supplier<Optional<BlockLocation>> location, final SoundEvent sound) {
         this.location = location;
@@ -32,7 +32,7 @@ public final class ThrottledSoundEmitter {
         this.minInterval = 500;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void play() {
         final long now = System.currentTimeMillis();
@@ -76,7 +76,7 @@ public final class ThrottledSoundEmitter {
         return this;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private float sampleVolume(final RandomSource random) {
         return Mth.clamp(volume + volumeVariance * (random.nextFloat() - 0.5f), 0, 1);

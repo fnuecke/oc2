@@ -104,7 +104,7 @@ public final class DeviceBusTests {
             .thenSucceed();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static void placeComputerAndCable(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);

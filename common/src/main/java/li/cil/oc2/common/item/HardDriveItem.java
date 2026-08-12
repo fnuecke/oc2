@@ -15,21 +15,21 @@ public final class HardDriveItem extends AbstractStorageItem implements ColoredI
     private final int defaultColor;
     @Nullable private String descriptionId;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public HardDriveItem(final int capacity, final DyeColor defaultColor) {
         super(capacity);
         this.defaultColor = defaultColor.getTextureDiffuseColor();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public int getColor(final ItemStack stack) {
         return DyedItemColor.getOrDefault(stack, defaultColor);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected String getOrCreateDescriptionId() {

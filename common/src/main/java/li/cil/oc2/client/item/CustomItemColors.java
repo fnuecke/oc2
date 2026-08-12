@@ -30,11 +30,11 @@ public final class CustomItemColors {
     public static final int BROWN = 0xFF745C42;
     public static final int YELLOW = 0xFFFFFC49;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final int NO_TINT = 0xFFFFFFFF;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
         ColorHandlerRegistry.registerItemColors((stack, layer) -> layer == 1 ? getColor(stack) : NO_TINT,

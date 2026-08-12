@@ -52,14 +52,14 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     private static final String INTERFACE_NAMES_TAG_NAME = "interfaceNames";
     private static final String FACADE_TAG_NAME = "facade";
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final AbstractBlockDeviceBusElement busElement = new BusCableBusElement();
     private final String[] interfaceNames = new String[Constants.BLOCK_FACE_COUNT];
     private final NeighborTracker[] neighborTrackers = new NeighborTracker[Constants.BLOCK_FACE_COUNT];
     private ItemStack facade = ItemStack.EMPTY;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public BusCableBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.BUS_CABLE.get(), pos, state);
@@ -69,7 +69,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public String getInterfaceName(final Direction side) {
         final String interfaceName = interfaceNames[side.get3DDataValue()];
@@ -219,7 +219,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         facade = ItemStack.parseOptional(registries, tag.getCompound(FACADE_TAG_NAME));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
@@ -253,7 +253,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private ListTag serializeInterfaceNames() {
         final ListTag tag = new ListTag();
@@ -300,7 +300,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         });
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final class BusCableBusElement extends AbstractBlockDeviceBusElement {
         @Nullable

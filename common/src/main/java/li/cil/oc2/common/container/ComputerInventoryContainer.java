@@ -48,7 +48,7 @@ public final class ComputerInventoryContainer extends AbstractComputerContainer 
         throw new IllegalArgumentException();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private ComputerInventoryContainer(final int id, final ComputerBlockEntity computer, final Player player, final IntPrecisionContainerData energyInfo) {
         super(Containers.COMPUTER.get(), id, player, computer, energyInfo);

@@ -31,17 +31,17 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
     private static final String SIDE = "side";
     private static final String VALUE = "value";
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final byte[] output = new byte[Constants.BLOCK_FACE_COUNT];
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public RedstoneInterfaceBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.REDSTONE_INTERFACE.get(), pos, state);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
@@ -144,7 +144,7 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
             .parameterDescription(VALUE, "the output level to set, will be clamped to [0, 15].");
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void notifyNeighbor(final Direction direction) {
         if (level == null) {

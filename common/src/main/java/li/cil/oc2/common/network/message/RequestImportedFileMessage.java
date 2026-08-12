@@ -23,11 +23,11 @@ public final class RequestImportedFileMessage extends AbstractMessage {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final MutableComponent FILE_TOO_LARGE_TEXT = text("message.{mod}.import_file.file_too_large");
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private int id;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public RequestImportedFileMessage(final int id) {
         this.id = id;
@@ -37,7 +37,7 @@ public final class RequestImportedFileMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -49,7 +49,7 @@ public final class RequestImportedFileMessage extends AbstractMessage {
         buffer.writeVarInt(id);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

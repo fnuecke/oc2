@@ -22,17 +22,17 @@ public final class BuiltinDevices {
     private static final int UART_INTERRUPT = 0x4;
     private static final int VFS_INTERRUPT = 0x5;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public final MinecraftRealTimeCounter rtcMinecraft = new MinecraftRealTimeCounter();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Serialized public VirtIOConsoleDevice rpcSerialDevice;
     @Serialized public UART16550A uart;
     @Serialized public VirtIOFileSystemDevice vfs;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public BuiltinDevices(final GlobalVMContext context) {
         initialize(context, new GoldfishRTC(SystemTimeRealTimeCounter.get()), RTC_HOST_INTERRUPT, GoldfishRTC::getInterrupt);
@@ -42,7 +42,7 @@ public final class BuiltinDevices {
         vfs = initialize(context, new VirtIOFileSystemDevice(context.getMemoryMap(), "builtin", FileSystems.getLayeredFileSystem()), VFS_INTERRUPT, VirtIOFileSystemDevice::getInterrupt);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static <T extends MemoryMappedDevice> T initialize(final GlobalVMContext context, final T device, final int interrupt, final Function<T, Interrupt> interruptSupplier) {
         if (!context.getInterruptAllocator().claimInterrupt(interrupt)) throw new IllegalStateException();

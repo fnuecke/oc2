@@ -100,7 +100,7 @@ public final class Devices {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private record BlockQuery(LevelAccessor level, BlockPos pos, @Nullable Direction side) implements BlockDeviceQuery {
         @Override

@@ -157,7 +157,7 @@ public final class NetworkingTests {
             .thenSucceed();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Nullable
     private static NetworkInterface computerNetworkInterface(final GameTestHelper helper) {

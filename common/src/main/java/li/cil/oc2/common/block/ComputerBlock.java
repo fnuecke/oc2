@@ -71,7 +71,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
     private static final VoxelShape POS_Z_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_X_SHAPE);
     private static final VoxelShape POS_X_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(POS_Z_SHAPE);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ComputerBlock() {
         super(Properties
@@ -83,7 +83,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     @Override
@@ -220,7 +220,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
     // EntityBlock
 
     @Nullable
@@ -235,7 +235,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
         return TickableBlockEntity.createTicker(level, type, BlockEntities.COMPUTER.get());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {

@@ -17,14 +17,14 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
 
     private static final ThreadLocal<int[][]> conversionBuffer = ThreadLocal.withInitial(() -> new int[4][3]);
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final int width, height;
     private final ByteBuffer buffer;
     private int length;
     private final BitSet dirtyLines;
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public SimpleFramebufferDevice(final int width, final int height, final ByteBuffer buffer) {
         this.width = width;
@@ -40,7 +40,7 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
         this.dirtyLines.set(0, height / 2);
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void close() {
         synchronized (buffer) {
@@ -132,7 +132,7 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
         }
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static void r5g6b5ToYuv420(final int r5g6b5, final int[] yuv) {
         final int r5 = (r5g6b5 >>> 11) & 0b11111;

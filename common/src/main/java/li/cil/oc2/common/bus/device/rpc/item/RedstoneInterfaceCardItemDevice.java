@@ -32,13 +32,13 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
     private static final String SIDE = "side";
     private static final String VALUE = "value";
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final BlockEntity blockEntity;
     private final RedstoneEmitter[] capabilities;
     private final byte[] output = new byte[Constants.BLOCK_FACE_COUNT];
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public RedstoneInterfaceCardItemDevice(final ItemStack identity, final BlockEntity blockEntity) {
         super(identity, "redstone");
@@ -51,7 +51,7 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Nullable
     @SuppressWarnings("unchecked")
@@ -151,7 +151,7 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
             .parameterDescription(VALUE, "the output level to set, will be clamped to [0, 15].");
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void notifyNeighbor(final Direction direction) {
         final Level level = blockEntity.getLevel();

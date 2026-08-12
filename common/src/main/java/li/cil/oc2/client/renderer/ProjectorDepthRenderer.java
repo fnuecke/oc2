@@ -120,7 +120,7 @@ public final class ProjectorDepthRenderer {
         return mainCameraDepth;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     /**
      * Adds a projector that is being rendered this frame. This is called every frame a projector is rendering,
@@ -230,7 +230,7 @@ public final class ProjectorDepthRenderer {
         ClientTickEvent.CLIENT_POST.register(minecraft -> RENDER_INFO.cleanUp());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     /**
      * Stage one of projector rendering, render scene depths from the perspective of all projectors that should
@@ -462,7 +462,7 @@ public final class ProjectorDepthRenderer {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     /**
      * Tracks a render texture holding color info for rendering projectors.

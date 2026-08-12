@@ -13,7 +13,7 @@ public final class ComputerBusStateMessage extends AbstractMessage {
     private BlockPos pos;
     private CommonDeviceBusController.BusState value;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ComputerBusStateMessage(final ComputerBlockEntity computer, final CommonDeviceBusController.BusState value) {
         this.pos = computer.getBlockPos();
@@ -24,7 +24,7 @@ public final class ComputerBusStateMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -38,7 +38,7 @@ public final class ComputerBusStateMessage extends AbstractMessage {
         buffer.writeEnum(value);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

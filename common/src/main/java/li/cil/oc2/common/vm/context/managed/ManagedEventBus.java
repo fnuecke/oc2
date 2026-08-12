@@ -13,14 +13,14 @@ final class ManagedEventBus implements VMLifecycleEventBus {
     private final ArrayList<Object> subscribers = new ArrayList<>();
     private boolean isFrozen;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ManagedEventBus(final VMLifecycleEventBus parent, final EventManager manager) {
         this.parent = parent;
         this.manager = manager;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void freeze() {
         isFrozen = true;

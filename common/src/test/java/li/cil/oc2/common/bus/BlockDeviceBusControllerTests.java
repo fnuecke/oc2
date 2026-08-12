@@ -48,7 +48,7 @@ public class BlockDeviceBusControllerTests {
     private FakeLevel fakeLevel;
     private LevelAccessor level;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @BeforeEach
@@ -494,7 +494,7 @@ public class BlockDeviceBusControllerTests {
     //         by the same controller as before their previous unmount.
 
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @SuppressWarnings("unchecked")
     private static Registrar<BlockDeviceProvider> createBlockDeviceProviderRegistry() {
@@ -524,7 +524,7 @@ public class BlockDeviceBusControllerTests {
         return registry;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final class FakeLevel {
         private final LevelAccessor level = mock(LevelAccessor.class);

@@ -18,14 +18,14 @@ public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem
     private final int defaultColor;
     @Nullable private String descriptionId;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public HardDriveWithExternalDataItem(final ResourceLocation defaultData, final DyeColor defaultColor) {
         super(defaultData);
         this.defaultColor = defaultColor.getTextureDiffuseColor();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
@@ -46,7 +46,7 @@ public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem
         return DyedItemColor.getOrDefault(stack, defaultColor);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected String getOrCreateDescriptionId() {

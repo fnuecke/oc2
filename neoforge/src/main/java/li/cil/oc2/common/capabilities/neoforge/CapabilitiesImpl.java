@@ -23,7 +23,7 @@ public final class CapabilitiesImpl {
     private static final Map<CapabilityType<?>, ItemCapability<?, Void>> ITEM = new HashMap<>();
     private static final Map<CapabilityType<?>, EntityCapability<?, Direction>> ENTITY = new HashMap<>();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Nullable
     @SuppressWarnings("unchecked")
@@ -84,7 +84,7 @@ public final class CapabilitiesImpl {
         blockEntity.invalidateCapabilities();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @SuppressWarnings("unchecked")
     static <T> BlockCapability<T, Direction> block(final CapabilityType<T> type) {

@@ -41,7 +41,7 @@ public record BusCableBakedModel(
     private static final ModelProperty<BusCableSupportSide> BUS_CABLE_SUPPORT_PROPERTY = new ModelProperty<>();
     private static final ModelProperty<BusCableFacade> BUS_CABLE_FACADE_PROPERTY = new ModelProperty<>();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     @Nonnull
@@ -150,7 +150,7 @@ public record BusCableBakedModel(
         return blockEntityData;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static boolean isNeighborInDirectionSolid(final BlockAndTintGetter level, final BlockPos pos, final Direction direction) {
         final BlockPos neighborPos = pos.relative(direction);
@@ -174,7 +174,7 @@ public record BusCableBakedModel(
         return true;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private record BusCableSupportSide(Direction value) { }
 

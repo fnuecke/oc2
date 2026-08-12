@@ -74,7 +74,7 @@ public final class Terminal {
     private static final byte DEFAULT_COLORS = Color.WHITE << COLOR_FOREGROUND_SHIFT;
     private static final byte DEFAULT_STYLE = 0;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public enum State { // Must be public for serialization.
         NORMAL, // Reading characters normally.
@@ -89,7 +89,7 @@ public final class Terminal {
         void render(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final ByteArrayFIFOQueue input = new ByteArrayFIFOQueue(32);
     private final byte[] buffer = new byte[WIDTH * HEIGHT];
@@ -116,13 +116,13 @@ public final class Terminal {
     private transient boolean displayOnly; // Set on client to not send responses to status requests.
     private transient boolean hasPendingBell;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public Terminal() {
         RIS();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public int getWidth() {
         return WIDTH * CHAR_WIDTH;
@@ -674,7 +674,7 @@ public final class Terminal {
         renderers.forEach(model -> model.getDirtyMask().accumulateAndGet(finalDirtyLinesMask, (left, right) -> left | right));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private interface RendererModel {
         AtomicInteger getDirtyMask();
@@ -714,20 +714,20 @@ public final class Terminal {
             0x777777, // White
         };
 
-        ///////////////////////////////////////////////////////////////
+        // ------------------------------------------------------------- //
 
         private final Terminal terminal;
         private final VertexBuffer[] lines = new VertexBuffer[HEIGHT];
 
         private final AtomicInteger dirty = new AtomicInteger(-1);
 
-        ///////////////////////////////////////////////////////////////
+        // ------------------------------------------------------------- //
 
         public Renderer(final Terminal terminal) {
             this.terminal = terminal;
         }
 
-        ///////////////////////////////////////////////////////////////
+        // ------------------------------------------------------------- //
 
         @Override
         public void render(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
@@ -755,7 +755,7 @@ public final class Terminal {
             }
         }
 
-        ///////////////////////////////////////////////////////////////
+        // ------------------------------------------------------------- //
 
         private void renderBuffer(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
             final ShaderInstance shader = GameRenderer.getPositionTexColorShader();

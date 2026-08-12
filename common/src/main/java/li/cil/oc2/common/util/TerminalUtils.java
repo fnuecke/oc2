@@ -15,7 +15,7 @@ public final class TerminalUtils {
         '\033', 'c',
     });
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void resetTerminal(final Terminal terminal, final Consumer<ByteBuffer> packetSender) {
         TERMINAL_RESET_SEQUENCE.clear();

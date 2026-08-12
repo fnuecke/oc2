@@ -27,7 +27,7 @@ public final class CreativeEnergyBlock extends Block implements EntityBlock {
             .noLootTable());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
     // EntityBlock
 
     @Nullable

@@ -43,7 +43,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         void processFrame(final Picture picture);
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static final int MAX_RENDER_DISTANCE = 16;
     public static final int MAX_GOOD_RENDER_DISTANCE = 12;
@@ -61,7 +61,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         return thread;
     });
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final ProjectorDevice projectorDevice = new ProjectorDevice(this, this::handleMountedChanged);
     private boolean isMounted, hasEnergy;
@@ -82,7 +82,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     private AABB renderBounds; // Maximum possible render bounds, assuming we project on furthest away surface.
     private long lastKeepAliveSentAt;
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ProjectorBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.PROJECTOR.get(), pos, state);
@@ -92,7 +92,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         updateRenderBounds();
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public boolean isProjecting() {
         if (!isMounted || level == null) {
@@ -250,7 +250,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         }, DECODER_WORKERS);
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
@@ -263,7 +263,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         }
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void handleMountedChanged(final boolean value) {
         updateProjectorState(value, hasEnergy);

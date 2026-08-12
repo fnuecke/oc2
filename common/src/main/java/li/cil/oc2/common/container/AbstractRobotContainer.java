@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 public abstract class AbstractRobotContainer extends AbstractMachineTerminalContainer {
     private final Robot robot;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public AbstractRobotContainer(final MenuType<?> type, final int id, final Player player, final Robot robot, final IntPrecisionContainerData energyInfo) {
         super(type, id, energyInfo);
@@ -29,7 +29,7 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
         this.robot.addTerminalUser(player);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void switchToInventory() {
@@ -77,7 +77,7 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
         this.robot.removeTerminalUser(player);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected static IntPrecisionContainerData createEnergyInfo(final FixedEnergyStorage energy, final CommonDeviceBusController busController) {
         return new IntPrecisionContainerData.Server() {

@@ -73,7 +73,7 @@ public final class TerminalInput {
         addSequence(GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_SHIFT, GLFW.GLFW_KEY_RIGHT_BRACKET, (byte) '\035');
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Nullable
     public static byte[] getSequence(final int keyCode) {
@@ -89,7 +89,7 @@ public final class TerminalInput {
         return map.get(keyCode);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static void addSequence(final int keyCode, final char ch) {
         addSequence(keyCode, (byte) ch);

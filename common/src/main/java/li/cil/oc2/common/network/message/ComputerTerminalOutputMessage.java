@@ -18,7 +18,7 @@ public final class ComputerTerminalOutputMessage extends AbstractTerminalBlockMe
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

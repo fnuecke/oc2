@@ -61,7 +61,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     private static final int MIN_ETHERNET_FRAME_SIZE = 42;
     private static final int TTL_COST = 1;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final NetworkConnectorNetworkInterface networkInterface = new NetworkConnectorNetworkInterface();
 
@@ -73,13 +73,13 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     private final HashSet<BlockPos> dirtyConnectors = new HashSet<>();
     private final HashMap<BlockPos, NetworkConnectorBlockEntity> connectors = new HashMap<>();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public NetworkConnectorBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.NETWORK_CONNECTOR.get(), pos, state);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static ConnectionResult connect(final NetworkConnectorBlockEntity connectorA, final NetworkConnectorBlockEntity connectorB) {
         if (connectorA == connectorB || !connectorA.isValid() || !connectorB.isValid()) {
@@ -267,7 +267,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         return new AABB(getBlockPos()).inflate(MAX_CONNECTION_DISTANCE);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
@@ -309,7 +309,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void resolveLocalInterface() {
         assert level != null;
@@ -408,7 +408,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final class NullNetworkInterface implements NetworkInterface {
         public static final NetworkInterface INSTANCE = new NullNetworkInterface();

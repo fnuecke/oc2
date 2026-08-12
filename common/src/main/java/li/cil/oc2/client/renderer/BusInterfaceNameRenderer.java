@@ -24,7 +24,7 @@ import org.joml.Matrix4f;
 public enum BusInterfaceNameRenderer {
     INSTANCE;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void render(final PoseStack poseStack, final Matrix4f modelViewMatrix) {
         final Minecraft mc = Minecraft.getInstance();

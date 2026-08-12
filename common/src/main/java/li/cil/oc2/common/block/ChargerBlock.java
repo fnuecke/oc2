@@ -28,7 +28,7 @@ public final class ChargerBlock extends HalfTransparentBlock implements EntityBl
         registerDefaultState(getStateDefinition().any().setValue(HorizontalDirectionalBlock.FACING, Direction.NORTH));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @SuppressWarnings("deprecation")
     @Override
@@ -47,7 +47,7 @@ public final class ChargerBlock extends HalfTransparentBlock implements EntityBl
         return super.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, context.getHorizontalDirection().getOpposite());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
     // EntityBlock
 
     @Nullable
@@ -62,7 +62,7 @@ public final class ChargerBlock extends HalfTransparentBlock implements EntityBl
         return TickableBlockEntity.createTicker(level, type, BlockEntities.CHARGER.get());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {

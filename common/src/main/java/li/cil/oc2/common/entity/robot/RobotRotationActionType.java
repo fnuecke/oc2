@@ -12,7 +12,7 @@ public final class RobotRotationActionType extends AbstractRobotActionType {
         super(id);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void initializeData(final Robot robot) {

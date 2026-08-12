@@ -48,13 +48,13 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
     private static final int COOLDOWN = TickUtils.toTicks(Duration.ofSeconds(1));
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final Entity entity;
     private final Robot robot;
     private long lastOperation;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public BlockOperationsModuleDevice(final ItemStack identity, final Entity entity, final Robot robot) {
         super(identity, "block_operations");
@@ -62,7 +62,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         this.robot = robot;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public CompoundTag serializeNBT() {
@@ -209,7 +209,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         return true;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void beginCooldown() {
         lastOperation = entity.level().getGameTime();

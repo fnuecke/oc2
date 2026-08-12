@@ -17,7 +17,7 @@ public final class BlockOperationsModuleDeviceProvider extends AbstractItemDevic
         super(Items.BLOCK_OPERATIONS_MODULE);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {

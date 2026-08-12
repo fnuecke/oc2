@@ -26,14 +26,14 @@ import java.util.concurrent.CompletableFuture;
 public final class BlobStorage {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final LevelResource BLOBS_FOLDER_NAME = new LevelResource(API.MOD_ID + "-blobs");
     private static final Map<UUID, FileChannel> BLOBS = new HashMap<>();
 
     private static Path dataDirectory; // Directory blobs get saved to.
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     /**
      * Sets the currently running server.
@@ -148,7 +148,7 @@ public final class BlobStorage {
         });
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
         LifecycleEvent.SERVER_BEFORE_START.register(BlobStorage::handleServerAboutToStart);

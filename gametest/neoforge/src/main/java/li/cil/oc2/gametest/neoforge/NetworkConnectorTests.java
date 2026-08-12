@@ -96,7 +96,7 @@ public final class NetworkConnectorTests {
         helper.succeed();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static Player placeConnectors(final GameTestHelper helper, final BlockPos... positions) {
         final Player player = fakePlayer(helper);

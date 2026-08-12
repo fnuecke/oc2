@@ -12,7 +12,7 @@ final class ManagedMemoryAllocator implements MemoryAllocator {
     private final ArrayList<UUID> claimedMemory = new ArrayList<>();
     private boolean isFrozen;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void freeze() {
         isFrozen = true;

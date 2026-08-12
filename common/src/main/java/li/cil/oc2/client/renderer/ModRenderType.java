@@ -41,7 +41,7 @@ public abstract class ModRenderType extends RenderType {
             .setCullState(NO_CULL)
             .createCompositeState(false));
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static RenderType getNetworkCable() {
         return NETWORK_CABLE;
@@ -87,7 +87,7 @@ public abstract class ModRenderType extends RenderType {
             state);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private ModRenderType(final String name, final VertexFormat format, final VertexFormat.Mode drawMode, final int bufferSize, final boolean useDelegate, final boolean needsSorting, final Runnable setupTask, final Runnable clearTask) {
         super(name, format, drawMode, bufferSize, useDelegate, needsSorting, setupTask, clearTask);

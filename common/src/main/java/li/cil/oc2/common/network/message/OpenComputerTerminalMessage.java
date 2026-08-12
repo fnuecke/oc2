@@ -11,7 +11,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 public final class OpenComputerTerminalMessage extends AbstractMessage {
     private BlockPos pos;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public OpenComputerTerminalMessage(final ComputerBlockEntity computer) {
         this.pos = computer.getBlockPos();
@@ -21,7 +21,7 @@ public final class OpenComputerTerminalMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -33,7 +33,7 @@ public final class OpenComputerTerminalMessage extends AbstractMessage {
         buffer.writeBlockPos(pos);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

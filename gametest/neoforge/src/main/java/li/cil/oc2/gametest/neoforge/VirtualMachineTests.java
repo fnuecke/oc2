@@ -163,7 +163,7 @@ public final class VirtualMachineTests {
             .thenSucceed();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static void requireBooted(final GameTestHelper helper) {
         assertNoPanic(helper);

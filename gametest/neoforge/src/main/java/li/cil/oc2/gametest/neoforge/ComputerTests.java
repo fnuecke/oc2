@@ -155,7 +155,7 @@ public final class ComputerTests {
             .thenSucceed();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static ItemStack singleDroppedStack(final GameTestHelper helper) {
         final List<ItemEntity> items = helper.getLevel().getEntitiesOfClass(ItemEntity.class,

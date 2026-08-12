@@ -34,7 +34,7 @@ public final class GuiUtils {
     private static final int DEVICE_INFO_ICON_SIZE = 28;
     private static final int RELATIVE_ICON_POSITION = (SLOT_SIZE - DEVICE_INFO_ICON_SIZE) / 2;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoIcon(final GuiGraphics graphics, final AbstractContainerScreen<TContainer> screen, final DeviceType type, final Sprite icon) {
         graphics.pose().pushPose();
@@ -72,7 +72,7 @@ public final class GuiUtils {
         });
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static Optional<DeviceTypeSlotItemHandler> findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(final AbstractContainerMenu container, final DeviceType type) {
         DeviceTypeSlotItemHandler firstSlot = null;

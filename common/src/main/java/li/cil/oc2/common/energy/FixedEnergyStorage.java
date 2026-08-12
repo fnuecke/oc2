@@ -11,13 +11,13 @@ public final class FixedEnergyStorage implements EnergyStorage {
     private final int capacity;
     private int energy;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public FixedEnergyStorage(final int capacity) {
         this.capacity = capacity;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public long receiveEnergy(final long maxReceive, final boolean simulate) {
@@ -65,7 +65,7 @@ public final class FixedEnergyStorage implements EnergyStorage {
         return true;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public CompoundTag serializeNBT() {
         final CompoundTag tag = new CompoundTag();

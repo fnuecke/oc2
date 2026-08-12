@@ -51,17 +51,17 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         .removalListener(ComputerRenderer::handleNoLongerRendering)
         .build();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final BlockEntityRenderDispatcher renderer;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ComputerRenderer(final BlockEntityRendererProvider.Context context) {
         this.renderer = context.getBlockEntityRenderDispatcher();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void render(final ComputerBlockEntity computer, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
@@ -129,7 +129,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         stack.popPose();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void renderTerminal(final ComputerBlockEntity computer, final PoseStack stack, final MultiBufferSource bufferSource, final Vec3 cameraPosition) {
         // Render terminal content if close enough.

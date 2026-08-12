@@ -13,7 +13,7 @@ public abstract class AbstractRPCMethod implements RPCMethod {
     protected final Class<?> returnType;
     protected final RPCParameter[] parameters;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected AbstractRPCMethod(final String name, final boolean synchronize, final Class<?> returnType, final RPCParameter... parameters) {
         this.name = name;
@@ -34,7 +34,7 @@ public abstract class AbstractRPCMethod implements RPCMethod {
         this(name, false, void.class, parameters);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public String getName() {
@@ -61,7 +61,7 @@ public abstract class AbstractRPCMethod implements RPCMethod {
         return invoke(invocation.tryDeserializeParameters(getParameters()).orElseThrow(IllegalArgumentException::new));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Nullable
     protected abstract Object invoke(final Object... parameters) throws Throwable;

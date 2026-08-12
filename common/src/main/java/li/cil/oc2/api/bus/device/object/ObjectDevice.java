@@ -27,7 +27,7 @@ public final class ObjectDevice implements RPCDevice, ItemDevice {
     private final List<RPCMethodGroup> methods;
     private final String className;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     /**
      * Creates a new object device with methods in the specified object and the
@@ -82,7 +82,7 @@ public final class ObjectDevice implements RPCDevice, ItemDevice {
         this(object, emptyList());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public List<String> getTypeNames() {
@@ -133,7 +133,7 @@ public final class ObjectDevice implements RPCDevice, ItemDevice {
         return className;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static String toNiceTypeName(final Class<?> deviceClass) {
         final String name = deviceClass.getSimpleName()

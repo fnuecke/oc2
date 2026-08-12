@@ -13,7 +13,7 @@ public class ProjectorStateMessage extends AbstractMessage {
     private boolean isMounted;
     private boolean hasEnergy;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ProjectorStateMessage(final ProjectorBlockEntity projector, final boolean isMounted, final boolean hasEnergy) {
         this.pos = projector.getBlockPos();
@@ -25,7 +25,7 @@ public class ProjectorStateMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -41,7 +41,7 @@ public class ProjectorStateMessage extends AbstractMessage {
         buffer.writeBoolean(hasEnergy);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

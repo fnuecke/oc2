@@ -15,7 +15,7 @@ import java.util.Objects;
 public final class LayeredFileSystem implements FileSystem {
     private final ArrayList<FileSystem> fileSystems = new ArrayList<>();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void addLayer(final FileSystem fileSystem) {
         fileSystems.add(0, fileSystem);
@@ -155,7 +155,7 @@ public final class LayeredFileSystem implements FileSystem {
         throw new IOException();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final class LayeredDirectoryFileHandle implements FileHandle {
         private final ArrayList<DirectoryEntry> entries = new ArrayList<>();

@@ -19,13 +19,13 @@ import java.util.concurrent.CompletableFuture;
 public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> extends AbstractBlockStorageDevice<BlockDevice, T> {
     private static final ByteBufferBlockDevice EMPTY_BLOCK_DEVICE = ByteBufferBlockDevice.create(0, false);
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public DiskDriveDevice(final T container) {
         super(container, false);
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void updateBlockDevice(final CompoundTag tag) {
         joinOpenJob();
@@ -75,7 +75,7 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
         }
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected CompletableFuture<BlockDevice> createBlockDevice() {

@@ -16,7 +16,7 @@ public final class NetworkInterfaceCardConfigurationMessage extends AbstractMess
     private Direction side;
     private boolean value;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public NetworkInterfaceCardConfigurationMessage(final InteractionHand hand, final Direction side, final boolean value) {
         this.hand = hand;
@@ -28,7 +28,7 @@ public final class NetworkInterfaceCardConfigurationMessage extends AbstractMess
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -44,7 +44,7 @@ public final class NetworkInterfaceCardConfigurationMessage extends AbstractMess
         buffer.writeBoolean(value);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

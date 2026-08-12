@@ -16,7 +16,7 @@ public final class ItemHandlerItemDeviceProvider extends AbstractItemStackCapabi
         super(Capabilities.ITEM_HANDLER);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query, final ItemHandler value) {

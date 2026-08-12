@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 public final class Items {
     private static final DeferredRegister<Item> ITEMS = RegistryUtils.getInitializerFor(Registries.ITEM);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static final RegistrySupplier<Item> BUS_CABLE = register(Blocks.BUS_CABLE, BusCableItem::new);
     public static final RegistrySupplier<BusInterfaceItem> BUS_INTERFACE = register("bus_interface", BusInterfaceItem::new);
@@ -34,7 +34,7 @@ public final class Items {
     public static final RegistrySupplier<Item> PROJECTOR = register(Blocks.PROJECTOR);
     public static final RegistrySupplier<Item> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static final RegistrySupplier<Item> WRENCH = register("wrench", WrenchItem::new);
     public static final RegistrySupplier<Item> MANUAL = register("manual", ManualItem::new);
@@ -79,12 +79,12 @@ public final class Items {
     public static final RegistrySupplier<Item> TRANSISTOR = register("transistor", ModItem::new);
     public static final RegistrySupplier<Item> CIRCUIT_BOARD = register("circuit_board", ModItem::new);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static RegistrySupplier<Item> register(final String name) {
         return register(name, ModItem::new);

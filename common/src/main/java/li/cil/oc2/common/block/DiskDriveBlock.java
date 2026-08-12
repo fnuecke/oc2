@@ -43,7 +43,7 @@ public final class DiskDriveBlock extends HorizontalDirectionalBlock implements 
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public BlockState getStateForPlacement(final BlockPlaceContext context) {
@@ -89,7 +89,7 @@ public final class DiskDriveBlock extends HorizontalDirectionalBlock implements 
         return super.useWithoutItem(state, level, pos, player, hit);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
     // EntityBlock
 
     @Nullable
@@ -98,7 +98,7 @@ public final class DiskDriveBlock extends HorizontalDirectionalBlock implements 
         return BlockEntities.DISK_DRIVE.get().create(pos, state);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {

@@ -48,7 +48,7 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
         throw new IllegalArgumentException();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private RobotInventoryContainer(final int id, final Robot robot, final Player player, final IntPrecisionContainerData energyInfo) {
         super(Containers.ROBOT.get(), id, player, robot, energyInfo);

@@ -42,7 +42,7 @@ public final class CapabilityRegistrationNeoForge {
             (robot, side) -> robot.getCapability(Capabilities.ENERGY_STORAGE, side));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static <B extends net.minecraft.world.level.block.entity.BlockEntity> void registerInteropBlockEntity(
         final RegisterCapabilitiesEvent event, final BlockEntityType<B> type) {

@@ -17,7 +17,7 @@ public final class SoundCardItemDeviceProvider extends AbstractItemDeviceProvide
         super(Items.SOUND_CARD);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {

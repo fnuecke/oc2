@@ -11,7 +11,7 @@ import java.util.UUID;
 final class GlobalMemoryAllocator implements MemoryAllocator {
     private final ArrayList<UUID> claimedMemory = new ArrayList<>();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void invalidate() {
         for (final UUID handle : claimedMemory) {

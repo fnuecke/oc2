@@ -30,7 +30,7 @@ public final class MachineTerminalWidget {
     public static final int WIDTH = Sprites.TERMINAL_SCREEN.width;
     public static final int HEIGHT = Sprites.TERMINAL_SCREEN.height;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final AbstractMachineTerminalScreen<?> parent;
     private final AbstractMachineTerminalContainer container;
@@ -39,7 +39,7 @@ public final class MachineTerminalWidget {
     private boolean isMouseOverTerminal;
     private Terminal.RendererView rendererView;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public MachineTerminalWidget(final AbstractMachineTerminalScreen<?> parent) {
         this.parent = parent;
@@ -132,7 +132,7 @@ public final class MachineTerminalWidget {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private Minecraft getClient() {
         return Minecraft.getInstance();

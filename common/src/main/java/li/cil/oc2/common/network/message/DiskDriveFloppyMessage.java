@@ -13,7 +13,7 @@ public final class DiskDriveFloppyMessage extends AbstractMessage {
     private BlockPos pos;
     private ItemStack floppy;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public DiskDriveFloppyMessage(final DiskDriveBlockEntity diskDrive) {
         this.pos = diskDrive.getBlockPos();
@@ -24,7 +24,7 @@ public final class DiskDriveFloppyMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -38,7 +38,7 @@ public final class DiskDriveFloppyMessage extends AbstractMessage {
         ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, floppy);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

@@ -32,7 +32,7 @@ public final class WrenchRecipeBuilder implements RecipeBuilder {
     private final Map<String, Criterion<?>> criteria = new LinkedHashMap<>();
     @Nullable private String group;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private WrenchRecipeBuilder(final ItemLike result, final int count) {
         this.result = result.asItem();
@@ -49,7 +49,7 @@ public final class WrenchRecipeBuilder implements RecipeBuilder {
         return new WrenchRecipeBuilder(result, count);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public WrenchRecipeBuilder requires(final TagKey<Item> tag) {
         return requires(Ingredient.of(tag));

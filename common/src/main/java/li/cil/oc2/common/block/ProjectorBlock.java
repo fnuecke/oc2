@@ -63,7 +63,7 @@ public final class ProjectorBlock extends HorizontalDirectionalBlock implements 
             .setValue(LIT, false));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public int getEnergyConsumption() {
@@ -101,7 +101,7 @@ public final class ProjectorBlock extends HorizontalDirectionalBlock implements 
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, LIT);

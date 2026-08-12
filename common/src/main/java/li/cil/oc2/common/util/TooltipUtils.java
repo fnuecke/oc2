@@ -45,7 +45,7 @@ public final class TooltipUtils {
     private static final ThreadLocal<List<ItemStack>> ITEM_STACKS = ThreadLocal.withInitial(ArrayList::new);
     private static final ThreadLocal<IntList> ITEM_STACKS_SIZES = ThreadLocal.withInitial(IntArrayList::new);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void drawTooltip(final GuiGraphics graphics, final List<? extends FormattedText> tooltip, final int x, final int y) {
         drawTooltip(graphics, tooltip, x, y, 200, ItemStack.EMPTY);
@@ -159,7 +159,7 @@ public final class TooltipUtils {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static String[] getDeviceTypeNames() {
         return StreamSupport.stream(DeviceTypes.DEVICE_TYPE_REGISTRY.spliterator(), false)

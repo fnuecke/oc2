@@ -28,7 +28,7 @@ import java.time.Duration;
 public abstract class AbstractVirtualMachine implements VirtualMachine {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final String STATE_TAG_NAME = "state";
     private static final String RUNNER_TAG_NAME = "runner";
@@ -39,7 +39,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     private static final int DEVICE_LOAD_RETRY_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(10));
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public final CommonDeviceBusController busController;
     private CommonDeviceBusController.BusState busState = CommonDeviceBusController.BusState.SCAN_PENDING;
@@ -59,7 +59,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     private VMRunState runState = VMRunState.STOPPED;
     @Nullable private Component bootError;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public AbstractVirtualMachine(final CommonDeviceBusController busController) {
         this.busController = busController;
@@ -80,7 +80,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         state.board.setStandardOutputDevice(state.builtinDevices.uart);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void dispose() {
         joinWorkerThread();
@@ -227,7 +227,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected abstract AbstractTerminalVMRunner createRunner();
 
@@ -266,7 +266,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         runner = null;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void joinWorkerThread() {
         if (runner != null) {

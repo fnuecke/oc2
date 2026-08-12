@@ -50,7 +50,7 @@ public final class NetworkCableRenderer {
     private static final WeakHashMap<NetworkConnectorBlockEntity, ArrayList<Connection>> connectionsByConnector = new WeakHashMap<>();
     private static final ArrayList<CablePoint> cablePoints = new ArrayList<>();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void addNetworkConnector(final NetworkConnectorBlockEntity connector) {
         connectors.add(connector);
@@ -68,7 +68,7 @@ public final class NetworkCableRenderer {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void onChunkUnload(final ChunkPos chunkPos) {
         {
@@ -275,7 +275,7 @@ public final class NetworkCableRenderer {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final class Connection {
         private static final Vec3 POS_Y = new Vec3(0, 1, 0);

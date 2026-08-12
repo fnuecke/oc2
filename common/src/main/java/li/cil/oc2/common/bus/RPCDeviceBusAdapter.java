@@ -34,7 +34,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     public static final String ERROR_UNKNOWN_METHOD = "unknown method";
     public static final String ERROR_INVALID_PARAMETER_SIGNATURE = "invalid parameter signature";
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final SerialDevice serialDevice;
     private final Gson gson;
@@ -46,13 +46,13 @@ public final class RPCDeviceBusAdapter implements Steppable {
     private final Lock pauseLock = new ReentrantLock();
     private boolean isPaused;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Serialized private final ByteBuffer transmitBuffer; // for data written to device by VM
     @Serialized private ByteBuffer receiveBuffer; // for data written by device to VM
     @Serialized private MethodInvocation synchronizedInvocation; // pending main thread invocation
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public RPCDeviceBusAdapter(final SerialDevice serialDevice) {
         this(serialDevice, DEFAULT_MAX_MESSAGE_SIZE);
@@ -72,7 +72,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
             .create();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void mountDevices() {
         for (final RPCDevice device : unmountedDevices) {
@@ -221,7 +221,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private UUID selectIdentifierDeterministically(final ArrayList<UUID> identifiers) {
         UUID lowestIdentifier = identifiers.get(0);
@@ -409,7 +409,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         this.receiveBuffer = receiveBuffer;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public record RPCDeviceWithIdentifier(UUID identifier, RPCDevice device) { }
 
@@ -443,7 +443,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private record RPCInvocationImpl(JsonArray parameters, Gson gson) implements RPCInvocation {
         @Override

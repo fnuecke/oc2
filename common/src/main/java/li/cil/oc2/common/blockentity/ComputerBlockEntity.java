@@ -65,13 +65,13 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     private static final int MAX_RUNNING_SOUND_DELAY = TickUtils.toTicks(Duration.ofSeconds(2));
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private boolean hasAddedOwnDevices;
     private boolean isNeighborUpdateScheduled;
     private LevelChunk chunk;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final Terminal terminal = new Terminal();
     private final ComputerBusElement busElement = new ComputerBusElement();
@@ -80,7 +80,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockDeviceBusController(busElement, Config.computerEnergyPerTick, this), deviceItems::getDeviceAddressBase);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ComputerBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.COMPUTER.get(), pos, state);
@@ -256,7 +256,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         });
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
@@ -305,7 +305,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         busElement.scheduleScan();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private <T extends AbstractMessage> void sendToClientsTrackingComputer(final T message) {
         if (chunk != null) {
@@ -313,7 +313,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final class ComputerItemStackHandlers extends AbstractVMItemStackHandlers {
         public ComputerItemStackHandlers() {

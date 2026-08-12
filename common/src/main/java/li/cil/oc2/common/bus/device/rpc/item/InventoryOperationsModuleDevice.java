@@ -29,7 +29,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     private final Entity entity;
     private final Robot robot;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public InventoryOperationsModuleDevice(final ItemStack identity, final Entity entity, final Robot robot) {
         super(identity, "inventory_operations");
@@ -37,7 +37,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         this.robot = robot;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Callback
     public void move(@Parameter("fromSlot") final int fromSlot,
@@ -195,7 +195,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
             takeFromInventory(count, handler, fromSlot)).orElse(0);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private ItemStack insertStartingAt(final ItemHandler handler, ItemStack stack, final int startSlot, final boolean simulate) {
         for (int i = 0; i < handler.getSlots(); i++) {

@@ -16,7 +16,7 @@ public abstract class AbstractMessage implements CustomPacketPayload {
         fromBytes(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public abstract void fromBytes(final RegistryFriendlyByteBuf buffer);
 
@@ -27,7 +27,7 @@ public abstract class AbstractMessage implements CustomPacketPayload {
         return Network.getMessageType(getClass());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected void handleMessage(final NetworkManager.PacketContext context) {
         throw new NotImplementedException("Message does not implement handleMessage().");

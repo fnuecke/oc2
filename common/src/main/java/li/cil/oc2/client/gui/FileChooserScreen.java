@@ -27,7 +27,7 @@ import static li.cil.oc2.common.util.TranslationUtils.text;
 public final class FileChooserScreen extends Screen {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final int MARGIN = 30;
     private static final int WIDGET_SPACING = 8;
@@ -44,11 +44,11 @@ public final class FileChooserScreen extends Screen {
     private static final Component OVERWRITE_TEXT = text("gui.{mod}.file_chooser.confirm_button.overwrite");
     private static final Component CANCEL_TEXT = text("gui.{mod}.file_chooser.cancel_button");
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static Path directory = Paths.get("").toAbsolutePath();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final FileChooserCallback callback;
     private final boolean isLoad;
@@ -61,7 +61,7 @@ public final class FileChooserScreen extends Screen {
 
     private boolean isComplete;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @FunctionalInterface
     public
@@ -72,7 +72,7 @@ public final class FileChooserScreen extends Screen {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void openFileChooserForSave(final String name, final FileChooserCallback callback) {
         final Screen currentScreen = Minecraft.getInstance().screen;
@@ -95,7 +95,7 @@ public final class FileChooserScreen extends Screen {
         Minecraft.getInstance().setScreen(screen);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public FileChooserScreen(final FileChooserCallback callback, final boolean isLoad) {
         super(isLoad ? OPEN_TITLE_TEXT : SAVE_TITLE_TEXT);
@@ -106,7 +106,7 @@ public final class FileChooserScreen extends Screen {
         this.previousScreen = Minecraft.getInstance().screen;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void onClose() {
@@ -121,7 +121,7 @@ public final class FileChooserScreen extends Screen {
 
     @Override
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        super.renderBackground(graphics, mouseX, mouseY, partialTicks);
+        renderTransparentBackground(graphics);
         fileList.render(graphics, mouseX, mouseY, partialTicks);
         fileNameTextField.render(graphics, mouseX, mouseY, partialTicks);
         super.render(graphics, mouseX, mouseY, partialTicks);
@@ -132,7 +132,7 @@ public final class FileChooserScreen extends Screen {
         return false;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void init() {
@@ -176,7 +176,7 @@ public final class FileChooserScreen extends Screen {
         }).findFirst().ifPresent(fileList::selectPath);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private boolean isParentPath() {
         if (directory == null) {
@@ -273,7 +273,7 @@ public final class FileChooserScreen extends Screen {
         cancel();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final class FileList extends ObjectSelectionList<FileList.FileEntry> {
         public FileList(final int y, final int height, final int slotHeight) {

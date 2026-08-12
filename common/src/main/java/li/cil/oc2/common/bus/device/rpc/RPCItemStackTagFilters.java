@@ -24,7 +24,7 @@ public final class RPCItemStackTagFilters {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final ArrayList<RPCItemStackTagFilter> FILTERS = new ArrayList<>();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static CompoundTag getFilteredTag(final ItemStack stack, final CompoundTag tag) {
         final CompoundTag result = new CompoundTag();
@@ -38,14 +38,14 @@ public final class RPCItemStackTagFilters {
         return result;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
         ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
             ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "item_stack_tag_filters"));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final class ReloadListener extends SimpleJsonResourceReloadListener {
         private static final Gson GSON = new GsonBuilder()

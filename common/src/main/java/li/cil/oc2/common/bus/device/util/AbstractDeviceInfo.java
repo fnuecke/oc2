@@ -11,14 +11,14 @@ public abstract class AbstractDeviceInfo<TProvider, TDevice extends Device> {
     @Nullable public final TProvider provider;
     public final TDevice device;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected AbstractDeviceInfo(@Nullable final TProvider provider, final TDevice device) {
         this.provider = provider;
         this.device = device;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public int getEnergyConsumption() {
         return 0;

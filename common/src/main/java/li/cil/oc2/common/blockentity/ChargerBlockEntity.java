@@ -34,20 +34,20 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
         EntitySelector.NO_SPECTATORS
             .and(EntitySelector.ENTITY_STILL_ALIVE);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.chargerEnergyStorage);
     private boolean isCharging;
     private final AABB renderBoundingBox;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     ChargerBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.CHARGER.get(), pos, state);
         renderBoundingBox = new AABB(pos.above());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void clientTick() {
@@ -97,14 +97,14 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
         return singletonList("charger");
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         collector.offer(Capabilities.ENERGY_STORAGE, energy);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void chargeBlock() {
         assert level != null;

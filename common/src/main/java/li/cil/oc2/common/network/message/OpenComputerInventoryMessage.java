@@ -11,7 +11,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 public final class OpenComputerInventoryMessage extends AbstractMessage {
     private BlockPos pos;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public OpenComputerInventoryMessage(final ComputerBlockEntity computer) {
         this.pos = computer.getBlockPos();
@@ -20,7 +20,7 @@ public final class OpenComputerInventoryMessage extends AbstractMessage {
     public OpenComputerInventoryMessage(final RegistryFriendlyByteBuf buffer) {
         super(buffer);
     }
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -32,7 +32,7 @@ public final class OpenComputerInventoryMessage extends AbstractMessage {
         buffer.writeBlockPos(pos);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

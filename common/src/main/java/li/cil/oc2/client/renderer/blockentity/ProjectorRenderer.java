@@ -30,12 +30,12 @@ public class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlockEnti
     private static final float LENS_BOTTOM = 0 + 4 / 16f;
     private static final float LENS_TOP = 1 - 4 / 16f;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ProjectorRenderer(final BlockEntityRendererProvider.Context ignored) {
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public boolean shouldRender(final ProjectorBlockEntity projector, final Vec3 position) {
@@ -71,7 +71,7 @@ public class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlockEnti
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static boolean canSeeProjectedImage(final PoseStack stack) {
         final Matrix4f matrix = stack.last().pose();

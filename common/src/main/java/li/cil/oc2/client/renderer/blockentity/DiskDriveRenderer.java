@@ -20,13 +20,13 @@ import net.minecraft.world.item.ItemStack;
 public final class DiskDriveRenderer implements BlockEntityRenderer<DiskDriveBlockEntity> {
     private final BlockEntityRenderDispatcher renderer;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public DiskDriveRenderer(final BlockEntityRendererProvider.Context context) {
         this.renderer = context.getBlockEntityRenderDispatcher();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void render(final DiskDriveBlockEntity diskDrive, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {

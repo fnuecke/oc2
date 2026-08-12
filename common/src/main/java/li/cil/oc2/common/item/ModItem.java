@@ -21,7 +21,7 @@ public class ModItem extends Item {
         this(createProperties());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     @Override
@@ -30,7 +30,7 @@ public class ModItem extends Item {
         TooltipUtils.tryAddDescription(stack, tooltip);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected static Properties createProperties() {
         return new Properties();

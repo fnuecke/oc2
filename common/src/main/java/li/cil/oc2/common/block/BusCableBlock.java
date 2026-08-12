@@ -81,7 +81,7 @@ public final class BusCableBlock extends BaseEntityBlock {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static final BooleanProperty HAS_CABLE = BooleanProperty.create("has_cable");
     public static final BooleanProperty HAS_FACADE = BooleanProperty.create("has_facade");
@@ -124,11 +124,11 @@ public final class BusCableBlock extends BaseEntityBlock {
         return Direction.getNearest(localHitPos.x, localHitPos.y, localHitPos.z);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final VoxelShape[] shapes;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public BusCableBlock() {
         super(Properties
@@ -148,7 +148,7 @@ public final class BusCableBlock extends BaseEntityBlock {
         shapes = makeShapes();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static boolean addInterface(final Level level, final BlockPos pos, final BlockState state, final Direction side) {
         if (state.getBlock() != Blocks.BUS_CABLE.get()) {
@@ -381,7 +381,7 @@ public final class BusCableBlock extends BaseEntityBlock {
         return ItemStack.EMPTY;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
     // BaseEntityBlock
 
     @Nullable
@@ -395,7 +395,7 @@ public final class BusCableBlock extends BaseEntityBlock {
         return RenderShape.MODEL;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
@@ -405,7 +405,7 @@ public final class BusCableBlock extends BaseEntityBlock {
         builder.add(HAS_FACADE);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static boolean canHaveCableTo(final BlockState state, final Direction side) {
         return state.getBlock() == Blocks.BUS_CABLE.get() &&

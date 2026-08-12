@@ -17,7 +17,7 @@ public final class ItemHandlerBlockDeviceProvider extends AbstractBlockEntityCap
         super(Capabilities.ITEM_HANDLER);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final ItemHandler value) {

@@ -33,7 +33,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
 
     private final MachineTerminalWidget terminalWidget;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected AbstractMachineTerminalScreen(final T container, final Inventory playerInventory, final Component title) {
         super(container, playerInventory, title);
@@ -42,7 +42,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         imageHeight = Sprites.TERMINAL_SCREEN.height;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static boolean isInputCaptureEnabled() {
         return isInputCaptureEnabled;
@@ -165,7 +165,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         terminalWidget.onClose();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     // We use this text box to indicate to Forge that we want all input, and event handlers should not be allowed
     // to steal input from us (e.g. via custom key bindings). Since Forge is lazy and just uses getDeclaredFields
@@ -222,7 +222,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         // This is required to prevent the labels from being rendered
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private boolean shouldRenderEnergyBar() {
         return menu.getEnergyCapacity() > 0;

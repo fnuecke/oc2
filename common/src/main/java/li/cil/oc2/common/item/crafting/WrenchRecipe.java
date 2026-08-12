@@ -19,7 +19,7 @@ public final class WrenchRecipe extends ShapelessRecipe {
         super(recipe.getGroup(), recipe.category(), recipe.result, recipe.getIngredients());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public NonNullList<ItemStack> getRemainingItems(final CraftingInput input) {
@@ -44,7 +44,7 @@ public final class WrenchRecipe extends ShapelessRecipe {
         return Serializer.INSTANCE;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static final class Serializer implements RecipeSerializer<WrenchRecipe> {
         public static final Serializer INSTANCE = new Serializer();

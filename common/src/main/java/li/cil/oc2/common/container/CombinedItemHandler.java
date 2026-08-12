@@ -10,7 +10,7 @@ public final class CombinedItemHandler implements ItemHandler {
     private final int[] baseSlot;
     private final int slotCount;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public CombinedItemHandler(final ItemHandler... handlers) {
         this.handlers = handlers;
@@ -24,7 +24,7 @@ public final class CombinedItemHandler implements ItemHandler {
         this.slotCount = slots;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public int getSlots() {
@@ -55,7 +55,7 @@ public final class CombinedItemHandler implements ItemHandler {
         return handlers[index].getSlotLimit(slot - baseSlot[index]);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private int indexOf(final int slot) {
         if (slot < 0 || slot >= slotCount) {

@@ -35,7 +35,7 @@ public final class FileSystems {
     private static final LayeredFileSystem LAYERED_FILE_SYSTEM = new LayeredFileSystem();
     private static final Map<ResourceLocation, BlockDeviceData> BLOCK_DEVICE_DATA = new HashMap<>();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static FileSystem getLayeredFileSystem() {
         return LAYERED_FILE_SYSTEM;
@@ -58,7 +58,7 @@ public final class FileSystems {
         BLOCK_DEVICE_DATA.clear();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
         ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
@@ -70,7 +70,7 @@ public final class FileSystems {
         reset();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static void reload(final ResourceManager resourceManager) {
         reset();
@@ -145,7 +145,7 @@ public final class FileSystems {
         fileSystems.forEach(LAYERED_FILE_SYSTEM::addLayer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final class ReloadListener implements PreparableReloadListener {
         public static final ReloadListener INSTANCE = new ReloadListener();

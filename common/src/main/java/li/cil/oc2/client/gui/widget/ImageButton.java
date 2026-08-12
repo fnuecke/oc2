@@ -24,7 +24,7 @@ public abstract class ImageButton extends AbstractButton {
     private static final long PRESS_DURATION = 200;
     private static final long TOOLTIP_DELAY = 250;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final Sprite baseImage;
     private final Sprite pressedImage;
@@ -32,7 +32,7 @@ public abstract class ImageButton extends AbstractButton {
     private long lastPressedAt;
     private long hoveringStartedAt;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected ImageButton(final int x, final int y, final int width, final int height, final Sprite baseImage, final Sprite pressedImage) {
         super(x, y, width, height, CommonComponents.EMPTY);
@@ -40,7 +40,7 @@ public abstract class ImageButton extends AbstractButton {
         this.pressedImage = pressedImage;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ImageButton withMessage(final Component component) {
         setMessage(component);
@@ -74,7 +74,9 @@ public abstract class ImageButton extends AbstractButton {
             return;
         }
 
-        if (isHoveredOrFocused()) {
+        // Hover only, not isHoveredOrFocused: clicking focuses the button, and a focused button
+        // would keep drawing this tooltip at the cursor after the click.
+        if (isHovered()) {
             if (hoveringStartedAt == 0) {
                 hoveringStartedAt = System.currentTimeMillis();
             }
@@ -92,7 +94,7 @@ public abstract class ImageButton extends AbstractButton {
         this.defaultButtonNarrationText(element);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         RenderSystem.enableDepthTest();

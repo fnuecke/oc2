@@ -28,11 +28,11 @@ import net.minecraft.world.item.ItemStack;
 public final class Manuals {
     private static final DeferredRegister<ManualModel> MANUALS = RegistryUtils.getInitializerFor(Constants.MANUAL_REGISTRY);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static final RegistrySupplier<ManualModel> MANUAL = MANUALS.register("manual", Manual::new);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
         final DeferredRegister<PathProvider> pathProviders = RegistryUtils.getInitializerFor(Constants.PATH_PROVIDER_REGISTRY);

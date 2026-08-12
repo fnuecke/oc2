@@ -15,17 +15,17 @@ public final class RobotTerminalScreen extends AbstractMachineTerminalScreen<Rob
     private static final int SLOTS_X = (MachineTerminalWidget.WIDTH - Sprites.HOTBAR.width) / 2;
     private static final int SLOTS_Y = MachineTerminalWidget.HEIGHT - 1;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @SuppressWarnings("all") private EditBox focusIndicatorEditBox;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public RobotTerminalScreen(final RobotTerminalContainer container, final Inventory inventory, final Component title) {
         super(container, inventory, title);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void renderBg(final GuiGraphics graphics, final float partialTicks, final int mouseX, final int mouseY) {

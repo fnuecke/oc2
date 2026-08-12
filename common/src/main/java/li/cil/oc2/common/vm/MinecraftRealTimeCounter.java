@@ -11,11 +11,11 @@ public final class MinecraftRealTimeCounter implements RealTimeCounter {
     private static final int TICKS_PER_DAY = 24000;
     private static final int FREQUENCY = TICKS_PER_DAY;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private Level level;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void setLevel(@Nullable final Level level) {
         this.level = level;

@@ -46,13 +46,13 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         return thread;
     });
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected boolean readonly;
     protected VirtIOBlockDevice device;
     private CompletableFuture<Void> openJob;
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     // Online persisted data.
     private final OptionalAddress address = new OptionalAddress();
@@ -62,14 +62,14 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     // Offline persisted data.
     @Nullable protected UUID blobHandle;
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected AbstractBlockStorageDevice(final TIdentity identity, final boolean readonly) {
         super(identity);
         this.readonly = readonly;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public VMDeviceLoadResult mount(final VMContext context) {
@@ -179,7 +179,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         joinOpenJob();
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected void setOpenJob(final CompletableFuture<Void> job) {
         joinOpenJob();
@@ -203,7 +203,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     protected void handleDataAccess() {
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private boolean allocateDevice(final VMContext context) {
         if (!context.getMemoryAllocator().claimMemory(Constants.PAGE_SIZE)) {
@@ -244,7 +244,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         device = null;
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final class ListenableBlockDevice implements BlockDevice {
         private final BlockDevice inner;

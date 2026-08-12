@@ -28,7 +28,7 @@ public final class ModLootTableProvider extends LootTableProvider {
         super(output, Set.of(), List.of(new SubProviderEntry(ModBlockLootTables::new, LootContextParamSets.BLOCK)), registries);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static final class ModBlockLootTables extends BlockLootSubProvider {
         public ModBlockLootTables(final HolderLookup.Provider registries) {

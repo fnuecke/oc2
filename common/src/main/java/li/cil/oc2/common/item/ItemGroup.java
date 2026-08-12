@@ -19,7 +19,7 @@ import java.util.Map;
 public final class ItemGroup {
     private static final DeferredRegister<CreativeModeTab> TABS = RegistryUtils.getInitializerFor(Registries.CREATIVE_MODE_TAB);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static final RegistrySupplier<CreativeModeTab> COMMON = TABS.register("common", () ->
         CreativeTabRegistry.create(builder -> {
@@ -31,12 +31,12 @@ public final class ItemGroup {
                 .forEach(item -> addItem(item, parameters, output)));
         }));
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static void addItem(final Item item, final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
         if (item instanceof final CreativeTabItemProvider provider) {

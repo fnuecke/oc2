@@ -96,7 +96,7 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
     }
 
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private ItemStack getRobotWithFlash(final HolderLookup.Provider provider) {
         final ItemStack robot = new ItemStack(this);

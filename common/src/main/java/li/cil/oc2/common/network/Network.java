@@ -28,7 +28,7 @@ import java.util.function.Function;
 public final class Network {
     private static final Map<Class<?>, CustomPacketPayload.Type<? extends CustomPacketPayload>> MESSAGE_TYPES = new HashMap<>();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
         registerMessage(ComputerTerminalOutputMessage.class, ComputerTerminalOutputMessage::new, NetworkManager.serverToClient());
@@ -89,7 +89,7 @@ public final class Network {
         return (CustomPacketPayload.Type<T>) messageType;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void sendToServer(final AbstractMessage message) {
         NetworkManager.sendToServer(message);
@@ -138,7 +138,7 @@ public final class Network {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static String messageId(final Class<?> type) {
         final String name = type.getEnclosingClass() != null

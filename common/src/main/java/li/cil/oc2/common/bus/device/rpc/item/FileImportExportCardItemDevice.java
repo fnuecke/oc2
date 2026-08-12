@@ -40,7 +40,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
     private static final String NAME = "name";
     private static final String DATA = "data";
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private enum State {
         IDLE,
@@ -82,7 +82,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final Int2ObjectArrayMap<ImportFileRequest> importingDevices = new Int2ObjectArrayMap<>();
     private static int nextImportId = 1;
@@ -93,14 +93,14 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
     private int importingId;
     private ImportedFile importedFile;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public FileImportExportCardItemDevice(final ItemStack identity, final TerminalUserProvider userProvider) {
         super(identity, "file_import_export");
         this.userProvider = userProvider;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void setImportedFile(final int id, final String name, final byte[] data) {
         synchronized (importingDevices) {
@@ -134,7 +134,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void unmount() {

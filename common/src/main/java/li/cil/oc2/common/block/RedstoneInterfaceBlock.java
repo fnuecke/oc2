@@ -37,7 +37,7 @@ public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock imp
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public BlockState getStateForPlacement(final BlockPlaceContext context) {
@@ -66,7 +66,7 @@ public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock imp
         return getSignal(state, level, pos, side);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
     // EntityBlock
 
     @Nullable
@@ -75,7 +75,7 @@ public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock imp
         return BlockEntities.REDSTONE_INTERFACE.get().create(pos, state);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {

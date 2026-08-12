@@ -22,7 +22,7 @@ public class ItemStackHandler implements ItemHandler {
 
     protected NonNullList<ItemStack> stacks;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public ItemStackHandler(final int size) {
         this(NonNullList.withSize(size, ItemStack.EMPTY));
@@ -32,7 +32,7 @@ public class ItemStackHandler implements ItemHandler {
         this.stacks = stacks;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public int getSlots() {
@@ -129,7 +129,7 @@ public class ItemStackHandler implements ItemHandler {
         return true;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public CompoundTag serializeNBT(final HolderLookup.Provider provider) {
         final CompoundTag tag = new CompoundTag();
@@ -144,7 +144,7 @@ public class ItemStackHandler implements ItemHandler {
         onLoad();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected void setSize(final int size) {
         stacks = NonNullList.withSize(size, ItemStack.EMPTY);

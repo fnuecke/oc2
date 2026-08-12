@@ -14,7 +14,7 @@ public final class BlockEntityCapabilityDeviceProvider extends AbstractBlockEnti
         super(Capabilities.DEVICE);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final Device device) {

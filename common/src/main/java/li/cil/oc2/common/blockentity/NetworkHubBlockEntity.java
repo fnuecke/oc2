@@ -23,18 +23,18 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
     private int frameCount;
     private long lastGameTime;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final NetworkInterface[] adjacentBlockInterfaces = new NetworkInterface[Constants.BLOCK_FACE_COUNT];
     private boolean haveAdjacentBlocksChanged = true;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public NetworkHubBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.NETWORK_HUB.get(), pos, state);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public void handleNeighborChanged() {
         haveAdjacentBlocksChanged = true;
@@ -71,14 +71,14 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
         });
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         collector.offer(Capabilities.NETWORK_INTERFACE, this);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private Stream<NetworkInterface> getAdjacentInterfaces() {
         validateAdjacentBlocks();

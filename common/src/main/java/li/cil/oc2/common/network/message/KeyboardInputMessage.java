@@ -13,7 +13,7 @@ public final class KeyboardInputMessage extends AbstractMessage {
     private int keycode;
     private boolean isDown;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public KeyboardInputMessage(final KeyboardBlockEntity keyboard, final int keycode, final boolean isDown) {
         this.pos = keyboard.getBlockPos();
@@ -25,7 +25,7 @@ public final class KeyboardInputMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -41,7 +41,7 @@ public final class KeyboardInputMessage extends AbstractMessage {
         buffer.writeBoolean(isDown);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

@@ -39,7 +39,7 @@ public final class MultipartMessage extends AbstractMessage {
             4 /* multipart message id */ +
             2 /* length */;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     /**
      * Cache for collecting multipart messages on the server into one big buffer again. Discard them after some
@@ -50,7 +50,7 @@ public final class MultipartMessage extends AbstractMessage {
         .build();
     private static int lastAssignedMultipartMessageId;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final Map<Class<? extends AbstractMessage>, Entry> ENTRY_BY_TYPE = new HashMap<>();
     private static final Int2ObjectMap<Entry> ENTRY_BY_ID = new Int2ObjectArrayMap<>();
@@ -66,7 +66,7 @@ public final class MultipartMessage extends AbstractMessage {
         ENTRY_BY_ID.put(id, entry);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void sendToServer(final AbstractMessage message) {
         final RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(),
@@ -97,7 +97,7 @@ public final class MultipartMessage extends AbstractMessage {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     /**
      * Automatically computed on client. Implicit because all but last packets are max size.
@@ -108,7 +108,7 @@ public final class MultipartMessage extends AbstractMessage {
     private int multipartMessageId;
     private byte[] data;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public MultipartMessage(final int messageId, final int multipartMessageId, final byte[] data) {
         this.messageId = messageId;
@@ -120,7 +120,7 @@ public final class MultipartMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -141,7 +141,7 @@ public final class MultipartMessage extends AbstractMessage {
         buffer.writeBytes(data);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
@@ -174,7 +174,7 @@ public final class MultipartMessage extends AbstractMessage {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private record Entry(int id, Function<RegistryFriendlyByteBuf, ? extends AbstractMessage> factory) { }
 }

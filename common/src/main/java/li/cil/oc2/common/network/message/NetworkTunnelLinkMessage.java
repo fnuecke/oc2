@@ -11,7 +11,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 public final class NetworkTunnelLinkMessage extends AbstractMessage {
     private int containerId;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public NetworkTunnelLinkMessage(final int containerId) {
         this.containerId = containerId;
@@ -21,7 +21,7 @@ public final class NetworkTunnelLinkMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -33,7 +33,7 @@ public final class NetworkTunnelLinkMessage extends AbstractMessage {
         buffer.writeVarInt(containerId);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

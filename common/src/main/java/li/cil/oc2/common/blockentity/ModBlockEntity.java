@@ -20,13 +20,13 @@ public abstract class ModBlockEntity extends BlockEntity {
     private boolean needsWorldUnloadEvent;
     private boolean isUnloaded;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected ModBlockEntity(final BlockEntityType<?> blockEntityType, final BlockPos pos, final BlockState state) {
         super(blockEntityType, pos, state);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Nullable
     public <T> T getCapability(final CapabilityType<T> capability, @Nullable final Direction side) {
@@ -96,7 +96,7 @@ public abstract class ModBlockEntity extends BlockEntity {
         return null;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected void onUnload(final boolean isRemove) {
         if (level != null && !level.isClientSide()) {
@@ -121,7 +121,7 @@ public abstract class ModBlockEntity extends BlockEntity {
     protected void unloadServer(final boolean isRemove) {
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @FunctionalInterface
     protected interface CapabilityCollector {

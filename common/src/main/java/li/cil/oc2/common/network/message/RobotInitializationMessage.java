@@ -23,7 +23,7 @@ public final class RobotInitializationMessage extends AbstractMessage {
     @Nullable private Component bootError;
     private CompoundTag terminal;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public RobotInitializationMessage(final Robot robot) {
         this.entityId = robot.getId();
@@ -37,7 +37,7 @@ public final class RobotInitializationMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -57,7 +57,7 @@ public final class RobotInitializationMessage extends AbstractMessage {
         buffer.writeNbt(terminal);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

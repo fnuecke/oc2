@@ -49,7 +49,7 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
     private static final VoxelShape POS_Z_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_X_SHAPE);
     private static final VoxelShape POS_X_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(POS_Z_SHAPE);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public KeyboardBlock() {
         super(Properties.of()
@@ -57,7 +57,7 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public BlockState getStateForPlacement(final BlockPlaceContext context) {
@@ -103,7 +103,7 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
     // EntityBlock
 
     @Nullable
@@ -112,7 +112,7 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
         return BlockEntities.KEYBOARD.get().create(pos, state);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
@@ -120,7 +120,7 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
         builder.add(FACING);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     private static void openKeyboardScreen(final KeyboardBlockEntity keyboard) {

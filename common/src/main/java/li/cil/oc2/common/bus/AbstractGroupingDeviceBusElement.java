@@ -30,17 +30,17 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         Device getDevice();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected final int groupCount;
     protected final ArrayList<HashSet<TEntry>> groups;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected final UUID[] groupIds;
     protected final CompoundTag[] groupData;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected AbstractGroupingDeviceBusElement(final int groupCount) {
         this.groupCount = groupCount;
@@ -55,7 +55,7 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public CompoundTag save() {
         final ListTag listTag = new ListTag();
@@ -114,7 +114,7 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         return super.getDeviceIdentifier(device);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected final void setEntriesForGroupUnloaded(final int index) {
         final HashSet<TEntry> oldEntries = groups.get(index);
@@ -238,7 +238,7 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
     protected void onEntryRemoved(final String dataKey, final CompoundTag data, @Nullable final TQuery query) {
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void saveGroup(final int index) {
         final CompoundTag devicesTag = new CompoundTag();

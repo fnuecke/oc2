@@ -24,7 +24,7 @@ public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
         super(identity);
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Nullable
     @Override
@@ -48,7 +48,7 @@ public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
         TunnelManager.unregisterEndpoint(getNetworkInterface());
     }
 
-    ///////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static final class TunnelManager {
         private static final int BYTES_PER_TICK = 32 * 1024 / TickUtils.toTicks(Duration.ofSeconds(1)); // bytes / sec -> bytes / tick

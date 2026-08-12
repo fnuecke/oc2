@@ -34,7 +34,7 @@ public final class BusInterfaceScreen extends Screen {
 
     private int left, top;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public BusInterfaceScreen(final BusCableBlockEntity busCable, final Direction side) {
         super(Items.BUS_INTERFACE.get().getDescription());
@@ -42,7 +42,7 @@ public final class BusInterfaceScreen extends Screen {
         this.side = side;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void init() {
@@ -114,7 +114,7 @@ public final class BusInterfaceScreen extends Screen {
 
     @Override
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        renderBackground(graphics, mouseX, mouseY, partialTicks);
+        renderTransparentBackground(graphics);
         Sprites.BUS_INTERFACE_SCREEN.draw(graphics, left, top);
 
         super.render(graphics, mouseX, mouseY, partialTicks);
@@ -128,7 +128,7 @@ public final class BusInterfaceScreen extends Screen {
         return false;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void setInterfaceName(final String name) {
         Network.sendToServer(new BusInterfaceNameMessage.ToServer(busCable, side, name));

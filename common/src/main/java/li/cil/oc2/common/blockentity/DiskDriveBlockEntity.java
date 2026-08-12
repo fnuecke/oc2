@@ -32,7 +32,7 @@ import java.time.Duration;
 public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDriveContainer {
     private static final String DATA_TAG_NAME = "data";
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final DiskDriveItemStackHandler itemHandler = new DiskDriveItemStackHandler();
     private final DiskDriveDevice<DiskDriveBlockEntity> device = new DiskDriveDevice<>(this);
@@ -40,7 +40,7 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
     private final ThrottledSoundEmitter insertSoundEmitter;
     private final ThrottledSoundEmitter ejectSoundEmitter;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public DiskDriveBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.DISK_DRIVE.get(), pos, state);
@@ -53,7 +53,7 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
             SoundEvents.FLOPPY_EJECT.get()).withMinInterval(Duration.ofMillis(100));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public boolean canInsert(final ItemStack stack) {
         return !stack.isEmpty() && stack.is(ItemTags.DEVICES_FLOPPY);
@@ -142,7 +142,7 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
         accessSoundEmitter.play();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final class DiskDriveItemStackHandler extends TypedItemStackHandler {
         public DiskDriveItemStackHandler() {

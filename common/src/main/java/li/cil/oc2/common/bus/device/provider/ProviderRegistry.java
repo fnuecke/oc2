@@ -15,14 +15,14 @@ public final class ProviderRegistry {
     private static final DeferredRegister<BlockDeviceProvider> BLOCK_DEVICE_PROVIDERS =
         RegistryUtils.getInitializerFor(Registries.BLOCK_DEVICE_PROVIDER);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static final Registrar<ItemDeviceProvider> ITEM_DEVICE_PROVIDER_REGISTRY =
         RegistryUtils.builder(Registries.ITEM_DEVICE_PROVIDER).build();
     private static final DeferredRegister<ItemDeviceProvider> ITEM_DEVICE_PROVIDERS =
         RegistryUtils.getInitializerFor(Registries.ITEM_DEVICE_PROVIDER);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
         Providers.registerBlockDeviceProviders(BLOCK_DEVICE_PROVIDERS::register);

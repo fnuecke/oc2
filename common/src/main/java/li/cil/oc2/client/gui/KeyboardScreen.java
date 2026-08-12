@@ -26,18 +26,18 @@ public final class KeyboardScreen extends Screen {
 
     private static final MutableComponent CLOSE_INFO = Component.translatable("gui.oc2.keyboard.close_info");
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final KeyboardBlockEntity keyboard;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public KeyboardScreen(final KeyboardBlockEntity keyboard) {
         super(Items.KEYBOARD.get().getDescription());
         this.keyboard = keyboard;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void init() {
@@ -108,7 +108,7 @@ public final class KeyboardScreen extends Screen {
         ClientPlatform.setHotbarVisible(true);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void renderBorderOverlay(final GuiGraphics graphics) {
         graphics.fill(BORDER_SIZE, BORDER_SIZE, width - BORDER_SIZE, BORDER_SIZE * 2, BORDER_COLOR);

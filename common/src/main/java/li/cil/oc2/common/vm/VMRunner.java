@@ -31,7 +31,7 @@ public class VMRunner implements Runnable {
         return thread;
     });
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private final R5Board board;
     private final GlobalVMContext context;
@@ -39,7 +39,7 @@ public class VMRunner implements Runnable {
     private final AtomicInteger timeQuotaInMillis = new AtomicInteger();
     private Future<?> lastSchedule;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private boolean firedResumedRunningEvent;
     @Serialized private boolean firedInitializationEvent;
@@ -48,7 +48,7 @@ public class VMRunner implements Runnable {
     @Serialized private long cycleLimit;
     @Serialized private long cycles;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public VMRunner(final AbstractVirtualMachine virtualMachine) {
         this.board = virtualMachine.state.board;
@@ -56,7 +56,7 @@ public class VMRunner implements Runnable {
         rpcAdapter = virtualMachine.state.rpcAdapter;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Nullable
     public Component getRuntimeError() {
@@ -121,7 +121,7 @@ public class VMRunner implements Runnable {
         } while (cycles < cycleLimit && timeQuotaInMillis.get() > 0);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected void handleBeforeRun() {
         if (!firedInitializationEvent) {
@@ -148,7 +148,7 @@ public class VMRunner implements Runnable {
     protected void handleAfterRun() {
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static int getCyclesPerTick() {
         return Constants.CPU_FREQUENCY / TICKS_PER_SECOND;

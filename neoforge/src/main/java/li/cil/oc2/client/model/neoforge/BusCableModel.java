@@ -31,7 +31,7 @@ public record BusCableModel(List<BlockElement> elements) implements IUnbakedGeom
     private static final ResourceLocation BUS_CABLE_STRAIGHT_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/cable_straight");
     private static final ResourceLocation BUS_CABLE_SUPPORT_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/cable_support");
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public BakedModel bake(final IGeometryBakingContext context, final ModelBaker baker,
@@ -67,7 +67,7 @@ public record BusCableModel(List<BlockElement> elements) implements IUnbakedGeom
         modelGetter.apply(BUS_CABLE_SUPPORT_MODEL).resolveParents(modelGetter);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private void bakeElementsResolvingTextureRefs(final IModelBuilder<?> builder,
                                                   final Function<Material, TextureAtlasSprite> spriteGetter,

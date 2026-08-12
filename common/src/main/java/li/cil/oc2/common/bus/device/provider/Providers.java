@@ -33,7 +33,7 @@ public final class Providers {
         return optionalKey(itemDeviceProviderRegistry(), provider);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static <T> Optional<String> optionalKey(final Registrar<T> registrar, @Nullable final T value) {
         if (value == null) {
@@ -44,7 +44,7 @@ public final class Providers {
         return id == null ? Optional.empty() : Optional.of(id.toString());
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void registerBlockDeviceProviders(final BiConsumer<String, Supplier<BlockDeviceProvider>> registry) {
         registry.accept("block", BlockStateObjectDeviceProvider::new);

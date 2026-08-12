@@ -26,11 +26,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class ConfigManagerImpl {
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static final Map<Class<?>, ConfigFieldParser> PARSERS = new HashMap<>();
     private static final Map<IConfigSpec, ConfigDefinition> CONFIGS = new HashMap<>();
@@ -44,7 +44,7 @@ public final class ConfigManagerImpl {
         PARSERS.put(ResourceLocation.class, ConfigManagerImpl::parseResourceLocationField);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static <T> void add(final Supplier<T> factory) {
         final ArrayList<ConfigFieldPair<?>> values = new ArrayList<>();
@@ -70,7 +70,7 @@ public final class ConfigManagerImpl {
         ModEventBus.INSTANCE.addListener(ConfigManagerImpl::handleModConfigEvent);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static void handleModConfigEvent(final ModConfigEvent event) {
         final ConfigDefinition config = CONFIGS.get(event.getConfig().getSpec());
@@ -79,7 +79,7 @@ public final class ConfigManagerImpl {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static <T> void fillSpec(final T instance, final ModConfigSpec.Builder builder, final ArrayList<ConfigFieldPair<?>> values) {
         for (final Field field : instance.getClass().getFields()) {
@@ -169,7 +169,7 @@ public final class ConfigManagerImpl {
         return maxAnnotation != null ? maxAnnotation.value() : Double.POSITIVE_INFINITY;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @FunctionalInterface
     private interface ConfigFieldParser {

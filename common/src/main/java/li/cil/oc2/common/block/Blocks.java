@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.Block;
 public final class Blocks {
     private static final DeferredRegister<Block> BLOCKS = RegistryUtils.getInitializerFor(Registries.BLOCK);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static final RegistrySupplier<BusCableBlock> BUS_CABLE = BLOCKS.register("bus_cable", BusCableBlock::new);
     public static final RegistrySupplier<ChargerBlock> CHARGER = BLOCKS.register("charger", ChargerBlock::new);
@@ -24,7 +24,7 @@ public final class Blocks {
     public static final RegistrySupplier<ProjectorBlock> PROJECTOR = BLOCKS.register("projector", ProjectorBlock::new);
     public static final RegistrySupplier<RedstoneInterfaceBlock> REDSTONE_INTERFACE = BLOCKS.register("redstone_interface", RedstoneInterfaceBlock::new);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
     }

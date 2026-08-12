@@ -31,13 +31,13 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
     private static final int CONTROLS_TOP = 8;
     private static final int ENERGY_TOP = CONTROLS_TOP + Sprites.SIDEBAR_2.height + 4;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public AbstractMachineInventoryScreen(final T container, final Inventory playerInventory, final Component title) {
         super(container, playerInventory, title);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public List<Rect2i> getExtraAreas() {
         final List<Rect2i> list = new ArrayList<>();
@@ -56,7 +56,7 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
         return list;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void init() {
@@ -148,7 +148,7 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
         }
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private boolean shouldRenderEnergyBar() {
         return menu.getEnergyCapacity() > 0;

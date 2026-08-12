@@ -13,13 +13,13 @@ import java.util.Optional;
 public abstract class AbstractItemStackCapabilityDeviceProvider<TCapability> extends AbstractItemDeviceProvider {
     private final CapabilityType<TCapability> capability;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected AbstractItemStackCapabilityDeviceProvider(final CapabilityType<TCapability> capability) {
         this.capability = capability;
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {

@@ -12,7 +12,7 @@ import net.minecraft.world.inventory.MenuType;
 public final class Containers {
     private static final DeferredRegister<MenuType<?>> CONTAINERS = RegistryUtils.getInitializerFor(Registries.MENU);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static final RegistrySupplier<MenuType<ComputerInventoryContainer>> COMPUTER = CONTAINERS.register("computer", () -> MenuRegistry.ofExtended(ComputerInventoryContainer::createClient));
     public static final RegistrySupplier<MenuType<ComputerTerminalContainer>> COMPUTER_TERMINAL = CONTAINERS.register("computer_terminal", () -> MenuRegistry.ofExtended(ComputerTerminalContainer::createClient));
@@ -20,7 +20,7 @@ public final class Containers {
     public static final RegistrySupplier<MenuType<RobotTerminalContainer>> ROBOT_TERMINAL = CONTAINERS.register("robot_terminal", () -> MenuRegistry.ofExtended(RobotTerminalContainer::createClient));
     public static final RegistrySupplier<MenuType<NetworkTunnelContainer>> NETWORK_TUNNEL = CONTAINERS.register("network_tunnel", () -> MenuRegistry.ofExtended(NetworkTunnelContainer::createClient));
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
     }

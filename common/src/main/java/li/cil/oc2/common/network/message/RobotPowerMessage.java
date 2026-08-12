@@ -11,7 +11,7 @@ public final class RobotPowerMessage extends AbstractMessage {
     private int entityId;
     private boolean power;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public RobotPowerMessage(final Robot robot, final boolean power) {
         this.entityId = robot.getId();
@@ -22,7 +22,7 @@ public final class RobotPowerMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -36,7 +36,7 @@ public final class RobotPowerMessage extends AbstractMessage {
         buffer.writeBoolean(power);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

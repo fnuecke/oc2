@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public final class RPCMethodParameterTypeAdapters {
     private static final ArrayList<RPCMethodParameterTypeAdapter> TYPE_ADAPTERS = new ArrayList<>();
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     public static void initialize() {
         addTypeAdapter(ItemStack.class, new ItemStackJsonSerializer());

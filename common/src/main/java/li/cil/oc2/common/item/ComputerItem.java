@@ -21,7 +21,7 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
         super(block);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
@@ -29,7 +29,7 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
         output.accept(preconfigured(parameters.holders()));
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private ItemStack withFlash(final HolderLookup.Provider provider) {
         final ItemStack computer = new ItemStack(this);

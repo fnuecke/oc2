@@ -11,7 +11,7 @@ public abstract class AbstractTerminalEntityMessage extends AbstractMessage {
     protected int entityId;
     protected byte[] data;
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     protected AbstractTerminalEntityMessage(final Entity entity, final ByteBuffer data) {
         this.entityId = entity.getId();
@@ -22,7 +22,7 @@ public abstract class AbstractTerminalEntityMessage extends AbstractMessage {
         super(buffer);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {

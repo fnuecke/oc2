@@ -33,7 +33,7 @@ public final class Capabilities {
     public static final CapabilityType<TerminalUserProvider> TERMINAL_USER_PROVIDER = type("terminal_user_provider", TerminalUserProvider.class);
     public static final CapabilityType<Robot> ROBOT = type("robot", Robot.class);
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @ExpectPlatform
     @Nullable
@@ -58,7 +58,7 @@ public final class Capabilities {
         throw new AssertionError();
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     private static <T> CapabilityType<T> type(final String name, final Class<T> type) {
         return new CapabilityType<>(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name), type);

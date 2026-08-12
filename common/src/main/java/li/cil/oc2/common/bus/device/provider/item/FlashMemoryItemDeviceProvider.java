@@ -16,7 +16,7 @@ public final class FlashMemoryItemDeviceProvider extends AbstractItemDeviceProvi
         super(FlashMemoryItem.class);
     }
 
-    ///////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {

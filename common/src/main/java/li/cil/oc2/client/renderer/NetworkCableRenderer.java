@@ -56,30 +56,11 @@ public final class NetworkCableRenderer {
     // ------------------------------------------------------------- //
 
     public static void onChunkUnload(final ChunkPos chunkPos) {
-        {
-            final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
-            for (final NetworkConnectorBlockEntity connector : list) {
-                final ChunkPos connectorChunkPos = new ChunkPos(connector.getBlockPos());
-                if (Objects.equals(connectorChunkPos, chunkPos)) {
-                    connectors.remove(connector);
-                }
-            }
-
-            invalidateConnections();
-        }
+        removeConnectors(connector -> Objects.equals(new ChunkPos(connector.getBlockPos()), chunkPos));
     }
 
     public static void onLevelUnload(final LevelAccessor level) {
-        {
-            final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(NetworkCableRenderer.connectors);
-            for (final NetworkConnectorBlockEntity connector : list) {
-                if (connector.getLevel() == level) {
-                    connectors.remove(connector);
-                }
-            }
-
-            invalidateConnections();
-        }
+        removeConnectors(connector -> connector.getLevel() == level);
     }
 
     public static void render(final PoseStack poseStack, final Camera camera,
@@ -217,6 +198,20 @@ public final class NetworkCableRenderer {
             return c.add(swingAmount * Mth.cos(relRadialTime) * right.x,
                     0.5f * swingAmount * Mth.sin(relRadialTime * 2 - (float) Math.PI) - swingAmount,
                     swingAmount * Mth.cos(relRadialTime) * right.z);
+        }
+    }
+
+    private static void removeConnectors(final Predicate<NetworkConnectorBlockEntity> filter) {
+        boolean removedAny = false;
+        for (final NetworkConnectorBlockEntity connector : new ArrayList<>(connectors)) {
+            if (filter.test(connector)) {
+                connectors.remove(connector);
+                removedAny = true;
+            }
+        }
+
+        if (removedAny) {
+            invalidateConnections();
         }
     }
 

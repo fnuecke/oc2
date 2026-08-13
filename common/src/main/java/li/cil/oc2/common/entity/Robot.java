@@ -179,6 +179,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         if (capability == Capabilities.ROBOT) {
             return (T) this;
         }
+        if (capability == Capabilities.TERMINAL_USER_PROVIDER) {
+            return (T) this;
+        }
 
         for (final Device device : virtualMachine.busController.getDevices()) {
             if (device instanceof final CapabilityProvider capabilityProvider) {

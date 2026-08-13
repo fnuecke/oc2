@@ -14,8 +14,19 @@ This is a high level API device. It can be controlled using Lua in the default L
 ### Sides
 The side parameter in the following methods represents a direction from the perspective of the robot. Valid values are: `front`, `up` and `down`.
 
+### Tools
+The module swings whatever is in the robot's currently selected inventory slot, exactly as a player holding that item would. A pickaxe mines stone, a shovel digs dirt, an axe chops wood, and an empty slot means bare robot hands.
+
+The tool decides:
+- **What can be broken.** Blocks that would not drop anything for the held tool are refused outright, rather than being broken for nothing.
+- **How long it takes.** A block that it would take a player five seconds to break also occupies the module for five seconds. Enchantments such as Efficiency, Fortune and Silk Touch all apply.
+
+Note that the tool will take damage and eventually break. Check its durability if you'd rather repair it.
+
+Blocks nothing can break, such as bedrock, and blocks that would take longer than fifteen seconds are refused.
+
 ### Methods
-`excavate([side]):boolean` tries to break a block in the specified direction. Collected blocks will be inserted starting at the currently selected inventory slot. If the selected slot is full, the next slot will be used, and so on. If the inventory has no space for the dropped block, it will drop into the world.
+`excavate([side]):boolean` tries to break a block in the specified direction using the tool in the currently selected inventory slot. Collected blocks will be inserted starting after the currently selected inventory slot. If a slot is full, the next slot will be used. If the inventory has no space for the dropped block, it will drop into the world.
 - `side` is the relative direction in to break a block in. Optional, defaults to `front`. See the "Sides" section.
 - Returns whether the operation was successful.
 
@@ -23,8 +34,5 @@ The side parameter in the following methods represents a direction from the pers
 - `side` is the relative direction to place the block in. Optional, defaults to `front`. See the "Sides" section.
 - Returns whether the operation was successful.
 
-`durability():number` returns the remaining durability of the module's excavation tool. Once the durability has reached zero, no further excavation operations can be performed until it is repaired.
-- Returns the remaining durability of the module's excavation tool
-
-`repair():boolean` attempts to repair the module's excavation tool using materials in the currently selected inventory slot. This method will consume one item at a time. Any regular tool may act as the source for repair materials, such as pickaxes and shovels. The quality of the tool directly effects the amount of durability restored.
-- Returns whether some material could be used to repair the module's excavation tool.
+`durability():number` returns the remaining durability of the tool in the currently selected inventory slot.
+- Returns the remaining durability, or zero if the slot is empty or holds something that cannot take damage.

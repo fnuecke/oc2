@@ -3,7 +3,6 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.common.config.Path;
-import net.minecraft.resources.ResourceLocation;
 
 import java.util.UUID;
 
@@ -52,8 +51,6 @@ public final class Config {
     @Path("energy.items")
     public static int networkTunnelEnergyPerTick = 2;
 
-    @Path("gameplay")
-    public static ResourceLocation blockOperationsModuleToolTier = ResourceLocation.withDefaultNamespace("diamond");
     @Path("gameplay")
     public static long soundCardCoolDownSeconds = 2;
 

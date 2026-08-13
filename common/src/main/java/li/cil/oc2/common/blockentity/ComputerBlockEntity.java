@@ -84,6 +84,9 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         // We want to unload devices even on level unload to free global resources.
         setNeedsLevelUnloadEvent();
+
+        // Device scan can change our capability set (cards in the computer having capabilities).
+        virtualMachine.busController.onAfterDeviceScan.add(this::handleAfterDeviceScan);
     }
 
     public Terminal getTerminal() {
@@ -309,6 +312,12 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private <T extends AbstractMessage> void sendToClientsTrackingComputer(final T message) {
         if (chunk != null) {
             Network.sendToClientsTrackingChunk(message, chunk);
+        }
+    }
+
+    private void handleAfterDeviceScan(final CommonDeviceBusController.AfterDeviceScanEvent event) {
+        if (event.didDevicesChange() && level != null && !level.isClientSide()) {
+            Capabilities.invalidate(this);
         }
     }
 

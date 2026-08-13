@@ -102,7 +102,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
         final List<ItemEntity> oldItems = getItemsInRange();
 
-        final ItemStack tool = inventory.extractItem(selectedSlot, 1, false);
+        final ItemStack tool = inventory.getStackInSlot(selectedSlot);
         final ServerPlayer player = FakePlayerUtils.getFakePlayer(serverLevel, entity);
 
         final int breakTicks;
@@ -111,9 +111,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         try {
             breakTicks = tryHarvestBlock(serverLevel, player, blockPos, tool);
         } finally {
-            // The fake player is shared, so it must not walk away holding the robot's pickaxe.
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-            returnTool(inventory, selectedSlot, tool);
         }
 
         if (breakTicks < 0) {
@@ -127,7 +125,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
         for (final ItemEntity itemEntity : droppedItems) {
             ItemStack stack = itemEntity.getItem();
-            stack = insertStartingAt(inventory, stack, selectedSlot, false);
+            stack = insertStartingAt(inventory, stack, selectedSlot + 1, false);
             itemEntity.setItem(stack);
         }
 
@@ -213,20 +211,6 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
     private boolean isOnCooldown() {
         return entity.level().getGameTime() - lastOperation < cooldown;
-    }
-
-    private void returnTool(final ItemHandler inventory, final int slot, final ItemStack tool) {
-        if (tool.isEmpty()) {
-            return;
-        }
-
-        ItemStack remainder = inventory.insertItem(slot, tool, false);
-        if (!remainder.isEmpty()) {
-            remainder = insertStartingAt(inventory, remainder, slot, false);
-        }
-        if (!remainder.isEmpty()) {
-            entity.spawnAtLocation(remainder);
-        }
     }
 
     private List<ItemEntity> getItemsInRange() {

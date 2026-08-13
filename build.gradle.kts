@@ -55,22 +55,11 @@ subprojects {
             forRepository { maven("https://maven.blamejared.com") }
             filter { includeGroup("mezz.jei") }
         }
-        // Only needed when the ceres / sedna / buildroot sibling checkouts are absent.
-        if (project.hasProperty("gpr.user") && project.hasProperty("gpr.key")) {
-            for ((repo, group) in listOf(
-                "fnuecke/ceres" to "li.cil.ceres",
-                "fnuecke/sedna" to "li.cil.sedna",
-                "fnuecke/buildroot" to "li.cil.sedna"
-            )) {
-                maven("https://maven.pkg.github.com/$repo") {
-                    credentials {
-                        username = project.property("gpr.user") as String
-                        password = project.property("gpr.key") as String
-                    }
-                    content { includeGroup(group) }
-                }
-            }
+        exclusiveContent {
+            forRepository { maven("https://fnuecke.github.io/maven") }
+            filter { includeModule("li.cil.sedna", "sedna-buildroot") }
         }
+        mavenCentral()
     }
 
     dependencies {

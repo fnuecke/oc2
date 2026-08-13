@@ -6,7 +6,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.integration.Wrenches;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LightTexture;
@@ -18,10 +17,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 public enum BusInterfaceNameRenderer {
     INSTANCE;
+
+    // Values mirror EntityRenderer.renderNameTag
+    private static final double LABEL_HOVER = 0.5;
+    private static final int SEE_THROUGH_COLOR = 0x20FFFFFF;
+    private static final int COLOR = 0xFFFFFFFF;
 
     // ------------------------------------------------------------- //
 
@@ -61,14 +66,12 @@ public enum BusInterfaceNameRenderer {
         final PoseStack stack = poseStack;
         stack.pushPose();
 
-        stack.translate(0.5, 1, 0.5);
-        stack.translate(side.getStepX() * 0.5f, 0, side.getStepZ() * 0.5f);
-
-        final Camera info = mc.gameRenderer.getMainCamera();
+        final Vec3 camera = mc.gameRenderer.getMainCamera().getPosition();
         stack.translate(
-                blockPos.getX() - info.getPosition().x,
-                blockPos.getY() - info.getPosition().y,
-                blockPos.getZ() - info.getPosition().z);
+                blockPos.getX() + 0.5 + side.getStepX() * 0.5 - camera.x,
+                blockPos.getY() + 0.5 + side.getStepY() * 0.5 - camera.y
+                        + (side == Direction.DOWN ? -LABEL_HOVER : LABEL_HOVER),
+                blockPos.getZ() + 0.5 + side.getStepZ() * 0.5 - camera.z);
 
         final EntityRenderDispatcher renderManager = mc.getEntityRenderDispatcher();
         stack.mulPose(renderManager.cameraOrientation());
@@ -85,9 +88,9 @@ public enum BusInterfaceNameRenderer {
         final int backgroundColor = (int) (backgroundOpacity * 255.0F) << 24;
         final int packedLight = LightTexture.pack(15, 15);
 
-        font.drawInBatch(name, horizontalTextOffset, 0, 0xffffffff,
+        font.drawInBatch(name, horizontalTextOffset, 0, SEE_THROUGH_COLOR,
                 false, matrix, buffer, Font.DisplayMode.SEE_THROUGH, backgroundColor, packedLight);
-        font.drawInBatch(name, horizontalTextOffset, 0, 0xffffffff,
+        font.drawInBatch(name, horizontalTextOffset, 0, COLOR,
                 false, matrix, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
         buffer.endBatch();

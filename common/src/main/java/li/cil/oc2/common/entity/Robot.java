@@ -34,11 +34,7 @@ import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.vm.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Cursor3D;
-import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.SectionPos;
+import net.minecraft.core.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
@@ -59,14 +55,11 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
@@ -290,18 +283,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
                 final VoxelShape blockShape = blockState.getCollisionShape(serverLevel, mutablePosition);
                 if (Shapes.joinIsNotEmpty(shape, blockShape.move(x, y, z), BooleanOp.AND)) {
-                    final BlockEntity blockEntity = serverLevel.getBlockEntity(mutablePosition);
-                    final LootParams.Builder builder = new LootParams.Builder(serverLevel)
-                            .withParameter(LootContextParams.THIS_ENTITY, this)
-                            .withParameter(LootContextParams.ORIGIN, position())
-                            .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
-                            .withParameter(LootContextParams.BLOCK_STATE, blockState)
-                            .withOptionalParameter(LootContextParams.BLOCK_ENTITY, blockEntity);
-                    final List<ItemStack> drops = blockState.getDrops(builder);
-                    serverLevel.setBlockAndUpdate(mutablePosition, Blocks.AIR.defaultBlockState());
-                    for (final ItemStack drop : drops) {
-                        Block.popResource(serverLevel, mutablePosition, drop);
-                    }
+                    tryClearContainingBlock(serverLevel, mutablePosition.immutable(), blockState);
                 }
             }
         }
@@ -474,7 +456,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     private void handleChunkUnload(final ChunkPos chunkPos) {
         if (chunkPos.x != SectionPos.blockToSectionCoord(getBlockX()) ||
-            chunkPos.z != SectionPos.blockToSectionCoord(getBlockZ())) {
+                chunkPos.z != SectionPos.blockToSectionCoord(getBlockZ())) {
             return;
         }
 
@@ -493,6 +475,27 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                 Mth.floor(bounds.minX), Mth.floor(bounds.minY), Mth.floor(bounds.minZ),
                 Mth.floor(bounds.maxX), Mth.floor(bounds.maxY), Mth.floor(bounds.maxZ)
         );
+    }
+
+    private void tryClearContainingBlock(final ServerLevel level, final BlockPos blockPos, final BlockState blockState) {
+        // Quick and dirty pre-fake-player check.
+        if (blockState.getDestroySpeed(level, blockPos) < 0) {
+            return;
+        }
+
+        final ServerPlayer player = FakePlayerUtils.getFakePlayer(level, this);
+        if (player.blockActionRestricted(level, blockPos, GameType.DEFAULT_MODE)) {
+            return;
+        }
+
+        if (!LevelUtils.fireBlockBreak(level, player, blockPos, blockState)) {
+            return;
+        }
+
+        if (!level.destroyBlock(blockPos, true, player)) {
+            // We tried being nice... kill it. Might revisit this :D
+            level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
+        }
     }
 
     private static float lerpClamped(final float from, final float to, final float delta) {

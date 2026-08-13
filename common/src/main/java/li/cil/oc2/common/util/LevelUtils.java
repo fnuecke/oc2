@@ -2,9 +2,12 @@
 
 package li.cil.oc2.common.util;
 
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.ChunkPos;
@@ -12,11 +15,19 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
 import java.util.function.Function;
 
 public final class LevelUtils {
+    @ExpectPlatform
+    public static boolean fireBlockBreak(final ServerLevel level, final ServerPlayer player, final BlockPos pos, final BlockState state) {
+        throw new AssertionError();
+    }
+
+    // ------------------------------------------------------------- //
+
     @Nullable
     public static BlockEntity getBlockEntityIfChunkExists(final LevelAccessor level, final BlockPos pos) {
         final ChunkPos chunkPos = new ChunkPos(pos);

@@ -13,18 +13,11 @@ import net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage;
 import net.neoforged.neoforge.capabilities.Capabilities.ItemHandler;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.ItemCapability;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
 
 public final class CapabilitiesImpl {
-    private static final Map<CapabilityType<?>, BlockCapability<?, Direction>> BLOCK = new HashMap<>();
-    private static final Map<CapabilityType<?>, ItemCapability<?, Void>> ITEM = new HashMap<>();
-    private static final Map<CapabilityType<?>, EntityCapability<?, Direction>> ENTITY = new HashMap<>();
-
-    // ------------------------------------------------------------- //
-
     @Nullable
     @SuppressWarnings("unchecked")
     public static <T> T get(final BlockEntity blockEntity, final CapabilityType<T> type, @Nullable final Direction side) {
@@ -42,12 +35,7 @@ public final class CapabilitiesImpl {
                     blockEntity.getLevel().getCapability(ItemHandler.BLOCK, blockEntity.getBlockPos(), side));
         }
 
-        final BlockCapability<T, Direction> capability = (BlockCapability<T, Direction>) BLOCK.get(type);
-        if (capability == null) {
-            return null;
-        }
-
-        return blockEntity.getLevel().getCapability(capability, blockEntity.getBlockPos(), side);
+        return blockEntity.getLevel().getCapability(block(type), blockEntity.getBlockPos(), side);
     }
 
     @Nullable
@@ -61,23 +49,25 @@ public final class CapabilitiesImpl {
             return (T) NeoForgeCapabilityAdapters.items(stack.getCapability(ItemHandler.ITEM));
         }
 
-        final ItemCapability<T, Void> capability = (ItemCapability<T, Void>) ITEM.get(type);
-        if (capability == null) {
-            return null;
-        }
-
-        return stack.getCapability(capability);
+        return stack.getCapability(item(type));
     }
 
     @Nullable
     @SuppressWarnings("unchecked")
     public static <T> T get(final Entity entity, final CapabilityType<T> type, @Nullable final Direction side) {
-        final EntityCapability<T, Direction> capability = (EntityCapability<T, Direction>) ENTITY.get(type);
-        if (capability == null) {
-            return null;
+        if (type == Capabilities.ENERGY_STORAGE) {
+            return (T) NeoForgeCapabilityAdapters.energy(entity.getCapability(EnergyStorage.ENTITY, side));
         }
 
-        return entity.getCapability(capability, side);
+        if (type == Capabilities.ITEM_HANDLER) {
+            IItemHandler handler = entity.getCapability(ItemHandler.ENTITY_AUTOMATION, side);
+            if (handler == null) {
+                handler = entity.getCapability(ItemHandler.ENTITY);
+            }
+            return (T) NeoForgeCapabilityAdapters.items(handler);
+        }
+
+        return entity.getCapability(CapabilitiesImpl.entity(type), side);
     }
 
     public static void invalidate(final BlockEntity blockEntity) {
@@ -86,22 +76,16 @@ public final class CapabilitiesImpl {
 
     // ------------------------------------------------------------- //
 
-    @SuppressWarnings("unchecked")
-    static <T> BlockCapability<T, Direction> block(final CapabilityType<T> type) {
-        return (BlockCapability<T, Direction>) BLOCK.computeIfAbsent(type,
-                t -> BlockCapability.createSided(t.id(), t.type()));
+    public static <T> BlockCapability<T, Direction> block(final CapabilityType<T> type) {
+        return BlockCapability.createSided(type.id(), type.type());
     }
 
-    @SuppressWarnings("unchecked")
-    static <T> ItemCapability<T, Void> item(final CapabilityType<T> type) {
-        return (ItemCapability<T, Void>) ITEM.computeIfAbsent(type,
-                t -> ItemCapability.createVoid(t.id(), t.type()));
+    public static <T> ItemCapability<T, Void> item(final CapabilityType<T> type) {
+        return ItemCapability.createVoid(type.id(), type.type());
     }
 
-    @SuppressWarnings("unchecked")
-    static <T> EntityCapability<T, Direction> entity(final CapabilityType<T> type) {
-        return (EntityCapability<T, Direction>) ENTITY.computeIfAbsent(type,
-                t -> EntityCapability.createSided(t.id(), t.type()));
+    public static <T> EntityCapability<T, Direction> entity(final CapabilityType<T> type) {
+        return EntityCapability.createSided(type.id(), type.type());
     }
 
     private CapabilitiesImpl() {

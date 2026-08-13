@@ -2,8 +2,6 @@
 
 package li.cil.oc2.common.bus.device.rpc.item;
 
-import dev.architectury.event.events.common.BlockEvent;
-import dev.architectury.utils.value.IntValue;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
@@ -11,6 +9,7 @@ import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.util.FakePlayerUtils;
+import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.TickUtils;
 import li.cil.oc2.common.util.ToolTiers;
 import net.minecraft.core.BlockPos;
@@ -231,19 +230,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         }
 
         final ServerPlayer player = FakePlayerUtils.getFakePlayer(level, entity);
-        final int[] experienceValue = {0};
-        final IntValue experience = new IntValue() {
-            @Override
-            public int getAsInt() {
-                return experienceValue[0];
-            }
-
-            @Override
-            public void accept(final int value) {
-                experienceValue[0] = value;
-            }
-        };
-        if (BlockEvent.BREAK.invoker().breakBlock(level, blockPos, blockState, player, experience).isFalse()) {
+        if (!LevelUtils.fireBlockBreak(level, player, blockPos, blockState)) {
             return false;
         }
 
@@ -259,7 +246,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         }
 
         final Tier toolTier = ToolTiers.byName(Config.blockOperationsModuleToolTier);
-        if (toolTier == null || blockState.is(toolTier.getIncorrectBlocksForDrops())) {
+        if (blockState.is(toolTier.getIncorrectBlocksForDrops())) {
             return false;
         }
 

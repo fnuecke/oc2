@@ -25,6 +25,11 @@ public final class CapabilityRegistrationNeoForge {
             Capabilities.TERMINAL_USER_PROVIDER
     );
 
+    private static final List<CapabilityType<?>> ENTITY_CAPABILITIES = List.of(
+            Capabilities.ROBOT,
+            Capabilities.TERMINAL_USER_PROVIDER
+    );
+
     @SubscribeEvent
     public static void handleRegisterCapabilities(final RegisterCapabilitiesEvent event) {
         for (final BlockEntityType<?> type : BlockEntities.getAll()) {
@@ -34,15 +39,38 @@ public final class CapabilityRegistrationNeoForge {
             registerInteropBlockEntity(event, type);
         }
 
-        event.registerEntity(CapabilitiesImpl.entity(Capabilities.ROBOT), Entities.ROBOT.get(),
-                (robot, side) -> robot.getCapability(Capabilities.ROBOT, side));
-        event.registerEntity(CapabilitiesImpl.entity(Capabilities.ITEM_HANDLER), Entities.ROBOT.get(),
-                (robot, side) -> robot.getCapability(Capabilities.ITEM_HANDLER, side));
-        event.registerEntity(CapabilitiesImpl.entity(Capabilities.ENERGY_STORAGE), Entities.ROBOT.get(),
-                (robot, side) -> robot.getCapability(Capabilities.ENERGY_STORAGE, side));
+        for (final CapabilityType<?> capability : ENTITY_CAPABILITIES) {
+            registerEntity(event, capability);
+        }
+        registerInteropEntity(event);
     }
 
     // ------------------------------------------------------------- //
+
+    private static <T> void registerEntity(final RegisterCapabilitiesEvent event, final CapabilityType<T> capability) {
+        event.registerEntity(CapabilitiesImpl.entity(capability), Entities.ROBOT.get(),
+                (robot, side) -> robot.getCapability(capability, side));
+    }
+
+    private static void registerInteropEntity(final RegisterCapabilitiesEvent event) {
+        event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.ENTITY, Entities.ROBOT.get(),
+                (robot, side) -> {
+                    final var energy = robot.getCapability(Capabilities.ENERGY_STORAGE, side);
+                    return energy != null ? NeoForgeCapabilityAdapters.toNeoForge(energy) : null;
+                });
+
+        event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.ENTITY_AUTOMATION, Entities.ROBOT.get(),
+                (robot, side) -> {
+                    final var items = robot.getCapability(Capabilities.ITEM_HANDLER, side);
+                    return items != null ? NeoForgeCapabilityAdapters.toNeoForge(items) : null;
+                });
+
+        event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.ENTITY, Entities.ROBOT.get(),
+                (robot, context) -> {
+                    final var items = robot.getCapability(Capabilities.ITEM_HANDLER, null);
+                    return items != null ? NeoForgeCapabilityAdapters.toNeoForge(items) : null;
+                });
+    }
 
     private static <B extends net.minecraft.world.level.block.entity.BlockEntity> void registerInteropBlockEntity(
             final RegisterCapabilitiesEvent event, final BlockEntityType<B> type) {

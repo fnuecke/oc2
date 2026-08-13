@@ -7,8 +7,11 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import li.cil.oc2.api.API;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.Util;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
+
+import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
 public abstract class ModRenderType extends RenderType {
@@ -41,6 +44,34 @@ public abstract class ModRenderType extends RenderType {
                     .setCullState(NO_CULL)
                     .createCompositeState(false));
 
+    private static final Function<ResourceLocation, RenderType> UNLIT_BLOCK = Util.memoize(location -> create(
+            API.MOD_ID + "/unlit_block/" + location,
+            DefaultVertexFormat.POSITION_TEX,
+            VertexFormat.Mode.QUADS,
+            256,
+            false,
+            true,
+            CompositeState.builder()
+                    .setShaderState(POSITION_TEX_SHADER)
+                    .setTextureState(new TextureStateShard(location, false, true))
+                    .setTransparencyState(ADDITIVE_TRANSPARENCY)
+                    .setCullState(NO_CULL)
+                    .createCompositeState(false)));
+
+    private static final Function<ResourceLocation, RenderType> OVERLAY = Util.memoize(location -> create(
+            API.MOD_ID + "/overlay/" + location,
+            DefaultVertexFormat.POSITION_TEX,
+            VertexFormat.Mode.QUADS,
+            256,
+            false,
+            true,
+            CompositeState.builder()
+                    .setShaderState(POSITION_TEX_SHADER)
+                    .setTextureState(new TextureStateShard(location, false, true))
+                    .setOutputState(TRANSLUCENT_TARGET)
+                    .setTransparencyState(ADDITIVE_TRANSPARENCY)
+                    .createCompositeState(false)));
+
     // ------------------------------------------------------------- //
 
     public static RenderType getNetworkCable() {
@@ -52,39 +83,11 @@ public abstract class ModRenderType extends RenderType {
     }
 
     public static RenderType getUnlitBlock(final ResourceLocation location) {
-        final TextureStateShard texture = new TextureStateShard(location, false, true);
-        final RenderType.CompositeState state = RenderType.CompositeState.builder()
-                .setShaderState(POSITION_TEX_SHADER)
-                .setTextureState(texture)
-                .setTransparencyState(ADDITIVE_TRANSPARENCY)
-                .setCullState(NO_CULL)
-                .createCompositeState(false);
-        return create(
-                API.MOD_ID + "/unlit_block",
-                DefaultVertexFormat.POSITION_TEX,
-                VertexFormat.Mode.QUADS,
-                256,
-                false,
-                true,
-                state);
+        return UNLIT_BLOCK.apply(location);
     }
 
     public static RenderType getOverlay(final ResourceLocation location) {
-        final TextureStateShard texture = new TextureStateShard(location, false, true);
-        final RenderType.CompositeState state = RenderType.CompositeState.builder()
-                .setShaderState(POSITION_TEX_SHADER)
-                .setTextureState(texture)
-                .setOutputState(TRANSLUCENT_TARGET)
-                .setTransparencyState(ADDITIVE_TRANSPARENCY)
-                .createCompositeState(false);
-        return create(
-                API.MOD_ID + "/overlay",
-                DefaultVertexFormat.POSITION_TEX,
-                VertexFormat.Mode.QUADS,
-                256,
-                false,
-                true,
-                state);
+        return OVERLAY.apply(location);
     }
 
     // ------------------------------------------------------------- //

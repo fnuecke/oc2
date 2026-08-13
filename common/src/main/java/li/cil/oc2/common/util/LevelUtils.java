@@ -26,6 +26,11 @@ public final class LevelUtils {
         throw new AssertionError();
     }
 
+    @ExpectPlatform
+    public static boolean hasCorrectToolForDrops(final ServerLevel level, final ServerPlayer player, final BlockPos pos, final BlockState state) {
+        throw new AssertionError();
+    }
+
     // ------------------------------------------------------------- //
 
     @Nullable

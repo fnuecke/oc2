@@ -14,6 +14,11 @@ public final class LevelUtilsImpl {
         return !CommonHooks.fireBlockBreak(level, GameType.DEFAULT_MODE, player, pos, state).isCanceled();
     }
 
+    public static boolean hasCorrectToolForDrops(final ServerLevel level, final ServerPlayer player, final BlockPos pos, final BlockState state) {
+        // For PlayerEvent.HarvestCheck.
+        return player.hasCorrectToolForDrops(state, level, pos);
+    }
+
     private LevelUtilsImpl() {
     }
 }

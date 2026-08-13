@@ -22,7 +22,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -156,7 +156,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         final ItemHandler inventory = robot.getInventory();
 
         final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);
-        if (extracted.isEmpty() || !(extracted.getItem() instanceof final BlockItem blockItem)) {
+        if (extracted.isEmpty() || !(extracted.getItem() instanceof BlockItem)) {
             return false;
         }
 
@@ -171,11 +171,20 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
 
         final ItemStack itemStack = extracted.copy();
         final ServerPlayer player = FakePlayerUtils.getFakePlayer(serverLevel, entity);
-        final BlockPlaceContext context = new BlockPlaceContext(player, InteractionHand.MAIN_HAND, itemStack, hit);
 
-        final InteractionResult result = blockItem.place(context);
-        if (!result.consumesAction()) {
+        if (!player.mayUseItemAt(blockPos, direction, itemStack)) {
             return false;
+        }
+
+        // Full useOn dance for permission checks.
+        player.setItemInHand(InteractionHand.MAIN_HAND, itemStack);
+        try {
+            final InteractionResult result = itemStack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+            if (!result.consumesAction()) {
+                return false;
+            }
+        } finally {
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         }
 
         if (itemStack.isEmpty()) {
@@ -241,7 +250,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
             return -1;
         }
 
-        if (!player.hasCorrectToolForDrops(blockState)) {
+        if (!LevelUtils.hasCorrectToolForDrops(level, player, blockPos, blockState)) {
             return -1;
         }
 

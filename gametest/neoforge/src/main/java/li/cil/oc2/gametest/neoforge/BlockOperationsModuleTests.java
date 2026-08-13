@@ -33,7 +33,7 @@ public final class BlockOperationsModuleTests {
     public static void excavatesWithACorrectTool(final GameTestHelper helper) {
         final Robot robot = placeRobot(helper);
         final BlockOperationsModuleDevice module = moduleFor(robot);
-        giveTool(robot, new ItemStack(net.minecraft.world.item.Items.DIAMOND_PICKAXE));
+        giveItem(robot, new ItemStack(net.minecraft.world.item.Items.DIAMOND_PICKAXE));
         final BlockPos target = putBlockInFront(helper, robot, Blocks.STONE);
 
         if (!module.excavate(RobotOperationSide.FRONT)) {
@@ -72,7 +72,7 @@ public final class BlockOperationsModuleTests {
     public static void refusesUnbreakableBlocks(final GameTestHelper helper) {
         final Robot robot = placeRobot(helper);
         final BlockOperationsModuleDevice module = moduleFor(robot);
-        giveTool(robot, new ItemStack(net.minecraft.world.item.Items.NETHERITE_PICKAXE));
+        giveItem(robot, new ItemStack(net.minecraft.world.item.Items.NETHERITE_PICKAXE));
         final BlockPos target = putBlockInFront(helper, robot, Blocks.BEDROCK);
 
         if (module.excavate(RobotOperationSide.FRONT)) {
@@ -90,7 +90,7 @@ public final class BlockOperationsModuleTests {
     public static void wearsOutTheToolRatherThanTheModule(final GameTestHelper helper) {
         final Robot robot = placeRobot(helper);
         final BlockOperationsModuleDevice module = moduleFor(robot);
-        giveTool(robot, new ItemStack(net.minecraft.world.item.Items.IRON_PICKAXE));
+        giveItem(robot, new ItemStack(net.minecraft.world.item.Items.IRON_PICKAXE));
         putBlockInFront(helper, robot, Blocks.STONE);
 
         if (!module.excavate(RobotOperationSide.FRONT)) {
@@ -114,7 +114,7 @@ public final class BlockOperationsModuleTests {
     public static void hardBlocksCostMoreThanTheBaseCooldown(final GameTestHelper helper) {
         final Robot robot = placeRobot(helper);
         final BlockOperationsModuleDevice module = moduleFor(robot);
-        giveTool(robot, new ItemStack(net.minecraft.world.item.Items.DIAMOND_PICKAXE));
+        giveItem(robot, new ItemStack(net.minecraft.world.item.Items.DIAMOND_PICKAXE));
         putBlockInFront(helper, robot, Blocks.OBSIDIAN);
 
         if (!module.excavate(RobotOperationSide.FRONT)) {
@@ -131,6 +131,32 @@ public final class BlockOperationsModuleTests {
                 .thenSucceed();
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void placesFromTheSelectedSlot(final GameTestHelper helper) {
+        final Robot robot = placeRobot(helper);
+        final BlockOperationsModuleDevice module = moduleFor(robot);
+        giveItem(robot, new ItemStack(net.minecraft.world.item.Items.STONE, 2));
+
+        final Direction direction = RobotOperationSide.toGlobal(robot, RobotOperationSide.FRONT);
+        final BlockPos target = robot.blockPosition().relative(direction);
+        helper.getLevel().setBlockAndUpdate(target, Blocks.AIR.defaultBlockState());
+
+        if (!module.place(RobotOperationSide.FRONT)) {
+            throw new GameTestAssertException("placing a stone block failed");
+        }
+
+        if (!helper.getLevel().getBlockState(target).is(Blocks.STONE)) {
+            throw new GameTestAssertException("place reported success but there is no stone at " + target);
+        }
+
+        final ItemStack remaining = robot.getInventory().getStackInSlot(robot.getSelectedSlot());
+        if (remaining.getCount() != 1) {
+            throw new GameTestAssertException("expected exactly one stone to be consumed, slot holds " + remaining);
+        }
+
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------- //
 
     private static BlockOperationsModuleDevice moduleFor(final Robot robot) {
@@ -138,7 +164,7 @@ public final class BlockOperationsModuleTests {
                 new ItemStack(Items.BLOCK_OPERATIONS_MODULE.get()), robot, robot);
     }
 
-    private static void giveTool(final Robot robot, final ItemStack tool) {
+    private static void giveItem(final Robot robot, final ItemStack tool) {
         robot.getInventory().insertItem(robot.getSelectedSlot(), tool, false);
     }
 

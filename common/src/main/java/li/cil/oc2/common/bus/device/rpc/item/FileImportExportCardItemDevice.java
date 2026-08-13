@@ -75,11 +75,12 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
     }
 
     private static final class ImportFileRequest {
-        public final Set<ServerPlayer> PendingPlayers = Collections.newSetFromMap(new WeakHashMap<>());
-        public final WeakReference<FileImportExportCardItemDevice> Device;
+        public final Set<ServerPlayer> pendingPlayers = Collections.newSetFromMap(new WeakHashMap<>());
+        public final WeakReference<FileImportExportCardItemDevice> device;
 
-        private ImportFileRequest(final FileImportExportCardItemDevice device) {
-            Device = new WeakReference<>(device);
+        private ImportFileRequest(final FileImportExportCardItemDevice device, final ArrayList<ServerPlayer> players) {
+            this.device = new WeakReference<>(device);
+            this.pendingPlayers.addAll(players);
         }
     }
 
@@ -103,16 +104,19 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
 
     // ------------------------------------------------------------- //
 
-    public static void setImportedFile(final int id, final String name, final byte[] data) {
+    public static void setImportedFile(final ServerPlayer sender, final int id, final String name, final byte[] data) {
         synchronized (importingDevices) {
-            final ImportFileRequest request = importingDevices.remove(id);
-            if (request != null) {
-                final FileImportExportCardItemDevice device = request.Device.get();
+            final ImportFileRequest request = importingDevices.get(id);
+            if (request != null && request.pendingPlayers.contains(sender)) {
+                importingDevices.remove(id);
+                final FileImportExportCardItemDevice device = request.device.get();
                 if (device != null) {
                     device.importedFile = new ImportedFile(name, data);
                     final ServerCanceledImportFileMessage message = new ServerCanceledImportFileMessage(id);
-                    for (final ServerPlayer serverPlayer : request.PendingPlayers) {
-                        Network.sendToClient(message, serverPlayer);
+                    for (final ServerPlayer serverPlayer : request.pendingPlayers) {
+                        if (serverPlayer != sender) {
+                            Network.sendToClient(message, serverPlayer);
+                        }
                     }
                 }
             }
@@ -123,10 +127,10 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         synchronized (importingDevices) {
             final ImportFileRequest request = importingDevices.get(id);
             if (request != null) {
-                request.PendingPlayers.remove(player);
-                if (request.PendingPlayers.isEmpty()) {
+                request.pendingPlayers.remove(player);
+                if (request.pendingPlayers.isEmpty()) {
                     importingDevices.remove(id);
-                    final FileImportExportCardItemDevice device = request.Device.get();
+                    final FileImportExportCardItemDevice device = request.device.get();
                     if (device != null) {
                         device.state = State.IMPORT_CANCELED;
                     }
@@ -212,11 +216,11 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         state = State.IMPORT_REQUESTED;
         importingId = nextImportId++;
         synchronized (importingDevices) {
-            importingDevices.put(importingId, new ImportFileRequest(this));
+            importingDevices.put(importingId, new ImportFileRequest(this, players));
         }
 
+        final RequestImportedFileMessage message = new RequestImportedFileMessage(importingId);
         for (final ServerPlayer serverPlayer : players) {
-            final RequestImportedFileMessage message = new RequestImportedFileMessage(importingId);
             Network.sendToClient(message, serverPlayer);
         }
 

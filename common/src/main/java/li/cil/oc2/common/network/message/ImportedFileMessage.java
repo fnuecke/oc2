@@ -5,6 +5,7 @@ package li.cil.oc2.common.network.message;
 import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 
 
 public final class ImportedFileMessage extends AbstractMessage {
@@ -48,6 +49,8 @@ public final class ImportedFileMessage extends AbstractMessage {
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
-        FileImportExportCardItemDevice.setImportedFile(id, name, data);
+        if (context.getPlayer() instanceof final ServerPlayer sender) {
+            FileImportExportCardItemDevice.setImportedFile(sender, id, name, data);
+        }
     }
 }

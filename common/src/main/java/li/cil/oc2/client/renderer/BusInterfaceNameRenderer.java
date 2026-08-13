@@ -2,7 +2,6 @@
 
 package li.cil.oc2.client.renderer;
 
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.blockentity.BusCableBlockEntity;
@@ -26,7 +25,7 @@ public enum BusInterfaceNameRenderer {
 
     // ------------------------------------------------------------- //
 
-    public void render(final PoseStack poseStack, final Matrix4f modelViewMatrix) {
+    public void render(final PoseStack poseStack) {
         final Minecraft mc = Minecraft.getInstance();
         final Player player = mc.player;
         if (player == null) {
@@ -61,7 +60,6 @@ public enum BusInterfaceNameRenderer {
 
         final PoseStack stack = poseStack;
         stack.pushPose();
-        stack.mulPose(modelViewMatrix);
 
         stack.translate(0.5, 1, 0.5);
         stack.translate(side.getStepX() * 0.5f, 0, side.getStepZ() * 0.5f);
@@ -75,15 +73,15 @@ public enum BusInterfaceNameRenderer {
         final EntityRenderDispatcher renderManager = mc.getEntityRenderDispatcher();
         stack.mulPose(renderManager.cameraOrientation());
 
-        stack.scale(-0.025f, -0.025f, 0.025f);
+        stack.scale(0.025f, -0.025f, 0.025f);
 
         final Matrix4f matrix = stack.last().pose();
 
-        final Font font = Minecraft.getInstance().font;
-        final MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(new ByteBufferBuilder(256));
+        final Font font = mc.font;
+        final MultiBufferSource.BufferSource buffer = mc.renderBuffers().bufferSource();
 
         final float horizontalTextOffset = -font.width(name) * 0.5f;
-        final float backgroundOpacity = Minecraft.getInstance().options.getBackgroundOpacity(0.25F);
+        final float backgroundOpacity = mc.options.getBackgroundOpacity(0.25F);
         final int backgroundColor = (int) (backgroundOpacity * 255.0F) << 24;
         final int packedLight = LightTexture.pack(15, 15);
 

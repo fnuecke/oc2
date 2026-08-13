@@ -23,7 +23,7 @@ public final class ClientRenderEventsNeoForge {
             NetworkCableRenderer.render(event.getPoseStack(), event.getCamera(),
                     event.getModelViewMatrix(), event.getFrustum());
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
-            BusInterfaceNameRenderer.INSTANCE.render(event.getPoseStack(), event.getModelViewMatrix());
+            BusInterfaceNameRenderer.INSTANCE.render(event.getPoseStack());
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             ProjectorDepthRenderer.renderProjectors(event.getModelViewMatrix(), event.getProjectionMatrix(), Minecraft.getInstance().getTimer());
         }

@@ -35,7 +35,7 @@ public final class ImportedFileMessage extends AbstractMessage {
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         id = buffer.readVarInt();
         name = buffer.readUtf(MAX_NAME_LENGTH);
-        data = buffer.readByteArray();
+        data = buffer.readByteArray(FileImportExportCardItemDevice.MAX_TRANSFERRED_FILE_SIZE);
     }
 
     @Override

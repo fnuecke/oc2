@@ -33,12 +33,16 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -62,6 +66,9 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     private static final int MAX_RUNNING_SOUND_DELAY = TickUtils.toTicks(Duration.ofSeconds(2));
 
+    private static final int TERMINAL_RECIPIENT_REFRESH_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(1));
+    private static final double TERMINAL_VIEW_DISTANCE = 8;
+
     // ------------------------------------------------------------- //
 
     private boolean hasAddedOwnDevices;
@@ -76,6 +83,8 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
     private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockDeviceBusController(busElement, Config.computerEnergyPerTick, this), deviceItems::getDeviceAddressBase);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
+    private volatile List<ServerPlayer> terminalRecipients = List.of(); // Players to send live terminal updates to.
+    private int terminalRecipientRefreshCountdown;
 
     // ------------------------------------------------------------- //
 
@@ -123,10 +132,12 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     public void addTerminalUser(final Player player) {
         terminalUsers.add(player);
+        updateTerminalRecipients();
     }
 
     public void removeTerminalUser(final Player player) {
         terminalUsers.remove(player);
+        updateTerminalRecipients();
     }
 
     @Override
@@ -186,6 +197,11 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         if (isNeighborUpdateScheduled) {
             isNeighborUpdateScheduled = false;
             level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
+        }
+
+        if (--terminalRecipientRefreshCountdown <= 0) {
+            terminalRecipientRefreshCountdown = TERMINAL_RECIPIENT_REFRESH_INTERVAL;
+            updateTerminalRecipients();
         }
 
         // Just grab it again every tick, to avoid this becoming invalid if something tries to
@@ -309,6 +325,40 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     // ------------------------------------------------------------- //
 
+    private void updateTerminalRecipients() {
+        if (!(level instanceof final ServerLevel serverLevel)) {
+            return;
+        }
+
+        // Players in range who might be looking at the computer.
+        final AABB bounds = AABB.ofSize(Vec3.atCenterOf(getBlockPos()),
+                TERMINAL_VIEW_DISTANCE * 2, TERMINAL_VIEW_DISTANCE * 2, TERMINAL_VIEW_DISTANCE * 2);
+        final Set<ServerPlayer> recipients = new LinkedHashSet<>(serverLevel.getEntitiesOfClass(ServerPlayer.class, bounds));
+
+        // Players who have the UI open. Don't ask me how they'd be out of range, but hey, paranoia.
+        for (final Player player : terminalUsers) {
+            if (player instanceof final ServerPlayer serverPlayer) {
+                recipients.add(serverPlayer);
+            }
+        }
+
+        final List<ServerPlayer> previous = terminalRecipients;
+        terminalRecipients = List.copyOf(recipients);
+
+        // Send full update to new ones.
+        for (final ServerPlayer player : terminalRecipients) {
+            if (!previous.contains(player)) {
+                player.connection.send(ClientboundBlockEntityDataPacket.create(this));
+            }
+        }
+    }
+
+    private void sendToTerminalRecipients(final AbstractMessage message) {
+        for (final ServerPlayer player : terminalRecipients) {
+            Network.sendToClient(message, player);
+        }
+    }
+
     private <T extends AbstractMessage> void sendToClientsTrackingComputer(final T message) {
         if (chunk != null) {
             Network.sendToClientsTrackingChunk(message, chunk);
@@ -423,7 +473,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         @Override
         protected void sendTerminalUpdateToClient(final ByteBuffer output) {
-            sendToClientsTrackingComputer(new ComputerTerminalOutputMessage(ComputerBlockEntity.this, output));
+            sendToTerminalRecipients(new ComputerTerminalOutputMessage(ComputerBlockEntity.this, output));
         }
     }
 
@@ -476,7 +526,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         protected void stopRunnerAndReset() {
             super.stopRunnerAndReset();
 
-            TerminalUtils.resetTerminal(terminal, output -> sendToClientsTrackingComputer(new ComputerTerminalOutputMessage(ComputerBlockEntity.this, output)));
+            TerminalUtils.resetTerminal(terminal, output -> sendToTerminalRecipients(new ComputerTerminalOutputMessage(ComputerBlockEntity.this, output)));
         }
 
         @Override

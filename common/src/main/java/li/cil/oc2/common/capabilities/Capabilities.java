@@ -11,11 +11,14 @@ import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.api.inventory.ItemHandler;
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.energy.EnergyStorage;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
@@ -50,6 +53,12 @@ public final class Capabilities {
     @ExpectPlatform
     @Nullable
     public static <T> T get(final Entity entity, final CapabilityType<T> type, @Nullable final Direction side) {
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static <T> Invalidatable<T> watch(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side,
+                                             final CapabilityType<T> type) {
         throw new AssertionError();
     }
 

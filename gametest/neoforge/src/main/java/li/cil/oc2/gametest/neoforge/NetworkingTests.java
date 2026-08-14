@@ -5,6 +5,7 @@ package li.cil.oc2.gametest.neoforge;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.api.inventory.ItemHandler;
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity.ConnectionResult;
@@ -241,7 +242,8 @@ public final class NetworkingTests {
             final java.lang.reflect.Field field =
                     NetworkConnectorBlockEntity.class.getDeclaredField("adjacentInterface");
             field.setAccessible(true);
-            return field.get(helper.getBlockEntity(pos));
+            final Invalidatable<?> adjacent = (Invalidatable<?>) field.get(helper.getBlockEntity(pos));
+            return adjacent != null && adjacent.isPresent() ? adjacent.get() : null;
         } catch (final ReflectiveOperationException e) {
             throw new GameTestAssertException("could not read the connector's adjacent interface: " + e);
         }

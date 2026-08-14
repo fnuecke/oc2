@@ -3,6 +3,7 @@
 package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.capabilities.NetworkInterface;
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.block.NetworkConnectorBlock;
@@ -65,8 +66,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
 
     private final NetworkConnectorNetworkInterface networkInterface = new NetworkConnectorNetworkInterface();
 
-    @Nullable
-    private NetworkInterface adjacentInterface;
+    private Invalidatable<NetworkInterface> adjacentInterface = Invalidatable.empty();
     private boolean isAdjacentInterfaceDirty = true;
 
     private final HashSet<BlockPos> connectorPositions = new HashSet<>();
@@ -195,7 +195,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
             }
         }
 
-        final NetworkInterface source = adjacentInterface != null ? adjacentInterface : NullNetworkInterface.INSTANCE;
+        final NetworkInterface source = adjacentInterface.isPresent() ? adjacentInterface.get() : NullNetworkInterface.INSTANCE;
 
         int byteBudget = BYTES_PER_TICK;
         byte[] frame;
@@ -304,7 +304,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     private void resolveLocalInterface() {
         assert level != null;
 
-        adjacentInterface = null;
+        adjacentInterface = Invalidatable.empty();
 
         if (!isValid()) {
             return;
@@ -318,12 +318,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
             return;
         }
 
-        final BlockEntity blockEntity = level.getBlockEntity(sourcePos);
-        if (blockEntity == null) {
-            return;
-        }
-
-        adjacentInterface = Capabilities.get(blockEntity, Capabilities.NETWORK_INTERFACE, facing);
+        adjacentInterface = Capabilities.watch(level, sourcePos, facing, Capabilities.NETWORK_INTERFACE);
+        adjacentInterface.addListener(unused -> setNeighborChanged());
     }
 
     private void resolveConnectedInterface(final BlockPos connectedPosition) {
@@ -425,7 +421,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
                 return;
             }
 
-            final NetworkInterface local = adjacentInterface;
+            final NetworkInterface local = adjacentInterface.isPresent() ? adjacentInterface.get() : null;
             if (local != null && local != source) {
                 local.writeEthernetFrame(this, frame, timeToLive - TTL_COST);
             }

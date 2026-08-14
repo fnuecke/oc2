@@ -12,6 +12,8 @@ import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -65,6 +67,36 @@ public final class DeviceBusTests {
                         throw new GameTestAssertException(
                                 "neighbour not rediscovered after being replaced: first attach="
                                         + attached[0] + ", after replace=" + rediscovered);
+                    }
+                })
+                .thenSucceed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 600)
+    public static void busNoticesNeighborCapabilityInvalidatedWithoutBlockUpdate(final GameTestHelper helper) {
+        placeComputerAndCable(helper);
+
+        final int[] base = new int[1];
+        final int[] attached = new int[1];
+        helper.startSequence()
+                .thenExecuteAfter(60, () -> base[0] = deviceCount(helper))
+                .thenExecute(() -> helper.setBlock(DEVICE_POS, Blocks.CHEST))
+                .thenExecuteAfter(60, () -> {
+                    attached[0] = deviceCount(helper);
+                    if (attached[0] <= base[0]) {
+                        throw new GameTestAssertException(
+                                "chest did not attach in the first place (alone=" + base[0]
+                                        + ", attached=" + attached[0] + ")");
+                    }
+                })
+                .thenExecute(() -> helper.getLevel().setBlock(helper.absolutePos(DEVICE_POS),
+                        Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS))
+                .thenExecuteAfter(80, () -> {
+                    final int after = deviceCount(helper);
+                    if (after != base[0]) {
+                        throw new GameTestAssertException(
+                                "bus did not notice its neighbour's capability going away without a block update: alone="
+                                        + base[0] + ", attached=" + attached[0] + ", after=" + after);
                     }
                 })
                 .thenSucceed();

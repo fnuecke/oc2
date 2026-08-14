@@ -3,13 +3,12 @@
 package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.capabilities.NetworkInterface;
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.util.LevelUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
@@ -25,7 +24,7 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
 
     // ------------------------------------------------------------- //
 
-    private final NetworkInterface[] adjacentBlockInterfaces = new NetworkInterface[Constants.BLOCK_FACE_COUNT];
+    private final Invalidatable<?>[] adjacentBlockInterfaces = new Invalidatable<?>[Constants.BLOCK_FACE_COUNT];
     private boolean haveAdjacentBlocksChanged = true;
 
     // ------------------------------------------------------------- //
@@ -82,7 +81,10 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
 
     private Stream<NetworkInterface> getAdjacentInterfaces() {
         validateAdjacentBlocks();
-        return Arrays.stream(adjacentBlockInterfaces).filter(Objects::nonNull);
+        return Arrays.stream(adjacentBlockInterfaces)
+                .filter(Objects::nonNull)
+                .filter(Invalidatable::isPresent)
+                .map(adjacent -> (NetworkInterface) adjacent.get());
     }
 
     private void validateAdjacentBlocks() {
@@ -102,12 +104,16 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
 
         final BlockPos pos = getBlockPos();
         for (final Direction side : Constants.DIRECTIONS) {
-            final BlockEntity neighborBlockEntity = LevelUtils.getBlockEntityIfChunkExists(level, pos.relative(side));
-            if (neighborBlockEntity != null) {
-                final NetworkInterface neighborInterface = Capabilities.get(neighborBlockEntity, Capabilities.NETWORK_INTERFACE, side.getOpposite());
-                if (neighborInterface != null) {
-                    adjacentBlockInterfaces[side.get3DDataValue()] = neighborInterface;
-                }
+            final BlockPos neighborPos = pos.relative(side);
+            if (!level.isLoaded(neighborPos)) {
+                continue;
+            }
+
+            final Invalidatable<NetworkInterface> neighborInterface = Capabilities.watch(
+                    level, neighborPos, side.getOpposite(), Capabilities.NETWORK_INTERFACE);
+            if (neighborInterface.isPresent()) {
+                adjacentBlockInterfaces[side.get3DDataValue()] = neighborInterface;
+                neighborInterface.addListener(unused -> haveAdjacentBlocksChanged = true);
             }
         }
     }

@@ -28,12 +28,17 @@ public abstract class AbstractBlockEntityCapabilityDeviceProvider<TCapability, T
 
     @Override
     protected final Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final BlockEntity blockEntity) {
-        final TCapability value = Capabilities.get(blockEntity, capability, query.getQuerySide());
-        if (value == null) {
+        final Invalidatable<TCapability> value = Capabilities.watch(
+                query.getLevel(), blockEntity.getBlockPos(), query.getQuerySide(), capability);
+        if (!value.isPresent()) {
             return Invalidatable.empty();
         }
 
-        return getBlockDevice(query, value);
+        final Invalidatable<Device> device = getBlockDevice(query, value.get());
+        final Invalidatable.ListenerToken token = value.addListener(unused -> device.invalidate());
+        device.addListener(unused -> token.removeListener());
+
+        return device;
     }
 
     protected abstract Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final TCapability value);

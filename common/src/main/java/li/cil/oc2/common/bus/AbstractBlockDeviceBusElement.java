@@ -22,7 +22,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -30,6 +29,10 @@ import java.util.*;
 import static li.cil.oc2.common.bus.device.provider.Providers.optionalKey;
 
 public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDeviceBusElement<AbstractBlockDeviceBusElement.BlockEntry, BlockDeviceQuery> implements BlockDeviceBusElement {
+    private final Invalidatable<?>[] neighbors = new Invalidatable<?>[Constants.BLOCK_FACE_COUNT];
+
+    // ------------------------------------------------------------- //
+
     public AbstractBlockDeviceBusElement() {
         super(Constants.BLOCK_FACE_COUNT);
     }
@@ -57,14 +60,9 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
                 return Optional.empty();
             }
 
-            final BlockEntity blockEntity = level.getBlockEntity(neighborPos);
-            if (blockEntity == null) {
-                continue;
-            }
-
-            final DeviceBusElement neighbor = Capabilities.get(blockEntity, Capabilities.DEVICE_BUS_ELEMENT, neighborDirection.getOpposite());
-            if (neighbor != null) {
-                neighbors.add(Invalidatable.of(neighbor));
+            final Invalidatable<DeviceBusElement> neighbor = getNeighbor(level, neighborPos, neighborDirection);
+            if (neighbor.isPresent()) {
+                neighbors.add(neighbor);
             }
         }
 
@@ -87,6 +85,8 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
     }
 
     public void setRemoved() {
+        Arrays.fill(neighbors, null);
+
         final LevelAccessor level = getLevel();
         if (level == null || level.isClientSide()) {
             return;
@@ -260,5 +260,22 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         public String toString() {
             return device.toString();
         }
+    }
+
+    // ------------------------------------------------------------- //
+
+    @SuppressWarnings("unchecked")
+    private Invalidatable<DeviceBusElement> getNeighbor(final LevelAccessor level, final BlockPos pos, final Direction side) {
+        final int index = side.get3DDataValue();
+
+        final Invalidatable<DeviceBusElement> cached = (Invalidatable<DeviceBusElement>) neighbors[index];
+        if (cached != null && cached.isPresent()) {
+            return cached;
+        }
+
+        final Invalidatable<DeviceBusElement> neighbor = Capabilities.watch(
+                level, pos, side.getOpposite(), Capabilities.DEVICE_BUS_ELEMENT);
+        neighbors[index] = neighbor;
+        return neighbor;
     }
 }

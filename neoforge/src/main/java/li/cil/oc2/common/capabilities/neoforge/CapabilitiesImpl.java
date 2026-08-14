@@ -2,13 +2,18 @@
 
 package li.cil.oc2.common.capabilities.neoforge;
 
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityType;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage;
 import net.neoforged.neoforge.capabilities.Capabilities.ItemHandler;
 import net.neoforged.neoforge.capabilities.EntityCapability;
@@ -16,6 +21,8 @@ import net.neoforged.neoforge.capabilities.ItemCapability;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
+import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 public final class CapabilitiesImpl {
     @Nullable
@@ -70,6 +77,30 @@ public final class CapabilitiesImpl {
         return entity.getCapability(CapabilitiesImpl.entity(type), side);
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> Invalidatable<T> watch(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side,
+                                             final CapabilityType<T> type) {
+        if (!(level instanceof final ServerLevel serverLevel)) {
+            final BlockEntity blockEntity = level.getBlockEntity(pos);
+            final T value = blockEntity != null ? get(blockEntity, type, side) : null;
+            return value != null ? Invalidatable.of(value) : Invalidatable.empty();
+        }
+
+        // The interop capabilities are watched through the platform's own capability, with the adapter applied
+        // to whatever comes back out of it.
+        if (type == Capabilities.ENERGY_STORAGE) {
+            return (Invalidatable<T>) watch(serverLevel, pos, side, EnergyStorage.BLOCK,
+                    NeoForgeCapabilityAdapters::energy);
+        }
+
+        if (type == Capabilities.ITEM_HANDLER) {
+            return (Invalidatable<T>) watch(serverLevel, pos, side, ItemHandler.BLOCK,
+                    NeoForgeCapabilityAdapters::items);
+        }
+
+        return watch(serverLevel, pos, side, block(type), Function.identity());
+    }
+
     public static void invalidate(final BlockEntity blockEntity) {
         blockEntity.invalidateCapabilities();
     }
@@ -87,6 +118,52 @@ public final class CapabilitiesImpl {
     public static <T> EntityCapability<T, Direction> entity(final CapabilityType<T> type) {
         return EntityCapability.createSided(type.id(), type.type());
     }
+
+    // ------------------------------------------------------------- //
+
+    private static <TCapability, T> Invalidatable<T> watch(final ServerLevel level, final BlockPos pos, @Nullable final Direction side,
+                                                           final BlockCapability<TCapability, Direction> capability,
+                                                           final Function<TCapability, T> adapter) {
+        if (level.getCapability(capability, pos, side) == null) {
+            return Invalidatable.empty();
+        }
+
+        final Watcher<T> watcher = new Watcher<>();
+        final BlockCapabilityCache<TCapability, Direction> cache =
+                BlockCapabilityCache.create(capability, level, pos, side, watcher, watcher);
+
+        // The cache only fires its invalidation listener after it has been queried at least once...
+        final TCapability value = cache.getCapability();
+        if (value == null) {
+            return Invalidatable.empty();
+        }
+
+        return watcher.watch(adapter.apply(value));
+    }
+
+    private static final class Watcher<T> implements BooleanSupplier, Runnable {
+        @Nullable
+        private Invalidatable<T> value;
+
+        Invalidatable<T> watch(final T value) {
+            this.value = Invalidatable.of(value);
+            return this.value;
+        }
+
+        @Override
+        public boolean getAsBoolean() {
+            return value != null && value.isPresent();
+        }
+
+        @Override
+        public void run() {
+            if (value != null) {
+                value.invalidate();
+            }
+        }
+    }
+
+    // ------------------------------------------------------------- //
 
     private CapabilitiesImpl() {
     }

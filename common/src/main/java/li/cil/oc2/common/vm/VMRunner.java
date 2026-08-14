@@ -100,7 +100,13 @@ public class VMRunner implements Runnable {
 
             final int cycleBudget = getCyclesPerTick();
             final int cyclesPerStep = 1_000;
-            final int maxSteps = cycleBudget / cyclesPerStep;
+
+            // We run a good number of cycles each tick. We also want a time based limit, but
+            // checking that each cycle would be an insane amount of overhead; so we break up
+            // the loop into batches and check the time between each batch. We don't just want
+            // to bump the cycle per step count, because we want low RPC latency/high througput.
+            int steps = cycleBudget / cyclesPerStep;
+            final int batchStep = Math.clamp(steps, 1, 100);
 
             handleBeforeRun();
 
@@ -108,10 +114,12 @@ public class VMRunner implements Runnable {
                 break;
             }
 
-            for (int i = 0; i < maxSteps; i++) {
-                cycles += cyclesPerStep;
-                board.step(cyclesPerStep);
-                step(cyclesPerStep);
+            while (steps > 0) {
+                for (int i = 0; i < batchStep && steps > 0; ++i, --steps) {
+                    cycles += cyclesPerStep;
+                    board.step(cyclesPerStep);
+                    step(cyclesPerStep);
+                }
 
                 if (System.currentTimeMillis() - start > timeQuotaInMillis.get()) {
                     break;

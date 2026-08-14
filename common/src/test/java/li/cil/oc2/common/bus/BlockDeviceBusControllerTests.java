@@ -17,6 +17,7 @@ import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.util.LevelUtils;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import net.minecraft.core.BlockPos;
@@ -54,6 +55,20 @@ public class BlockDeviceBusControllerTests {
     @BeforeEach
     public void setupEach() {
         capabilitiesMock = mockStatic(Capabilities.class);
+
+        capabilitiesMock.when(() -> Capabilities.watch(any(), any(), any(), any())).then(a -> {
+            final LevelAccessor watchedLevel = a.getArgument(0);
+            final BlockPos watchedPos = a.getArgument(1);
+            final Direction watchedSide = a.getArgument(2);
+            final CapabilityType<?> watchedType = a.getArgument(3);
+
+            final BlockEntity blockEntity = watchedLevel.getBlockEntity(watchedPos);
+            final Object value = blockEntity == null
+                    ? null
+                    : Capabilities.get(blockEntity, watchedType, watchedSide);
+
+            return value != null ? Invalidatable.of(value) : Invalidatable.empty();
+        });
 
         providersMock = mockStatic(Providers.class);
         final Registrar<BlockDeviceProvider> blockDeviceProviderRegistry = createBlockDeviceProviderRegistry();

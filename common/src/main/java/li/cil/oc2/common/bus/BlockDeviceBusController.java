@@ -104,9 +104,8 @@ public final class BlockDeviceBusController extends CommonDeviceBusController {
         removedChunks.removeAll(newTrackedChunks);
         removeListeners(removedChunks);
 
-        final HashSet<ChunkLocation> addedChunks = new HashSet<>(newTrackedChunks);
         newTrackedChunks.removeAll(trackedChunks);
-        addListeners(addedChunks);
+        addListeners(newTrackedChunks);
 
         trackedChunks.removeAll(removedChunks);
         trackedChunks.addAll(newTrackedChunks);

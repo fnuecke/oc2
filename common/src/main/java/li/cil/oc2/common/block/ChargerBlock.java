@@ -59,7 +59,7 @@ public final class ChargerBlock extends HalfTransparentBlock implements EntityBl
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(final Level level, final BlockState state, final BlockEntityType<T> type) {
-        return TickableBlockEntity.createTicker(level, type, BlockEntities.CHARGER.get());
+        return TickableBlockEntity.createServerTicker(level, type, BlockEntities.CHARGER.get());
     }
 
     // ------------------------------------------------------------- //

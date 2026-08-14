@@ -50,16 +50,7 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
     // ------------------------------------------------------------- //
 
     @Override
-    public void clientTick() {
-        tick();
-    }
-
-    @Override
     public void serverTick() {
-        tick();
-    }
-
-    private void tick() {
         if (level == null) {
             return;
         }

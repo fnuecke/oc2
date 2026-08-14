@@ -17,6 +17,7 @@ import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 @Environment(EnvType.CLIENT)
 public final class MachineTerminalWidget {
@@ -92,8 +93,10 @@ public final class MachineTerminalWidget {
     }
 
     public boolean charTyped(final char ch, final int modifier) {
-        if (modifier == 0 || modifier == GLFW.GLFW_MOD_SHIFT) {
-            terminal.putInput((byte) ch);
+        final boolean isControlChord = (modifier & GLFW.GLFW_MOD_CONTROL) != 0
+                && (modifier & GLFW.GLFW_MOD_ALT) == 0;
+        if (!isControlChord) {
+            putInput(String.valueOf(ch));
         }
         return true;
     }
@@ -104,10 +107,7 @@ public final class MachineTerminalWidget {
         }
 
         if ((modifiers & GLFW.GLFW_MOD_CONTROL) != 0 && keyCode == GLFW.GLFW_KEY_V) {
-            final String value = getClient().keyboardHandler.getClipboard();
-            for (final char ch : value.toCharArray()) {
-                terminal.putInput((byte) ch);
-            }
+            putInput(getClient().keyboardHandler.getClipboard());
         } else {
             final byte[] sequence = TerminalInput.getSequence(keyCode, modifiers);
             if (sequence != null) {
@@ -141,6 +141,12 @@ public final class MachineTerminalWidget {
     private boolean shouldCaptureInput() {
         return isMouseOverTerminal && AbstractMachineTerminalScreen.isInputCaptureEnabled() &&
                 container.getVirtualMachine().isRunning();
+    }
+
+    private void putInput(final String value) {
+        for (final byte b : value.getBytes(StandardCharsets.UTF_8)) {
+            terminal.putInput(b);
+        }
     }
 
     private boolean isMouseOverTerminal(final int mouseX, final int mouseY) {

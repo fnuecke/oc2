@@ -4,7 +4,6 @@ package li.cil.oc2.common.capabilities.neoforge;
 
 import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.energy.EnergyStorage;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -116,6 +115,11 @@ public final class NeoForgeCapabilityAdapters {
         public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
             return inner.extractItem(slot, amount, simulate);
         }
+
+        @Override
+        public int getSlotLimit(final int slot) {
+            return inner.getSlotLimit(slot);
+        }
     }
 
     private record ReverseItemHandlerAdapter(ItemHandler inner) implements IItemHandler {
@@ -141,12 +145,16 @@ public final class NeoForgeCapabilityAdapters {
 
         @Override
         public int getSlotLimit(final int slot) {
-            return Item.DEFAULT_MAX_STACK_SIZE;
+            return inner.getSlotLimit(slot);
         }
 
         @Override
         public boolean isItemValid(final int slot, final ItemStack stack) {
-            return true;
+            if (stack.isEmpty()) {
+                return false;
+            }
+
+            return inner.insertItem(slot, stack, true).getCount() < stack.getCount();
         }
     }
 

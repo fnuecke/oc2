@@ -6,6 +6,8 @@ import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.sedna.device.serial.UART16550A;
 
 import java.nio.ByteBuffer;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class AbstractTerminalVMRunner extends VMRunner {
     private final UART16550A uart;
@@ -16,6 +18,7 @@ public abstract class AbstractTerminalVMRunner extends VMRunner {
     // Thread-local buffers for lock-free read/writes in inner loop.
     private final ByteArrayFIFOQueue outputBuffer = new ByteArrayFIFOQueue(1024);
     private final ByteArrayFIFOQueue inputBuffer = new ByteArrayFIFOQueue(32);
+    private final Queue<byte[]> pendingOutput = new ConcurrentLinkedQueue<>();
 
     // ------------------------------------------------------------- //
 
@@ -30,6 +33,20 @@ public abstract class AbstractTerminalVMRunner extends VMRunner {
     protected abstract void sendTerminalUpdateToClient(final ByteBuffer output);
 
     // ------------------------------------------------------------- //
+
+    @Override
+    public void tick() {
+        flushPendingOutput();
+
+        super.tick();
+    }
+
+    @Override
+    public void join() {
+        super.join();
+
+        flushPendingOutput();
+    }
 
     @Override
     protected void handleBeforeRun() {
@@ -76,7 +93,16 @@ public abstract class AbstractTerminalVMRunner extends VMRunner {
             terminal.putOutput(output);
 
             output.flip();
-            sendTerminalUpdateToClient(output);
+            final byte[] bytes = new byte[output.remaining()];
+            output.get(bytes);
+            pendingOutput.add(bytes);
+        }
+    }
+
+    private void flushPendingOutput() {
+        byte[] output;
+        while ((output = pendingOutput.poll()) != null) {
+            sendTerminalUpdateToClient(ByteBuffer.wrap(output));
         }
     }
 }

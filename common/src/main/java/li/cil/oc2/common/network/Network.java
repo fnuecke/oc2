@@ -20,6 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.chunk.LevelChunk;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -107,21 +108,8 @@ public final class Network {
 
     public static void sendToClientsTrackingBlockEntity(final AbstractMessage message, final BlockEntity blockEntity) {
         final Level level = blockEntity.getLevel();
-        if (level == null) {
+        if (!checkServerThread(level)) {
             return;
-        }
-
-        if (level.getServer() == null) {
-            return;
-        }
-
-        if (!level.getServer().isSameThread()) {
-            throw new IllegalStateException(
-                    "Attempting to send network message to BlockEntity from non-server " +
-                            "thread [" + Thread.currentThread() + "]. This is not supported, " +
-                            "because looking up the chunk from the level is required. " +
-                            "Consider caching the containing chunk and using " +
-                            "sendToClientsTrackingChunk() directly, instead.");
         }
 
         final BlockPos blockPos = blockEntity.getBlockPos();
@@ -133,7 +121,12 @@ public final class Network {
     }
 
     public static void sendToClientsTrackingEntity(final AbstractMessage message, final Entity entity) {
-        if (entity.level().getChunkSource() instanceof final ServerChunkCache chunkCache) {
+        final Level level = entity.level();
+        if (!checkServerThread(level)) {
+            return;
+        }
+
+        if (level.getChunkSource() instanceof final ServerChunkCache chunkCache) {
             NetworkManager.sendToPlayers(chunkCache.chunkMap.getPlayers(entity.chunkPosition(), false), message);
         }
     }
@@ -163,5 +156,25 @@ public final class Network {
             NetworkManager.registerReceiver(side, payloadType, codec,
                     (message, context) -> context.queue(() -> message.handle(context)));
         }
+    }
+
+    private static boolean checkServerThread(@Nullable final Level level) {
+        if (level == null) {
+            return false;
+        }
+
+        if (level.getServer() == null) {
+            return false;
+        }
+
+        if (!level.getServer().isSameThread()) {
+            throw new IllegalStateException(
+                    "Attempting to send location aware network message to Entity from non-server " +
+                            "thread [" + Thread.currentThread() + "]. This is not supported, " +
+                            "because we need world state to figure out chunk/entity tracking. " +
+                            "Queue this message send on the server thread, instead.");
+        }
+
+        return true;
     }
 }

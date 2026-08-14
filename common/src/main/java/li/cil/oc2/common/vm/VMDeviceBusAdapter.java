@@ -8,14 +8,14 @@ import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.oc2.common.vm.context.managed.ManagedVMContext;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.OptionalLong;
 
 public final class VMDeviceBusAdapter {
     private final HashMap<VMDevice, ManagedVMContext> mountedDevices = new HashMap<>();
-    private final ArrayList<VMDevice> unmountedDevices = new ArrayList<>();
+    private final LinkedHashSet<VMDevice> unmountedDevices = new LinkedHashSet<>();
     private BaseAddressProvider baseAddressProvider = unused -> OptionalLong.empty();
 
     // ------------------------------------------------------------- //
@@ -43,12 +43,15 @@ public final class VMDeviceBusAdapter {
             context.freeze();
 
             if (!result.wasSuccessful()) {
+                // No unmount() for the device that failed: that is the counterpart of a successful mount,
+                // and a failed mount is retried later. Cleaning up whatever it claimed before giving up is
+                // the device's own job.
                 context.invalidate();
-                mountedDevices.forEach((mountedDevice, mountedContext) -> {
-                    mountedDevice.unmount();
-                    mountedContext.invalidate();
-                });
-                mountedDevices.clear();
+
+                // Adds to the set we are iterating, which is fine only because we return right after --
+                // the loop never touches its iterator again.
+                unmountDevices();
+
                 return result;
             }
 
@@ -81,8 +84,7 @@ public final class VMDeviceBusAdapter {
     public void addDevices(final Collection<Device> devices) {
         for (final Device device : devices) {
             if (device instanceof final VMDevice vmDevice) {
-                // Add to set of unmounted devices if we don't already track it. It's a set, so
-                // there won't be duplicates in the unmounted set due to this.
+                // Add to the set of unmounted devices if we don't already track it.
                 if (!mountedDevices.containsKey(vmDevice)) {
                     unmountedDevices.add(vmDevice);
                 }

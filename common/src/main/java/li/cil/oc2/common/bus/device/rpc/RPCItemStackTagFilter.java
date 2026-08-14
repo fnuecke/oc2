@@ -11,6 +11,7 @@ import net.minecraft.util.StringUtil;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public final class RPCItemStackTagFilter {
@@ -78,11 +79,18 @@ public final class RPCItemStackTagFilter {
     }
 
     private void validatePaths() {
-        paths = new String[tags.length][];
-        for (int i = 0; i < tags.length; i++) {
-            if (!StringUtil.isNullOrEmpty(tags[i])) {
-                paths[i] = tags[i].split("\\.");
+        if (paths != null) {
+            return;
+        }
+
+        // Strip out blank (null) entries entirely to avoid NREs later.
+        final ArrayList<String[]> resolved = new ArrayList<>(tags.length);
+        for (final String tag : tags) {
+            if (!StringUtil.isNullOrEmpty(tag)) {
+                resolved.add(tag.split("\\."));
             }
         }
+
+        paths = resolved.toArray(new String[0][]);
     }
 }

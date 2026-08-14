@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.neoforged.neoforge.client.ChunkRenderTypeSet;
 import net.neoforged.neoforge.client.model.IDynamicBakedModel;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
@@ -40,8 +41,22 @@ public record BusCableBakedModel(
 ) implements IDynamicBakedModel {
     private static final ModelProperty<BusCableSupportSide> BUS_CABLE_SUPPORT_PROPERTY = new ModelProperty<>();
     private static final ModelProperty<BusCableFacade> BUS_CABLE_FACADE_PROPERTY = new ModelProperty<>();
+    private static final ChunkRenderTypeSet CABLE_RENDER_TYPES = ChunkRenderTypeSet.of(RenderType.solid());
 
     // ------------------------------------------------------------- //
+
+    @Override
+    @Nonnull
+    public ChunkRenderTypeSet getRenderTypes(final BlockState state, final RandomSource rand, final ModelData data) {
+        if (data.has(BUS_CABLE_FACADE_PROPERTY)) {
+            final BusCableFacade facade = data.get(BUS_CABLE_FACADE_PROPERTY);
+            return facade != null
+                    ? ItemBlockRenderTypes.getRenderLayers(facade.blockState)
+                    : ChunkRenderTypeSet.none();
+        }
+
+        return CABLE_RENDER_TYPES;
+    }
 
     @Override
     @Nonnull

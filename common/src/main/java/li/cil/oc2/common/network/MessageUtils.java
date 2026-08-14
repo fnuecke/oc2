@@ -16,18 +16,18 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class MessageUtils {
-    public static <T extends BlockEntity> void withNearbyServerBlockEntityForInteraction(final NetworkManager.PacketContext context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
-        if (!(context.getPlayer() instanceof final ServerPlayer player)
-                || !pos.closerToCenterThan(player.position(), 8)) {
-            return;
-        }
+    private static final int INTERACTION_DISTANCE = 8;
 
-        withNearbyServerBlockEntity(context, pos, type, callback);
+    // ------------------------------------------------------------- //
+
+    public static <T extends BlockEntity> void withNearbyServerBlockEntityForInteraction(final NetworkManager.PacketContext context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
+        withNearbyServerBlockEntity(context, pos, type, INTERACTION_DISTANCE, callback);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends BlockEntity> void withNearbyServerBlockEntity(final NetworkManager.PacketContext context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
-        if (!(context.getPlayer() instanceof final ServerPlayer player)) {
+    public static <T extends BlockEntity> void withNearbyServerBlockEntity(final NetworkManager.PacketContext context, final BlockPos pos, final Class<T> type, final int maxDistance, final BiConsumer<ServerPlayer, T> callback) {
+        if (!(context.getPlayer() instanceof final ServerPlayer player)
+                || !pos.closerToCenterThan(player.position(), maxDistance)) {
             return;
         }
 

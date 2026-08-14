@@ -47,6 +47,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     public static final int MAX_FRAME_SIZE = 1024 * 1024;
     public static final int MAX_RENDER_DISTANCE = 16;
+    public static final int MAX_WATCH_DISTANCE = 64; // Default max block entity render distance.
     public static final int MAX_GOOD_RENDER_DISTANCE = 12;
     public static final int MAX_WIDTH = MAX_GOOD_RENDER_DISTANCE + 1; // +1 To make it odd, so we can center.
     public static final int MAX_HEIGHT = (MAX_GOOD_RENDER_DISTANCE * ProjectorDevice.HEIGHT / ProjectorDevice.WIDTH) + 1; // + 1 To match horizontal margin.

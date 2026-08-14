@@ -70,7 +70,15 @@ public final class ConfigManagerImpl {
 
     private static void handleModConfigEvent(final ModConfigEvent event) {
         final ConfigDefinition config = CONFIGS.get(event.getConfig().getSpec());
-        if (config != null) {
+        if (config == null) {
+            return;
+        }
+
+        if (event instanceof ModConfigEvent.Unloading) {
+            // The values are gone by now, and reading one throws. Fall back to what we shipped with, so we
+            // neither blow up here nor keep serving the settings of a server we have just left.
+            config.applyDefaults();
+        } else {
             config.apply();
         }
     }
@@ -178,6 +186,12 @@ public final class ConfigManagerImpl {
                 pair.apply(instance);
             }
         }
+
+        public void applyDefaults() {
+            for (final ConfigFieldPair<?> pair : values) {
+                pair.applyDefault(instance);
+            }
+        }
     }
 
     private static final class ConfigFieldPair<T> {
@@ -196,8 +210,16 @@ public final class ConfigManagerImpl {
         }
 
         public void apply(final Object instance) {
+            set(instance, value.get());
+        }
+
+        public void applyDefault(final Object instance) {
+            set(instance, value.getDefault());
+        }
+
+        private void set(final Object instance, final T raw) {
             try {
-                field.set(instance, converter.apply(value.get()));
+                field.set(instance, converter.apply(raw));
             } catch (final IllegalAccessException ignored) {
             }
         }

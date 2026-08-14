@@ -377,19 +377,23 @@ public final class ProjectorDepthRenderer {
         minecraft.gameRenderer.mainCamera = PROJECTOR_DEPTH_CAMERA;
 
         RenderSystem.backupProjectionMatrix();
+        RenderSystem.getModelViewStack().pushMatrix().identity();
+        RenderSystem.applyModelViewMatrix();
     }
 
     private static void finishDepthBufferRendering(final Minecraft minecraft) {
         minecraft.hitResult = hitResultBak;
         minecraft.options.entityShadows().set(entityShadowsBak);
 
-        RenderSystem.restoreProjectionMatrix();
-
         ((MinecraftExt) minecraft).setMainRenderTargetOverride(null);
         minecraft.getMainRenderTarget().bindWrite(true);
 
         minecraft.setCameraEntity(minecraftCameraEntityBak);
         minecraft.gameRenderer.mainCamera = gameRendererMainCameraBak;
+
+        RenderSystem.restoreProjectionMatrix();
+        RenderSystem.getModelViewStack().popMatrix();
+        RenderSystem.applyModelViewMatrix();
 
         isRenderingProjectorDepth = false;
     }

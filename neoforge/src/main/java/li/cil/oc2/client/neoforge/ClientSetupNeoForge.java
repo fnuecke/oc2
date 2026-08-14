@@ -14,17 +14,25 @@ import li.cil.oc2.client.renderer.blockentity.neoforge.ChargerRendererNeoForge;
 import li.cil.oc2.client.renderer.blockentity.neoforge.ProjectorRendererNeoForge;
 import li.cil.oc2.client.renderer.color.BusCableBlockColor;
 import li.cil.oc2.client.renderer.entity.RobotRenderer;
+import li.cil.oc2.client.renderer.entity.RobotWithoutLevelRenderer;
 import li.cil.oc2.client.renderer.entity.model.RobotModel;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
+import li.cil.oc2.common.item.Items;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+
+import javax.annotation.Nullable;
 
 public final class ClientSetupNeoForge {
     @SubscribeEvent
@@ -68,6 +76,24 @@ public final class ClientSetupNeoForge {
     @SubscribeEvent
     public static void handleRegisterLayerDefinitions(final EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(RobotModel.ROBOT_MODEL_LAYER, RobotModel::createRobotLayer);
+    }
+
+    @SubscribeEvent
+    public static void handleRegisterClientExtensions(final RegisterClientExtensionsEvent event) {
+        event.registerItem(new IClientItemExtensions() {
+            @Nullable
+            private BlockEntityWithoutLevelRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    final Minecraft minecraft = Minecraft.getInstance();
+                    renderer = new RobotWithoutLevelRenderer(
+                            minecraft.getBlockEntityRenderDispatcher(), minecraft.getEntityModels());
+                }
+                return renderer;
+            }
+        }, Items.ROBOT.get());
     }
 
     private ClientSetupNeoForge() {

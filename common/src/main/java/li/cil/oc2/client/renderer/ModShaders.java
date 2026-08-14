@@ -15,6 +15,7 @@ public final class ModShaders {
     public static final int MAX_PROJECTORS = 3;
 
     public static final ResourceLocation PROJECTORS_SHADER_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "projectors");
+    public static final ResourceLocation TERMINAL_SHADER_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "terminal");
     private static final String[] PROJECTOR_COLOR_NAMES = {"ProjectorColor0", "ProjectorColor1", "ProjectorColor2"};
     private static final String[] PROJECTOR_DEPTH_NAMES = {"ProjectorDepth0", "ProjectorDepth1", "ProjectorDepth2"};
     private static final String[] PROJECTOR_CAMERA_NAMES = {"ProjectorCamera0", "ProjectorCamera1", "ProjectorCamera2"};
@@ -22,12 +23,18 @@ public final class ModShaders {
     // ------------------------------------------------------------- //
 
     private static ShaderInstance projectorsShader;
+    private static ShaderInstance terminalShader;
 
     // ------------------------------------------------------------- //
 
     @Nullable
     public static ShaderInstance getProjectorsShader() {
         return projectorsShader;
+    }
+
+    @Nullable
+    public static ShaderInstance getTerminalShader() {
+        return terminalShader;
     }
 
     @SuppressWarnings("ConstantConditions") // Setting samples to null to clear them is fine.
@@ -59,5 +66,9 @@ public final class ModShaders {
 
     public static void setProjectorsShader(@Nullable final ShaderInstance shader) {
         projectorsShader = shader;
+    }
+
+    public static void setTerminalShader(@Nullable final ShaderInstance shader) {
+        terminalShader = shader;
     }
 }

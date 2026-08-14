@@ -22,6 +22,12 @@ public final class ModShadersNeoForge {
                 ModShaders.PROJECTORS_SHADER_LOCATION,
                 DefaultVertexFormat.POSITION_TEX
         ), ModShaders::setProjectorsShader);
+
+        event.registerShader(new ShaderInstance(
+                event.getResourceProvider(),
+                ModShaders.TERMINAL_SHADER_LOCATION,
+                DefaultVertexFormat.POSITION_TEX_COLOR
+        ), ModShaders::setTerminalShader);
     }
 
     private ModShadersNeoForge() {

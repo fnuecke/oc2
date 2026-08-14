@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.*;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.API;
+import li.cil.oc2.client.renderer.ModShaders;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -704,6 +705,8 @@ public final class Terminal {
         private static final float CHAR_HEIGHT_IN_UV = CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION;
         private static final int TEXTURE_COLUMNS = 16;
         private static final int TEXTURE_BOLD_SHIFT = TEXTURE_COLUMNS; // Bold chars are in right half of texture.
+        private static final float WHITE_U = (TEXTURE_RESOLUTION - 1.5f) * ONE_OVER_TEXTURE_RESOLUTION;
+        private static final float WHITE_V = 1.5f * ONE_OVER_TEXTURE_RESOLUTION;
 
         private static final int[] COLORS = {
                 0x010101, // Black
@@ -771,12 +774,18 @@ public final class Terminal {
         // ------------------------------------------------------------- //
 
         private void renderBuffer(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
-            final ShaderInstance shader = GameRenderer.getPositionTexColorShader();
+            ShaderInstance shader = ModShaders.getTerminalShader();
+            if (shader == null) {
+                // Shouldn't really happen, but just in case.
+                shader = GameRenderer.getPositionTexColorShader();
+            }
             if (shader == null) {
                 return;
             }
 
             RenderSystem.depthMask(false);
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
             RenderSystem.setShaderTexture(0, LOCATION_FONT_TEXTURE);
 
             final Matrix4f modelView = new Matrix4f(modelViewBase).mul(stack.last().pose());
@@ -789,6 +798,7 @@ public final class Terminal {
             }
             VertexBuffer.unbind();
 
+            RenderSystem.disableBlend();
             RenderSystem.depthMask(true);
         }
 
@@ -877,13 +887,10 @@ public final class Terminal {
             final float g = ((color >> 8) & 0xFF) / 255f;
             final float b = (color & 0xFF) / 255f;
 
-            final float ulu = (TEXTURE_RESOLUTION - 1) / (float) TEXTURE_RESOLUTION;
-            final float ulv = 1 / (float) TEXTURE_RESOLUTION;
-
-            buffer.addVertex(matrix, x0, CHAR_HEIGHT, 0).setColor(r, g, b, 1).setUv(ulu, ulv);
-            buffer.addVertex(matrix, x1, CHAR_HEIGHT, 0).setColor(r, g, b, 1).setUv(ulu, ulv);
-            buffer.addVertex(matrix, x1, 0, 0).setColor(r, g, b, 1).setUv(ulu, ulv);
-            buffer.addVertex(matrix, x0, 0, 0).setColor(r, g, b, 1).setUv(ulu, ulv);
+            buffer.addVertex(matrix, x0, CHAR_HEIGHT, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
+            buffer.addVertex(matrix, x1, CHAR_HEIGHT, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
+            buffer.addVertex(matrix, x1, 0, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
+            buffer.addVertex(matrix, x0, 0, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
         }
 
         private void renderForeground(final Matrix4f matrix, final BufferBuilder buffer, final int row) {
@@ -928,13 +935,10 @@ public final class Terminal {
             }
 
             if ((style & STYLE_UNDERLINE_MASK) != 0) {
-                final float ulu = (TEXTURE_RESOLUTION - 1) / (float) TEXTURE_RESOLUTION;
-                final float ulv = 1 / (float) TEXTURE_RESOLUTION;
-
-                buffer.addVertex(matrix, offset, CHAR_HEIGHT - 3, 0).setColor(r, g, b, 1).setUv(ulu, ulv);
-                buffer.addVertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 3, 0).setColor(r, g, b, 1).setUv(ulu, ulv);
-                buffer.addVertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).setColor(r, g, b, 1).setUv(ulu, ulv);
-                buffer.addVertex(matrix, offset, CHAR_HEIGHT - 2, 0).setColor(r, g, b, 1).setUv(ulu, ulv);
+                buffer.addVertex(matrix, offset, CHAR_HEIGHT - 3, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
+                buffer.addVertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 3, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
+                buffer.addVertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
+                buffer.addVertex(matrix, offset, CHAR_HEIGHT - 2, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
             }
         }
 

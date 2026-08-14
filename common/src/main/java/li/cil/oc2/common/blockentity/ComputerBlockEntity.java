@@ -31,6 +31,7 @@ import net.fabricmc.api.EnvType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -204,9 +205,12 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
             updateTerminalRecipients();
         }
 
-        // Just grab it again every tick, to avoid this becoming invalid if something tries to
-        // mess with this BlockEntity in unexpected ways.
-        chunk = level.getChunkAt(getBlockPos());
+        final BlockPos blockPos = getBlockPos();
+        final int chunkX = SectionPos.blockToSectionCoord(blockPos.getX());
+        final int chunkZ = SectionPos.blockToSectionCoord(blockPos.getZ());
+        if (chunk == null || chunk.getPos().x != chunkX || chunk.getPos().z != chunkZ) {
+            chunk = level.getChunkAt(blockPos);
+        }
 
         virtualMachine.tick();
     }

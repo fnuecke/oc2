@@ -3,6 +3,8 @@
 package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import li.cil.oc2.client.ClientPlatform;
 import li.cil.oc2.common.blockentity.KeyboardBlockEntity;
 import li.cil.oc2.common.item.Items;
@@ -29,6 +31,7 @@ public final class KeyboardScreen extends Screen {
     // ------------------------------------------------------------- //
 
     private final KeyboardBlockEntity keyboard;
+    private final IntSet pressedKeys = new IntOpenHashSet();
 
     // ------------------------------------------------------------- //
 
@@ -65,13 +68,19 @@ public final class KeyboardScreen extends Screen {
 
     @Override
     public boolean keyPressed(final int keycode, final int scancode, final int modifiers) {
-        sendInputMessage(keycode, true);
+        if (pressedKeys.add(keycode)) {
+            sendInputMessage(keycode, true);
+        }
+
         return true;
     }
 
     @Override
     public boolean keyReleased(final int keycode, final int scancode, final int modifiers) {
-        sendInputMessage(keycode, false);
+        if (pressedKeys.remove(keycode)) {
+            sendInputMessage(keycode, false);
+        }
+
         return true;
     }
 
@@ -110,6 +119,13 @@ public final class KeyboardScreen extends Screen {
     public void removed() {
         super.removed();
 
+        if (minecraft.getConnection() != null) {
+            for (final int keycode : pressedKeys) {
+                sendKeyState(keycode, false);
+            }
+        }
+        pressedKeys.clear();
+
         ClientPlatform.setHotbarVisible(true);
     }
 
@@ -131,6 +147,12 @@ public final class KeyboardScreen extends Screen {
     private void sendInputMessage(final int keycode, final boolean isDown) {
         if (KeyCodeMapping.MAPPING.containsKey(keycode)) {
             swingArm();
+            sendKeyState(keycode, isDown);
+        }
+    }
+
+    private void sendKeyState(final int keycode, final boolean isDown) {
+        if (KeyCodeMapping.MAPPING.containsKey(keycode)) {
             final int evdevCode = KeyCodeMapping.MAPPING.get(keycode);
             Network.sendToServer(new KeyboardInputMessage(keyboard, evdevCode, isDown));
         }

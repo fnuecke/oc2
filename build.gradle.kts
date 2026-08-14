@@ -235,8 +235,8 @@ tasks.register("lint") {
 
 spotless {
     java {
-        target("*/src/*/java/li/cil/**/*.java")
-        targetExclude("*/src/*/java/li/cil/oc2/jcodec/**/*.java")
+        target("**/src/*/java/li/cil/**/*.java")
+        targetExclude("**/src/*/java/li/cil/oc2/jcodec/**/*.java")
 
         endWithNewline()
         trimTrailingWhitespace()

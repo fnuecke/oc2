@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 
 public abstract class ModBlockEntity extends BlockEntity {
     private final Runnable onWorldUnloaded = this::onWorldUnloaded;
@@ -34,18 +33,10 @@ public abstract class ModBlockEntity extends BlockEntity {
             return null;
         }
 
-        final ArrayList<T> list = new ArrayList<>();
-        collectCapabilities(new CapabilityCollector() {
-            @SuppressWarnings("unchecked")
-            @Override
-            public <TOffered> void offer(final CapabilityType<TOffered> offeredCapability, final TOffered instance) {
-                if (offeredCapability == capability) {
-                    list.add((T) instance);
-                }
-            }
-        }, side);
+        final SingleResultCollector<T> collector = new SingleResultCollector<>(capability);
+        collectCapabilities(collector, side);
 
-        return list.isEmpty() ? null : list.get(0);
+        return collector.result;
     }
 
     @Override
@@ -126,5 +117,23 @@ public abstract class ModBlockEntity extends BlockEntity {
     @FunctionalInterface
     protected interface CapabilityCollector {
         <T> void offer(CapabilityType<T> capability, T instance);
+    }
+
+    private static final class SingleResultCollector<T> implements CapabilityCollector {
+        private final CapabilityType<T> capability;
+        @Nullable
+        private T result;
+
+        private SingleResultCollector(final CapabilityType<T> capability) {
+            this.capability = capability;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <TOffered> void offer(final CapabilityType<TOffered> offeredCapability, final TOffered instance) {
+            if (result == null && offeredCapability == capability) {
+                result = (T) instance;
+            }
+        }
     }
 }

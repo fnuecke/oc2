@@ -21,6 +21,8 @@ import static li.cil.oc2.gametest.TestSupport.TEMPLATE;
 public final class ItemDataTests {
     private static final String KEY = "test_key";
 
+    // ------------------------------------------------------------- //
+
     @GameTest(template = TEMPLATE)
     public static void modDataMutationPersists(final GameTestHelper helper) {
         final ItemStack stack = new ItemStack(Items.FLASH_MEMORY.get());
@@ -81,6 +83,8 @@ public final class ItemDataTests {
         }
         helper.succeed();
     }
+
+    // ------------------------------------------------------------- //
 
     private ItemDataTests() {
     }

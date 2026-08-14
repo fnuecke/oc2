@@ -2,6 +2,7 @@
 
 package li.cil.oc2.gametest;
 
+import li.cil.oc2.common.item.Items;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -50,8 +51,16 @@ public final class TestSupport {
                 new BlockHitResult(location, face, absolute, false)));
     }
 
+    public static void placePower(final GameTestHelper helper, final Player player) {
+        place(helper, player, new ItemStack(Items.CREATIVE_ENERGY.get()), POWER_POS);
+    }
+
     public static void breakBlock(final GameTestHelper helper, final BlockPos pos) {
         helper.getLevel().destroyBlock(helper.absolutePos(pos), false, null);
+    }
+
+    public static void breakBlockAndDrop(final GameTestHelper helper, final BlockPos pos) {
+        helper.getLevel().destroyBlock(helper.absolutePos(pos), true, null);
     }
 
     public static void assertNotNull(final GameTestHelper helper, @Nullable final Object value, final String what) {
@@ -59,6 +68,8 @@ public final class TestSupport {
             throw new GameTestAssertException(what + " is null");
         }
     }
+
+    // ------------------------------------------------------------- //
 
     private TestSupport() {
     }

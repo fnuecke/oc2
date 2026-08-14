@@ -27,6 +27,7 @@ import static li.cil.oc2.gametest.TestSupport.*;
 @PrefixGameTestTemplate(false)
 public final class RobotCrushTests {
     private static final BlockPos ROBOT_POS = new BlockPos(16, WORK_Y, 2);
+    private static final int ROBOT_CHECK_GRACE_PERIOD = 40; // Give robot check time to kick in.
 
     @GameTest(template = TEMPLATE, timeoutTicks = 120)
     public static void crushesAnOrdinaryBlock(final GameTestHelper helper) {
@@ -35,7 +36,7 @@ public final class RobotCrushTests {
         helper.getLevel().setBlockAndUpdate(target, Blocks.DIRT.defaultBlockState());
 
         helper.startSequence()
-                .thenExecuteAfter(20, () -> {
+                .thenExecuteAfter(ROBOT_CHECK_GRACE_PERIOD, () -> {
                     if (!helper.getLevel().getBlockState(target).isAir()) {
                         throw new GameTestAssertException("the robot did not clear the dirt it was inside of");
                     }
@@ -61,7 +62,7 @@ public final class RobotCrushTests {
                 .setValue(BlockStateProperties.WATERLOGGED, true));
 
         helper.startSequence()
-                .thenExecuteAfter(20, () -> {
+                .thenExecuteAfter(ROBOT_CHECK_GRACE_PERIOD, () -> {
                     final BlockState after = helper.getLevel().getBlockState(target);
                     if (after.is(Blocks.OAK_SLAB)) {
                         throw new GameTestAssertException("the robot did not clear the slab it was inside of");
@@ -82,7 +83,7 @@ public final class RobotCrushTests {
         helper.getLevel().setBlockAndUpdate(target, block.defaultBlockState());
 
         helper.startSequence()
-                .thenExecuteAfter(20, () -> {
+                .thenExecuteAfter(ROBOT_CHECK_GRACE_PERIOD, () -> {
                     if (helper.getLevel().getBlockState(target).isAir()) {
                         throw new GameTestAssertException(
                                 "the robot ate " + block.getName().getString() + "; it should be stuck instead");

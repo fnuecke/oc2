@@ -68,6 +68,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -97,11 +98,17 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private static final int MODULE_SLOTS = 4;
     private static final int INVENTORY_SIZE = 12;
 
+    private static final int CONTAINING_BLOCK_CHECK_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(1));
+
     // ------------------------------------------------------------- //
 
     private final Runnable unloadListener = this::handleUnload;
     private final Consumer<ChunkPos> chunkUnloadListener = this::handleChunkUnload;
     private final BlockPos.MutableBlockPos mutablePosition = new BlockPos.MutableBlockPos();
+
+    @Nullable
+    private AABB lastContainingBlockSweepBounds;
+    private int containingBlockSweepCountdown;
 
     private final AnimationState animationState = new AnimationState();
     private final RobotActionProcessor actionProcessor = new RobotActionProcessor();
@@ -273,24 +280,13 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         actionProcessor.tick();
 
         if (!isClient && level() instanceof final ServerLevel serverLevel) {
-            final VoxelShape shape = Shapes.create(getBoundingBox());
-            final Cursor3D iterator = getBlockPosIterator();
-            while (iterator.advance()) {
-                final int x = iterator.nextX();
-                final int y = iterator.nextY();
-                final int z = iterator.nextZ();
-                mutablePosition.set(x, y, z);
-                final BlockState blockState = serverLevel.getBlockState(mutablePosition);
-                if (blockState.isAir() ||
-                        blockState.is(Blocks.MOVING_PISTON) ||
-                        blockState.is(Blocks.PISTON_HEAD)) {
-                    continue;
-                }
-
-                final VoxelShape blockShape = blockState.getCollisionShape(serverLevel, mutablePosition);
-                if (Shapes.joinIsNotEmpty(shape, blockShape.move(x, y, z), BooleanOp.AND)) {
-                    tryClearContainingBlock(serverLevel, mutablePosition.immutable(), blockState);
-                }
+            // Getting stuck in a block should be rare / impossible unless world-editing,
+            // so we avoid checking this every frame.
+            final AABB bounds = getBoundingBox();
+            if (--containingBlockSweepCountdown <= 0 || !bounds.equals(lastContainingBlockSweepBounds)) {
+                containingBlockSweepCountdown = CONTAINING_BLOCK_CHECK_INTERVAL;
+                lastContainingBlockSweepBounds = bounds;
+                clearContainingBlocks(serverLevel, bounds);
             }
         }
     }
@@ -436,7 +432,6 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     protected void checkInsideBlocks() {
     }
 
-
     @Override
     protected Vec3 limitPistonMovement(final Vec3 pos) {
         lastPistonMovement = level().getGameTime();
@@ -484,6 +479,28 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         terminalRecipients = List.copyOf(recipients);
+    }
+
+    private void clearContainingBlocks(final ServerLevel serverLevel, final AABB bounds) {
+        final VoxelShape shape = Shapes.create(bounds);
+        final Cursor3D iterator = getBlockPosIterator();
+        while (iterator.advance()) {
+            final int x = iterator.nextX();
+            final int y = iterator.nextY();
+            final int z = iterator.nextZ();
+            mutablePosition.set(x, y, z);
+            final BlockState blockState = serverLevel.getBlockState(mutablePosition);
+            if (blockState.isAir() ||
+                    blockState.is(Blocks.MOVING_PISTON) ||
+                    blockState.is(Blocks.PISTON_HEAD)) {
+                continue;
+            }
+
+            final VoxelShape blockShape = blockState.getCollisionShape(serverLevel, mutablePosition);
+            if (Shapes.joinIsNotEmpty(shape, blockShape.move(x, y, z), BooleanOp.AND)) {
+                tryClearContainingBlock(serverLevel, mutablePosition.immutable(), blockState);
+            }
+        }
     }
 
     private Cursor3D getBlockPosIterator() {

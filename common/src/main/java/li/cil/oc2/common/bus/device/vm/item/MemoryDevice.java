@@ -6,7 +6,6 @@ import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.serialization.BlobStorage;
@@ -108,7 +107,7 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     // ------------------------------------------------------------- //
 
     private boolean allocateDevice(final VMContext context) {
-        if (!context.getMemoryAllocator().claimMemory(Constants.PAGE_SIZE)) {
+        if (!context.getMemoryAllocator().claimMemory(size)) {
             return false;
         }
 

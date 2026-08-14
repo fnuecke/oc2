@@ -11,7 +11,7 @@ import java.util.UUID;
 @Type(ConfigType.SERVER)
 public final class Config {
     @Path("vm")
-    public static long maxAllocatedMemory = 512 * Constants.MEGABYTE;
+    public static long maxAllocatedMemory = 2L * 1024 * Constants.MEGABYTE;
 
     @Path("energy.blocks")
     public static double busCableEnergyPerTick = 0.1;

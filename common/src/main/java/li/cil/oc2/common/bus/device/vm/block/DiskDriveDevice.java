@@ -12,7 +12,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.CompletableFuture;
 
@@ -93,8 +92,7 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
         return CompletableFuture.supplyAsync(() -> {
             try {
                 final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
-                final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, capacity);
-                return ByteBufferBlockDevice.wrap(buffer, false);
+                return ByteBufferBlockDevice.createFromFileChannel(channel, capacity, false);
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }

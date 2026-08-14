@@ -10,7 +10,6 @@ import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.world.item.ItemStack;
 
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.time.Duration;
 import java.util.Optional;
@@ -39,8 +38,7 @@ public class HardDriveDevice extends AbstractBlockStorageDevice<ByteBufferBlockD
         return CompletableFuture.supplyAsync(() -> {
             try {
                 final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
-                final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, size);
-                return ByteBufferBlockDevice.wrap(buffer, readonly);
+                return ByteBufferBlockDevice.createFromFileChannel(channel, size, readonly);
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }

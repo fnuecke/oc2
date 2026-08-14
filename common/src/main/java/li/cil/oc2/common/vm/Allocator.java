@@ -46,7 +46,7 @@ public final class Allocator {
      * @param size   the amount of memory to claim.
      * @return {@code true} if the memory was successfully claimed; {@code false} otherwise.
      */
-    public static boolean claimMemory(final UUID handle, final int size) {
+    public static synchronized boolean claimMemory(final UUID handle, final int size) {
         if (!checkArgs(handle, size)) {
             return false;
         }
@@ -65,7 +65,7 @@ public final class Allocator {
      *
      * @param handle the handle to release the claimed memory for.
      */
-    public static void freeMemory(final UUID handle) {
+    public static synchronized void freeMemory(final UUID handle) {
         final Allocation allocation = ALLOCATIONS.remove(handle);
         if (allocation != null) {
             allocated -= allocation.size;
@@ -75,7 +75,7 @@ public final class Allocator {
     /**
      * Clears all remaining allocations and logs their stack traces.
      */
-    public static void resetAndCheckLeaks() {
+    public static synchronized void resetAndCheckLeaks() {
         if (allocated > 0) {
             for (final Allocation allocation : ALLOCATIONS.values()) {
                 // Skip first three: Allocator::claimMemory, Allocation::new, Throwable::getStacktrace

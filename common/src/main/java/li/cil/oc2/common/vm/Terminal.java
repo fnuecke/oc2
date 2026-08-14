@@ -22,6 +22,10 @@ import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -38,6 +42,7 @@ public final class Terminal {
     public static final int CHAR_HEIGHT = 16;
 
     private static final int TAB_WIDTH = 4;
+    private static final char UNRENDERABLE = '?';
     private static final int MAX_EXPECTED_RENDERERS = 4;
 
     @SuppressWarnings("unused")
@@ -121,6 +126,16 @@ public final class Terminal {
     private final transient Set<RendererModel> renderers = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private transient boolean displayOnly; // Set on client to not send responses to status requests.
     private transient boolean hasPendingBell;
+
+    // Persisted state of the decoder below, to resume decoding after load.
+    private final byte[] utf8Pending = new byte[4];
+    private int utf8PendingCount;
+
+    private final transient CharsetDecoder utf8Decoder = StandardCharsets.UTF_8.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPLACE)
+            .onUnmappableCharacter(CodingErrorAction.REPLACE);
+    private final transient ByteBuffer utf8Input = ByteBuffer.allocate(8);
+    private final transient CharBuffer utf8Output = CharBuffer.allocate(8);
 
     // ------------------------------------------------------------- //
 
@@ -240,7 +255,7 @@ public final class Terminal {
                     }
                     case (byte) '\b' /* 010 */ -> setCursorPos(Math.min(x, WIDTH - 1) - 1, y);
 
-                    default -> putChar(ch);
+                    default -> putUtf8(value);
                 }
             }
             case ESCAPE -> {
@@ -391,6 +406,7 @@ public final class Terminal {
     }
 
     private void RIS() {
+        utf8PendingCount = 0;
         color = DEFAULT_COLORS;
         style = DEFAULT_STYLE;
         clear();
@@ -612,6 +628,25 @@ public final class Terminal {
     private void setCursorPos(final int x, final int y) {
         this.x = Math.max(0, Math.min(WIDTH - 1, x));
         this.y = Math.max(0, Math.min(HEIGHT - 1, y));
+    }
+
+    private void putUtf8(final byte value) {
+        utf8Input.clear();
+        utf8Input.put(utf8Pending, 0, utf8PendingCount);
+        utf8Input.put(value);
+        utf8Input.flip();
+
+        utf8Output.clear();
+        utf8Decoder.decode(utf8Input, utf8Output, false);
+
+        utf8PendingCount = utf8Input.remaining();
+        utf8Input.get(utf8Pending, 0, utf8PendingCount);
+
+        utf8Output.flip();
+        while (utf8Output.hasRemaining()) {
+            final char ch = utf8Output.get();
+            putChar(ch <= 0xFF ? ch : UNRENDERABLE);
+        }
     }
 
     private void putChar(final char ch) {

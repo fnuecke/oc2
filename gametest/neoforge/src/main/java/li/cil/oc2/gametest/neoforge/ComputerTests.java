@@ -10,8 +10,8 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.vm.AbstractVirtualMachine;
 import li.cil.oc2.common.vm.VMRunState;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -20,8 +20,8 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -161,21 +161,6 @@ public final class ComputerTests {
                 .thenSucceed();
     }
 
-    // ------------------------------------------------------------- //
-
-    private static ItemStack singleDroppedStack(final GameTestHelper helper) {
-        final List<ItemEntity> items = helper.getLevel().getEntitiesOfClass(ItemEntity.class,
-                helper.getBounds().inflate(2));
-        if (items.size() != 1) {
-            throw new GameTestAssertException("expected exactly one dropped stack, found " + items.size());
-        }
-        return items.getFirst().getItem();
-    }
-
-    private static void placeComputer(final GameTestHelper helper) {
-        place(helper, fakePlayer(helper), new ItemStack(Items.COMPUTER.get()), COMPUTER_POS);
-    }
-
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
     public static void importExportCardSurvivesBlockEntityReload(final GameTestHelper helper) {
         place(helper, fakePlayer(helper), new ItemStack(Items.COMPUTER.get()), COMPUTER_POS);
@@ -191,26 +176,51 @@ public final class ComputerTests {
                         throw new GameTestAssertException("could not install the import/export card");
                     }
                 })
-                .thenExecuteAfter(80, () -> {
-                    if (!hasImportExportDevice(helper)) {
-                        throw new GameTestAssertException(
-                                "the import/export card is not on the bus even before a reload");
-                    }
-                })
+                .thenExecuteAfter(80, () -> assertImportExportDeviceBoundToComputer(helper))
                 .thenExecute(() -> reloadBlockEntity(helper, COMPUTER_POS))
-                .thenExecuteAfter(120, () -> {
-                    if (!hasImportExportDevice(helper)) {
-                        throw new GameTestAssertException(
-                                "the import/export card is gone from the bus after the block entity was reloaded");
-                    }
-                })
+                .thenExecuteAfter(120, () -> assertImportExportDeviceBoundToComputer(helper))
                 .thenSucceed();
     }
 
-    private static boolean hasImportExportDevice(final GameTestHelper helper) {
+    // ------------------------------------------------------------- //
+
+    private static ItemStack singleDroppedStack(final GameTestHelper helper) {
+        final List<ItemEntity> items = helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                helper.getBounds().inflate(2));
+        if (items.size() != 1) {
+            throw new GameTestAssertException("expected exactly one dropped stack, found " + items.size());
+        }
+        return items.getFirst().getItem();
+    }
+
+    private static void placeComputer(final GameTestHelper helper) {
+        place(helper, fakePlayer(helper), new ItemStack(Items.COMPUTER.get()), COMPUTER_POS);
+    }
+
+    private static void assertImportExportDeviceBoundToComputer(final GameTestHelper helper) {
         final ComputerBlockEntity computer = helper.getBlockEntity(COMPUTER_POS);
-        return ((AbstractVirtualMachine) computer.getVirtualMachine()).busController.getDevices().stream()
-                .anyMatch(device -> device instanceof FileImportExportCardItemDevice);
+        final FileImportExportCardItemDevice device =
+                ((AbstractVirtualMachine) computer.getVirtualMachine()).busController.getDevices().stream()
+                        .filter(FileImportExportCardItemDevice.class::isInstance)
+                        .map(FileImportExportCardItemDevice.class::cast)
+                        .findFirst()
+                        .orElseThrow(() -> new GameTestAssertException("the import/export card is not on the bus"));
+
+        // Only used here, so let's just grab it with reflection...
+        final Object userProvider;
+        try {
+            final java.lang.reflect.Field field =
+                    FileImportExportCardItemDevice.class.getDeclaredField("userProvider");
+            field.setAccessible(true);
+            userProvider = field.get(device);
+        } catch (final ReflectiveOperationException e) {
+            throw new GameTestAssertException("could not read the card's terminal user provider: " + e);
+        }
+
+        if (userProvider != computer) {
+            throw new GameTestAssertException(
+                    "the card is bound to a terminal user provider that is not the computer it sits in");
+        }
     }
 
     /**

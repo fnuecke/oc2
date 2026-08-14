@@ -546,13 +546,17 @@ public final class ProjectorDepthRenderer {
 
     private static DynamicTexture getColorBuffer(final ProjectorBlockEntity projector) {
         try {
-            return RENDER_INFO.get(projector, () -> {
+            final RenderInfo renderInfo = RENDER_INFO.get(projector, () -> {
                 final DynamicTexture texture = new DynamicTexture(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, false);
                 texture.upload();
-                final RenderInfo renderInfo = new RenderInfo(texture);
-                projector.setFrameConsumer(renderInfo);
-                return renderInfo;
-            }).texture();
+                final RenderInfo info = new RenderInfo(texture);
+                projector.setFrameConsumer(info);
+                return info;
+            });
+
+            renderInfo.uploadIfDirty();
+
+            return renderInfo.texture();
         } catch (final ExecutionException e) {
             throw new RuntimeException(e);
         }
@@ -589,11 +593,29 @@ public final class ProjectorDepthRenderer {
      * <p>
      * Automatically updated by projectors when new data arrives (from a worker thread).
      */
-    private record RenderInfo(DynamicTexture texture) implements ProjectorBlockEntity.FrameConsumer {
+    private static final class RenderInfo implements ProjectorBlockEntity.FrameConsumer {
         private static final ThreadLocal<byte[]> RGB = ThreadLocal.withInitial(() -> new byte[3]);
+
+        private final DynamicTexture texture;
+        private boolean hasNewFrame;
+
+        RenderInfo(final DynamicTexture texture) {
+            this.texture = texture;
+        }
+
+        public DynamicTexture texture() {
+            return texture;
+        }
 
         public synchronized void close() {
             texture.close();
+        }
+
+        public synchronized void uploadIfDirty() {
+            if (hasNewFrame && texture.getPixels() != null) {
+                hasNewFrame = false;
+                texture.upload();
+            }
         }
 
         @Override
@@ -624,7 +646,7 @@ public final class ProjectorDepthRenderer {
                 }
             }
 
-            texture.upload();
+            hasNewFrame = true;
         }
 
         private static void setFromYUV420(final NativeImage image, final int col, final int row, final byte y, final byte cb, final byte cr) {

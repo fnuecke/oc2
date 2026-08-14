@@ -30,7 +30,6 @@ import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.zip.DataFormatException;
@@ -232,13 +231,12 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         }
 
         final CompletableFuture<?> lastDecode = runningDecode;
-        runningDecode = CompletableFuture.runAsync(() -> {
-            try {
-                try {
-                    if (lastDecode != null) lastDecode.join();
-                } catch (final CompletionException ignored) {
-                }
+        final CompletableFuture<?> previous = lastDecode != null
+                ? lastDecode.exceptionally(unused -> null)
+                : CompletableFuture.completedFuture(null);
 
+        runningDecode = previous.thenRunAsync(() -> {
+            try {
                 inflater.reset();
                 inflater.setInput(frameData);
 

@@ -16,6 +16,8 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
@@ -29,11 +31,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 // VT100 emulation: https://vt100.net/docs/vt100-ug/chapter3.html
 @Serialized
 public final class Terminal {
+    private static final Logger LOGGER = LogManager.getLogger();
+
     public static final int WIDTH = 80, HEIGHT = 24;
     public static final int CHAR_WIDTH = 8;
     public static final int CHAR_HEIGHT = 16;
 
     private static final int TAB_WIDTH = 4;
+    private static final int MAX_EXPECTED_RENDERERS = 4;
 
     @SuppressWarnings("unused")
     private static final class Color {
@@ -142,6 +147,12 @@ public final class Terminal {
     public RendererView getRenderer() {
         final Renderer renderer = new Renderer(this);
         renderers.add(renderer);
+
+        // Runtime quasi-assert to avoid leaking renderers again...
+        if (renderers.size() > MAX_EXPECTED_RENDERERS) {
+            LOGGER.warn("Terminal has {} renderers; one is likely not being released.", renderers.size());
+        }
+
         return renderer;
     }
 

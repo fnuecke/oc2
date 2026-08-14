@@ -160,8 +160,8 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     }
 
     @Override
-    public void onClose() {
-        super.onClose();
+    public void removed() {
+        super.removed();
         terminalWidget.onClose();
     }
 

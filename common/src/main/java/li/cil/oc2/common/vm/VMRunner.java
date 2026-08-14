@@ -5,8 +5,8 @@ package li.cil.oc2.common.vm;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
+import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
 import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
-import li.cil.oc2.api.bus.device.vm.event.VMSynchronizeEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
@@ -80,7 +80,7 @@ public class VMRunner implements Runnable {
     }
 
     public void join() {
-        context.postEvent(new VMSynchronizeEvent());
+        context.postEvent(new VMPausingEvent());
         firedResumedRunningEvent = false;
         if (lastSchedule != null) {
             try {

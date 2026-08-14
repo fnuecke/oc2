@@ -3,7 +3,7 @@
 package li.cil.oc2.api.bus.device.vm.event;
 
 /**
- * Fired when the VM is paused, typically before state is persisted.
+ * Fired when the VM is about to pause, typically before state is persisted.
  * <p>
  * Allows devices that offer interaction to external code-flow to suspend
  * such interactions until {@link VMResumedRunningEvent} is fired. This is required
@@ -14,6 +14,8 @@ package li.cil.oc2.api.bus.device.vm.event;
  * virtual machine is joined to the main thread. As such, only devices that run
  * their own threads modifying observable state will need to synchronize these
  * threads here.
+ * <p>
+ * <em>The VM may still be running when this fires!</em>
  */
-public final class VMSynchronizeEvent {
+public final class VMPausingEvent {
 }

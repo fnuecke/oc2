@@ -14,7 +14,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.Map;
+import java.util.Comparator;
 
 public final class ItemGroup {
     private static final DeferredRegister<CreativeModeTab> TABS = RegistryUtils.getInitializerFor(Registries.CREATIVE_MODE_TAB);
@@ -25,9 +25,9 @@ public final class ItemGroup {
             CreativeTabRegistry.create(builder -> {
                 builder.icon(() -> new ItemStack(Items.COMPUTER.get()));
                 builder.title(Component.translatable("itemGroup." + API.MOD_ID + ".common"));
-                builder.displayItems((parameters, output) -> BuiltInRegistries.ITEM.entrySet().stream()
-                        .filter(entry -> entry.getKey().location().getNamespace().equals(API.MOD_ID))
-                        .map(Map.Entry::getValue)
+                builder.displayItems((parameters, output) -> BuiltInRegistries.ITEM.stream()
+                        .filter(item -> API.MOD_ID.equals(BuiltInRegistries.ITEM.getKey(item).getNamespace()))
+                        .sorted(Comparator.comparing(item -> item.getDescription().getString(), String.CASE_INSENSITIVE_ORDER))
                         .forEach(item -> addItem(item, parameters, output)));
             }));
 

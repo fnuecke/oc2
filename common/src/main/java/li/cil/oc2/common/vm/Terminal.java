@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 // VT100 emulation: https://vt100.net/docs/vt100-ug/chapter3.html
 @Serialized
@@ -357,7 +357,7 @@ public final class Terminal {
                     } // Change this line to double-width single-height (DECDWL)
                     case '8' -> { // Fill Screen with Es (DECALN)
                         Arrays.fill(buffer, (byte) 'E');
-                        renderers.forEach(model -> model.getDirtyMask().set(-1));
+                        renderers.forEach(RendererModel::setDirty);
                     }
                 }
             }
@@ -676,14 +676,14 @@ public final class Terminal {
         buffer[index] = (byte) ch;
         colors[index] = color;
         styles[index] = style;
-        renderers.forEach(model -> model.getDirtyMask().accumulateAndGet(1 << y, (prev, next) -> prev | next));
+        renderers.forEach(RendererModel::setDirty);
     }
 
     private void clear() {
         Arrays.fill(buffer, (byte) ' ');
         Arrays.fill(colors, DEFAULT_COLORS);
         Arrays.fill(styles, DEFAULT_STYLE);
-        renderers.forEach(model -> model.getDirtyMask().set(-1));
+        renderers.forEach(RendererModel::setDirty);
     }
 
     private void clearLine(final int y) {
@@ -694,7 +694,7 @@ public final class Terminal {
         Arrays.fill(buffer, y * WIDTH + fromIndex, y * WIDTH + toIndex, (byte) ' ');
         Arrays.fill(colors, y * WIDTH + fromIndex, y * WIDTH + toIndex, DEFAULT_COLORS);
         Arrays.fill(styles, y * WIDTH + fromIndex, y * WIDTH + toIndex, DEFAULT_STYLE);
-        renderers.forEach(model -> model.getDirtyMask().accumulateAndGet(1 << y, (prev, next) -> prev | next));
+        renderers.forEach(RendererModel::setDirty);
     }
 
     private void shiftUpOne() {
@@ -724,20 +724,13 @@ public final class Terminal {
         Arrays.fill(colors, clearIndex, clearIndex + clearCount, DEFAULT_COLORS);
         Arrays.fill(styles, clearIndex, clearIndex + clearCount, DEFAULT_STYLE);
 
-        int dirtyLinesMask = 0;
-        final int dirtyStart = Math.min(firstLine, firstLine + count);
-        final int dirtyEnd = Math.max(lastLine, lastLine + count);
-        for (int i = dirtyStart; i <= dirtyEnd; i++) {
-            dirtyLinesMask |= 1 << i;
-        }
-        final int finalDirtyLinesMask = dirtyLinesMask;
-        renderers.forEach(model -> model.getDirtyMask().accumulateAndGet(finalDirtyLinesMask, (left, right) -> left | right));
+        renderers.forEach(RendererModel::setDirty);
     }
 
     // ------------------------------------------------------------- //
 
     private interface RendererModel {
-        AtomicInteger getDirtyMask();
+        void setDirty();
 
         void close();
     }
@@ -779,9 +772,14 @@ public final class Terminal {
         // ------------------------------------------------------------- //
 
         private final Terminal terminal;
-        private final VertexBuffer[] lines = new VertexBuffer[HEIGHT];
 
-        private final AtomicInteger dirty = new AtomicInteger(-1);
+        @Nullable
+        private VertexBuffer buffer;
+
+        private final AtomicBoolean dirty = new AtomicBoolean(true);
+
+        private final Matrix4f rowMatrix = new Matrix4f();
+        private final Matrix4f modelViewMatrix = new Matrix4f();
 
         // ------------------------------------------------------------- //
 
@@ -793,7 +791,7 @@ public final class Terminal {
 
         @Override
         public void render(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
-            validateLineCache();
+            validateMesh();
             renderBuffer(stack, modelViewBase, projectionMatrix);
 
             if ((System.currentTimeMillis() + terminal.hashCode()) % 1000 > 500) {
@@ -802,24 +800,25 @@ public final class Terminal {
         }
 
         @Override
-        public AtomicInteger getDirtyMask() {
-            return dirty;
+        public void setDirty() {
+            dirty.set(true);
         }
 
         @Override
         public void close() {
-            for (int i = 0; i < lines.length; i++) {
-                final VertexBuffer line = lines[i];
-                if (line != null) {
-                    line.close();
-                    lines[i] = null;
-                }
+            if (buffer != null) {
+                buffer.close();
+                buffer = null;
             }
         }
 
         // ------------------------------------------------------------- //
 
         private void renderBuffer(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
+            if (buffer == null) {
+                return;
+            }
+
             ShaderInstance shader = ModShaders.getTerminalShader();
             if (shader == null) {
                 // Shouldn't really happen, but just in case.
@@ -834,56 +833,44 @@ public final class Terminal {
             RenderSystem.defaultBlendFunc();
             RenderSystem.setShaderTexture(0, LOCATION_FONT_TEXTURE);
 
-            final Matrix4f modelView = new Matrix4f(modelViewBase).mul(stack.last().pose());
+            modelViewMatrix.set(modelViewBase).mul(stack.last().pose());
 
-            for (final VertexBuffer line : lines) {
-                if (line != null) {
-                    line.bind();
-                    line.drawWithShader(modelView, projectionMatrix, shader);
-                }
-            }
+            buffer.bind();
+            buffer.drawWithShader(modelViewMatrix, projectionMatrix, shader);
             VertexBuffer.unbind();
 
             RenderSystem.disableBlend();
             RenderSystem.depthMask(true);
         }
 
-        private void validateLineCache() {
-            if (dirty.get() == 0) {
+        private void validateMesh() {
+            if (!dirty.getAndSet(false)) {
                 return;
             }
 
-            final int mask = dirty.getAndSet(0);
-            for (int row = 0; row < lines.length; row++) {
-                if ((mask & (1 << row)) == 0) {
-                    continue;
-                }
+            final BufferBuilder builder = Tesselator.getInstance()
+                    .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 
-                final Matrix4f matrix = new Matrix4f().translation(0, row * CHAR_HEIGHT, 0);
-
-                final BufferBuilder builder = Tesselator.getInstance()
-                        .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-
-                renderBackground(matrix, builder, row);
-                renderForeground(matrix, builder, row);
-
-                final MeshData mesh = builder.build();
-                if (mesh == null) {
-                    if (lines[row] != null) {
-                        lines[row].close();
-                        lines[row] = null;
-                    }
-                    continue;
-                }
-
-                if (lines[row] == null) {
-                    lines[row] = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                }
-
-                lines[row].bind();
-                lines[row].upload(mesh);
-                VertexBuffer.unbind();
+            for (int row = 0; row < HEIGHT; row++) {
+                rowMatrix.translation(0, row * CHAR_HEIGHT, 0);
+                renderBackground(rowMatrix, builder, row);
+                renderForeground(rowMatrix, builder, row);
             }
+
+            final MeshData mesh = builder.build();
+            if (mesh == null) {
+                // Nothing visible at all; drop the buffer rather than leave the last frame on screen.
+                close();
+                return;
+            }
+
+            if (buffer == null) {
+                buffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
+            }
+
+            buffer.bind();
+            buffer.upload(mesh);
+            VertexBuffer.unbind();
         }
 
         private void renderBackground(final Matrix4f matrix, final BufferBuilder buffer, final int row) {

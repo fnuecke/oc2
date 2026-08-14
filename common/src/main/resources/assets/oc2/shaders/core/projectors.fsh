@@ -111,24 +111,15 @@ void main() {
 
     vec3 colorAcc = vec3(0);
     vec3 color;
-    int accCount = 0;
-    if (Count > 0 && getProjectorColor(worldPos, worldNormal, ProjectorCamera0, ProjectorColor0, ProjectorDepth0, color)) {
+    if (getProjectorColor(worldPos, worldNormal, ProjectorCamera0, ProjectorColor0, ProjectorDepth0, color)) {
         colorAcc += color;
-        accCount += 1;
     }
     if (Count > 1 && getProjectorColor(worldPos, worldNormal, ProjectorCamera1, ProjectorColor1, ProjectorDepth1, color)) {
         colorAcc += color;
-        accCount += 1;
     }
     if (Count > 2 && getProjectorColor(worldPos, worldNormal, ProjectorCamera2, ProjectorColor2, ProjectorDepth2, color)) {
         colorAcc += color;
-        accCount += 1;
     }
 
-    // Check if we had any projections at all.
-    if (accCount == 0) {
-        discard;
-    }
-
-    fragColor = vec4(colorAcc, 1) / accCount;
+    fragColor = vec4(colorAcc, 1);
 }

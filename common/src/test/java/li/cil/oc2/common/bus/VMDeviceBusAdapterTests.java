@@ -378,6 +378,80 @@ public final class VMDeviceBusAdapterTests {
         assertFalse(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
     }
 
+    @Test
+    public void failedMountLeavesAlreadyMountedDevicesRecoverable() {
+        final VMDevice mounted = mock(VMDevice.class);
+        when(mounted.mount(any())).thenReturn(VMDeviceLoadResult.success());
+
+        adapter.addDevices(Collections.singleton(mounted));
+        assertTrue(adapter.mountDevices().wasSuccessful());
+        verify(mounted, times(1)).mount(any());
+
+        // Hot-plug something that cannot mount. The device that was already running has to come
+        // back, not be dropped: it is still on the bus, and the caller keeps the VM running.
+        final VMDevice failing = mock(VMDevice.class);
+        when(failing.mount(any())).thenReturn(VMDeviceLoadResult.fail());
+
+        adapter.addDevices(Collections.singleton(failing));
+        assertFalse(adapter.mountDevices().wasSuccessful());
+
+        verify(mounted, times(1)).unmount();
+
+        // Remove the broken device and the original one must mount again.
+        adapter.removeDevices(Collections.singleton(failing));
+        assertTrue(adapter.mountDevices().wasSuccessful());
+        verify(mounted, times(2)).mount(any());
+    }
+
+    @Test
+    public void failedMountReleasesTheMemoryOfAlreadyMountedDevices() {
+        final VMDevice mounted = mock(VMDevice.class);
+        when(mounted.mount(any())).then(invocation -> {
+            invocation.<VMContext>getArgument(0).getMemoryRangeAllocator()
+                    .claimMemoryRange(mock(MemoryMappedDevice.class));
+            return VMDeviceLoadResult.success();
+        });
+
+        adapter.addDevices(Collections.singleton(mounted));
+        assertTrue(adapter.mountDevices().wasSuccessful());
+
+        final VMDevice failing = mock(VMDevice.class);
+        when(failing.mount(any())).thenReturn(VMDeviceLoadResult.fail());
+        adapter.addDevices(Collections.singleton(failing));
+
+        assertFalse(adapter.mountDevices().wasSuccessful());
+
+        adapter.removeDevices(Collections.singleton(failing));
+        assertTrue(adapter.mountDevices().wasSuccessful(), "the rolled back memory range must be claimable again");
+    }
+
+    @Test
+    public void addingTheSameDeviceTwiceMountsItOnce() {
+        final VMDevice device = mock(VMDevice.class);
+        when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
+
+        adapter.addDevices(Collections.singleton(device));
+        adapter.addDevices(Collections.singleton(device));
+
+        assertTrue(adapter.mountDevices().wasSuccessful());
+        verify(device, times(1)).mount(any());
+    }
+
+    @Test
+    public void disposedDeviceIsStillMountedAgainOnRestart() {
+        final VMDevice device = mock(VMDevice.class);
+        when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
+
+        adapter.addDevices(Collections.singleton(device));
+        assertTrue(adapter.mountDevices().wasSuccessful());
+
+        adapter.disposeDevices();
+        verify(device, times(1)).dispose();
+
+        assertTrue(adapter.mountDevices().wasSuccessful());
+        verify(device, times(2)).mount(any());
+    }
+
     private static final class DeviceData {
         public VMContext context;
         public int interrupt;

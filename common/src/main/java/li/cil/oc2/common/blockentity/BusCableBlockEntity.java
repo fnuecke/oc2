@@ -236,8 +236,13 @@ public final class BusCableBlockEntity extends ModBlockEntity {
             tracker.updateListener();
             tracker.scheduleNeighborDeviceUpdate();
         }
+    }
 
-        scheduleBusScanInAdjacentBusElements();
+    @Override
+    protected void loadServerInLoadedLevel() {
+        super.loadServerInLoadedLevel();
+
+        scanAdjacentBusElements();
     }
 
     @Override
@@ -275,29 +280,21 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         return trimmed.length() > 32 ? trimmed.substring(0, 32) : trimmed;
     }
 
-    private void scheduleBusScanInAdjacentBusElements() {
-        // This is called from onLoad, so we cannot access neighbors yet.
-        assert level != null;
-        ServerScheduler.schedule(level, () -> {
-            if (!isValid()) {
-                return;
+    private void scanAdjacentBusElements() {
+        final Level level = requireNonNull(getLevel());
+        final BlockPos pos = getBlockPos();
+        for (final Direction direction : Constants.DIRECTIONS) {
+            final BlockPos neighborPos = pos.relative(direction);
+            final BlockEntity blockEntity = LevelUtils.getBlockEntityIfChunkExists(level, neighborPos);
+            if (blockEntity == null) {
+                continue;
             }
 
-            final Level level = requireNonNull(getLevel());
-            final BlockPos pos = getBlockPos();
-            for (final Direction direction : Constants.DIRECTIONS) {
-                final BlockPos neighborPos = pos.relative(direction);
-                final BlockEntity blockEntity = LevelUtils.getBlockEntityIfChunkExists(level, neighborPos);
-                if (blockEntity == null) {
-                    continue;
-                }
-
-                final DeviceBusElement busElement = Capabilities.get(blockEntity, Capabilities.DEVICE_BUS_ELEMENT, direction.getOpposite());
-                if (busElement != null) {
-                    busElement.scheduleScan();
-                }
+            final DeviceBusElement busElement = Capabilities.get(blockEntity, Capabilities.DEVICE_BUS_ELEMENT, direction.getOpposite());
+            if (busElement != null) {
+                busElement.scheduleScan();
             }
-        });
+        }
     }
 
     // ------------------------------------------------------------- //

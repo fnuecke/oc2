@@ -305,13 +305,14 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         assert level != null;
 
         virtualMachine.state.builtinDevices.rtcMinecraft.setLevel(level);
+    }
+
+    @Override
+    protected void loadServerInLoadedLevel() {
+        super.loadServerInLoadedLevel();
 
         // For item devices that want a capability from the computer; not available during nbt load yet.
-        ServerScheduler.schedule(level, () -> {
-            if (isValid()) {
-                deviceItems.updateDevices();
-            }
-        });
+        deviceItems.updateDevices();
     }
 
     @Override

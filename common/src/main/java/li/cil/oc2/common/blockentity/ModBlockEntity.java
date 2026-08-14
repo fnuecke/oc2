@@ -52,6 +52,12 @@ public abstract class ModBlockEntity extends BlockEntity {
         } else {
             loadServer();
 
+            ServerScheduler.schedule(level, () -> {
+                if (isValid()) {
+                    loadServerInLoadedLevel();
+                }
+            });
+
             if (needsWorldUnloadEvent) {
                 ServerScheduler.scheduleOnUnload(level, onWorldUnloaded);
             }
@@ -67,6 +73,7 @@ public abstract class ModBlockEntity extends BlockEntity {
     public void onWorldUnloaded() {
         Capabilities.invalidate(this);
         onUnload(false);
+        isUnloaded = true;
     }
 
     @Override
@@ -107,6 +114,9 @@ public abstract class ModBlockEntity extends BlockEntity {
     }
 
     protected void loadServer() {
+    }
+
+    protected void loadServerInLoadedLevel() {
     }
 
     protected void unloadServer(final boolean isRemove) {

@@ -28,11 +28,21 @@ public final class ItemHandlerDevice extends IdentityProxy<ItemHandler> implemen
 
     @Callback
     public ItemStack getItemStackInSlot(final int slot) {
-        return identity.getStackInSlot(slot);
+        return identity.getStackInSlot(requireValidSlot(slot));
     }
 
     @Callback
     public int getItemSlotLimit(final int slot) {
-        return identity.getSlotLimit(slot);
+        return identity.getSlotLimit(requireValidSlot(slot));
+    }
+
+    // ------------------------------------------------------------- //
+
+    private int requireValidSlot(final int slot) {
+        if (slot < 0 || slot >= identity.getSlots()) {
+            throw new IllegalArgumentException("slot out of range: " + slot
+                    + " (expected 0 to " + (identity.getSlots() - 1) + ")");
+        }
+        return slot;
     }
 }

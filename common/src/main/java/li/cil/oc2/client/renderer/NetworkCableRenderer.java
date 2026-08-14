@@ -40,7 +40,11 @@ public final class NetworkCableRenderer {
     private static boolean isDirty;
 
     private static final ArrayList<Connection> connections = new ArrayList<>();
-    private static final ArrayList<CablePoint> cablePoints = new ArrayList<>();
+
+    private static final float[] cableLeft = new float[CABLE_VERTEX_COUNT * 3];
+    private static final float[] cableRight = new float[CABLE_VERTEX_COUNT * 3];
+    private static final int[] cableLight = new int[CABLE_VERTEX_COUNT];
+    private static final BlockPos.MutableBlockPos cablePos = new BlockPos.MutableBlockPos();
 
     // ------------------------------------------------------------- //
 
@@ -96,6 +100,7 @@ public final class NetworkCableRenderer {
 
         final RenderType renderType = ModRenderType.getNetworkCable();
         final MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+        final VertexConsumer consumer = bufferSource.getBuffer(renderType);
 
         final float r = CABLE_COLOR.x();
         final float g = CABLE_COLOR.y();
@@ -120,45 +125,50 @@ public final class NetworkCableRenderer {
                     computeCableSwingAmount(p0, p1),
                     connection.hashCode());
 
-            final VertexConsumer consumer = bufferSource.getBuffer(renderType);
+            buildCableOutline(level, eye, connection.forward, p0, p1, p2);
 
-            cablePoints.clear();
-            cablePoints.ensureCapacity(CABLE_VERTEX_COUNT);
-            for (int i = 0; i < CABLE_VERTEX_COUNT; i++) {
-                final float t = i / (CABLE_VERTEX_COUNT - 1f);
-                final Vec3 p = quadraticBezier(p0, p1, p2, t);
-                final Vec3 n = getExtrusionVector(eye, p, connection.forward);
+            for (int i = 0; i < CABLE_VERTEX_COUNT - 1; i++) {
+                final int i0 = i * 3, i1 = (i + 1) * 3;
+                final int light = cableLight[i];
 
-                final BlockPos blockPos = BlockPos.containing(p);
-                final int blockLight = level.getBrightness(LightLayer.BLOCK, blockPos);
-                final int skyLight = level.getBrightness(LightLayer.SKY, blockPos);
-                final int packedLight = LightTexture.pack(blockLight, skyLight);
-
-                final Vector3f v0 = toVector3f(p.subtract(n));
-                final Vector3f v1 = toVector3f(p.add(n));
-
-                cablePoints.add(new CablePoint(v0, v1, packedLight));
+                consumer.addVertex(viewMatrix, cableLeft[i0], cableLeft[i0 + 1], cableLeft[i0 + 2])
+                        .setColor(r, g, b, 1f)
+                        .setLight(light);
+                consumer.addVertex(viewMatrix, cableRight[i0], cableRight[i0 + 1], cableRight[i0 + 2])
+                        .setColor(r, g, b, 1f)
+                        .setLight(light);
+                consumer.addVertex(viewMatrix, cableRight[i1], cableRight[i1 + 1], cableRight[i1 + 2])
+                        .setColor(r, g, b, 1f)
+                        .setLight(light);
+                consumer.addVertex(viewMatrix, cableLeft[i1], cableLeft[i1 + 1], cableLeft[i1 + 2])
+                        .setColor(r, g, b, 1f)
+                        .setLight(light);
             }
+        }
 
-            for (int i = 0; i < cablePoints.size() - 1; i++) {
-                final CablePoint pa = cablePoints.get(i);
-                final CablePoint pb = cablePoints.get(i + 1);
+        bufferSource.endBatch(renderType);
+    }
 
-                consumer.addVertex(viewMatrix, pa.v0.x(), pa.v0.y(), pa.v0.z())
-                        .setColor(r, g, b, 1f)
-                        .setLight(pa.packedLight);
-                consumer.addVertex(viewMatrix, pa.v1.x(), pa.v1.y(), pa.v1.z())
-                        .setColor(r, g, b, 1f)
-                        .setLight(pa.packedLight);
-                consumer.addVertex(viewMatrix, pb.v1.x(), pb.v1.y(), pb.v1.z())
-                        .setColor(r, g, b, 1f)
-                        .setLight(pa.packedLight);
-                consumer.addVertex(viewMatrix, pb.v0.x(), pb.v0.y(), pb.v0.z())
-                        .setColor(r, g, b, 1f)
-                        .setLight(pa.packedLight);
-            }
+    private static void buildCableOutline(final BlockAndTintGetter level, final Vec3 eye, final Vec3 forward,
+                                          final Vec3 p0, final Vec3 p1, final Vec3 p2) {
+        for (int i = 0; i < CABLE_VERTEX_COUNT; i++) {
+            final float t = i / (CABLE_VERTEX_COUNT - 1f);
 
-            bufferSource.endBatch(renderType);
+            final Vec3 p = quadraticBezier(p0, p1, p2, t);
+            final Vec3 n = getExtrusionVector(eye, p, forward);
+
+            cablePos.set(p.x, p.y, p.z);
+            cableLight[i] = LightTexture.pack(
+                    level.getBrightness(LightLayer.BLOCK, cablePos),
+                    level.getBrightness(LightLayer.SKY, cablePos));
+
+            final int o = i * 3;
+            cableLeft[o] = (float) (p.x - n.x);
+            cableLeft[o + 1] = (float) (p.y - n.y);
+            cableLeft[o + 2] = (float) (p.z - n.z);
+            cableRight[o] = (float) (p.x + n.x);
+            cableRight[o + 1] = (float) (p.y + n.y);
+            cableRight[o + 2] = (float) (p.z + n.z);
         }
     }
 
@@ -216,20 +226,23 @@ public final class NetworkCableRenderer {
     }
 
     private static void validateConnectors() {
-        final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(connectors);
-        for (final NetworkConnectorBlockEntity connector : list) {
-            if (!connector.isValid()) {
-                connectors.remove(connector);
+        int count = 0;
+        final var iterator = connectors.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().isValid()) {
+                count++;
+            } else {
+                iterator.remove();
                 invalidateConnections();
             }
         }
 
         // We track the size because the WeakHasMap may expunge dead entries without
         // us knowing otherwise.
-        if (list.size() != lastKnownConnectorCount) {
+        if (count != lastKnownConnectorCount) {
             invalidateConnections();
         }
-        lastKnownConnectorCount = list.size();
+        lastKnownConnectorCount = count;
     }
 
     private static void validatePairs() {
@@ -290,12 +303,5 @@ public final class NetworkCableRenderer {
         public int hashCode() {
             return Objects.hash(fromPos, toPos);
         }
-    }
-
-    private record CablePoint(Vector3f v0, Vector3f v1, int packedLight) {
-    }
-
-    private static Vector3f toVector3f(final Vec3 v) {
-        return new Vector3f((float) v.x, (float) v.y, (float) v.z);
     }
 }

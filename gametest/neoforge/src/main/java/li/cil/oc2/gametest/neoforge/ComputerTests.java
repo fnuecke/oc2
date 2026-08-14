@@ -5,6 +5,7 @@ package li.cil.oc2.gametest.neoforge;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
+import li.cil.oc2.common.blockentity.DiskDriveBlockEntity;
 import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.ItemStackUtils;
@@ -182,7 +183,37 @@ public final class ComputerTests {
                 .thenSucceed();
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 200)
+    public static void breakingDiskDriveDropsItsFloppy(final GameTestHelper helper) {
+        place(helper, fakePlayer(helper), new ItemStack(Items.DISK_DRIVE.get()), COMPUTER_POS);
+
+        helper.startSequence()
+                .thenExecuteAfter(20, () -> {
+                    final DiskDriveBlockEntity drive = helper.getBlockEntity(COMPUTER_POS);
+                    if (!drive.insert(new ItemStack(Items.FLOPPY.get()), null).isEmpty()) {
+                        throw new GameTestAssertException("could not insert the floppy");
+                    }
+                })
+                .thenExecuteAfter(10, () -> helper.getLevel()
+                        .destroyBlock(helper.absolutePos(COMPUTER_POS), true, null))
+                .thenExecuteAfter(10, () -> {
+                    final List<ItemStack> dropped = droppedStacks(helper);
+                    if (dropped.stream().noneMatch(stack -> stack.is(Items.FLOPPY.get()))) {
+                        throw new GameTestAssertException("the floppy was destroyed with the drive, got " + dropped);
+                    }
+                    if (dropped.stream().noneMatch(stack -> stack.is(Items.DISK_DRIVE.get()))) {
+                        throw new GameTestAssertException("the drive itself did not drop, got " + dropped);
+                    }
+                })
+                .thenSucceed();
+    }
+
     // ------------------------------------------------------------- //
+
+    private static List<ItemStack> droppedStacks(final GameTestHelper helper) {
+        return helper.getLevel().getEntitiesOfClass(ItemEntity.class, helper.getBounds().inflate(2))
+                .stream().map(ItemEntity::getItem).toList();
+    }
 
     private static ItemStack singleDroppedStack(final GameTestHelper helper) {
         final List<ItemEntity> items = helper.getLevel().getEntitiesOfClass(ItemEntity.class,
@@ -225,7 +256,7 @@ public final class ComputerTests {
 
     /**
      * As close to what a world reload does to a single block entity as we can get in a game test: save it,
-     * drop it off the level, then bring a fresh instance back from that data.
+     * remove it from the level, then bring a fresh instance back from that data.
      */
     private static void reloadBlockEntity(final GameTestHelper helper, final BlockPos relativePos) {
         final ServerLevel level = helper.getLevel();

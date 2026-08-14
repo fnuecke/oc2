@@ -92,6 +92,17 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
         }
     }
 
+    public void dropFloppy() {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+
+        final ItemStack stack = itemHandler.extractItem(0, 1, false);
+        if (!stack.isEmpty()) {
+            ItemStackUtils.spawnAsEntity(level, getBlockPos(), stack);
+        }
+    }
+
     public ItemStack getFloppy() {
         return itemHandler.getStackInSlot(0);
     }

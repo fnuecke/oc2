@@ -40,6 +40,8 @@ public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackH
     }
 
     public CompoundTag saveItems(final HolderLookup.Provider registries) {
+        exportDeviceDataToItemStacks();
+
         return super.serializeNBT(registries);
     }
 

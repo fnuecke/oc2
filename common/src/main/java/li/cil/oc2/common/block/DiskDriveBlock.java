@@ -105,4 +105,16 @@ public final class DiskDriveBlock extends HorizontalDirectionalBlock implements 
         super.createBlockStateDefinition(builder);
         builder.add(FACING);
     }
+
+    @Override
+    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
+        if (!state.is(newState.getBlock())) {
+            final BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof final DiskDriveBlockEntity drive) {
+                drive.dropFloppy();
+            }
+        }
+
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
 }

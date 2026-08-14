@@ -2,8 +2,6 @@
 
 package li.cil.oc2.common.bus.device.vm.item;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
@@ -54,7 +52,7 @@ public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
         private static final int BYTES_PER_TICK = 32 * 1024 / TickUtils.toTicks(Duration.ofSeconds(1)); // bytes / sec -> bytes / tick
         private static final int MIN_ETHERNET_FRAME_SIZE = 42;
 
-        private static final BiMap<UUID, Set<NetworkInterface>> TUNNELS = HashBiMap.create();
+        private static final Map<UUID, Set<NetworkInterface>> TUNNELS = new HashMap<>();
 
         public static void registerEndpoint(final UUID id, final NetworkInterface networkInterface) {
             TUNNELS.computeIfAbsent(id, unused -> new HashSet<>())
@@ -62,9 +60,10 @@ public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
         }
 
         public static void unregisterEndpoint(final NetworkInterface networkInterface) {
-            for (final Set<NetworkInterface> tunnel : TUNNELS.values()) {
+            TUNNELS.values().removeIf(tunnel -> {
                 tunnel.remove(networkInterface);
-            }
+                return tunnel.isEmpty();
+            });
         }
 
         public static void initialize() {
@@ -73,14 +72,8 @@ public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
         }
 
         private static void pumpMessages() {
-            final Iterator<Set<NetworkInterface>> iterator = TUNNELS.values().iterator();
-            while (iterator.hasNext()) {
-                final Set<NetworkInterface> tunnel = iterator.next();
-                if (tunnel.isEmpty()) {
-                    iterator.remove();
-                } else {
-                    pumpMessages(tunnel);
-                }
+            for (final Set<NetworkInterface> tunnel : TUNNELS.values()) {
+                pumpMessages(tunnel);
             }
         }
 

@@ -112,6 +112,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.robotEnergyStorage);
     private final ItemStackHandler inventory = new FixedSizeItemStackHandler(INVENTORY_SIZE);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
+    private volatile List<ServerPlayer> terminalRecipients = List.of(); // Copy for threaded send.
     private long lastPistonMovement;
 
     // ------------------------------------------------------------- //
@@ -205,6 +206,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     public void openTerminalScreen(final ServerPlayer player) {
+        // For full terminal snapshot.
+        Network.sendToClient(new RobotInitializationMessage(this), player);
+
         RobotTerminalContainer.createServer(this, energy, virtualMachine.busController, player);
     }
 
@@ -214,10 +218,12 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     public void addTerminalUser(final Player player) {
         terminalUsers.add(player);
+        updateTerminalRecipients();
     }
 
     public void removeTerminalUser(final Player player) {
         terminalUsers.remove(player);
+        updateTerminalRecipients();
     }
 
     @Override
@@ -467,6 +473,17 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         unregisterListeners();
         virtualMachine.suspend();
         virtualMachine.dispose();
+    }
+
+    private void updateTerminalRecipients() {
+        final ArrayList<ServerPlayer> recipients = new ArrayList<>();
+        for (final Player player : terminalUsers) {
+            if (player instanceof final ServerPlayer serverPlayer) {
+                recipients.add(serverPlayer);
+            }
+        }
+
+        terminalRecipients = List.copyOf(recipients);
     }
 
     private Cursor3D getBlockPosIterator() {
@@ -791,7 +808,15 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         @Override
         protected void sendTerminalUpdateToClient(final ByteBuffer output) {
-            Network.sendToClientsTrackingEntity(new RobotTerminalOutputMessage(Robot.this, output), Robot.this);
+            final List<ServerPlayer> recipients = terminalRecipients;
+            if (recipients.isEmpty()) {
+                return;
+            }
+
+            final RobotTerminalOutputMessage message = new RobotTerminalOutputMessage(Robot.this, output);
+            for (final ServerPlayer player : recipients) {
+                Network.sendToClient(message, player);
+            }
         }
     }
 
@@ -819,8 +844,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         protected void stopRunnerAndReset() {
             super.stopRunnerAndReset();
 
-            TerminalUtils.resetTerminal(terminal, output -> Network.sendToClientsTrackingEntity(
-                    new RobotTerminalOutputMessage(Robot.this, output), Robot.this));
+            TerminalUtils.resetTerminal(terminal, output -> {
+                for (final ServerPlayer player : terminalRecipients) {
+                    Network.sendToClient(new RobotTerminalOutputMessage(Robot.this, output), player);
+                }
+            });
 
             actionProcessor.clear();
         }

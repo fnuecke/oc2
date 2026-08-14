@@ -25,6 +25,10 @@ public interface Device {
      * Called to dispose this device.
      * <p>
      * Called when the connected virtual machine stops or the device is removed from a {@link DeviceBus}.
+     * <p>
+     * This is not a terminal state: a device that is still on the bus when its virtual machine starts
+     * again will be mounted again, so implementations must leave themselves usable. Releasing resources
+     * here is fine as long as they can be re-acquired on the next mount.
      */
     default void dispose() {
     }

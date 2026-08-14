@@ -75,17 +75,17 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     @Override
     public VMDeviceLoadResult mount(final VMContext context) {
         if (!allocateDevice(context)) {
-            return VMDeviceLoadResult.fail();
+            return failMount();
         }
 
         if (!address.claim(context, device)) {
-            return VMDeviceLoadResult.fail();
+            return failMount();
         }
 
         if (interrupt.claim(context)) {
             device.getInterrupt().set(interrupt.getAsInt(), context.getInterruptController());
         } else {
-            return VMDeviceLoadResult.fail();
+            return failMount();
         }
 
         context.getEventBus().register(this);
@@ -243,6 +243,16 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         }
 
         device = null;
+    }
+
+    private VMDeviceLoadResult failMount() {
+        closeDevice();
+
+        if (blobHandle != null) {
+            BlobStorage.close(blobHandle);
+        }
+
+        return VMDeviceLoadResult.fail();
     }
 
     // ------------------------------------------------------------- //

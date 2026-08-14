@@ -44,8 +44,9 @@ import li.cil.sedna.api.device.MemoryMappedDevice;
  *                   └─┤dispose()├───────────┘
  *                     └─────────┘
  * </pre>
- * Note that if any other {@link VMDevice} fails mounting, all mounted devices
- * will immediately unmounted and disposed.
+ * Note that if any other {@link VMDevice} fails mounting, all mounted devices are immediately
+ * unmounted again. They are not disposed: the mount may be retried, and disposing would drop
+ * device state that may still be needed/useful.
  *
  * @see li.cil.oc2.api.bus.device.provider.BlockDeviceProvider
  * @see li.cil.oc2.api.bus.device.provider.ItemDeviceProvider

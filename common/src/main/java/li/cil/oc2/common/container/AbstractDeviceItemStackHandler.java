@@ -49,6 +49,10 @@ public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackH
 
     public void loadItems(final HolderLookup.Provider registries, final CompoundTag tag) {
         super.deserializeNBT(registries, tag);
+        updateDevices();
+    }
+
+    public void updateDevices() {
         for (int slot = 0; slot < getSlots(); slot++) {
             getBusElement().handleSlotContentsChanged(slot, getStackInSlot(slot));
         }

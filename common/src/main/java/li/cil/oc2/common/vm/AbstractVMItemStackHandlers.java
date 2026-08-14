@@ -138,6 +138,10 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
                 handler.loadDevices(tag.getCompound(key(deviceType))));
     }
 
+    public void updateDevices() {
+        itemHandlers.values().forEach(AbstractDeviceItemStackHandler::updateDevices);
+    }
+
     // ------------------------------------------------------------- //
 
     protected abstract ItemDeviceQuery makeQuery(final ItemStack stack);

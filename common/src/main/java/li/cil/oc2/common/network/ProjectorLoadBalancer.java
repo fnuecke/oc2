@@ -12,7 +12,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -86,7 +85,7 @@ public final class ProjectorLoadBalancer {
      * <p>
      * Ignored if there are no players watching the projector.
      */
-    public static void offerFrame(final ProjectorBlockEntity projector, final Supplier<ByteBuffer> messageSupplier) {
+    public static void offerFrame(final ProjectorBlockEntity projector, final Supplier<byte[]> messageSupplier) {
         final ProjectorInfo info = PROJECTOR_INFO.get(projector);
         if (info != null) {
             info.nextFrameSupplier = messageSupplier;
@@ -211,7 +210,7 @@ public final class ProjectorLoadBalancer {
         private int skipCount;
 
         @Nullable
-        private Supplier<ByteBuffer> nextFrameSupplier;
+        private Supplier<byte[]> nextFrameSupplier;
         @Nullable
         private Future<?> runningEncode;
 
@@ -268,18 +267,18 @@ public final class ProjectorLoadBalancer {
 
         private void sendAsync() {
             assert nextFrameSupplier != null;
-            final Supplier<ByteBuffer> frameSupplier = nextFrameSupplier;
+            final Supplier<byte[]> frameSupplier = nextFrameSupplier;
             nextFrameSupplier = null;
 
             final List<ServerPlayer> recipients = List.copyOf(players.keySet());
             assert runningEncode == null || runningEncode.isDone();
             runningEncode = ENCODER_WORKERS.submit(() -> {
-                final ByteBuffer frame = frameSupplier.get();
+                final byte[] frame = frameSupplier.get();
                 if (frame == null) {
                     return;
                 }
 
-                final int budgetCost = frame.limit() * recipients.size();
+                final int budgetCost = frame.length * recipients.size();
                 BUDGET.accumulateAndGet(budgetCost, (budget, cost) -> budget - cost);
 
                 final ProjectorFramebufferMessage message = new ProjectorFramebufferMessage(projectorPos, frame);

@@ -45,6 +45,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     // ------------------------------------------------------------- //
 
+    public static final int MAX_FRAME_SIZE = 1024 * 1024;
     public static final int MAX_RENDER_DISTANCE = 16;
     public static final int MAX_GOOD_RENDER_DISTANCE = 12;
     public static final int MAX_WIDTH = MAX_GOOD_RENDER_DISTANCE + 1; // +1 To make it odd, so we can center.
@@ -70,7 +71,9 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     // Video encoding.
     private final H264Encoder encoder = new H264Encoder(new CQPRateControl(12));
-    private final ByteBuffer encoderBuffer = ByteBuffer.allocateDirect(1024 * 1024); // Re-used decompression buffer.
+    private final ByteBuffer encoderBuffer = ByteBuffer.allocateDirect(MAX_FRAME_SIZE); // Re-used compression buffer.
+    private final ByteBuffer compressedBuffer = ByteBuffer.allocateDirect(MAX_FRAME_SIZE); // Re-used compression buffer.
+    private final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION); // Re-used, native memory.
     // Set on the server thread (setRequiresKeyframe), read and cleared on the encoder thread.
     private volatile boolean needsIDR; // Whether we need to send a keyframe next.
 
@@ -78,7 +81,8 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     private final H264Decoder decoder = new H264Decoder();
     @Nullable
     private CompletableFuture<?> runningDecode; // Current decoding operation, if any, to avoid race conditions.
-    private final ByteBuffer decoderBuffer = ByteBuffer.allocateDirect(1024 * 1024); // Re-used decompression buffer.
+    private final ByteBuffer decoderBuffer = ByteBuffer.allocateDirect(MAX_FRAME_SIZE); // Re-used decompression buffer.
+    private final Inflater inflater = new Inflater(); // Re-used, native memory.
     @Nullable
     private FrameConsumer frameConsumer; // Where to throw received frames.
 
@@ -221,7 +225,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         this.hasEnergy = hasEnergy;
     }
 
-    public void applyNextFrameClient(final ByteBuffer frameData) {
+    public void applyNextFrameClient(final byte[] frameData) {
         if (level == null || !level.isClientSide()) {
             return;
         }
@@ -234,7 +238,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
                 } catch (final CompletionException ignored) {
                 }
 
-                final Inflater inflater = new Inflater();
+                inflater.reset();
                 inflater.setInput(frameData);
 
                 decoderBuffer.clear();
@@ -254,6 +258,14 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     }
 
     // ------------------------------------------------------------- //
+
+    @Override
+    protected void onUnload(final boolean isRemove) {
+        super.onUnload(isRemove);
+
+        deflater.end();
+        inflater.end();
+    }
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
@@ -296,7 +308,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     }
 
     @Nullable
-    private ByteBuffer encodeFrame() {
+    private byte[] encodeFrame() {
         final boolean hasChanges = projectorDevice.applyChanges(picture);
         if (!hasChanges && !needsIDR) {
             return null;
@@ -316,13 +328,16 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
             return null;
         }
 
-        final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
+        deflater.reset();
         deflater.setInput(frameData);
         deflater.finish();
-        final ByteBuffer compressedFrameData = ByteBuffer.allocateDirect(1024 * 1024);
-        deflater.deflate(compressedFrameData, Deflater.FULL_FLUSH);
-        deflater.end();
-        compressedFrameData.flip();
+
+        compressedBuffer.clear();
+        deflater.deflate(compressedBuffer, Deflater.FULL_FLUSH);
+        compressedBuffer.flip();
+
+        final byte[] compressedFrameData = new byte[compressedBuffer.remaining()];
+        compressedBuffer.get(compressedFrameData);
 
         return compressedFrameData;
     }

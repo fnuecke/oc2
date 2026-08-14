@@ -8,15 +8,13 @@ import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 
-import java.nio.ByteBuffer;
-
 public final class ProjectorFramebufferMessage extends AbstractMessage {
     private BlockPos pos;
-    private ByteBuffer frame;
+    private byte[] frame;
 
     // ------------------------------------------------------------- //
 
-    public ProjectorFramebufferMessage(final BlockPos projectorPos, final ByteBuffer frame) {
+    public ProjectorFramebufferMessage(final BlockPos projectorPos, final byte[] frame) {
         this.pos = projectorPos;
         this.frame = frame;
     }
@@ -30,16 +28,13 @@ public final class ProjectorFramebufferMessage extends AbstractMessage {
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
-        frame = ByteBuffer.allocateDirect(buffer.readVarInt());
-        buffer.readBytes(frame);
-        frame.flip();
+        frame = buffer.readByteArray(ProjectorBlockEntity.MAX_FRAME_SIZE);
     }
 
     @Override
     public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
-        buffer.writeVarInt(frame.limit());
-        buffer.writeBytes(frame);
+        buffer.writeByteArray(frame);
     }
 
     // ------------------------------------------------------------- //

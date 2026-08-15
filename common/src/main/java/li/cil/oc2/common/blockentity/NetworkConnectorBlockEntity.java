@@ -199,7 +199,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
 
         int byteBudget = BYTES_PER_TICK;
         byte[] frame;
-        while ((frame = source.readEthernetFrame()) != null && byteBudget > 0) {
+        while (byteBudget > 0 && (frame = source.readEthernetFrame()) != null) {
             byteBudget -= Math.max(frame.length, MIN_ETHERNET_FRAME_SIZE); // Avoid bogus packets messing with us.
             networkInterface.writeEthernetFrame(source, frame, Config.ethernetFrameTimeToLive);
         }

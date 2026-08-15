@@ -552,24 +552,23 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         private static final float TOP_IDLE_Y = -2f / 16f;
         private static final float BASE_IDLE_Y = -1f / 16f;
 
-        private static final float TRANSLATION_SPEED = 0.005f;
+        private static final float TRANSLATION_SPEED = 0.015f;
         private static final float ROTATION_SPEED = 1f;
         private static final float MAX_ROTATION = 5f;
-        private static final float MIN_ROTATION_SPEED = 0.055f;
-        private static final float MAX_ROTATION_SPEED = 0.060f;
-        private static final float HOVER_ANIMATION_SPEED = 0.01f;
+        private static final float MIN_ROTATION_SPEED = 0.165f;
+        private static final float MAX_ROTATION_SPEED = 0.180f;
+        private static final float HOVER_ANIMATION_SPEED = 0.03f;
 
         public float topRenderOffsetY = TOP_IDLE_Y;
         public float baseRenderOffsetY = BASE_IDLE_Y;
         public float topRenderRotationY;
         public float topRenderTargetRotationY;
         public float topRenderRotationSpeed;
-        public float topRenderHover = -(hashCode() & 0xFFFF); // init to "random" to avoid synchronous hovering
+        private final float hoverPhase = hashCode() & 0xFFFF;
 
-        public void update(final float deltaTime, final RandomSource random) {
+        public void update(final float time, final float deltaTime, final RandomSource random) {
             if (getVirtualMachine().isRunning() || actionProcessor.hasQueuedActions()) {
-                topRenderHover = topRenderHover + deltaTime * HOVER_ANIMATION_SPEED;
-                final float topOffsetY = Mth.sin(topRenderHover) / 32f;
+                final float topOffsetY = Mth.sin(time * HOVER_ANIMATION_SPEED + hoverPhase) / 32f;
 
                 topRenderOffsetY = lerpClamped(topRenderOffsetY, topOffsetY, deltaTime * TRANSLATION_SPEED);
                 baseRenderOffsetY = lerpClamped(baseRenderOffsetY, topOffsetY, deltaTime * TRANSLATION_SPEED);

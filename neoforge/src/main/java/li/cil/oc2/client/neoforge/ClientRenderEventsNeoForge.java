@@ -10,9 +10,11 @@ import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.RenderNameTagEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.util.TriState;
 
 @EventBusSubscriber(modid = API.MOD_ID, value = Dist.CLIENT)
@@ -26,6 +28,13 @@ public final class ClientRenderEventsNeoForge {
             BusInterfaceNameRenderer.INSTANCE.render(event.getPoseStack());
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             ProjectorDepthRenderer.renderProjectors(event.getModelViewMatrix(), event.getProjectionMatrix(), Minecraft.getInstance().getTimer());
+        }
+    }
+
+    @SubscribeEvent
+    public static void handleRenderGuiLayer(final RenderGuiLayerEvent.Pre event) {
+        if (VanillaGuiLayers.HOTBAR.equals(event.getName()) && !ClientPlatformImpl.isHotbarVisible()) {
+            event.setCanceled(true);
         }
     }
 

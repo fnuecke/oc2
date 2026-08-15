@@ -10,8 +10,11 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 public final class CommonSetupNeoForge {
     @SubscribeEvent
     public static void handleSetupEvent(final FMLCommonSetupEvent event) {
-        Network.initialize();
-        RPCMethodParameterTypeAdapters.initialize();
+        // Architectury NetworkManager isn't synchronized, this can run in parallel, so enqueue it.
+        event.enqueueWork(() -> {
+            Network.initialize();
+            RPCMethodParameterTypeAdapters.initialize();
+        });
     }
 
     private CommonSetupNeoForge() {

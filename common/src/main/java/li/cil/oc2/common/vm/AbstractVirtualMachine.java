@@ -292,8 +292,6 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
             return;
         }
 
-        assert runner == null : "Runner active while still in load phase.";
-
         final VMDeviceLoadResult loadResult = state.vmAdapter.mountDevices();
         if (!loadResult.wasSuccessful()) {
             if (loadResult.getErrorMessage() != null) {

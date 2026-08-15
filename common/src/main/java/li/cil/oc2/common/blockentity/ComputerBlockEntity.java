@@ -219,7 +219,10 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     public CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
         final CompoundTag tag = super.getUpdateTag(registries);
 
-        tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+        synchronized (terminal) {
+            tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+        }
+
         tag.putInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME, virtualMachine.getBusState().ordinal());
         tag.putInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME, virtualMachine.getRunState().ordinal());
         final Component bootError = virtualMachine.getBootError();

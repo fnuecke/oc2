@@ -6,6 +6,7 @@ import li.cil.sedna.api.device.rtc.RealTimeCounter;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
+import java.lang.ref.WeakReference;
 
 public final class MinecraftRealTimeCounter implements RealTimeCounter {
     private static final int TICKS_PER_DAY = 24000;
@@ -13,16 +14,17 @@ public final class MinecraftRealTimeCounter implements RealTimeCounter {
 
     // ------------------------------------------------------------- //
 
-    private Level level;
+    private WeakReference<Level> level = new WeakReference<>(null);
 
     // ------------------------------------------------------------- //
 
     public void setLevel(@Nullable final Level level) {
-        this.level = level;
+        this.level = new WeakReference<>(level);
     }
 
     @Override
     public long getTime() {
+        final Level level = this.level.get();
         final long ticks = level != null ? level.getGameTime() : 0;
         final long days = ticks; // / TICKS_PER_DAY
         final long hours = days * 24;

@@ -23,7 +23,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CommandBlock;
@@ -170,10 +169,6 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         final ItemStack itemStack = extracted.copy();
         final ServerPlayer player = FakePlayerUtils.getFakePlayer(serverLevel, entity);
 
-        if (!player.mayUseItemAt(blockPos, direction, itemStack)) {
-            return false;
-        }
-
         // Full useOn dance for permission checks.
         player.setItemInHand(InteractionHand.MAIN_HAND, itemStack);
         try {
@@ -227,10 +222,6 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         final Block block = blockState.getBlock();
         final boolean isCommandBlock = block instanceof CommandBlock || block instanceof StructureBlock || block instanceof JigsawBlock;
         if (isCommandBlock && !player.canUseGameMasterBlocks()) {
-            return -1;
-        }
-
-        if (player.blockActionRestricted(level, blockPos, GameType.DEFAULT_MODE)) {
             return -1;
         }
 

@@ -55,7 +55,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
@@ -518,9 +517,6 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         final ServerPlayer player = FakePlayerUtils.getFakePlayer(level, this);
-        if (player.blockActionRestricted(level, blockPos, GameType.DEFAULT_MODE)) {
-            return;
-        }
 
         if (!LevelUtils.fireBlockBreak(level, player, blockPos, blockState)) {
             return;

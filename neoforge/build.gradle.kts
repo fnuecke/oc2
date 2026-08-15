@@ -17,6 +17,7 @@ loom {
             runDir = "run/gametest"
             property("neoforge.gameTestServer", "true")
             property("neoforge.enabledGameTestNamespaces", "oc2gametest")
+            vmArg("-ea")
         }
 
         create("data") {

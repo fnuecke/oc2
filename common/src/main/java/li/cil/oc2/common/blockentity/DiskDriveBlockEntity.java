@@ -225,6 +225,11 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
 
             final CompoundTag tag = new CompoundTag();
             device.exportToItemStack(tag);
+
+            if (tag.isEmpty()) {
+                return;
+            }
+
             ItemStackUtils.modifyModDataTag(stack, modTag -> modTag.put(DATA_TAG_NAME, tag));
         }
     }

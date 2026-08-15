@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -30,8 +31,23 @@ public final class ItemStackUtils {
     }
 
     public static void modifyModDataTag(final ItemStack stack, final Consumer<CompoundTag> modifier) {
-        CustomData.update(DataComponents.CUSTOM_DATA, stack,
-                tag -> modifier.accept(NBTUtils.getOrCreateChildTag(tag, MOD_TAG_NAME)));
+        if (stack.isEmpty()) {
+            return;
+        }
+
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            final CompoundTag modTag = NBTUtils.getOrCreateChildTag(tag, MOD_TAG_NAME);
+            modifier.accept(modTag);
+
+            removeEmptyChildTags(modTag);
+            if (modTag.isEmpty()) {
+                tag.remove(MOD_TAG_NAME);
+            }
+        });
+
+        if (stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).isEmpty()) {
+            stack.remove(DataComponents.CUSTOM_DATA);
+        }
     }
 
     public static CompoundTag getBlockEntityDataTag(final ItemStack stack) {
@@ -122,5 +138,16 @@ public final class ItemStackUtils {
         level.addFreshEntity(entity);
 
         return Optional.of(entity);
+    }
+
+    private static void removeEmptyChildTags(final CompoundTag tag) {
+        for (final String key : new ArrayList<>(tag.getAllKeys())) {
+            if (tag.get(key) instanceof final CompoundTag childTag) {
+                removeEmptyChildTags(childTag);
+                if (childTag.isEmpty()) {
+                    tag.remove(key);
+                }
+            }
+        }
     }
 }

@@ -30,6 +30,17 @@ loom {
     }
 }
 
+val gameTestBlobDirectories = listOf(
+    file("run/gametest/world/oc2-blobs"),
+    file("run/gametest/world/oc2-blobs-trash"),
+)
+
+tasks.named("runGameTestServer") {
+    doFirst {
+        gameTestBlobDirectories.forEach { it.deleteRecursively() }
+    }
+}
+
 repositories {
     maven("https://maven.neoforged.net/releases")
 }

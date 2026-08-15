@@ -226,7 +226,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     }
 
     public void applyNextFrameClient(final byte[] frameData) {
-        if (level == null || !level.isClientSide()) {
+        if (level == null || !level.isClientSide() || !isValid()) {
             return;
         }
 
@@ -262,6 +262,20 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     protected void onUnload(final boolean isRemove) {
         super.onUnload(isRemove);
 
+        setFrameConsumer(null); // expected to stay null -> this will no longer be rendered.
+
+        final CompletableFuture<?> decode = runningDecode;
+        runningDecode = null; // will stay null because unloaded -> !isValid() in applyNextFrameClient.
+
+        // Await in-flight decode if necessary to not kill its native buffer while in use.
+        if (decode != null) {
+            decode.whenComplete((result, error) -> endCodecs());
+        } else {
+            endCodecs();
+        }
+    }
+
+    private void endCodecs() {
         deflater.end();
         inflater.end();
     }

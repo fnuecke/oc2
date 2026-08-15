@@ -166,7 +166,11 @@ public final class ComputerFixture {
     // ------------------------------------------------------------- //
 
     public String screen() {
-        final CompoundTag tag = NBTSerialization.serialize(blockEntity().getTerminal());
+        final Terminal terminal = blockEntity().getTerminal();
+        final CompoundTag tag;
+        synchronized (terminal) {
+            tag = NBTSerialization.serialize(terminal);
+        }
         final byte[] buffer = tag.getByteArray("buffer");
         final StringBuilder text = new StringBuilder();
         for (int row = 0; row < Terminal.HEIGHT; row++) {

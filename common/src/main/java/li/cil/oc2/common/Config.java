@@ -3,6 +3,7 @@
 package li.cil.oc2.common;
 
 import li.cil.oc2.common.config.ConfigType;
+import li.cil.oc2.common.config.Min;
 import li.cil.oc2.common.config.Path;
 import li.cil.oc2.common.config.Type;
 
@@ -59,6 +60,20 @@ public final class Config {
 
     @Path("admin")
     public static UUID fakePlayerUUID = UUID.fromString("e39dd9a7-514f-4a2d-aa5e-b6030621416d");
+
+    @Path("admin.storage")
+    @Min(0)
+    public static int maxBlobCount = 1024;
+    @Path("admin.storage")
+    @Min(0)
+    public static int maxTrashedBlobCount = 64;
+    @Path("admin.storage")
+    @Min(0)
+    public static int blobEvictionGraceHours = 24 * 7;
+    @Path("admin.storage")
+    @Min(0)
+    public static int maxBlobCapacity = 16 * Constants.MEGABYTE;
+
     @Path("admin.network")
     public static int projectorAverageMaxBytesPerSecond = 160 * 1024;
     @Path("admin.virtual_network")

@@ -31,7 +31,7 @@ logs
 forge*changelog.txt
 
 # generated resources
-**/src/generated/
+**/src/generated/resources/.cache/
 
 #vscode
 .vscode

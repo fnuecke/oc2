@@ -6,7 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
 public final class ItemDeviceUtils {
-    private static final String ITEM_DEVICE_DATA_TAG_NAME = "item_device";
+    public static final String ITEM_DEVICE_DATA_TAG_NAME = "item_device";
 
     // ------------------------------------------------------------- //
 

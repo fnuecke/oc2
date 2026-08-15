@@ -5,6 +5,7 @@ package li.cil.oc2.common.bus.device.vm.block;
 import li.cil.oc2.common.bus.device.vm.item.AbstractBlockStorageDevice;
 import li.cil.oc2.common.item.FloppyItem;
 import li.cil.oc2.common.serialization.BlobStorage;
+import li.cil.oc2.common.util.StorageItemUtils;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.nbt.CompoundTag;
@@ -13,6 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> extends AbstractBlockStorageDevice<BlockDevice, T> {
@@ -46,7 +48,15 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
 
         importFromItemStack(tag);
 
-        setOpenJob(createBlockDevice().thenAcceptAsync(blockDevice -> {
+        final CompletableFuture<BlockDevice> job;
+        try {
+            job = createBlockDevice();
+        } catch (final IOException e) {
+            handleDataUnavailable();
+            return;
+        }
+
+        setOpenJob(job.thenAcceptAsync(blockDevice -> {
             try {
                 device.setBlock(blockDevice);
             } catch (final IOException e) {
@@ -77,7 +87,7 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
     // ------------------------------------------------------------- //
 
     @Override
-    protected CompletableFuture<BlockDevice> createBlockDevice() {
+    protected CompletableFuture<BlockDevice> createBlockDevice() throws IOException {
         final ItemStack stack = identity.getDiskItemStack();
         if (stack.isEmpty() || !(stack.getItem() instanceof final FloppyItem floppy)) {
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
@@ -88,10 +98,22 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
         }
 
-        blobHandle = BlobStorage.validateHandle(blobHandle);
+        final boolean isNew = !BlobStorage.isValidHandle(blobHandle);
+        final UUID handle = isNew ? BlobStorage.allocateHandle() : blobHandle;
+
+        final FileChannel channel;
+        try {
+            channel = BlobStorage.open(handle, isNew);
+        } catch (final BlobStorage.BlobMissingException | BlobStorage.BlobInUseException e) {
+            handleDataUnavailable();
+            // Unlike HDD, this shouldn't stop a boot; just show up as empty.
+            return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
+        }
+
+        blobHandle = handle;
+
         return CompletableFuture.supplyAsync(() -> {
             try {
-                final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
                 return ByteBufferBlockDevice.createFromFileChannel(channel, capacity, false);
             } catch (final IOException e) {
                 throw new RuntimeException(e);
@@ -102,5 +124,11 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
     @Override
     protected void handleDataAccess() {
         identity.handleDataAccess();
+    }
+
+    @Override
+    protected void handleDataUnavailable() {
+        StorageItemUtils.setCorrupted(identity.getDiskItemStack());
+        identity.setChanged();
     }
 }

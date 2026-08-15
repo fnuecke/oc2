@@ -6,3 +6,5 @@ Hard drives are the main storage device used for data storage in [computers](../
 Usually computers use a firmware that requires some hard drive to complete the boot process. The [flash memory](flash_memory.md) installed in newly obtained computers and robots contains a Linux distribution expecting a regular root file system on the first installed disk drive. One may typically be obtained by configuring a hard drive with the [appropriate tool](wrench.md).
 
 Computers *have to be shut down* before installing or removing this component. Installing it while the computer is running will have no effect, removing it may lead to system errors.
+
+Storage media are not perfect, and a drive left unused for a long time may suffer from bit rot and lose its contents. Format corrupted drives using the [wrench](wrench.md). Interestingly, this only seems to happen when there are a lot of storage devices in the world.

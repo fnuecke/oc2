@@ -6,6 +6,7 @@ import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.serialization.BlobStorage;
@@ -13,10 +14,12 @@ import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.device.memory.ByteBufferMemory;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -49,8 +52,9 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     @Override
     public VMDeviceLoadResult mount(final VMContext context) {
-        if (!allocateDevice(context)) {
-            return VMDeviceLoadResult.fail();
+        if (allocateDevice(context) instanceof AllocationFailure(Component message)) {
+            final VMDeviceLoadResult result = VMDeviceLoadResult.fail();
+            return message != null ? result.withErrorMessage(message) : result;
         }
 
         if (!address.claim(context, device)) {
@@ -106,22 +110,29 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     // ------------------------------------------------------------- //
 
-    private boolean allocateDevice(final VMContext context) {
+    private AllocationResult allocateDevice(final VMContext context) {
         if (!context.getMemoryAllocator().claimMemory(size)) {
-            return false;
+            return new AllocationFailure();
         }
 
         try {
-            blobHandle = BlobStorage.validateHandle(blobHandle);
-            final FileChannel channel = BlobStorage.getOrOpen(blobHandle);
+            final boolean isNew = !BlobStorage.isValidHandle(blobHandle);
+            if (isNew) {
+                blobHandle = BlobStorage.allocateHandle();
+            }
+
+            final FileChannel channel = BlobStorage.open(blobHandle, isNew);
             final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, size);
             device = new ByteBufferMemory(size, buffer);
+        } catch (final BlobStorage.BlobMissingException | BlobStorage.BlobInUseException e) {
+            // Memory got lost, show a message so it doesn't look like a bug.
+            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_MEMORY_CORRUPTED));
         } catch (final IOException e) {
             LOGGER.error(e);
-            return false;
+            return new AllocationFailure();
         }
 
-        return true;
+        return new AllocationSuccess();
     }
 
     private void closeDevice() {
@@ -136,5 +147,17 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
         }
 
         device = null;
+    }
+
+    private sealed interface AllocationResult permits AllocationSuccess, AllocationFailure {
+    }
+
+    private record AllocationSuccess() implements AllocationResult {
+    }
+
+    private record AllocationFailure(@Nullable Component message) implements AllocationResult {
+        public AllocationFailure() {
+            this(null);
+        }
     }
 }

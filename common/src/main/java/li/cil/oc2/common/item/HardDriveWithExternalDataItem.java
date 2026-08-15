@@ -4,14 +4,20 @@ package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
+import li.cil.oc2.common.util.TooltipUtils;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.DyedItemColor;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Objects;
 
 public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem implements ColoredItem, CreativeTabItemProvider {
@@ -45,6 +51,13 @@ public final class HardDriveWithExternalDataItem extends AbstractBlockDeviceItem
     @Override
     public int getColor(final ItemStack stack) {
         return DyedItemColor.getOrDefault(stack, defaultColor);
+    }
+
+    @Environment(EnvType.CLIENT)
+    @Override
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        TooltipUtils.addDataCorrupted(stack, tooltip);
     }
 
     // ------------------------------------------------------------- //

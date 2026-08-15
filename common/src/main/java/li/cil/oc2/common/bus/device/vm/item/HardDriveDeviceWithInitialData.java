@@ -3,6 +3,7 @@
 package li.cil.oc2.common.bus.device.vm.item;
 
 import com.google.common.io.ByteStreams;
+import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.BlockLocation;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
@@ -28,18 +29,21 @@ public final class HardDriveDeviceWithInitialData extends HardDriveDevice {
     // ------------------------------------------------------------- //
 
     @Override
-    protected CompletableFuture<ByteBufferBlockDevice> createBlockDevice() {
-        final boolean isInitializing = blobHandle == null;
-        return super.createBlockDevice().thenApplyAsync(device -> {
-            if (isInitializing) {
-                try {
-                    try (InputStream input = base.getInputStream(0);
-                         OutputStream output = device.getOutputStream(0)) {
-                        ByteStreams.copy(input, output);
-                    }
-                } catch (final IOException e) {
-                    throw new RuntimeException(e);
+    protected CompletableFuture<ByteBufferBlockDevice> createBlockDevice() throws IOException {
+        final boolean isInitializing = !BlobStorage.isValidHandle(blobHandle);
+        final CompletableFuture<ByteBufferBlockDevice> future = super.createBlockDevice();
+        if (!isInitializing) {
+            return future;
+        }
+
+        return future.thenApplyAsync(device -> {
+            try {
+                try (InputStream input = base.getInputStream(0);
+                     OutputStream output = device.getOutputStream(0)) {
+                    ByteStreams.copy(input, output);
                 }
+            } catch (final IOException e) {
+                throw new RuntimeException(e);
             }
             return device;
         }, WORKERS);

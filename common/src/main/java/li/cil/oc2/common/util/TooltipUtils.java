@@ -40,6 +40,10 @@ public final class TooltipUtils {
             Component.translatable(Constants.TOOLTIP_DEVICE_NEEDS_REBOOT)
                     .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.YELLOW)));
 
+    private static final MutableComponent DATA_CORRUPTED =
+            Component.translatable(Constants.TOOLTIP_DATA_CORRUPTED)
+                    .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.RED)));
+
     private static final ThreadLocal<List<ItemStack>> ITEM_STACKS = ThreadLocal.withInitial(ArrayList::new);
     private static final ThreadLocal<IntList> ITEM_STACKS_SIZES = ThreadLocal.withInitial(IntArrayList::new);
 
@@ -155,6 +159,15 @@ public final class TooltipUtils {
         if (value > 0) {
             tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION, withFormat(new DecimalFormat("#.##").format(value), ChatFormatting.GREEN)), ChatFormatting.GRAY));
         }
+    }
+
+    public static void addDataCorrupted(final ItemStack stack, final List<Component> tooltip) {
+        if (stack.isEmpty() || !StorageItemUtils.isCorrupted(stack)) {
+            return;
+        }
+
+        tooltip.add(DATA_CORRUPTED);
+        tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_DATA_CORRUPTED_HINT), ChatFormatting.GRAY));
     }
 
     // ------------------------------------------------------------- //

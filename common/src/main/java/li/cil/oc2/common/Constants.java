@@ -35,6 +35,8 @@ public final class Constants {
     public static final String TOOLTIP_DEVICE_NEEDS_REBOOT = key("tooltip.{mod}.device_needs_reboot");
     public static final String TOOLTIP_ENERGY = key("tooltip.{mod}.energy");
     public static final String TOOLTIP_ENERGY_CONSUMPTION = key("tooltip.{mod}.energyConsumption");
+    public static final String TOOLTIP_DATA_CORRUPTED = key("tooltip.{mod}.data_corrupted");
+    public static final String TOOLTIP_DATA_CORRUPTED_HINT = key("tooltip.{mod}.data_corrupted.hint");
     public static final String TOOLTIP_CONFIRM = key("tooltip.{mod}.confirm");
     public static final String TOOLTIP_CANCEL = key("tooltip.{mod}.cancel");
 
@@ -47,6 +49,8 @@ public final class Constants {
     public static final String COMPUTER_ERROR_UNKNOWN = key("gui.{mod}.computer.error.unknown");
     public static final String COMPUTER_ERROR_MISSING_FIRMWARE = key("gui.{mod}.computer.error.missing_firmware");
     public static final String COMPUTER_ERROR_INSUFFICIENT_MEMORY = key("gui.{mod}.computer.error.insufficient_memory");
+    public static final String COMPUTER_ERROR_STORAGE_CORRUPTED = key("gui.{mod}.computer.error.storage_corrupted");
+    public static final String COMPUTER_ERROR_MEMORY_CORRUPTED = key("gui.{mod}.computer.error.memory_corrupted");
     public static final String COMPUTER_BUS_STATE_INCOMPLETE = key("gui.{mod}.computer.bus_state.incomplete");
     public static final String COMPUTER_BUS_STATE_TOO_COMPLEX = key("gui.{mod}.computer.bus_state.too_complex");
     public static final String COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS = key("gui.{mod}.computer.bus_state.multiple_controllers");

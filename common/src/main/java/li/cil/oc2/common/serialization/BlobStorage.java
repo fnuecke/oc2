@@ -4,6 +4,7 @@ package li.cil.oc2.common.serialization;
 
 import dev.architectury.event.events.common.LifecycleEvent;
 import li.cil.oc2.api.API;
+import li.cil.oc2.common.Config;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
 import org.apache.logging.log4j.LogManager;
@@ -13,15 +14,26 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 /**
  * This class facilitates storing binary chunks of data in an efficient, parallelized fashion.
+ * <p>
+ * Blobs are referenced by handles that are persisted in item stacks and block entities. Since there is no
+ * reliable way of telling whether such a reference still exists anywhere in the world, blobs would grow
+ * without bound. To keep disk usage bounded, the number of blobs is capped and the least recently used
+ * blob is evicted once that cap is reached. Recency is tracked via the last modified time of the blob
+ * file, which is explicitly refreshed whenever a blob is opened or closed.
+ * <p>
+ * Blobs that are currently open, i.e. in use by a loaded virtual machine, are never evicted.
  */
 public final class BlobStorage {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -29,9 +41,16 @@ public final class BlobStorage {
     // ------------------------------------------------------------- //
 
     private static final LevelResource BLOBS_FOLDER_NAME = new LevelResource(API.MOD_ID + "-blobs");
+    private static final LevelResource TRASH_FOLDER_NAME = new LevelResource(API.MOD_ID + "-blobs-trash");
+    private static final UUID INVALID_HANDLE = new UUID(0, 0);
+
     private static final Map<UUID, FileChannel> BLOBS = new HashMap<>();
 
+    @Nullable
     private static Path dataDirectory; // Directory blobs get saved to.
+    @Nullable
+    private static Path trashDirectory; // Directory evicted blobs get moved to.
+    private static int blobCount; // Number of blobs in dataDirectory.
 
     // ------------------------------------------------------------- //
 
@@ -44,12 +63,23 @@ public final class BlobStorage {
      *
      * @param server the currently active server.
      */
-    public static void setServer(final MinecraftServer server) {
+    public static synchronized void setServer(final MinecraftServer server) {
         dataDirectory = server.getWorldPath(BLOBS_FOLDER_NAME);
+        trashDirectory = server.getWorldPath(TRASH_FOLDER_NAME);
         try {
             Files.createDirectories(dataDirectory);
         } catch (final IOException e) {
             LOGGER.error(e);
+        }
+
+        blobCount = countBlobs(dataDirectory);
+        LOGGER.info("Blob storage in [{}] currently holds {} blob(s).", dataDirectory, blobCount);
+
+        final int limit = Config.maxBlobCount;
+        if (limit > 0 && blobCount >= limit) {
+            LOGGER.warn("Blob storage is at or above the configured limit of {} blob(s). Least recently used " +
+                    "blobs will be evicted as new ones are created. Raise 'admin.storage.maxBlobCount' or " +
+                    "set it to 0 to disable this, if you want to keep more blob data.", limit);
         }
     }
 
@@ -57,9 +87,10 @@ public final class BlobStorage {
      * Closes all currently open blobs.
      */
     public static synchronized void close() {
-        for (final FileChannel blob : BLOBS.values()) {
+        for (final Map.Entry<UUID, FileChannel> entry : BLOBS.entrySet()) {
+            touch(entry.getKey());
             try {
-                blob.close();
+                entry.getValue().close();
             } catch (final IOException e) {
                 LOGGER.error(e);
             }
@@ -71,7 +102,7 @@ public final class BlobStorage {
     /**
      * Allocates a new handle for a blob to store.
      * <p>
-     * Use this in a call to {@link #getOrOpen(UUID)} to open the blob storage.
+     * Use this in a call to {@link #open(UUID, boolean)} to open the blob storage.
      *
      * @return a new handle.
      */
@@ -80,37 +111,85 @@ public final class BlobStorage {
     }
 
     /**
-     * Validates a blob handle, returning a new one if it is {@code null} or invalid.
+     * Checks whether the specified handle may refer to a blob.
      *
-     * @param handle the handle to validate.
-     * @return the {@code handle} if valid; a new blob handle otherwise.
+     * @param handle the handle to check.
+     * @return {@code true} if the handle is usable; {@code false} otherwise.
      */
-    public static UUID validateHandle(@Nullable final UUID handle) {
-        if (handle == null || (handle.getMostSignificantBits() == 0 && handle.getLeastSignificantBits() == 0)) {
-            return allocateHandle();
-        } else {
-            return handle;
-        }
+    public static boolean isValidHandle(@Nullable final UUID handle) {
+        return handle != null && !INVALID_HANDLE.equals(handle);
     }
 
     /**
-     * Get or opens a file channel for the blob with the specified handle.
+     * Checks whether a blob with the specified handle currently exists on disk.
+     *
+     * @param handle the handle to check.
+     * @return {@code true} if the blob exists; {@code false} otherwise.
+     */
+    public static synchronized boolean exists(final UUID handle) {
+        return dataDirectory != null && Files.exists(pathOf(handle));
+    }
+
+    /**
+     * Checks whether the blob with the specified handle is currently open.
+     * <p>
+     * Open blobs are in use by some loaded device and must not be deleted.
+     *
+     * @param handle the handle to check.
+     * @return {@code true} if the blob is open; {@code false} otherwise.
+     */
+    public static synchronized boolean isOpen(final UUID handle) {
+        final FileChannel blob = BLOBS.get(handle);
+        return blob != null && blob.isOpen();
+    }
+
+    /**
+     * Opens a file channel for the blob with the specified handle.
      * <p>
      * The returned file channel supports random access.
+     * <p>
+     * Opening a blob that is already open is treated as an error, because it means two devices reference
+     * the same blob. Should really only happen if the item stack carrying the handle was duplicated. Mapping
+     * the same file twice would have the two devices silently corrupt each other's data.
      *
-     * @param handle the handle to obtain the file channel for.
+     * @param handle          the handle to obtain the file channel for.
+     * @param createIfMissing whether to create the blob if it does not exist yet.
      * @return the file channel for the requested blob.
-     * @throws IOException if opening the blob fails.
+     * @throws BlobInUseException   if the blob is already open.
+     * @throws BlobMissingException if the blob does not exist and {@code createIfMissing} is {@code false}.
+     * @throws IOException          if opening the blob fails.
      */
-    public static synchronized FileChannel getOrOpen(final UUID handle) throws IOException {
-        FileChannel blob = BLOBS.get(handle);
-        if (blob != null && blob.isOpen()) {
-            return blob;
+    public static synchronized FileChannel open(final UUID handle, final boolean createIfMissing) throws IOException {
+        if (dataDirectory == null) {
+            throw new IOException("Blob storage has not been initialized.");
         }
 
-        final Path path = dataDirectory.resolve(handle.toString());
-        blob = new RandomAccessFile(path.toFile(), "rw").getChannel();
+        final FileChannel openBlob = BLOBS.get(handle);
+        if (openBlob != null && openBlob.isOpen()) {
+            throw new BlobInUseException(handle);
+        }
+
+        // Stale entry for a channel that was closed manually; drop it.
+        BLOBS.remove(handle);
+
+        final Path path = pathOf(handle);
+        final boolean isNew = !Files.exists(path);
+        if (isNew) {
+            if (!createIfMissing) {
+                throw new BlobMissingException(handle);
+            }
+
+            evictUntilBelowLimit();
+        }
+
+        final FileChannel blob = new RandomAccessFile(path.toFile(), "rw").getChannel();
+        if (isNew) {
+            blobCount++;
+        }
+
         BLOBS.put(handle, blob);
+        touch(handle);
+
         return blob;
     }
 
@@ -120,10 +199,42 @@ public final class BlobStorage {
      * @param handle the handle of the blob to close.
      */
     public static synchronized void close(final UUID handle) {
+        final FileChannel blob = BLOBS.remove(handle);
+        if (blob == null) {
+            return;
+        }
+
+        touch(handle);
+
         try {
-            final FileChannel blob = BLOBS.remove(handle);
-            if (blob != null) {
-                blob.close();
+            blob.close();
+        } catch (final IOException e) {
+            LOGGER.error(e);
+        }
+    }
+
+    /**
+     * Deletes the blob with the specified handle, unless it is currently in use.
+     * <p>
+     * A blob that is open belongs to some device that is running right now. Since handles can be
+     * duplicated along with the item carrying them, that device is not necessarily the one asking for
+     * the deletion, so we leave the blob alone and let eviction deal with it once it goes cold.
+     *
+     * @param handle the handle of the blob to delete.
+     */
+    public static synchronized void delete(final UUID handle) {
+        if (dataDirectory == null) {
+            return;
+        }
+
+        if (isOpen(handle)) {
+            LOGGER.debug("Not deleting blob [{}], it is currently in use.", handle);
+            return;
+        }
+
+        try {
+            if (Files.deleteIfExists(pathOf(handle))) {
+                blobCount--;
             }
         } catch (final IOException e) {
             LOGGER.error(e);
@@ -131,21 +242,32 @@ public final class BlobStorage {
     }
 
     /**
-     * Deletes the blob with the specified handle.
+     * The number of blobs currently held in storage.
      *
-     * @param handle the handle of the blob to delete.
+     * @return the current blob count.
      */
-    public static void delete(final UUID handle) {
-        close(handle);
+    public static synchronized int getBlobCount() {
+        return blobCount;
+    }
 
-        final Path path = dataDirectory.resolve(handle.toString());
-        CompletableFuture.runAsync(() -> {
-            try {
-                Files.deleteIfExists(path);
-            } catch (final Throwable e) {
-                LOGGER.error(e);
-            }
-        });
+    /**
+     * The directory blobs are stored in, if a server is currently running.
+     *
+     * @return the blob directory.
+     */
+    @Nullable
+    public static synchronized Path getDataDirectory() {
+        return dataDirectory;
+    }
+
+    /**
+     * The directory evicted blobs are moved to, if a server is currently running.
+     *
+     * @return the trash directory.
+     */
+    @Nullable
+    public static synchronized Path getTrashDirectory() {
+        return trashDirectory;
     }
 
     // ------------------------------------------------------------- //
@@ -159,7 +281,224 @@ public final class BlobStorage {
         BlobStorage.setServer(server);
     }
 
-    private static void handleServerStopped() {
+    private static synchronized void handleServerStopped() {
         BlobStorage.close();
+
+        dataDirectory = null;
+        trashDirectory = null;
+        blobCount = 0;
+    }
+
+    // ------------------------------------------------------------- //
+
+    private static Path pathOf(final UUID handle) {
+        assert dataDirectory != null;
+        return dataDirectory.resolve(handle.toString());
+    }
+
+    private static void touch(final UUID handle) {
+        if (dataDirectory == null) {
+            return;
+        }
+
+        try {
+            final Path path = pathOf(handle);
+            if (Files.exists(path)) {
+                Files.setLastModifiedTime(path, FileTime.fromMillis(System.currentTimeMillis()));
+            }
+        } catch (final IOException e) {
+            LOGGER.debug("Failed refreshing last use time of blob [{}].", handle, e);
+        }
+    }
+
+    private static int countBlobs(final Path directory) {
+        try (Stream<Path> paths = Files.list(directory)) {
+            return (int) paths.filter(BlobStorage::isBlob).count();
+        } catch (final IOException e) {
+            LOGGER.error(e);
+            return 0;
+        }
+    }
+
+    private static boolean isBlob(final Path path) {
+        return Files.isRegularFile(path) && tryParseHandle(path) != null;
+    }
+
+    @Nullable
+    private static UUID tryParseHandle(final Path path) {
+        try {
+            return UUID.fromString(path.getFileName().toString());
+        } catch (final IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private static void evictUntilBelowLimit() {
+        final int limit = Config.maxBlobCount;
+        if (limit <= 0 || blobCount < limit) {
+            return;
+        }
+
+        final int toEvict = blobCount - limit + 1;
+
+        final List<Candidate> candidates = collectEvictionCandidates();
+        candidates.sort(Comparator.comparingLong(Candidate::lastUsedMillis));
+
+        final long now = System.currentTimeMillis();
+        int evicted = 0;
+        boolean anythingTrashed = false;
+
+        for (final Candidate candidate : candidates) {
+            if (evicted >= toEvict) {
+                break;
+            }
+
+            final boolean trashed;
+            try {
+                trashed = evict(candidate.handle(), candidate.path());
+            } catch (final IOException e) {
+                LOGGER.error("Failed evicting blob [{}].", candidate.handle(), e);
+                continue;
+            }
+
+            anythingTrashed |= trashed;
+            blobCount--;
+            evicted++;
+
+            LOGGER.info("Evicted blob [{}], unused for {} hour(s), to stay within the configured limit of {} blob(s). {}",
+                    candidate.handle(),
+                    TimeUnit.MILLISECONDS.toHours(now - candidate.lastUsedMillis()),
+                    limit,
+                    trashed ? "It was moved to [" + trashDirectory + "]." : "It was deleted.");
+        }
+
+        if (anythingTrashed) {
+            trimTrash();
+        }
+    }
+
+    private static List<Candidate> collectEvictionCandidates() {
+        assert dataDirectory != null;
+
+        final long graceMillis = TimeUnit.HOURS.toMillis(Math.max(Config.blobEvictionGraceHours, 0));
+        final long now = System.currentTimeMillis();
+
+        final List<Candidate> candidates = new ArrayList<>();
+        try (DirectoryStream<Path> paths = Files.newDirectoryStream(dataDirectory)) {
+            for (final Path path : paths) {
+                final UUID handle = tryParseHandle(path);
+                if (handle == null) {
+                    continue;
+                }
+
+                if (isOpen(handle)) {
+                    continue;
+                }
+
+                final BasicFileAttributes attributes;
+                try {
+                    attributes = Files.readAttributes(path, BasicFileAttributes.class);
+                } catch (final IOException e) {
+                    continue;
+                }
+
+                if (!attributes.isRegularFile()) {
+                    continue;
+                }
+
+                final long lastUsed = attributes.lastModifiedTime().toMillis();
+                if (now - lastUsed < graceMillis) {
+                    continue;
+                }
+
+                candidates.add(new Candidate(handle, path, lastUsed));
+            }
+        } catch (final IOException e) {
+            LOGGER.error(e);
+        }
+
+        return candidates;
+    }
+
+    private static boolean evict(final UUID handle, final Path path) throws IOException {
+        if (Config.maxTrashedBlobCount <= 0 || trashDirectory == null) {
+            Files.deleteIfExists(path);
+            return false;
+        }
+
+        Files.createDirectories(trashDirectory);
+        Files.move(path, trashDirectory.resolve(handle.toString()), StandardCopyOption.REPLACE_EXISTING);
+        return true;
+    }
+
+    private static void trimTrash() {
+        final int limit = Config.maxTrashedBlobCount;
+        if (trashDirectory == null || limit <= 0) {
+            return;
+        }
+
+        final List<Candidate> trashed = new ArrayList<>();
+        try (DirectoryStream<Path> paths = Files.newDirectoryStream(trashDirectory)) {
+            for (final Path path : paths) {
+                final UUID handle = tryParseHandle(path);
+                if (handle == null) {
+                    continue;
+                }
+
+                long lastUsed = 0;
+                try {
+                    final BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
+                    if (!attributes.isRegularFile()) {
+                        continue;
+                    }
+                    lastUsed = attributes.lastModifiedTime().toMillis();
+                } catch (final IOException e) {
+                    // Treat as ancient.
+                }
+
+                trashed.add(new Candidate(handle, path, lastUsed));
+            }
+        } catch (final IOException e) {
+            LOGGER.error(e);
+            return;
+        }
+
+        if (trashed.size() <= limit) {
+            return;
+        }
+
+        trashed.sort(Comparator.comparingLong(Candidate::lastUsedMillis));
+
+        final int toDelete = trashed.size() - limit;
+        for (int i = 0; i < toDelete; i++) {
+            try {
+                Files.deleteIfExists(trashed.get(i).path());
+            } catch (final IOException e) {
+                LOGGER.error(e);
+            }
+        }
+    }
+
+    private record Candidate(UUID handle, Path path, long lastUsedMillis) {
+    }
+
+    // ------------------------------------------------------------- //
+
+    /**
+     * Thrown when trying to open a blob that no longer exists, e.g. because it was evicted.
+     */
+    public static final class BlobMissingException extends IOException {
+        public BlobMissingException(final UUID handle) {
+            super("No blob with handle [" + handle + "] exists.");
+        }
+    }
+
+    /**
+     * Thrown when trying to open a blob that is already in use by another device.
+     */
+    public static final class BlobInUseException extends IOException {
+        public BlobInUseException(final UUID handle) {
+            super("Blob with handle [" + handle + "] is already in use.");
+        }
     }
 }

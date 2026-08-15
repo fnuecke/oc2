@@ -2,7 +2,9 @@
 
 package li.cil.oc2.data.neoforge;
 
+import li.cil.oc2.api.API;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.item.crafting.ResetRecipe;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.core.HolderLookup;
@@ -281,6 +283,10 @@ public final class ModRecipesProvider extends RecipeProvider {
                 .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
                 .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
                 .save(consumer);
+
+        SpecialRecipeBuilder
+                .special(ResetRecipe::new)
+                .save(consumer, API.MOD_ID + ":reset");
 
         ShapedRecipeBuilder
                 .shaped(RecipeCategory.MISC, Items.REDSTONE_INTERFACE_CARD.get())

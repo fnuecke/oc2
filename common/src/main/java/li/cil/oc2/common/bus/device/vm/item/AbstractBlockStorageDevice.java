@@ -19,6 +19,7 @@ import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.virtio.VirtIOBlockDevice;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -74,8 +75,9 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
     @Override
     public VMDeviceLoadResult mount(final VMContext context) {
-        if (!allocateDevice(context)) {
-            return failMount();
+        if (allocateDevice(context) instanceof AllocationFailure(Component message)) {
+            final var result = failMount();
+            return message != null ? result.withErrorMessage(message) : result;
         }
 
         if (!address.claim(context, device)) {
@@ -199,21 +201,35 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         }
     }
 
-    protected abstract CompletableFuture<TBlock> createBlockDevice();
+    protected abstract CompletableFuture<TBlock> createBlockDevice() throws IOException;
 
     protected void handleDataAccess() {
     }
 
+    protected void handleDataUnavailable() {
+    }
+
     // ------------------------------------------------------------- //
 
-    private boolean allocateDevice(final VMContext context) {
+    private AllocationResult allocateDevice(final VMContext context) {
         if (!context.getMemoryAllocator().claimMemory(Constants.PAGE_SIZE)) {
-            return false;
+            return new AllocationFailure();
         }
 
         device = new VirtIOBlockDevice(context.getMemoryMap(), readonly);
 
-        setOpenJob(createBlockDevice().thenAcceptAsync(blockDevice -> {
+        final CompletableFuture<TBlock> job;
+        try {
+            job = createBlockDevice();
+        } catch (final BlobStorage.BlobMissingException | BlobStorage.BlobInUseException e) {
+            handleDataUnavailable();
+            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_CORRUPTED));
+        } catch (final IOException e) {
+            LOGGER.error(e);
+            return new AllocationFailure();
+        }
+
+        setOpenJob(job.thenAcceptAsync(blockDevice -> {
             try {
                 final ListenableBlockDevice listenableData = new ListenableBlockDevice(blockDevice);
                 listenableData.onAccess.add(this::handleDataAccess);
@@ -223,7 +239,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
             }
         }, WORKERS));
 
-        return true;
+        return new AllocationSuccess();
     }
 
     private void closeDevice() {
@@ -256,6 +272,18 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     }
 
     // ------------------------------------------------------------- //
+
+    private sealed interface AllocationResult permits AllocationSuccess, AllocationFailure {
+    }
+
+    private record AllocationSuccess() implements AllocationResult {
+    }
+
+    private record AllocationFailure(@Nullable Component message) implements AllocationResult {
+        public AllocationFailure() {
+            this(null);
+        }
+    }
 
     private static final class ListenableBlockDevice implements BlockDevice {
         private final BlockDevice inner;

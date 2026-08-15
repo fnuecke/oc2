@@ -327,6 +327,9 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         virtualMachine.dispose();
 
+        // Just in case, so we don't keep it alive if something holds on to us.
+        chunk = null;
+
         // This is necessary in case some other controller found us before our controller
         // did its scan, which can happen because the scan can happen with a delay. In
         // that case we don't know that controller and disposing our controller won't

@@ -95,6 +95,12 @@ public final class ConfigManagerImpl {
         final ConfigFieldParser parser = PARSERS.get(field.getType());
         if (parser != null) {
             final Path pathAnnotation = field.getAnnotation(Path.class);
+            if (pathAnnotation == null) {
+                LOGGER.error("Config field [{}.{}] has no @Path annotation, ignoring.",
+                        field.getDeclaringClass().getName(), field.getName());
+                return;
+            }
+
             final String path = getPath(pathAnnotation.value(), field);
 
             try {
@@ -220,7 +226,12 @@ public final class ConfigManagerImpl {
         private void set(final Object instance, final T raw) {
             try {
                 field.set(instance, converter.apply(raw));
-            } catch (final IllegalAccessException ignored) {
+            } catch (final IllegalAccessException e) {
+                LOGGER.error("Failed setting config field [{}.{}].",
+                        field.getDeclaringClass().getName(), field.getName(), e);
+            } catch (final RuntimeException e) {
+                LOGGER.error("Invalid value for config field [{}.{}], keeping previous value.",
+                        field.getDeclaringClass().getName(), field.getName(), e);
             }
         }
     }

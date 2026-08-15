@@ -54,6 +54,8 @@ public final class RPCDeviceBusAdapter implements Steppable {
     private ByteBuffer receiveBuffer; // for data written by device to VM
     @Serialized
     private MethodInvocation synchronizedInvocation; // pending main thread invocation
+    @Serialized
+    private int busGeneration; // bumped whenever the device list changes, sent with every reply
 
     // ------------------------------------------------------------- //
 
@@ -118,12 +120,17 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     public void resume(final DeviceBusController controller, final boolean didDevicesChange) {
-        isPaused = false;
-
-        if (!didDevicesChange) {
-            return;
+        try {
+            if (didDevicesChange) {
+                rebuildDevices(controller);
+                busGeneration++;
+            }
+        } finally {
+            isPaused = false;
         }
+    }
 
+    private void rebuildDevices(final DeviceBusController controller) {
         // How device grouping works:
         // Each device can have multiple UUIDs due to being attached to multiple bus elements.
         // There is no guarantee that for each device D1 present on bus elements E1 and E2,
@@ -392,7 +399,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     private void writeMessage(final String type, @Nullable final Object data) {
         if (receiveBuffer != null) throw new IllegalStateException();
-        final String json = gson.toJson(new Message(type, data));
+        final String json = gson.toJson(new Message(type, data, busGeneration));
         final byte[] bytes = json.getBytes();
         final ByteBuffer receiveBuffer = ByteBuffer.allocate(bytes.length + MESSAGE_DELIMITER.length * 2);
 
@@ -420,7 +427,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     public record EmptyMethodGroup(String name) {
     }
 
-    public record Message(String type, @Nullable Object data) {
+    public record Message(String type, @Nullable Object data, int gen) {
         // Device -> VM
         public static final String MESSAGE_TYPE_LIST = "list";
         public static final String MESSAGE_TYPE_METHODS = "methods";

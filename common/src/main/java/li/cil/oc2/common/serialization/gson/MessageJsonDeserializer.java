@@ -22,6 +22,6 @@ public final class MessageJsonDeserializer implements JsonDeserializer<RPCDevice
             default -> throw new JsonParseException(RPCDeviceBusAdapter.ERROR_UNKNOWN_MESSAGE_TYPE);
         };
 
-        return new RPCDeviceBusAdapter.Message(messageType, messageData);
+        return new RPCDeviceBusAdapter.Message(messageType, messageData, 0);
     }
 }

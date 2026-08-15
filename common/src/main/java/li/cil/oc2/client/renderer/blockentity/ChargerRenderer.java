@@ -14,6 +14,7 @@ import net.minecraft.client.resources.model.Material;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.level.Level;
 import org.joml.Matrix4f;
 
 public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> {
@@ -23,13 +24,9 @@ public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> 
 
     private static final int EFFECT_LAYERS = 3;
     private static final float EFFECT_HEIGHT = 0.5f;
-    private static final float EFFECT_SPEED = 0.1f;
+    private static final float EFFECT_SPEED = 0.3f;
     private static final float EFFECT_SCALE_START = 0.6f;
     private static final float EFFECT_SCALE_END = 0.8f;
-
-    // ------------------------------------------------------------- //
-
-    private float offset;
 
     // ------------------------------------------------------------- //
 
@@ -40,7 +37,9 @@ public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> 
 
     @Override
     public void render(final ChargerBlockEntity charger, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
-        offset = (offset + EFFECT_SPEED * partialTicks / 20f) % (float) (Math.PI * 2);
+        final Level level = charger.getLevel();
+        final float time = level != null ? level.getGameTime() + partialTicks : 0;
+        final float offset = time * EFFECT_SPEED / 20f % (float) (Math.PI * 2);
 
         stack.pushPose();
         stack.translate(0.5, 1.1, 0.5);

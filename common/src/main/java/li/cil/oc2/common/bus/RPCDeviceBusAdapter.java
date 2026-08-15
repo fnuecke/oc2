@@ -44,7 +44,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     private final Set<RPCDeviceList> unmountedDevices = new HashSet<>();
     private final Set<RPCDeviceList> mountedDevices = new HashSet<>();
     private final Lock pauseLock = new ReentrantLock();
-    private boolean isPaused;
+    private volatile boolean isPaused; // server thread -> worker thread
 
     // ------------------------------------------------------------- //
 

@@ -44,6 +44,7 @@ public final class Terminal {
     private static final int TAB_WIDTH = 4;
     private static final char UNRENDERABLE = '?';
     private static final int MAX_EXPECTED_RENDERERS = 4;
+    private static final int MAX_INPUT_SIZE = 4 * 1024;
 
     @SuppressWarnings("unused")
     private static final class Color {
@@ -211,7 +212,7 @@ public final class Terminal {
     }
 
     public synchronized void putInput(final ByteBuffer values) {
-        while (values.hasRemaining()) {
+        while (values.hasRemaining() && input.size() < MAX_INPUT_SIZE) {
             input.enqueue(values.get());
         }
     }
@@ -223,7 +224,9 @@ public final class Terminal {
     }
 
     public synchronized void putInput(final byte value) {
-        input.enqueue(value);
+        if (input.size() < MAX_INPUT_SIZE) {
+            input.enqueue(value);
+        }
     }
 
     public void putOutput(final byte value) {

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,6 +69,61 @@ public class TerminalTests {
         terminal.putOutput((byte) 'x');
 
         assertEquals("?x", read(terminal, 2));
+    }
+
+    @Test
+    public void inputIsCappedRatherThanGrowingWithoutBound() {
+        final Terminal terminal = new Terminal();
+        final int cap = maxInputSize();
+
+        for (int i = 0; i < cap * 2; i++) {
+            terminal.putInput((byte) 'x');
+        }
+
+        assertEquals(cap, drainInput(terminal), "input past the cap should be dropped, not queued");
+    }
+
+    @Test
+    public void bulkWriteStopsAtTheCap() {
+        final Terminal terminal = new Terminal();
+        final int cap = maxInputSize();
+
+        terminal.putInput(ByteBuffer.wrap(new byte[cap * 2]));
+
+        assertEquals(cap, drainInput(terminal));
+    }
+
+    @Test
+    public void inputCanBeQueuedAgainAfterDraining() {
+        final Terminal terminal = new Terminal();
+        final int cap = maxInputSize();
+
+        terminal.putInput(ByteBuffer.wrap(new byte[cap * 2]));
+        assertEquals(cap, drainInput(terminal));
+
+        terminal.putInput((byte) 'x');
+        assertEquals(1, drainInput(terminal));
+    }
+
+    // ------------------------------------------------------------- //
+
+    private static int drainInput(final Terminal terminal) {
+        int count = 0;
+        while (terminal.readInput() != -1) {
+            count++;
+        }
+        return count;
+    }
+
+    private static int maxInputSize() {
+        // Only used here, so let's just grab it with reflection...
+        try {
+            final Field field = Terminal.class.getDeclaredField("MAX_INPUT_SIZE");
+            field.setAccessible(true);
+            return field.getInt(null);
+        } catch (final ReflectiveOperationException e) {
+            throw new AssertionError("could not read the terminal's input cap", e);
+        }
     }
 
     // ------------------------------------------------------------- //

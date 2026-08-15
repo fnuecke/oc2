@@ -103,6 +103,8 @@ public final class ConfigManagerImpl {
 
             final String path = getPath(pathAnnotation.value(), field);
 
+            // Pretty much all our config needs a world restart (baked deeply into state).
+            builder.worldRestart();
             try {
                 values.add(parser.apply(instance, field, path, builder));
             } catch (final IllegalAccessException e) {

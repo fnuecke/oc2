@@ -627,17 +627,21 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         private final Queue<AbstractRobotAction> queue = new ArrayDeque<>(MAX_QUEUED_ACTIONS - 1);
         @Nullable
-        private AbstractRobotAction action;
+        private volatile AbstractRobotAction action; // VM -> server thread
 
         private final Queue<RobotActionProcessorResult> results = new ArrayDeque<>(MAX_QUEUED_RESULTS);
         private int lastActionId;
 
         public boolean hasQueuedActions() {
-            return action != null || !queue.isEmpty();
+            synchronized (queue) {
+                return action != null || !queue.isEmpty();
+            }
         }
 
         public int getQueuedActionCount() {
-            return (action != null ? 1 : 0) + queue.size();
+            synchronized (queue) {
+                return (action != null ? 1 : 0) + queue.size();
+            }
         }
 
         public boolean move(final MovementDirection direction) {
@@ -667,7 +671,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                     }
                 }
                 if (action == null) {
-                    action = queue.poll();
+                    synchronized (queue) {
+                        action = queue.poll();
+                    }
                     if (action != null) {
                         action.initialize(Robot.this);
                     }
@@ -677,58 +683,71 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         public void clear() {
-            queue.clear();
-            results.clear();
-            lastActionId = 0;
+            synchronized (queue) {
+                queue.clear();
+                lastActionId = 0;
+            }
+            synchronized (results) {
+                results.clear();
+            }
         }
 
         public CompoundTag serialize() {
             final CompoundTag tag = new CompoundTag();
 
             final ListTag queueTag = new ListTag();
-            for (final AbstractRobotAction action : queue) {
-                queueTag.add(RobotActions.serialize(action));
+            synchronized (queue) {
+                for (final AbstractRobotAction action : queue) {
+                    queueTag.add(RobotActions.serialize(action));
+                }
             }
             tag.put(QUEUE_TAG_NAME, queueTag);
 
-            if (action != null) {
-                tag.put(ACTION_TAG_NAME, RobotActions.serialize(action));
+            final AbstractRobotAction currentAction = action;
+            if (currentAction != null) {
+                tag.put(ACTION_TAG_NAME, RobotActions.serialize(currentAction));
             }
 
             final ListTag resultsTag = new ListTag();
-            for (final RobotActionProcessorResult result : results) {
-                resultsTag.add(result.serialize());
+            synchronized (results) {
+                for (final RobotActionProcessorResult result : results) {
+                    resultsTag.add(result.serialize());
+                }
             }
             tag.put(RESULTS_TAG_NAME, resultsTag);
 
-            tag.putInt(LAST_ACTION_ID_TAG_NAME, lastActionId);
+            synchronized (queue) {
+                tag.putInt(LAST_ACTION_ID_TAG_NAME, lastActionId);
+            }
 
             return tag;
         }
 
         public void deserialize(final CompoundTag tag) {
-            queue.clear();
-            results.clear();
-
             final ListTag queueTag = tag.getList(QUEUE_TAG_NAME, NBTTagIds.TAG_COMPOUND);
-            for (int i = 0; i < Math.min(queueTag.size(), MAX_QUEUED_ACTIONS - 1); i++) {
-                final AbstractRobotAction action = RobotActions.deserialize(queueTag.getCompound(i));
-                if (action != null) {
-                    queue.add(action);
+            synchronized (queue) {
+                queue.clear();
+                for (int i = 0; i < Math.min(queueTag.size(), MAX_QUEUED_ACTIONS - 1); i++) {
+                    final AbstractRobotAction action = RobotActions.deserialize(queueTag.getCompound(i));
+                    if (action != null) {
+                        queue.add(action);
+                    }
                 }
+                lastActionId = tag.getInt(LAST_ACTION_ID_TAG_NAME);
             }
 
             action = RobotActions.deserialize(tag.getCompound(ACTION_TAG_NAME));
 
             final ListTag resultsTag = tag.getList(RESULTS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
-            for (int i = 0; i < Math.min(resultsTag.size(), MAX_QUEUED_RESULTS); i++) {
-                final RobotActionProcessorResult result = new RobotActionProcessorResult(resultsTag.getCompound(i));
-                if (result.actionId != 0) {
-                    results.add(result);
+            synchronized (results) {
+                results.clear();
+                for (int i = 0; i < Math.min(resultsTag.size(), MAX_QUEUED_RESULTS); i++) {
+                    final RobotActionProcessorResult result = new RobotActionProcessorResult(resultsTag.getCompound(i));
+                    if (result.actionId != 0) {
+                        results.add(result);
+                    }
                 }
             }
-
-            lastActionId = tag.getInt(LAST_ACTION_ID_TAG_NAME);
         }
 
         private boolean addAction(final AbstractRobotAction action) {
@@ -740,15 +759,15 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                 return false;
             }
 
-            if (queue.size() < MAX_QUEUED_ACTIONS - 1) { // -1 for current action
+            synchronized (queue) {
+                if (queue.size() >= MAX_QUEUED_ACTIONS - 1) { // -1 for current action
+                    return false;
+                }
+
                 lastActionId = (lastActionId + 1) & 0x7FFFFFFF; // only positive ids; unlikely to ever wrap, but eh.
                 action.setId(lastActionId);
-                synchronized (queue) {
-                    queue.add(action);
-                }
+                queue.add(action);
                 return true;
-            } else {
-                return false;
             }
         }
     }
@@ -927,7 +946,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         @Callback(synchronize = false)
         public int getLastActionId() {
-            return actionProcessor.lastActionId;
+            // Written by addAction under the queue monitor; read it under the same one
+            // or the guest can see an id older than the action it just queued.
+            synchronized (actionProcessor.queue) {
+                return actionProcessor.lastActionId;
+            }
         }
 
         @Callback(synchronize = false)

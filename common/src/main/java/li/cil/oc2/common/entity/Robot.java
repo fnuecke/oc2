@@ -260,8 +260,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             } else {
                 registerListeners();
                 RobotActions.initializeData(this);
-                if (actionProcessor.action != null) {
-                    actionProcessor.action.initialize(this);
+                final AbstractRobotAction currentAction = actionProcessor.action;
+                if (currentAction != null) {
+                    currentAction.initialize(this);
                 }
             }
         }

@@ -29,6 +29,7 @@ import java.util.WeakHashMap;
 
 public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice implements DocumentedDevice {
     public static final int MAX_TRANSFERRED_FILE_SIZE = 512 * Constants.KILOBYTE;
+    private static final int IMPORT_CHUNK_SIZE = 4 * Constants.KILOBYTE;
 
     private static final String BEGIN_EXPORT_FILE = "beginExportFile";
     private static final String WRITE_EXPORT_FILE = "writeExportFile";
@@ -90,10 +91,19 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
     private static int nextImportId = 1;
 
     private final TerminalUserProvider userProvider;
-    private State state;
-    private ExportedFile exportedFile;
-    private int importingId;
-    private ImportedFile importedFile;
+
+    // Written from the VM worker thread (the non-synchronized export callbacks) and from
+    // the server thread (reset/unmount and network messages), so these need to be volatile
+    // for proper propagation/visibility. For now we don't need a lock:
+    //   - RPCDeviceBusAdapter runs at most one callback at a time, so reset() and
+    //     writeExportFile() are exclusive.
+    //   - unmount() only runs after the worker thread has been joined.
+    //   - device rebuilds are guarded by pause().
+    //   - network handlers are queued onto the server thread.
+    private volatile State state;
+    private volatile ExportedFile exportedFile;
+    private volatile int importingId;
+    private volatile ImportedFile importedFile;
 
     // ------------------------------------------------------------- //
 
@@ -156,8 +166,8 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
             throw new IllegalArgumentException("name must not be empty");
         }
 
-        state = State.EXPORTING;
         exportedFile = new ExportedFile(name);
+        state = State.EXPORTING;
     }
 
     @Callback(name = WRITE_EXPORT_FILE, synchronize = false)
@@ -213,8 +223,8 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
             return false;
         }
 
-        state = State.IMPORT_REQUESTED;
         importingId = nextImportId++;
+        state = State.IMPORT_REQUESTED;
         synchronized (importingDevices) {
             importingDevices.put(importingId, new ImportFileRequest(this, players));
         }
@@ -263,7 +273,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
             return new byte[0];
         }
 
-        final byte[] buffer = new byte[512];
+        final byte[] buffer = new byte[IMPORT_CHUNK_SIZE];
         final int count = importedFile.data.read(buffer);
         if (count <= 0) {
             reset();

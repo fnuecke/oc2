@@ -224,7 +224,13 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
 
         if (tag.contains(STATE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            NBTSerialization.deserialize(tag.getCompound(STATE_TAG_NAME), state);
+            try {
+                NBTSerialization.deserialize(tag.getCompound(STATE_TAG_NAME), state);
+            } catch (final Throwable e) {
+                LOGGER.error("Failed restoring virtual machine state; it will start from cold.", e);
+                runState = VMRunState.STOPPED;
+                runner = null;
+            }
         }
     }
 

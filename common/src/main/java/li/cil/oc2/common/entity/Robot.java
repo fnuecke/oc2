@@ -898,12 +898,12 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             return (int) energy.getMaxEnergyStored();
         }
 
-        @Callback(synchronize = false)
+        @Callback
         public int getSelectedSlot() {
             return Robot.this.getSelectedSlot();
         }
 
-        @Callback(synchronize = false)
+        @Callback
         public void setSelectedSlot(@Parameter("slot") final int slot) {
             Robot.this.setSelectedSlot(slot);
         }

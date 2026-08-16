@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.Set;
 import java.util.Optional;
 
 import static java.util.Collections.emptyList;
@@ -64,9 +65,8 @@ public class CommonDeviceBusControllerTests {
         final DeviceBusElement busElement2 = mock(DeviceBusElement.class);
 
         when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement1))));
-        when(busElement1.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busControllerBusElement))));
-
-        when(busElement1.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement2))));
+        when(busElement1.getNeighbors()).thenReturn(Optional.of(
+                Set.of(Invalidatable.of(busControllerBusElement), Invalidatable.of(busElement2))));
         when(busElement2.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement1))));
 
         busController.scan();

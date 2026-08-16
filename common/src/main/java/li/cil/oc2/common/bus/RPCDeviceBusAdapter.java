@@ -30,6 +30,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     public static final String ERROR_UNKNOWN_DEVICE = "unknown device";
     public static final String ERROR_UNKNOWN_METHOD = "unknown method";
     public static final String ERROR_INVALID_PARAMETER_SIGNATURE = "invalid parameter signature";
+    public static final String ERROR_PAYLOAD_TOO_LARGE = "payload is larger than the channel allows";
     public static final String ERROR_PAYLOAD_CORRUPT = "payload failed its checksum";
     public static final String ERROR_PAYLOAD_MISMATCH = "payload does not match its description";
     public static final String ERROR_MALFORMED_MESSAGE = "malformed message";
@@ -112,7 +113,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         try {
             if (didDevicesChange) {
                 registry.rebuild(controller);
-                addEvent("devicesChanged", null);
+                addEvent(Message.MESSAGE_TYPE_DEVICES_CHANGED, null);
             }
         } finally {
             isPaused = false;
@@ -248,11 +249,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     private void processMessage(final byte[] messageData) {
-        if (new String(messageData).trim().isEmpty()) {
+        if (new String(messageData, StandardCharsets.UTF_8).trim().isEmpty()) {
             return;
         }
 
-        final InputStreamReader stream = new InputStreamReader(new ByteArrayInputStream(messageData));
+        final InputStreamReader stream = new InputStreamReader(new ByteArrayInputStream(messageData), StandardCharsets.UTF_8);
         try {
             final Message message = gson.fromJson(stream, Message.class);
             switch (message.type) {
@@ -375,6 +376,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
             if (!Objects.equals(type, Message.MESSAGE_TYPE_RESULT)) {
                 throw new IllegalStateException("only a result may carry a binary payload");
             }
+            if (pending.length > Constants.RPC_MAX_PAYLOAD_SIZE) {
+                writeError(ERROR_PAYLOAD_TOO_LARGE);
+                return;
+            }
+
             blob = new BlobReference(pending.length, RPCPayloadChannel.checksum(pending));
             payloads.send(pending);
         }
@@ -405,6 +411,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         public static final String MESSAGE_TYPE_METHODS = "methods";
         public static final String MESSAGE_TYPE_RESULT = "result";
         public static final String MESSAGE_TYPE_ERROR = "error";
+        public static final String MESSAGE_TYPE_DEVICES_CHANGED = "devicesChanged"; // event
 
         // VM -> Device
         public static final String MESSAGE_TYPE_INVOKE_METHOD = "invoke";

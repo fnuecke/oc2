@@ -66,7 +66,7 @@ public final class SerializationTests {
         assertEquals(765, value.intValue);
         assertEquals(654, value.longValue);
         assertEquals(543.2f, value.floatValue);
-        assertEquals(432, .1, value.doubleValue);
+        assertEquals(432.1, value.doubleValue);
         assertArrayEquals(new byte[]{9, 8, 7}, value.byteArrayValue);
         assertArrayEquals(new int[]{8, 7, 6}, value.intArrayValue);
         assertArrayEquals(new long[]{7, 6, 5}, value.longArrayValue);
@@ -100,7 +100,7 @@ public final class SerializationTests {
         assertEquals(765, value.intValue);
         assertEquals(654, value.longValue);
         assertEquals(543.2f, value.floatValue);
-        assertEquals(432, .1, value.doubleValue);
+        assertEquals(432.1, value.doubleValue);
         assertArrayEquals(new byte[]{9, 8, 7}, value.byteArrayValue);
         assertArrayEquals(new int[]{8, 7, 6}, value.intArrayValue);
         assertArrayEquals(new long[]{7, 6, 5}, value.longArrayValue);

@@ -42,9 +42,9 @@ import static org.mockito.Mockito.*;
 public class BlockDeviceBusControllerTests {
     public static final ResourceLocation TEST_PROVIDER_REGISTRY_NAME = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "test");
 
-    private static MockedStatic<Capabilities> capabilitiesMock;
-    private static MockedStatic<Providers> providersMock;
-    private static MockedStatic<LevelUtils> levelUtilsMock;
+    private MockedStatic<Capabilities> capabilitiesMock;
+    private MockedStatic<Providers> providersMock;
+    private MockedStatic<LevelUtils> levelUtilsMock;
 
     private FakeLevel fakeLevel;
     private LevelAccessor level;
@@ -244,7 +244,7 @@ public class BlockDeviceBusControllerTests {
         fakeLevel.setChunkLoaded(new ChunkPos(devicePos), false);
         busController.scheduleBusScan();
 
-        final RPCDeviceBusAdapter rpcDeviceBusAdapter = new RPCDeviceBusAdapter(mock(SerialDevice.class));
+        final RPCDeviceBusAdapter rpcDeviceBusAdapter = new RPCDeviceBusAdapter(mock(SerialDevice.class), mock(SerialDevice.class), mock(SerialDevice.class));
         busController.onBeforeDeviceScan.add(rpcDeviceBusAdapter::pause);
         busController.onAfterDeviceScan.add(event -> rpcDeviceBusAdapter.resume(busController, event.didDevicesChange()));
 

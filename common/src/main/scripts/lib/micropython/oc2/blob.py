@@ -1,6 +1,9 @@
 import io
 import select
 
+from oc2 import ports
+from oc2.channel import write_all
+
 KEY = "$blob"
 MAX_OUTBOUND_SIZE = 512 * 1024
 CHUNK_SIZE = 4096
@@ -70,8 +73,11 @@ def substitute(value, payload, depth=0):
 class PayloadChannel:
     def __init__(self, path):
         self.file = io.open(path, "+b")
+        ports.set_nonblocking(self.file.fileno())
         self.poll = select.poll()
         self.poll.register(self.file.fileno(), select.POLLIN)
+        self.write_poll = select.poll()
+        self.write_poll.register(self.file.fileno(), select.POLLOUT)
 
     def close(self):
         if self.file:
@@ -80,25 +86,15 @@ class PayloadChannel:
             self.file = None  # closing twice would close whatever reused the number
 
     def reset(self):
-        while len(self.poll.poll(0)) > 0:
-            if not self.file.read(1):
-                break
+        while self.file.read(CHUNK_SIZE):
+            pass
 
     def write(self, data):
         if len(data) > MAX_OUTBOUND_SIZE:
             raise Exception("binary payload of %d bytes exceeds the host limit of %d bytes"
                             % (len(data), MAX_OUTBOUND_SIZE))
 
-        view = memoryview(data)
-        offset = 0
-        while offset < len(data):
-            written = self.file.write(view[offset:offset + CHUNK_SIZE])
-            if not written:
-                raise Exception("could not write binary payload")
-            offset += written
-        # Deliberately no flush(): MicroPython maps it to fsync(), virtio_console has no
-        # .fsync, and the kernel returns EINVAL -- so flushing here failed every binary
-        # call. Nothing is buffered anyway; the fd is written through.
+        write_all(self.file, self.write_poll, data)
 
     def read(self, length):
         parts = bytearray()
@@ -106,6 +102,8 @@ class PayloadChannel:
             if not self.poll.poll(READ_TIMEOUT_MS):
                 raise Exception("timed out waiting for the rest of the payload")
             chunk = self.file.read(min(length - len(parts), CHUNK_SIZE))
+            if chunk is None:
+                continue  # readable, but nothing yet
             if not chunk:
                 raise Exception("end of file on the binary channel")
             parts.extend(chunk)

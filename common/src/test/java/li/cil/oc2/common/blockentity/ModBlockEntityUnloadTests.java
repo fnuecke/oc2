@@ -11,6 +11,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.util.function.Consumer;
 import org.mockito.MockedStatic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,7 +59,7 @@ public class ModBlockEntityUnloadTests {
 
     // ------------------------------------------------------------- //
 
-    private static void withBlockEntity(final java.util.function.Consumer<CountingBlockEntity> test) {
+    private static void withBlockEntity(final Consumer<CountingBlockEntity> test) {
         try (MockedStatic<Capabilities> ignored = mockStatic(Capabilities.class)) {
             final ServerLevel level = mock(ServerLevel.class);
             when(level.isClientSide()).thenReturn(false);

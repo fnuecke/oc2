@@ -1,9 +1,14 @@
 package li.cil.oc2.common.bus;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonParser;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +16,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 public final class RPCDeviceBusAdapterTests {
@@ -21,12 +28,71 @@ public final class RPCDeviceBusAdapterTests {
 
     @BeforeEach
     public void setupEach() {
-        adapter = new RPCDeviceBusAdapter(mock(SerialDevice.class));
+        adapter = new RPCDeviceBusAdapter(mock(SerialDevice.class), mock(SerialDevice.class), mock(SerialDevice.class));
         busDevices = new HashSet<>();
         deviceIdentifiers = new HashMap<>();
         controller = mock(DeviceBusController.class);
         when(controller.getDevices()).thenReturn(busDevices);
         when(controller.getDeviceIdentifiers(any())).then(invocation -> deviceIdentifiers.get((Device) invocation.getArgument(0)));
+    }
+
+    @Test
+    public void anOversizedMessageIsRefusedAndTheChannelRecovers() {
+        final TestSerialDevice serial = new TestSerialDevice();
+        final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
+                serial, new TestSerialDevice(), new TestSerialDevice());
+        addDevice();
+        busAdapter.resume(controller, true);
+
+        final StringBuilder tooLong = new StringBuilder("{\"type\":\"list\",\"pad\":\"");
+        while (tooLong.length() < 8 * Constants.KILOBYTE) {
+            tooLong.append('x');
+        }
+        tooLong.append("\"}");
+        serial.putAsVM(tooLong.toString());
+        busAdapter.step(0);
+
+        final String refusal = serial.readMessageAsVM();
+        assertNotNull(refusal, "an over-long message got no reply, so a guest would wait forever");
+        assertEquals(RPCDeviceBusAdapter.ERROR_MESSAGE_TOO_LARGE,
+                JsonParser.parseString(refusal).getAsJsonObject().get("data").getAsString());
+
+        serial.putAsVM("{\"type\":\"list\"}");
+        busAdapter.step(0);
+        final String next = serial.readMessageAsVM();
+        assertNotNull(next, "the channel never recovered");
+        assertEquals("list", JsonParser.parseString(next).getAsJsonObject().get("type").getAsString());
+    }
+
+    @Test
+    public void aDeviceOnTwoElementsIsExposedOnceUnderTheLowerIdentifier() {
+        final UUID first = UUID.fromString("00000000-0000-0000-0000-00000000000a");
+        final UUID second = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
+
+        final TestSerialDevice serial = new TestSerialDevice();
+        final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
+                serial, new TestSerialDevice(), new TestSerialDevice());
+        addDevice(new ObjectDevice(new Pingable(), "pingable"), second, first);
+        busAdapter.resume(controller, true);
+
+        serial.putAsVM("{\"type\":\"list\"}");
+        busAdapter.step(0);
+
+        final JsonArray listed = JsonParser.parseString(serial.readMessageAsVM())
+                .getAsJsonObject().getAsJsonArray("data");
+        assertEquals(1, listed.size(), "the same device was exposed twice");
+
+        final UUID chosen = first.compareTo(second) <= 0 ? first : second;
+        assertEquals(chosen.toString(),
+                listed.get(0).getAsJsonObject().get("deviceId").getAsString());
+
+        busAdapter.resume(controller, true);
+        serial.putAsVM("{\"type\":\"list\"}");
+        busAdapter.step(0);
+        assertEquals(chosen.toString(), JsonParser.parseString(serial.readMessageAsVM())
+                        .getAsJsonObject().getAsJsonArray("data")
+                        .get(0).getAsJsonObject().get("deviceId").getAsString(),
+                "the exposed identifier changed across a rebuild");
     }
 
     @Test
@@ -183,5 +249,12 @@ public final class RPCDeviceBusAdapterTests {
     private void removeDevice(final Device device) {
         busDevices.remove(device);
         deviceIdentifiers.remove(device);
+    }
+
+    public static final class Pingable {
+        @Callback(synchronize = false)
+        public int ping() {
+            return 1;
+        }
     }
 }

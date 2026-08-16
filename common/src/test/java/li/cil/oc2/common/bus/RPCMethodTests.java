@@ -1,18 +1,14 @@
 package li.cil.oc2.common.bus;
 
 import com.google.gson.*;
-import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.rpc.*;
-import li.cil.sedna.api.device.serial.SerialDevice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -24,10 +20,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class RPCMethodTests {
-    private static final UUID DEVICE_UUID = java.util.UUID.randomUUID();
+public final class RPCMethodTests {
+    private static final UUID DEVICE_UUID = UUID.randomUUID();
 
     private TestSerialDevice serialDevice;
+    private TestSerialDevice blobDevice;
+    private TestSerialDevice eventDevice;
     private DeviceBusController busController;
     private RPCDeviceBusAdapter rpcAdapter;
 
@@ -35,11 +33,13 @@ public class RPCMethodTests {
     public void setupEach() {
         serialDevice = new TestSerialDevice();
         busController = mock(DeviceBusController.class);
-        rpcAdapter = new RPCDeviceBusAdapter(serialDevice);
+        blobDevice = new TestSerialDevice();
+        eventDevice = new TestSerialDevice();
+        rpcAdapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice);
     }
 
     @Test
-    public void resetAndReadDescriptor() {
+    public void deviceListDescribesTheDevice() {
         final VoidIntMethod method = new VoidIntMethod();
         final TestRPCDevice device = new TestRPCDevice(method);
         setDevice(device, DEVICE_UUID);
@@ -214,58 +214,6 @@ public class RPCMethodTests {
         public int div(@Parameter("a") final long a,
                        @Parameter("b") final long b) {
             return (int) (a / b);
-        }
-    }
-
-    private static final class TestSerialDevice implements SerialDevice {
-        private final ByteArrayFIFOQueue transmit = new ByteArrayFIFOQueue();
-        private final ByteArrayFIFOQueue receive = new ByteArrayFIFOQueue();
-
-        public void putAsVM(final String data) {
-            final byte[] bytes = data.getBytes();
-            for (int i = 0; i < bytes.length; i++) {
-                transmit.enqueue(bytes[i]);
-            }
-            transmit.enqueue((byte) 0);
-        }
-
-        @Nullable
-        public String readMessageAsVM() {
-            final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            while (!receive.isEmpty()) {
-                final byte value = receive.dequeueByte();
-
-                if (value == 0) {
-                    if (bytes.size() == 0) {
-                        continue;
-                    } else {
-                        break;
-                    }
-                }
-
-                bytes.write(value);
-            }
-
-            if (bytes.size() > 0) {
-                return bytes.toString();
-            } else {
-                return null;
-            }
-        }
-
-        @Override
-        public int read() {
-            return transmit.isEmpty() ? -1 : transmit.dequeueByte();
-        }
-
-        @Override
-        public boolean canPutByte() {
-            return true;
-        }
-
-        @Override
-        public void putByte(final byte value) {
-            receive.enqueue(value);
         }
     }
 

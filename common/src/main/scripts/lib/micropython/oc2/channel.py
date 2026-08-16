@@ -2,17 +2,22 @@ import io
 import json
 import select
 
+from oc2 import ports
 from time import ticks_ms, ticks_add, ticks_diff
 
 DELIMITER = b"\0"
 READ_SIZE = 4096
+WRITE_TIMEOUT_MS = 10000
 
 
 class Channel:
     def __init__(self, path):
         self.file = io.open(path, "+b")
+        ports.set_nonblocking(self.file.fileno())
         self.poll = select.poll()
         self.poll.register(self.file.fileno(), select.POLLIN)
+        self.write_poll = select.poll()
+        self.write_poll.register(self.file.fileno(), select.POLLOUT)
         self.buffer = None
         self.buffer_pos = 0
         # A frame split across reads stays here, so a poll that times out mid-frame costs
@@ -31,13 +36,8 @@ class Channel:
         self.buffer = None
         self.buffer_pos = 0
         self.parts = []
-        # One byte at a time is genuinely the only safe way here: MicroPython's read(n)
-        # blocks until it has n bytes or hits EOF (py/stream.c), there is no read1, and
-        # this build exposes no way to set O_NONBLOCK. Do not "optimise" this into a
-        # larger read -- it will hang.
-        while self.poll.poll(0):
-            if not self.file.read(1):
-                break
+        while self.file.read(READ_SIZE):
+            pass
 
     def _fill(self, timeout):
         ready = self.poll.poll() if timeout is None else self.poll.poll(timeout)
@@ -48,18 +48,12 @@ class Channel:
         if not (revents & select.POLLIN):
             raise OSError("virtio port is not readable (revents=0x%x)" % revents)
 
-        data = bytearray()
-        while len(data) < READ_SIZE and self.poll.poll(0):
-            chunk = self.file.read(1)
-            if not chunk:
-                break
-            data.extend(chunk)
-
+        data = self.file.read(READ_SIZE)
         if not data:
             raise OSError("virtio port reported readable but returned no data "
                           "(revents=0x%x)" % revents)
 
-        self.buffer = bytes(data)
+        self.buffer = data
         self.buffer_pos = 0
         return True
 
@@ -104,4 +98,17 @@ class Channel:
                 pass
 
     def write(self, data):
-        self.file.write(DELIMITER + json.dumps(data).encode() + DELIMITER)
+        write_all(self.file, self.write_poll,
+                  DELIMITER + json.dumps(data).encode() + DELIMITER)
+
+
+def write_all(file, write_poll, payload):
+    view = memoryview(payload)
+    offset = 0
+    while offset < len(payload):
+        written = file.write(view[offset:])
+        if not written:
+            if not write_poll.poll(WRITE_TIMEOUT_MS):
+                raise OSError("timed out writing to the virtio port")
+            continue
+        offset += written

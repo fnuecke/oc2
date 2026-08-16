@@ -216,7 +216,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
             return new AllocationFailure();
         }
 
-        device = new VirtIOBlockDevice(context.getMemoryMap(), readonly);
+        device = new VirtIOBlockDevice(context.getMemoryMap(), readonly, Constants.VIRTIO_BLOCK_QUEUE_SIZE);
 
         final CompletableFuture<TBlock> job;
         try {

@@ -124,7 +124,7 @@ public final class KeyboardDevice<T> extends IdentityProxy<T> implements VMDevic
             return false;
         }
 
-        device = new VirtIOKeyboardDevice(context.getMemoryMap());
+        device = new VirtIOKeyboardDevice(context.getMemoryMap(), Constants.VIRTIO_INPUT_QUEUE_SIZE);
 
         return true;
     }

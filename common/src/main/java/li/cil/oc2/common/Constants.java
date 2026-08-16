@@ -16,6 +16,12 @@ public final class Constants {
 
     public static final int CPU_FREQUENCY = 25_000_000;
 
+    // Note: these mean consumed *guest* memory, so kept low.
+    public static final int VIRTIO_BLOCK_QUEUE_SIZE = 32;
+    public static final int VIRTIO_FILESYSTEM_QUEUE_SIZE = 32;
+    public static final int VIRTIO_NETWORK_QUEUE_SIZE = 64;
+    public static final int VIRTIO_INPUT_QUEUE_SIZE = 8;
+
     public static final int SECONDS_TO_TICKS = 20;
 
     public static final Direction[] DIRECTIONS = Direction.values();

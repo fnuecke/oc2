@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.vm.item;
 
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
@@ -58,7 +59,7 @@ public abstract class AbstractNetworkInterfaceDevice extends IdentityProxy<ItemS
 
     @Override
     public VMDeviceLoadResult mount(final VMContext context) {
-        device = new VirtIONetworkDevice(context.getMemoryMap());
+        device = new VirtIONetworkDevice(context.getMemoryMap(), Constants.VIRTIO_NETWORK_QUEUE_SIZE);
 
         if (!address.claim(context, device)) {
             return VMDeviceLoadResult.fail();

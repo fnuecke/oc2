@@ -1,6 +1,8 @@
 #!/usr/bin/lua
 
 local devices = require("devices")
+local time = require("posix.time")
+
 local device = devices:find("file_import_export")
 
 if not device then
@@ -16,6 +18,7 @@ if not device:requestImportFile() then
 end
 
 local function error_handler(err)
+    err = tostring(err)
     if err:match("import was canceled$") then
         io.stderr:write("Import was canceled by the user.\n")
     else
@@ -34,6 +37,8 @@ while true do
         size = info.size
         break
     end
+
+    time.nanosleep({tv_sec=0,tv_nsec=100000000})
 end
 
 local function file_exists(path)
@@ -93,7 +98,7 @@ while true do
     local bytes = device:readImportFile()
     if not bytes then break end
     if #bytes > 0 then
-        file:write(string.char(table.unpack(bytes)))
+        file:write(bytes)
 
         readCount = readCount + #bytes
         local percent = math.floor(100 * readCount / size)

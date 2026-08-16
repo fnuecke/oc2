@@ -1,17 +1,36 @@
-import io
-import os
-import select
-import json
+from oc2 import blob as oc2_blob
+from oc2 import ports as oc2_ports
+from oc2.blob import Blob, PayloadChannel
+from oc2.channel import Channel
+from oc2.events import Events
+
+REQUEST_TIMEOUT_MS = 30000
+MAX_EVENTS_PER_PUMP = 32
+
+PORT_NAME = "oc2.rpc.0"
+BLOB_PORT_NAME = "oc2.blob.0"
+EVENT_PORT_NAME = "oc2.event.0"
 
 
 class Device:
-    def __init__(self, device_bus, device_id):
+    def __init__(self, device_bus, device_id, type_names=None):
         self.bus = device_bus
         self.device_id = device_id
+        self.type_names = type_names or []
         self.methods = None
 
+    def invoke(self, method_name, *args):
+        return self.bus.invoke(self.device_id, method_name, *args)
+
     def __getattr__(self, item):
-        return lambda *args: self.bus.invoke(self.device_id, item, *args)
+        if item.startswith("_"):
+            raise AttributeError(item)
+        if self.methods is None:
+            self.methods = self.bus.methods(self.device_id)
+        for method in self.methods:
+            if method.get("name") == item:
+                return lambda *args: self.bus.invoke(self.device_id, item, *args)
+        raise AttributeError("device %s has no method %s" % (self.device_id, item))
 
     def __str__(self):
         if self.methods is None:
@@ -24,10 +43,7 @@ class Device:
                 for p in method["parameters"]:
                     if i > 0:
                         doc += ", "
-                    if "name" in p:
-                        doc += p["name"]
-                    else:
-                        doc += "arg" + str(i)
+                    doc += p["name"] if "name" in p else "arg" + str(i)
                     if "type" in p:
                         doc += ": " + p["type"]
                     i += 1
@@ -44,127 +60,170 @@ class Device:
                 for p in method["parameters"]:
                     if "description" in p:
                         doc += "  "
-                        if "name" in p:
-                            doc += p["name"]
-                        else:
-                            doc += "args" + str(i)
+                        doc += p["name"] if "name" in p else "args" + str(i)
                         doc += "  " + p["description"] + "\n"
                     i += 1
         return doc
 
 
-class DeviceBus:
-    MESSAGE_DELIMITER = "\0"
+def _copy_devices(devices):
+    result = []
+    for device in devices:
+        copy = {}
+        for key, value in device.items():
+            copy[key] = list(value) if isinstance(value, list) else value
+        result.append(copy)
+    return result
 
-    def __init__(self, path):
-        self.file = io.open(path, "+b")
-        os.system("stty -F %s raw -echo" % path)
-        self.poll = select.poll()
-        self.poll.register(self.file.fileno(), select.POLLIN)
-        self.buffer = None
-        self.buffer_pos = 0
+
+class DeviceBus:
+    def __init__(self, path, blob_path, event_path=None):
+        self.rpc = None
+        self.payload = None
+        self.events = None
+        self.generation = None
+        self.generation_confirmed = False
+        self.device_list = None
+
+        try:
+            self.rpc = Channel(path)
+            self.payload = PayloadChannel(blob_path) if blob_path else None
+            self.events = Events(event_path) if event_path else None
+        except Exception:
+            self.close()
+            raise
 
     def close(self):
-        self.file.close()
-        self.buffer = None
+        if self.rpc:
+            self.rpc.close()
+        if self.payload:
+            self.payload.close()
+        if self.events:
+            self.events.close()
+
+    def has_events(self):
+        return self.events is not None
 
     def flush(self):
-        self._clear_buffer()
-        self._skip_input()
+        self.rpc.reset()
+        if self.payload:
+            self.payload.reset()
+
+    def _note_generation(self, envelope):
+        if "gen" not in envelope:
+            raise Exception("host reply carried no bus generation")
+        if envelope["gen"] != self.generation:
+            self.generation = envelope["gen"]
+            self.device_list = None
+        self.generation_confirmed = True
+
+    def _apply_event(self, event):
+        if isinstance(event, dict) and event.get("type") == "devicesChanged":
+            if event.get("gen") != self.generation:
+                self.generation = event.get("gen")
+                self.device_list = None
+            self.generation_confirmed = True
+            return True
+        return False
+
+    def pump_events(self):
+        count = 0
+        for _ in range(MAX_EVENTS_PER_PUMP if self.events else 0):
+            event = self.events.poll()
+            if event is None:
+                break
+            if self._apply_event(event):
+                count += 1
+        return count
+
+    def wait_event(self, timeout=None):
+        if not self.events:
+            raise Exception("this host has no event channel; check has_events()")
+        event = self.events.wait(timeout)
+        if event is not None:
+            self._apply_event(event)
+        return event
+
+    # ------------------------------------------------------------- #
+
+    def _request(self, message, expected):
+        self.rpc.write(message)
+        reply = self.rpc.read(REQUEST_TIMEOUT_MS)
+        if reply is None:
+            raise Exception("no reply from the host")
+        self._note_generation(reply)
+        if reply["type"] == expected:
+            return reply
+        if reply["type"] == "error":
+            raise Exception(reply["data"])
+        raise Exception("unexpected message type: %s" % reply["type"])
+
+    def _raw_list(self):
+        self.pump_events()
+
+        if self.device_list is not None and self.generation_confirmed:
+            self.generation_confirmed = False
+            return self.device_list
+
+        self.flush()
+        devices = self._request({"type": "list"}, "list")["data"]
+        if not isinstance(devices, list):
+            raise Exception("the host sent a device list that is not a list")
+        self.device_list = devices
+        return devices
 
     def list(self):
-        self.flush()
-        self._write_message({'type': "list"})
-        return self._read_message("list")
+        return _copy_devices(self._raw_list())
+
+    def _lookup(self, matches):
+        for _ in range(2):
+            for device in self._raw_list():
+                if matches(device):
+                    return Device(self, device["deviceId"], device.get("typeNames"))
+            if self.device_list is None:
+                break  # was not cached, so looking again would return the same thing
+            self.device_list = None
+        return None
 
     def get(self, device_id):
-        for device in self.list():
-            if device["deviceId"] == device_id:
-                return Device(self, device["deviceId"])
-        return None
+        return self._lookup(lambda candidate: candidate["deviceId"] == device_id)
 
     def find(self, type_name):
-        for device in self.list():
-            if "typeNames" in device and type_name in device["typeNames"]:
-                return Device(self, device["deviceId"])
-        return None
+        return self._lookup(
+            lambda candidate: type_name in (candidate.get("typeNames") or []))
 
     def methods(self, device_id):
         self.flush()
-        self._write_message({"type": "methods", "data": device_id})
-        return self._read_message("methods")
+        return self._request({"type": "methods", "data": device_id}, "methods")["data"]
+
+    def blob(self, data):
+        return Blob(data)
 
     def invoke(self, device_id, method_name, *args):
         self.flush()
-        self._write_message({"type": "invoke", "data": {
+
+        parameters, payload = oc2_blob.extract(args)
+        message = {"type": "invoke", "data": {
             "deviceId": device_id,
             "name": method_name,
-            "parameters": args
-        }})
-        return self._read_message("result")
+            "parameters": parameters
+        }}
 
-    def _write_message(self, data):
-        self.file.write(self.MESSAGE_DELIMITER + json.dumps(data) + self.MESSAGE_DELIMITER)
+        if payload is not None:
+            if self.payload is None:
+                raise Exception("no binary payload channel was found")
+            self.payload.write(payload)
+            message["blob"] = {"length": len(payload),
+                               "checksum": oc2_blob.checksum(payload)}
 
-    def _read_message(self, expected_type):
-        message = ""
-        while True:
-            if self.buffer is None:
-                self._fill_buffer()
-
-            value = self.buffer.decode()[self.buffer_pos:]
-
-            if len(message) == 0 and value[0] == self.MESSAGE_DELIMITER:
-                self.buffer_pos += 1
-                value = value[1:]
-
-            if value.find(self.MESSAGE_DELIMITER) != -1:
-                value = value[:value.find(self.MESSAGE_DELIMITER) + 1]
-                self.buffer_pos += len(value)
-                if self.buffer_pos >= len(self.buffer):
-                    self._clear_buffer()
-            else:
-                self._clear_buffer()
-
-            message += value
- 
-            if message[-1] == self.MESSAGE_DELIMITER:
-                data = json.loads(message)
-                if data["type"] == expected_type:
-                    if "data" in data:
-                        return data["data"]
-                    else:
-                        return
-                elif data["type"] == "error":
-                    raise Exception(data["data"])
-                else:
-                    raise Exception("unexpected message type: %s" % data["type"])
-
-    def _clear_buffer(self):
-        self.buffer = None
-        self.buffer_pos = 0
-
-    def _fill_buffer(self):
-        self.poll.poll()  # Blocking wait until we have some data.
-        self.buffer = self._read(1024)
-        self.buffer_pos = 0
-
-    def _read(self, limit):
-        # This is horrible, but don't know how to know how many bytes are available,
-        # so reading one by one is necessary to avoid blocking.
-        data = bytearray()
-        bytesRead = 0
-        while bytesRead < limit and len(self.poll.poll(0)) > 0:
-            data.extend(self.file.read(1))
-            bytesRead += 1
-        return data
-
-    def _skip_input(self):
-        # This is horrible, but don't know how to know how many bytes are available,
-        # so reading one by one is necessary to avoid blocking.
-        while len(self.poll.poll(0)) > 0:
-            self.file.read(1)
+        return oc2_blob.resolve(self.payload, self._request(message, "result"))
 
 
 def bus():
-    return DeviceBus("/dev/hvc0")
+    port = oc2_ports.find(PORT_NAME)
+    if port is None:
+        raise Exception("no virtio port named %s was found" % PORT_NAME)
+    blob_port = oc2_ports.find(BLOB_PORT_NAME)
+    if blob_port is None:
+        raise Exception("no virtio port named %s was found" % BLOB_PORT_NAME)
+    return DeviceBus(port, blob_port, oc2_ports.find(EVENT_PORT_NAME))

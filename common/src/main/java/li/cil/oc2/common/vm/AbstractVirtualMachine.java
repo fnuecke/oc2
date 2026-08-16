@@ -73,7 +73,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         state.board = new R5Board();
         state.context = new GlobalVMContext(state.board);
         state.builtinDevices = new BuiltinDevices(state.context);
-        state.rpcAdapter = new RPCDeviceBusAdapter(state.builtinDevices.rpcSerialDevice);
+        state.rpcAdapter = new RPCDeviceBusAdapter(state.builtinDevices.getRpcPort(), state.builtinDevices.getBlobPort(), state.builtinDevices.getEventPort());
         state.vmAdapter = new VMDeviceBusAdapter(state.context);
 
         state.board.getCpu().setFrequency(Constants.CPU_FREQUENCY);

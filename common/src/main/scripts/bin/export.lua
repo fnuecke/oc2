@@ -23,11 +23,10 @@ io.flush()
 device:beginExportFile(arg[1])
 
 while true do
-    local str = file:read(512)
+    local str = file:read(16 * 1024)
     if not str then break end
     if #str > 0 then
-        local bytes = {string.byte(str, 1, -1)}
-        device:writeExportFile(bytes)
+        device:writeExportFile(devices:blob(str))
         io.write(".")
         io.flush()
     end

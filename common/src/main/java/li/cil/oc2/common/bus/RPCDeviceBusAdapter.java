@@ -2,15 +2,14 @@
 
 package li.cil.oc2.common.bus;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
+import com.google.gson.*;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBusController;
-import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.rpc.*;
 import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
+import li.cil.oc2.common.bus.device.rpc.RPCDeviceWithIdentifier;
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
 import li.cil.oc2.common.serialization.gson.*;
 import li.cil.sedna.api.device.Steppable;
@@ -19,55 +18,55 @@ import li.cil.sedna.api.device.serial.SerialDevice;
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Semaphore;
 
 public final class RPCDeviceBusAdapter implements Steppable {
     private static final int DEFAULT_MAX_MESSAGE_SIZE = 4 * Constants.KILOBYTE;
-    private static final byte[] MESSAGE_DELIMITER = "\0".getBytes();
 
     public static final String ERROR_MESSAGE_TOO_LARGE = "message too large";
     public static final String ERROR_UNKNOWN_MESSAGE_TYPE = "unknown message type";
     public static final String ERROR_UNKNOWN_DEVICE = "unknown device";
     public static final String ERROR_UNKNOWN_METHOD = "unknown method";
     public static final String ERROR_INVALID_PARAMETER_SIGNATURE = "invalid parameter signature";
+    public static final String ERROR_PAYLOAD_CORRUPT = "payload failed its checksum";
+    public static final String ERROR_PAYLOAD_MISMATCH = "payload does not match its description";
+    public static final String ERROR_MALFORMED_MESSAGE = "malformed message";
+    public static final String ERROR_PAYLOAD_NEEDS_UNSYNCHRONIZED =
+            "binary parameters (byte[]) require an rpc method to not be synchronized (synchronize = false)";
 
     // ------------------------------------------------------------- //
 
-    private final SerialDevice serialDevice;
     private final Gson gson;
 
-    private final ArrayList<RPCDeviceWithIdentifier> devicesWithId = new ArrayList<>();
-    private final HashMap<UUID, RPCDeviceList> devicesById = new HashMap<>();
-    private final Set<RPCDeviceList> unmountedDevices = new HashSet<>();
-    private final Set<RPCDeviceList> mountedDevices = new HashSet<>();
-    private final Lock pauseLock = new ReentrantLock();
+    @Serialized
+    private final RPCDeviceRegistry registry = new RPCDeviceRegistry();
+    @Serialized
+    private final RPCMessageChannel messages;
+    @Serialized
+    private final RPCPayloadChannel payloads;
+    @Serialized
+    private final RPCEventChannel events;
+    @Serialized
+    private volatile MethodInvocation synchronizedInvocation; // pending main thread invocation
+
+    private final RPCBlobJsonSerializer blobs = new RPCBlobJsonSerializer();
+    private final Semaphore pauseLock = new Semaphore(1); // for tryAcquire in step()
     private volatile boolean isPaused; // server thread -> worker thread
 
     // ------------------------------------------------------------- //
 
-    @Serialized
-    private final ByteBuffer transmitBuffer; // for data written to device by VM
-    @Serialized
-    private ByteBuffer receiveBuffer; // for data written by device to VM
-    @Serialized
-    private MethodInvocation synchronizedInvocation; // pending main thread invocation
-    @Serialized
-    private int busGeneration; // bumped whenever the device list changes, sent with every reply
-
-    // ------------------------------------------------------------- //
-
-    public RPCDeviceBusAdapter(final SerialDevice serialDevice) {
-        this(serialDevice, DEFAULT_MAX_MESSAGE_SIZE);
+    public RPCDeviceBusAdapter(final SerialDevice serialDevice, final SerialDevice blobDevice, final SerialDevice eventDevice) {
+        this(serialDevice, blobDevice, eventDevice, DEFAULT_MAX_MESSAGE_SIZE);
     }
 
-    public RPCDeviceBusAdapter(final SerialDevice serialDevice, final int maxMessageSize) {
-        this.serialDevice = serialDevice;
-        this.transmitBuffer = ByteBuffer.allocate(maxMessageSize);
+    public RPCDeviceBusAdapter(final SerialDevice serialDevice, final SerialDevice blobDevice, final SerialDevice eventDevice, final int maxMessageSize) {
+        this.messages = new RPCMessageChannel(serialDevice, maxMessageSize);
+        this.payloads = new RPCPayloadChannel(blobDevice);
+        this.events = new RPCEventChannel(eventDevice);
         this.gson = RPCMethodParameterTypeAdapters.beginBuildGson()
-                .registerTypeAdapter(byte[].class, new UnsignedByteArrayJsonSerializer())
+                .registerTypeAdapter(byte[].class, blobs)
                 .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
                 .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
                 .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
@@ -80,32 +79,22 @@ public final class RPCDeviceBusAdapter implements Steppable {
     // ------------------------------------------------------------- //
 
     public void mountDevices() {
-        for (final RPCDevice device : unmountedDevices) {
-            device.mount();
-        }
-
-        mountedDevices.addAll(unmountedDevices);
-        unmountedDevices.clear();
+        registry.mountAll();
     }
 
     public void unmountDevices() {
-        for (final RPCDevice device : mountedDevices) {
-            device.unmount();
-        }
-
-        unmountedDevices.addAll(mountedDevices);
-        mountedDevices.clear();
+        registry.unmountAll();
     }
 
     public void disposeDevices() {
-        unmountDevices();
-
-        unmountedDevices.forEach(RPCDeviceList::dispose);
+        registry.disposeAll();
     }
 
     public void reset() {
-        transmitBuffer.clear();
-        receiveBuffer = null;
+        messages.reset();
+        payloads.reset();
+        events.reset();
+        blobs.clearPending();
         synchronizedInvocation = null;
     }
 
@@ -114,92 +103,20 @@ public final class RPCDeviceBusAdapter implements Steppable {
             return;
         }
 
-        pauseLock.lock();
+        pauseLock.acquireUninterruptibly();
         isPaused = true;
-        pauseLock.unlock();
+        pauseLock.release();
     }
 
     public void resume(final DeviceBusController controller, final boolean didDevicesChange) {
         try {
             if (didDevicesChange) {
-                rebuildDevices(controller);
-                busGeneration++;
+                registry.rebuild(controller);
+                addEvent("devicesChanged", null);
             }
         } finally {
             isPaused = false;
         }
-    }
-
-    private void rebuildDevices(final DeviceBusController controller) {
-        // How device grouping works:
-        // Each device can have multiple UUIDs due to being attached to multiple bus elements.
-        // There is no guarantee that for each device D1 present on bus elements E1 and E2,
-        // where device D2 is present on E1 it will also be present on E2. This is completely
-        // up to the device providers.
-        // Therefore, we must group all devices by their identifiers to then remove duplicate
-        // groups. This is fragile because it will depend on the order the devices appear in
-        // the list. However, since we add devices to bus elements in the order of their
-        // providers, then add devices to the controller in the order of their elements, this
-        // will work. And even if it does not, it only leads to duplicate devices popping up
-        // in the VM, which, while annoying, is not breaking anything.
-        // In a final step, when we know which devices are duplicates and what identifiers
-        // they have, we pick a single identifier in a deterministic way, given the list of
-        // identifiers is the same.
-
-        final HashMap<UUID, ArrayList<RPCDevice>> devicesByIdentifier = new HashMap<>();
-        for (final Device device : controller.getDevices()) {
-            if (device instanceof final RPCDevice rpcDevice) {
-                final Set<UUID> identifiers = controller.getDeviceIdentifiers(device);
-                for (final UUID identifier : identifiers) {
-                    devicesByIdentifier
-                            .computeIfAbsent(identifier, unused -> new ArrayList<>())
-                            .add(rpcDevice);
-                }
-            }
-        }
-
-        final HashMap<RPCDeviceList, ArrayList<UUID>> identifiersByDevice = new HashMap<>();
-        devicesByIdentifier.forEach((identifier, devices) -> {
-            final RPCDeviceList device = new RPCDeviceList(devices);
-
-            // If there are no methods we have either no devices at all, or all synthetic
-            // devices, i.e. devices that only contribute type names, but have no methods
-            // to call. We do not expose these to avoid cluttering the device list.
-            if (device.getMethodGroups().isEmpty()) {
-                return;
-            }
-
-            identifiersByDevice
-                    .computeIfAbsent(device, unused -> new ArrayList<>())
-                    .add(identifier);
-        });
-
-        // Rebuild devices lists.
-        devicesWithId.clear();
-        devicesById.clear();
-
-        final Set<RPCDeviceList> devices = new HashSet<>();
-        identifiersByDevice.forEach((device, identifiers) -> {
-            final UUID identifier = selectIdentifierDeterministically(identifiers);
-            devicesWithId.add(new RPCDeviceWithIdentifier(identifier, device));
-            devicesById.put(identifier, device);
-            devices.add(device);
-
-            // Add to set of unmounted devices if we don't already track it. It's a set, so
-            // there won't be duplicates in the unmounted set due to this.
-            if (!mountedDevices.contains(device)) {
-                unmountedDevices.add(device);
-            }
-        });
-
-        // Remove devices from mounted set, call appropriate callbacks.
-        final HashSet<RPCDeviceList> removedMountedDevices = new HashSet<>(mountedDevices);
-        removedMountedDevices.removeAll(devices);
-        mountedDevices.removeAll(removedMountedDevices);
-        removedMountedDevices.forEach(RPCDeviceList::unmount);
-
-        // Remove devices from unmounted set.
-        unmountedDevices.retainAll(devices);
     }
 
     public void tick() {
@@ -219,73 +136,115 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     public void step(final int cycles) {
-        if (isPaused || !pauseLock.tryLock()) {
+        if (isPaused || !pauseLock.tryAcquire()) {
             return;
         }
 
         try {
+            payloads.receive();
             readFromDevice();
             writeToDevice();
+            events.flush();
         } finally {
-            pauseLock.unlock();
+            pauseLock.release();
         }
     }
 
     // ------------------------------------------------------------- //
-
-    private UUID selectIdentifierDeterministically(final ArrayList<UUID> identifiers) {
-        UUID lowestIdentifier = identifiers.get(0);
-        for (int i = 1; i < identifiers.size(); i++) {
-            final UUID identifier = identifiers.get(i);
-            if (identifier.compareTo(lowestIdentifier) < 0) {
-                lowestIdentifier = identifier;
-            }
-        }
-        return lowestIdentifier;
-    }
 
     private void readFromDevice() {
         // Only ever allow one pending message to avoid giving the VM the
         // power of uncontrollably inflating memory usage. Basically any
         // method of limiting the write queue size would work, but this is
         // the most simple and easy to maintain one I could think of.
-        int value;
-        while (receiveBuffer == null && synchronizedInvocation == null && (value = serialDevice.read()) >= 0) {
-            if (value == 0) {
-                if (transmitBuffer.limit() > 0) {
-                    transmitBuffer.flip();
-                    if (transmitBuffer.hasRemaining()) {
-                        final byte[] message = new byte[transmitBuffer.remaining()];
-                        transmitBuffer.get(message);
-                        processMessage(message);
-                    }
-                } else {
-                    writeError(ERROR_MESSAGE_TOO_LARGE);
-                }
-                transmitBuffer.clear();
-            } else if (transmitBuffer.hasRemaining()) {
-                transmitBuffer.put((byte) value);
-            } else {
-                transmitBuffer.clear();
-                transmitBuffer.limit(0); // marks message too large
-            }
+        while (!messages.isSending() && !payloads.isSending() && synchronizedInvocation == null
+                && messages.readFrame(this::acceptMessage, () -> writeError(ERROR_MESSAGE_TOO_LARGE))) {
+            // This page intentionally left blank.
         }
     }
 
     private void writeToDevice() {
-        if (receiveBuffer == null) {
+        payloads.flush();
+        messages.flush();
+    }
+
+    private void acceptMessage(final byte[] messageData) {
+        final BlobReference reference;
+        try {
+            reference = peekBlobReference(messageData);
+        } catch (final Throwable e) {
+            payloads.discard();
+            writeError(ERROR_MALFORMED_MESSAGE);
             return;
         }
 
-        while (receiveBuffer.hasRemaining() && serialDevice.canPutByte()) {
-            serialDevice.putByte(receiveBuffer.get());
+        if (reference == null) {
+            payloads.discard(); // Just in case, so the next message doesn't break.
+            processMessage(messageData);
+            return;
         }
 
-        serialDevice.flush();
-
-        if (!receiveBuffer.hasRemaining()) {
-            receiveBuffer = null;
+        try {
+            blobs.setReceived(payloads.take(reference.length(), reference.checksum()));
+        } catch (final RPCPayloadChannel.PayloadException e) {
+            writeError(e.error);
+            return;
         }
+
+        try {
+            processMessage(messageData);
+        } finally {
+            blobs.setReceived(null);
+        }
+    }
+
+    @Nullable
+    private BlobReference peekBlobReference(final byte[] messageData) {
+        final JsonElement parsed = JsonParser.parseString(new String(messageData, StandardCharsets.UTF_8));
+        if (!parsed.isJsonObject()) {
+            return null;
+        }
+
+        final JsonObject message = parsed.getAsJsonObject();
+        final JsonElement blob = message.get("blob");
+        if (blob == null || !blob.isJsonObject()) {
+            return null;
+        }
+
+        final JsonElement type = message.get("type");
+        if (type == null || !Objects.equals(type.getAsString(), Message.MESSAGE_TYPE_INVOKE_METHOD)) {
+            throw new JsonParseException("only an invocation may carry a binary payload");
+        }
+
+        final int markers = countBlobMarkers(message);
+        if (markers != 1) {
+            throw new JsonParseException("a call carrying a payload must refer to it exactly once, saw " + markers);
+        }
+
+        final JsonObject reference = blob.getAsJsonObject();
+        return new BlobReference(reference.get("length").getAsInt(), reference.get("checksum").getAsInt());
+    }
+
+    private static int countBlobMarkers(final JsonElement element) {
+        if (element.isJsonObject()) {
+            final JsonObject object = element.getAsJsonObject();
+            if (object.has(RPCBlobJsonSerializer.BLOB_REFERENCE_KEY)) {
+                return 1;
+            }
+            int count = 0;
+            for (final Map.Entry<String, JsonElement> entry : object.entrySet()) {
+                count += countBlobMarkers(entry.getValue());
+            }
+            return count;
+        }
+        if (element.isJsonArray()) {
+            int count = 0;
+            for (final JsonElement child : element.getAsJsonArray()) {
+                count += countBlobMarkers(child);
+            }
+            return count;
+        }
+        return 0;
     }
 
     private void processMessage(final byte[] messageData) {
@@ -320,7 +279,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     private void processMethodInvocation(final MethodInvocation methodInvocation, final boolean isMainThread) {
-        final RPCDevice device = devicesById.get(methodInvocation.deviceId);
+        final RPCDevice device = registry.byId(methodInvocation.deviceId);
         if (device == null) {
             writeError(ERROR_UNKNOWN_DEVICE);
             return;
@@ -354,6 +313,15 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     private void invokeMethod(final MethodInvocation methodInvocation, final boolean isMainThread, final RPCMethod method, final RPCInvocation invocation) {
+        if (method.isSynchronized() && blobs.getReceived() != null) {
+            // Blob won't survive until synced callback is run and we don't really need it
+            // right now, so we just fail. If this turns out to be needed, we'll have to
+            // store the blob next to the sync call. But I don't have the energy to fully
+            // think through the implications of that right now, so, yeah.
+            writeError(ERROR_PAYLOAD_NEEDS_UNSYNCHRONIZED);
+            return;
+        }
+
         if (method.isSynchronized() && !isMainThread) {
             synchronizedInvocation = methodInvocation;
             return;
@@ -368,11 +336,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     private void writeDeviceList() {
-        writeMessage(Message.MESSAGE_TYPE_LIST, devicesWithId);
+        writeMessage(Message.MESSAGE_TYPE_LIST, registry.devices());
     }
 
     private void writeDeviceMethods(final UUID deviceId) {
-        final RPCDeviceList device = devicesById.get(deviceId);
+        final RPCDeviceList device = registry.byId(deviceId);
         if (device != null) {
             writeMessage(Message.MESSAGE_TYPE_METHODS, flattenMethodGroups(device.getMethodGroups()));
         } else {
@@ -398,36 +366,40 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     private void writeMessage(final String type, @Nullable final Object data) {
-        if (receiveBuffer != null) throw new IllegalStateException();
-        final String json = gson.toJson(new Message(type, data, busGeneration));
-        final byte[] bytes = json.getBytes();
-        final ByteBuffer receiveBuffer = ByteBuffer.allocate(bytes.length + MESSAGE_DELIMITER.length * 2);
+        blobs.clearPending();
+        final JsonElement dataElement = gson.toJsonTree(data);
 
-        // In case we went through a reset and the VM was in the middle of reading
-        // a message we inject a delimiter up front to cause the truncated message
-        // to be discarded.
-        receiveBuffer.put(MESSAGE_DELIMITER);
+        BlobReference blob = null;
+        final byte[] pending = blobs.getPending();
+        if (pending != null) {
+            if (!Objects.equals(type, Message.MESSAGE_TYPE_RESULT)) {
+                throw new IllegalStateException("only a result may carry a binary payload");
+            }
+            blob = new BlobReference(pending.length, RPCPayloadChannel.checksum(pending));
+            payloads.send(pending);
+        }
 
-        receiveBuffer.put(bytes);
+        messages.send(RPCMessageChannel.frame(encode(new Message(type, dataElement, registry.generation(), blob))));
+    }
 
-        // We follow up each message with a delimiter, too, so the VM knows when the
-        // message has been completed. This will lead to two delimiters between most
-        // messages. The VM is expected to ignore such "empty" messages.
-        receiveBuffer.put(MESSAGE_DELIMITER);
+    private boolean addEvent(final String type, @Nullable final Object data) {
+        return events.addEvent(RPCMessageChannel.frame(
+                encode(new Message(type, data, registry.generation(), null))));
+    }
 
-        receiveBuffer.flip();
-        this.receiveBuffer = receiveBuffer;
+    private byte[] encode(final Message message) {
+        return gson.toJson(message).getBytes(StandardCharsets.UTF_8);
     }
 
     // ------------------------------------------------------------- //
 
-    public record RPCDeviceWithIdentifier(UUID identifier, RPCDevice device) {
-    }
-
     public record EmptyMethodGroup(String name) {
     }
 
-    public record Message(String type, @Nullable Object data, int gen) {
+    public record BlobReference(int length, int checksum) {
+    }
+
+    public record Message(String type, @Nullable Object data, int gen, @Nullable BlobReference blob) {
         // Device -> VM
         public static final String MESSAGE_TYPE_LIST = "list";
         public static final String MESSAGE_TYPE_METHODS = "methods";

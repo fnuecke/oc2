@@ -1,7 +1,6 @@
 #!/usr/bin/lua
 
 local devices = require("devices")
-local json = require("cjson").new()
 for _,device in ipairs(devices:list()) do
     local line = device.deviceId .. "\t"
     local isFirstTypeName = true

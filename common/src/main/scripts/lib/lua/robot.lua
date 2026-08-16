@@ -3,19 +3,43 @@ local robot = assert(require("devices"):find("robot"), "robot device not found")
 local time = require("posix.time")
 
 local function sleep(milliseconds)
-  time.nanosleep({tv_sec=0,tv_nsec=milliseconds*1000})
+  local total = math.floor(milliseconds)
+  time.nanosleep({tv_sec=total//1000,tv_nsec=(total%1000)*1000000})
 end
 
-local function waitForLastAction()
+local pollInterval = 100
+local defaultTimeout = 30000
+
+local function deadlineFrom(timeout)
+  return os.time() + (timeout or defaultTimeout) / 1000
+end
+
+local function waitForLastAction(timeout)
   local id = robot:getLastActionId()
+  local deadline = deadlineFrom(timeout)
 
   local result = robot:getActionResult(id)
   while result and result == "INCOMPLETE" do
-    sleep(100)
+    if os.time() >= deadline then
+      return false
+    end
+    sleep(pollInterval)
     result = robot:getActionResult(id)
   end
 
   return result == "SUCCESS"
+end
+
+local function queueAction(action, direction, timeout)
+  direction = assert(direction, "no direction specified")
+  local deadline = deadlineFrom(timeout)
+  while not action(robot, direction) do
+    if os.time() >= deadline then
+      return false
+    end
+    sleep(pollInterval)
+  end
+  return true
 end
 
 local M = {}
@@ -48,28 +72,26 @@ M.stack = function(slot)
   return robot:getStackInSlot(slot or M.slot())
 end
 
-M.move = function(direction)
-  M.moveAsync(direction)
-  return waitForLastAction()
-end
-
-M.moveAsync = function(direction)
-  direction = assert(direction, "no direction specified")
-  while not robot:move(direction) do
-    sleep(100)
+M.move = function(direction, timeout)
+  if not M.moveAsync(direction, timeout) then
+    return false
   end
+  return waitForLastAction(timeout)
 end
 
-M.turn = function(direction)
-  M.turnAsync(direction)
-  return waitForLastAction()
+M.moveAsync = function(direction, timeout)
+  return queueAction(robot.move, direction, timeout)
 end
 
-M.turnAsync = function(direction)
-  direction = assert(direction, "no direction specified")
-  while not robot:turn(direction) do
-    sleep(100)
+M.turn = function(direction, timeout)
+  if not M.turnAsync(direction, timeout) then
+    return false
   end
+  return waitForLastAction(timeout)
+end
+
+M.turnAsync = function(direction, timeout)
+  return queueAction(robot.turn, direction, timeout)
 end
 
 return M

@@ -1,257 +1,354 @@
-local fcntl = require("posix.fcntl")
-local unistd = require("posix.unistd")
-local poll = require("posix.poll")
-local cjson = require("cjson").new()
+local Channel = require("oc2.channel")
+local blob = require("oc2.blob")
+local Events = require("oc2.events")
+local ports = require("oc2.ports")
 
 local Device = {}
-Device.__index = function(_, key)
-  return rawget(Device, key) or function(self, ...)
-    return Device.invoke(self, key, ...)
-  end
+
+local invokers = {}
+local owners = setmetatable({}, {__mode = "k"})
+
+local function busOf(device)
+  return owners[device].bus
 end
-Device.__tostring = function(self)
-  local doc = ""
 
-  if not rawget(self, "methods") then
-    self.methods = self.bus:methods(self.deviceId)
+local function methodsOf(device)
+  local owner = owners[device]
+  if not owner.methods then
+    owner.methods = busOf(device):methods(device.deviceId)
+  end
+  return owner.methods
+end
+
+Device.__index = function(self, key)
+  local direct = rawget(Device, key)
+  if direct then
+    return direct
   end
 
-  for _, method in ipairs(self.methods) do
-    doc = doc .. method.name .. "("
+  local found = false
+  for _, method in ipairs(methodsOf(self)) do
+    if method.name == key then
+      found = true
+      break
+    end
+  end
+  if not found then
+    return nil
+  end
+
+  local invoker = invokers[key]
+  if not invoker then
+    invoker = function(device, ...)
+      return Device.invoke(device, key, ...)
+    end
+    invokers[key] = invoker
+  end
+  return invoker
+end
+
+Device.__tostring = function(self)
+  local out = {}
+  local function put(...)
+    for _, part in ipairs({...}) do
+      out[#out + 1] = part
+    end
+  end
+
+  local function parameterName(p, index)
+    return p.name or ("arg" .. index)
+  end
+
+  for _, method in ipairs(methodsOf(self)) do
+    put(method.name, "(")
     if method.parameters then
-      local i = 1
-      for _, p in ipairs(method.parameters) do
+      for i, p in ipairs(method.parameters) do
         if i > 1 then
-          doc = doc .. ", "
+          put(", ")
         end
-        if p.name then
-          doc = doc .. p.name
-        else
-          doc = doc .. "arg" .. i
-        end
+        put(parameterName(p, i))
         if p.type then
-            doc = doc .. ": " .. p.type
+          put(": ", p.type)
         end
-        i = i + 1
       end
     end
-    doc = doc .. ")"
+    put(")")
     if method.returnType then
-        doc = doc .. ": " .. method.returnType
+      put(": ", method.returnType)
     end
-    doc = doc .. "\n"
+    put("\n")
 
     if method.description then
-      doc = doc .. method.description .. "\n"
+      put(method.description, "\n")
     end
 
     if method.parameters then
-      local i = 1
-      for _, p in ipairs(method.parameters) do
+      for i, p in ipairs(method.parameters) do
         if p.description then
-          doc = doc .. "  "
-          if p.name then
-            doc = doc .. p.name
-          else
-            doc = doc .. "arg" .. i
-          end
-          doc = doc .. "  " .. p.description .. "\n"
+          put("  ", parameterName(p, i), "  ", p.description, "\n")
         end
-
-        i = i + 1
       end
     end
   end
 
-  return doc
+  return table.concat(out)
 end
 
 function Device:new(bus, device)
-  device.bus = bus
+  owners[device] = { bus = bus }
   return setmetatable(device, self)
 end
 
 function Device:invoke(methodName, ...)
-  return self.bus:invoke(self.deviceId, methodName, ...)
+  return busOf(self):invoke(self.deviceId, methodName, ...)
 end
 
 local DeviceBus = {}
 DeviceBus.__index = DeviceBus
 
-local message_delimiter = string.char(0)
+DeviceBus.null = require("cjson").null
 
 local function parseError(result, reason)
-  if result and result.type == "error" then
-    return result.data
-  elseif result then
-    return "unexpected message type: " .. result.type
+  if type(result) ~= "table" then
+    return "unexpected error: " .. tostring(reason or "unknown error")
+  elseif result.type == "error" then
+    return tostring(result.data or "the host reported an error with no detail")
   else
-    return "unexpected error: " .. (reason or "unknown error")
+    return "unexpected message type: " .. tostring(result.type)
   end
 end
 
-local function skipInput(bus)
-  repeat
-    local result, status, errnum = poll.rpoll(bus.fd, 0)
-    if result == 1 then
-      unistd.read(bus.fd, 1024)
-    end
-  until result ~= 1
+local function noteGeneration(bus, result)
+  if not result then
+    return
+  end
+
+  local gen = assert(result.gen, "host reply carried no bus generation")
+  if gen ~= bus.generation then
+    bus.generation = gen
+    bus.deviceList = nil
+  end
+  bus.generationConfirmed = true
 end
 
-local function fillBuffer(bus)
-  local result, status, errnum = poll.rpoll(bus.fd, -1)
-  if result == nil then
-    return result, status, errnum
-  elseif result == 0 then
-    return nil, "timeout"
-  else
-    bus.buffer = unistd.read(bus.fd, 1024)
-    bus.bufferPos = 1
+local function applyEvent(bus, event)
+  if type(event) ~= "table" then
+    return false
+  end
+
+  if event.type == "devicesChanged" and type(event.gen) == "number" then
+    if event.gen ~= bus.generation then
+      bus.generation = event.gen
+      bus.deviceList = nil
+    end
+    bus.generationConfirmed = true
     return true
   end
+
+  return false
 end
 
-local function clearBuffer(bus)
-    bus.buffer = nil
-end
+local maxEventsPerPump = 32
 
-local function readMessage(bus)
-  local value
-  local message = ""
-  while true do
-    if not bus.buffer then
-      local result, status = fillBuffer(bus)
-      if not result then
-        return result, status
-      end
+function DeviceBus:pumpEvents()
+  local count = 0
+  for _ = 1, self.events and maxEventsPerPump or 0 do
+    local event = self.events:poll()
+    if not event then
+      break -- nothing pending, or a frame we could not parse; either way, stop
     end
-
-    value = bus.buffer:sub(bus.bufferPos, -1)
-
-    if #message == 0 and value:byte(1) == 0 then
-      bus.bufferPos = bus.bufferPos + 1
-      value = value:sub(2, -1)
-    end
-
-    if value:find(message_delimiter) then
-      value = value:sub(1, value:find(message_delimiter))
-      bus.bufferPos = bus.bufferPos + #value
-      if bus.bufferPos > #bus.buffer then
-        clearBuffer(bus)
-      end
-    else
-        clearBuffer(bus)
-    end
-
-    message = message .. value
-
-    if message:byte(-1) == 0 then
-      message = message:sub(1, -2)
-      local ok, result = pcall(cjson.decode, message)
-      if ok then
-        return result
-      else
-        return nil, result
-      end
+    if applyEvent(self, event) then
+      count = count + 1
     end
   end
+  return count
 end
 
-local function writeMessage(bus, data)
-  local message = cjson.encode(data)
-  return unistd.write(bus.fd, message_delimiter .. message .. message_delimiter)
+function DeviceBus:waitEvent(timeout)
+  if not self.events then
+    return nil, "no event channel"
+  end
+
+  local event, reason = self.events:wait(timeout)
+  if not event then
+    return nil, reason
+  end
+
+  applyEvent(self, event)
+  return event
 end
 
-function DeviceBus:new(path)
-  local fd, status = fcntl.open(path, fcntl.O_RDWR)
-  if not fd then
+function DeviceBus:new(path, blobPath, eventPath)
+  local rpc, status = Channel.open(path)
+  if not rpc then
     return nil, status
   end
 
-  os.execute("stty -F " .. path .. " raw -echo")
-
-  return setmetatable({ fd = fd }, self)
+  return setmetatable({
+    rpc = rpc,
+    payload = blobPath and blob.open(blobPath) or nil,
+    events = eventPath and Events.open(eventPath) or nil,
+  }, self)
 end
 
 function DeviceBus:close()
-  unistd.close(self.fd)
+  self.rpc:close()
+  if self.payload then
+    self.payload:close()
+  end
+  if self.events then
+    self.events:close()
+  end
 end
 
 function DeviceBus:flush()
-  clearBuffer(self)
-  skipInput(self)
+  self.rpc:reset()
+  if self.payload then
+    self.payload:reset()
+  end
+end
+
+local function request(bus, message, expected)
+  bus.rpc:write(message)
+  local result, reason = bus.rpc:read()
+  if type(result) ~= "table" then
+    return error(parseError(nil, reason or "the host sent a malformed message"), 0)
+  end
+  noteGeneration(bus, result)
+  if result.type == expected then
+    return result
+  end
+  return error(parseError(result, reason), 0)
+end
+
+local function copyDevice(device)
+  local copy = {}
+  for key, value in pairs(device) do
+    if type(value) == "table" then
+      local inner = {}
+      for innerKey, innerValue in pairs(value) do
+        inner[innerKey] = innerValue
+      end
+      copy[key] = inner
+    else
+      copy[key] = value
+    end
+  end
+  return copy
+end
+
+local function copyDevices(devices)
+  local result = {}
+  for i, device in ipairs(devices) do
+    result[i] = copyDevice(device)
+  end
+  return result
+end
+
+local function rawList(bus)
+  bus:pumpEvents()
+
+  if bus.deviceList and bus.generationConfirmed then
+    bus.generationConfirmed = false
+    return bus.deviceList
+  end
+
+  bus:flush()
+  local result = request(bus, { type = "list" }, "list")
+  if type(result.data) ~= "table" then
+    error("the host sent a device list that is not a list", 0)
+  end
+  bus.deviceList = result.data
+  return result.data
 end
 
 function DeviceBus:list()
-  self:flush()
-  writeMessage(self, { type = "list" })
-  local result, reason = readMessage(self)
-  if result and result.type == "list" then
-    return result.data
-  else
-    return error(parseError(result))
+  return copyDevices(rawList(self))
+end
+
+local function lookup(bus, matches)
+  for _ = 1, 2 do
+    for _, device in ipairs(rawList(bus)) do
+      if matches(device) then
+        return Device:new(bus, copyDevice(device))
+      end
+    end
+
+    if not bus.deviceList then
+      break -- was not cached, so looking again would return the same thing
+    end
+    bus.deviceList = nil
   end
 end
 
 function DeviceBus:get(deviceId)
-  local devices, status = self:list()
-  if not devices then
-    return nil, status
+  local device, status = lookup(self, function(candidate)
+    return candidate.deviceId == deviceId
+  end)
+  if device then
+    return device
   end
 
-  for _, device in ipairs(devices) do
-    if device.deviceId == deviceId then
-      return Device:new(self, device)
-    end
-  end
-
-  return nil, "no device with id [" .. deviceId .. "]"
+  return nil, status or ("no device with id [" .. deviceId .. "]")
 end
 
+--- Finds a device by type name. Returns nil plus a reason if there is none; raises only if
+--- the bus itself failed.
 function DeviceBus:find(deviceTypeName)
-  local devices, status = self:list()
-  if not devices then
-    return nil, status
-  end
-
-  for _, device in ipairs(devices) do
-    if device.typeNames then
-      for _, typeName in ipairs(device.typeNames) do
+  local device, status = lookup(self, function(candidate)
+    if candidate.typeNames then
+      for _, typeName in ipairs(candidate.typeNames) do
         if typeName == deviceTypeName then
-          return Device:new(self, device)
+          return true
         end
       end
     end
+    return false
+  end)
+  if device then
+    return device
   end
 
-  return nil, "no device of type [" .. deviceTypeName .. "]"
+  return nil, status or ("no device of type [" .. deviceTypeName .. "]")
 end
 
 function DeviceBus:methods(deviceId)
   self:flush()
-  writeMessage(self, { type = "methods", data = deviceId })
-  local result, reason = readMessage(self)
-  if result and result.type == "methods" then
-    return result.data
-  else
-    error(parseError(result, reason))
-  end
+  return request(self, { type = "methods", data = deviceId }, "methods").data
+end
+
+function DeviceBus:blob(data)
+  return blob.wrap(data)
 end
 
 function DeviceBus:invoke(deviceId, methodName, ...)
   self:flush()
-  writeMessage(self, { type = "invoke", data = {
+
+  local parameters, payload = blob.extract(...)
+  local message = { type = "invoke", data = {
     deviceId = deviceId,
     name = methodName,
-    parameters = { ... }
-  }})
-  local result, reason = readMessage(self)
-  if result and result.type == "result" then
-    return result.data
-  else
-    error(parseError(result, reason))
+    parameters = parameters
+  }}
+
+  if payload then
+    if not self.payload then
+      error("no binary payload channel was found")
+    end
+    self.payload:write(payload)
+    message.blob = { length = #payload, checksum = blob.checksum(payload) }
   end
+
+  return blob.resolve(self.payload, request(self, message, "result"))
 end
 
-return DeviceBus:new("/dev/hvc0")
+local rpc_port = "oc2.rpc.0"
+local blob_port = "oc2.blob.0"
+local event_port = "oc2.event.0"
+
+local bus, reason = DeviceBus:new(
+  assert(ports.find(rpc_port), "no virtio port named " .. rpc_port .. " was found"),
+  assert(ports.find(blob_port), "no virtio port named " .. blob_port .. " was found"),
+  ports.find(event_port))
+
+return assert(bus, "could not open the device bus: " .. tostring(reason))

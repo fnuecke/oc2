@@ -16,6 +16,9 @@ public final class Constants {
 
     public static final int CPU_FREQUENCY = 25_000_000;
 
+    // The largest binary payload a VM accepts from a guest in one RPC call.
+    public static final int RPC_MAX_PAYLOAD_SIZE = 512 * KILOBYTE;
+
     // Note: these mean consumed *guest* memory, so kept low.
     public static final int VIRTIO_BLOCK_QUEUE_SIZE = 32;
     public static final int VIRTIO_FILESYSTEM_QUEUE_SIZE = 32;

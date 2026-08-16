@@ -3,10 +3,12 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.data.FileSystems;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.Interrupt;
 import li.cil.sedna.api.device.MemoryMappedDevice;
+import li.cil.sedna.api.device.serial.SerialDevice;
 import li.cil.sedna.device.rtc.GoldfishRTC;
 import li.cil.sedna.device.rtc.SystemTimeRealTimeCounter;
 import li.cil.sedna.device.serial.UART16550A;
@@ -21,6 +23,14 @@ public final class BuiltinDevices {
     public static final int RPC_INTERRUPT = 0x3;
     private static final int UART_INTERRUPT = 0x4;
     private static final int VFS_INTERRUPT = 0x5;
+
+    static final String RPC_PORT_NAME = "oc2.rpc.0";
+    static final String BLOB_PORT_NAME = "oc2.blob.0";
+    static final String EVENT_PORT_NAME = "oc2.event.0";
+
+    private static final int RPC_PORT = 0;
+    private static final int BLOB_PORT = 1;
+    private static final int EVENT_PORT = 2;
 
     // ------------------------------------------------------------- //
 
@@ -40,9 +50,21 @@ public final class BuiltinDevices {
     public BuiltinDevices(final GlobalVMContext context) {
         initialize(context, new GoldfishRTC(SystemTimeRealTimeCounter.get()), RTC_HOST_INTERRUPT, GoldfishRTC::getInterrupt);
         initialize(context, new GoldfishRTC(this.rtcMinecraft), RTC_MINECRAFT_INTERRUPT, GoldfishRTC::getInterrupt);
-        rpcSerialDevice = initialize(context, new VirtIOConsoleDevice(context.getMemoryMap()), RPC_INTERRUPT, VirtIOConsoleDevice::getInterrupt);
+        rpcSerialDevice = initialize(context, new VirtIOConsoleDevice(context.getMemoryMap(), RPC_PORT_NAME, BLOB_PORT_NAME, EVENT_PORT_NAME), RPC_INTERRUPT, VirtIOConsoleDevice::getInterrupt);
         uart = initialize(context, new UART16550A(), UART_INTERRUPT, UART16550A::getInterrupt);
-        vfs = initialize(context, new VirtIOFileSystemDevice(context.getMemoryMap(), "builtin", FileSystems.getLayeredFileSystem()), VFS_INTERRUPT, VirtIOFileSystemDevice::getInterrupt);
+        vfs = initialize(context, new VirtIOFileSystemDevice(context.getMemoryMap(), "builtin", FileSystems.getLayeredFileSystem(), Constants.VIRTIO_FILESYSTEM_QUEUE_SIZE), VFS_INTERRUPT, VirtIOFileSystemDevice::getInterrupt);
+    }
+
+    public SerialDevice getRpcPort() {
+        return rpcSerialDevice.getPort(RPC_PORT);
+    }
+
+    public SerialDevice getBlobPort() {
+        return rpcSerialDevice.getPort(BLOB_PORT);
+    }
+
+    public SerialDevice getEventPort() {
+        return rpcSerialDevice.getPort(EVENT_PORT);
     }
 
     // ------------------------------------------------------------- //

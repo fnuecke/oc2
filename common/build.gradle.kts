@@ -39,6 +39,7 @@ tasks {
         archiveFileName.set("scripts.zip")
         destinationDirectory.set(layout.buildDirectory.dir("resources/main/data/${modId}/file_systems"))
         from("src/main/scripts")
+        exclude("**/__pycache__/**")
     }
 
     processResources {

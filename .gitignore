@@ -26,6 +26,7 @@ run
 logs
 /assets/
 .architectury-transformer/
+__pycache__/
 
 # Files from Forge MDK
 forge*changelog.txt

@@ -44,6 +44,18 @@ public final class RobotActionEventTests {
                     + " print('OC2M'..'OV', ok and 'PASS' or 'FAIL')\"";
     private static final String LIBRARY_MARKER = "OC2MOV";
 
+    private static final String PYTHON_PROBE =
+            "micropython -c \"import devices;"
+                    + " b=devices.bus();"
+                    + " r=b.find('robot');"
+                    + " r.move('upward');"
+                    + " i=r.getLastActionId();"
+                    + " e=b.wait_event(10000, 'robotActionCompleted');"
+                    + " d=e and e.get('data');"
+                    + " ok=d and d.get('actionId')==i and d.get('result')=='SUCCESS';"
+                    + " print('OC2P'+'Y', 'PASS' if ok else 'FAIL', d and d.get('result'))\"";
+    private static final String PYTHON_MARKER = "OC2PY";
+
     // ------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
@@ -74,6 +86,11 @@ public final class RobotActionEventTests {
                 .thenWaitUntil(() -> requireOutput(robot, LIBRARY_MARKER))
                 .thenExecute(() -> requireVerdict(robot, LIBRARY_MARKER,
                         "robot.move() either failed or ignored the event and polled instead"))
+
+                .thenExecute(() -> robot.type(PYTHON_PROBE))
+                .thenWaitUntil(() -> requireOutput(robot, PYTHON_MARKER))
+                .thenExecute(() -> requireVerdict(robot, PYTHON_MARKER,
+                        "the MicroPython client never received the completion event"))
                 .thenSucceed();
     }
 

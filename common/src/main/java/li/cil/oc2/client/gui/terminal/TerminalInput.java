@@ -2,44 +2,54 @@
 
 package li.cil.oc2.client.gui.terminal;
 
+import it.unimi.dsi.fastutil.ints.Int2CharArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 
 public final class TerminalInput {
+    private static final int MODIFIER_MASK = GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_ALT;
     private static final Int2ObjectArrayMap<Int2ObjectArrayMap<byte[]>> KEYCODE_SEQUENCES = new Int2ObjectArrayMap<>();
+    private static final Int2CharArrayMap CSI_FINAL_BYTES = new Int2CharArrayMap();
+    private static final Int2IntArrayMap CSI_CODES = new Int2IntArrayMap();
 
     static {
+        CSI_FINAL_BYTES.defaultReturnValue('\0');
+        CSI_CODES.defaultReturnValue(0);
+
         addSequence(GLFW.GLFW_KEY_ENTER, '\r');
         addSequence(GLFW.GLFW_KEY_TAB, '\t');
         addSequence(GLFW.GLFW_KEY_BACKSPACE, '\b');
+        addSequence(GLFW.GLFW_MOD_ALT, GLFW.GLFW_KEY_BACKSPACE, (byte) '\033', (byte) '\b');
 
         addSequence(GLFW.GLFW_KEY_ESCAPE, "\33");
-        addSequence(GLFW.GLFW_KEY_HOME, "\033[1~");
-        addSequence(GLFW.GLFW_KEY_INSERT, "\033[2~");
-        addSequence(GLFW.GLFW_KEY_DELETE, "\033[3~");
-        addSequence(GLFW.GLFW_KEY_END, "\033[4~");
-        addSequence(GLFW.GLFW_KEY_PAGE_UP, "\033[5~");
-        addSequence(GLFW.GLFW_KEY_PAGE_DOWN, "\033[6~");
 
-        addSequence(GLFW.GLFW_KEY_F1, "\033[11~");
-        addSequence(GLFW.GLFW_KEY_F2, "\033[12~");
-        addSequence(GLFW.GLFW_KEY_F3, "\033[13~");
-        addSequence(GLFW.GLFW_KEY_F4, "\033[14~");
-        addSequence(GLFW.GLFW_KEY_F5, "\033[15~");
-        addSequence(GLFW.GLFW_KEY_F6, "\033[17~");
-        addSequence(GLFW.GLFW_KEY_F7, "\033[18~");
-        addSequence(GLFW.GLFW_KEY_F8, "\033[19~");
-        addSequence(GLFW.GLFW_KEY_F9, "\033[20~");
-        addSequence(GLFW.GLFW_KEY_F10, "\033[21~");
-        addSequence(GLFW.GLFW_KEY_F11, "\033[23~");
-        addSequence(GLFW.GLFW_KEY_F12, "\033[24~");
+        addCsiCode(GLFW.GLFW_KEY_HOME, 1);
+        addCsiCode(GLFW.GLFW_KEY_INSERT, 2);
+        addCsiCode(GLFW.GLFW_KEY_DELETE, 3);
+        addCsiCode(GLFW.GLFW_KEY_END, 4);
+        addCsiCode(GLFW.GLFW_KEY_PAGE_UP, 5);
+        addCsiCode(GLFW.GLFW_KEY_PAGE_DOWN, 6);
 
-        addSequence(GLFW.GLFW_KEY_UP, "\033[A");
-        addSequence(GLFW.GLFW_KEY_DOWN, "\033[B");
-        addSequence(GLFW.GLFW_KEY_RIGHT, "\033[C");
-        addSequence(GLFW.GLFW_KEY_LEFT, "\033[D");
+        addCsiCode(GLFW.GLFW_KEY_F1, 11);
+        addCsiCode(GLFW.GLFW_KEY_F2, 12);
+        addCsiCode(GLFW.GLFW_KEY_F3, 13);
+        addCsiCode(GLFW.GLFW_KEY_F4, 14);
+        addCsiCode(GLFW.GLFW_KEY_F5, 15);
+        addCsiCode(GLFW.GLFW_KEY_F6, 17);
+        addCsiCode(GLFW.GLFW_KEY_F7, 18);
+        addCsiCode(GLFW.GLFW_KEY_F8, 19);
+        addCsiCode(GLFW.GLFW_KEY_F9, 20);
+        addCsiCode(GLFW.GLFW_KEY_F10, 21);
+        addCsiCode(GLFW.GLFW_KEY_F11, 23);
+        addCsiCode(GLFW.GLFW_KEY_F12, 24);
+
+        addCsiFinalByte(GLFW.GLFW_KEY_UP, 'A');
+        addCsiFinalByte(GLFW.GLFW_KEY_DOWN, 'B');
+        addCsiFinalByte(GLFW.GLFW_KEY_RIGHT, 'C');
+        addCsiFinalByte(GLFW.GLFW_KEY_LEFT, 'D');
 
         for (int i = 'A'; i <= 'Z'; i++) {
             addSequence(
@@ -61,7 +71,7 @@ public final class TerminalInput {
             addSequence(
                     GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SHIFT,
                     GLFW.GLFW_KEY_A + i - 'A',
-                    (byte) '\033', (byte) (i + 128)
+                    (byte) '\033', (byte) i
             );
         }
 
@@ -82,14 +92,52 @@ public final class TerminalInput {
 
     @Nullable
     public static byte[] getSequence(final int keyCode, final int modifiers) {
-        final Int2ObjectArrayMap<byte[]> map = KEYCODE_SEQUENCES.get(modifiers);
-        if (map == null) {
-            return null;
+        final int relevantModifiers = modifiers & MODIFIER_MASK;
+
+        final Int2ObjectArrayMap<byte[]> map = KEYCODE_SEQUENCES.get(relevantModifiers);
+        if (map != null) {
+            final byte[] sequence = map.get(keyCode);
+            if (sequence != null) {
+                return sequence;
+            }
         }
-        return map.get(keyCode);
+
+        return getCsiSequence(keyCode, relevantModifiers);
     }
 
     // ------------------------------------------------------------- //
+
+    @Nullable
+    private static byte[] getCsiSequence(final int keyCode, final int modifiers) {
+        final int parameter = 1
+                + ((modifiers & GLFW.GLFW_MOD_SHIFT) != 0 ? 1 : 0)
+                + ((modifiers & GLFW.GLFW_MOD_ALT) != 0 ? 2 : 0)
+                + ((modifiers & GLFW.GLFW_MOD_CONTROL) != 0 ? 4 : 0);
+
+        final char finalByte = CSI_FINAL_BYTES.get(keyCode);
+        if (finalByte != '\0') {
+            return toBytes(parameter == 1
+                    ? "\033[" + finalByte
+                    : "\033[1;" + parameter + finalByte);
+        }
+
+        final int code = CSI_CODES.get(keyCode);
+        if (code != 0) {
+            return toBytes(parameter == 1
+                    ? "\033[" + code + "~"
+                    : "\033[" + code + ";" + parameter + "~");
+        }
+
+        return null;
+    }
+
+    private static void addCsiFinalByte(final int keyCode, final char finalByte) {
+        CSI_FINAL_BYTES.put(keyCode, finalByte);
+    }
+
+    private static void addCsiCode(final int keyCode, final int code) {
+        CSI_CODES.put(keyCode, code);
+    }
 
     private static void addSequence(final int keyCode, final char ch) {
         addSequence(keyCode, (byte) ch);
@@ -104,17 +152,20 @@ public final class TerminalInput {
     }
 
     private static void addSequence(final int modifiers, final int keyCode, final String sequence) {
-        final byte[] bytes = new byte[sequence.length()];
-        final char[] chars = sequence.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            bytes[i] = (byte) chars[i];
-        }
-        addSequence(modifiers, keyCode, bytes);
+        addSequence(modifiers, keyCode, toBytes(sequence));
     }
 
     private static void addSequence(final int modifiers, final int keyCode, final byte... sequence) {
         KEYCODE_SEQUENCES
                 .computeIfAbsent(modifiers, i -> new Int2ObjectArrayMap<>())
                 .put(keyCode, sequence);
+    }
+
+    private static byte[] toBytes(final String sequence) {
+        final byte[] bytes = new byte[sequence.length()];
+        for (int i = 0; i < sequence.length(); i++) {
+            bytes[i] = (byte) sequence.charAt(i);
+        }
+        return bytes;
     }
 }

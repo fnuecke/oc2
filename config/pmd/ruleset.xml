@@ -42,7 +42,11 @@
             <property name="allowCommentedBlocks" value="true"/>
         </properties>
     </rule>
-    <rule ref="category/java/codestyle.xml/EmptyControlStatement"/>
+    <rule ref="category/java/codestyle.xml/EmptyControlStatement">
+        <properties>
+            <property name="allowCommentedBlocks" value="true"/>
+        </properties>
+    </rule>
 
     <!-- Likely mistakes that are cheap to check and never fire on correct code. -->
     <rule ref="category/java/errorprone.xml/UselessPureMethodCall"/>

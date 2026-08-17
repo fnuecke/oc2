@@ -111,16 +111,14 @@ class PayloadChannel:
 
 
 def resolve(channel, message):
-    reference = message.get("blob") if message else None
-    if not isinstance(reference, dict) or "length" not in reference:
-        return message.get("data") if message else None
+    reference = message.get("blob")
+    if reference is None:
+        return message.get("data")
 
     if channel is None:
         raise Exception("host sent a binary payload but no data channel was found")
 
     length = reference["length"]
-    if not isinstance(length, int):
-        raise Exception("host announced a payload size that is not a number: %s" % (length,))
     if length < 0 or length > MAX_INBOUND_SIZE:
         raise Exception("host announced an implausible payload size: %s" % length)
 

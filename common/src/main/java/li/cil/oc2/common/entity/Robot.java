@@ -659,15 +659,20 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                 if (action != null) {
                     final RobotActionResult result = action.perform(Robot.this);
                     if (result != RobotActionResult.INCOMPLETE) {
+                        final int actionId = action.getId();
+
                         synchronized (results) {
                             if (results.size() == MAX_QUEUED_RESULTS) {
                                 results.remove();
                             }
 
-                            results.add(new RobotActionProcessorResult(action.getId(), result));
+                            results.add(new RobotActionProcessorResult(actionId, result));
                         }
 
                         action = null;
+
+                        virtualMachine.state.rpcAdapter.addEvent(RobotActionCompletedEvent.TYPE,
+                                new RobotActionCompletedEvent(actionId, result));
                     }
                 }
                 if (action == null) {

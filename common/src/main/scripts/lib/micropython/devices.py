@@ -118,7 +118,7 @@ class DeviceBus:
         self.generation_confirmed = True
 
     def _apply_event(self, event):
-        if isinstance(event, dict) and event.get("type") == "devicesChanged":
+        if event.get("type") == "devicesChanged":
             if event.get("gen") != self.generation:
                 self.generation = event.get("gen")
                 self.device_list = None
@@ -136,13 +136,18 @@ class DeviceBus:
                 count += 1
         return count
 
-    def wait_event(self, timeout=None):
+    def wait_event(self, timeout=None, event_type=None):
+        """Waits for the next event, or for the next one of event_type if given. Events of
+        other types are still applied, then skipped; the timeout applies per wait."""
         if not self.events:
             raise Exception("this host has no event channel; check has_events()")
-        event = self.events.wait(timeout)
-        if event is not None:
+        while True:
+            event = self.events.wait(timeout)
+            if event is None:
+                return None
             self._apply_event(event)
-        return event
+            if event_type is None or event.get("type") == event_type:
+                return event
 
     # ------------------------------------------------------------- #
 
@@ -166,11 +171,8 @@ class DeviceBus:
             return self.device_list
 
         self.flush()
-        devices = self._request({"type": "list"}, "list")["data"]
-        if not isinstance(devices, list):
-            raise Exception("the host sent a device list that is not a list")
-        self.device_list = devices
-        return devices
+        self.device_list = self._request({"type": "list"}, "list")["data"]
+        return self.device_list
 
     def list(self):
         return _copy_devices(self._raw_list())
@@ -226,4 +228,7 @@ def bus():
     blob_port = oc2_ports.find(BLOB_PORT_NAME)
     if blob_port is None:
         raise Exception("no virtio port named %s was found" % BLOB_PORT_NAME)
-    return DeviceBus(port, blob_port, oc2_ports.find(EVENT_PORT_NAME))
+    event_port = oc2_ports.find(EVENT_PORT_NAME)
+    if event_port is None:
+        raise Exception("no virtio port named %s was found" % EVENT_PORT_NAME)
+    return DeviceBus(port, blob_port, event_port)

@@ -388,7 +388,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         messages.send(RPCMessageChannel.frame(encode(new Message(type, dataElement, registry.generation(), blob))));
     }
 
-    private boolean addEvent(final String type, @Nullable final Object data) {
+    public boolean addEvent(final String type, @Nullable final Object data) {
         return events.addEvent(RPCMessageChannel.frame(
                 encode(new Message(type, data, registry.generation(), null))));
     }

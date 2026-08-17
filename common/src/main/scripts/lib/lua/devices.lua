@@ -109,7 +109,7 @@ DeviceBus.__index = DeviceBus
 DeviceBus.null = require("cjson").null
 
 local function parseError(result, reason)
-  if type(result) ~= "table" then
+  if not result then
     return "unexpected error: " .. tostring(reason or "unknown error")
   elseif result.type == "error" then
     return tostring(result.data or "the host reported an error with no detail")
@@ -119,10 +119,6 @@ local function parseError(result, reason)
 end
 
 local function noteGeneration(bus, result)
-  if not result then
-    return
-  end
-
   local gen = assert(result.gen, "host reply carried no bus generation")
   if gen ~= bus.generation then
     bus.generation = gen
@@ -132,11 +128,7 @@ local function noteGeneration(bus, result)
 end
 
 local function applyEvent(bus, event)
-  if type(event) ~= "table" then
-    return false
-  end
-
-  if event.type == "devicesChanged" and type(event.gen) == "number" then
+  if event.type == "devicesChanged" then
     if event.gen ~= bus.generation then
       bus.generation = event.gen
       bus.deviceList = nil
@@ -164,18 +156,22 @@ function DeviceBus:pumpEvents()
   return count
 end
 
-function DeviceBus:waitEvent(timeout)
+function DeviceBus:waitEvent(timeout, eventType)
   if not self.events then
     return nil, "no event channel"
   end
 
-  local event, reason = self.events:wait(timeout)
-  if not event then
-    return nil, reason
-  end
+  while true do
+    local event, reason = self.events:wait(timeout)
+    if not event then
+      return nil, reason
+    end
 
-  applyEvent(self, event)
-  return event
+    applyEvent(self, event)
+    if not eventType or event.type == eventType then
+      return event
+    end
+  end
 end
 
 function DeviceBus:new(path, blobPath, eventPath)
@@ -211,8 +207,8 @@ end
 local function request(bus, message, expected)
   bus.rpc:write(message)
   local result, reason = bus.rpc:read()
-  if type(result) ~= "table" then
-    return error(parseError(nil, reason or "the host sent a malformed message"), 0)
+  if not result then
+    return error(parseError(nil, reason or "the host sent no reply"), 0)
   end
   noteGeneration(bus, result)
   if result.type == expected then
@@ -255,9 +251,6 @@ local function rawList(bus)
 
   bus:flush()
   local result = request(bus, { type = "list" }, "list")
-  if type(result.data) ~= "table" then
-    error("the host sent a device list that is not a list", 0)
-  end
   bus.deviceList = result.data
   return result.data
 end
@@ -349,6 +342,6 @@ local event_port = "oc2.event.0"
 local bus, reason = DeviceBus:new(
   assert(ports.find(rpc_port), "no virtio port named " .. rpc_port .. " was found"),
   assert(ports.find(blob_port), "no virtio port named " .. blob_port .. " was found"),
-  ports.find(event_port))
+  assert(ports.find(event_port), "no virtio port named " .. event_port .. " was found"))
 
 return assert(bus, "could not open the device bus: " .. tostring(reason))

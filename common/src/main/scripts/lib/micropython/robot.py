@@ -1,7 +1,8 @@
 import time
 
-POLL_INTERVAL_MS = 100
+POLL_INTERVAL_MS = 1000
 DEFAULT_TIMEOUT_MS = 30000
+ACTION_COMPLETED_EVENT = "robotActionCompleted"
 
 direction = {
     "forward": "forward",
@@ -14,9 +15,10 @@ direction = {
 
 
 class Robot:
-    def __init__(self, device):
+    def __init__(self, bus, device):
         if device is None:
             raise Exception("robot device not found")
+        self.bus = bus
         self.device = device
 
     def energy(self):
@@ -56,7 +58,7 @@ class Robot:
         while not action(direction):
             if time.time() >= deadline:
                 return False
-            time.sleep(POLL_INTERVAL_MS / 1000.0)
+            self.bus.wait_event(POLL_INTERVAL_MS, ACTION_COMPLETED_EVENT)
         return True
 
     def _wait_for_last_action(self, timeout=DEFAULT_TIMEOUT_MS):
@@ -66,10 +68,17 @@ class Robot:
         while result and result == "INCOMPLETE":
             if time.time() >= deadline:
                 return False
-            time.sleep(POLL_INTERVAL_MS / 1000.0)
-            result = self.device.getActionResult(id)
+            event = self.bus.wait_event(POLL_INTERVAL_MS, ACTION_COMPLETED_EVENT)
+            result = (_completed_action_result(event, id)
+                      or self.device.getActionResult(id))
         return result == "SUCCESS"
 
 
+def _completed_action_result(event, id):
+    if event and event["data"]["actionId"] == id:
+        return event["data"]["result"]
+    return None
+
+
 def robot(bus):
-    return Robot(bus.find("robot"))
+    return Robot(bus, bus.find("robot"))

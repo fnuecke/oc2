@@ -142,9 +142,9 @@ function Payload:read(length)
 end
 
 function blob.resolve(channel, result)
-  local reference = result and result.blob
-  if type(reference) ~= "table" or not reference.length then
-    return result and result.data
+  local reference = result.blob
+  if not reference then
+    return result.data
   end
 
   if not channel then

@@ -28,12 +28,14 @@ final class RPCEventChannel {
     // ------------------------------------------------------------- //
 
     boolean addEvent(final ByteBuffer frame) {
-        if (queued.size() + frame.remaining() > MAX_QUEUED_SIZE) {
-            return false;
-        }
+        synchronized (queued) {
+            if (queued.size() + frame.remaining() > MAX_QUEUED_SIZE) {
+                return false;
+            }
 
-        while (frame.hasRemaining()) {
-            queued.enqueue(frame.get());
+            while (frame.hasRemaining()) {
+                queued.enqueue(frame.get());
+            }
         }
 
         return true;
@@ -44,14 +46,18 @@ final class RPCEventChannel {
             // Guest shouldn't send anything here, but let's just drain it to not block.
         }
 
-        while (!queued.isEmpty() && device.canPutByte()) {
-            device.putByte(queued.dequeueByte());
+        synchronized (queued) {
+            while (!queued.isEmpty() && device.canPutByte()) {
+                device.putByte(queued.dequeueByte());
+            }
         }
 
         device.flush();
     }
 
     void reset() {
-        queued.clear();
+        synchronized (queued) {
+            queued.clear();
+        }
     }
 }

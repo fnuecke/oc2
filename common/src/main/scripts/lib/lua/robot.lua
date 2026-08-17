@@ -1,17 +1,18 @@
-local robot = assert(require("devices"):find("robot"), "robot device not found")
+local bus = require("devices")
+local robot = assert(bus:find("robot"), "robot device not found")
 
-local time = require("posix.time")
-
-local function sleep(milliseconds)
-  local total = math.floor(milliseconds)
-  time.nanosleep({tv_sec=total//1000,tv_nsec=(total%1000)*1000000})
-end
-
-local pollInterval = 100
+local pollInterval = 1000
 local defaultTimeout = 30000
+local actionCompleted = "robotActionCompleted"
 
 local function deadlineFrom(timeout)
   return os.time() + (timeout or defaultTimeout) / 1000
+end
+
+local function completedActionResult(event, id)
+  if event and event.data.actionId == id then
+    return event.data.result
+  end
 end
 
 local function waitForLastAction(timeout)
@@ -23,8 +24,8 @@ local function waitForLastAction(timeout)
     if os.time() >= deadline then
       return false
     end
-    sleep(pollInterval)
-    result = robot:getActionResult(id)
+    result = completedActionResult(bus:waitEvent(pollInterval, actionCompleted), id)
+        or robot:getActionResult(id)
   end
 
   return result == "SUCCESS"
@@ -37,7 +38,7 @@ local function queueAction(action, direction, timeout)
     if os.time() >= deadline then
       return false
     end
-    sleep(pollInterval)
+    bus:waitEvent(pollInterval, actionCompleted) -- a slot frees up when an action completes
   end
   return true
 end

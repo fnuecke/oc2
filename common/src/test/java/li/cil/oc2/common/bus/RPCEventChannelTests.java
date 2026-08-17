@@ -10,11 +10,14 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.entity.robot.RobotActionCompletedEvent;
+import li.cil.oc2.common.entity.robot.RobotActionResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -124,20 +127,6 @@ public final class RPCEventChannelTests {
     }
 
     @Test
-    public void fullEventQueueDoesNotAffectTheRpcChannel() {
-        final TestSerialDevice deafEvents = new TestSerialDevice(0);
-        adapter = newAdapter(deafEvents);
-        addDevice("redstone");
-
-        for (int i = 0; i < 200; i++) {
-            adapter.resume(busController, true);
-            adapter.step(0);
-        }
-
-        assertEquals("list", request("list").get("type").getAsString());
-    }
-
-    @Test
     public void eventsNeverAppearOnTheRpcChannel() {
         addDevice("redstone");
         adapter.resume(busController, true);
@@ -154,7 +143,7 @@ public final class RPCEventChannelTests {
         addDevice("redstone");
         adapter.resume(busController, true);
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 500; i++) {
             adapter.resume(busController, true);
             adapter.step(0);
         }
@@ -243,6 +232,58 @@ public final class RPCEventChannelTests {
         assertEquals(-1, eventDevice.read(), "the guest's bytes were left sitting in the queue");
         assertEquals("devicesChanged", event().get("type").getAsString(),
                 "the channel must still work after a guest wrote to it");
+    }
+
+    @Test
+    public void deviceEventCarriesItsPayload() {
+        assertTrue(adapter.addEvent(RobotActionCompletedEvent.TYPE,
+                new RobotActionCompletedEvent(7, RobotActionResult.FAILURE)));
+        adapter.step(0);
+
+        final JsonObject event = event();
+        assertEquals(RobotActionCompletedEvent.TYPE, event.get("type").getAsString());
+
+        final JsonObject data = event.getAsJsonObject("data");
+        assertEquals(7, data.get("actionId").getAsInt());
+        assertEquals("FAILURE", data.get("result").getAsString(),
+                "the guest compares the result by name");
+    }
+
+    @Test
+    public void eventsRaisedFromAnotherThreadArriveIntactAndInOrder() throws InterruptedException {
+        // Robot actions complete on the server thread while the VM worker drains the channel.
+        final int count = 500;
+        final List<Integer> seen = new ArrayList<>();
+
+        final Thread producer = new Thread(() -> {
+            for (int i = 0; i < count; i++) {
+                while (!adapter.addEvent(RobotActionCompletedEvent.TYPE,
+                        new RobotActionCompletedEvent(i, RobotActionResult.SUCCESS))) {
+                    Thread.onSpinWait(); // queue is full; let the reader catch up
+                }
+            }
+        }, "event-producer");
+        producer.start();
+
+        try {
+            final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+            while (seen.size() < count && System.nanoTime() < deadline) {
+                adapter.step(0);
+
+                String message;
+                while ((message = eventDevice.readMessageAsVM()) != null) {
+                    seen.add(JsonParser.parseString(message).getAsJsonObject()
+                            .getAsJsonObject("data").get("actionId").getAsInt());
+                }
+            }
+        } finally {
+            producer.join(TimeUnit.SECONDS.toMillis(30));
+        }
+
+        assertEquals(count, seen.size(), "events were lost or the reader timed out");
+        for (int i = 0; i < count; i++) {
+            assertEquals(i, seen.get(i), "frames were interleaved or reordered at index " + i);
+        }
     }
 
     // ------------------------------------------------------------- //

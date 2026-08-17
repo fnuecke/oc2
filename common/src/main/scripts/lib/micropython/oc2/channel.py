@@ -93,9 +93,11 @@ class Channel:
             self.parts = []
 
             try:
-                return json.loads(frame)
+                message = json.loads(frame)
             except ValueError:
-                pass
+                continue
+            if isinstance(message, dict):
+                return message
 
     def write(self, data):
         write_all(self.file, self.write_poll,

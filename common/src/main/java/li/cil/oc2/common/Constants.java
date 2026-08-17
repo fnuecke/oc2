@@ -33,7 +33,6 @@ public final class Constants {
 
     // ------------------------------------------------------------- //
 
-    public static final String BLOCK_ENTITY_TAG_NAME_IN_ITEM = "BlockEntityTag";
     public static final String MOD_TAG_NAME = API.MOD_ID;
     public static final String ITEMS_TAG_NAME = "items";
     public static final String ENERGY_TAG_NAME = "energy";

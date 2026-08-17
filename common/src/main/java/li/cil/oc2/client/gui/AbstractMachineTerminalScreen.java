@@ -204,7 +204,6 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         super.renderTooltip(graphics, mouseX, mouseY);
 
         if (shouldRenderEnergyBar()) {
-
             if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
                 final List<? extends FormattedText> tooltip = asList(
                         Component.translatable(Constants.TOOLTIP_ENERGY,

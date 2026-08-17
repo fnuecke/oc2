@@ -77,7 +77,7 @@ def _copy_devices(devices):
 
 
 class DeviceBus:
-    def __init__(self, path, blob_path, event_path=None):
+    def __init__(self, path, blob_path, event_path):
         self.rpc = None
         self.payload = None
         self.events = None
@@ -87,8 +87,8 @@ class DeviceBus:
 
         try:
             self.rpc = Channel(path)
-            self.payload = PayloadChannel(blob_path) if blob_path else None
-            self.events = Events(event_path) if event_path else None
+            self.payload = PayloadChannel(blob_path)
+            self.events = Events(event_path)
         except Exception:
             self.close()
             raise
@@ -101,13 +101,9 @@ class DeviceBus:
         if self.events:
             self.events.close()
 
-    def has_events(self):
-        return self.events is not None
-
     def flush(self):
         self.rpc.reset()
-        if self.payload:
-            self.payload.reset()
+        self.payload.reset()
 
     def _note_generation(self, envelope):
         if "gen" not in envelope:
@@ -128,7 +124,7 @@ class DeviceBus:
 
     def pump_events(self):
         count = 0
-        for _ in range(MAX_EVENTS_PER_PUMP if self.events else 0):
+        for _ in range(MAX_EVENTS_PER_PUMP):
             event = self.events.poll()
             if event is None:
                 break
@@ -139,8 +135,6 @@ class DeviceBus:
     def wait_event(self, timeout=None, event_type=None):
         """Waits for the next event, or for the next one of event_type if given. Events of
         other types are still applied, then skipped; the timeout applies per wait."""
-        if not self.events:
-            raise Exception("this host has no event channel; check has_events()")
         while True:
             event = self.events.wait(timeout)
             if event is None:
@@ -212,8 +206,6 @@ class DeviceBus:
         }}
 
         if payload is not None:
-            if self.payload is None:
-                raise Exception("no binary payload channel was found")
             self.payload.write(payload)
             message["blob"] = {"length": len(payload),
                                "checksum": oc2_blob.checksum(payload)}

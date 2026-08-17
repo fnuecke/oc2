@@ -147,9 +147,6 @@ function blob.resolve(channel, result)
     return result.data
   end
 
-  if not channel then
-    error("host sent a binary payload but no data channel was found")
-  end
   if reference.length < 0 or reference.length > blob.maxInbound then
     error("host announced an implausible payload size: " .. tostring(reference.length))
   end

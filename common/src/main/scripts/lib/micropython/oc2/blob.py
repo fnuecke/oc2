@@ -115,9 +115,6 @@ def resolve(channel, message):
     if reference is None:
         return message.get("data")
 
-    if channel is None:
-        raise Exception("host sent a binary payload but no data channel was found")
-
     length = reference["length"]
     if length < 0 or length > MAX_INBOUND_SIZE:
         raise Exception("host announced an implausible payload size: %s" % length)

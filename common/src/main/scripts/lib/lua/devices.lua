@@ -144,7 +144,7 @@ local maxEventsPerPump = 32
 
 function DeviceBus:pumpEvents()
   local count = 0
-  for _ = 1, self.events and maxEventsPerPump or 0 do
+  for _ = 1, maxEventsPerPump do
     local event = self.events:poll()
     if not event then
       break -- nothing pending, or a frame we could not parse; either way, stop
@@ -157,10 +157,6 @@ function DeviceBus:pumpEvents()
 end
 
 function DeviceBus:waitEvent(timeout, eventType)
-  if not self.events then
-    return nil, "no event channel"
-  end
-
   while true do
     local event, reason = self.events:wait(timeout)
     if not event then
@@ -180,28 +176,28 @@ function DeviceBus:new(path, blobPath, eventPath)
     return nil, status
   end
 
-  return setmetatable({
-    rpc = rpc,
-    payload = blobPath and blob.open(blobPath) or nil,
-    events = eventPath and Events.open(eventPath) or nil,
-  }, self)
+  local payload, payloadStatus = blob.open(blobPath)
+  if not payload then
+    return nil, payloadStatus
+  end
+
+  local events, eventStatus = Events.open(eventPath)
+  if not events then
+    return nil, eventStatus
+  end
+
+  return setmetatable({ rpc = rpc, payload = payload, events = events }, self)
 end
 
 function DeviceBus:close()
   self.rpc:close()
-  if self.payload then
-    self.payload:close()
-  end
-  if self.events then
-    self.events:close()
-  end
+  self.payload:close()
+  self.events:close()
 end
 
 function DeviceBus:flush()
   self.rpc:reset()
-  if self.payload then
-    self.payload:reset()
-  end
+  self.payload:reset()
 end
 
 local function request(bus, message, expected)
@@ -325,9 +321,6 @@ function DeviceBus:invoke(deviceId, methodName, ...)
   }}
 
   if payload then
-    if not self.payload then
-      error("no binary payload channel was found")
-    end
     self.payload:write(payload)
     message.blob = { length = #payload, checksum = blob.checksum(payload) }
   end

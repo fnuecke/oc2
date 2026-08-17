@@ -5,15 +5,25 @@ from oc2 import ports
 from oc2.channel import write_all
 
 KEY = "$blob"
-MAX_OUTBOUND_SIZE = 512 * 1024
-CHUNK_SIZE = 4096
+MAX_OUTBOUND = 512 * 1024
+MAX_INBOUND = MAX_OUTBOUND
+CHUNK_SIZE = 32 * 1024
 READ_TIMEOUT_MS = 5000
-MAX_INBOUND_SIZE = MAX_OUTBOUND_SIZE
+MAX_DEPTH = 32
 
 
 class Blob:
     def __init__(self, data):
-        self.data = data.encode() if isinstance(data, str) else data
+        if isinstance(data, str):
+            data = data.encode()
+        elif not isinstance(data, (bytes, bytearray)):
+            raise Exception("a binary payload must be bytes or str, got %s"
+                            % type(data).__name__)
+        self.data = data
+
+
+def wrap(data):
+    return Blob(data)
 
 
 def checksum(data):
@@ -56,7 +66,10 @@ def extract(args):
 
 
 def substitute(value, payload, depth=0):
-    if depth > 32:
+    if not isinstance(value, (dict, list)):
+        return value
+
+    if depth > MAX_DEPTH:
         raise Exception("host reply is nested too deeply")
 
     if isinstance(value, dict):
@@ -64,7 +77,7 @@ def substitute(value, payload, depth=0):
             return payload
         for key in value:
             value[key] = substitute(value[key], payload, depth + 1)
-    elif isinstance(value, list):
+    else:
         for i in range(len(value)):
             value[i] = substitute(value[i], payload, depth + 1)
     return value
@@ -90,9 +103,9 @@ class PayloadChannel:
             pass
 
     def write(self, data):
-        if len(data) > MAX_OUTBOUND_SIZE:
+        if len(data) > MAX_OUTBOUND:
             raise Exception("binary payload of %d bytes exceeds the host limit of %d bytes"
-                            % (len(data), MAX_OUTBOUND_SIZE))
+                            % (len(data), MAX_OUTBOUND))
 
         write_all(self.file, self.write_poll, data)
 
@@ -105,7 +118,7 @@ class PayloadChannel:
             if chunk is None:
                 continue  # readable, but nothing yet
             if not chunk:
-                raise Exception("end of file on the binary channel")
+                raise Exception("end of file")
             parts.extend(chunk)
         return bytes(parts)
 
@@ -116,10 +129,15 @@ def resolve(channel, message):
         return message.get("data")
 
     length = reference["length"]
-    if length < 0 or length > MAX_INBOUND_SIZE:
+    if length < 0 or length > MAX_INBOUND:
         raise Exception("host announced an implausible payload size: %s" % length)
 
-    data = channel.read(length)
+    try:
+        data = channel.read(length)
+    except Exception as e:
+        channel.reset()
+        raise Exception("could not read binary payload: %s" % e)
+
     if checksum(data) != reference.get("checksum"):
         channel.reset()
         raise Exception("binary payload failed its checksum; "

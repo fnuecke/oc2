@@ -20,7 +20,7 @@ function Events:poll()
 end
 
 function Events:wait(timeout)
-  return self.channel:read(timeout or -1)
+  return self.channel:read(timeout)
 end
 
 return Events

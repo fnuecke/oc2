@@ -1,7 +1,7 @@
 local bus = require("devices")
 local robot = assert(bus:find("robot"), "no robot device on the bus")
 
-assert(robot:move("up"))
+assert(robot:move("upward"), "the move was not queued")
 local actionId = robot:getLastActionId()
 
 local event = bus:waitEvent(10000, "robotActionCompleted")

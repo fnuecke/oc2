@@ -114,10 +114,14 @@ public final class ComputerFixture {
     }
 
     public ComputerFixture install(final DeviceType type, final ItemStack stack) {
-        if (!handler(type).insertItem(0, stack, false).isEmpty()) {
-            throw new GameTestAssertException("could not install " + stack + " as " + type);
+        final ItemHandler handler = handler(type);
+        for (int slot = 0; slot < handler.getSlots(); slot++) {
+            if (handler.insertItem(slot, stack, false).isEmpty()) {
+                return this;
+            }
         }
-        return this;
+        throw new GameTestAssertException("could not install " + stack + " as " + type
+                + "; all " + handler.getSlots() + " slot(s) rejected it");
     }
 
     public ItemStack uninstall(final DeviceType type) {

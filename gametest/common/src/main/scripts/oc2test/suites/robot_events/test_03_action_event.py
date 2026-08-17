@@ -1,10 +1,10 @@
 import devices
 
-bus = devices.bus()
+bus = devices.bus
 robot = bus.find("robot")
 assert robot is not None, "no robot device on the bus"
 
-robot.move("upward")
+assert robot.move("upward"), "the move was not queued"
 action_id = robot.getLastActionId()
 
 event = bus.wait_event(10000, "robotActionCompleted")

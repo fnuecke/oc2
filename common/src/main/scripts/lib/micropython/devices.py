@@ -12,12 +12,21 @@ BLOB_PORT_NAME = "oc2.blob.0"
 EVENT_PORT_NAME = "oc2.event.0"
 
 
+def _parameter_name(parameter, index):
+    return parameter.get("name") or ("arg" + str(index))
+
+
 class Device:
-    def __init__(self, device_bus, device_id, type_names=None):
-        self.bus = device_bus
-        self.device_id = device_id
-        self.type_names = type_names or []
-        self.methods = None
+    def __init__(self, bus, device):
+        self.bus = bus
+        self.device_id = device["deviceId"]
+        self.type_names = list(device.get("typeNames") or [])
+        self._methods = None
+
+    def _method_list(self):
+        if self._methods is None:
+            self._methods = self.bus.methods(self.device_id)
+        return self._methods
 
     def invoke(self, method_name, *args):
         return self.bus.invoke(self.device_id, method_name, *args)
@@ -25,58 +34,58 @@ class Device:
     def __getattr__(self, item):
         if item.startswith("_"):
             raise AttributeError(item)
-        if self.methods is None:
-            self.methods = self.bus.methods(self.device_id)
-        for method in self.methods:
+        for method in self._method_list():
             if method.get("name") == item:
                 return lambda *args: self.bus.invoke(self.device_id, item, *args)
         raise AttributeError("device %s has no method %s" % (self.device_id, item))
 
     def __str__(self):
-        if self.methods is None:
-            self.methods = self.bus.methods(self.device_id)
-        doc = ""
-        for method in self.methods:
-            doc += method["name"] + "("
-            if "parameters" in method:
-                i = 0
-                for p in method["parameters"]:
-                    if i > 0:
-                        doc += ", "
-                    doc += p["name"] if "name" in p else "arg" + str(i)
-                    if "type" in p:
-                        doc += ": " + p["type"]
-                    i += 1
-            doc += ")"
-            if "returnType" in method:
-                doc += ": " + method["returnType"]
-            doc += "\n"
+        out = []
+        for method in self._method_list():
+            out.append(method["name"])
+            out.append("(")
+            parameters = method.get("parameters") or []
+            for i, p in enumerate(parameters):
+                if i > 0:
+                    out.append(", ")
+                out.append(_parameter_name(p, i + 1))
+                if p.get("type"):
+                    out.append(": ")
+                    out.append(p["type"])
+            out.append(")")
+            if method.get("returnType"):
+                out.append(": ")
+                out.append(method["returnType"])
+            out.append("\n")
 
-            if "description" in method and method["description"]:
-                doc += method["description"] + "\n"
+            if method.get("description"):
+                out.append(method["description"])
+                out.append("\n")
 
-            if "parameters" in method:
-                i = 0
-                for p in method["parameters"]:
-                    if "description" in p:
-                        doc += "  "
-                        doc += p["name"] if "name" in p else "args" + str(i)
-                        doc += "  " + p["description"] + "\n"
-                    i += 1
-        return doc
+            for i, p in enumerate(parameters):
+                if p.get("description"):
+                    out.append("  ")
+                    out.append(_parameter_name(p, i + 1))
+                    out.append("  ")
+                    out.append(p["description"])
+                    out.append("\n")
+        return "".join(out)
+
+
+def _copy_device(device):
+    copy = {}
+    for key, value in device.items():
+        copy[key] = list(value) if isinstance(value, list) else value
+    return copy
 
 
 def _copy_devices(devices):
-    result = []
-    for device in devices:
-        copy = {}
-        for key, value in device.items():
-            copy[key] = list(value) if isinstance(value, list) else value
-        result.append(copy)
-    return result
+    return [_copy_device(device) for device in devices]
 
 
 class DeviceBus:
+    null = None
+
     def __init__(self, path, blob_path, event_path):
         self.rpc = None
         self.payload = None
@@ -106,10 +115,11 @@ class DeviceBus:
         self.payload.reset()
 
     def _note_generation(self, envelope):
-        if "gen" not in envelope:
+        gen = envelope.get("gen")
+        if gen is None:
             raise Exception("host reply carried no bus generation")
-        if envelope["gen"] != self.generation:
-            self.generation = envelope["gen"]
+        if gen != self.generation:
+            self.generation = gen
             self.device_list = None
         self.generation_confirmed = True
 
@@ -133,8 +143,6 @@ class DeviceBus:
         return count
 
     def wait_event(self, timeout=None, event_type=None):
-        """Waits for the next event, or for the next one of event_type if given. Events of
-        other types are still applied, then skipped; the timeout applies per wait."""
         while True:
             event = self.events.wait(timeout)
             if event is None:
@@ -149,13 +157,14 @@ class DeviceBus:
         self.rpc.write(message)
         reply = self.rpc.read(REQUEST_TIMEOUT_MS)
         if reply is None:
-            raise Exception("no reply from the host")
+            raise Exception("no reply from the host: timeout")
         self._note_generation(reply)
-        if reply["type"] == expected:
+        if reply.get("type") == expected:
             return reply
-        if reply["type"] == "error":
-            raise Exception(reply["data"])
-        raise Exception("unexpected message type: %s" % reply["type"])
+        if reply.get("type") == "error":
+            raise Exception(reply.get("data")
+                            or "the host reported an error with no detail")
+        raise Exception("unexpected message type: %s" % reply.get("type"))
 
     def _raw_list(self):
         self.pump_events()
@@ -165,7 +174,7 @@ class DeviceBus:
             return self.device_list
 
         self.flush()
-        self.device_list = self._request({"type": "list"}, "list")["data"]
+        self.device_list = self._request({"type": "list"}, "list").get("data")
         return self.device_list
 
     def list(self):
@@ -175,14 +184,14 @@ class DeviceBus:
         for _ in range(2):
             for device in self._raw_list():
                 if matches(device):
-                    return Device(self, device["deviceId"], device.get("typeNames"))
+                    return Device(self, _copy_device(device))
             if self.device_list is None:
                 break  # was not cached, so looking again would return the same thing
             self.device_list = None
         return None
 
     def get(self, device_id):
-        return self._lookup(lambda candidate: candidate["deviceId"] == device_id)
+        return self._lookup(lambda candidate: candidate.get("deviceId") == device_id)
 
     def find(self, type_name):
         return self._lookup(
@@ -190,7 +199,7 @@ class DeviceBus:
 
     def methods(self, device_id):
         self.flush()
-        return self._request({"type": "methods", "data": device_id}, "methods")["data"]
+        return self._request({"type": "methods", "data": device_id}, "methods").get("data")
 
     def blob(self, data):
         return Blob(data)
@@ -213,7 +222,7 @@ class DeviceBus:
         return oc2_blob.resolve(self.payload, self._request(message, "result"))
 
 
-def bus():
+def _open_bus():
     port = oc2_ports.find(PORT_NAME)
     if port is None:
         raise Exception("no virtio port named %s was found" % PORT_NAME)
@@ -224,3 +233,6 @@ def bus():
     if event_port is None:
         raise Exception("no virtio port named %s was found" % EVENT_PORT_NAME)
     return DeviceBus(port, blob_port, event_port)
+
+
+bus = _open_bus()

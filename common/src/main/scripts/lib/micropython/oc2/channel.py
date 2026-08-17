@@ -2,8 +2,7 @@ import io
 import json
 import select
 
-from oc2 import ports
-from time import ticks_ms, ticks_add, ticks_diff
+from oc2 import clock, ports
 
 DELIMITER = b"\0"
 READ_SIZE = 4096
@@ -11,8 +10,8 @@ WRITE_TIMEOUT_MS = 10000
 
 
 class Channel:
-    def __init__(self, path):
-        self.file = io.open(path, "+b")
+    def __init__(self, path, read_only=False):
+        self.file = io.open(path, "rb" if read_only else "+b")
         ports.set_nonblocking(self.file.fileno())
         self.poll = select.poll()
         self.poll.register(self.file.fileno(), select.POLLIN)
@@ -58,15 +57,11 @@ class Channel:
         return True
 
     def read(self, timeout=None):
-        deadline = None if timeout is None else ticks_add(ticks_ms(), timeout)
+        deadline = None if timeout is None else clock.deadline(timeout)
 
         while True:
             if self.buffer is None:
-                remaining = None
-                if deadline is not None:
-                    remaining = ticks_diff(deadline, ticks_ms())
-                    if remaining < 0:
-                        remaining = 0
+                remaining = None if deadline is None else clock.remaining(deadline)
                 if not self._fill(remaining):
                     return None  # genuine timeout; self.parts keeps any partial frame
 

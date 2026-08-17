@@ -1,8 +1,13 @@
-import time
+from devices import bus
+from oc2 import clock
 
 POLL_INTERVAL_MS = 1000
 DEFAULT_TIMEOUT_MS = 30000
 ACTION_COMPLETED_EVENT = "robotActionCompleted"
+
+_robot = bus.find("robot")
+if _robot is None:
+    raise Exception("robot device not found")
 
 direction = {
     "forward": "forward",
@@ -14,71 +19,77 @@ direction = {
 }
 
 
-class Robot:
-    def __init__(self, bus, device):
-        if device is None:
-            raise Exception("robot device not found")
-        self.bus = bus
-        self.device = device
-
-    def energy(self):
-        return self.device.getEnergyStored()
-
-    def capacity(self):
-        return self.device.getEnergyCapacity()
-
-    def slot(self, value=None):
-        if value is not None:
-            self.device.setSelectedSlot(value)
-        return self.device.getSelectedSlot()
-
-    def stack(self, slot=None):
-        return self.device.getStackInSlot(self.slot() if slot is None else slot)
-
-    def move(self, direction, timeout=DEFAULT_TIMEOUT_MS):
-        if not self.move_async(direction, timeout):
-            return False
-        return self._wait_for_last_action(timeout)
-
-    def move_async(self, direction, timeout=DEFAULT_TIMEOUT_MS):
-        return self._queue(self.device.move, direction, timeout)
-
-    def turn(self, direction, timeout=DEFAULT_TIMEOUT_MS):
-        if not self.turn_async(direction, timeout):
-            return False
-        return self._wait_for_last_action(timeout)
-
-    def turn_async(self, direction, timeout=DEFAULT_TIMEOUT_MS):
-        return self._queue(self.device.turn, direction, timeout)
-
-    def _queue(self, action, direction, timeout):
-        if not direction:
-            raise Exception("no direction specified")
-        deadline = time.time() + timeout / 1000.0
-        while not action(direction):
-            if time.time() >= deadline:
-                return False
-            self.bus.wait_event(POLL_INTERVAL_MS, ACTION_COMPLETED_EVENT)
-        return True
-
-    def _wait_for_last_action(self, timeout=DEFAULT_TIMEOUT_MS):
-        id = self.device.getLastActionId()
-        deadline = time.time() + timeout / 1000.0
-        result = self.device.getActionResult(id)
-        while result and result == "INCOMPLETE":
-            if time.time() >= deadline:
-                return False
-            event = self.bus.wait_event(POLL_INTERVAL_MS, ACTION_COMPLETED_EVENT)
-            result = (_completed_action_result(event, id)
-                      or self.device.getActionResult(id))
-        return result == "SUCCESS"
+def _deadline_from(timeout):
+    return clock.deadline(DEFAULT_TIMEOUT_MS if timeout is None else timeout)
 
 
-def _completed_action_result(event, id):
-    if event and event["data"]["actionId"] == id:
+def _completed_action_result(event, action_id):
+    if event and event["data"]["actionId"] == action_id:
         return event["data"]["result"]
     return None
 
 
-def robot(bus):
-    return Robot(bus, bus.find("robot"))
+def _wait_for_last_action(timeout):
+    action_id = _robot.getLastActionId()
+    deadline = _deadline_from(timeout)
+
+    result = _robot.getActionResult(action_id)
+    while result and result == "INCOMPLETE":
+        if clock.expired(deadline):
+            return False
+        result = (_completed_action_result(
+            bus.wait_event(POLL_INTERVAL_MS, ACTION_COMPLETED_EVENT), action_id)
+            or _robot.getActionResult(action_id))
+
+    return result == "SUCCESS"
+
+
+def _queue_action(action, direction, timeout):
+    if not direction:
+        raise Exception("no direction specified")
+    deadline = _deadline_from(timeout)
+    while not action(direction):
+        if clock.expired(deadline):
+            return False
+        bus.wait_event(POLL_INTERVAL_MS, ACTION_COMPLETED_EVENT)
+    return True
+
+
+def energy():
+    return _robot.getEnergyStored()
+
+
+def capacity():
+    return _robot.getEnergyCapacity()
+
+
+def slot(value=None):
+    if value is not None:
+        _robot.setSelectedSlot(value)
+    return _robot.getSelectedSlot()
+
+
+def stack(slot=None):
+    if slot is None:
+        slot = _robot.getSelectedSlot()
+    return _robot.getStackInSlot(slot)
+
+
+def move(direction, timeout=None):
+    if not move_async(direction, timeout):
+        return False
+    return _wait_for_last_action(timeout)
+
+
+def move_async(direction, timeout=None):
+    return _queue_action(_robot.move, direction, timeout)
+
+
+def turn(direction, timeout=None):
+    if not turn_async(direction, timeout):
+        return False
+    return _wait_for_last_action(timeout)
+
+
+def turn_async(direction, timeout=None):
+    return _queue_action(_robot.turn, direction, timeout)

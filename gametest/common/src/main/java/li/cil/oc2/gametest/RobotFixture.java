@@ -88,10 +88,13 @@ public final class RobotFixture {
     public RobotFixture install(final DeviceType type, final ItemStack stack) {
         final ItemHandler handler = robot.getItemStackHandlers().getItemHandler(type)
                 .orElseThrow(() -> new GameTestAssertException("no item handler for " + type));
-        if (!handler.insertItem(0, stack, false).isEmpty()) {
-            throw new GameTestAssertException("could not install " + stack + " as " + type);
+        for (int slot = 0; slot < handler.getSlots(); slot++) {
+            if (handler.insertItem(slot, stack, false).isEmpty()) {
+                return this;
+            }
         }
-        return this;
+        throw new GameTestAssertException("could not install " + stack + " as " + type
+                + "; all " + handler.getSlots() + " slot(s) rejected it");
     }
 
     public boolean has(final Item item) {

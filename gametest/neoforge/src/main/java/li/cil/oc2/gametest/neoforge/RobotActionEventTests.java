@@ -37,6 +37,7 @@ public final class RobotActionEventTests {
                     robot.charge();
                     robot.install(DeviceTypes.FLASH_MEMORY, new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
                             .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
+                            .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
                             .install(DeviceTypes.HARD_DRIVE, new ItemStack(Items.HARD_DRIVE_CUSTOM.get()))
                             .install(DeviceTypes.ROBOT_MODULE, new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get()));
                 })

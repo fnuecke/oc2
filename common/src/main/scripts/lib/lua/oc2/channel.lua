@@ -2,6 +2,7 @@ local fcntl = require("posix.fcntl")
 local unistd = require("posix.unistd")
 local poll = require("posix.poll")
 local cjson = require("cjson").new()
+local clock = require("oc2.clock")
 
 if cjson.encode_empty_table_as_object then
   cjson.encode_empty_table_as_object(false)
@@ -12,9 +13,11 @@ Channel.__index = Channel
 
 local delimiter = "\0"
 local readSize = 4096
+local writeTimeout = 10000
 
 function Channel.open(path, readOnly)
-  local flags = (readOnly and fcntl.O_RDONLY or fcntl.O_RDWR) | fcntl.O_CLOEXEC
+  local flags = (readOnly and fcntl.O_RDONLY or fcntl.O_RDWR)
+      | fcntl.O_CLOEXEC | fcntl.O_NONBLOCK
   local fd, status = fcntl.open(path, flags)
   if not fd then
     return nil, status
@@ -28,6 +31,7 @@ function Channel:close()
     self.fd = nil -- closing twice would close whatever reused the number
   end
   self.buffer = nil
+  self.parts = {}
 end
 
 function Channel:reset()
@@ -59,10 +63,11 @@ function Channel:fill(timeout)
 end
 
 function Channel:read(timeout)
+  local deadline = timeout and timeout >= 0 and clock.deadline(timeout)
   local parts = self.parts
   while true do
     if not self.buffer then
-      local result, status = self:fill(timeout)
+      local result, status = self:fill(deadline and clock.remaining(deadline))
       if not result then
         return result, status
       end
@@ -100,16 +105,26 @@ function Channel:read(timeout)
   end
 end
 
-function Channel:write(data)
-  local message = delimiter .. cjson.encode(data) .. delimiter
+function Channel.writeAll(fd, data)
   local offset = 1
-  while offset <= #message do
-    local written, reason = unistd.write(self.fd, message:sub(offset, offset + 65535))
-    if not written or written <= 0 then
-      error("could not write message: " .. tostring(reason), 0)
+  local length = #data
+  while offset <= length do
+    local chunk = offset == 1 and data or data:sub(offset)
+    local written = unistd.write(fd, chunk)
+    if written and written > 0 then
+      offset = offset + written
+    else
+      local fds = {[fd] = {events = {OUT = true}}}
+      local ready = poll.poll(fds, writeTimeout)
+      if not ready or ready == 0 then
+        error("timed out writing to the virtio port", 0)
+      end
     end
-    offset = offset + written
   end
+end
+
+function Channel:write(data)
+  Channel.writeAll(self.fd, delimiter .. cjson.encode(data) .. delimiter)
 end
 
 return Channel

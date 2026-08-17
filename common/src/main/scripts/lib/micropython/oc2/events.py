@@ -3,7 +3,7 @@ from oc2.channel import Channel
 
 class Events:
     def __init__(self, path):
-        self.channel = Channel(path)
+        self.channel = Channel(path, read_only=True)
 
     def close(self):
         self.channel.close()

@@ -36,8 +36,8 @@ run_file() {
     name="${file##*/}"
 
     case "$file" in
-        *.lua) output=$(lua "$file" 2>&1) ;;
-        *.py) output=$(micropython "$file" 2>&1) ;;
+        *.lua) output=$($TIMEOUT lua "$file" 2>&1) ;;
+        *.py) output=$($TIMEOUT micropython "$file" 2>&1) ;;
         *) return 0 ;;
     esac
     status=$?
@@ -45,12 +45,12 @@ run_file() {
     ran=$((ran + 1))
     if [ "$status" -eq 0 ]; then
         emit "case PASS $name"
-    else
-        failed=$((failed + 1))
-        emit "case FAIL $name"
-        emit_detail "exit status $status"
+        return 0
     fi
 
+    failed=$((failed + 1))
+    emit "case FAIL $name"
+    emit_detail "exit status $status"
     if [ -n "$output" ]; then
         emit_detail "$output"
     fi
@@ -76,9 +76,19 @@ run_suite() {
 
 PORT=$(find_port) || exit 0
 
+TIMEOUT=""
+if command -v timeout >/dev/null 2>&1; then
+    TIMEOUT="timeout 60"
+fi
+
 # The runner is started from init, which has no profile, so manually do what a login shell would.
 [ -f /etc/profile.d/lua_path.sh ] && . /etc/profile.d/lua_path.sh
 [ -f /etc/profile.d/python_path.sh ] && . /etc/profile.d/python_path.sh
+
+# Test files sit in a suite directory but share the helpers one level up.
+LUA_PATH="$SUITES/?.lua${LUA_PATH:+;$LUA_PATH}"
+MICROPYPATH="$SUITES${MICROPYPATH:+:$MICROPYPATH}"
+export LUA_PATH MICROPYPATH
 
 exec 3<>"$PORT"
 

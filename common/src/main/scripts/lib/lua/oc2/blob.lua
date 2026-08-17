@@ -2,11 +2,12 @@ local fcntl = require("posix.fcntl")
 local unistd = require("posix.unistd")
 local poll = require("posix.poll")
 local json_null = require("cjson").null
+local Channel = require("oc2.channel")
 
 local blob = {}
-local readSize = 32 * 1024
-
+local chunkSize = 32 * 1024
 local readTimeout = 5000
+local maxDepth = 32
 
 blob.key = "$blob"
 blob.maxOutbound = 512 * 1024
@@ -61,9 +62,14 @@ function blob.extract(...)
   return parameters, payload
 end
 
-function blob.substitute(value, payload)
+function blob.substitute(value, payload, depth)
   if type(value) ~= "table" then
     return value
+  end
+
+  depth = depth or 0
+  if depth > maxDepth then
+    error("host reply is nested too deeply", 0)
   end
 
   if value[blob.key] then
@@ -71,7 +77,7 @@ function blob.substitute(value, payload)
   end
 
   for key, item in pairs(value) do
-    value[key] = blob.substitute(item, payload)
+    value[key] = blob.substitute(item, payload, depth + 1)
   end
   return value
 end
@@ -80,7 +86,7 @@ local Payload = {}
 Payload.__index = Payload
 
 function blob.open(path)
-  local fd, status = fcntl.open(path, fcntl.O_RDWR | fcntl.O_CLOEXEC)
+  local fd, status = fcntl.open(path, fcntl.O_RDWR | fcntl.O_CLOEXEC | fcntl.O_NONBLOCK)
   if not fd then
     return nil, status
   end
@@ -97,7 +103,7 @@ end
 function Payload:reset()
   repeat
     local ready = poll.rpoll(self.fd, 0)
-    if ready == 1 and not unistd.read(self.fd, readSize) then
+    if ready == 1 and not unistd.read(self.fd, chunkSize) then
       break -- the port is gone; looping on a failing read would spin forever
     end
   until ready ~= 1
@@ -109,14 +115,7 @@ function Payload:write(data)
                         #data, blob.maxOutbound), 2)
   end
 
-  local offset = 1
-  while offset <= #data do
-    local written, reason = unistd.write(self.fd, data:sub(offset, offset + readSize - 1))
-    if not written or written <= 0 then
-      error("could not write binary payload: " .. tostring(reason), 0)
-    end
-    offset = offset + written
-  end
+  Channel.writeAll(self.fd, data)
 end
 
 function Payload:read(length)
@@ -130,9 +129,11 @@ function Payload:read(length)
       return nil, "timed out waiting for the rest of the payload"
     end
 
-    local chunk, reason = unistd.read(self.fd, math.min(remaining, readSize))
-    if not chunk or #chunk == 0 then
+    local chunk, reason = unistd.read(self.fd, math.min(remaining, chunkSize))
+    if not chunk then
       return nil, reason or "end of file"
+    elseif #chunk == 0 then
+      return nil, "end of file"
     end
 
     parts[#parts + 1] = chunk
@@ -148,17 +149,17 @@ function blob.resolve(channel, result)
   end
 
   if reference.length < 0 or reference.length > blob.maxInbound then
-    error("host announced an implausible payload size: " .. tostring(reference.length))
+    error("host announced an implausible payload size: " .. tostring(reference.length), 0)
   end
 
   local data, reason = channel:read(reference.length)
   if not data then
     channel:reset()
-    error("could not read binary payload: " .. tostring(reason))
+    error("could not read binary payload: " .. tostring(reason), 0)
   end
   if blob.checksum(data) ~= reference.checksum then
     channel:reset()
-    error("binary payload failed its checksum; the data channel is corrupt or out of sync")
+    error("binary payload failed its checksum; the data channel is corrupt or out of sync", 0)
   end
 
   return blob.substitute(result.data, data)

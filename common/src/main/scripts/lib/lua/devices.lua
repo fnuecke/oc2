@@ -3,8 +3,9 @@ local blob = require("oc2.blob")
 local Events = require("oc2.events")
 local ports = require("oc2.ports")
 
-local Device = {}
+local requestTimeout = 30000
 
+local Device = {}
 local invokers = {}
 local owners = setmetatable({}, {__mode = "k"})
 
@@ -178,11 +179,14 @@ function DeviceBus:new(path, blobPath, eventPath)
 
   local payload, payloadStatus = blob.open(blobPath)
   if not payload then
+    rpc:close()
     return nil, payloadStatus
   end
 
   local events, eventStatus = Events.open(eventPath)
   if not events then
+    rpc:close()
+    payload:close()
     return nil, eventStatus
   end
 
@@ -202,9 +206,9 @@ end
 
 local function request(bus, message, expected)
   bus.rpc:write(message)
-  local result, reason = bus.rpc:read()
+  local result, reason = bus.rpc:read(requestTimeout)
   if not result then
-    return error(parseError(nil, reason or "the host sent no reply"), 0)
+    return error("no reply from the host: " .. tostring(reason or "unknown"), 0)
   end
   noteGeneration(bus, result)
   if result.type == expected then

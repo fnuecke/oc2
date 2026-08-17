@@ -1,4 +1,5 @@
 local bus = require("devices")
+local clock = require("oc2.clock")
 local robot = assert(bus:find("robot"), "robot device not found")
 
 local pollInterval = 1000
@@ -6,7 +7,7 @@ local defaultTimeout = 30000
 local actionCompleted = "robotActionCompleted"
 
 local function deadlineFrom(timeout)
-  return os.time() + (timeout or defaultTimeout) / 1000
+  return clock.deadline(timeout or defaultTimeout)
 end
 
 local function completedActionResult(event, id)
@@ -21,7 +22,7 @@ local function waitForLastAction(timeout)
 
   local result = robot:getActionResult(id)
   while result and result == "INCOMPLETE" do
-    if os.time() >= deadline then
+    if clock.expired(deadline) then
       return false
     end
     result = completedActionResult(bus:waitEvent(pollInterval, actionCompleted), id)
@@ -35,7 +36,7 @@ local function queueAction(action, direction, timeout)
   direction = assert(direction, "no direction specified")
   local deadline = deadlineFrom(timeout)
   while not action(robot, direction) do
-    if os.time() >= deadline then
+    if clock.expired(deadline) then
       return false
     end
     bus:waitEvent(pollInterval, actionCompleted) -- a slot frees up when an action completes

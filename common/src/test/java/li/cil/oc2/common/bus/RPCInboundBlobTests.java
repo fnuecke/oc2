@@ -295,6 +295,20 @@ public final class RPCInboundBlobTests {
         assertArrayEquals(PAYLOAD, sink.received, "the channel did not recover after an overflow");
     }
 
+    @Test
+    public void payloadThatExactlyFillsTheChannelIsAccepted() {
+        final byte[] exact = new byte[Constants.RPC_MAX_PAYLOAD_SIZE];
+        for (int i = 0; i < exact.length; i++) {
+            exact[i] = (byte) (i * 31 + 7);
+        }
+
+        blobDevice.putRawAsVM(exact);
+        serialDevice.putAsVM(invocation(exact.length, RPCPayloadChannel.checksum(exact)));
+        adapter.step(0);
+
+        assertArrayEquals(exact, sink.received, "a payload that fits exactly is not an oversized one");
+    }
+
     // ------------------------------------------------------------- //
 
     private String invocation(final int length, final int checksum) {

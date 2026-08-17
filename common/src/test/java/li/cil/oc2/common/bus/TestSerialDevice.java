@@ -7,6 +7,7 @@ import li.cil.sedna.api.device.serial.SerialDevice;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 final class TestSerialDevice implements SerialDevice {
@@ -97,6 +98,16 @@ final class TestSerialDevice implements SerialDevice {
     @Override
     public int read() {
         return transmit.isEmpty() ? -1 : (transmit.dequeueByte() & 0xFF);
+    }
+
+    @Override
+    public int read(final ByteBuffer dst) {
+        int count = 0;
+        while (dst.hasRemaining() && !transmit.isEmpty()) {
+            dst.put(transmit.dequeueByte());
+            count++;
+        }
+        return count;
     }
 
     @Override

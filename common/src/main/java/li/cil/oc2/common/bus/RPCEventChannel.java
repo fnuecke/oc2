@@ -11,10 +11,13 @@ import java.nio.ByteBuffer;
 
 final class RPCEventChannel {
     private static final int MAX_QUEUED_SIZE = 8 * Constants.KILOBYTE;
+    private static final int DISCARD_BUFFER_SIZE = 256;
 
     // ------------------------------------------------------------- //
 
     private final SerialDevice device;
+
+    private final transient ByteBuffer discard = ByteBuffer.allocate(DISCARD_BUFFER_SIZE);
 
     @Serialized
     private final ByteArrayFIFOQueue queued = new ByteArrayFIFOQueue();
@@ -42,7 +45,7 @@ final class RPCEventChannel {
     }
 
     void flush() {
-        while (device.read() >= 0) {
+        while (device.read(discard.clear()) > 0) {
             // Guest shouldn't send anything here, but let's just drain it to not block.
         }
 

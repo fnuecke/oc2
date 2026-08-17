@@ -23,14 +23,28 @@ final class RPCPayloadChannel {
     // ------------------------------------------------------------- //
 
     void receive() {
-        int value;
-        while ((value = device.read()) >= 0) {
+        while (true) {
             if (guestToHost.hasRemaining()) {
-                guestToHost.put((byte) value);
-            } else {
-                guestToHost.clear();
-                guestToHost.limit(0);
+                if (device.read(guestToHost) == 0) {
+                    return;
+                }
+                continue;
             }
+
+            // The buffer is full, or this payload was already given up on. Anything still
+            // coming has to be drained regardless, so the guest does not get stuck on a port
+            // nobody reads. But it does mean the payload does not fit. So we just drain it.
+            final int position = guestToHost.position();
+            final int limit = guestToHost.limit();
+
+            guestToHost.clear();
+            if (device.read(guestToHost) == 0) { // not oversized, just fits exactly
+                guestToHost.position(0).limit(limit).position(position);
+                return;
+            }
+
+            guestToHost.clear();
+            guestToHost.limit(0); // marks payload too large
         }
     }
 

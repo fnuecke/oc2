@@ -4,10 +4,20 @@ io.write("Setup DHCP client? [y/N]: ")
 io.flush()
 local dhcpClient = io.read()
 if dhcpClient == "y" then
+    local hostname
+    local hostnameFile = io.open("/etc/hostname", "r")
+    if hostnameFile then
+        hostname = hostnameFile:read("l")
+        hostnameFile:close()
+    end
+
     local file = assert(io.open("/etc/network/interfaces", "a"))
     file:write("\n")
     file:write("auto eth0\n")
     file:write("iface eth0 inet dhcp\n")
+    if hostname and hostname ~= "" then
+        file:write("  hostname " .. hostname .. "\n")
+    end
 
     assert(file:close())
 

@@ -184,6 +184,10 @@ public final class ComputerFixture {
         return text.toString();
     }
 
+    public GuestTests guestTests() {
+        return GuestTests.of(virtualMachine());
+    }
+
     public void assertNoGuestPanic() {
         final String text = screen();
         for (final String marker : new String[]{"Kernel panic", "Oops", "BUG:", "Call Trace"}) {

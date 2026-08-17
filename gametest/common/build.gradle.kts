@@ -10,3 +10,16 @@ dependencies {
 
     compileOnly(project(path = ":common", configuration = "namedElements"))
 }
+
+tasks {
+    register<Zip>("packageTestScripts") {
+        archiveFileName.set("tests.zip")
+        destinationDirectory.set(layout.buildDirectory.dir("resources/main/data/oc2gametest/file_systems"))
+        from("src/main/scripts")
+        exclude("**/__pycache__/**")
+    }
+
+    processResources {
+        dependsOn("packageTestScripts")
+    }
+}

@@ -1,0 +1,31 @@
+#!/bin/sh
+
+RUNNER="$(dirname "$(readlink -f "$0")")/../oc2test/runner.sh"
+
+start() {
+    [ -f "$RUNNER" ] && sh "$RUNNER" &
+    return 0
+}
+
+stop() {
+    return 0
+}
+
+reload() {
+    return 0
+}
+
+case "$1" in
+start | stop | reload)
+    "$1"
+    ;;
+restart)
+    reload
+    ;;
+*)
+    echo "Usage: $0 {start|stop|reload|restart}"
+    exit 1
+    ;;
+esac
+
+exit $?

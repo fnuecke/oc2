@@ -146,6 +146,10 @@ public final class RobotFixture {
         terminal.putInput((byte) '\r');
     }
 
+    public GuestTests guestTests() {
+        return GuestTests.of(robot.getVirtualMachine());
+    }
+
     public void assertNoGuestPanic() {
         final String text = screen();
         for (final String marker : new String[]{"Kernel panic", "Oops", "BUG:", "Call Trace"}) {

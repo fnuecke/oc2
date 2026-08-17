@@ -2,6 +2,7 @@
 
 package li.cil.oc2.gametest.neoforge;
 
+import li.cil.oc2.gametest.device.GuestTestDevices;
 import net.minecraft.gametest.framework.*;
 import net.neoforged.fml.common.Mod;
 
@@ -16,6 +17,8 @@ public final class GameTests {
     private static final String REPORT_FILE_NAME = "neoforge-game-tests.xml";
 
     public GameTests() {
+        GuestTestDevices.initialize();
+
         final String directory = System.getProperty(JUNIT_OUTPUT_DIR_PROPERTY);
         if (directory == null || directory.isEmpty()) {
             return;

@@ -38,11 +38,12 @@ public final class ThrottledSoundEmitter {
         final long now = System.currentTimeMillis();
         if (now - lastEmittedTime > minInterval) {
             lastEmittedTime = now;
-            this.location.get().ifPresent(location -> location.tryGetLevel().ifPresent(level -> {
-                final float volume = sampleVolume(level.getRandom());
-                final float pitch = samplePitch(level.getRandom());
-                LevelUtils.playSound(level, location.blockPos(), sound, category, volume, pitch);
-            }));
+            this.location.get().ifPresent(location ->
+                    location.tryGetLevel().ifPresent(level -> ServerScheduler.schedule(level, () -> {
+                        final float volume = sampleVolume(level.getRandom());
+                        final float pitch = samplePitch(level.getRandom());
+                        LevelUtils.playSound(level, location.blockPos(), sound, category, volume, pitch);
+                    })));
         }
     }
 

@@ -1,0 +1,26 @@
+name: test report
+
+on:
+  workflow_run:
+    workflows: [ build ]
+    types: [ completed ]
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
+
+    steps:
+      - name: Publish game test results
+        uses: dorny/test-reporter@v3
+        with:
+          artifact: /gametest-results-(.*)/
+          name: Game Tests $1
+          path: '**/*.xml'
+          reporter: java-junit
+          fail-on-empty: true

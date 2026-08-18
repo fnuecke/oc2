@@ -4,6 +4,8 @@ Controlling devices using Lua is a core concept when using [computers](block/com
 ## The Devices Library
 The default Linux distribution includes libraries to make HLAPI devices more easily accessible. The `devices` library provides utilities for discovering devices and calling methods on them, as well as obtaining documentation on devices, when available.
 
+Note: this document will use Lua to provide an overview, examples and API documentation. An equivalent library with API parity is also available for micropython. 
+
 To use the `devices` library, import it using `require("devices")`. What you get back is an object, so its methods are called with colon notation: store it in a variable, then call `d:list()` rather than `d.list()`.
 
 ### Methods

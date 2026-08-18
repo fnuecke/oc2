@@ -145,6 +145,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
             payloads.receive();
             readFromDevice();
             writeToDevice();
+            announceDroppedEvents();
             events.flush();
         } finally {
             pauseLock.release();
@@ -388,6 +389,14 @@ public final class RPCDeviceBusAdapter implements Steppable {
         messages.send(RPCMessageChannel.frame(encode(new Message(type, dataElement, registry.generation(), blob))));
     }
 
+    private void announceDroppedEvents() {
+        final int dropped = events.takeDropped();
+        if (dropped > 0) {
+            events.addNotice(RPCMessageChannel.frame(encode(new Message(
+                    Message.MESSAGE_TYPE_EVENTS_DROPPED, dropped, registry.generation(), null))));
+        }
+    }
+
     public boolean addEvent(final String type, @Nullable final Object data) {
         return events.addEvent(RPCMessageChannel.frame(
                 encode(new Message(type, data, registry.generation(), null))));
@@ -412,6 +421,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         public static final String MESSAGE_TYPE_RESULT = "result";
         public static final String MESSAGE_TYPE_ERROR = "error";
         public static final String MESSAGE_TYPE_DEVICES_CHANGED = "devicesChanged"; // event
+        public static final String MESSAGE_TYPE_EVENTS_DROPPED = "eventsDropped"; // event
 
         // VM -> Device
         public static final String MESSAGE_TYPE_INVOKE_METHOD = "invoke";

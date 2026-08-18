@@ -194,16 +194,21 @@ class DeviceBus:
                             or "the host reported an error with no detail")
         raise Exception("unexpected message type: %s" % reply.get("type"))
 
+    def _caches_locally(self):
+        return self.transport == "ports"
+
     def _raw_list(self):
         self.pump_events()
 
-        if self.device_list is not None and self.generation_confirmed:
+        if self._caches_locally() and self.device_list is not None and self.generation_confirmed:
             self.generation_confirmed = False
             return self.device_list
 
         self.flush()
-        self.device_list = self._request({"type": "list"}, "list").get("data")
-        return self.device_list
+        devices = self._request({"type": "list"}, "list").get("data")
+        if self._caches_locally():
+            self.device_list = devices
+        return devices
 
     def list(self):
         return _copy_devices(self._raw_list())

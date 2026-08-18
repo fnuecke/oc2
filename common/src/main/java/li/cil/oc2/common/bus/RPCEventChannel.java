@@ -21,6 +21,8 @@ final class RPCEventChannel {
 
     @Serialized
     private final ByteArrayFIFOQueue queued = new ByteArrayFIFOQueue();
+    @Serialized
+    private int dropped;
 
     // ------------------------------------------------------------- //
 
@@ -33,6 +35,7 @@ final class RPCEventChannel {
     boolean addEvent(final ByteBuffer frame) {
         synchronized (queued) {
             if (queued.size() + frame.remaining() > MAX_QUEUED_SIZE) {
+                dropped += dropped < 0 ? -1 : 1;
                 return false;
             }
 
@@ -44,6 +47,27 @@ final class RPCEventChannel {
         return true;
     }
 
+    int takeDropped() {
+        synchronized (queued) {
+            if (dropped <= 0) {
+                return 0;
+            }
+
+            final int count = dropped;
+            dropped = 0;
+            return count;
+        }
+    }
+
+    void addNotice(final ByteBuffer frame) {
+        synchronized (queued) {
+            dropped = -1; // nothing refused since this one; anything new counts further down
+            while (frame.hasRemaining()) {
+                queued.enqueue(frame.get());
+            }
+        }
+    }
+
     void flush() {
         while (device.read(discard.clear()) > 0) {
             // Guest shouldn't send anything here, but let's just drain it to not block.
@@ -53,6 +77,10 @@ final class RPCEventChannel {
             while (!queued.isEmpty() && device.canPutByte()) {
                 device.putByte(queued.dequeueByte());
             }
+
+            if (queued.isEmpty() && dropped < 0) {
+                dropped = -dropped - 1; // the notice is out; swap to pending new drops, if any
+            }
         }
 
         device.flush();
@@ -61,6 +89,7 @@ final class RPCEventChannel {
     void reset() {
         synchronized (queued) {
             queued.clear();
+            dropped = 0;
         }
     }
 }

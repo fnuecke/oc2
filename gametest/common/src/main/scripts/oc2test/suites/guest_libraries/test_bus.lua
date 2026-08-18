@@ -114,6 +114,11 @@ local devices = first:list()
 expect("list came back through the daemon", #devices, 2)
 expect("with the host's devices", devices[1].deviceId, "redstone-1")
 
+-- Over a socket the daemon holds the one list for the whole machine, so a session that keeps a
+-- copy of its own would be the only thing able to go stale.
+expect("and the session kept no list of its own", first.deviceList, nil)
+expect("asking again still answers", #first:list(), 2)
+
 local redstone = first:find("redstone")
 expect("find located a device by type", redstone and redstone.deviceId, "redstone-1")
 expect("methods resolve through the daemon", type(redstone.getRedstoneOutput), "function")
@@ -140,7 +145,7 @@ local firstEvent = first:waitEvent(2000, "devicesChanged")
 local secondEvent = second:waitEvent(2000, "devicesChanged")
 expect("the invoking session sees the event", firstEvent and firstEvent.type, "devicesChanged")
 expect("so does the other one", secondEvent and secondEvent.type, "devicesChanged")
-expect("and it invalidated the cache", first.deviceList, nil)
+expect("the list still resolves after the change", #first:list(), 2)
 
 -- A session with no event socket still works; it simply never hears about changes.
 local quiet = assert(bus.connect({ socketPath = PATH, roles = { "rpc" } }))

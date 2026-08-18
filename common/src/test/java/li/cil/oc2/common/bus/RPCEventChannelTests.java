@@ -127,6 +127,92 @@ public final class RPCEventChannelTests {
     }
 
     @Test
+    public void theChannelReportsWhatItRefused() {
+        final TestSerialDevice deaf = new TestSerialDevice(0);
+        final RPCEventChannel channel = new RPCEventChannel(deaf);
+        final byte[] kilobyte = new byte[Constants.KILOBYTE];
+
+        while (channel.addEvent(RPCMessageChannel.frame(kilobyte))) {
+            // fill it
+        }
+        channel.addEvent(RPCMessageChannel.frame(kilobyte));
+
+        assertTrue(channel.takeDropped() > 0, "refusing an event went unreported");
+        assertEquals(0, channel.takeDropped(), "taking the count must clear it");
+    }
+
+    @Test
+    public void onlyOneNoticeIsOutstandingAtATime() {
+        final TestSerialDevice deaf = new TestSerialDevice(0);
+        final RPCEventChannel channel = new RPCEventChannel(deaf);
+        final byte[] kilobyte = new byte[Constants.KILOBYTE];
+
+        while (channel.addEvent(RPCMessageChannel.frame(kilobyte))) {
+            // fill it
+        }
+        assertTrue(channel.takeDropped() > 0, "precondition: something was refused");
+
+        channel.addNotice(RPCMessageChannel.frame("notice".getBytes(StandardCharsets.UTF_8)));
+
+        channel.addEvent(RPCMessageChannel.frame(kilobyte));
+        assertEquals(0, channel.takeDropped(),
+                "a second notice would have queued up after the first");
+    }
+
+    @Test
+    public void refusalsBehindAPendingNoticeAreNotForgotten() {
+        final TestSerialDevice reader = new TestSerialDevice();
+        final RPCEventChannel channel = new RPCEventChannel(reader);
+        final byte[] kilobyte = new byte[Constants.KILOBYTE];
+
+        while (channel.addEvent(RPCMessageChannel.frame(kilobyte))) {
+            // fill it
+        }
+        assertTrue(channel.takeDropped() > 0, "precondition: something was refused");
+        channel.addNotice(RPCMessageChannel.frame("notice".getBytes(StandardCharsets.UTF_8)));
+
+        channel.addEvent(RPCMessageChannel.frame(kilobyte));
+        assertEquals(0, channel.takeDropped(), "a second notice queued up after the first");
+
+        channel.flush();
+        assertTrue(channel.takeDropped() > 0,
+                "a refusal while the notice was pending was never reported");
+    }
+
+    @Test
+    public void droppedEventsAreAnnouncedToTheGuest() {
+        final TestSerialDevice slow = new TestSerialDevice(256); // room for a frame, not for many
+        adapter = newAdapter(slow);
+        addDevice("redstone");
+        adapter.resume(busController, true);
+
+        boolean refused = false;
+        for (int i = 0; i < 4000 && !refused; i++) {
+            refused = !adapter.addEvent(RobotActionCompletedEvent.TYPE,
+                    new RobotActionCompletedEvent(i, RobotActionResult.SUCCESS));
+            adapter.step(0);
+        }
+        assertTrue(refused, "precondition: the queue never filled up");
+
+        JsonObject notice = null;
+        for (int i = 0; i < 40000 && notice == null; i++) {
+            adapter.step(0);
+            final String message = slow.readMessageAsVM();
+            if (message != null) {
+                final JsonObject parsed = JsonParser.parseString(message).getAsJsonObject();
+                if ("eventsDropped".equals(parsed.get("type").getAsString())) {
+                    notice = parsed;
+                }
+            }
+        }
+
+        assertNotNull(notice, "the guest was never told it had missed events");
+        assertTrue(notice.get("data").getAsInt() > 0, "the notice must say how many were lost");
+        assertEquals(request("list").get("gen").getAsInt(), notice.get("gen").getAsInt(),
+                "the notice must carry the generation, since that is what corrects the guest");
+    }
+
+    @Test
     public void eventsNeverAppearOnTheRpcChannel() {
         addDevice("redstone");
         adapter.resume(busController, true);
@@ -272,8 +358,11 @@ public final class RPCEventChannelTests {
 
                 String message;
                 while ((message = eventDevice.readMessageAsVM()) != null) {
-                    seen.add(JsonParser.parseString(message).getAsJsonObject()
-                            .getAsJsonObject("data").get("actionId").getAsInt());
+                    final JsonObject event = JsonParser.parseString(message).getAsJsonObject();
+                    if (!RobotActionCompletedEvent.TYPE.equals(event.get("type").getAsString())) {
+                        continue;
+                    }
+                    seen.add(event.getAsJsonObject("data").get("actionId").getAsInt());
                 }
             }
         } finally {

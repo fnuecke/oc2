@@ -157,11 +157,14 @@ function busd.new(options)
     events = Channel.fromFd(options.eventFd),
     listenFd = options.listenFd,
     generation = nil,
+    cache = { methods = {}, ids = {}, frames = {} }, -- what the host said, for `generation` only
+    orphanReplies = 0,  -- replies the host still owes for requests that gave up waiting
     sessions = {},      -- session -> true, for broadcasting
     tokens = {},        -- token -> session, only while attaches are still outstanding
     connections = {},   -- fd -> connection
     queue = {},         -- sessions with a dispatchable request, oldest first
     inFlight = nil,
+    inFlightRequest = nil,
     requestDeadline = nil,
     running = false,
   }, Daemon)
@@ -419,6 +422,84 @@ function Daemon:attach(session, connection)
   end
 end
 
+-- Device cache
+
+function Daemon:dropCache()
+  self.cache = { methods = {}, ids = {}, frames = {} }
+end
+
+function Daemon:noteGeneration(gen)
+  if type(gen) ~= "number" or (self.generation and gen <= self.generation) then
+    return
+  end
+  self.generation = gen
+  self:dropCache()
+end
+
+function Daemon:cacheDeviceList(devices)
+  local cache = self.cache
+  cache.list = devices
+  cache.ids = {}
+  if type(devices) == "table" then
+    for _, device in ipairs(devices) do
+      if type(device) == "table" and type(device.deviceId) == "string" then
+        cache.ids[device.deviceId] = true
+      end
+    end
+  end
+end
+
+function Daemon:cacheReply(request, reply)
+  if reply.type ~= request.type or reply.gen ~= self.generation then
+    return
+  end
+
+  if reply.type == "list" then
+    self:cacheDeviceList(reply.data)
+  elseif reply.type == "methods" and self.cache.ids[request.data] then
+    self.cache.methods[request.data] = reply.data
+  end
+end
+
+local function serve(daemon, session, frame)
+  local connection = session.connections.rpc
+  if connection and not connection.writer:push(frame) then
+    daemon:dropSession(session, "the client stopped reading its replies")
+  end
+  return true
+end
+
+busd.handlers.list = function(daemon, session, message)
+  local cache = daemon.cache
+  if not cache.list then
+    return false
+  end
+  cache.frames.list = cache.frames.list
+      or Channel.frame({ type = "list", gen = daemon.generation, data = cache.list })
+  return serve(daemon, session, cache.frames.list)
+end
+
+busd.handlers.methods = function(daemon, session, message)
+  local cache = daemon.cache
+  if not cache.list or type(message.data) ~= "string" then
+    return false
+  end
+
+  local methods = cache.methods[message.data]
+  if not methods then
+    return false
+  end
+
+  local frames = cache.frames.methods
+  if not frames then
+    frames = {}
+    cache.frames.methods = frames
+  end
+  frames[message.data] = frames[message.data]
+      or Channel.frame({ type = "methods", gen = daemon.generation, data = methods })
+  return serve(daemon, session, frames[message.data])
+end
+
 -- Requests
 
 function Daemon:sendError(session, reason)
@@ -451,7 +532,8 @@ function Daemon:onRequest(session, message)
   end
 
   local handler = busd.handlers[message.type]
-  if handler and handler(self, session, message) then
+  if handler and message.blob == nil and session.established and self.inFlight ~= session
+      and handler(self, session, message) then
     return
   end
 
@@ -518,6 +600,7 @@ function Daemon:dispatch()
         local sent, reason = pcall(self.writeToHost, self, message, payload)
         if sent then
           self.inFlight = session
+          self.inFlightRequest = message
           self.requestDeadline = clock.deadline(busd.requestTimeout)
         elseif payload then
           log("FATAL: the host blob stream may be desynchronised: %s", tostring(reason))
@@ -548,9 +631,7 @@ function Daemon:onHostReply()
     return false
   end
 
-  if type(message.gen) == "number" then
-    self.generation = message.gen
-  end
+  self:noteGeneration(message.gen)
 
   local payload
   local reference = message.blob
@@ -572,8 +653,19 @@ function Daemon:onHostReply()
   end
 
   local session = self.inFlight
+  local request = self.inFlightRequest
   self.inFlight = nil
+  self.inFlightRequest = nil
   self.requestDeadline = nil
+
+  if self.orphanReplies > 0 then
+    self.orphanReplies = self.orphanReplies - 1
+    request = nil
+  end
+
+  if request and not payload then
+    self:cacheReply(request, message)
+  end
 
   if session and not session.dead and not self:reply(session, message, payload) then
     self:dropSession(session, "the client stopped reading its replies")
@@ -587,9 +679,7 @@ function Daemon:onHostEvent()
     if not event then
       return
     end
-    if event.type == "devicesChanged" and type(event.gen) == "number" then
-      self.generation = event.gen
-    end
+    self:noteGeneration(event.gen)
     self:broadcast(event)
   end
 end
@@ -622,7 +712,9 @@ function Daemon:expire()
   if self.requestDeadline and now >= self.requestDeadline then
     local session = self.inFlight
     self.inFlight = nil
+    self.inFlightRequest = nil
     self.requestDeadline = nil
+    self.orphanReplies = self.orphanReplies + 1
     self:resync()
     if session and not session.dead then
       self:sendError(session, "the host did not answer in time")
@@ -658,8 +750,11 @@ end
 function Daemon:onClientRequests(connection)
   local session = connection.session
   for _ = 1, busd.maxFramesPerPump do
+    if session.dead then
+      return -- a previous request in this same batch ended the session, and closed its socket
+    end
     local message = self:readFrame(connection)
-    if not message or session.dead then
+    if not message then
       return
     end
     self:onRequest(session, message)
@@ -831,8 +926,14 @@ function Daemon:primeGeneration()
   end
 
   local message = self.rpc:read(busd.primeTimeout)
+  if not message then
+    self.orphanReplies = self.orphanReplies + 1
+  end
   if message and type(message.gen) == "number" then
-    self.generation = message.gen
+    self:noteGeneration(message.gen)
+    if message.type == "list" then
+      self:cacheDeviceList(message.data)
+    end
   else
     -- Shouldn't really happen, but we can cope (get one later).
     log("host did not report a bus generation at startup")

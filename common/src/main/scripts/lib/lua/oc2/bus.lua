@@ -282,17 +282,23 @@ local function request(bus_, message, expected)
   return error(parseError(result, reason), 0)
 end
 
+local function cachesLocally(bus_)
+  return bus_.transport == "ports"
+end
+
 local function rawList(bus_)
   bus_:pumpEvents()
 
-  if bus_.deviceList and bus_.generationConfirmed then
+  if cachesLocally(bus_) and bus_.deviceList and bus_.generationConfirmed then
     bus_.generationConfirmed = false
     return bus_.deviceList
   end
 
   bus_:flush()
   local result = request(bus_, { type = "list" }, "list")
-  bus_.deviceList = result.data
+  if cachesLocally(bus_) then
+    bus_.deviceList = result.data
+  end
   return result.data
 end
 

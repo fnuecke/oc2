@@ -46,6 +46,11 @@ expect("and learned the generation from the handshake", first.generation, 1)
 
 devices = first.list()
 expect("list came back through the daemon", len(devices), 2)
+
+# Over a socket the daemon holds the one list for the whole machine, so a session that keeps a
+# copy of its own would be the only thing able to go stale.
+expect("and the session kept no list of its own", first.device_list, None)
+expect("asking again still answers", len(first.list()), 2)
 expect("with the host's devices", devices[0]["deviceId"], "redstone-1")
 
 redstone = first.find("redstone")
@@ -68,7 +73,7 @@ expect("the invoking session sees the event",
        (first.wait_event(2000, "devicesChanged") or {}).get("type"), "devicesChanged")
 expect("so does the other one",
        (second.wait_event(2000, "devicesChanged") or {}).get("type"), "devicesChanged")
-expect("and it invalidated the cache", first.device_list, None)
+expect("the list still resolves after the change", len(first.list()), 2)
 
 quiet = oc2_bus.connect(socket_path=PATH, roles=("rpc",))
 expect("an rpc-only session works", len(quiet.list()), 2)

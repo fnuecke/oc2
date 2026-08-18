@@ -84,6 +84,23 @@ end
 package.preload["posix.dirent"] = function()
   return { dir = function() return entries end }
 end
+-- The bus prefers the daemon whenever its socket is there. These suites are about the ports,
+-- so the socket transport is made unavailable outright rather than left to depend on whether a
+-- daemon happens to be running alongside the test.
+pcall(function() require("posix.stdlib").setenv("OC2_BUS_SOCKET", "none") end)
+
+package.preload["oc2.socket"] = function()
+  local function unavailable()
+    return nil, "the socket transport is stubbed out under the port mock"
+  end
+  return {
+    connect = unavailable, listen = unavailable, accept = unavailable,
+    setNonBlocking = function() return true end,
+    setCloseOnExec = function() return true end,
+    peerPid = function() return nil end,
+    close = function() return 0 end,
+  }
+end
 
 local realOpen = io.open
 io.open = function(path, mode)

@@ -1,0 +1,104 @@
+#!/bin/sh
+
+# Starts the device bus daemon, which owns the three virtio ports and lets any number of
+# scripts talk to the host at once. Without it the kernel allows exactly one script to hold the
+# ports, and events queued while nobody holds the event port are discarded.
+#
+# Nothing depends on this running: oc2.bus falls back to opening the ports directly when the
+# socket is not there. So if the memory is precious, stop the daemon.
+
+THIS_SCRIPT_PATH=$(readlink -f "$0")
+THIS_SCRIPT_DIR=$(dirname "$THIS_SCRIPT_PATH")
+LUA_LIB_PATH=$(readlink -f "$THIS_SCRIPT_DIR/../lib/lua")
+DAEMON="$THIS_SCRIPT_DIR/../bin/oc2busd.lua"
+SUPERVISOR="$THIS_SCRIPT_DIR/../bin/oc2busd-supervise.sh"
+
+PID_FILE="/run/oc2busd.pid"
+START_TIMEOUT=20
+STOP_TIMEOUT=30
+
+group_alive() {
+    [ -f "$PID_FILE" ] || return 1
+    PGID=$(cat "$PID_FILE" 2>/dev/null)
+    [ -n "$PGID" ] || return 1
+    kill -0 "-$PGID" 2>/dev/null
+}
+
+start() {
+    if [ ! -f "$DAEMON" ] || [ ! -f "$SUPERVISOR" ]; then
+        return 0
+    fi
+
+    if group_alive; then
+        return 0
+    fi
+    rm -f "$PID_FILE"
+
+    # init has no profile, so the library path has to be set up here rather than relied upon.
+    LUA_PATH="$LUA_LIB_PATH/?.lua;$LUA_LIB_PATH/?/init.lua;;"
+    export LUA_PATH
+
+    printf 'Starting oc2busd: '
+
+    setsid /bin/sh "$SUPERVISOR" "$DAEMON" "$PID_FILE" >/dev/null 2>&1 &
+
+    i=0
+    while [ "$i" -lt "$START_TIMEOUT" ]; do
+        if group_alive; then
+            echo "OK"
+            return 0
+        fi
+        sleep 0.1 2>/dev/null || sleep 1
+        i=$((i + 1))
+    done
+
+    echo "FAILED"
+    return 1
+}
+
+stop() {
+    if ! group_alive; then
+        rm -f "$PID_FILE"
+        return 0
+    fi
+
+    printf 'Stopping oc2busd: '
+    PGID=$(cat "$PID_FILE")
+
+    # Negative pid signals the whole process group: the supervisor, its shell and the daemon.
+    kill -TERM -- "-$PGID" 2>/dev/null
+
+    i=0
+    while [ "$i" -lt "$STOP_TIMEOUT" ] && kill -0 "-$PGID" 2>/dev/null; do
+        sleep 0.1 2>/dev/null || sleep 1
+        i=$((i + 1))
+    done
+
+    if kill -0 "-$PGID" 2>/dev/null; then
+        kill -KILL -- "-$PGID" 2>/dev/null
+    fi
+    rm -f "$PID_FILE"
+
+    echo "OK"
+    return 0
+}
+
+reload() {
+    stop
+    start
+}
+
+case "$1" in
+start | stop | reload)
+    "$1"
+    ;;
+restart)
+    reload
+    ;;
+*)
+    echo "Usage: $0 {start|stop|reload|restart}"
+    exit 1
+    ;;
+esac
+
+exit $?

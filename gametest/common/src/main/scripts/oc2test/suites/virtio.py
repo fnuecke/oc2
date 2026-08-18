@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 
 NUL = b"\0"
@@ -37,6 +38,13 @@ class Port:
         if self is rpc:
             self.armed = False
         return chunk
+
+    def readinto(self, buf):
+        chunk = self.read(len(buf))
+        if not chunk:
+            return 0 if chunk == b"" else None
+        buf[:len(chunk)] = chunk
+        return len(chunk)
 
     def write(self, data):
         global requests
@@ -109,6 +117,21 @@ class _FfiLib:
 ffi_stub = _Stub()
 ffi_stub.open = lambda name: _FfiLib()
 sys.modules["ffi"] = ffi_stub
+
+# The bus prefers the daemon whenever its socket is there. These suites are about the ports, so
+# the socket transport is made unavailable outright rather than left to depend on whether a
+# daemon happens to be running alongside the test.
+os.putenv("OC2_BUS_SOCKET", "none")
+
+
+def _no_socket(*args, **kwargs):
+    raise OSError("the socket transport is stubbed out under the port mock")
+
+
+socket_stub = _Stub()
+socket_stub.connect = _no_socket
+socket_stub.address = _no_socket
+sys.modules["oc2.socket"] = socket_stub
 
 from oc2 import ports as _oc2_ports  # noqa: E402
 

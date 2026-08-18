@@ -6,6 +6,8 @@ import devices
 
 bus = devices.bus
 
+expect("the bus reached the host through the daemon", bus.transport, "socket")
+
 # Discovery
 redstone = bus.find("redstone")
 if redstone is None:

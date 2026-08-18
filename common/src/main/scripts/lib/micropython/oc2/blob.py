@@ -1,8 +1,9 @@
 import io
 import select
+import struct
 
 from oc2 import ports
-from oc2.channel import write_all
+from oc2.channel import read_exactly, write_all
 
 KEY = "$blob"
 MAX_OUTBOUND = 512 * 1024
@@ -32,8 +33,7 @@ def checksum(data):
 
     whole = length - (length % 4)
     for offset in range(0, whole, 4):
-        word = (data[offset] | (data[offset + 1] << 8)
-                | (data[offset + 2] << 16) | (data[offset + 3] << 24))
+        word = struct.unpack_from("<I", data, offset)[0]
         total = ((total << 1) | (total >> 31)) & 0xFFFFFFFF
         total = (total + word) & 0xFFFFFFFF
 
@@ -84,13 +84,23 @@ def substitute(value, payload, depth=0):
 
 
 class PayloadChannel:
-    def __init__(self, path):
-        self.file = io.open(path, "+b")
+    def __init__(self, stream):
+        self.file = stream
         ports.set_nonblocking(self.file.fileno())
+        ports.set_cloexec(self.file.fileno())
         self.poll = select.poll()
         self.poll.register(self.file.fileno(), select.POLLIN)
         self.write_poll = select.poll()
         self.write_poll.register(self.file.fileno(), select.POLLOUT)
+
+    @classmethod
+    def open(cls, path):
+        stream = io.open(path, "+b")
+        try:
+            return cls(stream)
+        except Exception:
+            stream.close()
+            raise
 
     def close(self):
         if self.file:
@@ -99,8 +109,10 @@ class PayloadChannel:
             self.file = None  # closing twice would close whatever reused the number
 
     def reset(self):
-        while self.file.read(CHUNK_SIZE):
-            pass
+        while True:
+            data = self.file.read(CHUNK_SIZE)
+            if not data:
+                break
 
     def write(self, data):
         if len(data) > MAX_OUTBOUND:
@@ -109,18 +121,8 @@ class PayloadChannel:
 
         write_all(self.file, self.write_poll, data)
 
-    def read(self, length):
-        parts = bytearray()
-        while len(parts) < length:
-            if not self.poll.poll(READ_TIMEOUT_MS):
-                raise Exception("timed out waiting for the rest of the payload")
-            chunk = self.file.read(min(length - len(parts), CHUNK_SIZE))
-            if chunk is None:
-                continue  # readable, but nothing yet
-            if not chunk:
-                raise Exception("end of file")
-            parts.extend(chunk)
-        return bytes(parts)
+    def read(self, length, timeout=READ_TIMEOUT_MS):
+        return read_exactly(self.file, self.poll, length, timeout)
 
 
 def resolve(channel, message):

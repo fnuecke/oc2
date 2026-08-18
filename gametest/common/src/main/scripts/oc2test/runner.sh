@@ -6,6 +6,10 @@
 #
 # Guest -> host:  ready | case <PASS|FAIL> <name> | detail <line> | end <ran> <failed>
 # Host -> guest:  run <suite>
+#
+# Alternatively can be run directly from the commandline (e.g. in sedna-cli for faster
+# iteration), in which case the suite is an arg instead:
+#   runner.sh <suite>... | all
 
 PORT_NAME="oc2.test.0"
 SUITES="$(dirname "$(readlink -f "$0")")/suites"
@@ -74,21 +78,43 @@ run_suite() {
     emit "end $ran $failed"
 }
 
-PORT=$(find_port) || exit 0
+PORT=$(find_port) || PORT=""
+[ -n "$PORT" ] || [ "$#" -gt 0 ] || exit 0
 
 TIMEOUT=""
 if command -v timeout >/dev/null 2>&1; then
     TIMEOUT="timeout 60"
 fi
 
-# The runner is started from init, which has no profile, so manually do what a login shell would.
+# If Tthe runner is started from init, it has no profile, so manually apply the profiles.
 [ -f /etc/profile.d/lua_path.sh ] && . /etc/profile.d/lua_path.sh
 [ -f /etc/profile.d/python_path.sh ] && . /etc/profile.d/python_path.sh
 
 # Test files sit in a suite directory but share the helpers one level up.
 LUA_PATH="$SUITES/?.lua${LUA_PATH:+;$LUA_PATH}"
 MICROPYPATH="$SUITES${MICROPYPATH:+:$MICROPYPATH}"
-export LUA_PATH MICROPYPATH
+
+OC2TEST_SUITES="$SUITES"
+export LUA_PATH MICROPYPATH OC2TEST_SUITES
+
+if [ -z "$PORT" ]; then
+    exec 3>&1
+
+    if [ "$1" = "all" ]; then
+        set --
+        for dir in "$SUITES"/*/; do
+            [ -d "$dir" ] && set -- "$@" "${dir%/}"
+        done
+        set -- $(for dir in "$@"; do echo "${dir##*/}"; done)
+    fi
+
+    total=0
+    for suite in "$@"; do
+        run_suite "$suite"
+        total=$((total + failed))
+    done
+    exit $((total > 0))
+fi
 
 exec 3<>"$PORT"
 

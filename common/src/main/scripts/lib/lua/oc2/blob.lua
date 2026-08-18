@@ -5,6 +5,7 @@ local json_null = require("cjson").null
 local Channel = require("oc2.channel")
 
 local blob = {}
+
 local chunkSize = 32 * 1024
 local readTimeout = 5000
 local maxDepth = 32
@@ -12,6 +13,9 @@ local maxDepth = 32
 blob.key = "$blob"
 blob.maxOutbound = 512 * 1024
 blob.maxInbound = blob.maxOutbound
+blob.chunkSize = chunkSize
+blob.readTimeout = readTimeout
+blob.maxDepth = maxDepth
 blob.marker = {}
 
 function blob.wrap(data)
@@ -85,12 +89,16 @@ end
 local Payload = {}
 Payload.__index = Payload
 
+function blob.fromFd(fd)
+  return setmetatable({ fd = fd }, Payload)
+end
+
 function blob.open(path)
   local fd, status = fcntl.open(path, fcntl.O_RDWR | fcntl.O_CLOEXEC | fcntl.O_NONBLOCK)
   if not fd then
     return nil, status
   end
-  return setmetatable({ fd = fd }, Payload)
+  return blob.fromFd(fd)
 end
 
 function Payload:close()
@@ -103,8 +111,11 @@ end
 function Payload:reset()
   repeat
     local ready = poll.rpoll(self.fd, 0)
-    if ready == 1 and not unistd.read(self.fd, chunkSize) then
-      break -- the port is gone; looping on a failing read would spin forever
+    if ready == 1 then
+      local data = unistd.read(self.fd, chunkSize)
+      if not data or #data == 0 then
+        break
+      end
     end
   until ready ~= 1
 end
@@ -118,28 +129,8 @@ function Payload:write(data)
   Channel.writeAll(self.fd, data)
 end
 
-function Payload:read(length)
-  local parts = {}
-  local remaining = length
-  while remaining > 0 do
-    local ready, status, errnum = poll.rpoll(self.fd, readTimeout)
-    if not ready then
-      return nil, status, errnum
-    elseif ready == 0 then
-      return nil, "timed out waiting for the rest of the payload"
-    end
-
-    local chunk, reason = unistd.read(self.fd, math.min(remaining, chunkSize))
-    if not chunk then
-      return nil, reason or "end of file"
-    elseif #chunk == 0 then
-      return nil, "end of file"
-    end
-
-    parts[#parts + 1] = chunk
-    remaining = remaining - #chunk
-  end
-  return table.concat(parts)
+function Payload:read(length, timeout)
+  return Channel.readExactly(self.fd, length, timeout or readTimeout)
 end
 
 function blob.resolve(channel, result)

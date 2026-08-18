@@ -3,6 +3,8 @@ local expect, raises, report = harness.expect, harness.raises, harness.report
 
 local bus = require("devices")
 
+expect("the bus reached the host through the daemon", bus.transport, "socket")
+
 -- Discovery
 local redstone = bus:find("redstone")
 if not redstone then

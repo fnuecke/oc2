@@ -3,12 +3,20 @@ local Channel = require("oc2.channel")
 local Events = {}
 Events.__index = Events
 
+function Events.fromChannel(channel)
+  return setmetatable({ channel = channel }, Events)
+end
+
+function Events.fromFd(fd, maxFrame)
+  return Events.fromChannel(Channel.fromFd(fd, maxFrame))
+end
+
 function Events.open(path)
   local channel, reason = Channel.open(path, true)
   if not channel then
     return nil, reason
   end
-  return setmetatable({ channel = channel }, Events)
+  return Events.fromChannel(channel)
 end
 
 function Events:close()

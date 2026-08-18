@@ -3,7 +3,7 @@ from harness import expect, report
 
 from oc2.channel import Channel
 
-channel = Channel(virtio.rpc.path)
+channel = Channel.open(virtio.rpc.path)
 
 NUL = virtio.NUL
 BODY = virtio.encode({"value": "hello"})

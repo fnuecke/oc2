@@ -3,6 +3,7 @@
 package li.cil.oc2.client.neoforge;
 
 import dev.architectury.registry.client.rendering.ColorHandlerRegistry;
+import li.cil.oc2.api.API;
 import li.cil.oc2.client.gui.*;
 import li.cil.oc2.client.item.CustomItemColors;
 import li.cil.oc2.client.item.CustomItemModelProperties;
@@ -24,7 +25,9 @@ import li.cil.oc2.common.item.Items;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
@@ -34,6 +37,7 @@ import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsE
 
 import javax.annotation.Nullable;
 
+@EventBusSubscriber(modid = API.MOD_ID, value = Dist.CLIENT)
 public final class ClientSetupNeoForge {
     @SubscribeEvent
     public static void handleSetupEvent(final FMLClientSetupEvent event) {

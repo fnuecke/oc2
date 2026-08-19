@@ -15,7 +15,7 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 import java.util.List;
 
-@EventBusSubscriber(modid = API.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = API.MOD_ID)
 public final class CapabilityRegistrationNeoForge {
     private static final List<CapabilityType<?>> BLOCK_ENTITY_CAPABILITIES = List.of(
             Capabilities.DEVICE_BUS_ELEMENT,

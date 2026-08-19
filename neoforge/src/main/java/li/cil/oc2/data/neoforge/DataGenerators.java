@@ -6,7 +6,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-@EventBusSubscriber(modid = li.cil.oc2.api.API.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = li.cil.oc2.api.API.MOD_ID)
 public final class DataGenerators {
     @SubscribeEvent
     public static void gatherData(final GatherDataEvent event) {

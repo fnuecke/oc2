@@ -13,7 +13,7 @@ import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 
 import java.io.IOException;
 
-@EventBusSubscriber(modid = API.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = API.MOD_ID, value = Dist.CLIENT)
 public final class ModShadersNeoForge {
     @SubscribeEvent
     public static void handleRegisterShaders(final RegisterShadersEvent event) throws IOException {

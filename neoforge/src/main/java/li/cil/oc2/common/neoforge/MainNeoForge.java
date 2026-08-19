@@ -4,7 +4,6 @@ package li.cil.oc2.common.neoforge;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.manual.Manuals;
-import li.cil.oc2.client.neoforge.ClientSetupNeoForge;
 import li.cil.oc2.common.Main;
 import li.cil.oc2.common.integration.neoforge.IMCNeoForge;
 import net.neoforged.api.distmarker.Dist;
@@ -24,10 +23,5 @@ public final class MainNeoForge {
             Manuals.initialize();
         }
         IMCNeoForge.initialize();
-
-        modEventBus.register(CommonSetupNeoForge.class);
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            modEventBus.register(ClientSetupNeoForge.class);
-        }
     }
 }

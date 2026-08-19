@@ -2,8 +2,11 @@
 
 package li.cil.oc2.common.neoforge;
 
+import li.cil.oc2.api.API;
 import li.cil.oc2.common.config.*;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.config.IConfigSpec;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
@@ -21,6 +24,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@EventBusSubscriber(modid = API.MOD_ID)
 public final class ConfigManagerImpl {
     // ------------------------------------------------------------- //
 
@@ -62,13 +66,12 @@ public final class ConfigManagerImpl {
                 case SERVER -> ModConfig.Type.SERVER;
             }, spec);
         });
-
-        ModEventBus.INSTANCE.addListener(ConfigManagerImpl::handleModConfigEvent);
     }
 
     // ------------------------------------------------------------- //
 
-    private static void handleModConfigEvent(final ModConfigEvent event) {
+    @SubscribeEvent
+    public static void handleModConfigEvent(final ModConfigEvent event) {
         final ConfigDefinition config = CONFIGS.get(event.getConfig().getSpec());
         if (config == null) {
             return;

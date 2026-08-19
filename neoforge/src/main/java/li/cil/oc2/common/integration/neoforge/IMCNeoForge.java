@@ -5,9 +5,10 @@ package li.cil.oc2.common.integration.neoforge;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.imc.RPCMethodParameterTypeAdapter;
 import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
-import li.cil.oc2.common.neoforge.ModEventBus;
 import net.minecraft.Util;
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.InterModComms;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.InterModProcessEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,6 +17,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+@EventBusSubscriber(modid = API.MOD_ID)
 public final class IMCNeoForge {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -29,13 +31,8 @@ public final class IMCNeoForge {
 
     // ------------------------------------------------------------- //
 
-    public static void initialize() {
-        ModEventBus.INSTANCE.addListener(IMCNeoForge::handleIMCMessages);
-    }
-
-    // ------------------------------------------------------------- //
-
-    private static void handleIMCMessages(final InterModProcessEvent event) {
+    @SubscribeEvent
+    public static void handleIMCMessages(final InterModProcessEvent event) {
         event.getIMCStream().forEach(message -> {
             final Consumer<InterModComms.IMCMessage> method = METHODS.get(message.method());
             if (method != null) {

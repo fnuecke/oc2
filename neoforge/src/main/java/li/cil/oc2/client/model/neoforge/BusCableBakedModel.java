@@ -46,7 +46,6 @@ public record BusCableBakedModel(
     // ------------------------------------------------------------- //
 
     @Override
-    @Nonnull
     public ChunkRenderTypeSet getRenderTypes(final BlockState state, final RandomSource rand, final ModelData data) {
         if (data.has(BUS_CABLE_FACADE_PROPERTY)) {
             final BusCableFacade facade = data.get(BUS_CABLE_FACADE_PROPERTY);
@@ -59,7 +58,6 @@ public record BusCableBakedModel(
     }
 
     @Override
-    @Nonnull
     public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, final RandomSource rand, final ModelData extraData, @Nullable final RenderType layer) {
         if (extraData.has(BUS_CABLE_FACADE_PROPERTY)) {
             final BusCableFacade facade = extraData.get(BUS_CABLE_FACADE_PROPERTY);
@@ -123,7 +121,6 @@ public record BusCableBakedModel(
     }
 
     @Override
-    @Nonnull
     public ModelData getModelData(final BlockAndTintGetter level, final BlockPos pos, final BlockState state, final ModelData blockEntityData) {
         if (state.hasProperty(BusCableBlock.HAS_FACADE) && state.getValue(BusCableBlock.HAS_FACADE)) {
             final BlockEntity blockEntity = level.getBlockEntity(pos);

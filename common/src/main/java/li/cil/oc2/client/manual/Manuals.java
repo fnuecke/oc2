@@ -17,7 +17,6 @@ import li.cil.manual.api.util.Constants;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.util.RegistryUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.chat.Component;
@@ -26,7 +25,7 @@ import net.minecraft.world.item.ItemStack;
 
 @Environment(EnvType.CLIENT)
 public final class Manuals {
-    private static final DeferredRegister<ManualModel> MANUALS = RegistryUtils.getInitializerFor(Constants.MANUAL_REGISTRY);
+    private static final DeferredRegister<ManualModel> MANUALS = DeferredRegister.create(API.MOD_ID, Constants.MANUAL_REGISTRY);
 
     // ------------------------------------------------------------- //
 
@@ -35,9 +34,9 @@ public final class Manuals {
     // ------------------------------------------------------------- //
 
     public static void initialize() {
-        final DeferredRegister<PathProvider> pathProviders = RegistryUtils.getInitializerFor(Constants.PATH_PROVIDER_REGISTRY);
-        final DeferredRegister<DocumentProvider> contentProviders = RegistryUtils.getInitializerFor(Constants.DOCUMENT_PROVIDER_REGISTRY);
-        final DeferredRegister<Tab> tabs = RegistryUtils.getInitializerFor(Constants.TAB_REGISTRY);
+        final DeferredRegister<PathProvider> pathProviders = DeferredRegister.create(API.MOD_ID, Constants.PATH_PROVIDER_REGISTRY);
+        final DeferredRegister<DocumentProvider> contentProviders = DeferredRegister.create(API.MOD_ID, Constants.DOCUMENT_PROVIDER_REGISTRY);
+        final DeferredRegister<Tab> tabs = DeferredRegister.create(API.MOD_ID, Constants.TAB_REGISTRY);
 
         pathProviders.register("path_provider", () -> new NamespacePathProvider(API.MOD_ID));
         contentProviders.register("content_provider", () -> new NamespaceDocumentProvider(API.MOD_ID, "doc"));
@@ -54,5 +53,10 @@ public final class Manuals {
                 ManualModel.LANGUAGE_KEY + "/item/index.md",
                 Component.translatable("manual." + API.MOD_ID + ".items"),
                 new ItemStack(Items.TRANSISTOR.get())));
+
+        MANUALS.register();
+        pathProviders.register();
+        contentProviders.register();
+        tabs.register();
     }
 }

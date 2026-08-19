@@ -7,15 +7,13 @@ import com.mojang.blaze3d.vertex.*;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.API;
+import li.cil.oc2.client.audio.TerminalBell;
 import li.cil.oc2.client.renderer.ModShaders;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.Matrix4f;
@@ -97,6 +95,7 @@ public final class Terminal {
         CONTROL_SEQUENCE, // Know what sequence we have, now parsing it.
     }
 
+    @Environment(EnvType.CLIENT)
     public interface RendererView {
         void render(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix);
     }
@@ -184,8 +183,7 @@ public final class Terminal {
     public void clientTick() {
         if (hasPendingBell) {
             hasPendingBell = false;
-            final Minecraft client = Minecraft.getInstance();
-            client.execute(() -> client.getSoundManager().play(SimpleSoundInstance.forUI(NoteBlockInstrument.PLING.getSoundEvent(), 1)));
+            TerminalBell.play();
         }
     }
 

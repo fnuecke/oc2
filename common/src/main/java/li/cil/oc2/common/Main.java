@@ -2,9 +2,7 @@
 
 package li.cil.oc2.common;
 
-import dev.architectury.utils.EnvExecutor;
 import li.cil.ceres.Ceres;
-import li.cil.oc2.client.manual.Manuals;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.bus.device.DeviceTypes;
@@ -31,7 +29,6 @@ import li.cil.oc2.common.util.SoundEvents;
 import li.cil.oc2.common.vm.Allocator;
 import li.cil.oc2.common.vm.provider.DeviceTreeProviders;
 import li.cil.sedna.Sedna;
-import net.fabricmc.api.EnvType;
 
 public final class Main {
     public static void initialize() {
@@ -60,8 +57,6 @@ public final class Main {
         DeviceTypes.initialize();
         BlockDeviceDataRegistry.initialize();
         FirmwareRegistry.initialize();
-
-        EnvExecutor.runInEnv(EnvType.CLIENT, () -> Manuals::initialize);
 
         RegistryUtils.finish();
 

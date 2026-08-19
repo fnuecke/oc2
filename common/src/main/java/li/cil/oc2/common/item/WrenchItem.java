@@ -3,6 +3,8 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.common.tags.BlockTags;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.core.BlockPos;
@@ -53,10 +55,7 @@ public final class WrenchItem extends ModItem {
         }
 
         if (level.isClientSide()) {
-            final MultiPlayerGameMode gameMode = Minecraft.getInstance().gameMode;
-            if (gameMode != null) {
-                gameMode.destroyBlock(pos);
-            }
+            destroyBlockOnClient(pos);
         } else if (player instanceof final ServerPlayer serverPlayer) {
             serverPlayer.gameMode.destroyBlock(pos);
         }
@@ -64,4 +63,13 @@ public final class WrenchItem extends ModItem {
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
+    // ------------------------------------------------------------- //
+
+    @Environment(EnvType.CLIENT)
+    private static void destroyBlockOnClient(final BlockPos pos) {
+        final MultiPlayerGameMode gameMode = Minecraft.getInstance().gameMode;
+        if (gameMode != null) {
+            gameMode.destroyBlock(pos);
+        }
+    }
 }

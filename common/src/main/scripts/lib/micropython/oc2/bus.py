@@ -16,8 +16,9 @@ TOKEN_LENGTH = 32
 HELLO_TIMEOUT_MS = 5000
 REQUEST_TIMEOUT_MS = 35000
 MAX_EVENTS_PER_PUMP = 32
-CONNECT_ATTEMPTS = 5
+CONNECT_ATTEMPTS = 15
 CONNECT_RETRY_MS = 200
+SUPERVISOR_PID_PATH = "/run/oc2busd.pid"
 MAX_REPLY_SIZE = oc2_channel.DEFAULT_MAX_FRAME
 
 RPC_PORT_NAME = "oc2.rpc.0"
@@ -286,6 +287,20 @@ class DeviceBus:
 
 # Transports
 
+def _supervisor_alive():
+    try:
+        with open(SUPERVISOR_PID_PATH) as f:
+            pid = int(f.read().strip())
+    except Exception:
+        return False
+
+    try:
+        with open("/proc/%d/stat" % pid):
+            return True
+    except Exception:
+        return False
+
+
 def _connect_ports():
     rpc = payload = events = None
     try:
@@ -362,25 +377,27 @@ def connect(socket_path=None, roles=DEFAULT_ROLES):
     path = socket_path or os.getenv("OC2_BUS_SOCKET") or SOCKET_PATH
     use_socket = path not in ("none", "")
 
-    socket_error = None
-    direct_error = None
+    daemon_error = None
+    ports_error = None
 
     for attempt in range(CONNECT_ATTEMPTS):
         if use_socket:
             try:
                 return _connect_socket(path, roles)
             except Exception as e:
-                socket_error = e
+                daemon_error = e
 
-        try:
-            return _connect_ports()
-        except Exception as e:
-            direct_error = e
+        is_last_attempt = attempt == CONNECT_ATTEMPTS - 1
+        if is_last_attempt or not (use_socket and _supervisor_alive()):
+            try:
+                return _connect_ports()
+            except Exception as e:
+                ports_error = e
 
-        if attempt < CONNECT_ATTEMPTS - 1:
+        if not is_last_attempt:
             time.sleep(CONNECT_RETRY_MS / 1000)
 
-    if socket_error is not None:
+    if daemon_error is not None:
         raise Exception("could not reach the bus daemon (%s), nor the ports directly (%s)"
-                        % (socket_error, direct_error))
-    raise direct_error
+                        % (daemon_error, ports_error))
+    raise ports_error

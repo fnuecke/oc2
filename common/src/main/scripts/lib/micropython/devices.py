@@ -1,4 +1,4 @@
-from oc2.bus import Device, DeviceBus, connect
+from oc2.bus import connect
 
 try:
     bus = connect()

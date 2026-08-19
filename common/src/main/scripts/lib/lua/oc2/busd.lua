@@ -957,7 +957,20 @@ function Daemon:primeGeneration()
     return
   end
 
-  local message = self.rpc:read(busd.primeTimeout)
+  local deadline = clock.deadline(busd.primeTimeout)
+  local message
+  repeat
+    message = self.rpc:read(clock.remaining(deadline))
+    if message and type(message.id) == "number" and message.id ~= 0 and message.id ~= id then
+      local reference = message.blob
+      if type(reference) == "table" and type(reference.length) == "number"
+          and reference.length > 0 and reference.length <= blob.maxInbound then
+        self.payload:read(reference.length, busd.hostBlobTimeout)
+      end
+      message = nil
+    end
+  until message or clock.expired(deadline)
+
   if message and type(message.gen) == "number" then
     self:noteGeneration(message.gen)
     if message.type == "list" then

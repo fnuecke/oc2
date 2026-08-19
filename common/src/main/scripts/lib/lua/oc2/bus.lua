@@ -14,8 +14,9 @@ bus.tokenLength = 32
 bus.helloTimeout = 5000
 bus.requestTimeout = 35000
 bus.maxEventsPerPump = 32
-bus.connectAttempts = 5
+bus.connectAttempts = 15
 bus.connectRetryDelay = 200
+bus.supervisorPidPath = "/run/oc2busd.pid"
 bus.maxReplySize = Channel.defaultMaxFrame
 
 local rpcPortName = "oc2.rpc.0"
@@ -445,6 +446,25 @@ local function connectPorts()
   return DeviceBus.new("ports", rpc, payload, events)
 end
 
+local function supervisorAlive()
+  local file = io.open(bus.supervisorPidPath, "r")
+  if not file then
+    return false
+  end
+  local pid = tonumber(file:read("l"))
+  file:close()
+  if not pid then
+    return false
+  end
+
+  local proc = io.open("/proc/" .. pid .. "/stat", "r")
+  if not proc then
+    return false
+  end
+  proc:close()
+  return true
+end
+
 local function connectSocket(path, roles)
   for _, role in ipairs(roles) do
     if not roleCode[role] then
@@ -531,7 +551,7 @@ function bus.connect(options)
 
   local path = options.socketPath or os.getenv("OC2_BUS_SOCKET") or bus.socketPath
   local useSocket = path ~= "none" and path ~= ""
-  local socketReason, directReason
+  local daemonReason, portsReason
 
   for attempt = 1, bus.connectAttempts do
     if useSocket then
@@ -539,25 +559,28 @@ function bus.connect(options)
       if connected then
         return connected
       end
-      socketReason = reason
+      daemonReason = reason
     end
 
-    local direct
-    direct, directReason = connectPorts()
-    if direct then
-      return direct
+    local isLastAttempt = attempt == bus.connectAttempts
+    if isLastAttempt or not (useSocket and supervisorAlive()) then
+      local direct
+      direct, portsReason = connectPorts()
+      if direct then
+        return direct
+      end
     end
 
-    if attempt < bus.connectAttempts then
+    if not isLastAttempt then
       sleep(bus.connectRetryDelay)
     end
   end
 
-  if socketReason then
+  if daemonReason then
     return nil, string.format("could not reach the bus daemon (%s), nor the ports directly (%s)",
-                              tostring(socketReason), tostring(directReason))
+                              tostring(daemonReason), tostring(portsReason))
   end
-  return nil, tostring(directReason)
+  return nil, tostring(portsReason)
 end
 
 bus.DeviceBus = DeviceBus

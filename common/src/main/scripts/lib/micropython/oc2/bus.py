@@ -180,9 +180,6 @@ class DeviceBus:
             if event_type is None or event.get("type") == event_type:
                 return event
 
-    def _uses_request_ids(self):
-        return self.transport == "ports"
-
     def _discard_payload(self, reply):
         reference = reply.get("blob")
         if self.payload is None or not isinstance(reference, dict):
@@ -192,11 +189,9 @@ class DeviceBus:
             self.payload.read(length)
 
     def _request(self, message, expected):
-        request_id = None
-        if self._uses_request_ids():
-            self.request_id = self.request_id % 0x7FFFFFFF + 1
-            request_id = self.request_id
-            message["id"] = request_id
+        self.request_id = self.request_id % 0x7FFFFFFF + 1
+        request_id = self.request_id
+        message["id"] = request_id
 
         self.rpc.write(message)
 
@@ -210,8 +205,7 @@ class DeviceBus:
                 raise Exception("no reply from the host: timeout")
 
             reply_id = reply.get("id")
-            if (request_id is not None and isinstance(reply_id, int)
-                    and reply_id != 0 and reply_id != request_id):
+            if isinstance(reply_id, int) and reply_id != 0 and reply_id != request_id:
                 self._discard_payload(reply)
                 continue
 

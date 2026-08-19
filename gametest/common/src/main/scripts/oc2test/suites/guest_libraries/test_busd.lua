@@ -572,6 +572,35 @@ expect("an unattributable reply still lands", field(first.rpc:read(500), "type")
 
 stillWorks("the bus recovers after a host timeout")
 
+-- Request ids
+
+hostEvents:write({ type = "devicesChanged", gen = 14 })
+pump()
+first.events:read(500)
+second.events:read(500)
+
+first.rpc:write({ type = "list", id = 8 })
+pump()
+local forwarded = hostAnswers({ type = "list", gen = 14, data = { { deviceId = "ggg" } } })
+expect("the daemon numbers what it sends on", type(field(forwarded, "id")), "number")
+expect("with an id of its own, not the client's", field(forwarded, "id") ~= 8, true)
+expect("and the relayed answer wears the client's", field(first.rpc:read(500), "id"), 8)
+
+first.rpc:write({ type = "list", id = 7 })
+pump()
+expect("a cached answer wears the client's id too", field(first.rpc:read(500), "id"), 7)
+expect("and reached nobody", host:read(50), nil)
+
+first.rpc:write({ type = "list" })
+pump()
+local anonymous = first.rpc:read(500)
+expect("a client that sends no id gets none back", field(anonymous, "id"), nil)
+expect("and is answered all the same", field(anonymous, "type"), "list")
+
+first.rpc:write({ type = "invoke", id = 9, blob = { length = -1 } })
+pump()
+expect("an error names the request it refuses", field(first.rpc:read(500), "id"), 9)
+
 first:close()
 second:close()
 quiet:close()

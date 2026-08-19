@@ -151,24 +151,23 @@ local Daemon = {}
 Daemon.__index = Daemon
 
 function busd.new(options)
-  return setmetatable({
+  local daemon = setmetatable({
     rpc = Channel.fromFd(options.rpcFd),
     payload = blob.fromFd(options.blobFd),
     events = Channel.fromFd(options.eventFd),
     listenFd = options.listenFd,
     generation = nil,
-    cache = { methods = {}, ids = {}, frames = {} }, -- what the host said, for `generation` only
     sessions = {},      -- session -> true, for broadcasting
     tokens = {},        -- token -> session, only while attaches are still outstanding
     connections = {},   -- fd -> connection
     queue = {},         -- sessions with a dispatchable request, oldest first
-    inFlight = nil,
-    inFlightRequest = nil,
-    inFlightId = 0,     -- the id we stamped on the request we are waiting for
+    inFlight = nil,     -- { session, request, id, clientId, deadline }
     nextRequestId = 0,
-    requestDeadline = nil,
     running = false,
   }, Daemon)
+
+  daemon:dropCache() -- init cache
+  return daemon
 end
 
 local function randomToken()
@@ -273,8 +272,8 @@ function Daemon:dropSession(session, reason)
 end
 
 --- Reports a failure to a session and then ends it.
-function Daemon:fail(session, reason)
-  self:sendError(session, reason)
+function Daemon:fail(session, reason, id)
+  self:sendError(session, reason, id)
   local connection = session.connections.rpc
   if connection then
     connection.writer:flush()
@@ -431,7 +430,12 @@ end
 -- Device cache
 
 function Daemon:dropCache()
-  self.cache = { methods = {}, ids = {}, frames = {} }
+  self.cache = { methods = {}, ids = {}, bodies = {} }
+end
+
+local function clientIdOf(message)
+  local id = message and message.id
+  return type(id) == "number" and id or nil
 end
 
 function Daemon:noteGeneration(gen)
@@ -467,6 +471,19 @@ function Daemon:cacheReply(request, reply)
   end
 end
 
+local function cacheBody(message)
+  local frame = Channel.frame(message)
+  assert(frame:sub(2, 2) == "{", "a cached reply must encode as a JSON object")
+  return frame:sub(3, -2)
+end
+
+local function framedWithId(body, id)
+  if id then
+    return Channel.delimiter .. '{"id":' .. id .. ',' .. body .. Channel.delimiter
+  end
+  return Channel.delimiter .. "{" .. body .. Channel.delimiter
+end
+
 local function serve(daemon, session, frame)
   local connection = session.connections.rpc
   if connection and not connection.writer:push(frame) then
@@ -480,9 +497,9 @@ busd.handlers.list = function(daemon, session, message)
   if not cache.list then
     return false
   end
-  cache.frames.list = cache.frames.list
-      or Channel.frame({ type = "list", gen = daemon.generation, data = cache.list })
-  return serve(daemon, session, cache.frames.list)
+  cache.bodies.list = cache.bodies.list
+      or cacheBody({ type = "list", gen = daemon.generation, data = cache.list })
+  return serve(daemon, session, framedWithId(cache.bodies.list, clientIdOf(message)))
 end
 
 busd.handlers.methods = function(daemon, session, message)
@@ -496,20 +513,20 @@ busd.handlers.methods = function(daemon, session, message)
     return false
   end
 
-  local frames = cache.frames.methods
-  if not frames then
-    frames = {}
-    cache.frames.methods = frames
+  local bodies = cache.bodies.methods
+  if not bodies then
+    bodies = {}
+    cache.bodies.methods = bodies
   end
-  frames[message.data] = frames[message.data]
-      or Channel.frame({ type = "methods", gen = daemon.generation, data = methods })
-  return serve(daemon, session, frames[message.data])
+  bodies[message.data] = bodies[message.data]
+      or cacheBody({ type = "methods", gen = daemon.generation, data = methods })
+  return serve(daemon, session, framedWithId(bodies[message.data], clientIdOf(message)))
 end
 
 -- Requests
 
-function Daemon:sendError(session, reason)
-  self:reply(session, { type = "error", gen = self.generation, data = reason })
+function Daemon:sendError(session, reason, id)
+  self:reply(session, { type = "error", gen = self.generation, id = id, data = reason })
 end
 
 --- Queues a reply, and its payload if there is one.
@@ -529,16 +546,17 @@ end
 
 function Daemon:onRequest(session, message)
   if type(message.type) ~= "string" then
-    self:fail(session, "a request needs a type")
+    self:fail(session, "a request needs a type", clientIdOf(message))
     return
   end
   if session.request then
-    self:fail(session, "a request is already in flight on this session")
+    self:fail(session, "a request is already in flight on this session", clientIdOf(message))
     return
   end
 
   local handler = busd.handlers[message.type]
-  if handler and message.blob == nil and session.established and self.inFlight ~= session
+  if handler and message.blob == nil and session.established
+      and not (self.inFlight and self.inFlight.session == session)
       and handler(self, session, message) then
     return
   end
@@ -547,7 +565,7 @@ function Daemon:onRequest(session, message)
   if type(reference) == "table" then
     local length = reference.length
     if type(length) ~= "number" or length < 0 or length > blob.maxOutbound then
-      self:sendError(session, "announced payload size is out of range")
+      self:sendError(session, "announced payload size is out of range", clientIdOf(message))
       return
     end
     session.request = message
@@ -574,10 +592,10 @@ function Daemon:tryEnqueue(session)
   self.queue[#self.queue + 1] = session
 end
 
-function Daemon:takeInboundPayload(session, length)
+function Daemon:takeInboundPayload(session, length, id)
   local joined = table.concat(session.blobInbox)
   if #joined > length then
-    self:fail(session, "more payload bytes arrived than were announced")
+    self:fail(session, "more payload bytes arrived than were announced", id)
     return nil
   end
 
@@ -599,22 +617,27 @@ function Daemon:dispatch()
 
       local payload
       if length then
-        payload = self:takeInboundPayload(session, length)
+        payload = self:takeInboundPayload(session, length, message.id)
       end
 
       if not session.dead and (payload or not length) then
-        self.inFlightId = self:takeRequestId()
-        message.id = self.inFlightId
+        local clientId = message.id
+        local id = self:takeRequestId()
+        message.id = id
         local sent, reason = pcall(self.writeToHost, self, message, payload)
         if sent then
-          self.inFlight = session
-          self.inFlightRequest = message
-          self.requestDeadline = clock.deadline(busd.requestTimeout)
+          self.inFlight = {
+            session = session,
+            request = message,
+            id = id,
+            clientId = clientId,
+            deadline = clock.deadline(busd.requestTimeout),
+          }
         elseif payload then
           log("FATAL: the host blob stream may be desynchronised: %s", tostring(reason))
-          self:sendError(session, "the host connection failed mid-request")
+          self:sendError(session, "the host connection failed mid-request", clientId)
         else
-          self:sendError(session, "could not reach the host: " .. tostring(reason))
+          self:sendError(session, "could not reach the host: " .. tostring(reason), clientId)
         end
       end
     end
@@ -660,20 +683,21 @@ function Daemon:onHostReply()
     end
   end
 
-  if type(message.id) == "number" and message.id ~= 0 and message.id ~= self.inFlightId then
+  local inFlight = self.inFlight
+  if type(message.id) == "number" and message.id ~= 0
+      and message.id ~= (inFlight and inFlight.id) then
     return true
   end
 
-  local session = self.inFlight
-  local request = self.inFlightRequest
   self.inFlight = nil
-  self.inFlightRequest = nil
-  self.requestDeadline = nil
+  local session = inFlight and inFlight.session
+  local request = inFlight and inFlight.request
 
   if request and not payload then
     self:cacheReply(request, message)
   end
 
+  message.id = inFlight and inFlight.clientId or nil
   if session and not session.dead and not self:reply(session, message, payload) then
     self:dropSession(session, "the client stopped reading its replies")
   end
@@ -716,16 +740,15 @@ end
 function Daemon:expire()
   local now = clock.ms()
 
-  if self.requestDeadline and now >= self.requestDeadline then
-    local session = self.inFlight
+  if self.inFlight and now >= self.inFlight.deadline then
+    local session = self.inFlight.session
+    local clientId = self.inFlight.clientId
     self.inFlight = nil
-    self.inFlightRequest = nil
-    self.requestDeadline = nil
     -- The host was never told to stop, so it answers eventually. That answer carries the id of the
     -- request that gave up, which is how onHostReply knows to drop it.
     self:resync()
     if session and not session.dead then
-      self:sendError(session, "the host did not answer in time")
+      self:sendError(session, "the host did not answer in time", clientId)
     end
   end
 
@@ -829,7 +852,7 @@ function Daemon:pollSet()
 end
 
 function Daemon:nextTimeout()
-  local deadline = self.requestDeadline
+  local deadline = self.inFlight and self.inFlight.deadline
   local function consider(candidate)
     if candidate and (not deadline or candidate < deadline) then
       deadline = candidate
@@ -924,10 +947,10 @@ function Daemon:step(budget)
 end
 
 function Daemon:primeGeneration()
-  self.inFlightId = self:takeRequestId()
+  local id = self:takeRequestId()
   local ok = pcall(function()
     self.rpc:reset()
-    self.rpc:write({ type = "list", id = self.inFlightId })
+    self.rpc:write({ type = "list", id = id })
   end)
   if not ok then
     log("could not ask the host for the bus generation")

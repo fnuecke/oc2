@@ -266,10 +266,6 @@ function DeviceBus:waitEvent(timeout, eventType)
   end
 end
 
-local function usesRequestIds(bus_)
-  return bus_.transport == "ports"
-end
-
 local function discardPayload(bus_, result)
   local reference = result.blob
   if not bus_.payload or type(reference) ~= "table" or type(reference.length) ~= "number" then
@@ -281,12 +277,9 @@ local function discardPayload(bus_, result)
 end
 
 local function request(bus_, message, expected)
-  local id
-  if usesRequestIds(bus_) then
-    bus_.requestId = (bus_.requestId or 0) % 0x7FFFFFFF + 1
-    id = bus_.requestId
-    message.id = id
-  end
+  bus_.requestId = (bus_.requestId or 0) % 0x7FFFFFFF + 1
+  local id = bus_.requestId
+  message.id = id
 
   bus_.rpc:write(message)
 
@@ -301,7 +294,7 @@ local function request(bus_, message, expected)
       return error("no reply from the host: " .. tostring(reason or "unknown"), 0)
     end
 
-    if id and type(result.id) == "number" and result.id ~= 0 and result.id ~= id then
+    if type(result.id) == "number" and result.id ~= 0 and result.id ~= id then
       discardPayload(bus_, result)
     else
       noteGeneration(bus_, result)

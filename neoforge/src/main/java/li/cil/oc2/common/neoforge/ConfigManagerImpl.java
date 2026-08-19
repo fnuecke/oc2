@@ -60,7 +60,7 @@ public final class ConfigManagerImpl {
         CONFIGS.forEach((spec, config) -> {
             final Type typeAnnotation = config.instance.getClass().getAnnotation(Type.class);
             final ConfigType configType = typeAnnotation != null ? typeAnnotation.value() : ConfigType.COMMON;
-            ModEventBus.MOD_CONTAINER.registerConfig(switch (configType) {
+            MainNeoForge.MOD_CONTAINER.registerConfig(switch (configType) {
                 case COMMON -> ModConfig.Type.COMMON;
                 case CLIENT -> ModConfig.Type.CLIENT;
                 case SERVER -> ModConfig.Type.SERVER;

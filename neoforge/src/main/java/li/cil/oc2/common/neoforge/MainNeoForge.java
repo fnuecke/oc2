@@ -12,8 +12,10 @@ import net.neoforged.fml.loading.FMLEnvironment;
 
 @Mod(API.MOD_ID)
 public final class MainNeoForge {
+    public static ModContainer MOD_CONTAINER;
+
     public MainNeoForge(final ModContainer modContainer) {
-        ModEventBus.MOD_CONTAINER = modContainer;
+        MOD_CONTAINER = modContainer;
 
         Main.initialize();
         if (FMLEnvironment.dist == Dist.CLIENT) {

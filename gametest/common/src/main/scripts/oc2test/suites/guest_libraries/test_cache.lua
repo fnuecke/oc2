@@ -103,4 +103,11 @@ mine.typeNames[1] = "clobbered"
 expect("mutating a found device leaves the cache intact",
        bus.deviceList[1].typeNames[1], "redstone")
 
+expect("the direct port path is what this checks", bus.transport, "ports")
+virtio.feed(virtio.rpc,
+            { virtio.frame({ type = "methods", gen = 7, data = { { name = "stale" } }, id = 999999 })
+              .. virtio.frame({ type = "methods", gen = 7, data = { { name = "real" } } }) })
+local methods = bus:methods("aaa")
+expect("a reply carrying another request's id is skipped", methods[1] and methods[1].name, "real")
+
 report()

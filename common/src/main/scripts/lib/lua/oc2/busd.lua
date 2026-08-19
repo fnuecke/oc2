@@ -158,13 +158,14 @@ function busd.new(options)
     listenFd = options.listenFd,
     generation = nil,
     cache = { methods = {}, ids = {}, frames = {} }, -- what the host said, for `generation` only
-    orphanReplies = 0,  -- replies the host still owes for requests that gave up waiting
     sessions = {},      -- session -> true, for broadcasting
     tokens = {},        -- token -> session, only while attaches are still outstanding
     connections = {},   -- fd -> connection
     queue = {},         -- sessions with a dispatchable request, oldest first
     inFlight = nil,
     inFlightRequest = nil,
+    inFlightId = 0,     -- the id we stamped on the request we are waiting for
+    nextRequestId = 0,
     requestDeadline = nil,
     running = false,
   }, Daemon)
@@ -181,6 +182,11 @@ local function randomToken()
     bytes = string.pack("<I8I8", clock.ms(), unistd.getpid())
   end
   return (bytes:gsub(".", function(c) return string.format("%02x", c:byte()) end))
+end
+
+function Daemon:takeRequestId()
+  self.nextRequestId = self.nextRequestId % 0x7FFFFFFF + 1
+  return self.nextRequestId
 end
 
 function Daemon:generateToken()
@@ -597,6 +603,8 @@ function Daemon:dispatch()
       end
 
       if not session.dead and (payload or not length) then
+        self.inFlightId = self:takeRequestId()
+        message.id = self.inFlightId
         local sent, reason = pcall(self.writeToHost, self, message, payload)
         if sent then
           self.inFlight = session
@@ -652,16 +660,15 @@ function Daemon:onHostReply()
     end
   end
 
+  if type(message.id) == "number" and message.id ~= 0 and message.id ~= self.inFlightId then
+    return true
+  end
+
   local session = self.inFlight
   local request = self.inFlightRequest
   self.inFlight = nil
   self.inFlightRequest = nil
   self.requestDeadline = nil
-
-  if self.orphanReplies > 0 then
-    self.orphanReplies = self.orphanReplies - 1
-    request = nil
-  end
 
   if request and not payload then
     self:cacheReply(request, message)
@@ -714,7 +721,8 @@ function Daemon:expire()
     self.inFlight = nil
     self.inFlightRequest = nil
     self.requestDeadline = nil
-    self.orphanReplies = self.orphanReplies + 1
+    -- The host was never told to stop, so it answers eventually. That answer carries the id of the
+    -- request that gave up, which is how onHostReply knows to drop it.
     self:resync()
     if session and not session.dead then
       self:sendError(session, "the host did not answer in time")
@@ -916,9 +924,10 @@ function Daemon:step(budget)
 end
 
 function Daemon:primeGeneration()
+  self.inFlightId = self:takeRequestId()
   local ok = pcall(function()
     self.rpc:reset()
-    self.rpc:write({ type = "list" })
+    self.rpc:write({ type = "list", id = self.inFlightId })
   end)
   if not ok then
     log("could not ask the host for the bus generation")
@@ -926,9 +935,6 @@ function Daemon:primeGeneration()
   end
 
   local message = self.rpc:read(busd.primeTimeout)
-  if not message then
-    self.orphanReplies = self.orphanReplies + 1
-  end
   if message and type(message.gen) == "number" then
     self:noteGeneration(message.gen)
     if message.type == "list" then

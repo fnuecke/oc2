@@ -4,6 +4,7 @@ package li.cil.oc2.common.serialization.gson;
 
 import com.google.gson.*;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
+import net.minecraft.util.GsonHelper;
 
 import java.lang.reflect.Type;
 import java.util.UUID;
@@ -22,6 +23,7 @@ public final class MessageJsonDeserializer implements JsonDeserializer<RPCDevice
             default -> throw new JsonParseException(RPCDeviceBusAdapter.ERROR_UNKNOWN_MESSAGE_TYPE);
         };
 
-        return new RPCDeviceBusAdapter.Message(messageType, messageData, 0, null);
+        int messageId = GsonHelper.getAsInt(jsonObject, "id", 0);
+        return new RPCDeviceBusAdapter.Message(messageType, messageId, 0, messageData, null);
     }
 }

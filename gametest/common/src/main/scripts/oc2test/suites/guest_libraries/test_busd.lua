@@ -161,6 +161,7 @@ socket.close(badRole)
 local function hostAnswers(reply)
   local request = host:read(500)
   if reply then
+    reply.id = request and request.id -- the host echoes the daemon's id, and so do we
     host:write(reply)
   end
   pump()
@@ -533,13 +534,14 @@ expect("and the error carries a generation, as clients require",
        type(timedOut and timedOut.gen), "number")
 busd.requestTimeout = 30000
 
--- The host was never told that request was abandoned, so its answer still turns up. Handing it
--- to whoever is waiting is what has always happened here; filing it is what must not, since it
--- may be about an entirely different question.
+-- The host was never told the request was abandoned, so its answer still turns up -- carrying the
+-- id of the request that gave up. Without that id it would be read as the answer to whatever went
+-- out next.
 busd.requestTimeout = 50
 first.rpc:write({ type = "methods", data = "eee" })
 pump()
-host:read(500) -- taken, never answered
+local abandoned = host:read(500) -- taken, never answered
+expect("the request went out with an id on it", type(field(abandoned, "id")), "number")
 sleep(80)
 pump()
 expect("the abandoned request is answered with an error",
@@ -548,18 +550,25 @@ busd.requestTimeout = 30000
 
 first.rpc:write({ type = "methods", data = "eee" })
 pump()
-host:read(500)
-host:write({ type = "methods", gen = daemon.generation, data = { "late" } })
+local current = host:read(500)
+expect("the next request got an id of its own", field(current, "id") ~= field(abandoned, "id"), true)
+
+host:write({ type = "methods", gen = daemon.generation, data = { "late" }, id = abandoned.id })
 pump()
-expect("a late answer still reaches the client that is waiting now",
-       field(first.rpc:read(500), "data", 1), "late")
+expect("the late answer is dropped rather than handed to the wrong request",
+       first.rpc:read(50), nil)
+
+host:write({ type = "methods", gen = daemon.generation, data = { "real" }, id = current.id })
+pump()
+expect("and the request still waiting gets its own answer",
+       field(first.rpc:read(500), "data", 1), "real")
 
 first.rpc:write({ type = "methods", data = "eee" })
 pump()
-expect("but it was not filed under the question it landed on",
-       field(hostAnswers({ type = "methods", gen = daemon.generation, data = { "real" } }), "data"),
-       "eee")
-first.rpc:read(500)
+host:read(500)
+host:write({ type = "error", gen = daemon.generation, data = "malformed message" })
+pump()
+expect("an unattributable reply still lands", field(first.rpc:read(500), "type"), "error")
 
 stillWorks("the bus recovers after a host timeout")
 

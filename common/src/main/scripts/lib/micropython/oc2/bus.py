@@ -2,6 +2,7 @@ import os
 import time
 
 from oc2 import blob as oc2_blob
+from oc2 import clock as oc2_clock
 from oc2 import channel as oc2_channel
 from oc2 import ports as oc2_ports
 from oc2 import socket as oc2_socket
@@ -113,6 +114,7 @@ class DeviceBus:
         self.generation = None
         self.generation_confirmed = False
         self.device_list = None
+        self.request_id = 0
 
     def close(self):
         if self.rpc:
@@ -178,21 +180,48 @@ class DeviceBus:
             if event_type is None or event.get("type") == event_type:
                 return event
 
+    def _uses_request_ids(self):
+        return self.transport == "ports"
+
+    def _discard_payload(self, reply):
+        reference = reply.get("blob")
+        if self.payload is None or not isinstance(reference, dict):
+            return
+        length = reference.get("length")
+        if isinstance(length, int) and 0 < length <= oc2_blob.MAX_INBOUND:
+            self.payload.read(length)
+
     def _request(self, message, expected):
+        request_id = None
+        if self._uses_request_ids():
+            self.request_id = self.request_id % 0x7FFFFFFF + 1
+            request_id = self.request_id
+            message["id"] = request_id
+
         self.rpc.write(message)
-        reply = self.rpc.read(REQUEST_TIMEOUT_MS)
-        if reply is None:
-            self.rpc.reset()
-            if self.payload is not None:
-                self.payload.reset()
-            raise Exception("no reply from the host: timeout")
-        self._note_generation(reply)
-        if reply.get("type") == expected:
-            return reply
-        if reply.get("type") == "error":
-            raise Exception(reply.get("data")
-                            or "the host reported an error with no detail")
-        raise Exception("unexpected message type: %s" % reply.get("type"))
+
+        deadline = oc2_clock.deadline(REQUEST_TIMEOUT_MS)
+        while True:
+            reply = self.rpc.read(oc2_clock.remaining(deadline))
+            if reply is None:
+                self.rpc.reset()
+                if self.payload is not None:
+                    self.payload.reset()
+                raise Exception("no reply from the host: timeout")
+
+            reply_id = reply.get("id")
+            if (request_id is not None and isinstance(reply_id, int)
+                    and reply_id != 0 and reply_id != request_id):
+                self._discard_payload(reply)
+                continue
+
+            self._note_generation(reply)
+            if reply.get("type") == expected:
+                return reply
+            if reply.get("type") == "error":
+                raise Exception(reply.get("data")
+                                or "the host reported an error with no detail")
+            raise Exception("unexpected message type: %s" % reply.get("type"))
 
     def _caches_locally(self):
         return self.transport == "ports"

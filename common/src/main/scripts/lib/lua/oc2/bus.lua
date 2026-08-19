@@ -1,4 +1,5 @@
 local Channel = require("oc2.channel")
+local clock = require("oc2.clock")
 local blob = require("oc2.blob")
 local Events = require("oc2.events")
 local ports = require("oc2.ports")
@@ -265,21 +266,51 @@ function DeviceBus:waitEvent(timeout, eventType)
   end
 end
 
+local function usesRequestIds(bus_)
+  return bus_.transport == "ports"
+end
+
+local function discardPayload(bus_, result)
+  local reference = result.blob
+  if not bus_.payload or type(reference) ~= "table" or type(reference.length) ~= "number" then
+    return
+  end
+  if reference.length > 0 and reference.length <= blob.maxInbound then
+    bus_.payload:read(reference.length, blob.readTimeout)
+  end
+end
+
 local function request(bus_, message, expected)
+  local id
+  if usesRequestIds(bus_) then
+    bus_.requestId = (bus_.requestId or 0) % 0x7FFFFFFF + 1
+    id = bus_.requestId
+    message.id = id
+  end
+
   bus_.rpc:write(message)
-  local result, reason = bus_.rpc:read(bus.requestTimeout)
-  if not result then
-    bus_.rpc:reset()
-    if bus_.payload then
-      bus_.payload:reset()
+
+  local deadline = clock.deadline(bus.requestTimeout)
+  while true do
+    local result, reason = bus_.rpc:read(clock.remaining(deadline))
+    if not result then
+      bus_.rpc:reset()
+      if bus_.payload then
+        bus_.payload:reset()
+      end
+      return error("no reply from the host: " .. tostring(reason or "unknown"), 0)
     end
-    return error("no reply from the host: " .. tostring(reason or "unknown"), 0)
+
+    if id and type(result.id) == "number" and result.id ~= 0 and result.id ~= id then
+      discardPayload(bus_, result)
+    else
+      noteGeneration(bus_, result)
+      if result.type == expected then
+        return result
+      end
+      return error(parseError(result, reason), 0)
+    end
   end
-  noteGeneration(bus_, result)
-  if result.type == expected then
-    return result
-  end
-  return error(parseError(result, reason), 0)
 end
 
 local function cachesLocally(bus_)

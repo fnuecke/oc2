@@ -51,6 +51,8 @@ public final class RPCDeviceBusAdapter implements Steppable {
     private final RPCEventChannel events;
     @Serialized
     private volatile MethodInvocation synchronizedInvocation; // pending main thread invocation
+    @Serialized
+    private int currentRequestId; // serialized for sync calls
 
     private final RPCBlobJsonSerializer blobs = new RPCBlobJsonSerializer();
     private final Semaphore pauseLock = new Semaphore(1); // for tryAcquire in step()
@@ -152,6 +154,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
         }
     }
 
+    public boolean addEvent(final String type, @Nullable final Object data) {
+        return events.addEvent(RPCMessageChannel.frame(
+                encode(new Message(type, 0, registry.generation(), data, null))));
+    }
+
     // ------------------------------------------------------------- //
 
     private void readFromDevice() {
@@ -159,9 +166,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
         // power of uncontrollably inflating memory usage. Basically any
         // method of limiting the write queue size would work, but this is
         // the most simple and easy to maintain one I could think of.
-        while (!messages.isSending() && !payloads.isSending() && synchronizedInvocation == null
-                && messages.readFrame(this::acceptMessage, () -> writeError(ERROR_MESSAGE_TOO_LARGE))) {
-            // This page intentionally left blank.
+        while (!messages.isSending() && !payloads.isSending() && synchronizedInvocation == null) {
+            currentRequestId = 0; // until a message says otherwise, a reply cannot name one
+            if (!messages.readFrame(this::acceptMessage, () -> writeError(ERROR_MESSAGE_TOO_LARGE))) {
+                break;
+            }
         }
     }
 
@@ -257,18 +266,19 @@ public final class RPCDeviceBusAdapter implements Steppable {
         final InputStreamReader stream = new InputStreamReader(new ByteArrayInputStream(messageData), StandardCharsets.UTF_8);
         try {
             final Message message = gson.fromJson(stream, Message.class);
+            currentRequestId = message.id;
             switch (message.type) {
                 case Message.MESSAGE_TYPE_LIST -> writeDeviceList();
                 case Message.MESSAGE_TYPE_METHODS -> {
-                    if (message.data != null) {
-                        writeDeviceMethods((UUID) message.data);
+                    if (message.data instanceof UUID uuid) {
+                        writeDeviceMethods(uuid);
                     } else {
                         writeError("missing device id");
                     }
                 }
                 case Message.MESSAGE_TYPE_INVOKE_METHOD -> {
-                    if (message.data != null) {
-                        processMethodInvocation((MethodInvocation) message.data, false);
+                    if (message.data instanceof MethodInvocation invocation) {
+                        processMethodInvocation(invocation, false);
                     } else {
                         writeError("missing invocation data");
                     }
@@ -386,20 +396,16 @@ public final class RPCDeviceBusAdapter implements Steppable {
             payloads.send(pending);
         }
 
-        messages.send(RPCMessageChannel.frame(encode(new Message(type, dataElement, registry.generation(), blob))));
+        messages.send(RPCMessageChannel.frame(encode(
+                new Message(type, currentRequestId, registry.generation(), dataElement, blob))));
     }
 
     private void announceDroppedEvents() {
         final int dropped = events.takeDropped();
         if (dropped > 0) {
             events.addNotice(RPCMessageChannel.frame(encode(new Message(
-                    Message.MESSAGE_TYPE_EVENTS_DROPPED, dropped, registry.generation(), null))));
+                    Message.MESSAGE_TYPE_EVENTS_DROPPED, 0, registry.generation(), dropped, null))));
         }
-    }
-
-    public boolean addEvent(final String type, @Nullable final Object data) {
-        return events.addEvent(RPCMessageChannel.frame(
-                encode(new Message(type, data, registry.generation(), null))));
     }
 
     private byte[] encode(final Message message) {
@@ -414,7 +420,8 @@ public final class RPCDeviceBusAdapter implements Steppable {
     public record BlobReference(int length, int checksum) {
     }
 
-    public record Message(String type, @Nullable Object data, int gen, @Nullable BlobReference blob) {
+    public record Message(String type, int id, int gen,
+                          @Nullable Object data, @Nullable BlobReference blob) {
         // Device -> VM
         public static final String MESSAGE_TYPE_LIST = "list";
         public static final String MESSAGE_TYPE_METHODS = "methods";

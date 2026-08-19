@@ -1,6 +1,7 @@
 package li.cil.oc2.common.bus;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
@@ -34,6 +35,76 @@ public final class RPCDeviceBusAdapterTests {
         controller = mock(DeviceBusController.class);
         when(controller.getDevices()).thenReturn(busDevices);
         when(controller.getDeviceIdentifiers(any())).then(invocation -> deviceIdentifiers.get((Device) invocation.getArgument(0)));
+    }
+
+    @Test
+    public void theRequestIdComesBackOnTheReply() {
+        final TestSerialDevice serial = new TestSerialDevice();
+        final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
+                serial, new TestSerialDevice(), new TestSerialDevice());
+        addDevice();
+        busAdapter.resume(controller, true);
+
+        serial.putAsVM("{\"type\":\"list\",\"id\":4711}");
+        busAdapter.step(0);
+
+        final JsonObject reply = JsonParser.parseString(serial.readMessageAsVM()).getAsJsonObject();
+        assertEquals("list", reply.get("type").getAsString());
+        assertEquals(4711, reply.get("id").getAsInt(),
+                "without the id back the guest cannot tell whose answer this is");
+    }
+
+    @Test
+    public void aReplyTheHostCannotAttributeNamesNoRequest() {
+        final TestSerialDevice serial = new TestSerialDevice();
+        final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
+                serial, new TestSerialDevice(), new TestSerialDevice());
+        addDevice();
+        busAdapter.resume(controller, true);
+
+        serial.putAsVM("{\"type\":\"list\",\"id\":11}");
+        busAdapter.step(0);
+        assertEquals(11, JsonParser.parseString(serial.readMessageAsVM())
+                .getAsJsonObject().get("id").getAsInt());
+
+        serial.putAsVM("not json at all");
+        busAdapter.step(0);
+
+        final JsonObject refusal = JsonParser.parseString(serial.readMessageAsVM()).getAsJsonObject();
+        assertEquals("error", refusal.get("type").getAsString());
+        assertEquals(0, refusal.get("id").getAsInt(), "a stale id leaked onto an unattributable reply");
+    }
+
+    @Test
+    public void aGuestThatSendsNoIdIsStillAnswered() {
+        final TestSerialDevice serial = new TestSerialDevice();
+        final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
+                serial, new TestSerialDevice(), new TestSerialDevice());
+        addDevice();
+        busAdapter.resume(controller, true);
+
+        serial.putAsVM("{\"type\":\"list\"}");
+        busAdapter.step(0);
+
+        final JsonObject reply = JsonParser.parseString(serial.readMessageAsVM()).getAsJsonObject();
+        assertEquals("list", reply.get("type").getAsString());
+        assertEquals(0, reply.get("id").getAsInt());
+    }
+
+    @Test
+    public void anIdThatIsNotANumberIsRefused() {
+        final TestSerialDevice serial = new TestSerialDevice();
+        final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
+                serial, new TestSerialDevice(), new TestSerialDevice());
+        addDevice();
+        busAdapter.resume(controller, true);
+
+        serial.putAsVM("{\"type\":\"list\",\"id\":\"not a number\"}");
+        busAdapter.step(0);
+
+        final JsonObject refusal = JsonParser.parseString(serial.readMessageAsVM()).getAsJsonObject();
+        assertEquals("error", refusal.get("type").getAsString());
+        assertEquals(0, refusal.get("id").getAsInt(), "an unparseable request names no id");
     }
 
     @Test

@@ -548,8 +548,8 @@ public final class ProjectorDepthRenderer {
         try {
             final RenderInfo renderInfo = RENDER_INFO.get(projector, () -> {
                 final DynamicTexture texture = new DynamicTexture(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, false);
-                texture.upload();
                 final RenderInfo info = new RenderInfo(texture);
+                info.upload();
                 projector.setFrameConsumer(info);
                 return info;
             });
@@ -612,10 +612,21 @@ public final class ProjectorDepthRenderer {
         }
 
         public synchronized void uploadIfDirty() {
-            if (hasNewFrame && texture.getPixels() != null) {
+            if (hasNewFrame) {
                 hasNewFrame = false;
-                texture.upload();
+                upload();
             }
+        }
+
+        public void upload() {
+            final NativeImage pixels = texture.getPixels();
+            if (pixels == null) {
+                return;
+            }
+
+            texture.bind();
+            pixels.upload(0, 0, 0, 0, 0, pixels.getWidth(), pixels.getHeight(),
+                    /* blur: */ true, /* clamp: */ true, /* mipmap: */ false, /* autoClose: */ false);
         }
 
         @Override

@@ -32,6 +32,7 @@ const float MAX_DISTANCE = 16;
 const float START_FADE_DISTANCE = 12;
 const float DOT_EPSILON = 0.25;
 const float DEPTH_BIAS = 0.0001;
+const vec2 IMAGE_SIZE = vec2(640.0, 480.0);
 const mat4 CLIP_TO_TEX = mat4(
     0.5,   0,   0, 0,
       0, 0.5,   0, 0,
@@ -54,6 +55,14 @@ vec3 getNormal(vec3 worldPos) {
     return normalize(cross(dFdx(worldPos), dFdy(worldPos)));
 }
 
+vec3 sampleImage(sampler2D imageSampler, vec2 uv) {
+    vec2 t = uv * IMAGE_SIZE;
+    vec2 texelsPerPixel = max(fwidth(t), vec2(1e-5));
+    vec2 seam = floor(t + 0.5);
+    vec2 snapped = seam + clamp((t - seam) / texelsPerPixel, vec2(-0.5), vec2(0.5));
+    return texture(imageSampler, snapped / IMAGE_SIZE).rgb;
+}
+
 bool isInClipBounds(vec3 v) {
     return v.x >= -1 && v.x <= 1 &&
            v.y >= -1 && v.y <= 1 &&
@@ -65,6 +74,12 @@ bool getProjectorColor(vec3 worldPos, vec3 worldNormal,
                        sampler2D projectorColorSampler,
                        sampler2D projectorDepthSampler,
                        out vec3 result) {
+    vec4 projectorClipPosPrediv = projectorCamera * vec4(worldPos, 1);
+    vec3 projectorClipPos = projectorClipPosPrediv.xyz / projectorClipPosPrediv.w;
+    vec4 projectorUvPrediv = CLIP_TO_TEX * projectorClipPosPrediv;
+    vec2 projectorUv = projectorUvPrediv.xy / projectorUvPrediv.w;
+    vec3 projectorColor = sampleImage(projectorColorSampler, vec2(projectorUv.s, 1 - projectorUv.t));
+
     // Project world normal into projector clip space.
     vec3 projectorClipNormal = (projectorCamera * vec4(worldNormal, 0)).xyz;
 
@@ -74,27 +89,21 @@ bool getProjectorColor(vec3 worldPos, vec3 worldNormal,
         return false;
     }
 
-    vec4 projectorClipPosPrediv = projectorCamera * vec4(worldPos, 1);
-    float linearDepth = projectorClipPosPrediv.z;
-
-    vec3 projectorClipPos = projectorClipPosPrediv.xyz / projectorClipPosPrediv.w;
     if (!isInClipBounds(projectorClipPos)) {
         return false;
     }
 
-    vec4 projectorUvPrediv = CLIP_TO_TEX * projectorClipPosPrediv;
-    vec2 projectorUv = projectorUvPrediv.xy / projectorUvPrediv.w;
     float projectorDepth = texture(projectorDepthSampler, projectorUv).r;
     float projectorClipDepth = projectorDepth * 2 - 1;
-
-    if (projectorClipPos.z <= projectorClipDepth + DEPTH_BIAS) {
-        vec3 projectorColor = texture(projectorColorSampler, vec2(projectorUv.s, 1 - projectorUv.t)).rgb;
-        float dotAttenuation = clamp((d - DOT_EPSILON) / (1 - DOT_EPSILON), 0, 1);
-        float distanceAttenuation = clamp(1 - (linearDepth - START_FADE_DISTANCE) / (MAX_DISTANCE - START_FADE_DISTANCE), 0, 1);
-        result = projectorColor * dotAttenuation * distanceAttenuation;
-        return true;
+    if (projectorClipPos.z > projectorClipDepth + DEPTH_BIAS) {
+        return false;
     }
-    return false;
+
+    float linearDepth = projectorClipPosPrediv.z;
+    float dotAttenuation = clamp((d - DOT_EPSILON) / (1 - DOT_EPSILON), 0, 1);
+    float distanceAttenuation = clamp(1 - (linearDepth - START_FADE_DISTANCE) / (MAX_DISTANCE - START_FADE_DISTANCE), 0, 1);
+    result = projectorColor * dotAttenuation * distanceAttenuation;
+    return true;
 }
 
 void main() {

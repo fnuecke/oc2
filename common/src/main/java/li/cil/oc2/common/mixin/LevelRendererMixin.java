@@ -7,6 +7,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -118,9 +119,10 @@ public abstract class LevelRendererMixin {
     /**
      * Make sure weather effects are rendered with depth, so they cause "shadows" in our projection.
      */
-    @Inject(method = "renderSnowAndRain", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;depthMask(Z)V", shift = At.Shift.AFTER))
+    @Inject(method = "renderSnowAndRain", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;depthMask(Z)V", shift = At.Shift.AFTER, remap = false))
     private void enableDepthForWeatherInDepthBuffer(final CallbackInfo ci) {
-        if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {
+        if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()
+                && minecraft.options.graphicsMode().get().getId() >= GraphicsStatus.FABULOUS.getId()) {
             RenderSystem.depthMask(true);
         }
     }

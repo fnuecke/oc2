@@ -13,6 +13,12 @@ LUA_LIB_PATH=$(readlink -f "$THIS_SCRIPT_DIR/../lib/lua")
 DAEMON="$THIS_SCRIPT_DIR/../bin/oc2busd.lua"
 SUPERVISOR="$THIS_SCRIPT_DIR/../bin/oc2busd-supervise.sh"
 
+# Prefer fast copy in tmpfs, if init script put it there.
+STAGE_PATH="/run/oc2/lib/lua"
+if [ -d "$STAGE_PATH" ]; then
+    LUA_LIB_PATH="$STAGE_PATH"
+fi
+
 PID_FILE="/run/oc2busd.pid"
 START_TIMEOUT=20
 STOP_TIMEOUT=30

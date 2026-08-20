@@ -2,7 +2,6 @@
 
 package li.cil.oc2.api.util;
 
-import li.cil.oc2.common.util.RunnableUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +24,12 @@ public final class Invalidatable<T> {
         void removeListener();
     }
 
+    // --------------------------------------------------------------------- //
+
     @SuppressWarnings("rawtypes")
     private static final Invalidatable EMPTY = new Invalidatable();
+
+    // --------------------------------------------------------------------- //
 
     @SuppressWarnings("unchecked")
     public static <T> Invalidatable<T> empty() {
@@ -37,9 +40,13 @@ public final class Invalidatable<T> {
         return new Invalidatable<>(value);
     }
 
+    // --------------------------------------------------------------------- //
+
     private final List<Consumer<Invalidatable<T>>> listeners = new ArrayList<>();
     private T value;
     private boolean isValid = true;
+
+    // --------------------------------------------------------------------- //
 
     public Invalidatable(final T value) {
         this.value = value;
@@ -49,6 +56,8 @@ public final class Invalidatable<T> {
         this.value = null;
         this.isValid = false;
     }
+
+    // --------------------------------------------------------------------- //
 
     public T get() {
         if (isValid) {
@@ -105,7 +114,7 @@ public final class Invalidatable<T> {
             };
         } else {
             listener.accept(this);
-            return RunnableUtils::doNothing;
+            return Invalidatable::doNothing;
         }
     }
 
@@ -125,5 +134,10 @@ public final class Invalidatable<T> {
     @Override
     public String toString() {
         return value != null ? value.toString() : "Invalidated";
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static void doNothing() {
     }
 }

@@ -46,17 +46,6 @@ tasks {
         dependsOn("packageScripts")
     }
 
-    register<Jar>("apiJar") {
-        from(sourceSets.main.get().allSource)
-        from(sourceSets.main.get().output)
-        archiveClassifier.set("api")
-        include("li/cil/${modId}/api/**")
-    }
-
-    jar {
-        dependsOn("apiJar")
-    }
-
     test {
         useJUnitPlatform()
     }

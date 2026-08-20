@@ -1,0 +1,18 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "package": "li.cil.oc2.mixin.fabric",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+        "ServerPlayerGameModeMixin"
+    ],
+    "client": [
+        "EntityRendererMixin",
+        "FogRendererMixin",
+        "GuiMixin",
+        "MultiPlayerGameModeMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

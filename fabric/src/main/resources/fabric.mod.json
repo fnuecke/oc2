@@ -1,0 +1,50 @@
+{
+    "schemaVersion": 1,
+    "id": "oc2",
+    "version": "${version}",
+    "name": "OpenComputers II",
+    "description": "Modern computers for the modern player.\n\nThis mod uses the Terminus Font under the Open Font License. The full license can be found in the JAR of this mod.",
+    "authors": [
+        "Sangar"
+    ],
+    "contact": {
+        "issues": "https://github.com/fnuecke/oc2/issues",
+        "sources": "https://github.com/fnuecke/oc2"
+    },
+    "license": "MIT",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "li.cil.oc2.common.fabric.MainFabric"
+        ],
+        "client": [
+            "li.cil.oc2.client.fabric.ClientSetupFabric"
+        ],
+        "markdown_manual:registration": [
+            "li.cil.oc2.client.fabric.ManualInitializer"
+        ]
+    },
+    "mixins": [
+        "oc2.mixins.json",
+        "oc2.fabric.mixins.json"
+    ],
+    "depends": {
+        "fabricloader": ">=${loaderVersion}",
+        "fabric-api": ">=${fabricApiVersion}",
+        "minecraft": "${minecraftVersion}",
+        "java": ">=21",
+        "architectury": ">=${architecturyVersion}",
+        "forgeconfigapiport": ">=${forgeConfigPortVersion}",
+        "markdown_manual": ">=${manualVersion}"
+    },
+    "custom": {
+        "mc-publish": {
+            "curseforge": 437654,
+            "dependencies": [
+                "architectury@>=${architecturyVersion}(required){curseforge:419699}",
+                "forgeconfigapiport@>=${forgeConfigPortVersion}(required){curseforge:547434}",
+                "markdown_manual@>=${manualVersion}(required){curseforge:502485}"
+            ]
+        }
+    }
+}

@@ -1,0 +1,244 @@
+/* SPDX-License-Identifier: MIT */
+
+package li.cil.oc2.common.fabric;
+
+import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;
+import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeModConfigEvents;
+import li.cil.oc2.api.API;
+import li.cil.oc2.common.config.*;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.fml.config.IConfigSpec;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.annotation.Nullable;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+public final class ConfigManagerImpl {
+    // ------------------------------------------------------------- //
+
+    private static final Logger LOGGER = LogManager.getLogger();
+
+    // ------------------------------------------------------------- //
+
+    private static final Map<Class<?>, ConfigFieldParser> PARSERS = new HashMap<>();
+    private static final Map<IConfigSpec, ConfigDefinition> CONFIGS = new HashMap<>();
+
+    static {
+        PARSERS.put(int.class, ConfigManagerImpl::parseIntField);
+        PARSERS.put(long.class, ConfigManagerImpl::parseLongField);
+        PARSERS.put(double.class, ConfigManagerImpl::parseDoubleField);
+        PARSERS.put(String.class, ConfigManagerImpl::parseStringField);
+        PARSERS.put(UUID.class, ConfigManagerImpl::parseUUIDField);
+        PARSERS.put(ResourceLocation.class, ConfigManagerImpl::parseResourceLocationField);
+    }
+
+    // ------------------------------------------------------------- //
+
+    public static <T> void add(final Supplier<T> factory) {
+        final ArrayList<ConfigFieldPair<?>> values = new ArrayList<>();
+        final Pair<?, ModConfigSpec> config = new ModConfigSpec.Builder().configure(builder -> {
+            final T instance = factory.get();
+            fillSpec(instance, builder, values);
+            return instance;
+        });
+        CONFIGS.put(config.getValue(), new ConfigDefinition(config.getKey(), values));
+    }
+
+    public static void initialize() {
+        CONFIGS.forEach((spec, config) -> {
+            final Type typeAnnotation = config.instance.getClass().getAnnotation(Type.class);
+            final ConfigType configType = typeAnnotation != null ? typeAnnotation.value() : ConfigType.COMMON;
+            NeoForgeConfigRegistry.INSTANCE.register(API.MOD_ID, switch (configType) {
+                case COMMON -> ModConfig.Type.COMMON;
+                case CLIENT -> ModConfig.Type.CLIENT;
+                case SERVER -> ModConfig.Type.SERVER;
+            }, spec);
+        });
+
+        NeoForgeModConfigEvents.loading(API.MOD_ID).register(config -> apply(config, false));
+        NeoForgeModConfigEvents.reloading(API.MOD_ID).register(config -> apply(config, false));
+        NeoForgeModConfigEvents.unloading(API.MOD_ID).register(config -> apply(config, true));
+    }
+
+    // ------------------------------------------------------------- //
+
+    private static void apply(final ModConfig modConfig, final boolean isUnloading) {
+        final ConfigDefinition config = CONFIGS.get(modConfig.getSpec());
+        if (config == null) {
+            return;
+        }
+
+        if (isUnloading) {
+            // The values are gone by now, and reading one throws. Fall back to what we shipped with, so we
+            // neither blow up here nor keep serving the settings of a server we have just left.
+            config.applyDefaults();
+        } else {
+            config.apply();
+        }
+    }
+
+    // ------------------------------------------------------------- //
+
+    private static <T> void fillSpec(final T instance, final ModConfigSpec.Builder builder, final ArrayList<ConfigFieldPair<?>> values) {
+        for (final Field field : instance.getClass().getFields()) {
+            parseField(instance, builder, values, field);
+        }
+    }
+
+    private static <T> void parseField(final T instance, final ModConfigSpec.Builder builder, final ArrayList<ConfigFieldPair<?>> values, final Field field) {
+        final ConfigFieldParser parser = PARSERS.get(field.getType());
+        if (parser != null) {
+            final Path pathAnnotation = field.getAnnotation(Path.class);
+            if (pathAnnotation == null) {
+                LOGGER.error("Config field [{}.{}] has no @Path annotation, ignoring.",
+                        field.getDeclaringClass().getName(), field.getName());
+                return;
+            }
+
+            final String path = getPath(pathAnnotation.value(), field);
+
+            // Pretty much all our config needs a world restart (baked deeply into state).
+            builder.worldRestart();
+            try {
+                values.add(parser.apply(instance, field, path, builder));
+            } catch (final IllegalAccessException e) {
+                LOGGER.error("Failed accessing field [{}.{}], ignoring.", field.getDeclaringClass().getName(), field.getName());
+            }
+        }
+    }
+
+    private static ConfigFieldPair<?> parseIntField(final Object instance, final Field field, final String path, final ModConfigSpec.Builder builder) throws IllegalAccessException {
+        final int defaultValue = field.getInt(instance);
+        final int minValue = (int) Math.max(getMin(field), Integer.MIN_VALUE);
+        final int maxValue = (int) Math.min(getMax(field), Integer.MAX_VALUE);
+
+        final ModConfigSpec.IntValue configValue = builder.defineInRange(path, defaultValue, minValue, maxValue);
+
+        return new ConfigFieldPair<>(field, configValue);
+    }
+
+    private static ConfigFieldPair<?> parseLongField(final Object instance, final Field field, final String path, final ModConfigSpec.Builder builder) throws IllegalAccessException {
+        final long defaultValue = field.getLong(instance);
+        final long minValue = (long) Math.max(getMin(field), Long.MIN_VALUE);
+        final long maxValue = (long) Math.min(getMax(field), Long.MAX_VALUE);
+
+        final ModConfigSpec.LongValue configValue = builder.defineInRange(path, defaultValue, minValue, maxValue);
+
+        return new ConfigFieldPair<>(field, configValue);
+    }
+
+    private static ConfigFieldPair<?> parseDoubleField(final Object instance, final Field field, final String path, final ModConfigSpec.Builder builder) throws IllegalAccessException {
+        final double defaultValue = field.getDouble(instance);
+        final double minValue = getMin(field);
+        final double maxValue = getMax(field);
+
+        final ModConfigSpec.DoubleValue configValue = builder.defineInRange(path, defaultValue, minValue, maxValue);
+
+        return new ConfigFieldPair<>(field, configValue);
+    }
+
+    private static ConfigFieldPair<?> parseStringField(final Object instance, final Field field, final String path, final ModConfigSpec.Builder builder) throws IllegalAccessException {
+        final String defaultValue = (String) field.get(instance);
+
+        final ModConfigSpec.ConfigValue<String> configValue = builder.define(path, defaultValue);
+
+        return new ConfigFieldPair<>(field, configValue);
+    }
+
+    private static ConfigFieldPair<?> parseUUIDField(final Object instance, final Field field, final String path, final ModConfigSpec.Builder builder) throws IllegalAccessException {
+        final UUID defaultValue = (UUID) field.get(instance);
+
+        final ModConfigSpec.ConfigValue<String> configValue = builder.define(path, defaultValue.toString());
+
+        return new ConfigFieldPair<>(field, configValue, UUID::fromString);
+    }
+
+    private static ConfigFieldPair<?> parseResourceLocationField(final Object instance, final Field field, final String path, final ModConfigSpec.Builder builder) throws IllegalAccessException {
+        final ResourceLocation defaultValue = (ResourceLocation) field.get(instance);
+
+        final ModConfigSpec.ConfigValue<String> configValue = builder.define(path, defaultValue.toString());
+
+        return new ConfigFieldPair<>(field, configValue, ResourceLocation::parse);
+    }
+
+    private static String getPath(@Nullable final String prefix, final Field field) {
+        return (prefix != null ? prefix + "." : "") + field.getName();
+    }
+
+    private static double getMin(final Field field) {
+        final Min minAnnotation = field.getAnnotation(Min.class);
+        return minAnnotation != null ? minAnnotation.value() : 0;
+    }
+
+    private static double getMax(final Field field) {
+        final Max maxAnnotation = field.getAnnotation(Max.class);
+        return maxAnnotation != null ? maxAnnotation.value() : Double.POSITIVE_INFINITY;
+    }
+
+    // ------------------------------------------------------------- //
+
+    @FunctionalInterface
+    private interface ConfigFieldParser {
+        ConfigFieldPair<?> apply(final Object instance, final Field field, final String path, final ModConfigSpec.Builder builder) throws IllegalAccessException;
+    }
+
+    private record ConfigDefinition(Object instance, ArrayList<ConfigFieldPair<?>> values) {
+        public void apply() {
+            for (final ConfigFieldPair<?> pair : values) {
+                pair.apply(instance);
+            }
+        }
+
+        public void applyDefaults() {
+            for (final ConfigFieldPair<?> pair : values) {
+                pair.applyDefault(instance);
+            }
+        }
+    }
+
+    private static final class ConfigFieldPair<T> {
+        public final Field field;
+        public final ModConfigSpec.ConfigValue<T> value;
+        private final Function<T, Object> converter;
+
+        public ConfigFieldPair(final Field field, final ModConfigSpec.ConfigValue<T> value, final Function<T, Object> converter) {
+            this.field = field;
+            this.value = value;
+            this.converter = converter;
+        }
+
+        public ConfigFieldPair(final Field field, final ModConfigSpec.ConfigValue<T> value) {
+            this(field, value, x -> x);
+        }
+
+        public void apply(final Object instance) {
+            set(instance, value.get());
+        }
+
+        public void applyDefault(final Object instance) {
+            set(instance, value.getDefault());
+        }
+
+        private void set(final Object instance, final T raw) {
+            try {
+                field.set(instance, converter.apply(raw));
+            } catch (final IllegalAccessException e) {
+                LOGGER.error("Failed setting config field [{}.{}].",
+                        field.getDeclaringClass().getName(), field.getName(), e);
+            } catch (final RuntimeException e) {
+                LOGGER.error("Invalid value for config field [{}.{}], keeping previous value.",
+                        field.getDeclaringClass().getName(), field.getName(), e);
+            }
+        }
+    }
+}

@@ -18,7 +18,7 @@ import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nullable;
 
 public final class TestSupport {
-    public static final String MOD_ID = "oc2gametest";
+    public static final String MOD_ID = "oc2_gametest";
     public static final String TEMPLATE = "empty";
     public static final int WORK_Y = 2;
     public static final int MAX_X = 39;

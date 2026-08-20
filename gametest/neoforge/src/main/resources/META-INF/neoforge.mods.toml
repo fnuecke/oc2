@@ -3,21 +3,21 @@ loaderVersion = "[1,)"
 license = "MIT"
 
 [[mods]]
-modId = "oc2gametest"
+modId = "oc2_gametest"
 version = "0.0.0"
 displayName = "OpenComputers II Game Tests"
 description = '''
 Game test suite. Run with ./gradlew :neoforge:runGameTestServer
 '''
 
-[[dependencies.oc2gametest]]
+[[dependencies.oc2_gametest]]
 modId = "architectury"
 type = "required"
 versionRange = "[1,)"
 ordering = "AFTER"
 side = "BOTH"
 
-[[dependencies.oc2gametest]]
+[[dependencies.oc2_gametest]]
 modId = "oc2"
 type = "required"
 versionRange = "[0,)"

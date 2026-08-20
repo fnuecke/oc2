@@ -17,7 +17,7 @@ loom {
             server()
             runDir = "run/gametest"
             property("neoforge.gameTestServer", "true")
-            property("neoforge.enabledGameTestNamespaces", "oc2gametest")
+            property("neoforge.enabledGameTestNamespaces", "oc2_gametest")
             property("oc2.gameTest.junitDir", gameTestResultsDir.get().asFile.absolutePath)
             vmArg("-ea")
         }

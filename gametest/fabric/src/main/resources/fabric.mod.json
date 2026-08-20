@@ -1,6 +1,6 @@
 {
     "schemaVersion": 1,
-    "id": "oc2gametest",
+    "id": "oc2_gametest",
     "version": "0.0.0",
     "name": "OpenComputers II Game Tests",
     "description": "Game test suite. Run with ./gradlew :fabric:runGameTest",

@@ -58,10 +58,10 @@ dependencies {
     modApi(libs.fabric.api)
     modApi(libs.fabric.architectury)
 
-    // The de-facto standard energy interop API on Fabric; NeoForge's IEnergyStorage has no vanilla equivalent.
-    modApi(libs.fabric.energy)
+    include(modApi(libs.fabric.energy.get().toString()) {
+        exclude(group = "net.fabricmc.fabric-api")
+    })
 
-    // Provides NeoForge's ModConfigSpec, so the config layer is the same on both loaders.
     modImplementation(libs.fabric.forgeConfigPort)
 
     bundledLibs().forEach {
@@ -69,15 +69,9 @@ dependencies {
         implementation(it)
     }
 
-    // The dev-only harness mods, as their *dev* (named) jars: the default project dependency resolves to
-    // Loom's remapped, intermediary jar, which cannot link against a named dev run. Non-transitive because
-    // these modules declare fabric-api themselves, and letting that through would put the unremapped
-    // fabric-api on the run classpath next to Loom's remapped copy, which the loader then refuses.
     runtimeOnly(project(path = ":instrumentation-fabric", configuration = "namedElements")) { isTransitive = false }
     runtimeOnly(project(path = ":gametest-fabric", configuration = "namedElements")) { isTransitive = false }
 
-    // Their shared halves go through *this* run's architectury transformer rather than being bundled into
-    // the platform jars: bundling ships them untransformed, so their @ExpectPlatform stubs still throw.
     "common"(project(path = ":instrumentation-common", configuration = "namedElements")) { isTransitive = false }
     "common"(project(path = ":gametest-common", configuration = "namedElements")) { isTransitive = false }
 

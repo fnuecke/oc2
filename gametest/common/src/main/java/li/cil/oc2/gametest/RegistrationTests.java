@@ -1,19 +1,13 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.gametest.neoforge;
+package li.cil.oc2.gametest;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.TestSupport.assertNotNull;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class RegistrationTests {
-    @GameTest(template = TEMPLATE)
     public static void deviceTypesAreRegistered(final GameTestHelper helper) {
         assertNotNull(helper, DeviceTypes.MEMORY, "DeviceTypes.MEMORY");
         assertNotNull(helper, DeviceTypes.HARD_DRIVE, "DeviceTypes.HARD_DRIVE");

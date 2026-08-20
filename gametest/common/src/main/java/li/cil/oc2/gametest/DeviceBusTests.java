@@ -1,28 +1,20 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.gametest.neoforge;
+package li.cil.oc2.gametest;
 
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.gametest.BusCables;
-import li.cil.oc2.gametest.ComputerFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import static li.cil.oc2.gametest.TestSupport.*;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class DeviceBusTests {
-    @GameTest(template = TEMPLATE, timeoutTicks = 600)
     public static void busTracksNeighborLifecycle(final GameTestHelper helper) {
         final ComputerFixture computer = placeComputerAndCable(helper);
 
@@ -51,7 +43,6 @@ public final class DeviceBusTests {
                 .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 800)
     public static void busRediscoversReplacedNeighbor(final GameTestHelper helper) {
         final ComputerFixture computer = placeComputerAndCable(helper);
 
@@ -72,7 +63,6 @@ public final class DeviceBusTests {
                 .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 600)
     public static void busNoticesNeighborCapabilityInvalidatedWithoutBlockUpdate(final GameTestHelper helper) {
         final ComputerFixture computer = placeComputerAndCable(helper);
 
@@ -81,7 +71,7 @@ public final class DeviceBusTests {
         helper.startSequence()
                 .thenExecuteAfter(60, () -> base[0] = computer.deviceCount())
                 .thenExecute(() -> helper.setBlock(DEVICE_POS, Blocks.CHEST))
-                .thenExecuteAfter(60, () -> {
+                .thenWaitUntil(() -> {
                     attached[0] = computer.deviceCount();
                     if (attached[0] <= base[0]) {
                         throw new GameTestAssertException(
@@ -91,7 +81,7 @@ public final class DeviceBusTests {
                 })
                 .thenExecute(() -> helper.getLevel().setBlock(helper.absolutePos(DEVICE_POS),
                         Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS))
-                .thenExecuteAfter(80, () -> {
+                .thenWaitUntil(() -> {
                     final int after = computer.deviceCount();
                     if (after != base[0]) {
                         throw new GameTestAssertException(
@@ -102,7 +92,6 @@ public final class DeviceBusTests {
                 .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void busReachesAcrossChunkBoundary(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);

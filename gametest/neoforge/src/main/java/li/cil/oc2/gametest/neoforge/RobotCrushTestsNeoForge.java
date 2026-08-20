@@ -2,6 +2,7 @@
 
 package li.cil.oc2.gametest.neoforge;
 
+import li.cil.oc2.gametest.RobotCrushTests;
 import li.cil.oc2.gametest.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -15,28 +16,21 @@ import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.RobotCrushTests.ROBOT_CHECK_GRACE_PERIOD;
+import static li.cil.oc2.gametest.RobotCrushTests.ROBOT_POS;
+import static li.cil.oc2.gametest.RobotCrushTests.putBlockInsideTheRobot;
+import static li.cil.oc2.gametest.TestSupport.MOD_ID;
+import static li.cil.oc2.gametest.TestSupport.TEMPLATE;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
-public final class RobotCrushTests {
-    private static final BlockPos ROBOT_POS = new BlockPos(16, WORK_Y, 2);
-    private static final int ROBOT_CHECK_GRACE_PERIOD = 40; // Give robot check time to kick in.
-
-    // ------------------------------------------------------------- //
-
+public final class RobotCrushTestsNeoForge {
     @GameTest(template = TEMPLATE, timeoutTicks = 120)
     public static void crushesAnOrdinaryBlock(final GameTestHelper helper) {
-        final BlockPos target = putBlockInsideTheRobot(helper, Blocks.DIRT);
-
-        helper.startSequence()
-                .thenExecuteAfter(ROBOT_CHECK_GRACE_PERIOD, () -> {
-                    if (!helper.getLevel().getBlockState(target).isAir()) {
-                        throw new GameTestAssertException("the robot did not clear the dirt it was inside of");
-                    }
-                })
-                .thenSucceed();
+        RobotCrushTests.crushesAnOrdinaryBlock(helper);
     }
+
+    // ------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = 120)
     public static void leavesUnbreakableBlocksAlone(final GameTestHelper helper) {
@@ -83,14 +77,8 @@ public final class RobotCrushTests {
                 .thenSucceed();
     }
 
-    private static BlockPos putBlockInsideTheRobot(final GameTestHelper helper, final Block block) {
-        final BlockPos target = RobotFixture.place(helper, ROBOT_POS).blockPos();
-        helper.getLevel().setBlockAndUpdate(target, block.defaultBlockState());
-        return target;
-    }
-
     // ------------------------------------------------------------- //
 
-    private RobotCrushTests() {
+    private RobotCrushTestsNeoForge() {
     }
 }

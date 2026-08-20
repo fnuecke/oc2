@@ -4,7 +4,7 @@ package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.bus.device.rpc.item.BlockOperationsModuleDevice;
-import li.cil.oc2.common.item.Items;
+import li.cil.oc2.gametest.BlockOperationsModuleTests;
 import li.cil.oc2.gametest.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -15,36 +15,25 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.BlockOperationsModuleTests.ROBOT_POS;
+import static li.cil.oc2.gametest.BlockOperationsModuleTests.moduleFor;
+import static li.cil.oc2.gametest.TestSupport.MOD_ID;
+import static li.cil.oc2.gametest.TestSupport.TEMPLATE;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
-public final class BlockOperationsModuleTests {
-    private static final BlockPos ROBOT_POS = new BlockPos(12, WORK_Y, 2);
-
-    // ------------------------------------------------------------- //
-
+public final class BlockOperationsModuleTestsNeoForge {
     @GameTest(template = TEMPLATE)
     public static void excavatesWithACorrectTool(final GameTestHelper helper) {
-        final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
-        final BlockOperationsModuleDevice module = moduleFor(robot);
-        robot.give(new ItemStack(net.minecraft.world.item.Items.DIAMOND_PICKAXE));
-        final BlockPos target = robot.putBlockInFront(Blocks.STONE);
-
-        if (!module.excavate(RobotOperationSide.FRONT)) {
-            throw new GameTestAssertException("excavating stone with a diamond pickaxe failed");
-        }
-
-        if (!helper.getLevel().getBlockState(target).isAir()) {
-            throw new GameTestAssertException("excavate reported success but the block is still there");
-        }
-
-        if (!robot.has(net.minecraft.world.item.Items.COBBLESTONE)) {
-            throw new GameTestAssertException("the block was broken but nothing was collected");
-        }
-
-        helper.succeed();
+        BlockOperationsModuleTests.excavatesWithACorrectTool(helper);
     }
+
+    @GameTest(template = TEMPLATE)
+    public static void placesFromTheSelectedSlot(final GameTestHelper helper) {
+        BlockOperationsModuleTests.placesFromTheSelectedSlot(helper);
+    }
+
+    // ------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE)
     public static void refusesWhenTheToolCannotHarvest(final GameTestHelper helper) {
@@ -126,39 +115,8 @@ public final class BlockOperationsModuleTests {
                 .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
-    public static void placesFromTheSelectedSlot(final GameTestHelper helper) {
-        final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
-        final BlockOperationsModuleDevice module = moduleFor(robot);
-        robot.give(new ItemStack(net.minecraft.world.item.Items.STONE, 2));
-
-        final BlockPos target = robot.putBlockInFront(Blocks.AIR);
-
-        if (!module.place(RobotOperationSide.FRONT)) {
-            throw new GameTestAssertException("placing a stone block failed");
-        }
-
-        if (!helper.getLevel().getBlockState(target).is(Blocks.STONE)) {
-            throw new GameTestAssertException("place reported success but there is no stone at " + target);
-        }
-
-        final ItemStack remaining = robot.selected();
-        if (remaining.getCount() != 1) {
-            throw new GameTestAssertException("expected exactly one stone to be consumed, slot holds " + remaining);
-        }
-
-        helper.succeed();
-    }
-
     // ------------------------------------------------------------- //
 
-    private static BlockOperationsModuleDevice moduleFor(final RobotFixture robot) {
-        return new BlockOperationsModuleDevice(
-                new ItemStack(Items.BLOCK_OPERATIONS_MODULE.get()), robot.entity(), robot.entity());
-    }
-
-    // ------------------------------------------------------------- //
-
-    private BlockOperationsModuleTests() {
+    private BlockOperationsModuleTestsNeoForge() {
     }
 }

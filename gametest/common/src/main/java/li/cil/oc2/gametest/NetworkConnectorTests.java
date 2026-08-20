@@ -1,28 +1,21 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.gametest.neoforge;
+package li.cil.oc2.gametest;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity.ConnectionResult;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.gametest.ComputerFixture;
-import li.cil.oc2.gametest.ConnectorFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import static li.cil.oc2.gametest.TestSupport.*;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class NetworkConnectorTests {
     private static final BlockPos CONNECTOR_A = new BlockPos(2, WORK_Y, 2);
     private static final BlockPos CONNECTOR_B = new BlockPos(6, WORK_Y, 2);
@@ -31,7 +24,6 @@ public final class NetworkConnectorTests {
 
     // ------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 300)
     public static void connectorsLinkWithClearLineOfSight(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ConnectorFixture a = ConnectorFixture.place(helper, player, CONNECTOR_A);
@@ -49,7 +41,6 @@ public final class NetworkConnectorTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 300)
     public static void connectorsRefuseObstructedLink(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ConnectorFixture a = ConnectorFixture.place(helper, player, CONNECTOR_A);
@@ -65,7 +56,6 @@ public final class NetworkConnectorTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 300)
     public static void connectorsRefuseLinkBeyondRange(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ConnectorFixture a = ConnectorFixture.place(helper, player, CONNECTOR_A);
@@ -80,7 +70,6 @@ public final class NetworkConnectorTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 300)
     public static void networkCableLinksConnectorsWhenUsed(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ConnectorFixture a = ConnectorFixture.place(helper, player, CONNECTOR_A);
@@ -99,7 +88,6 @@ public final class NetworkConnectorTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 600)
     public static void aConnectorResolvesTheNetworkCardOfTheComputerItIsOn(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
@@ -134,7 +122,6 @@ public final class NetworkConnectorTests {
                 .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 600)
     public static void aConnectorNoticesTheNetworkCardBeingRemoved(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);

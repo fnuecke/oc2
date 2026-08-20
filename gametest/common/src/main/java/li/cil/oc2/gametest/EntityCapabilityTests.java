@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.gametest.neoforge;
+package li.cil.oc2.gametest;
 
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.api.inventory.ItemHandler;
@@ -8,30 +8,25 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.EnergyStorage;
 import li.cil.oc2.common.entity.Robot;
-import li.cil.oc2.gametest.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.vehicle.MinecartChest;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import java.util.function.Predicate;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+import static li.cil.oc2.gametest.TestSupport.WORK_Y;
+
 public final class EntityCapabilityTests {
     private static final BlockPos ROBOT_POS = new BlockPos(6, WORK_Y, 2);
     private static final BlockPos MINECART_POS = new BlockPos(8, WORK_Y, 2);
 
     // ------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE)
     public static void robotProvidesTerminalUsers(final GameTestHelper helper) {
         final Robot robot = RobotFixture.place(helper, ROBOT_POS).entity();
 
@@ -44,7 +39,6 @@ public final class EntityCapabilityTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
     public static void robotProvidesInventoryAndEnergy(final GameTestHelper helper) {
         final Robot robot = RobotFixture.place(helper, ROBOT_POS).entity();
 
@@ -64,23 +58,22 @@ public final class EntityCapabilityTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
-    public static void robotIsVisibleToNeoForgeCapabilities(final GameTestHelper helper) {
+    public static void robotIsVisibleToPlatformCapabilities(final GameTestHelper helper,
+                                                            final Predicate<Robot> hasItemHandler,
+                                                            final Predicate<Robot> hasEnergyStorage) {
         final Robot robot = RobotFixture.place(helper, ROBOT_POS).entity();
 
-        if (robot.getCapability(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.ENTITY_AUTOMATION, Direction.DOWN) == null) {
-            throw new GameTestAssertException("robot inventory is invisible to NeoForge's item handler capability");
+        if (!hasItemHandler.test(robot)) {
+            throw new GameTestAssertException("robot inventory is invisible to the platform's item handler capability");
         }
 
-        if (Config.robotsUseEnergy() &&
-                robot.getCapability(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.ENTITY, Direction.DOWN) == null) {
-            throw new GameTestAssertException("robot energy is invisible to NeoForge's energy capability");
+        if (Config.robotsUseEnergy() && !hasEnergyStorage.test(robot)) {
+            throw new GameTestAssertException("robot energy is invisible to the platform's energy capability");
         }
 
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
     public static void foreignEntityInventoryIsReachable(final GameTestHelper helper) {
         final MinecartChest minecart = helper.spawn(EntityType.CHEST_MINECART, MINECART_POS);
         minecart.setItem(0, new ItemStack(Blocks.STONE, 3));
@@ -88,7 +81,7 @@ public final class EntityCapabilityTests {
         final ItemHandler inventory = Capabilities.get(minecart, Capabilities.ITEM_HANDLER, Direction.DOWN);
         if (inventory == null) {
             throw new GameTestAssertException("inventory of a non-OC2 entity is not reachable; " +
-                    "the lookup is not bridging to NeoForge's capabilities");
+                    "the lookup is not bridging to the platform's capabilities");
         }
 
         if (inventory.getStackInSlot(0).getCount() != 3) {

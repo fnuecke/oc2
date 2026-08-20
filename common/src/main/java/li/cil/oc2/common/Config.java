@@ -2,13 +2,11 @@
 
 package li.cil.oc2.common;
 
-import li.cil.oc2.common.config.ConfigType;
-import li.cil.oc2.common.config.Min;
-import li.cil.oc2.common.config.Path;
-import li.cil.oc2.common.config.Type;
+import li.cil.oc2.common.config.*;
 
 import java.util.UUID;
 
+@WorldRestart
 @Type(ConfigType.SERVER)
 public final class Config {
     @Path("vm")

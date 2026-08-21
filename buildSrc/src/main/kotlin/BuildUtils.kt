@@ -58,7 +58,7 @@ fun Project.configurePmd(vararg additionalExcludes: String) {
 fun Project.embedLicenses(vararg additionalLicenses: String) {
     val modId = property("modId") as String
 
-    tasks.withType<Jar>().matching { it.name == "jar" }.configureEach {
+    tasks.withType<Jar>().matching { it.name == "jar" || it.name == "shadowJar" }.configureEach {
         from(rootProject.file("LICENSE")) {
             rename { "${it}_${modId}" }
         }

@@ -114,11 +114,6 @@ for (platform in enabledPlatforms.split(',')) {
                 exclude("architectury.common.json")
                 configurations = listOf(shadowBundle)
                 archiveClassifier.set("dev-shadow")
-
-                from(rootProject.file("LICENSE")) {
-                    rename { "${it}_${modId}" }
-                }
-                from(rootProject.file("LICENSE-JCODEC"))
             }
 
             withType<RemapJarTask> {

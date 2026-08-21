@@ -1,30 +1,31 @@
 {
-    "schemaVersion": 1,
-    "id": "oc2_gametest",
-    "version": "0.0.0",
-    "name": "OpenComputers II Game Tests",
-    "description": "Game test suite. Run with ./gradlew :fabric:runGameTest",
-    "license": "MIT",
-    "environment": "*",
-    "entrypoints": {
-        "oc2:registration": [
-            "li.cil.oc2.gametest.fabric.GameTestsFabric"
-        ],
-        "fabric-gametest": [
-            "li.cil.oc2.gametest.fabric.DeviceBusTestsFabric",
-            "li.cil.oc2.gametest.fabric.EntityCapabilityTestsFabric",
-            "li.cil.oc2.gametest.fabric.NetworkConnectorTestsFabric",
-            "li.cil.oc2.gametest.fabric.RegistrationTestsFabric",
-            "li.cil.oc2.gametest.fabric.CapabilityAdapterTestsFabric",
-            "li.cil.oc2.gametest.fabric.WrenchTestsFabric",
-            "li.cil.oc2.gametest.fabric.BlockOperationsModuleTestsFabric",
-            "li.cil.oc2.gametest.fabric.RobotCrushTestsFabric",
-            "li.cil.oc2.gametest.fabric.FakePlayerTestsFabric"
-        ]
-    },
-    "depends": {
-        "architectury": "*",
-        "oc2": "*",
-        "fabric-gametest-api-v1": "*"
-    }
+  "schemaVersion": 1,
+  "id": "oc2_gametest",
+  "version": "0.0.0",
+  "name": "OpenComputers II Game Tests",
+  "description": "Game test suite. Run with ./gradlew :fabric:runGameTest",
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "oc2:registration": [
+      "li.cil.oc2.gametest.fabric.GameTestsFabric"
+    ],
+    "fabric-gametest": [
+      "li.cil.oc2.gametest.fabric.DeviceBusTestsFabric",
+      "li.cil.oc2.gametest.fabric.EntityCapabilityTestsFabric",
+      "li.cil.oc2.gametest.fabric.NetworkConnectorTestsFabric",
+      "li.cil.oc2.gametest.fabric.RegistrationTestsFabric",
+      "li.cil.oc2.gametest.fabric.CapabilityAdapterTestsFabric",
+      "li.cil.oc2.gametest.fabric.WrenchTestsFabric",
+      "li.cil.oc2.gametest.fabric.BlockOperationsModuleTestsFabric",
+      "li.cil.oc2.gametest.fabric.RobotCrushTestsFabric",
+      "li.cil.oc2.gametest.fabric.FakePlayerTestsFabric",
+      "li.cil.oc2.gametest.fabric.RecipeTestsFabric"
+    ]
+  },
+  "depends": {
+    "architectury": "*",
+    "oc2": "*",
+    "fabric-gametest-api-v1": "*"
+  }
 }

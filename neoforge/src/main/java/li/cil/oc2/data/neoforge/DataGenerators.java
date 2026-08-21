@@ -8,7 +8,7 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@EventBusSubscriber(modid = li.cil.oc2.api.API.MOD_ID)
+@EventBusSubscriber
 public final class DataGenerators {
     @SubscribeEvent
     public static void gatherData(final GatherDataEvent event) {

@@ -58,13 +58,11 @@ public final class GameTestReporting {
                             + "unload livelock, not a test failure -- the results reported above stand. Halting.",
                     SHUTDOWN_GRACE_MILLIS / 1000L);
 
-            // Give the logger a moment to flush before we take the process out from under it.
-            sleep(200);
+                sleep(200);
 
             Runtime.getRuntime().halt(exitCode);
         }, "gametest-shutdown-watchdog");
 
-        // Daemon, so that a healthy run is not held open by it for the full grace period.
         watchdog.setDaemon(true);
         watchdog.start();
     }

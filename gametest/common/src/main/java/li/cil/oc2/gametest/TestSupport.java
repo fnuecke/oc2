@@ -28,6 +28,22 @@ public final class TestSupport {
     public static final BlockPos CABLE_POS = new BlockPos(3, WORK_Y, 2);
     public static final BlockPos DEVICE_POS = new BlockPos(4, WORK_Y, 2);
 
+    public static GameTestAssertException failure(final GameTestHelper helper, final String message) {
+        return new GameTestAssertException(message);
+    }
+
+    public static void assertTrue(final GameTestHelper helper, final String what, final boolean condition) {
+        if (!condition) {
+            throw failure(helper, what);
+        }
+    }
+
+    public static void assertEquals(final GameTestHelper helper, final String what, final long expected, final long actual) {
+        if (expected != actual) {
+            throw failure(helper, what + ": expected " + expected + ", got " + actual);
+        }
+    }
+
     public static Player fakePlayer(final GameTestHelper helper) {
         final Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0);

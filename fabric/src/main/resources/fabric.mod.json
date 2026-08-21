@@ -22,6 +22,10 @@
         ],
         "markdown_manual:registration": [
             "li.cil.oc2.client.fabric.ManualInitializer"
+        ],
+        "jei_mod_plugin": [
+            "li.cil.oc2.common.integration.jei.ExtraItemsJEIPlugin",
+            "li.cil.oc2.common.integration.jei.ExtraGuiAreasJEIPlugin"
         ]
     },
     "mixins": [

@@ -7,6 +7,8 @@ val manualVersion: String = markdownManualVersion(libs.versions.manual.get())
 
 val gameTestRuntime: Configuration by configurations.creating
 val gameTestResultsDir = layout.buildDirectory.dir("test-results/gameTest")
+val devOnlyMods: Configuration by configurations.creating
+val devOnlyModNames = provider { devOnlyMods.resolvedConfiguration.resolvedArtifacts.map { it.moduleVersion.id.name } }
 
 loom {
     accessWidenerPath.set(project(":common").loom.accessWidenerPath)
@@ -57,6 +59,7 @@ val fixGameTestReport = tasks.register("fixGameTestReport") {
 tasks.named<JavaExec>("runGameTestServer") {
     dependsOn(cleanGameTestResults)
     classpath += gameTestRuntime
+    classpath = classpath.filter { file -> devOnlyModNames.get().none { file.name.startsWith("${it}-") } }
     finalizedBy(fixGameTestReport)
     doFirst {
         gameTestBlobDirectories.forEach { it.deleteRecursively() }
@@ -67,9 +70,14 @@ repositories {
     maven("https://maven.neoforged.net/releases")
 }
 
+configurations.named("modRuntimeOnly") { extendsFrom(devOnlyMods) }
+
 dependencies {
     neoForge(libs.neoforge.platform)
     modImplementation(libs.neoforge.architectury)
+
+    // Not used by mod, just for dev convenience.
+    devOnlyMods(libs.jei.neoforge)
 
     gameTestRuntime(project(":gametest-neoforge"))
 

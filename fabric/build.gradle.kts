@@ -8,6 +8,8 @@ val manualVersion: String = markdownManualVersion(libs.versions.manual.get())
 
 val gameTestRuntime: Configuration by configurations.creating
 val gameTestResultsDir = layout.buildDirectory.dir("test-results/gameTest")
+val devOnlyMods: Configuration by configurations.creating
+val devOnlyModNames = provider { devOnlyMods.resolvedConfiguration.resolvedArtifacts.map { it.moduleVersion.id.name } }
 
 loom {
     accessWidenerPath.set(project(":common").loom.accessWidenerPath)
@@ -48,6 +50,7 @@ val fixGameTestReport = tasks.register("fixGameTestReport") {
 tasks.named<JavaExec>("runGameTest") {
     dependsOn(cleanGameTestResults)
     classpath += gameTestRuntime
+    classpath = classpath.filter { file -> devOnlyModNames.get().none { file.name.startsWith("${it}-") } }
     finalizedBy(fixGameTestReport)
     doFirst {
         gameTestBlobDirectories.forEach { it.deleteRecursively() }
@@ -64,6 +67,8 @@ repositories {
         filter { includeGroup("fuzs.forgeconfigapiport") }
     }
 }
+
+configurations.named("modRuntimeOnly") { extendsFrom(devOnlyMods) }
 
 dependencies {
     modImplementation(libs.fabric.loader)
@@ -82,6 +87,9 @@ dependencies {
     }
 
     runtimeOnly(project(path = ":instrumentation-fabric", configuration = "namedElements")) { isTransitive = false }
+
+    // Not used by mod, just for dev convenience.
+    devOnlyMods(libs.jei.fabric)
 
     gameTestRuntime(project(path = ":gametest-fabric", configuration = "namedElements")) { isTransitive = false }
 

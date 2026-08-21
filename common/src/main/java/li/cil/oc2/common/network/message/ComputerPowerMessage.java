@@ -12,7 +12,7 @@ public final class ComputerPowerMessage extends AbstractMessage {
     private BlockPos pos;
     private boolean power;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ComputerPowerMessage(final ComputerBlockEntity computer, final boolean power) {
         this.pos = computer.getBlockPos();
@@ -23,7 +23,7 @@ public final class ComputerPowerMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -37,17 +37,17 @@ public final class ComputerPowerMessage extends AbstractMessage {
         buffer.writeBoolean(power);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos, ComputerBlockEntity.class,
-                (player, computer) -> {
-                    if (power) {
-                        computer.start();
-                    } else {
-                        computer.stop();
-                    }
-                });
+            (player, computer) -> {
+                if (power) {
+                    computer.start();
+                } else {
+                    computer.stop();
+                }
+            });
     }
 }

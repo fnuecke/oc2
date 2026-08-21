@@ -20,7 +20,7 @@ import java.util.Objects;
 public final class RobotMovementAction extends AbstractRobotAction {
     public static final double TARGET_EPSILON = 0.0001;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final float MOVEMENT_SPEED = 1f / TickUtils.toTicks(Duration.ofSeconds(1)); // blocks per tick
 
@@ -29,7 +29,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
     private static final String START_TAG_NAME = "start";
     private static final String TARGET_TAG_NAME = "target";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Nullable
     private MovementDirection direction;
@@ -42,7 +42,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
     @Nullable
     private Vec3 targetPos;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public RobotMovementAction(final MovementDirection direction) {
         super(RobotActions.MOVEMENT);
@@ -53,7 +53,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
         super(RobotActions.MOVEMENT, tag);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static Vec3 getTargetPositionInBlock(final BlockPos position) {
         return Vec3.atBottomCenterOf(position).add(0, 0.5f * (1 - Entities.ROBOT.get().getHeight()), 0);
@@ -68,7 +68,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
         robot.move(MoverType.SELF, delta);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void initialize(final Robot robot) {
@@ -154,7 +154,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
         final boolean didCollide = robot.horizontalCollision || robot.verticalCollision;
         final long gameTime = robot.level().getGameTime();
         if (didCollide && !robot.level().isClientSide()
-                && robot.getLastPistonMovement() < gameTime - 1) {
+            && robot.getLastPistonMovement() < gameTime - 1) {
             final BlockPos newStart = target;
             target = start;
             start = newStart;
@@ -166,7 +166,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
     private void validateTarget(final Robot robot) {
         final BlockPos currentPosition = robot.blockPosition();
         if (start == null || Objects.equals(currentPosition, start) ||
-                target == null || Objects.equals(currentPosition, target)) {
+            target == null || Objects.equals(currentPosition, target)) {
             return;
         }
 

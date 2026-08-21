@@ -9,14 +9,14 @@ import net.minecraft.world.item.ItemStack;
 public class TypedItemStackHandler extends FixedSizeItemStackHandler {
     private final TagKey<Item> deviceType;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public TypedItemStackHandler(final int size, final TagKey<Item> deviceType) {
         super(size);
         this.deviceType = deviceType;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public boolean isItemValid(final int slot, final ItemStack stack) {

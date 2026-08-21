@@ -16,21 +16,21 @@ import java.time.Duration;
 public final class RobotRotationAction extends AbstractRobotAction {
     public static final float TARGET_EPSILON = 0.0001f;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final float ROTATION_SPEED = 90f / TickUtils.toTicks(Duration.ofSeconds(1)); // degrees per tick
 
     private static final String DIRECTION_TAG_NAME = "direction";
     private static final String TARGET_TAG_NAME = "start";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Nullable
     private RotationDirection direction;
     @Nullable
     private Direction target;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public RobotRotationAction(final RotationDirection direction) {
         super(RobotActions.ROTATION);
@@ -41,13 +41,13 @@ public final class RobotRotationAction extends AbstractRobotAction {
         super(RobotActions.ROTATION, tag);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void rotateTowards(final Robot robot, final Direction targetRotation) {
         robot.setYRot(Mth.approachDegrees(robot.getYRot(), targetRotation.toYRot(), ROTATION_SPEED));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void initialize(final Robot robot) {

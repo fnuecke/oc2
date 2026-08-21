@@ -16,12 +16,12 @@ public final class RedstoneInterfaceCardItemDeviceProvider extends AbstractItemD
         super(Items.REDSTONE_INTERFACE_CARD);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
         return query.getContainerBlockEntity().map(blockEntity ->
-                new RedstoneInterfaceCardItemDevice(query.getItemStack(), blockEntity));
+            new RedstoneInterfaceCardItemDevice(query.getItemStack(), blockEntity));
     }
 
     @Override

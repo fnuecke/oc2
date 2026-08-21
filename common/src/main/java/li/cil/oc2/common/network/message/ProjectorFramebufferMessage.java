@@ -12,7 +12,7 @@ public final class ProjectorFramebufferMessage extends AbstractMessage {
     private BlockPos pos;
     private byte[] frame;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ProjectorFramebufferMessage(final BlockPos projectorPos, final byte[] frame) {
         this.pos = projectorPos;
@@ -23,7 +23,7 @@ public final class ProjectorFramebufferMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -37,11 +37,11 @@ public final class ProjectorFramebufferMessage extends AbstractMessage {
         buffer.writeByteArray(frame);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, ProjectorBlockEntity.class,
-                projector -> projector.applyNextFrameClient(frame));
+            projector -> projector.applyNextFrameClient(frame));
     }
 }

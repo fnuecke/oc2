@@ -24,7 +24,7 @@ public final class RpcRoundtripTests {
     private static final String BATCH = "oc2_rpc_roundtrip";
     private static final String SUITE = "rpc_roundtrip";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
     public static void guestClientsTalkToTheRealHost(final GameTestHelper helper) {
@@ -35,27 +35,27 @@ public final class RpcRoundtripTests {
         final GuestTests tests = computer.guestTests();
 
         helper.startSequence()
-                .thenExecuteAfter(20, () -> computer
-                        .install(DeviceTypes.FLASH_MEMORY, new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
-                        .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
-                        .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
-                        .install(DeviceTypes.HARD_DRIVE, new ItemStack(Items.HARD_DRIVE_CUSTOM.get()))
-                        .install(DeviceTypes.CARD, new ItemStack(Items.REDSTONE_INTERFACE_CARD.get()))
-                        .install(DeviceTypes.CARD, new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get())))
-                .thenExecuteAfter(20, computer::start)
-                .thenWaitUntil(() -> {
-                    computer.assertNoGuestPanic();
-                    tests.requireReady();
-                })
-                .thenExecute(() -> tests.run(SUITE))
-                .thenWaitUntil(() -> {
-                    computer.assertNoGuestPanic();
-                    tests.requireSuccess();
-                })
-                .thenSucceed();
+            .thenExecuteAfter(20, () -> computer
+                .install(DeviceTypes.FLASH_MEMORY, new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
+                .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
+                .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
+                .install(DeviceTypes.HARD_DRIVE, new ItemStack(Items.HARD_DRIVE_CUSTOM.get()))
+                .install(DeviceTypes.CARD, new ItemStack(Items.REDSTONE_INTERFACE_CARD.get()))
+                .install(DeviceTypes.CARD, new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get())))
+            .thenExecuteAfter(20, computer::start)
+            .thenWaitUntil(() -> {
+                computer.assertNoGuestPanic();
+                tests.requireReady();
+            })
+            .thenExecute(() -> tests.run(SUITE))
+            .thenWaitUntil(() -> {
+                computer.assertNoGuestPanic();
+                tests.requireSuccess();
+            })
+            .thenSucceed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private RpcRoundtripTests() {
     }

@@ -30,21 +30,21 @@ import java.util.WeakHashMap;
 public final class FakePlayerUtilsImpl {
     private static final Map<ServerLevel, ServerPlayer> FAKE_PLAYERS = new WeakHashMap<>();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
         ServerWorldEvents.UNLOAD.register((server, level) -> FAKE_PLAYERS.remove(level));
 
         FakePlayers.EVENT.register(player -> player instanceof FabricFakePlayer
-                ? EventResult.interruptTrue()
-                : EventResult.pass());
+            ? EventResult.interruptTrue()
+            : EventResult.pass());
     }
 
     public static ServerPlayer getFakePlayer(final ServerLevel level) {
         return FAKE_PLAYERS.computeIfAbsent(level, l -> new FabricFakePlayer(l, FakePlayerUtils.getFakePlayerProfile()));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final class FabricFakePlayer extends ServerPlayer {
         private FabricFakePlayer(final ServerLevel level, final GameProfile profile) {

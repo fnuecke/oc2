@@ -23,7 +23,7 @@ public class ModBlockItem extends BlockItem {
         this(block, createProperties());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     @Override
@@ -32,7 +32,7 @@ public class ModBlockItem extends BlockItem {
         super.appendHoverText(stack, context, tooltip, flag);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected static Properties createProperties() {
         return new Properties();

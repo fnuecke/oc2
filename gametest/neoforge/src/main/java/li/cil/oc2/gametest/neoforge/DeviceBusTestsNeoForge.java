@@ -34,7 +34,7 @@ public final class DeviceBusTestsNeoForge {
         DeviceBusTests.busReachesAcrossChunkBoundary(helper);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private DeviceBusTestsNeoForge() {
     }

@@ -66,7 +66,7 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
         }
 
         robot.moveTo(position.x, position.y - robot.getBbHeight() * 0.5f, position.z,
-                Direction.fromYRot(context.getRotation()).getOpposite().toYRot(), 0);
+            Direction.fromYRot(context.getRotation()).getOpposite().toYRot(), 0);
         if (!level.noCollision(robot)) {
             return super.useOn(context);
         }
@@ -96,7 +96,7 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
     }
 
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private ItemStack getRobotWithFlash(final HolderLookup.Provider provider) {
         final ItemStack robot = new ItemStack(this);
@@ -104,7 +104,7 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
         ItemStackUtils.modifyModDataTag(robot, tag -> {
             final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
             itemsTag.put(key(DeviceTypes.FLASH_MEMORY), makeInventoryTag(provider,
-                    new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
+                new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
             ));
         });
 

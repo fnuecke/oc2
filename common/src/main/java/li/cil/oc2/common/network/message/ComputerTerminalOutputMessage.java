@@ -18,11 +18,11 @@ public final class ComputerTerminalOutputMessage extends AbstractTerminalBlockMe
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, ComputerBlockEntity.class,
-                computer -> computer.getTerminal().putOutput(ByteBuffer.wrap(data)));
+            computer -> computer.getTerminal().putOutput(ByteBuffer.wrap(data)));
     }
 }

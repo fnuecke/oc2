@@ -16,7 +16,7 @@ public final class NetworkInterfaceCardItemDeviceProvider extends AbstractItemDe
         super(Items.NETWORK_INTERFACE_CARD);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {

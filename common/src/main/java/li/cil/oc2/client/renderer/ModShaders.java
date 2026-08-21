@@ -20,12 +20,12 @@ public final class ModShaders {
     private static final String[] PROJECTOR_DEPTH_NAMES = {"ProjectorDepth0", "ProjectorDepth1", "ProjectorDepth2"};
     private static final String[] PROJECTOR_CAMERA_NAMES = {"ProjectorCamera0", "ProjectorCamera1", "ProjectorCamera2"};
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static ShaderInstance projectorsShader;
     private static ShaderInstance terminalShader;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Nullable
     public static ShaderInstance getProjectorsShader() {
@@ -39,12 +39,12 @@ public final class ModShaders {
 
     @SuppressWarnings("ConstantConditions") // Setting samples to null to clear them is fine.
     public static void configureProjectorsShader(
-            final RenderTarget target,
-            final Matrix4f inverseCameraMatrix,
-            final DynamicTexture[] colors,
-            final RenderTarget[] depths,
-            final Matrix4f[] projectorCameraMatrices,
-            final int count
+        final RenderTarget target,
+        final Matrix4f inverseCameraMatrix,
+        final DynamicTexture[] colors,
+        final RenderTarget[] depths,
+        final Matrix4f[] projectorCameraMatrices,
+        final int count
     ) {
         final int projectorCount = Math.min(count, MAX_PROJECTORS);
         projectorsShader.safeGetUniform("Count").set(projectorCount);

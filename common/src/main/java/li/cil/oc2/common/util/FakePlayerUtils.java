@@ -13,7 +13,7 @@ import net.minecraft.world.entity.Entity;
 public final class FakePlayerUtils {
     private static final String FAKE_PLAYER_NAME = "[" + API.MOD_ID + "]";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static ServerPlayer getFakePlayer(final ServerLevel level, final Entity entity) {
         final ServerPlayer player = getFakePlayer(level);

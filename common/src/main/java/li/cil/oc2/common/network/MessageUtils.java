@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 public final class MessageUtils {
     private static final int INTERACTION_DISTANCE = 8;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static <T extends BlockEntity> void withNearbyServerBlockEntityForInteraction(final NetworkManager.PacketContext context, final BlockPos pos, final Class<T> type, final BiConsumer<ServerPlayer, T> callback) {
         withNearbyServerBlockEntity(context, pos, type, INTERACTION_DISTANCE, callback);
@@ -27,7 +27,7 @@ public final class MessageUtils {
     @SuppressWarnings("unchecked")
     public static <T extends BlockEntity> void withNearbyServerBlockEntity(final NetworkManager.PacketContext context, final BlockPos pos, final Class<T> type, final int maxDistance, final BiConsumer<ServerPlayer, T> callback) {
         if (!(context.getPlayer() instanceof final ServerPlayer player)
-                || !pos.closerToCenterThan(player.position(), maxDistance)) {
+            || !pos.closerToCenterThan(player.position(), maxDistance)) {
             return;
         }
 

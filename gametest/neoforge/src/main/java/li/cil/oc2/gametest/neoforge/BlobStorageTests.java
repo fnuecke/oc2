@@ -43,7 +43,7 @@ public final class BlobStorageTests {
     private static final String BLOB_HANDLE_TAG_NAME = "blob";
     private static final long ANCIENT_MILLIS = 1000L;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE)
     public static void capacityIsClampedToConfiguredMaximum(final GameTestHelper helper) {
@@ -57,7 +57,7 @@ public final class BlobStorageTests {
             final int capacity = item.getCapacity(stack);
             if (capacity != Config.maxBlobCapacity) {
                 throw new GameTestAssertException("Hand crafted capacity was not clamped: expected "
-                        + Config.maxBlobCapacity + ", got " + capacity);
+                    + Config.maxBlobCapacity + ", got " + capacity);
             }
         } finally {
             Config.maxBlobCapacity = originalMaximum;
@@ -77,7 +77,7 @@ public final class BlobStorageTests {
 
             if (item.getCapacity(stack) != 12345) {
                 throw new GameTestAssertException("A maximum of zero should mean no limit, got "
-                        + item.getCapacity(stack));
+                    + item.getCapacity(stack));
             }
         } finally {
             Config.maxBlobCapacity = originalMaximum;
@@ -93,7 +93,7 @@ public final class BlobStorageTests {
         try {
             BlobStorage.open(handle, false);
             throw new GameTestAssertException("Opening a blob that does not exist must fail rather than "
-                    + "silently handing out a blank one");
+                + "silently handing out a blank one");
         } catch (final BlobStorage.BlobMissingException e) {
             // Expected.
         } catch (final IOException e) {
@@ -112,7 +112,7 @@ public final class BlobStorageTests {
             try {
                 BlobStorage.open(handle, true);
                 throw new GameTestAssertException("Opening a blob that is already in use must fail, or two "
-                        + "duplicated drives would corrupt each other");
+                    + "duplicated drives would corrupt each other");
             } catch (final BlobStorage.BlobInUseException e) {
                 // Expected.
             }
@@ -181,7 +181,7 @@ public final class BlobStorageTests {
 
             if (!BlobStorage.exists(inUse) || !channel.isOpen()) {
                 throw new GameTestAssertException("A blob that is currently open must never be evicted, or "
-                        + "we pull data out from under a running machine");
+                    + "we pull data out from under a running machine");
             }
             if (BlobStorage.exists(evictable)) {
                 throw new GameTestAssertException("The closed blob should have been evicted instead");
@@ -208,7 +208,7 @@ public final class BlobStorageTests {
             // is what makes this test say anything about the grace period at all.
             final UUID stale = createClosedBlob(handles, ANCIENT_MILLIS);
             final UUID recent = createClosedBlob(handles,
-                    System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1));
+                System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1));
 
             Config.maxBlobCount = BlobStorage.getBlobCount();
 
@@ -252,7 +252,7 @@ public final class BlobStorageTests {
             }
             if (!Files.exists(trashDirectory.resolve(evicted.toString()))) {
                 throw new GameTestAssertException("An evicted blob should be kept in the trash directory under "
-                        + "its original name, so it can be recovered by moving it back");
+                    + "its original name, so it can be recovered by moving it back");
             }
 
             Files.deleteIfExists(trashDirectory.resolve(evicted.toString()));
@@ -295,7 +295,7 @@ public final class BlobStorageTests {
 
             if (trashedCount > Config.maxTrashedBlobCount) {
                 throw new GameTestAssertException("Trash should have been trimmed to "
-                        + Config.maxTrashedBlobCount + ", holds " + trashedCount);
+                    + Config.maxTrashedBlobCount + ", holds " + trashedCount);
             }
             if (Files.exists(trashDirectory.resolve(first.toString()))) {
                 throw new GameTestAssertException("Trash should drop its oldest entry first");
@@ -336,7 +336,7 @@ public final class BlobStorageTests {
             }
             if (BlobStorage.exists(handle)) {
                 throw new GameTestAssertException("Resetting the item should delete the blob it referenced, "
-                        + "otherwise players can orphan blobs at will");
+                    + "otherwise players can orphan blobs at will");
             }
         } catch (final IOException e) {
             throw new GameTestAssertException("Unexpected failure: " + e);
@@ -357,7 +357,7 @@ public final class BlobStorageTests {
 
             if (!BlobStorage.exists(handle)) {
                 throw new GameTestAssertException("A blob still in use by a duplicate of the item must not be "
-                        + "deleted when one copy is reset");
+                    + "deleted when one copy is reset");
             }
         } catch (final IOException e) {
             throw new GameTestAssertException("Unexpected failure: " + e);
@@ -383,7 +383,7 @@ public final class BlobStorageTests {
             }
             if (!BlobStorage.exists(handle)) {
                 throw new GameTestAssertException("Stripping is used to compute crafting previews, which are "
-                        + "speculative, so it must never touch the blob");
+                    + "speculative, so it must never touch the blob");
             }
         } catch (final IOException e) {
             throw new GameTestAssertException("Unexpected failure: " + e);
@@ -401,8 +401,8 @@ public final class BlobStorageTests {
         final ItemStack healthy = new ItemStack(Items.HARD_DRIVE_LARGE.get());
         if (recipe.matches(gridOf(healthy, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
             throw new GameTestAssertException("Resetting must not apply to a healthy drive, or players would "
-                    + "wipe good drives by accident and it would fight the wrench "
-                    + "recipes that convert drives");
+                + "wipe good drives by accident and it would fight the wrench "
+                + "recipes that convert drives");
         }
 
         final ItemStack corrupted = new ItemStack(Items.HARD_DRIVE_LARGE.get());
@@ -423,14 +423,14 @@ public final class BlobStorageTests {
         StorageItemUtils.setCorrupted(corrupted);
 
         final ItemStack result = recipe.assemble(
-                gridOf(corrupted, new ItemStack(Items.WRENCH.get())), helper.getLevel().registryAccess());
+            gridOf(corrupted, new ItemStack(Items.WRENCH.get())), helper.getLevel().registryAccess());
 
         if (!result.is(item)) {
             throw new GameTestAssertException("Reset should hand back the same kind of drive");
         }
         if (item.getCapacity(result) != 2 * 1024 * 1024) {
             throw new GameTestAssertException("Reset must keep the drive's capacity, got "
-                    + item.getCapacity(result));
+                + item.getCapacity(result));
         }
         if (StorageItemUtils.isCorrupted(result)) {
             throw new GameTestAssertException("Reset should hand back a drive that is no longer corrupted");
@@ -443,10 +443,10 @@ public final class BlobStorageTests {
     public static void wrenchRecipeStepsAsideForCorruptedDrives(final GameTestHelper helper) {
         // Mirrors the data generated recipe that turns a large hard drive into one with custom data.
         final WrenchRecipe recipe = new WrenchRecipe(new ShapelessRecipe("", CraftingBookCategory.MISC,
-                new ItemStack(Items.HARD_DRIVE_CUSTOM.get()),
-                NonNullList.of(Ingredient.EMPTY,
-                        Ingredient.of(Items.HARD_DRIVE_LARGE.get()),
-                        Ingredient.of(Items.WRENCH.get()))));
+            new ItemStack(Items.HARD_DRIVE_CUSTOM.get()),
+            NonNullList.of(Ingredient.EMPTY,
+                Ingredient.of(Items.HARD_DRIVE_LARGE.get()),
+                Ingredient.of(Items.WRENCH.get()))));
 
         final ItemStack healthy = new ItemStack(Items.HARD_DRIVE_LARGE.get());
         if (!recipe.matches(gridOf(healthy, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
@@ -457,14 +457,14 @@ public final class BlobStorageTests {
         StorageItemUtils.setCorrupted(corrupted);
         if (recipe.matches(gridOf(corrupted, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
             throw new GameTestAssertException("A corrupted drive must be reset before it can be converted, "
-                    + "otherwise this recipe and the reset recipe both match the "
-                    + "same inputs and which one wins is anyone's guess");
+                + "otherwise this recipe and the reset recipe both match the "
+                + "same inputs and which one wins is anyone's guess");
         }
 
         helper.succeed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static CraftingInput gridOf(final ItemStack... stacks) {
         return CraftingInput.of(stacks.length, 1, List.of(stacks));

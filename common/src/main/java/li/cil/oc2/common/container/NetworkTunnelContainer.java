@@ -46,13 +46,13 @@ public final class NetworkTunnelContainer extends AbstractContainer {
         return new NetworkTunnelContainer(id, player, hand);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final Player player;
     private final InteractionHand hand;
     private final Container linkSlot = new SimpleContainer(1);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private NetworkTunnelContainer(final int id, final Player player, final InteractionHand hand) {
         super(Containers.NETWORK_TUNNEL.get(), id);
@@ -65,7 +65,7 @@ public final class NetworkTunnelContainer extends AbstractContainer {
         addSlot(new DeviceTypeSlot(linkSlot, DeviceTypes.NETWORK_TUNNEL, 0, 80, 51));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public boolean hasLinkSlotItem() {
         return !linkSlot.getItem(0).isEmpty();
@@ -76,9 +76,9 @@ public final class NetworkTunnelContainer extends AbstractContainer {
         final ItemStack tunnelB = linkSlot.getItem(0);
 
         if (tunnelA.isEmpty() ||
-                tunnelB.isEmpty() ||
-                !tunnelA.is(ItemTags.DEVICES_NETWORK_TUNNEL) ||
-                !tunnelB.is(ItemTags.DEVICES_NETWORK_TUNNEL)) {
+            tunnelB.isEmpty() ||
+            !tunnelA.is(ItemTags.DEVICES_NETWORK_TUNNEL) ||
+            !tunnelB.is(ItemTags.DEVICES_NETWORK_TUNNEL)) {
             return;
         }
 
@@ -101,14 +101,14 @@ public final class NetworkTunnelContainer extends AbstractContainer {
         return player.getItemInHand(hand).is(ItemTags.DEVICES_NETWORK_TUNNEL);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected boolean isSlotLocked(final Inventory inventory, final int slot) {
         return inventory.getItem(slot) == player.getItemInHand(hand);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private int getHandSlot() {
         final Inventory inventory = player.getInventory();

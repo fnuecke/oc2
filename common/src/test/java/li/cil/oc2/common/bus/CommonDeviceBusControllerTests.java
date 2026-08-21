@@ -68,7 +68,7 @@ public class CommonDeviceBusControllerTests {
 
         when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement1))));
         when(busElement1.getNeighbors()).thenReturn(Optional.of(
-                Set.of(Invalidatable.of(busControllerBusElement), Invalidatable.of(busElement2))));
+            Set.of(Invalidatable.of(busControllerBusElement), Invalidatable.of(busElement2))));
         when(busElement2.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement1))));
 
         busController.scan();

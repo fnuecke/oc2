@@ -8,13 +8,13 @@ import java.util.Objects;
 public abstract class IdentityProxy<T> {
     protected final T identity;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public IdentityProxy(final T identity) {
         this.identity = identity;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public boolean equals(@Nullable final Object o) {

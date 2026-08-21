@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 public class FixedSizeItemStackHandler extends ItemStackHandler {
     private static final String SIZE_TAG_NAME = "Size";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public FixedSizeItemStackHandler(final int size) {
         super(size);
@@ -21,7 +21,7 @@ public class FixedSizeItemStackHandler extends ItemStackHandler {
         super(stacks);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public boolean isEmpty() {
         for (int slot = 0; slot < getSlots(); slot++) {

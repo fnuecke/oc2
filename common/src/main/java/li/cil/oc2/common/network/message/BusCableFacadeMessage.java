@@ -13,7 +13,7 @@ public final class BusCableFacadeMessage extends AbstractMessage {
     private BlockPos pos;
     private ItemStack stack;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public BusCableFacadeMessage(final BlockPos pos, final ItemStack stack) {
         this.pos = pos;
@@ -24,7 +24,7 @@ public final class BusCableFacadeMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -38,11 +38,11 @@ public final class BusCableFacadeMessage extends AbstractMessage {
         ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, stack);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, BusCableBlockEntity.class,
-                busCable -> busCable.setFacade(stack));
+            busCable -> busCable.setFacade(stack));
     }
 }

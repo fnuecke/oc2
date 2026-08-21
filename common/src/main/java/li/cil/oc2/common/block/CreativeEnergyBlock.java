@@ -20,14 +20,14 @@ import javax.annotation.Nullable;
 public final class CreativeEnergyBlock extends Block implements EntityBlock {
     public CreativeEnergyBlock() {
         super(Properties
-                .of()
-                .mapColor(MapColor.METAL)
-                .sound(SoundType.METAL)
-                .strength(-1, 3600000)
-                .noLootTable());
+            .of()
+            .mapColor(MapColor.METAL)
+            .sound(SoundType.METAL)
+            .strength(-1, 3600000)
+            .noLootTable());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
     // EntityBlock
 
     @Nullable

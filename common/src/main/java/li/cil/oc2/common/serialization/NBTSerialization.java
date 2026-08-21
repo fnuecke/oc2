@@ -52,7 +52,7 @@ public final class NBTSerialization {
         return deserialize(tag, type, into);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final String IS_NULL_KEY = "<is_null>";
     private static final Map<Class<?>, ArraySerializer> ARRAY_SERIALIZERS;
@@ -348,7 +348,7 @@ public final class NBTSerialization {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private interface ArraySerializer {
         Tag serialize(Object value);

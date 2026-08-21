@@ -47,21 +47,21 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     private static final Material TEXTURE_TERMINAL = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_TERMINAL_LOCATION);
 
     private static final Cache<Terminal, Terminal.RendererView> rendererViews = CacheBuilder.newBuilder()
-            .expireAfterAccess(Duration.ofSeconds(5))
-            .removalListener(ComputerRenderer::handleNoLongerRendering)
-            .build();
+        .expireAfterAccess(Duration.ofSeconds(5))
+        .removalListener(ComputerRenderer::handleNoLongerRendering)
+        .build();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final BlockEntityRenderDispatcher renderer;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ComputerRenderer(final BlockEntityRendererProvider.Context context) {
         this.renderer = context.getBlockEntityRenderDispatcher();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void render(final ComputerBlockEntity computer, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
@@ -129,7 +129,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         stack.popPose();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void renderTerminal(final ComputerBlockEntity computer, final PoseStack stack, final MultiBufferSource bufferSource, final Vec3 cameraPosition) {
         // Render terminal content if close enough.
@@ -147,9 +147,9 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
             final float scaleDeltaX = textScaleX - scale;
             final float scaleDeltaY = textScaleY - scale;
             stack.translate(
-                    terminal.getWidth() * scaleDeltaX * 0.5f,
-                    terminal.getHeight() * scaleDeltaY * 0.5f,
-                    0f);
+                terminal.getWidth() * scaleDeltaX * 0.5f,
+                terminal.getHeight() * scaleDeltaY * 0.5f,
+                0f);
 
             stack.scale(scale, scale, 1f);
 
@@ -159,7 +159,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
 
             try {
                 rendererViews.get(terminal, terminal::getRenderer)
-                        .render(stack, RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix());
+                    .render(stack, RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix());
             } catch (final ExecutionException e) {
                 throw new RuntimeException(e);
             }
@@ -218,7 +218,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     private static void drawTextLine(final Font font, final String text, final float x, final float y,
                                      final Matrix4f matrix, final MultiBufferSource bufferSource) {
         font.drawInBatch(text, x, y, 0xFFEE3322, false, matrix, bufferSource,
-                Font.DisplayMode.NORMAL, 0, LightTexture.pack(15, 15));
+            Font.DisplayMode.NORMAL, 0, LightTexture.pack(15, 15));
     }
 
     private void renderStatus(final Matrix4f matrix, final MultiBufferSource bufferSource) {
@@ -237,16 +237,16 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
 
     private static void renderQuad(final Matrix4f matrix, final VertexConsumer consumer) {
         consumer.addVertex(matrix, 0, 0, 0)
-                .setUv(0, 0);
+            .setUv(0, 0);
 
         consumer.addVertex(matrix, 0, 16, 0)
-                .setUv(0, 1);
+            .setUv(0, 1);
 
         consumer.addVertex(matrix, 16, 16, 0)
-                .setUv(1, 1);
+            .setUv(1, 1);
 
         consumer.addVertex(matrix, 16, 0, 0)
-                .setUv(1, 0);
+            .setUv(1, 0);
     }
 
     public static void initialize() {

@@ -13,7 +13,7 @@ public final class TerminalBell {
     public static void play() {
         final Minecraft client = Minecraft.getInstance();
         client.execute(() -> client.getSoundManager().play(
-                SimpleSoundInstance.forUI(NoteBlockInstrument.PLING.getSoundEvent(), 1)));
+            SimpleSoundInstance.forUI(NoteBlockInstrument.PLING.getSoundEvent(), 1)));
     }
 
     private TerminalBell() {

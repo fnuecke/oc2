@@ -15,7 +15,7 @@ public class SlotItemHandler extends Slot {
     private final ItemHandler itemHandler;
     private final int index;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public SlotItemHandler(final ItemHandler itemHandler, final int index, final int xPosition, final int yPosition) {
         super(EMPTY_CONTAINER, index, xPosition, yPosition);
@@ -23,7 +23,7 @@ public class SlotItemHandler extends Slot {
         this.index = index;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ItemHandler getItemHandler() {
         return itemHandler;
@@ -57,8 +57,8 @@ public class SlotItemHandler extends Slot {
     @Override
     public int getMaxStackSize() {
         return itemHandler instanceof final ItemStackHandler handler
-                ? handler.getSlotLimit(index)
-                : super.getMaxStackSize();
+            ? handler.getSlotLimit(index)
+            : super.getMaxStackSize();
     }
 
     @Override

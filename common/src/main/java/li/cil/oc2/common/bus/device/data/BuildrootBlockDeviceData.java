@@ -15,7 +15,7 @@ import java.io.IOException;
 public final class BuildrootBlockDeviceData implements BlockDeviceData {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final ByteBufferBlockDevice INSTANCE;
 
@@ -30,7 +30,7 @@ public final class BuildrootBlockDeviceData implements BlockDeviceData {
         INSTANCE = instance;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public BlockDevice getBlockDevice() {

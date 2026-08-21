@@ -32,7 +32,7 @@ public final class NetworkInterfaceCardItem extends ModItem {
     private static final String SIDE_CONFIGURATION_TAG_NAME = "sides";
     private static final Component IS_CONFIGURED_TEXT = withFormat(text("item.{mod}.network_interface_card.is_configured"), ChatFormatting.GREEN);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void setSideConfiguration(final ItemStack stack, final Direction side, final boolean enabled) {
         final int index = side.get3DDataValue();
@@ -40,7 +40,7 @@ public final class NetworkInterfaceCardItem extends ModItem {
         final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
         final byte[] values;
         if (tag.contains(SIDE_CONFIGURATION_TAG_NAME, NBTTagIds.TAG_BYTE_ARRAY) &&
-                tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME).length == Constants.BLOCK_FACE_COUNT) {
+            tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME).length == Constants.BLOCK_FACE_COUNT) {
             values = tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME);
         } else {
             values = new byte[Constants.BLOCK_FACE_COUNT];
@@ -81,7 +81,7 @@ public final class NetworkInterfaceCardItem extends ModItem {
         return false;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
 
     @Override
@@ -105,7 +105,7 @@ public final class NetworkInterfaceCardItem extends ModItem {
         return InteractionResultHolder.sidedSuccess(itemStack, player.level().isClientSide());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     private void openConfigurationScreen(final Player player, final InteractionHand hand) {

@@ -24,8 +24,8 @@ public final class EnergyStorageItemStack implements EnergyStorage {
         final long receive = Math.min(maxReceive, receiveLimit);
         if (!simulate) {
             ItemStackUtils.modifyModDataTag(stack, tag ->
-                    NBTUtils.getOrCreateChildTag(tag, tagPath)
-                            .putInt(FixedEnergyStorage.STORED_TAG_NAME, (int) (stored + receive)));
+                NBTUtils.getOrCreateChildTag(tag, tagPath)
+                    .putInt(FixedEnergyStorage.STORED_TAG_NAME, (int) (stored + receive)));
         }
         return receive;
     }

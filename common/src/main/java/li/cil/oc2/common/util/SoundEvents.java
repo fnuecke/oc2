@@ -12,7 +12,7 @@ import net.minecraft.sounds.SoundEvent;
 public final class SoundEvents {
     private static final DeferredRegister<SoundEvent> SOUNDS = RegistryUtils.getInitializerFor(Registries.SOUND_EVENT);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final RegistrySupplier<SoundEvent> COMPUTER_RUNNING = register("computer_running");
     public static final RegistrySupplier<SoundEvent> FLOPPY_ACCESS = register("floppy_access");
@@ -20,12 +20,12 @@ public final class SoundEvents {
     public static final RegistrySupplier<SoundEvent> FLOPPY_INSERT = register("floppy_insert");
     public static final RegistrySupplier<SoundEvent> HDD_ACCESS = register("hdd_access");
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static RegistrySupplier<SoundEvent> register(final String name) {
         return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name)));

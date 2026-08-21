@@ -18,7 +18,7 @@ public final class FileImportExportCardItemDeviceProvider extends AbstractItemDe
         super(Items.FILE_IMPORT_EXPORT_CARD);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected boolean matches(final ItemDeviceQuery query) {
@@ -28,7 +28,7 @@ public final class FileImportExportCardItemDeviceProvider extends AbstractItemDe
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
         return getTerminalUserProvider(query).map(provider ->
-                new FileImportExportCardItemDevice(query.getItemStack(), provider));
+            new FileImportExportCardItemDevice(query.getItemStack(), provider));
     }
 
     @Override
@@ -36,12 +36,12 @@ public final class FileImportExportCardItemDeviceProvider extends AbstractItemDe
         return Config.fileImportExportCardEnergyPerTick;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private Optional<TerminalUserProvider> getTerminalUserProvider(final ItemDeviceQuery query) {
         if (query.getContainerBlockEntity().isPresent()) {
             final TerminalUserProvider provider = Capabilities.get(
-                    query.getContainerBlockEntity().get(), Capabilities.TERMINAL_USER_PROVIDER, null);
+                query.getContainerBlockEntity().get(), Capabilities.TERMINAL_USER_PROVIDER, null);
             if (provider != null) {
                 return Optional.of(provider);
             }
@@ -49,7 +49,7 @@ public final class FileImportExportCardItemDeviceProvider extends AbstractItemDe
 
         if (query.getContainerEntity().isPresent()) {
             final TerminalUserProvider provider = Capabilities.get(
-                    query.getContainerEntity().get(), Capabilities.TERMINAL_USER_PROVIDER, null);
+                query.getContainerEntity().get(), Capabilities.TERMINAL_USER_PROVIDER, null);
             if (provider != null) {
                 return Optional.of(provider);
             }

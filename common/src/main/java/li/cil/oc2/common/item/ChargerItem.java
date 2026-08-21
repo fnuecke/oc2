@@ -12,7 +12,7 @@ public final class ChargerItem extends ModBlockItem implements CreativeTabItemPr
         super(block);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {

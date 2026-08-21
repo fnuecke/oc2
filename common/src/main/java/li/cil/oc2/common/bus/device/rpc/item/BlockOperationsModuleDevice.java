@@ -44,14 +44,14 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
     private static final int MIN_COOLDOWN = TickUtils.toTicks(Duration.ofSeconds(1));
     private static final int MAX_COOLDOWN = TickUtils.toTicks(Duration.ofSeconds(15));
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final Entity entity;
     private final Robot robot;
     private long lastOperation;
     private int cooldown = MIN_COOLDOWN;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public BlockOperationsModuleDevice(final ItemStack identity, final Entity entity, final Robot robot) {
         super(identity, "block_operations");
@@ -59,7 +59,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         this.robot = robot;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public CompoundTag serializeNBT() {
@@ -161,10 +161,10 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         final BlockPos blockPos = entity.blockPosition().relative(direction);
         final Direction oppositeDirection = direction.getOpposite();
         final BlockHitResult hit = new BlockHitResult(
-                Vec3.atCenterOf(blockPos).add(Vec3.atCenterOf(oppositeDirection.getNormal()).scale(0.5)),
-                oppositeDirection,
-                blockPos,
-                false);
+            Vec3.atCenterOf(blockPos).add(Vec3.atCenterOf(oppositeDirection.getNormal()).scale(0.5)),
+            oppositeDirection,
+            blockPos,
+            false);
 
         final ItemStack itemStack = extracted.copy();
         final ServerPlayer player = FakePlayerUtils.getFakePlayer(serverLevel, entity);
@@ -197,7 +197,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         return tool.getMaxDamage() - tool.getDamageValue();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void beginCooldown(final int ticks) {
         lastOperation = entity.level().getGameTime();

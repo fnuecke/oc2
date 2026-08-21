@@ -48,11 +48,11 @@ public final class RPCEventChannelTests {
         busController = mock(DeviceBusController.class);
         when(busController.getDevices()).thenReturn(devices);
         when(busController.getDeviceIdentifiers(any()))
-                .then(invocation -> identifiers.get(invocation.getArgument(0)));
+            .then(invocation -> identifiers.get(invocation.getArgument(0)));
         return new RPCDeviceBusAdapter(serialDevice, blobDevice, events);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Test
     public void deviceChangeIsAnnounced() {
@@ -63,7 +63,7 @@ public final class RPCEventChannelTests {
         final JsonObject event = event();
         assertEquals("devicesChanged", event.get("type").getAsString());
         assertEquals(request("list").get("gen").getAsInt(), event.get("gen").getAsInt(),
-                "the event must report the generation the next reply will report");
+            "the event must report the generation the next reply will report");
     }
 
     @Test
@@ -100,7 +100,7 @@ public final class RPCEventChannelTests {
 
         assertNull(eventDevice.readMessageAsVM(), "exactly three changes, exactly three events");
         assertEquals(previous, request("list").get("gen").getAsInt(),
-                "the last event must carry the generation the next reply reports");
+            "the last event must carry the generation the next reply reports");
     }
 
     @Test
@@ -123,7 +123,7 @@ public final class RPCEventChannelTests {
         drained.flush();
         assertTrue(reader.drainAsVM().length > 0, "precondition: the queue drained");
         assertTrue(drained.addEvent(RPCMessageChannel.frame(kilobyte)),
-                "the queue never recovered after being drained");
+            "the queue never recovered after being drained");
     }
 
     @Test
@@ -156,7 +156,7 @@ public final class RPCEventChannelTests {
 
         channel.addEvent(RPCMessageChannel.frame(kilobyte));
         assertEquals(0, channel.takeDropped(),
-                "a second notice would have queued up after the first");
+            "a second notice would have queued up after the first");
     }
 
     @Test
@@ -176,7 +176,7 @@ public final class RPCEventChannelTests {
 
         channel.flush();
         assertTrue(channel.takeDropped() > 0,
-                "a refusal while the notice was pending was never reported");
+            "a refusal while the notice was pending was never reported");
     }
 
     @Test
@@ -189,7 +189,7 @@ public final class RPCEventChannelTests {
         boolean refused = false;
         for (int i = 0; i < 4000 && !refused; i++) {
             refused = !adapter.addEvent(RobotActionCompletedEvent.TYPE,
-                    new RobotActionCompletedEvent(i, RobotActionResult.SUCCESS));
+                new RobotActionCompletedEvent(i, RobotActionResult.SUCCESS));
             adapter.step(0);
         }
         assertTrue(refused, "precondition: the queue never filled up");
@@ -209,7 +209,7 @@ public final class RPCEventChannelTests {
         assertNotNull(notice, "the guest was never told it had missed events");
         assertTrue(notice.get("data").getAsInt() > 0, "the notice must say how many were lost");
         assertEquals(request("list").get("gen").getAsInt(), notice.get("gen").getAsInt(),
-                "the notice must carry the generation, since that is what corrects the guest");
+            "the notice must carry the generation, since that is what corrects the guest");
     }
 
     @Test
@@ -237,7 +237,7 @@ public final class RPCEventChannelTests {
         assertEquals(0, deafEvents.drainAsVM().length, "nothing should have been accepted");
 
         assertEquals("list", request("list").get("type").getAsString(),
-                "an undeliverable event blocked the RPC channel");
+            "an undeliverable event blocked the RPC channel");
     }
 
     @Test
@@ -304,7 +304,7 @@ public final class RPCEventChannelTests {
         }
 
         assertTrue(message.indexOf("devicesChanged") >= 0,
-                "a one-byte-at-a-time reader never received the event");
+            "a one-byte-at-a-time reader never received the event");
     }
 
     @Test
@@ -317,13 +317,13 @@ public final class RPCEventChannelTests {
 
         assertEquals(-1, eventDevice.read(), "the guest's bytes were left sitting in the queue");
         assertEquals("devicesChanged", event().get("type").getAsString(),
-                "the channel must still work after a guest wrote to it");
+            "the channel must still work after a guest wrote to it");
     }
 
     @Test
     public void deviceEventCarriesItsPayload() {
         assertTrue(adapter.addEvent(RobotActionCompletedEvent.TYPE,
-                new RobotActionCompletedEvent(7, RobotActionResult.FAILURE)));
+            new RobotActionCompletedEvent(7, RobotActionResult.FAILURE)));
         adapter.step(0);
 
         final JsonObject event = event();
@@ -332,7 +332,7 @@ public final class RPCEventChannelTests {
         final JsonObject data = event.getAsJsonObject("data");
         assertEquals(7, data.get("actionId").getAsInt());
         assertEquals("FAILURE", data.get("result").getAsString(),
-                "the guest compares the result by name");
+            "the guest compares the result by name");
     }
 
     @Test
@@ -344,7 +344,7 @@ public final class RPCEventChannelTests {
         final Thread producer = new Thread(() -> {
             for (int i = 0; i < count; i++) {
                 while (!adapter.addEvent(RobotActionCompletedEvent.TYPE,
-                        new RobotActionCompletedEvent(i, RobotActionResult.SUCCESS))) {
+                    new RobotActionCompletedEvent(i, RobotActionResult.SUCCESS))) {
                     Thread.onSpinWait(); // queue is full; let the reader catch up
                 }
             }
@@ -375,7 +375,7 @@ public final class RPCEventChannelTests {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private JsonObject event() {
         final String message = eventDevice.readMessageAsVM();

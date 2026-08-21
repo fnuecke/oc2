@@ -31,13 +31,13 @@ import static li.cil.oc2.common.bus.device.provider.Providers.optionalKey;
 public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDeviceBusElement<AbstractBlockDeviceBusElement.BlockEntry, BlockDeviceQuery> implements BlockDeviceBusElement {
     private final Invalidatable<?>[] neighbors = new Invalidatable<?>[Constants.BLOCK_FACE_COUNT];
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public AbstractBlockDeviceBusElement() {
         super(Constants.BLOCK_FACE_COUNT);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
     // DeviceBusElement
 
     @Override
@@ -69,7 +69,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         return Optional.of(neighbors);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void updateDevicesForNeighbor(final Direction side) {
         final LevelAccessor level = getLevel();
@@ -79,8 +79,8 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
 
         final int index = side.get3DDataValue();
         collectDevices(level, getPosition().relative(side), side).ifPresentOrElse(
-                queryResult -> setEntriesForGroup(index, queryResult),
-                () -> setEntriesForGroupUnloaded(index)
+            queryResult -> setEntriesForGroup(index, queryResult),
+            () -> setEntriesForGroupUnloaded(index)
         );
     }
 
@@ -102,7 +102,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         scheduleScan();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected boolean canScanContinueTowards(@Nullable final Direction direction) {
         return true;
@@ -168,7 +168,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected final class BlockQueryResult extends QueryResult {
         private final BlockDeviceQuery query;
@@ -262,7 +262,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @SuppressWarnings("unchecked")
     private Invalidatable<DeviceBusElement> getNeighbor(final LevelAccessor level, final BlockPos pos, final Direction side) {
@@ -274,7 +274,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         }
 
         final Invalidatable<DeviceBusElement> neighbor = Capabilities.watch(
-                level, pos, side.getOpposite(), Capabilities.DEVICE_BUS_ELEMENT);
+            level, pos, side.getOpposite(), Capabilities.DEVICE_BUS_ELEMENT);
         neighbors[index] = neighbor;
         return neighbor;
     }

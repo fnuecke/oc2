@@ -41,7 +41,7 @@ public final class RPCBusGenerationTests {
         busController = mock(DeviceBusController.class);
         when(busController.getDevices()).thenReturn(devices);
         when(busController.getDeviceIdentifiers(any()))
-                .then(invocation -> identifiers.get(invocation.getArgument(0)));
+            .then(invocation -> identifiers.get(invocation.getArgument(0)));
     }
 
     @Test
@@ -51,7 +51,7 @@ public final class RPCBusGenerationTests {
 
         final int gen = request("list").get("gen").getAsInt();
         assertEquals(gen, request("list").get("gen").getAsInt(),
-                "repeated list replies must report the same generation");
+            "repeated list replies must report the same generation");
     }
 
     @Test
@@ -61,7 +61,7 @@ public final class RPCBusGenerationTests {
         final int expected = generation();
 
         final JsonObject error = request("invoke", "\"data\":{\"deviceId\":\""
-                + UUID.randomUUID() + "\",\"name\":\"nope\",\"parameters\":[]}");
+            + UUID.randomUUID() + "\",\"name\":\"nope\",\"parameters\":[]}");
         assertEquals("error", error.get("type").getAsString());
         assertEquals(expected, error.get("gen").getAsInt(), "error reply carried the wrong generation");
 
@@ -103,7 +103,7 @@ public final class RPCBusGenerationTests {
             adapter.resume(busController, true);
             final int current = generation();
             assertTrue(current > previous,
-                    "generation must increase monotonically, went " + previous + " -> " + current);
+                "generation must increase monotonically, went " + previous + " -> " + current);
             previous = current;
         }
     }
@@ -120,7 +120,7 @@ public final class RPCBusGenerationTests {
         final JsonObject reply = request("list");
         assertNotEquals(before, reply.get("gen").getAsInt());
         assertEquals(2, reply.getAsJsonArray("data").size(),
-                "new generation was published with a stale device list");
+            "new generation was published with a stale device list");
     }
 
     @Test
@@ -142,10 +142,10 @@ public final class RPCBusGenerationTests {
         final int expected = generation();
 
         final JsonObject result = request("invoke", "\"data\":{\"deviceId\":\""
-                + onlyIdentifier() + "\",\"name\":\"ping\",\"parameters\":[]}");
+            + onlyIdentifier() + "\",\"name\":\"ping\",\"parameters\":[]}");
         assertEquals("result", result.get("type").getAsString(), result.toString());
         assertEquals(expected, result.get("gen").getAsInt(),
-                "result reply reported a different generation than list");
+            "result reply reported a different generation than list");
     }
 
     @Test
@@ -160,9 +160,9 @@ public final class RPCBusGenerationTests {
 
         doReturn(devices).when(busController).getDevices();
         assertEquals("list", request("list").get("type").getAsString(),
-                "the adapter stayed paused after a failed rebuild, so the machine is wedged");
+            "the adapter stayed paused after a failed rebuild, so the machine is wedged");
         assertEquals(before, generation(),
-                "generation moved even though the rebuild failed; guests would cache a list that was never published");
+            "generation moved even though the rebuild failed; guests would cache a list that was never published");
     }
 
     @Test
@@ -180,7 +180,7 @@ public final class RPCBusGenerationTests {
 
         final TestSerialDevice restoredSerial = new TestSerialDevice();
         final RPCDeviceBusAdapter restored = new RPCDeviceBusAdapter(
-                restoredSerial, new TestSerialDevice(), new TestSerialDevice());
+            restoredSerial, new TestSerialDevice(), new TestSerialDevice());
         BinarySerialization.deserialize(data, restored);
 
         restoredSerial.putAsVM("{\"type\":\"list\"}");
@@ -188,10 +188,10 @@ public final class RPCBusGenerationTests {
         final String reply = restoredSerial.readMessageAsVM();
         assertNotNull(reply, "the restored adapter answered nothing");
         assertEquals(saved, JsonParser.parseString(reply).getAsJsonObject().get("gen").getAsInt(),
-                "the generation did not survive the round trip");
+            "the generation did not survive the round trip");
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private int generation() {
         return request("list").get("gen").getAsInt();
@@ -203,7 +203,7 @@ public final class RPCBusGenerationTests {
 
     private JsonObject request(final String type, final String extra) {
         serialDevice.putAsVM("{\"type\":\"" + type + "\""
-                + (extra == null ? "" : "," + extra) + "}");
+            + (extra == null ? "" : "," + extra) + "}");
         adapter.step(0);
         final String message = serialDevice.readMessageAsVM();
         assertNotNull(message, "no reply to a " + type + " request");

@@ -52,11 +52,11 @@ public final class RPCInboundBlobTests {
         busController = mock(DeviceBusController.class);
         when(busController.getDevices()).thenReturn(devices);
         when(busController.getDeviceIdentifiers(any()))
-                .then(invocation -> identifiers.get(invocation.getArgument(0)));
+            .then(invocation -> identifiers.get(invocation.getArgument(0)));
         adapter.resume(busController, true);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Test
     public void payloadReachesTheCallback() {
@@ -150,7 +150,7 @@ public final class RPCInboundBlobTests {
     public void aPayloadOnANonInvocationIsRefused() {
         blobDevice.putRawAsVM(PAYLOAD);
         serialDevice.putAsVM("{\"type\":\"list\",\"blob\":{\"length\":" + PAYLOAD.length
-                + ",\"checksum\":" + CHECKSUM + "}}");
+            + ",\"checksum\":" + CHECKSUM + "}}");
         adapter.step(0);
 
         assertEquals(RPCDeviceBusAdapter.ERROR_MALFORMED_MESSAGE, reply().get("data").getAsString());
@@ -169,8 +169,8 @@ public final class RPCInboundBlobTests {
     public void twoMarkersInOneCallAreRefused() {
         blobDevice.putRawAsVM(PAYLOAD);
         serialDevice.putAsVM("{\"type\":\"invoke\",\"blob\":{\"length\":" + PAYLOAD.length
-                + ",\"checksum\":" + CHECKSUM + "},\"data\":{\"deviceId\":\"" + deviceId
-                + "\",\"name\":\"writeTwo\",\"parameters\":[{\"$blob\":true},{\"$blob\":true}]}}");
+            + ",\"checksum\":" + CHECKSUM + "},\"data\":{\"deviceId\":\"" + deviceId
+            + "\",\"name\":\"writeTwo\",\"parameters\":[{\"$blob\":true},{\"$blob\":true}]}}");
         adapter.step(0);
 
         assertEquals("error", reply().get("type").getAsString());
@@ -181,13 +181,13 @@ public final class RPCInboundBlobTests {
     public void aBinaryParameterOnASynchronizedCallbackIsRefusedClearly() {
         blobDevice.putRawAsVM(PAYLOAD);
         serialDevice.putAsVM("{\"type\":\"invoke\",\"blob\":{\"length\":" + PAYLOAD.length
-                + ",\"checksum\":" + CHECKSUM + "},\"data\":{\"deviceId\":\"" + deviceId
-                + "\",\"name\":\"writeSynchronized\",\"parameters\":[{\"$blob\":true}]}}");
+            + ",\"checksum\":" + CHECKSUM + "},\"data\":{\"deviceId\":\"" + deviceId
+            + "\",\"name\":\"writeSynchronized\",\"parameters\":[{\"$blob\":true}]}}");
         adapter.step(0);
 
         assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_NEEDS_UNSYNCHRONIZED,
-                reply().get("data").getAsString(),
-                "the payload is gone by the time a synchronized call runs, so say so");
+            reply().get("data").getAsString(),
+            "the payload is gone by the time a synchronized call runs, so say so");
     }
 
     @Test
@@ -195,19 +195,19 @@ public final class RPCInboundBlobTests {
         for (final String blob : new String[]{"{\"checksum\":0}", "{\"length\":\"x\",\"checksum\":0}", "5"}) {
             setupEach();
             serialDevice.putAsVM("{\"type\":\"invoke\",\"blob\":" + blob
-                    + ",\"data\":{\"deviceId\":\"" + deviceId
-                    + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}");
+                + ",\"data\":{\"deviceId\":\"" + deviceId
+                + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}");
             assertDoesNotThrow(() -> adapter.step(0), "blob reference " + blob + " escaped as an exception");
             assertNull(sink.received, "blob reference " + blob + " was accepted");
             assertEquals("error", reply().get("type").getAsString(),
-                    "blob reference " + blob + " got no reply, so a guest would wait forever");
+                "blob reference " + blob + " got no reply, so a guest would wait forever");
         }
     }
 
     @Test
     public void anInlineByteArrayParameterIsRefused() {
         serialDevice.putAsVM("{\"type\":\"invoke\",\"data\":{\"deviceId\":\"" + deviceId
-                + "\",\"name\":\"writeBlob\",\"parameters\":[[1,2,3]]}}");
+            + "\",\"name\":\"writeBlob\",\"parameters\":[[1,2,3]]}}");
         adapter.step(0);
 
         assertNull(sink.received);
@@ -217,7 +217,7 @@ public final class RPCInboundBlobTests {
     @Test
     public void aMarkerWithNoPayloadIsRefused() {
         serialDevice.putAsVM("{\"type\":\"invoke\",\"data\":{\"deviceId\":\"" + deviceId
-                + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}");
+            + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}");
         adapter.step(0);
 
         assertNull(sink.received, "a marker without a payload must not reach the callback");
@@ -309,12 +309,12 @@ public final class RPCInboundBlobTests {
         assertArrayEquals(exact, sink.received, "a payload that fits exactly is not an oversized one");
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private String invocation(final int length, final int checksum) {
         return "{\"type\":\"invoke\",\"blob\":{\"length\":" + length + ",\"checksum\":" + checksum + "},"
-                + "\"data\":{\"deviceId\":\"" + deviceId
-                + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}";
+            + "\"data\":{\"deviceId\":\"" + deviceId
+            + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}";
     }
 
     private JsonObject reply() {

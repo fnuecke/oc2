@@ -21,14 +21,14 @@ import javax.annotation.Nullable;
 public final class ChargerBlock extends HalfTransparentBlock implements EntityBlock {
     public ChargerBlock() {
         super(Properties
-                .of()
-                .mapColor(MapColor.METAL)
-                .sound(SoundType.METAL)
-                .strength(1.5f, 6.0f));
+            .of()
+            .mapColor(MapColor.METAL)
+            .sound(SoundType.METAL)
+            .strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any().setValue(HorizontalDirectionalBlock.FACING, Direction.NORTH));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @SuppressWarnings("deprecation")
     @Override
@@ -47,7 +47,7 @@ public final class ChargerBlock extends HalfTransparentBlock implements EntityBl
         return super.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, context.getHorizontalDirection().getOpposite());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
     // EntityBlock
 
     @Nullable
@@ -62,7 +62,7 @@ public final class ChargerBlock extends HalfTransparentBlock implements EntityBl
         return TickableBlockEntity.createServerTicker(level, type, BlockEntities.CHARGER.get());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {

@@ -17,7 +17,7 @@ final class ManagedInterruptAllocator implements InterruptAllocator, InterruptVa
     private boolean isFrozen;
     private int managedMask;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ManagedInterruptAllocator(final InterruptAllocator parent, final InterruptManager interruptManager) {
         this.parent = parent;
@@ -26,7 +26,7 @@ final class ManagedInterruptAllocator implements InterruptAllocator, InterruptVa
         this.managedInterrupts = new BitSet(interruptCount);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void freeze() {
         isFrozen = true;

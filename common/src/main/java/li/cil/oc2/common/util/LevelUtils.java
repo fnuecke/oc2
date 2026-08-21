@@ -31,7 +31,7 @@ public final class LevelUtils {
         throw new AssertionError();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Nullable
     public static BlockEntity getBlockEntityIfChunkExists(final LevelAccessor level, final BlockPos pos) {

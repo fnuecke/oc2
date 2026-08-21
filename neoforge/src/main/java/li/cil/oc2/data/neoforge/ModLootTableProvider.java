@@ -28,7 +28,7 @@ public final class ModLootTableProvider extends LootTableProvider {
         super(output, Set.of(), List.of(new SubProviderEntry(ModBlockLootTables::new, LootContextParamSets.BLOCK)), registries);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final class ModBlockLootTables extends BlockLootSubProvider {
         public ModBlockLootTables(final HolderLookup.Provider registries) {
@@ -50,9 +50,9 @@ public final class ModLootTableProvider extends LootTableProvider {
         @Override
         protected Iterable<Block> getKnownBlocks() {
             return StreamSupport.stream(super.getKnownBlocks().spliterator(), false)
-                    .filter(block -> Objects.equals(requireNonNull(BuiltInRegistries.BLOCK.getKey(block)).getNamespace(), API.MOD_ID))
-                    .filter(block -> block != Blocks.BUS_CABLE.get()) // All bus drops depend on block state.
-                    .collect(Collectors.toList());
+                .filter(block -> Objects.equals(requireNonNull(BuiltInRegistries.BLOCK.getKey(block)).getNamespace(), API.MOD_ID))
+                .filter(block -> block != Blocks.BUS_CABLE.get()) // All bus drops depend on block state.
+                .collect(Collectors.toList());
         }
     }
 }

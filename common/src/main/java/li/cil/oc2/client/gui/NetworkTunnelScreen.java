@@ -22,7 +22,7 @@ public final class NetworkTunnelScreen extends AbstractModContainerScreen<Networ
 
     private ImageButton linkButton;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public NetworkTunnelScreen(final NetworkTunnelContainer container, final Inventory inventory, final Component title) {
         super(container, inventory, title);
@@ -32,7 +32,7 @@ public final class NetworkTunnelScreen extends AbstractModContainerScreen<Networ
         inventoryLabelY = imageHeight - 94;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
@@ -41,17 +41,17 @@ public final class NetworkTunnelScreen extends AbstractModContainerScreen<Networ
         super.render(graphics, mouseX, mouseY, partialTicks);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void init() {
         super.init();
 
         linkButton = addRenderableWidget(new ImageButton(
-                leftPos + LINK_BUTTON_LEFT, topPos + LINK_BUTTON_TOP,
-                Sprites.NETWORK_TUNNEL_LINK_BUTTON_INACTIVE.width, Sprites.NETWORK_TUNNEL_LINK_BUTTON_INACTIVE.height,
-                Sprites.NETWORK_TUNNEL_LINK_BUTTON_INACTIVE,
-                Sprites.NETWORK_TUNNEL_LINK_BUTTON_ACTIVE) {
+            leftPos + LINK_BUTTON_LEFT, topPos + LINK_BUTTON_TOP,
+            Sprites.NETWORK_TUNNEL_LINK_BUTTON_INACTIVE.width, Sprites.NETWORK_TUNNEL_LINK_BUTTON_INACTIVE.height,
+            Sprites.NETWORK_TUNNEL_LINK_BUTTON_INACTIVE,
+            Sprites.NETWORK_TUNNEL_LINK_BUTTON_ACTIVE) {
             @Override
             public void onPress() {
                 super.onPress();
@@ -68,7 +68,7 @@ public final class NetworkTunnelScreen extends AbstractModContainerScreen<Networ
         Sprites.NETWORK_TUNNEL_SCREEN.draw(graphics, leftPos, topPos);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void createTunnel() {
         final NetworkTunnelLinkMessage message = new NetworkTunnelLinkMessage(getMenu().containerId);

@@ -70,13 +70,13 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private static final int TERMINAL_RECIPIENT_REFRESH_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(1));
     private static final double TERMINAL_VIEW_DISTANCE = 8;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private boolean hasAddedOwnDevices;
     private boolean isNeighborUpdateScheduled;
     private LevelChunk chunk;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final Terminal terminal = new Terminal();
     private final ComputerBusElement busElement = new ComputerBusElement();
@@ -87,7 +87,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private volatile List<ServerPlayer> terminalRecipients = List.of(); // Players to send live terminal updates to.
     private int terminalRecipientRefreshCountdown;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ComputerBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.COMPUTER.get(), pos, state);
@@ -263,8 +263,8 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
                 virtualMachine.setBusStateClient(CommonDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME)]);
                 virtualMachine.setRunStateClient(VMRunState.values()[tag.getInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME)]);
                 virtualMachine.setBootErrorClient(tag.contains(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)
-                        ? Component.Serializer.fromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME), registries)
-                        : null);
+                    ? Component.Serializer.fromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME), registries)
+                    : null);
             });
         }
         busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
@@ -281,7 +281,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         });
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
@@ -341,7 +341,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         busElement.scheduleScan();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void updateTerminalRecipients() {
         if (!(level instanceof final ServerLevel serverLevel)) {
@@ -350,7 +350,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         // Players in range who might be looking at the computer.
         final AABB bounds = AABB.ofSize(Vec3.atCenterOf(getBlockPos()),
-                TERMINAL_VIEW_DISTANCE * 2, TERMINAL_VIEW_DISTANCE * 2, TERMINAL_VIEW_DISTANCE * 2);
+            TERMINAL_VIEW_DISTANCE * 2, TERMINAL_VIEW_DISTANCE * 2, TERMINAL_VIEW_DISTANCE * 2);
         final Set<ServerPlayer> recipients = new LinkedHashSet<>(serverLevel.getEntitiesOfClass(ServerPlayer.class, bounds));
 
         // Players who have the UI open. Don't ask me how they'd be out of range, but hey, paranoia.
@@ -389,7 +389,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final class ComputerItemStackHandlers extends AbstractVMItemStackHandlers {
         public ComputerItemStackHandlers() {

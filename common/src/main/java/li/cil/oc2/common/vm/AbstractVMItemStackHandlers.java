@@ -27,13 +27,13 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
     public record GroupDefinition(DeviceType deviceType, int count) {
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final long ITEM_DEVICE_BASE_ADDRESS = 0x20000000L;
     private static final int ITEM_DEVICE_STRIDE = 0x1000;
     private static final long OTHER_DEVICE_BASE_ADDRESS = 0x30000000L;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public final AbstractDeviceBusElement busElement = new VMBusElement();
 
@@ -43,7 +43,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     public final ItemHandler combinedItemHandlers;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public AbstractVMItemStackHandlers(final GroupDefinition... groups) {
         for (final GroupDefinition group : groups) {
@@ -53,7 +53,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         combinedItemHandlers = new CombinedItemHandler(itemHandlers.values().toArray(new ItemHandler[0]));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public Optional<ItemHandler> getItemHandler(final DeviceType deviceType) {
@@ -119,12 +119,12 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     public void loadItems(final HolderLookup.Provider registries, final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
-                handler.loadItems(registries, tag.getCompound(key(deviceType))));
+            handler.loadItems(registries, tag.getCompound(key(deviceType))));
     }
 
     public void saveDevices(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
-                tag.put(key(deviceType), handler.saveDevices()));
+            tag.put(key(deviceType), handler.saveDevices()));
     }
 
     public CompoundTag saveDevices() {
@@ -135,21 +135,21 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     public void loadDevices(final CompoundTag tag) {
         itemHandlers.forEach((deviceType, handler) ->
-                handler.loadDevices(tag.getCompound(key(deviceType))));
+            handler.loadDevices(tag.getCompound(key(deviceType))));
     }
 
     public void updateDevices() {
         itemHandlers.values().forEach(AbstractDeviceItemStackHandler::updateDevices);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected abstract ItemDeviceQuery makeQuery(final ItemStack stack);
 
     protected void onChanged() {
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final class VMItemHandler extends AbstractTypedDeviceItemStackHandler {
         private final VMItemBusElement busElement;
@@ -186,8 +186,8 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         @Override
         public Optional<Collection<Invalidatable<DeviceBusElement>>> getNeighbors() {
             return Optional.of(itemHandlers.values().stream()
-                    .map(handler -> Invalidatable.of((DeviceBusElement) handler.getBusElement()))
-                    .collect(Collectors.toList()));
+                .map(handler -> Invalidatable.of((DeviceBusElement) handler.getBusElement()))
+                .collect(Collectors.toList()));
         }
     }
 }

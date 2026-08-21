@@ -38,7 +38,7 @@ import java.util.stream.Stream;
 public final class BlobStorage {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final LevelResource BLOBS_FOLDER_NAME = new LevelResource(API.MOD_ID + "-blobs");
     private static final LevelResource TRASH_FOLDER_NAME = new LevelResource(API.MOD_ID + "-blobs-trash");
@@ -52,7 +52,7 @@ public final class BlobStorage {
     private static Path trashDirectory; // Directory evicted blobs get moved to.
     private static int blobCount; // Number of blobs in dataDirectory.
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     /**
      * Sets the currently running server.
@@ -78,8 +78,8 @@ public final class BlobStorage {
         final int limit = Config.maxBlobCount;
         if (limit > 0 && blobCount >= limit) {
             LOGGER.warn("Blob storage is at or above the configured limit of {} blob(s). Least recently used " +
-                    "blobs will be evicted as new ones are created. Raise 'admin.storage.maxBlobCount' or " +
-                    "set it to 0 to disable this, if you want to keep more blob data.", limit);
+                "blobs will be evicted as new ones are created. Raise 'admin.storage.maxBlobCount' or " +
+                "set it to 0 to disable this, if you want to keep more blob data.", limit);
         }
     }
 
@@ -270,7 +270,7 @@ public final class BlobStorage {
         return trashDirectory;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
         LifecycleEvent.SERVER_BEFORE_START.register(BlobStorage::handleServerAboutToStart);
@@ -289,7 +289,7 @@ public final class BlobStorage {
         blobCount = 0;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static Path pathOf(final UUID handle) {
         assert dataDirectory != null;
@@ -366,10 +366,10 @@ public final class BlobStorage {
             evicted++;
 
             LOGGER.info("Evicted blob [{}], unused for {} hour(s), to stay within the configured limit of {} blob(s). {}",
-                    candidate.handle(),
-                    TimeUnit.MILLISECONDS.toHours(now - candidate.lastUsedMillis()),
-                    limit,
-                    trashed ? "It was moved to [" + trashDirectory + "]." : "It was deleted.");
+                candidate.handle(),
+                TimeUnit.MILLISECONDS.toHours(now - candidate.lastUsedMillis()),
+                limit,
+                trashed ? "It was moved to [" + trashDirectory + "]." : "It was deleted.");
         }
 
         if (anythingTrashed) {
@@ -482,7 +482,7 @@ public final class BlobStorage {
     private record Candidate(UUID handle, Path path, long lastUsedMillis) {
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     /**
      * Thrown when trying to open a blob that no longer exists, e.g. because it was evicted.

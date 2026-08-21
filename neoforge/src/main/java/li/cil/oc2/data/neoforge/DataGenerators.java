@@ -20,9 +20,9 @@ public final class DataGenerators {
         final var existingFileHelper = event.getExistingFileHelper();
 
         final var blockTags = generator.addProvider(event.includeServer(),
-                new ModBlockTagsProvider(output, lookupProvider, existingFileHelper));
+            new ModBlockTagsProvider(output, lookupProvider, existingFileHelper));
         generator.addProvider(event.includeServer(),
-                new ModItemTagsProvider(output, lookupProvider, blockTags.contentsGetter(), existingFileHelper));
+            new ModItemTagsProvider(output, lookupProvider, blockTags.contentsGetter(), existingFileHelper));
         generator.addProvider(event.includeServer(), new ModLootTableProvider(output, lookupProvider));
         generator.addProvider(event.includeServer(), new ModRecipesProvider(output, lookupProvider));
 
@@ -33,7 +33,7 @@ public final class DataGenerators {
     private DataGenerators() {
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static void haltWhenDataGenerationFinishes() {
         final Thread dataGenerationThread = Thread.currentThread();

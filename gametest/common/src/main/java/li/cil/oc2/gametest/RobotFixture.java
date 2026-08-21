@@ -32,7 +32,7 @@ public final class RobotFixture {
     private final GameTestHelper helper;
     private final Robot robot;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static RobotFixture place(final GameTestHelper helper, final BlockPos pos) {
         return place(helper, fakePlayer(helper), pos);
@@ -50,7 +50,7 @@ public final class RobotFixture {
         return new RobotFixture(helper, robots.getFirst());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public Robot entity() {
         return robot;
@@ -87,14 +87,14 @@ public final class RobotFixture {
 
     public RobotFixture install(final DeviceType type, final ItemStack stack) {
         final ItemHandler handler = robot.getItemStackHandlers().getItemHandler(type)
-                .orElseThrow(() -> new GameTestAssertException("no item handler for " + type));
+            .orElseThrow(() -> new GameTestAssertException("no item handler for " + type));
         for (int slot = 0; slot < handler.getSlots(); slot++) {
             if (handler.insertItem(slot, stack, false).isEmpty()) {
                 return this;
             }
         }
         throw new GameTestAssertException("could not install " + stack + " as " + type
-                + "; all " + handler.getSlots() + " slot(s) rejected it");
+            + "; all " + handler.getSlots() + " slot(s) rejected it");
     }
 
     public boolean has(final Item item) {
@@ -162,7 +162,7 @@ public final class RobotFixture {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private RobotFixture(final GameTestHelper helper, final Robot robot) {
         this.helper = helper;

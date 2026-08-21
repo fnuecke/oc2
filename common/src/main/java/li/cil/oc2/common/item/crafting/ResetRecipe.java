@@ -18,7 +18,7 @@ public final class ResetRecipe extends CustomRecipe {
         super(category);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public boolean matches(final CraftingInput input, final Level level) {
@@ -87,7 +87,7 @@ public final class ResetRecipe extends CustomRecipe {
         return RecipeSerializers.RESET.get();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static ItemStack findCorruptedDataItem(final CraftingInput input) {
         for (int slot = 0; slot < input.size(); slot++) {

@@ -55,14 +55,14 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     private static final String INTERFACE_NAMES_TAG_NAME = "interfaceNames";
     private static final String FACADE_TAG_NAME = "facade";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final AbstractBlockDeviceBusElement busElement = new BusCableBusElement();
     private final String[] interfaceNames = new String[Constants.BLOCK_FACE_COUNT];
     private final NeighborTracker[] neighborTrackers = new NeighborTracker[Constants.BLOCK_FACE_COUNT];
     private ItemStack facade = ItemStack.EMPTY;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public BusCableBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.BUS_CABLE.get(), pos, state);
@@ -72,7 +72,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public String getInterfaceName(final Direction side) {
         final String interfaceName = interfaceNames[side.get3DDataValue()];
@@ -109,9 +109,9 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
 
         if (level == null ||
-                state.getRenderShape() != RenderShape.MODEL ||
-                !state.isSolidRender(level, getBlockPos()) ||
-                state.getBlock() instanceof EntityBlock) {
+            state.getRenderShape() != RenderShape.MODEL ||
+            !state.isSolidRender(level, getBlockPos()) ||
+            state.getBlock() instanceof EntityBlock) {
             return FacadeType.INVALID_BLOCK;
         }
 
@@ -227,7 +227,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         facade = ItemStack.parseOptional(registries, tag.getCompound(FACADE_TAG_NAME));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
@@ -266,7 +266,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private ListTag serializeInterfaceNames() {
         final ListTag tag = new ListTag();
@@ -305,7 +305,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final class BusCableBusElement extends AbstractBlockDeviceBusElement {
         @Nullable
@@ -323,7 +323,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         public boolean canScanContinueTowards(@Nullable final Direction direction) {
             final BusCableBlock.ConnectionType connectionType = BusCableBlock.getConnectionType(getBlockState(), direction);
             return connectionType == BusCableBlock.ConnectionType.CABLE ||
-                    connectionType == BusCableBlock.ConnectionType.INTERFACE;
+                connectionType == BusCableBlock.ConnectionType.INTERFACE;
         }
 
         @Override
@@ -349,8 +349,8 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         @Override
         public double getEnergyConsumption() {
             return super.getEnergyConsumption()
-                    + Config.busCableEnergyPerTick
-                    + BusCableBlock.getInterfaceCount(getBlockState()) * Config.busInterfaceEnergyPerTick;
+                + Config.busCableEnergyPerTick
+                + BusCableBlock.getInterfaceCount(getBlockState()) * Config.busInterfaceEnergyPerTick;
         }
     }
 

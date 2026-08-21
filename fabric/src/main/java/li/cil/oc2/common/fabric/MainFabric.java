@@ -18,8 +18,8 @@ public final class MainFabric implements ModInitializer {
         Main.initialize();
 
         FabricLoader.getInstance()
-                .getEntrypoints(API.MOD_ID + ":registration", FabricRegistrationInitializer.class)
-                .forEach(FabricRegistrationInitializer::registerObjects);
+            .getEntrypoints(API.MOD_ID + ":registration", FabricRegistrationInitializer.class)
+            .forEach(FabricRegistrationInitializer::registerObjects);
 
         Network.initialize();
         RPCMethodParameterTypeAdapters.initialize();

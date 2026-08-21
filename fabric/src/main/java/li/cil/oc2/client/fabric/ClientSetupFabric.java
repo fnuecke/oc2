@@ -70,7 +70,7 @@ public final class ClientSetupFabric implements ClientModInitializer {
         registerBusCablePickBlock();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     /**
      * Matches NeoForge's {@code Block#getCloneItemStack}.
@@ -100,7 +100,7 @@ public final class ClientSetupFabric implements ClientModInitializer {
             if (renderer == null) {
                 final Minecraft minecraft = Minecraft.getInstance();
                 renderer = new RobotWithoutLevelRenderer(
-                        minecraft.getBlockEntityRenderDispatcher(), minecraft.getEntityModels());
+                    minecraft.getBlockEntityRenderDispatcher(), minecraft.getEntityModels());
             }
             renderer.renderByItem(stack, context, poseStack, bufferSource, light, overlay);
         }

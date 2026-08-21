@@ -28,7 +28,7 @@ public abstract class AbstractNetworkInterfaceDevice extends IdentityProxy<ItemS
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String INTERRUPT_TAG_NAME = "interrupt";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private VirtIONetworkDevice device;
     private final NetworkInterface networkInterface = new NetworkInterfaceImpl();
@@ -38,13 +38,13 @@ public abstract class AbstractNetworkInterfaceDevice extends IdentityProxy<ItemS
     private final OptionalInterrupt interrupt = new OptionalInterrupt();
     private CompoundTag deviceTag;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected AbstractNetworkInterfaceDevice(final ItemStack identity) {
         super(identity);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Nullable
     @SuppressWarnings("unchecked")
@@ -127,13 +127,13 @@ public abstract class AbstractNetworkInterfaceDevice extends IdentityProxy<ItemS
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected NetworkInterface getNetworkInterface() {
         return networkInterface;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final class NetworkInterfaceImpl implements NetworkInterface {
         @Override

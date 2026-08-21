@@ -51,7 +51,7 @@ public final class CapabilityAdapterTestsFabric {
         }
     };
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE)
     public void simulatedInsertDoesNotMutate(final GameTestHelper helper) {
@@ -108,7 +108,7 @@ public final class CapabilityAdapterTestsFabric {
         CapabilityAdapterTests.abortedItemInsertLeavesHandlerUnchanged(helper, ITEMS, ABORTED_ITEM_INSERT);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static BlockEntity blockEntity(final GameTestHelper helper) {
         final BlockEntity blockEntity = helper.getBlockEntity(DEVICE_POS);
@@ -121,7 +121,7 @@ public final class CapabilityAdapterTestsFabric {
     private static team.reborn.energy.api.EnergyStorage platformEnergy(final GameTestHelper helper) {
         final BlockPos pos = helper.absolutePos(DEVICE_POS);
         final team.reborn.energy.api.EnergyStorage storage =
-                team.reborn.energy.api.EnergyStorage.SIDED.find(helper.getLevel(), pos, null);
+            team.reborn.energy.api.EnergyStorage.SIDED.find(helper.getLevel(), pos, null);
         if (storage == null) {
             throw new GameTestAssertException("charger is not visible to the Team Reborn energy lookup");
         }

@@ -31,7 +31,7 @@ public final class WrenchTests {
         final Direction expected = Rotation.CLOCKWISE_90.rotate(before);
         if (after != expected) {
             throw new GameTestAssertException("wrenching the top face should rotate clockwise: expected "
-                    + expected + ", got " + after);
+                + expected + ", got " + after);
         }
         helper.succeed();
     }
@@ -46,7 +46,7 @@ public final class WrenchTests {
         final Direction expected = Rotation.COUNTERCLOCKWISE_90.rotate(before);
         if (after != expected) {
             throw new GameTestAssertException("wrenching the bottom face should rotate counterclockwise: expected "
-                    + expected + ", got " + after);
+                + expected + ", got " + after);
         }
         helper.succeed();
     }
@@ -60,7 +60,7 @@ public final class WrenchTests {
         final Direction after = helper.getBlockState(DEVICE_POS).getValue(HorizontalDirectionalBlock.FACING);
         if (after != before) {
             throw new GameTestAssertException("wrenching a side face must not rotate: was " + before
-                    + ", now " + after);
+                + ", now " + after);
         }
         helper.succeed();
     }
@@ -77,11 +77,11 @@ public final class WrenchTests {
 
         if (helper.getBlockState(DEVICE_POS).isAir()) {
             throw new GameTestAssertException("sneak-wrenching a facaded cable broke the block, which means "
-                    + "block interaction was bypassed and the wrench's own break path ran instead");
+                + "block interaction was bypassed and the wrench's own break path ran instead");
         }
         if (!busCable(helper, DEVICE_POS).getFacade().isEmpty()) {
             throw new GameTestAssertException("sneak-wrenching should have removed the facade, so the "
-                    + "block's interaction handler evidently never ran");
+                + "block's interaction handler evidently never ran");
         }
         helper.succeed();
     }
@@ -93,12 +93,12 @@ public final class WrenchTests {
 
         if (!helper.getBlockState(DEVICE_POS).isAir()) {
             throw new GameTestAssertException("sneak-wrenching a wrench-breakable block should break it, "
-                    + "found " + helper.getBlockState(DEVICE_POS));
+                + "found " + helper.getBlockState(DEVICE_POS));
         }
         helper.succeed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static void useWrench(final GameTestHelper helper, final BlockPos pos, final Direction face, final boolean sneaking) {
         final ServerPlayer player = helper.makeMockServerPlayerInLevel();
@@ -109,10 +109,10 @@ public final class WrenchTests {
 
         final BlockPos absolute = helper.absolutePos(pos);
         final Vec3 location = Vec3.atCenterOf(absolute)
-                .add(face.getStepX() * 0.5, face.getStepY() * 0.5, face.getStepZ() * 0.5);
+            .add(face.getStepX() * 0.5, face.getStepY() * 0.5, face.getStepZ() * 0.5);
 
         player.gameMode.useItemOn(player, helper.getLevel(), wrench, InteractionHand.MAIN_HAND,
-                new BlockHitResult(location, face, absolute, false));
+            new BlockHitResult(location, face, absolute, false));
     }
 
     private static BusCableBlockEntity busCable(final GameTestHelper helper, final BlockPos pos) {
@@ -123,7 +123,7 @@ public final class WrenchTests {
         return busCable;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private WrenchTests() {
     }

@@ -41,11 +41,11 @@ public final class RPCSynchronizedCallTests {
         final DeviceBusController busController = mock(DeviceBusController.class);
         when(busController.getDevices()).thenReturn(devices);
         when(busController.getDeviceIdentifiers(any()))
-                .then(invocation -> identifiers.get(invocation.getArgument(0)));
+            .then(invocation -> identifiers.get(invocation.getArgument(0)));
         adapter.resume(busController, true);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Test
     public void aSynchronizedCallIsAnsweredOnlyOnTheNextTick() {
@@ -100,11 +100,11 @@ public final class RPCSynchronizedCallTests {
         assertEquals("result", reply().get("type").getAsString());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private String invocation(final String method) {
         return "{\"type\":\"invoke\",\"data\":{\"deviceId\":\"" + deviceId
-                + "\",\"name\":\"" + method + "\",\"parameters\":[]}}";
+            + "\",\"name\":\"" + method + "\",\"parameters\":[]}}";
     }
 
     private JsonObject reply() {

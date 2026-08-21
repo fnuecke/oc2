@@ -13,14 +13,14 @@ public final class GuestTestDevices {
     private static final String NAME = "guest_test_port";
 
     private static final DeferredRegister<Item> ITEMS =
-            DeferredRegister.create(MOD_ID, net.minecraft.core.registries.Registries.ITEM);
+        DeferredRegister.create(MOD_ID, net.minecraft.core.registries.Registries.ITEM);
     private static final DeferredRegister<ItemDeviceProvider> PROVIDERS =
-            DeferredRegister.create(MOD_ID, li.cil.oc2.api.util.Registries.ITEM_DEVICE_PROVIDER);
+        DeferredRegister.create(MOD_ID, li.cil.oc2.api.util.Registries.ITEM_DEVICE_PROVIDER);
 
     public static final RegistrySupplier<Item> GUEST_TEST_PORT =
-            ITEMS.register(NAME, () -> new Item(new Item.Properties()));
+        ITEMS.register(NAME, () -> new Item(new Item.Properties()));
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
         PROVIDERS.register(NAME, GuestTestPortProvider::new);
@@ -29,7 +29,7 @@ public final class GuestTestDevices {
         PROVIDERS.register();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private GuestTestDevices() {
     }

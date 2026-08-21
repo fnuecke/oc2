@@ -21,11 +21,11 @@ final class CapabilityWatchers {
     private static final Map<LevelAccessor, Map<BlockPos, List<Invalidatable<?>>>> WATCHERS = new WeakHashMap<>();
     private static final Set<InvalidationKey> INVALIDATING = new HashSet<>();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     static void initialize() {
         ServerBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, level) ->
-                invalidate(level, blockEntity.getBlockPos()));
+            invalidate(level, blockEntity.getBlockPos()));
 
         ServerChunkEvents.CHUNK_UNLOAD.register((level, chunk) -> invalidate(level, chunk.getPos()));
     }
@@ -35,8 +35,8 @@ final class CapabilityWatchers {
 
         final BlockPos key = pos.immutable();
         final List<Invalidatable<?>> watchers = WATCHERS
-                .computeIfAbsent(level, ignored -> new HashMap<>())
-                .computeIfAbsent(key, ignored -> new ArrayList<>());
+            .computeIfAbsent(level, ignored -> new HashMap<>())
+            .computeIfAbsent(key, ignored -> new ArrayList<>());
         watchers.add(result);
 
         result.addListener(ignored -> remove(level, key, result));
@@ -77,7 +77,7 @@ final class CapabilityWatchers {
     private record InvalidationKey(LevelAccessor level, BlockPos pos) {
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static void invalidate(final LevelAccessor level, final ChunkPos chunkPos) {
         final Map<BlockPos, List<Invalidatable<?>>> byPosition = WATCHERS.get(level);
@@ -86,8 +86,8 @@ final class CapabilityWatchers {
         }
 
         final List<BlockPos> positions = byPosition.keySet().stream()
-                .filter(pos -> new ChunkPos(pos).equals(chunkPos))
-                .toList();
+            .filter(pos -> new ChunkPos(pos).equals(chunkPos))
+            .toList();
         for (final BlockPos pos : positions) {
             invalidate(level, pos);
         }

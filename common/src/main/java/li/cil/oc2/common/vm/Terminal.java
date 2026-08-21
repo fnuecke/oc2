@@ -84,7 +84,7 @@ public final class Terminal {
     private static final byte DEFAULT_COLORS = Color.WHITE << COLOR_FOREGROUND_SHIFT;
     private static final byte DEFAULT_STYLE = 0;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public enum State { // Must be public for serialization.
         NORMAL, // Reading characters normally.
@@ -100,7 +100,7 @@ public final class Terminal {
         void render(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final ByteArrayFIFOQueue input = new ByteArrayFIFOQueue(32);
     private final byte[] buffer = new byte[WIDTH * HEIGHT];
@@ -132,18 +132,18 @@ public final class Terminal {
     private int utf8PendingCount;
 
     private final transient CharsetDecoder utf8Decoder = StandardCharsets.UTF_8.newDecoder()
-            .onMalformedInput(CodingErrorAction.REPLACE)
-            .onUnmappableCharacter(CodingErrorAction.REPLACE);
+        .onMalformedInput(CodingErrorAction.REPLACE)
+        .onUnmappableCharacter(CodingErrorAction.REPLACE);
     private final transient ByteBuffer utf8Input = ByteBuffer.allocate(8);
     private final transient CharBuffer utf8Output = CharBuffer.allocate(8);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public Terminal() {
         RIS();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public int getWidth() {
         return WIDTH * CHAR_WIDTH;
@@ -452,11 +452,11 @@ public final class Terminal {
     private void EL() {
         switch (args[0]) {
             case 0 ->  // From cursor to end of line
-                    clearLine(y, x, WIDTH);
+                clearLine(y, x, WIDTH);
             case 1 ->  // From beginning of line to cursor
-                    clearLine(y, 0, x + 1);
+                clearLine(y, 0, x + 1);
             case 2 ->  // Entire line containing cursor
-                    clearLine(y);
+                clearLine(y);
         }
     }
 
@@ -475,7 +475,7 @@ public final class Terminal {
                 clearLine(y, 0, x + 1);
             }
             case 2 ->  // Entire screen
-                    clear();
+                clear();
         }
     }
 
@@ -504,7 +504,7 @@ public final class Terminal {
                 }
             }
             case 3 -> // Clear all tabs
-                    Arrays.fill(tabs, false);
+                Arrays.fill(tabs, false);
         }
     }
 
@@ -536,7 +536,7 @@ public final class Terminal {
     private void DSR() {
         switch (args[0]) {
             case 5 -> // Report console status
-                    putResponse("\033[0n"); // Ready, No malfunctions detected
+                putResponse("\033[0n"); // Ready, No malfunctions detected
             case 6 -> { // Report cursor position
                 if (getMode(Mode.DECOM)) {
                     putResponse(String.format("\033[%d;%dR", y - scrollFirst + 1, x + 1));
@@ -582,27 +582,27 @@ public final class Terminal {
                 style = DEFAULT_STYLE;
             }
             case 1 -> // Bold or increased intensity
-                    style |= STYLE_BOLD_MASK;
+                style |= STYLE_BOLD_MASK;
             case 2 -> // Faint or decreased intensity
-                    style |= STYLE_DIM_MASK;
+                style |= STYLE_DIM_MASK;
             case 4 -> // Underscore
-                    style |= STYLE_UNDERLINE_MASK;
+                style |= STYLE_UNDERLINE_MASK;
             case 5 -> // Blink
-                    style |= STYLE_BLINK_MASK;
+                style |= STYLE_BLINK_MASK;
             case 7 -> // Negative (reverse) image
-                    style |= STYLE_INVERT_MASK;
+                style |= STYLE_INVERT_MASK;
             case 8 -> // Conceal aka Hide
-                    style |= STYLE_HIDDEN_MASK;
+                style |= STYLE_HIDDEN_MASK;
             case 22 -> // Normal color or intensity
-                    style &= ~(STYLE_BOLD_MASK | STYLE_DIM_MASK);
+                style &= ~(STYLE_BOLD_MASK | STYLE_DIM_MASK);
             case 24 -> // Underline off
-                    style &= ~STYLE_UNDERLINE_MASK;
+                style &= ~STYLE_UNDERLINE_MASK;
             case 25 -> // Blink off
-                    style &= ~STYLE_BLINK_MASK;
+                style &= ~STYLE_BLINK_MASK;
             case 27 -> // Reverse/invert off
-                    style &= ~STYLE_INVERT_MASK;
+                style &= ~STYLE_INVERT_MASK;
             case 28 -> // Reveal conceal off
-                    style &= ~STYLE_HIDDEN_MASK;
+                style &= ~STYLE_HIDDEN_MASK;
             case 30, 31, 32, 33, 34, 35, 36, 37 -> { // Set foreground color
                 final int color = sgr - 30;
                 this.color = (byte) ((this.color & ~(COLOR_MASK << COLOR_FOREGROUND_SHIFT)) | (color << COLOR_FOREGROUND_SHIFT));
@@ -669,8 +669,8 @@ public final class Terminal {
     private void setChar(final int x, final int y, final char ch) {
         final int index = x + y * WIDTH;
         if (buffer[index] == ch &&
-                colors[index] == color &&
-                styles[index] == style) {
+            colors[index] == color &&
+            styles[index] == style) {
             return;
         }
 
@@ -728,7 +728,7 @@ public final class Terminal {
         renderers.forEach(RendererModel::setDirty);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private interface RendererModel {
         void setDirty();
@@ -749,28 +749,28 @@ public final class Terminal {
         private static final float WHITE_V = 1.5f * ONE_OVER_TEXTURE_RESOLUTION;
 
         private static final int[] COLORS = {
-                0x010101, // Black
-                0xEE3322, // Red
-                0x33DD44, // Green
-                0xFFCC11, // Yellow
-                0x1188EE, // Blue
-                0xDD33CC, // Magenta
-                0x22CCDD, // Cyan
-                0xEEEEEE, // White
+            0x010101, // Black
+            0xEE3322, // Red
+            0x33DD44, // Green
+            0xFFCC11, // Yellow
+            0x1188EE, // Blue
+            0xDD33CC, // Magenta
+            0x22CCDD, // Cyan
+            0xEEEEEE, // White
         };
 
         private static final int[] DIM_COLORS = {
-                0x010101, // Black
-                0x772211, // Red
-                0x116622, // Green
-                0x886611, // Yellow
-                0x115588, // Blue
-                0x771177, // Magenta
-                0x116677, // Cyan
-                0x777777, // White
+            0x010101, // Black
+            0x772211, // Red
+            0x116622, // Green
+            0x886611, // Yellow
+            0x115588, // Blue
+            0x771177, // Magenta
+            0x116677, // Cyan
+            0x777777, // White
         };
 
-        // ------------------------------------------------------------- //
+        // --------------------------------------------------------------------- //
 
         private final Terminal terminal;
 
@@ -782,13 +782,13 @@ public final class Terminal {
         private final Matrix4f rowMatrix = new Matrix4f();
         private final Matrix4f modelViewMatrix = new Matrix4f();
 
-        // ------------------------------------------------------------- //
+        // --------------------------------------------------------------------- //
 
         public Renderer(final Terminal terminal) {
             this.terminal = terminal;
         }
 
-        // ------------------------------------------------------------- //
+        // --------------------------------------------------------------------- //
 
         @Override
         public void render(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
@@ -813,7 +813,7 @@ public final class Terminal {
             }
         }
 
-        // ------------------------------------------------------------- //
+        // --------------------------------------------------------------------- //
 
         private void renderBuffer(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
             if (buffer == null) {
@@ -850,7 +850,7 @@ public final class Terminal {
             }
 
             final BufferBuilder builder = Tesselator.getInstance()
-                    .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+                .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 
             for (int row = 0; row < HEIGHT; row++) {
                 rowMatrix.translation(0, row * CHAR_HEIGHT, 0);
@@ -989,7 +989,7 @@ public final class Terminal {
 
             final Matrix4f matrix = stack.last().pose();
             final BufferBuilder buffer = Tesselator.getInstance()
-                    .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+                .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 
             final int foreground = COLORS[Color.WHITE];
             final float r = ((foreground >> 16) & 0xFF) / 255f;
@@ -1010,8 +1010,8 @@ public final class Terminal {
 
         private static boolean isPrintableCharacter(final char ch) {
             return ch == 0 ||
-                    (ch > ' ' && ch <= '~') ||
-                    ch >= 177;
+                (ch > ' ' && ch <= '~') ||
+                ch >= 177;
         }
     }
 }

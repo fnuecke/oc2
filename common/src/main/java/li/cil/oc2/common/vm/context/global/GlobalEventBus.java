@@ -13,12 +13,12 @@ import org.apache.logging.log4j.Logger;
 final class GlobalEventBus implements VMLifecycleEventBus, EventManager {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final EventBus eventBus = new EventBus(this::handleEventBusException);
     private VMInitializationException initializationException;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void post(final Object event) {
         initializationException = null;
@@ -42,7 +42,7 @@ final class GlobalEventBus implements VMLifecycleEventBus, EventManager {
         eventBus.unregister(subscriber);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void handleEventBusException(final Throwable throwable, final SubscriberExceptionContext context) { //NOPMD - required by SubscriberExceptionHandler
         if (throwable instanceof final VMInitializationException exception) {

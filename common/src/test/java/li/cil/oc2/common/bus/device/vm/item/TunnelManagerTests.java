@@ -37,7 +37,7 @@ public class TunnelManagerTests {
         NetworkTunnelDevice.TunnelManager.unregisterEndpoint(endpoint);
 
         assertDoesNotThrow(() ->
-                NetworkTunnelDevice.TunnelManager.registerEndpoint(UUID.randomUUID(), new NullNetworkInterface()));
+            NetworkTunnelDevice.TunnelManager.registerEndpoint(UUID.randomUUID(), new NullNetworkInterface()));
     }
 
     @Test
@@ -64,7 +64,7 @@ public class TunnelManagerTests {
         assertEquals(1, tunnels().get(id).size());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @SuppressWarnings("unchecked")
     private static Map<UUID, ? extends java.util.Collection<NetworkInterface>> tunnels() {

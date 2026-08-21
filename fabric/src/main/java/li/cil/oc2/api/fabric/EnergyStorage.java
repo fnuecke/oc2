@@ -23,20 +23,20 @@ public abstract class EnergyStorage {
      * Entity access to energy storages, {@code oc2:entity_energy_storage}.
      */
     public static final EntityApiLookup<team.reborn.energy.api.EnergyStorage, Direction> ENTITY =
-            EntityApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "entity_energy_storage"),
-                    team.reborn.energy.api.EnergyStorage.class, Direction.class);
+        EntityApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "entity_energy_storage"),
+            team.reborn.energy.api.EnergyStorage.class, Direction.class);
 
     /**
      * Team Reborn's sided block lookup, {@code teamreborn:sided_energy}.
      */
     public static final BlockApiLookup<team.reborn.energy.api.EnergyStorage, Direction> SIDED =
-            team.reborn.energy.api.EnergyStorage.SIDED;
+        team.reborn.energy.api.EnergyStorage.SIDED;
 
     /**
      * Team Reborn's item lookup, {@code teamreborn:energy}.
      */
     public static final ItemApiLookup<team.reborn.energy.api.EnergyStorage, ContainerItemContext> ITEM =
-            team.reborn.energy.api.EnergyStorage.ITEM;
+        team.reborn.energy.api.EnergyStorage.ITEM;
 
     private EnergyStorage() {
     }

@@ -14,7 +14,7 @@ public class ItemStackCapabilityDeviceProvider extends AbstractItemStackCapabili
         super(Capabilities.DEVICE);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query, final Device value) {

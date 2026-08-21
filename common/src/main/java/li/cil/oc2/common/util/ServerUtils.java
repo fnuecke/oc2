@@ -13,7 +13,7 @@ public final class ServerUtils {
     @Nullable
     private static MinecraftServer server;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
         LifecycleEvent.SERVER_BEFORE_START.register(value -> server = value);

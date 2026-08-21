@@ -17,7 +17,7 @@ public final class EnergyStorageBlockDeviceProvider extends AbstractBlockEntityC
         super(Capabilities.ENERGY_STORAGE);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final EnergyStorage value) {

@@ -19,7 +19,7 @@ public final class BlockEntities {
 
     private static final List<RegistrySupplier<? extends BlockEntityType<?>>> ALL = new ArrayList<>();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final RegistrySupplier<BlockEntityType<BusCableBlockEntity>> BUS_CABLE = register(Blocks.BUS_CABLE, BusCableBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<ChargerBlockEntity>> CHARGER = register(Blocks.CHARGER, ChargerBlockEntity::new);
@@ -32,7 +32,7 @@ public final class BlockEntities {
     public static final RegistrySupplier<BlockEntityType<ProjectorBlockEntity>> PROJECTOR = register(Blocks.PROJECTOR, ProjectorBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<RedstoneInterfaceBlockEntity>> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE, RedstoneInterfaceBlockEntity::new);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
     }
@@ -41,12 +41,12 @@ public final class BlockEntities {
         return ALL.stream().<BlockEntityType<?>>map(RegistrySupplier::get).toList();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @SuppressWarnings("ConstantConditions") // .build(null) is fine
     private static <B extends Block, T extends BlockEntity> RegistrySupplier<BlockEntityType<T>> register(final RegistrySupplier<B> block, final BlockEntityType.BlockEntitySupplier<T> factory) {
         final RegistrySupplier<BlockEntityType<T>> type = BLOCK_ENTITIES.register(
-                block.getId().getPath(), () -> BlockEntityType.Builder.of(factory, block.get()).build(null));
+            block.getId().getPath(), () -> BlockEntityType.Builder.of(factory, block.get()).build(null));
         ALL.add(type);
         return type;
     }

@@ -17,7 +17,7 @@ public final class EntityCapabilityTestsFabric {
     private static final Predicate<Robot> HAS_ITEM_HANDLER = robot -> ItemStorage.ENTITY.find(robot, null) != null;
     private static final Predicate<Robot> HAS_ENERGY_STORAGE = robot -> EnergyStorage.ENTITY.find(robot, null) != null;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE)
     public void robotProvidesTerminalUsers(final GameTestHelper helper) {

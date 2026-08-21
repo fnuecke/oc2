@@ -29,7 +29,7 @@ public final class NeoForgeCapabilityAdapters {
         return new ReverseEnergyStorageAdapter(storage);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private record EnergyStorageAdapter(IEnergyStorage inner) implements EnergyStorage {
         @Override

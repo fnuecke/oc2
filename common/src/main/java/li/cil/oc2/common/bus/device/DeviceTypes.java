@@ -22,7 +22,7 @@ public final class DeviceTypes {
     public static final Registrar<DeviceType> DEVICE_TYPE_REGISTRY = RegistryUtils.builder(DeviceType.REGISTRY).build();
     private static final DeferredRegister<DeviceType> DEVICE_TYPES = RegistryUtils.getInitializerFor(DeviceType.REGISTRY);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
         register(ItemTags.DEVICES_MEMORY, t -> li.cil.oc2.api.bus.device.DeviceTypes.MEMORY = t);
@@ -38,14 +38,14 @@ public final class DeviceTypes {
         return Objects.requireNonNull(DEVICE_TYPE_REGISTRY.getId(deviceType)).toString();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static void register(final TagKey<Item> tag, final Consumer<DeviceType> setter) {
         final String id = tag.location().getPath().replaceFirst("^devices/", "");
         DEVICE_TYPES.register(id, () -> (DeviceType) new DeviceTypeImpl(
-                tag,
-                ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "gui/icon/" + id),
-                text("gui.{mod}.device_type." + id)
+            tag,
+            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "gui/icon/" + id),
+            text("gui.{mod}.device_type." + id)
         )).listen(setter);
     }
 }

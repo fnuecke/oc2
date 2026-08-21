@@ -31,7 +31,7 @@ public final class MachineTerminalWidget {
     public static final int WIDTH = Sprites.TERMINAL_SCREEN.width;
     public static final int HEIGHT = Sprites.TERMINAL_SCREEN.height;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final AbstractMachineTerminalScreen<?> parent;
     private final AbstractMachineTerminalContainer container;
@@ -40,7 +40,7 @@ public final class MachineTerminalWidget {
     private boolean isMouseOverTerminal;
     private Terminal.RendererView rendererView;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public MachineTerminalWidget(final AbstractMachineTerminalScreen<?> parent) {
         this.parent = parent;
@@ -77,10 +77,10 @@ public final class MachineTerminalWidget {
                 final int textOffsetX = (TERMINAL_WIDTH - textWidth) / 2;
                 final int textOffsetY = (TERMINAL_HEIGHT - font.lineHeight) / 2;
                 graphics.drawString(font,
-                        error,
-                        leftPos + TERMINAL_X + textOffsetX,
-                        topPos + TERMINAL_Y + textOffsetY,
-                        0xEE3322);
+                    error,
+                    leftPos + TERMINAL_X + textOffsetX,
+                    topPos + TERMINAL_Y + textOffsetY,
+                    0xEE3322);
             }
         }
     }
@@ -94,7 +94,7 @@ public final class MachineTerminalWidget {
 
     public boolean charTyped(final char ch, final int modifier) {
         final boolean isControlChord = (modifier & GLFW.GLFW_MOD_CONTROL) != 0
-                && (modifier & GLFW.GLFW_MOD_ALT) == 0;
+            && (modifier & GLFW.GLFW_MOD_ALT) == 0;
         if (!isControlChord) {
             putInput(String.valueOf(ch));
         }
@@ -132,7 +132,7 @@ public final class MachineTerminalWidget {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private Minecraft getClient() {
         return Minecraft.getInstance();
@@ -140,7 +140,7 @@ public final class MachineTerminalWidget {
 
     private boolean shouldCaptureInput() {
         return isMouseOverTerminal && AbstractMachineTerminalScreen.isInputCaptureEnabled() &&
-                container.getVirtualMachine().isRunning();
+            container.getVirtualMachine().isRunning();
     }
 
     private void putInput(final String value) {
@@ -151,7 +151,7 @@ public final class MachineTerminalWidget {
 
     private boolean isMouseOverTerminal(final int mouseX, final int mouseY) {
         return parent.isMouseOver(mouseX, mouseY,
-                MachineTerminalWidget.TERMINAL_X, MachineTerminalWidget.TERMINAL_Y,
-                MachineTerminalWidget.TERMINAL_WIDTH, MachineTerminalWidget.TERMINAL_HEIGHT);
+            MachineTerminalWidget.TERMINAL_X, MachineTerminalWidget.TERMINAL_Y,
+            MachineTerminalWidget.TERMINAL_WIDTH, MachineTerminalWidget.TERMINAL_HEIGHT);
     }
 }

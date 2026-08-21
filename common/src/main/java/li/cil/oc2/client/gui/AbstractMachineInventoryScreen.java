@@ -31,43 +31,43 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
     private static final int CONTROLS_TOP = 8;
     private static final int ENERGY_TOP = CONTROLS_TOP + Sprites.SIDEBAR_2.height + 4;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public AbstractMachineInventoryScreen(final T container, final Inventory playerInventory, final Component title) {
         super(container, playerInventory, title);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public List<Rect2i> getExtraAreas() {
         final List<Rect2i> list = new ArrayList<>();
         list.add(new Rect2i(
-                leftPos - Sprites.SIDEBAR_2.width, topPos + CONTROLS_TOP,
-                Sprites.SIDEBAR_2.width, Sprites.SIDEBAR_2.height
+            leftPos - Sprites.SIDEBAR_2.width, topPos + CONTROLS_TOP,
+            Sprites.SIDEBAR_2.width, Sprites.SIDEBAR_2.height
         ));
 
         if (shouldRenderEnergyBar()) {
             list.add(new Rect2i(
-                    leftPos - Sprites.SIDEBAR_2.width, topPos + ENERGY_TOP,
-                    Sprites.SIDEBAR_2.width, Sprites.SIDEBAR_2.height
+                leftPos - Sprites.SIDEBAR_2.width, topPos + ENERGY_TOP,
+                Sprites.SIDEBAR_2.width, Sprites.SIDEBAR_2.height
             ));
         }
 
         return list;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void init() {
         super.init();
 
         addRenderableWidget(new ToggleImageButton(
-                leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4,
-                12, 12,
-                Sprites.POWER_BUTTON_BASE,
-                Sprites.POWER_BUTTON_PRESSED,
-                Sprites.POWER_BUTTON_ACTIVE
+            leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4,
+            12, 12,
+            Sprites.POWER_BUTTON_BASE,
+            Sprites.POWER_BUTTON_PRESSED,
+            Sprites.POWER_BUTTON_ACTIVE
         ) {
             @Override
             public void onPress() {
@@ -80,15 +80,15 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
                 return menu.getVirtualMachine().isRunning();
             }
         }).withTooltip(
-                Component.translatable(Constants.COMPUTER_SCREEN_POWER_CAPTION),
-                Component.translatable(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION)
+            Component.translatable(Constants.COMPUTER_SCREEN_POWER_CAPTION),
+            Component.translatable(Constants.COMPUTER_SCREEN_POWER_DESCRIPTION)
         );
 
         addRenderableWidget(new ImageButton(
-                leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14,
-                12, 12,
-                Sprites.INVENTORY_BUTTON_ACTIVE,
-                Sprites.INVENTORY_BUTTON_INACTIVE
+            leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14,
+            12, 12,
+            Sprites.INVENTORY_BUTTON_ACTIVE,
+            Sprites.INVENTORY_BUTTON_INACTIVE
         ) {
             @Override
             public void onPress() {
@@ -138,17 +138,17 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
         if (shouldRenderEnergyBar()) {
             if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
                 final List<? extends FormattedText> tooltip = asList(
-                        Component.translatable(Constants.TOOLTIP_ENERGY,
-                                withFormat(menu.getEnergy() + "/" + menu.getEnergyCapacity(), ChatFormatting.GREEN)),
-                        Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION,
-                                withFormat(String.valueOf(menu.getEnergyConsumption()), ChatFormatting.GREEN))
+                    Component.translatable(Constants.TOOLTIP_ENERGY,
+                        withFormat(menu.getEnergy() + "/" + menu.getEnergyCapacity(), ChatFormatting.GREEN)),
+                    Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION,
+                        withFormat(String.valueOf(menu.getEnergyConsumption()), ChatFormatting.GREEN))
                 );
                 TooltipUtils.drawTooltip(graphics, tooltip, mouseX, mouseY, 200);
             }
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private boolean shouldRenderEnergyBar() {
         return menu.getEnergyCapacity() > 0;

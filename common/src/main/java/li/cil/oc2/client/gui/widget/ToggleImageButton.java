@@ -8,19 +8,19 @@ public abstract class ToggleImageButton extends ImageButton {
     private final Sprite activeImage;
     private boolean isToggled;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ToggleImageButton(
-            final int x, final int y,
-            final int width, final int height,
-            final Sprite baseImage,
-            final Sprite pressedImage,
-            final Sprite activeImage) {
+        final int x, final int y,
+        final int width, final int height,
+        final Sprite baseImage,
+        final Sprite pressedImage,
+        final Sprite activeImage) {
         super(x, y, width, height, baseImage, pressedImage);
         this.activeImage = activeImage;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public boolean isToggled() {
         return isToggled;

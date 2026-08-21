@@ -20,7 +20,7 @@ public final class SideJsonDeserializer implements JsonDeserializer<Side> {
                 final int ordinal = jsonPrimitive.getAsNumber().intValue();
                 if (ordinal < 0 || ordinal >= SIDES.length) {
                     throw new JsonParseException("side out of range: " + ordinal
-                            + " (expected 0 to " + (SIDES.length - 1) + ")");
+                        + " (expected 0 to " + (SIDES.length - 1) + ")");
                 }
                 return SIDES[ordinal];
             }

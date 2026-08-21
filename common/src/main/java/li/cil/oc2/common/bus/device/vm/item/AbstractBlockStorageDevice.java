@@ -47,13 +47,13 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         return thread;
     });
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected boolean readonly;
     protected VirtIOBlockDevice device;
     private CompletableFuture<Void> openJob;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     // Online persisted data.
     private final OptionalAddress address = new OptionalAddress();
@@ -64,14 +64,14 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     @Nullable
     protected UUID blobHandle;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected AbstractBlockStorageDevice(final TIdentity identity, final boolean readonly) {
         super(identity);
         this.readonly = readonly;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public VMDeviceLoadResult mount(final VMContext context) {
@@ -182,7 +182,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         joinOpenJob();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected void setOpenJob(final CompletableFuture<Void> job) {
         joinOpenJob();
@@ -209,7 +209,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     protected void handleDataUnavailable() {
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private AllocationResult allocateDevice(final VMContext context) {
         if (!context.getMemoryAllocator().claimMemory(Constants.PAGE_SIZE)) {
@@ -271,7 +271,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         return VMDeviceLoadResult.fail();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private sealed interface AllocationResult permits AllocationSuccess, AllocationFailure {
     }

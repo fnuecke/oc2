@@ -106,7 +106,7 @@ public final class CapabilitiesImpl {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static <T> BlockApiLookup<T, Direction> block(final CapabilityType<T> type) {
         return BlockApiLookup.get(type.id(), type.type(), Direction.class);

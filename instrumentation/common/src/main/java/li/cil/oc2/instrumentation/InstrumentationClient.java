@@ -32,7 +32,7 @@ public final class InstrumentationClient {
         });
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static int graphics(final String mode) {
         final GraphicsStatus status = switch (mode) {

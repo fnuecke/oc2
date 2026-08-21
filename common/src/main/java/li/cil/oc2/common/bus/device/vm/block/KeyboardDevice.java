@@ -21,24 +21,24 @@ public final class KeyboardDevice<T> extends IdentityProxy<T> implements VMDevic
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String INTERRUPT_TAG_NAME = "interrupt";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Nullable
     private VirtIOKeyboardDevice device;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final OptionalAddress address = new OptionalAddress();
     private final OptionalInterrupt interrupt = new OptionalInterrupt();
     private CompoundTag deviceTag;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public KeyboardDevice(final T identity) {
         super(identity);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void sendKeyEvent(final int keycode, final boolean isDown) {
         if (device != null) {
@@ -117,7 +117,7 @@ public final class KeyboardDevice<T> extends IdentityProxy<T> implements VMDevic
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private boolean allocateDevice(final VMContext context) {
         if (!context.getMemoryAllocator().claimMemory(Constants.PAGE_SIZE)) {

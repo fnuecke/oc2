@@ -18,7 +18,7 @@ public final class HubFixture {
     private final GameTestHelper helper;
     private final BlockPos pos;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static HubFixture place(final GameTestHelper helper, final BlockPos pos) {
         return place(helper, fakePlayer(helper), pos);
@@ -29,7 +29,7 @@ public final class HubFixture {
         return new HubFixture(helper, pos);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public BlockPos pos() {
         return pos;
@@ -52,7 +52,7 @@ public final class HubFixture {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private HubFixture(final GameTestHelper helper, final BlockPos pos) {
         this.helper = helper;

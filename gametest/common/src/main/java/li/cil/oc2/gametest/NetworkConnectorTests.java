@@ -22,7 +22,7 @@ public final class NetworkConnectorTests {
     private static final BlockPos OBSTRUCTION = new BlockPos(4, WORK_Y, 2);
     private static final BlockPos CONNECTOR_TOO_FAR = new BlockPos(25, WORK_Y, 2);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void connectorsLinkWithClearLineOfSight(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
@@ -50,7 +50,7 @@ public final class NetworkConnectorTests {
         final ConnectionResult result = a.tryLinkTo(b);
         if (result != ConnectionResult.FAILURE_OBSTRUCTED) {
             throw new GameTestAssertException("a solid block between two connectors should block "
-                    + "the link, got " + result);
+                + "the link, got " + result);
         }
 
         helper.succeed();
@@ -64,7 +64,7 @@ public final class NetworkConnectorTests {
         final ConnectionResult result = a.tryLinkTo(far);
         if (result != ConnectionResult.FAILURE_TOO_FAR) {
             throw new GameTestAssertException("connectors further apart than the maximum cable "
-                    + "length should not link, got " + result);
+                + "length should not link, got " + result);
         }
 
         helper.succeed();
@@ -82,7 +82,7 @@ public final class NetworkConnectorTests {
 
         if (!a.isConnectedTo(b)) {
             throw new GameTestAssertException("using a network cable on two connectors did not "
-                    + "link them");
+                + "link them");
         }
 
         helper.succeed();
@@ -97,29 +97,29 @@ public final class NetworkConnectorTests {
         final ConnectorFixture connector = ConnectorFixture.place(helper, player, computer.pos().above());
 
         helper.startSequence()
-                .thenExecuteAfter(40, () -> {
-                    if (computer.networkInterface(Direction.UP) != null) {
-                        throw new GameTestAssertException(
-                                "a computer with no network card must not expose a network interface");
-                    }
+            .thenExecuteAfter(40, () -> {
+                if (computer.networkInterface(Direction.UP) != null) {
+                    throw new GameTestAssertException(
+                        "a computer with no network card must not expose a network interface");
+                }
 
-                    computer.install(DeviceTypes.CARD, new ItemStack(Items.NETWORK_INTERFACE_CARD.get()));
-                })
-                .thenExecuteAfter(80, () -> {
-                    final NetworkInterface card = computer.networkInterface(Direction.UP);
-                    if (card == null) {
-                        throw new GameTestAssertException(
-                                "an installed network card is not reachable as a block capability");
-                    }
+                computer.install(DeviceTypes.CARD, new ItemStack(Items.NETWORK_INTERFACE_CARD.get()));
+            })
+            .thenExecuteAfter(80, () -> {
+                final NetworkInterface card = computer.networkInterface(Direction.UP);
+                if (card == null) {
+                    throw new GameTestAssertException(
+                        "an installed network card is not reachable as a block capability");
+                }
 
-                    final Object resolved = connector.adjacentInterface();
-                    if (resolved != card) {
-                        throw new GameTestAssertException(
-                                "the connector did not resolve the computer's network card (resolved "
-                                        + resolved + ", card " + card + ")");
-                    }
-                })
-                .thenSucceed();
+                final Object resolved = connector.adjacentInterface();
+                if (resolved != card) {
+                    throw new GameTestAssertException(
+                        "the connector did not resolve the computer's network card (resolved "
+                            + resolved + ", card " + card + ")");
+                }
+            })
+            .thenSucceed();
     }
 
     public static void aConnectorNoticesTheNetworkCardBeingRemoved(final GameTestHelper helper) {
@@ -131,29 +131,29 @@ public final class NetworkConnectorTests {
         final ConnectorFixture connector = ConnectorFixture.place(helper, player, computer.pos().above());
 
         helper.startSequence()
-                .thenExecuteAfter(20, () -> computer.install(DeviceTypes.CARD,
-                        new ItemStack(Items.NETWORK_INTERFACE_CARD.get())))
-                .thenExecuteAfter(80, () -> {
-                    if (connector.adjacentInterface() == null) {
-                        throw new GameTestAssertException(
-                                "the connector did not find the installed network card");
-                    }
-                })
-                .thenExecute(() -> computer.uninstall(DeviceTypes.CARD))
-                .thenExecuteAfter(80, () -> {
-                    if (computer.networkInterface(Direction.UP) != null) {
-                        throw new GameTestAssertException(
-                                "the computer still exposes an interface after card removal");
-                    }
-                    if (connector.adjacentInterface() != null) {
-                        throw new GameTestAssertException(
-                                "the connector is still holding the interface of a card that has been removed");
-                    }
-                })
-                .thenSucceed();
+            .thenExecuteAfter(20, () -> computer.install(DeviceTypes.CARD,
+                new ItemStack(Items.NETWORK_INTERFACE_CARD.get())))
+            .thenExecuteAfter(80, () -> {
+                if (connector.adjacentInterface() == null) {
+                    throw new GameTestAssertException(
+                        "the connector did not find the installed network card");
+                }
+            })
+            .thenExecute(() -> computer.uninstall(DeviceTypes.CARD))
+            .thenExecuteAfter(80, () -> {
+                if (computer.networkInterface(Direction.UP) != null) {
+                    throw new GameTestAssertException(
+                        "the computer still exposes an interface after card removal");
+                }
+                if (connector.adjacentInterface() != null) {
+                    throw new GameTestAssertException(
+                        "the connector is still holding the interface of a card that has been removed");
+                }
+            })
+            .thenSucceed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private NetworkConnectorTests() {
     }

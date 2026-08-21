@@ -36,12 +36,12 @@ public final class ItemHandlerDevice extends IdentityProxy<ItemHandler> implemen
         return identity.getSlotLimit(requireValidSlot(slot));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private int requireValidSlot(final int slot) {
         if (slot < 0 || slot >= identity.getSlots()) {
             throw new IllegalArgumentException("slot out of range: " + slot
-                    + " (expected 0 to " + (identity.getSlots() - 1) + ")");
+                + " (expected 0 to " + (identity.getSlots() - 1) + ")");
         }
         return slot;
     }

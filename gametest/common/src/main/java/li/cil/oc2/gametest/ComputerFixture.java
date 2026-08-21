@@ -33,7 +33,7 @@ public final class ComputerFixture {
     private final GameTestHelper helper;
     private final BlockPos pos;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static ComputerFixture place(final GameTestHelper helper) {
         return place(helper, fakePlayer(helper), COMPUTER_POS);
@@ -56,7 +56,7 @@ public final class ComputerFixture {
         return new ComputerFixture(helper, COMPUTER_POS);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public BlockPos pos() {
         return pos;
@@ -86,7 +86,7 @@ public final class ComputerFixture {
         final VirtualMachine vm = virtualMachine();
         if (vm.getRunState() != expected) {
             throw new GameTestAssertException(what + ": computer is " + vm.getRunState()
-                    + ", expected " + expected + ", bootError=" + vm.getBootError());
+                + ", expected " + expected + ", bootError=" + vm.getBootError());
         }
     }
 
@@ -102,11 +102,11 @@ public final class ComputerFixture {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ItemHandler handler(final DeviceType type) {
         return blockEntity().getItemStackHandlers().getItemHandler(type)
-                .orElseThrow(() -> new GameTestAssertException("no item handler for " + type));
+            .orElseThrow(() -> new GameTestAssertException("no item handler for " + type));
     }
 
     public ItemStack slot(final DeviceType type) {
@@ -121,7 +121,7 @@ public final class ComputerFixture {
             }
         }
         throw new GameTestAssertException("could not install " + stack + " as " + type
-                + "; all " + handler.getSlots() + " slot(s) rejected it");
+            + "; all " + handler.getSlots() + " slot(s) rejected it");
     }
 
     public ItemStack uninstall(final DeviceType type) {
@@ -153,7 +153,7 @@ public final class ComputerFixture {
         return storage.getEnergyStored();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public CompoundTag save() {
         return blockEntity().saveWithFullMetadata(registries());
@@ -167,7 +167,7 @@ public final class ComputerFixture {
         blockEntity().loadWithComponents(tag, registries());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public String screen() {
         final Terminal terminal = blockEntity().getTerminal();
@@ -205,13 +205,13 @@ public final class ComputerFixture {
         return ((AbstractVirtualMachine) virtualMachine()).state.board.getCpu().getInstructionsRetired();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private RegistryAccess registries() {
         return helper.getLevel().registryAccess();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private ComputerFixture(final GameTestHelper helper, final BlockPos pos) {
         this.helper = helper;

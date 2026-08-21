@@ -23,7 +23,7 @@ public final class ClientLevelEventsFabric {
         });
 
         ClientChunkEvents.CHUNK_UNLOAD.register((level, chunk) ->
-                NetworkCableRenderer.onChunkUnload(chunk.getPos()));
+            NetworkCableRenderer.onChunkUnload(chunk.getPos()));
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             if (lastLevel != null) {

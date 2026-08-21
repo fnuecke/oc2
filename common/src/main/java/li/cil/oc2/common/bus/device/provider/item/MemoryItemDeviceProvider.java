@@ -18,7 +18,7 @@ public final class MemoryItemDeviceProvider extends AbstractItemDeviceProvider {
         super(MemoryItem.class);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {

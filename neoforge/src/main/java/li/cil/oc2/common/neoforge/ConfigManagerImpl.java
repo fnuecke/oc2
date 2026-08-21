@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 public final class ConfigManagerImpl extends ConfigManager {
     private static final Map<IConfigSpec, ConfigDefinition> CONFIGS = new HashMap<>();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static <T> void add(final Supplier<T> factory) {
         final ArrayList<ConfigFieldPair<?>> values = new ArrayList<>();
@@ -46,7 +46,7 @@ public final class ConfigManagerImpl extends ConfigManager {
         });
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @SubscribeEvent
     public static void handleModConfigEvent(final ModConfigEvent event) {
@@ -64,7 +64,7 @@ public final class ConfigManagerImpl extends ConfigManager {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private record BuilderImpl(ModConfigSpec.Builder builder) implements Builder {
         @Override

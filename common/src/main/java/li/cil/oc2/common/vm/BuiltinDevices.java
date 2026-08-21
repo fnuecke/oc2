@@ -32,11 +32,11 @@ public final class BuiltinDevices {
     private static final int BLOB_PORT = 1;
     private static final int EVENT_PORT = 2;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public final MinecraftRealTimeCounter rtcMinecraft = new MinecraftRealTimeCounter();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Serialized
     public VirtIOConsoleDevice rpcSerialDevice;
@@ -45,7 +45,7 @@ public final class BuiltinDevices {
     @Serialized
     public VirtIOFileSystemDevice vfs;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public BuiltinDevices(final GlobalVMContext context) {
         initialize(context, new GoldfishRTC(SystemTimeRealTimeCounter.get()), RTC_HOST_INTERRUPT, GoldfishRTC::getInterrupt);
@@ -67,7 +67,7 @@ public final class BuiltinDevices {
         return rpcSerialDevice.getPort(EVENT_PORT);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static <T extends MemoryMappedDevice> T initialize(final GlobalVMContext context, final T device, final int interrupt, final Function<T, Interrupt> interruptSupplier) {
         if (!context.getInterruptAllocator().claimInterrupt(interrupt)) throw new IllegalStateException();

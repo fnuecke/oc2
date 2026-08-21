@@ -12,7 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 public final class RobotInitializationRequestMessage extends AbstractMessage {
     private int entityId;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public RobotInitializationRequestMessage(final Robot robot) {
         this.entityId = robot.getId();
@@ -22,7 +22,7 @@ public final class RobotInitializationRequestMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -34,7 +34,7 @@ public final class RobotInitializationRequestMessage extends AbstractMessage {
         buffer.writeVarInt(entityId);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
@@ -43,6 +43,6 @@ public final class RobotInitializationRequestMessage extends AbstractMessage {
         }
 
         MessageUtils.withServerEntity(context, entityId, Robot.class,
-                robot -> Network.sendToClient(new RobotInitializationMessage(robot), player));
+            robot -> Network.sendToClient(new RobotInitializationMessage(robot), player));
     }
 }

@@ -30,14 +30,14 @@ public final class NetworkHubBlock extends HorizontalDirectionalBlock implements
 
     public NetworkHubBlock() {
         super(Properties
-                .of()
-                .mapColor(MapColor.METAL)
-                .sound(SoundType.METAL)
-                .strength(1.5f, 6.0f));
+            .of()
+            .mapColor(MapColor.METAL)
+            .sound(SoundType.METAL)
+            .strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public BlockState getStateForPlacement(final BlockPlaceContext context) {
@@ -53,7 +53,7 @@ public final class NetworkHubBlock extends HorizontalDirectionalBlock implements
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
     // EntityBlock
 
     @Nullable
@@ -62,7 +62,7 @@ public final class NetworkHubBlock extends HorizontalDirectionalBlock implements
         return BlockEntities.NETWORK_HUB.get().create(pos, state);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {

@@ -13,7 +13,7 @@ public final class GuestTestPortProvider extends AbstractItemDeviceProvider {
         super(GuestTestDevices.GUEST_TEST_PORT);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {

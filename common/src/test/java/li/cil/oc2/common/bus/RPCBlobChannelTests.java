@@ -51,11 +51,11 @@ public final class RPCBlobChannelTests {
         final DeviceBusController busController = mock(DeviceBusController.class);
         when(busController.getDevices()).thenReturn(devices);
         when(busController.getDeviceIdentifiers(any()))
-                .then(invocation -> identifiers.get(invocation.getArgument(0)));
+            .then(invocation -> identifiers.get(invocation.getArgument(0)));
         adapter.resume(busController, true);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Test
     public void payloadGoesOutOnTheBlobPortAndIsDescribedByTheMessage() {
@@ -67,7 +67,7 @@ public final class RPCBlobChannelTests {
         assertEquals(RPCPayloadChannel.checksum(PAYLOAD), blob.get("checksum").getAsInt());
 
         assertTrue(reply.getAsJsonObject("data").get("$blob").getAsBoolean(),
-                "the data should carry only a marker");
+            "the data should carry only a marker");
         assertArrayEquals(PAYLOAD, blobDevice.drainAsVM(), "the payload goes out on the blob port");
     }
 
@@ -76,7 +76,7 @@ public final class RPCBlobChannelTests {
         final JsonObject large = invoke("readLarge");
 
         assertTrue(large.toString().length() < 200,
-                "message size must not track payload size: " + large);
+            "message size must not track payload size: " + large);
         assertEquals(64 * 1024, blobDevice.drainAsVM().length);
     }
 
@@ -96,7 +96,7 @@ public final class RPCBlobChannelTests {
         final JsonObject reply = invoke("readForgedReference");
 
         assertFalse(reply.has("blob"),
-                "no payload was sent, so the message must not announce one: " + reply);
+            "no payload was sent, so the message must not announce one: " + reply);
         assertEquals(0, blobDevice.drainAsVM().length);
     }
 
@@ -118,7 +118,7 @@ public final class RPCBlobChannelTests {
 
         assertEquals("error", reply.get("type").getAsString(), reply.toString());
         assertEquals(0, blobDevice.drainAsVM().length,
-                "a call that threw after staging must not put bytes on the wire");
+            "a call that threw after staging must not put bytes on the wire");
     }
 
     @Test
@@ -167,11 +167,11 @@ public final class RPCBlobChannelTests {
         corrupted[3] ^= 0x01;
 
         assertNotEquals(RPCPayloadChannel.checksum(PAYLOAD),
-                RPCPayloadChannel.checksum(corrupted),
-                "a single flipped bit must change the checksum, or it detects nothing");
+            RPCPayloadChannel.checksum(corrupted),
+            "a single flipped bit must change the checksum, or it detects nothing");
         assertNotEquals(RPCPayloadChannel.checksum(new byte[]{1, 2}),
-                RPCPayloadChannel.checksum(new byte[]{2, 1}),
-                "reordering must change the checksum too");
+            RPCPayloadChannel.checksum(new byte[]{2, 1}),
+            "reordering must change the checksum too");
     }
 
     @Test
@@ -194,11 +194,11 @@ public final class RPCBlobChannelTests {
         assertArrayEquals(PAYLOAD, blobDevice.drainAsVM());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private String request(final String method) {
         return "{\"type\":\"invoke\",\"data\":{\"deviceId\":\"" + deviceId
-                + "\",\"name\":\"" + method + "\",\"parameters\":[]}}";
+            + "\",\"name\":\"" + method + "\",\"parameters\":[]}}";
     }
 
     private JsonObject invoke(final String method) {

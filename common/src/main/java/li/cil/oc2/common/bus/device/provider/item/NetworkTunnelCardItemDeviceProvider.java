@@ -16,7 +16,7 @@ public final class NetworkTunnelCardItemDeviceProvider extends AbstractItemDevic
         super(Items.NETWORK_TUNNEL_CARD);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {

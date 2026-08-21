@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 public abstract class AbstractBlockEntityDeviceProvider<T extends BlockEntity> extends AbstractBlockDeviceProvider {
     private final BlockEntityType<T> blockEntityType;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected AbstractBlockEntityDeviceProvider(final BlockEntityType<T> blockEntityType) {
         this.blockEntityType = blockEntityType;
@@ -21,7 +21,7 @@ public abstract class AbstractBlockEntityDeviceProvider<T extends BlockEntity> e
         this.blockEntityType = null;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @SuppressWarnings("unchecked")
     @Override
@@ -38,7 +38,7 @@ public abstract class AbstractBlockEntityDeviceProvider<T extends BlockEntity> e
         return getBlockDevice(query, (T) blockEntity);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected abstract Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final T blockEntity);
 }

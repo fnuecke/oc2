@@ -17,9 +17,9 @@ public final class MessageJsonDeserializer implements JsonDeserializer<RPCDevice
         final Object messageData = switch (messageType) {
             case RPCDeviceBusAdapter.Message.MESSAGE_TYPE_LIST -> null;
             case RPCDeviceBusAdapter.Message.MESSAGE_TYPE_METHODS ->
-                    UUID.fromString(jsonObject.getAsJsonPrimitive("data").getAsString());
+                UUID.fromString(jsonObject.getAsJsonPrimitive("data").getAsString());
             case RPCDeviceBusAdapter.Message.MESSAGE_TYPE_INVOKE_METHOD ->
-                    context.deserialize(jsonObject.getAsJsonObject("data"), RPCDeviceBusAdapter.MethodInvocation.class);
+                context.deserialize(jsonObject.getAsJsonObject("data"), RPCDeviceBusAdapter.MethodInvocation.class);
             default -> throw new JsonParseException(RPCDeviceBusAdapter.ERROR_UNKNOWN_MESSAGE_TYPE);
         };
 

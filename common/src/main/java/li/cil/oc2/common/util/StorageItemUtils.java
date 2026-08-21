@@ -16,7 +16,7 @@ public final class StorageItemUtils {
     private static final String BLOB_HANDLE_TAG_NAME = "blob";
     private static final String DISK_DATA_TAG_NAME = "data";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static boolean isCorrupted(final ItemStack stack) {
         return ItemStackUtils.getModDataTag(stack).getBoolean(CORRUPTED_TAG_NAME);
@@ -43,7 +43,7 @@ public final class StorageItemUtils {
         removeBlobData(stack, null);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static void removeBlobData(final ItemStack stack, @Nullable final List<UUID> handles) {
         if (stack.isEmpty() || ItemStackUtils.getModDataTag(stack).isEmpty()) {

@@ -17,20 +17,20 @@ import javax.annotation.Nullable;
 public final class FlashMemoryWithExternalDataItem extends ModItem {
     public static final String FIRMWARE_TAG_NAME = "firmware";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final ResourceLocation defaultData;
     @Nullable
     private String descriptionId;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public FlashMemoryWithExternalDataItem(final ResourceLocation defaultData) {
         super(createProperties().stacksTo(1));
         this.defaultData = defaultData;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Nullable
     public Firmware getFirmware(final ItemStack stack) {
@@ -75,16 +75,16 @@ public final class FlashMemoryWithExternalDataItem extends ModItem {
         final Firmware firmware = getFirmware(stack);
         if (firmware != null) {
             return Component.literal("")
-                    .append(super.getName(stack))
-                    .append(" (")
-                    .append(firmware.getDisplayName())
-                    .append(")");
+                .append(super.getName(stack))
+                .append(" (")
+                .append(firmware.getDisplayName())
+                .append(")");
         } else {
             return super.getName(stack);
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected String getOrCreateDescriptionId() {

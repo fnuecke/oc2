@@ -21,16 +21,16 @@ public final class DiskDriveTests {
         final DiskDriveFixture drive = DiskDriveFixture.place(helper);
 
         helper.startSequence()
-                .thenExecuteAfter(20, () -> drive.insert(new ItemStack(Items.FLOPPY.get())))
-                .thenExecuteAfter(10, () -> breakBlockAndDrop(helper, drive.pos()))
-                .thenExecuteAfter(10, () -> {
-                    Drops.assertDropped(helper, Items.FLOPPY.get(), "the floppy");
-                    Drops.assertDropped(helper, Items.DISK_DRIVE.get(), "the drive itself");
-                })
-                .thenSucceed();
+            .thenExecuteAfter(20, () -> drive.insert(new ItemStack(Items.FLOPPY.get())))
+            .thenExecuteAfter(10, () -> breakBlockAndDrop(helper, drive.pos()))
+            .thenExecuteAfter(10, () -> {
+                Drops.assertDropped(helper, Items.FLOPPY.get(), "the floppy");
+                Drops.assertDropped(helper, Items.DISK_DRIVE.get(), "the drive itself");
+            })
+            .thenSucceed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private DiskDriveTests() {
     }

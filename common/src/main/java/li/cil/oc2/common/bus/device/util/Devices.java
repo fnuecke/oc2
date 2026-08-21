@@ -100,7 +100,7 @@ public final class Devices {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private record BlockQuery(LevelAccessor level, BlockPos pos, @Nullable Direction side) implements BlockDeviceQuery {
         @Override
@@ -121,9 +121,9 @@ public final class Devices {
     }
 
     private record ItemQuery(
-            @Nullable BlockEntity blockEntity,
-            @Nullable Entity entity,
-            ItemStack stack
+        @Nullable BlockEntity blockEntity,
+        @Nullable Entity entity,
+        ItemStack stack
     ) implements ItemDeviceQuery {
         public ItemQuery(final ItemStack stack) {
             this(null, null, stack);

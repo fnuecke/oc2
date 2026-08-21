@@ -28,12 +28,12 @@ public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> 
     private static final float EFFECT_SCALE_START = 0.6f;
     private static final float EFFECT_SCALE_END = 0.8f;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ChargerRenderer(final BlockEntityRendererProvider.Context ignoredContext) {
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void render(final ChargerBlockEntity charger, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
@@ -69,15 +69,15 @@ public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> 
 
     private static void renderQuad(final Matrix4f matrix, final VertexConsumer consumer) {
         consumer.addVertex(matrix, -0.5f, 0, -0.5f)
-                .setUv(0, 0);
+            .setUv(0, 0);
 
         consumer.addVertex(matrix, -0.5f, 0, 0.5f)
-                .setUv(0, 1);
+            .setUv(0, 1);
 
         consumer.addVertex(matrix, 0.5f, 0, 0.5f)
-                .setUv(1, 1);
+            .setUv(1, 1);
 
         consumer.addVertex(matrix, 0.5f, 0, -0.5f)
-                .setUv(1, 0);
+            .setUv(1, 0);
     }
 }

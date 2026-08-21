@@ -21,7 +21,7 @@ public final class WrenchRecipe extends ShapelessRecipe {
         super(recipe.getGroup(), recipe.category(), recipe.result, recipe.getIngredients());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public boolean matches(final CraftingInput input, final Level level) {
@@ -66,13 +66,13 @@ public final class WrenchRecipe extends ShapelessRecipe {
         return RecipeSerializers.WRENCH.get();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final class Serializer implements RecipeSerializer<WrenchRecipe> {
         private static final MapCodec<WrenchRecipe> CODEC = RecipeSerializer.SHAPELESS_RECIPE.codec()
-                .xmap(WrenchRecipe::new, Function.identity());
+            .xmap(WrenchRecipe::new, Function.identity());
         private static final StreamCodec<RegistryFriendlyByteBuf, WrenchRecipe> STREAM_CODEC = RecipeSerializer.SHAPELESS_RECIPE.streamCodec()
-                .map(WrenchRecipe::new, Function.identity());
+            .map(WrenchRecipe::new, Function.identity());
 
         @Override
         public MapCodec<WrenchRecipe> codec() {

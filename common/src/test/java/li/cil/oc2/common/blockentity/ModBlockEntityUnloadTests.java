@@ -57,7 +57,7 @@ public class ModBlockEntityUnloadTests {
         });
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static void withBlockEntity(final Consumer<CountingBlockEntity> test) {
         try (MockedStatic<Capabilities> ignored = mockStatic(Capabilities.class)) {

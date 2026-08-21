@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 public final class ConfigManagerImpl extends ConfigManager {
     private static final Map<IConfigSpec, ConfigDefinition> CONFIGS = new HashMap<>();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static <T> void add(final Supplier<T> factory) {
         final ArrayList<ConfigFieldPair<?>> values = new ArrayList<>();
@@ -48,7 +48,7 @@ public final class ConfigManagerImpl extends ConfigManager {
         NeoForgeModConfigEvents.unloading(API.MOD_ID).register(config -> apply(config, true));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static void apply(final ModConfig modConfig, final boolean isUnloading) {
         final ConfigDefinition config = CONFIGS.get(modConfig.getSpec());
@@ -65,7 +65,7 @@ public final class ConfigManagerImpl extends ConfigManager {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private record BuilderImpl(ModConfigSpec.Builder builder) implements Builder {
         @Override

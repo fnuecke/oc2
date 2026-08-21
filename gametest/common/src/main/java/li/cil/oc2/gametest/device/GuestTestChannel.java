@@ -14,7 +14,7 @@ import java.util.List;
 public final class GuestTestChannel {
     private static final int MAX_LINE_LENGTH = 4 * 1024;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final SerialDevice device;
     private final byte[] line = new byte[MAX_LINE_LENGTH];
@@ -22,13 +22,13 @@ public final class GuestTestChannel {
     private final List<String> inbound = new ArrayList<>();
     private final Deque<ByteBuffer> outbound = new ArrayDeque<>();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public GuestTestChannel(final SerialDevice device) {
         this.device = device;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public synchronized void send(final String command) {
         outbound.add(ByteBuffer.wrap((command + "\n").getBytes(StandardCharsets.UTF_8)));
@@ -49,7 +49,7 @@ public final class GuestTestChannel {
         write();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void read() {
         int value;

@@ -19,7 +19,7 @@ public final class ServerScheduler {
     private static final WeakHashMap<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> chunkUnloadSchedulers = new WeakHashMap<>();
     private static final WeakHashMap<LevelAccessor, ChunkListenerCollection> anyChunkUnloadObservers = new WeakHashMap<>();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void schedule(final Runnable runnable) {
         schedule(runnable, 0);
@@ -40,8 +40,8 @@ public final class ServerScheduler {
 
     public static void scheduleOnUnload(final LevelAccessor level, final Runnable listener) {
         levelUnloadSchedulers
-                .computeIfAbsent(level, unused -> new SimpleScheduler())
-                .add(listener);
+            .computeIfAbsent(level, unused -> new SimpleScheduler())
+            .add(listener);
     }
 
     public static void cancelOnUnload(@Nullable final LevelAccessor level, final Runnable listener) {
@@ -57,9 +57,9 @@ public final class ServerScheduler {
 
     public static void subscribeOnLoad(final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
         chunkLoadSchedulers
-                .computeIfAbsent(level, unused -> new HashMap<>())
-                .computeIfAbsent(chunkPos, unused -> new ListenerCollection())
-                .add(listener);
+            .computeIfAbsent(level, unused -> new HashMap<>())
+            .computeIfAbsent(chunkPos, unused -> new ListenerCollection())
+            .add(listener);
     }
 
     public static void unsubscribeOnLoad(@Nullable final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
@@ -83,9 +83,9 @@ public final class ServerScheduler {
 
     public static void subscribeOnUnload(final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
         chunkUnloadSchedulers
-                .computeIfAbsent(level, unused -> new HashMap<>())
-                .computeIfAbsent(chunkPos, unused -> new ListenerCollection())
-                .add(listener);
+            .computeIfAbsent(level, unused -> new HashMap<>())
+            .computeIfAbsent(chunkPos, unused -> new ListenerCollection())
+            .add(listener);
     }
 
     public static void unsubscribeOnUnload(@Nullable final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
@@ -109,8 +109,8 @@ public final class ServerScheduler {
 
     public static void subscribeOnAnyChunkUnload(final LevelAccessor level, final Consumer<ChunkPos> listener) {
         anyChunkUnloadObservers
-                .computeIfAbsent(level, unused -> new ChunkListenerCollection())
-                .add(listener);
+            .computeIfAbsent(level, unused -> new ChunkListenerCollection())
+            .add(listener);
     }
 
     public static void unsubscribeOnAnyChunkUnload(@Nullable final LevelAccessor level, final Consumer<ChunkPos> listener) {
@@ -124,7 +124,7 @@ public final class ServerScheduler {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
         LifecycleEvent.SERVER_STOPPED.register(server -> {

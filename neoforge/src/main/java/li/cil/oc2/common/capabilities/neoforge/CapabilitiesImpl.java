@@ -34,12 +34,12 @@ public final class CapabilitiesImpl {
 
         if (type == Capabilities.ENERGY_STORAGE) {
             return (T) NeoForgeCapabilityAdapters.energy(
-                    blockEntity.getLevel().getCapability(EnergyStorage.BLOCK, blockEntity.getBlockPos(), side));
+                blockEntity.getLevel().getCapability(EnergyStorage.BLOCK, blockEntity.getBlockPos(), side));
         }
 
         if (type == Capabilities.ITEM_HANDLER) {
             return (T) NeoForgeCapabilityAdapters.items(
-                    blockEntity.getLevel().getCapability(ItemHandler.BLOCK, blockEntity.getBlockPos(), side));
+                blockEntity.getLevel().getCapability(ItemHandler.BLOCK, blockEntity.getBlockPos(), side));
         }
 
         return blockEntity.getLevel().getCapability(block(type), blockEntity.getBlockPos(), side);
@@ -90,12 +90,12 @@ public final class CapabilitiesImpl {
         // to whatever comes back out of it.
         if (type == Capabilities.ENERGY_STORAGE) {
             return (Invalidatable<T>) watch(serverLevel, pos, side, EnergyStorage.BLOCK,
-                    NeoForgeCapabilityAdapters::energy);
+                NeoForgeCapabilityAdapters::energy);
         }
 
         if (type == Capabilities.ITEM_HANDLER) {
             return (Invalidatable<T>) watch(serverLevel, pos, side, ItemHandler.BLOCK,
-                    NeoForgeCapabilityAdapters::items);
+                NeoForgeCapabilityAdapters::items);
         }
 
         return watch(serverLevel, pos, side, block(type), Function.identity());
@@ -105,7 +105,7 @@ public final class CapabilitiesImpl {
         blockEntity.invalidateCapabilities();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static <T> BlockCapability<T, Direction> block(final CapabilityType<T> type) {
         return BlockCapability.createSided(type.id(), type.type());
@@ -119,7 +119,7 @@ public final class CapabilitiesImpl {
         return EntityCapability.createSided(type.id(), type.type());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static <TCapability, T> Invalidatable<T> watch(final ServerLevel level, final BlockPos pos, @Nullable final Direction side,
                                                            final BlockCapability<TCapability, Direction> capability,
@@ -130,7 +130,7 @@ public final class CapabilitiesImpl {
 
         final Watcher<T> watcher = new Watcher<>();
         final BlockCapabilityCache<TCapability, Direction> cache =
-                BlockCapabilityCache.create(capability, level, pos, side, watcher, watcher);
+            BlockCapabilityCache.create(capability, level, pos, side, watcher, watcher);
 
         // The cache only fires its invalidation listener after it has been queried at least once...
         final TCapability value = cache.getCapability();
@@ -163,7 +163,7 @@ public final class CapabilitiesImpl {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private CapabilitiesImpl() {
     }

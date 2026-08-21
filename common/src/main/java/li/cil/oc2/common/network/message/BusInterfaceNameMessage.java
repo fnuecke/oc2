@@ -14,7 +14,7 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
     protected Direction side;
     protected String value;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected BusInterfaceNameMessage(final BusCableBlockEntity busCable, final Direction side, final String value) {
         this.pos = busCable.getBlockPos();
@@ -26,7 +26,7 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -42,7 +42,7 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
         buffer.writeUtf(value, 32);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final class ToClient extends BusInterfaceNameMessage {
         public ToClient(final BusCableBlockEntity busCable, final Direction side, final String value) {
@@ -56,7 +56,7 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
         @Override
         protected void handleMessage(final NetworkManager.PacketContext context) {
             MessageUtils.withClientBlockEntityAt(pos, BusCableBlockEntity.class,
-                    busCable -> busCable.setInterfaceName(side, value));
+                busCable -> busCable.setInterfaceName(side, value));
         }
     }
 
@@ -72,7 +72,7 @@ public abstract class BusInterfaceNameMessage extends AbstractMessage {
         @Override
         protected void handleMessage(final NetworkManager.PacketContext context) {
             MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos, BusCableBlockEntity.class,
-                    (player, busCable) -> busCable.setInterfaceName(side, value));
+                (player, busCable) -> busCable.setInterfaceName(side, value));
         }
     }
 }

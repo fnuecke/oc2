@@ -63,7 +63,7 @@ public final class WrenchItem extends ModItem {
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     private static void destroyBlockOnClient(final BlockPos pos) {

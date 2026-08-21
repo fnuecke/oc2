@@ -24,7 +24,7 @@ public final class GuestLibraryTests {
     private static final String BATCH = "oc2_guest_libraries";
     private static final String SUITE = "guest_libraries";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
     public static void guestLibrariesPassTheirOwnTests(final GameTestHelper helper) {
@@ -35,26 +35,26 @@ public final class GuestLibraryTests {
         final GuestTests tests = computer.guestTests();
 
         helper.startSequence()
-                .thenExecuteAfter(20, () -> computer
-                        .install(DeviceTypes.FLASH_MEMORY, new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
-                        .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
-                        .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
-                        .install(DeviceTypes.HARD_DRIVE, new ItemStack(Items.HARD_DRIVE_CUSTOM.get()))
-                        .install(DeviceTypes.CARD, new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get())))
-                .thenExecuteAfter(20, computer::start)
-                .thenWaitUntil(() -> {
-                    computer.assertNoGuestPanic();
-                    tests.requireReady();
-                })
-                .thenExecute(() -> tests.run(SUITE))
-                .thenWaitUntil(() -> {
-                    computer.assertNoGuestPanic();
-                    tests.requireSuccess();
-                })
-                .thenSucceed();
+            .thenExecuteAfter(20, () -> computer
+                .install(DeviceTypes.FLASH_MEMORY, new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
+                .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
+                .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
+                .install(DeviceTypes.HARD_DRIVE, new ItemStack(Items.HARD_DRIVE_CUSTOM.get()))
+                .install(DeviceTypes.CARD, new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get())))
+            .thenExecuteAfter(20, computer::start)
+            .thenWaitUntil(() -> {
+                computer.assertNoGuestPanic();
+                tests.requireReady();
+            })
+            .thenExecute(() -> tests.run(SUITE))
+            .thenWaitUntil(() -> {
+                computer.assertNoGuestPanic();
+                tests.requireSuccess();
+            })
+            .thenSucceed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private GuestLibraryTests() {
     }

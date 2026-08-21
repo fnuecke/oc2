@@ -24,7 +24,7 @@ public final class ConnectorFixture {
     private final GameTestHelper helper;
     private final BlockPos pos;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static ConnectorFixture place(final GameTestHelper helper, final BlockPos pos) {
         return place(helper, fakePlayer(helper), pos);
@@ -35,7 +35,7 @@ public final class ConnectorFixture {
         return new ConnectorFixture(helper, pos);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public BlockPos pos() {
         return pos;
@@ -62,7 +62,7 @@ public final class ConnectorFixture {
 
     public NetworkInterface networkInterface(final Direction side) {
         final NetworkInterface networkInterface = Capabilities.get(
-                blockEntity(), Capabilities.NETWORK_INTERFACE, side);
+            blockEntity(), Capabilities.NETWORK_INTERFACE, side);
         if (networkInterface == null) {
             throw new GameTestAssertException("connector at " + pos + " exposes no network interface");
         }
@@ -84,7 +84,7 @@ public final class ConnectorFixture {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private ConnectorFixture(final GameTestHelper helper, final BlockPos pos) {
         this.helper = helper;

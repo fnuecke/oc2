@@ -16,7 +16,7 @@ public final class NetworkTunnelModuleItemDeviceProvider extends AbstractItemDev
         super(Items.NETWORK_TUNNEL_MODULE);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {

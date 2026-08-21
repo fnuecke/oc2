@@ -18,17 +18,17 @@ public final class VMDeviceBusAdapter {
     private final LinkedHashSet<VMDevice> unmountedDevices = new LinkedHashSet<>();
     private BaseAddressProvider baseAddressProvider = unused -> OptionalLong.empty();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final GlobalVMContext globalContext;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public VMDeviceBusAdapter(final GlobalVMContext context) {
         this.globalContext = context;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void setBaseAddressProvider(final BaseAddressProvider provider) {
         baseAddressProvider = provider;
@@ -37,7 +37,7 @@ public final class VMDeviceBusAdapter {
     public VMDeviceLoadResult mountDevices() {
         for (final VMDevice device : unmountedDevices) {
             final ManagedVMContext context = new ManagedVMContext(globalContext, globalContext,
-                    () -> baseAddressProvider.getBaseAddress(device));
+                () -> baseAddressProvider.getBaseAddress(device));
 
             final VMDeviceLoadResult result = device.mount(context);
             context.freeze();

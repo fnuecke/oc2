@@ -81,7 +81,7 @@ public class MultipartMessageTests {
         assertEquals(List.of(maxSizeChunk), PayloadMessage.RECEIVED);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static void dispatch(final NetworkManager.PacketContext context,
                                  final int multipartMessageId,
@@ -113,7 +113,7 @@ public class MultipartMessageTests {
         return context;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final class PayloadMessage extends AbstractMessage {
         public static final List<String> RECEIVED = new ArrayList<>();

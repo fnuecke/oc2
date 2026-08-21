@@ -105,7 +105,7 @@ public class TerminalTests {
         assertEquals(1, drainInput(terminal));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static int drainInput(final Terminal terminal) {
         int count = 0;
@@ -126,7 +126,7 @@ public class TerminalTests {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static String render(final String value, final int expectedLength) {
         final Terminal terminal = new Terminal();

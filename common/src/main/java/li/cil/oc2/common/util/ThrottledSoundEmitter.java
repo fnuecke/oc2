@@ -23,7 +23,7 @@ public final class ThrottledSoundEmitter {
 
     private long lastEmittedTime;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ThrottledSoundEmitter(final Supplier<Optional<BlockLocation>> location, final SoundEvent sound) {
         this.location = location;
@@ -32,18 +32,18 @@ public final class ThrottledSoundEmitter {
         this.minInterval = 500;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void play() {
         final long now = System.currentTimeMillis();
         if (now - lastEmittedTime > minInterval) {
             lastEmittedTime = now;
             this.location.get().ifPresent(location ->
-                    location.tryGetLevel().ifPresent(level -> ServerScheduler.schedule(level, () -> {
-                        final float volume = sampleVolume(level.getRandom());
-                        final float pitch = samplePitch(level.getRandom());
-                        LevelUtils.playSound(level, location.blockPos(), sound, category, volume, pitch);
-                    })));
+                location.tryGetLevel().ifPresent(level -> ServerScheduler.schedule(level, () -> {
+                    final float volume = sampleVolume(level.getRandom());
+                    final float pitch = samplePitch(level.getRandom());
+                    LevelUtils.playSound(level, location.blockPos(), sound, category, volume, pitch);
+                })));
         }
     }
 
@@ -77,7 +77,7 @@ public final class ThrottledSoundEmitter {
         return this;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private float sampleVolume(final RandomSource random) {
         return Mth.clamp(volume + volumeVariance * (random.nextFloat() - 0.5f), 0, 1);

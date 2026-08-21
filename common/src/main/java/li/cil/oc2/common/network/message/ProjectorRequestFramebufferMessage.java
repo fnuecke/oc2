@@ -12,7 +12,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 public final class ProjectorRequestFramebufferMessage extends AbstractMessage {
     private BlockPos pos;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ProjectorRequestFramebufferMessage(final ProjectorBlockEntity projector) {
         this.pos = projector.getBlockPos();
@@ -22,7 +22,7 @@ public final class ProjectorRequestFramebufferMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -34,12 +34,12 @@ public final class ProjectorRequestFramebufferMessage extends AbstractMessage {
         buffer.writeBlockPos(pos);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withNearbyServerBlockEntity(context, pos, ProjectorBlockEntity.class,
-                ProjectorBlockEntity.MAX_WATCH_DISTANCE,
-                (player, projector) -> ProjectorLoadBalancer.updateWatcher(projector, player));
+            ProjectorBlockEntity.MAX_WATCH_DISTANCE,
+            (player, projector) -> ProjectorLoadBalancer.updateWatcher(projector, player));
     }
 }

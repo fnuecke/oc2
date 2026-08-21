@@ -73,14 +73,14 @@ public abstract class LevelRendererMixin {
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiling/ProfilerFiller;popPush(Ljava/lang/String;)V", args = {"ldc=destroyProgress"}), cancellable = true)
     private void captureDepthAndEarlyExit(
-            final DeltaTracker deltaTracker,
-            final boolean shouldRenderBlockOutline,
-            final Camera camera,
-            final GameRenderer gameRenderer,
-            final LightTexture lightTexture,
-            final Matrix4f frustumMatrix,
-            final Matrix4f projectionMatrix,
-            final CallbackInfo ci
+        final DeltaTracker deltaTracker,
+        final boolean shouldRenderBlockOutline,
+        final Camera camera,
+        final GameRenderer gameRenderer,
+        final LightTexture lightTexture,
+        final Matrix4f frustumMatrix,
+        final Matrix4f projectionMatrix,
+        final CallbackInfo ci
     ) {
         final float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(false);
         if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {
@@ -122,7 +122,7 @@ public abstract class LevelRendererMixin {
     @Inject(method = "renderSnowAndRain", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;depthMask(Z)V", shift = At.Shift.AFTER, remap = false))
     private void enableDepthForWeatherInDepthBuffer(final CallbackInfo ci) {
         if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()
-                && minecraft.options.graphicsMode().get().getId() >= GraphicsStatus.FABULOUS.getId()) {
+            && minecraft.options.graphicsMode().get().getId() >= GraphicsStatus.FABULOUS.getId()) {
             RenderSystem.depthMask(true);
         }
     }

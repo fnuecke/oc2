@@ -20,7 +20,7 @@ public final class GameTests {
 
         final String directory = System.getProperty(JUNIT_OUTPUT_DIR_PROPERTY);
         GameTestReporting.install(directory == null || directory.isEmpty()
-                ? null
-                : new File(directory, REPORT_FILE_NAME));
+            ? null
+            : new File(directory, REPORT_FILE_NAME));
     }
 }

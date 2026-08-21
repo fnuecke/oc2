@@ -25,7 +25,7 @@ public final class EntityCapabilityTests {
     private static final BlockPos ROBOT_POS = new BlockPos(6, WORK_Y, 2);
     private static final BlockPos MINECART_POS = new BlockPos(8, WORK_Y, 2);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void robotProvidesTerminalUsers(final GameTestHelper helper) {
         final Robot robot = RobotFixture.place(helper, ROBOT_POS).entity();
@@ -33,7 +33,7 @@ public final class EntityCapabilityTests {
         final TerminalUserProvider provider = Capabilities.get(robot, Capabilities.TERMINAL_USER_PROVIDER, null);
         if (provider == null) {
             throw new GameTestAssertException("robot does not expose a terminal user provider; " +
-                    "the import/export card cannot work inside one");
+                "the import/export card cannot work inside one");
         }
 
         helper.succeed();
@@ -51,7 +51,7 @@ public final class EntityCapabilityTests {
             final EnergyStorage energy = Capabilities.get(robot, Capabilities.ENERGY_STORAGE, Direction.DOWN);
             if (energy == null) {
                 throw new GameTestAssertException("robot energy is not reachable through the capability, " +
-                        "so the charger cannot charge it");
+                    "so the charger cannot charge it");
             }
         }
 
@@ -81,7 +81,7 @@ public final class EntityCapabilityTests {
         final ItemHandler inventory = Capabilities.get(minecart, Capabilities.ITEM_HANDLER, Direction.DOWN);
         if (inventory == null) {
             throw new GameTestAssertException("inventory of a non-OC2 entity is not reachable; " +
-                    "the lookup is not bridging to the platform's capabilities");
+                "the lookup is not bridging to the platform's capabilities");
         }
 
         if (inventory.getStackInSlot(0).getCount() != 3) {
@@ -91,7 +91,7 @@ public final class EntityCapabilityTests {
         helper.succeed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private EntityCapabilityTests() {
     }

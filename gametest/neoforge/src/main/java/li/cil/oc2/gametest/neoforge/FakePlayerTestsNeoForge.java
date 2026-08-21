@@ -19,7 +19,7 @@ public final class FakePlayerTestsNeoForge {
         FakePlayerTests.fakePlayerIsRecognisedAsFake(helper);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private FakePlayerTestsNeoForge() {
     }

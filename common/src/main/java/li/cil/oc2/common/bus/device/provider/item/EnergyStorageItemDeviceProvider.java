@@ -16,7 +16,7 @@ public final class EnergyStorageItemDeviceProvider extends AbstractItemStackCapa
         super(Capabilities.ENERGY_STORAGE);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query, final EnergyStorage value) {

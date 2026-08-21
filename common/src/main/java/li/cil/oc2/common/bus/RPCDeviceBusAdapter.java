@@ -35,9 +35,9 @@ public final class RPCDeviceBusAdapter implements Steppable {
     public static final String ERROR_PAYLOAD_MISMATCH = "payload does not match its description";
     public static final String ERROR_MALFORMED_MESSAGE = "malformed message";
     public static final String ERROR_PAYLOAD_NEEDS_UNSYNCHRONIZED =
-            "binary parameters (byte[]) require an rpc method to not be synchronized (synchronize = false)";
+        "binary parameters (byte[]) require an rpc method to not be synchronized (synchronize = false)";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final Gson gson;
 
@@ -58,7 +58,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     private final Semaphore pauseLock = new Semaphore(1); // for tryAcquire in step()
     private volatile boolean isPaused; // server thread -> worker thread
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public RPCDeviceBusAdapter(final SerialDevice serialDevice, final SerialDevice blobDevice, final SerialDevice eventDevice) {
         this(serialDevice, blobDevice, eventDevice, DEFAULT_MAX_MESSAGE_SIZE);
@@ -69,17 +69,17 @@ public final class RPCDeviceBusAdapter implements Steppable {
         this.payloads = new RPCPayloadChannel(blobDevice);
         this.events = new RPCEventChannel(eventDevice);
         this.gson = RPCMethodParameterTypeAdapters.beginBuildGson()
-                .registerTypeAdapter(byte[].class, blobs)
-                .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
-                .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
-                .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
-                .registerTypeHierarchyAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
-                .registerTypeAdapter(EmptyMethodGroup.class, new EmptyRPCMethodGroupSerializer())
-                .registerTypeAdapter(Side.class, new SideJsonDeserializer())
-                .create();
+            .registerTypeAdapter(byte[].class, blobs)
+            .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
+            .registerTypeAdapter(Message.class, new MessageJsonDeserializer())
+            .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
+            .registerTypeHierarchyAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
+            .registerTypeAdapter(EmptyMethodGroup.class, new EmptyRPCMethodGroupSerializer())
+            .registerTypeAdapter(Side.class, new SideJsonDeserializer())
+            .create();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void mountDevices() {
         registry.mountAll();
@@ -156,10 +156,10 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     public boolean addEvent(final String type, @Nullable final Object data) {
         return events.addEvent(RPCMessageChannel.frame(
-                encode(new Message(type, 0, registry.generation(), data, null))));
+            encode(new Message(type, 0, registry.generation(), data, null))));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void readFromDevice() {
         // Only ever allow one pending message to avoid giving the VM the
@@ -397,14 +397,14 @@ public final class RPCDeviceBusAdapter implements Steppable {
         }
 
         messages.send(RPCMessageChannel.frame(encode(
-                new Message(type, currentRequestId, registry.generation(), dataElement, blob))));
+            new Message(type, currentRequestId, registry.generation(), dataElement, blob))));
     }
 
     private void announceDroppedEvents() {
         final int dropped = events.takeDropped();
         if (dropped > 0) {
             events.addNotice(RPCMessageChannel.frame(encode(new Message(
-                    Message.MESSAGE_TYPE_EVENTS_DROPPED, 0, registry.generation(), dropped, null))));
+                Message.MESSAGE_TYPE_EVENTS_DROPPED, 0, registry.generation(), dropped, null))));
         }
     }
 
@@ -412,7 +412,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         return gson.toJson(message).getBytes(StandardCharsets.UTF_8);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public record EmptyMethodGroup(String name) {
     }
@@ -451,7 +451,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private record RPCInvocationImpl(JsonArray parameters, Gson gson) implements RPCInvocation {
         @Override

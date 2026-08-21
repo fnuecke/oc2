@@ -12,7 +12,7 @@ import java.util.Optional;
 public final class VMInitializationException extends RuntimeException {
     private final Component message;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public VMInitializationException(final Component message) {
         this.message = message;
@@ -22,7 +22,7 @@ public final class VMInitializationException extends RuntimeException {
         this.message = null;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     /**
      * The error message indicating why initialization failed.

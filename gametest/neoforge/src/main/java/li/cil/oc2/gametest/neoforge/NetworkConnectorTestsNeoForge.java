@@ -44,7 +44,7 @@ public final class NetworkConnectorTestsNeoForge {
         NetworkConnectorTests.aConnectorNoticesTheNetworkCardBeingRemoved(helper);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private NetworkConnectorTestsNeoForge() {
     }

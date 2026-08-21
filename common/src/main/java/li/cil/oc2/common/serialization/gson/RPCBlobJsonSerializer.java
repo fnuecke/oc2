@@ -13,7 +13,7 @@ public final class RPCBlobJsonSerializer implements JsonSerializer<byte[]>, Json
     private byte[] received;
     private byte[] pending;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Nullable
     public byte[] getReceived() {
@@ -33,7 +33,7 @@ public final class RPCBlobJsonSerializer implements JsonSerializer<byte[]>, Json
         pending = null;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public byte[] deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) {

@@ -34,23 +34,23 @@ import java.util.Collections;
 import java.util.List;
 
 public record BusCableBakedModel(
-        BakedModel proxy,
-        BakedModel[] straightModelByAxis,
-        BakedModel[] supportModelByFace
+    BakedModel proxy,
+    BakedModel[] straightModelByAxis,
+    BakedModel[] supportModelByFace
 ) implements IDynamicBakedModel {
     private static final ModelProperty<BusCableSupportSide> BUS_CABLE_SUPPORT_PROPERTY = new ModelProperty<>();
     private static final ModelProperty<BusCableFacade> BUS_CABLE_FACADE_PROPERTY = new ModelProperty<>();
     private static final ChunkRenderTypeSet CABLE_RENDER_TYPES = ChunkRenderTypeSet.of(RenderType.solid());
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public ChunkRenderTypeSet getRenderTypes(final BlockState state, final RandomSource rand, final ModelData data) {
         if (data.has(BUS_CABLE_FACADE_PROPERTY)) {
             final BusCableFacade facade = data.get(BUS_CABLE_FACADE_PROPERTY);
             return facade != null
-                    ? ItemBlockRenderTypes.getRenderLayers(facade.blockState)
-                    : ChunkRenderTypeSet.none();
+                ? ItemBlockRenderTypes.getRenderLayers(facade.blockState)
+                : ChunkRenderTypeSet.none();
         }
 
         return CABLE_RENDER_TYPES;
@@ -161,7 +161,7 @@ public record BusCableBakedModel(
         return blockEntityData;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static boolean isNeighborInDirectionSolid(final BlockAndTintGetter level, final BlockPos pos, final Direction direction) {
         final BlockPos neighborPos = pos.relative(direction);
@@ -185,7 +185,7 @@ public record BusCableBakedModel(
         return true;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private record BusCableSupportSide(Direction value) {
     }

@@ -13,7 +13,7 @@ final class RPCEventChannel {
     private static final int MAX_QUEUED_SIZE = 8 * Constants.KILOBYTE;
     private static final int DISCARD_BUFFER_SIZE = 256;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final SerialDevice device;
 
@@ -24,13 +24,13 @@ final class RPCEventChannel {
     @Serialized
     private int dropped;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     RPCEventChannel(final SerialDevice device) {
         this.device = device;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     boolean addEvent(final ByteBuffer frame) {
         synchronized (queued) {

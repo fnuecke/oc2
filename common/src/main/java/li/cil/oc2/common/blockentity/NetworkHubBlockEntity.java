@@ -22,18 +22,18 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
     private int frameCount;
     private long lastGameTime;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final Invalidatable<?>[] adjacentBlockInterfaces = new Invalidatable<?>[Constants.BLOCK_FACE_COUNT];
     private boolean haveAdjacentBlocksChanged = true;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public NetworkHubBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.NETWORK_HUB.get(), pos, state);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void handleNeighborChanged() {
         haveAdjacentBlocksChanged = true;
@@ -70,21 +70,21 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
         });
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
         collector.offer(Capabilities.NETWORK_INTERFACE, this);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private Stream<NetworkInterface> getAdjacentInterfaces() {
         validateAdjacentBlocks();
         return Arrays.stream(adjacentBlockInterfaces)
-                .filter(Objects::nonNull)
-                .filter(Invalidatable::isPresent)
-                .map(adjacent -> (NetworkInterface) adjacent.get());
+            .filter(Objects::nonNull)
+            .filter(Invalidatable::isPresent)
+            .map(adjacent -> (NetworkInterface) adjacent.get());
     }
 
     private void validateAdjacentBlocks() {
@@ -110,7 +110,7 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
             }
 
             final Invalidatable<NetworkInterface> neighborInterface = Capabilities.watch(
-                    level, neighborPos, side.getOpposite(), Capabilities.NETWORK_INTERFACE);
+                level, neighborPos, side.getOpposite(), Capabilities.NETWORK_INTERFACE);
             if (neighborInterface.isPresent()) {
                 adjacentBlockInterfaces[side.get3DDataValue()] = neighborInterface;
                 neighborInterface.addListener(unused -> haveAdjacentBlocksChanged = true);

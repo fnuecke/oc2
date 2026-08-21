@@ -20,11 +20,11 @@ import java.util.List;
 public abstract class AbstractStorageItem extends ModItem {
     private static final String CAPACITY_TAG_NAME = "capacity";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final int defaultCapacity;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected AbstractStorageItem(final Properties properties, final int defaultCapacity) {
         super(properties);
@@ -35,7 +35,7 @@ public abstract class AbstractStorageItem extends ModItem {
         this(createProperties(), capacity);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     @Override
@@ -48,13 +48,13 @@ public abstract class AbstractStorageItem extends ModItem {
     public Component getName(final ItemStack stack) {
         final int capacity = getCapacity(stack);
         return Component.literal("")
-                .append(super.getName(stack))
-                .append(" (")
-                .append(TextFormatUtils.formatSize(capacity))
-                .append(")");
+            .append(super.getName(stack))
+            .append(" (")
+            .append(TextFormatUtils.formatSize(capacity))
+            .append(")");
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public int getCapacity(final ItemStack stack) {
         final CompoundTag tag = ItemStackUtils.getModDataTag(stack);

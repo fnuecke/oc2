@@ -72,7 +72,7 @@ public class GuestInputBoundsTests {
         assertThrows(IllegalArgumentException.class, () -> device.getItemStackInSlot(0));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static Side deserializeSide(final int ordinal) {
         return new SideJsonDeserializer().deserialize(new JsonPrimitive(ordinal), Side.class, null);

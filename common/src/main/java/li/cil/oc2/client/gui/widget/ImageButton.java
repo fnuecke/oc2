@@ -24,7 +24,7 @@ public abstract class ImageButton extends AbstractButton {
     private static final long PRESS_DURATION = 200;
     private static final long TOOLTIP_DELAY = 250;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final Sprite baseImage;
     private final Sprite pressedImage;
@@ -32,7 +32,7 @@ public abstract class ImageButton extends AbstractButton {
     private long lastPressedAt;
     private long hoveringStartedAt;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected ImageButton(final int x, final int y, final int width, final int height, final Sprite baseImage, final Sprite pressedImage) {
         super(x, y, width, height, CommonComponents.EMPTY);
@@ -40,7 +40,7 @@ public abstract class ImageButton extends AbstractButton {
         this.pressedImage = pressedImage;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ImageButton withMessage(final Component component) {
         setMessage(component);
@@ -94,7 +94,7 @@ public abstract class ImageButton extends AbstractButton {
         this.defaultButtonNarrationText(element);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         RenderSystem.enableDepthTest();
@@ -108,8 +108,8 @@ public abstract class ImageButton extends AbstractButton {
 
         if (!Objects.equals(getMessage(), CommonComponents.EMPTY)) {
             graphics.drawCenteredString(Minecraft.getInstance().font, getMessage(),
-                    getX() + width / 2, getY() + (height - 8) / 2,
-                    (active ? 0xFFFFFF : 0xA0A0A0) | Mth.ceil(alpha * 255) << 24);
+                getX() + width / 2, getY() + (height - 8) / 2,
+                (active ? 0xFFFFFF : 0xA0A0A0) | Mth.ceil(alpha * 255) << 24);
         }
     }
 }

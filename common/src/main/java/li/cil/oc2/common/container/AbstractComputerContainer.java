@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 public abstract class AbstractComputerContainer extends AbstractMachineTerminalContainer {
     private final ComputerBlockEntity computer;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected AbstractComputerContainer(final MenuType<?> type, final int id, final Player player, final ComputerBlockEntity computer, final IntPrecisionContainerData energyInfo) {
         super(type, id, energyInfo);
@@ -32,7 +32,7 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
         this.computer.addTerminalUser(player);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void switchToInventory() {
@@ -80,7 +80,7 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
         this.computer.removeTerminalUser(player);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected static IntPrecisionContainerData createEnergyInfo(final EnergyStorage energy, final CommonDeviceBusController busController) {
         return new IntPrecisionContainerData.Server() {

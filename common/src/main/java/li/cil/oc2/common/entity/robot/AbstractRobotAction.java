@@ -8,12 +8,12 @@ import net.minecraft.nbt.CompoundTag;
 public abstract class AbstractRobotAction {
     private static final String ID_TAG_NAME = "id";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final AbstractRobotActionType type;
     private int id;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public AbstractRobotAction(final AbstractRobotActionType type) {
         this.type = type;
@@ -24,7 +24,7 @@ public abstract class AbstractRobotAction {
         deserialize(tag);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public AbstractRobotActionType getType() {
         return type;

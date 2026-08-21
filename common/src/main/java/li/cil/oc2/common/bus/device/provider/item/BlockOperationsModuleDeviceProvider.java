@@ -17,13 +17,13 @@ public final class BlockOperationsModuleDeviceProvider extends AbstractItemDevic
         super(Items.BLOCK_OPERATIONS_MODULE);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
         return query.getContainerEntity().flatMap(entity ->
-                Optional.ofNullable(Capabilities.get(entity, Capabilities.ROBOT, null)).map(robot ->
-                        new BlockOperationsModuleDevice(query.getItemStack(), entity, robot)));
+            Optional.ofNullable(Capabilities.get(entity, Capabilities.ROBOT, null)).map(robot ->
+                new BlockOperationsModuleDevice(query.getItemStack(), entity, robot)));
     }
 
     @Override

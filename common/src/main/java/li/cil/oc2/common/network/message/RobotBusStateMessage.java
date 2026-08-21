@@ -12,7 +12,7 @@ public final class RobotBusStateMessage extends AbstractMessage {
     private int entityId;
     private CommonDeviceBusController.BusState value;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public RobotBusStateMessage(final Robot robot, final CommonDeviceBusController.BusState value) {
         this.entityId = robot.getId();
@@ -23,7 +23,7 @@ public final class RobotBusStateMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -37,11 +37,11 @@ public final class RobotBusStateMessage extends AbstractMessage {
         buffer.writeEnum(value);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientEntity(entityId, Robot.class,
-                robot -> robot.getVirtualMachine().setBusStateClient(value));
+            robot -> robot.getVirtualMachine().setBusStateClient(value));
     }
 }

@@ -55,10 +55,10 @@ public final class GameTestReporting {
             }
 
             LOGGER.error("The game test server did not shut down within {}s. This is the vanilla chunk "
-                            + "unload livelock, not a test failure -- the results reported above stand. Halting.",
-                    SHUTDOWN_GRACE_MILLIS / 1000L);
+                    + "unload livelock, not a test failure -- the results reported above stand. Halting.",
+                SHUTDOWN_GRACE_MILLIS / 1000L);
 
-                sleep(200);
+            sleep(200);
 
             Runtime.getRuntime().halt(exitCode);
         }, "gametest-shutdown-watchdog");

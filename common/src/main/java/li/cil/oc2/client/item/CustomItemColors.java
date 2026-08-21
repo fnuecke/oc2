@@ -30,19 +30,19 @@ public final class CustomItemColors {
     public static final int BROWN = 0xFF745C42;
     public static final int YELLOW = 0xFFFFFC49;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final int NO_TINT = 0xFFFFFFFF;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
         ColorHandlerRegistry.registerItemColors((stack, layer) -> layer == 1 ? getColor(stack) : NO_TINT,
-                Items.HARD_DRIVE_SMALL,
-                Items.HARD_DRIVE_MEDIUM,
-                Items.HARD_DRIVE_LARGE,
-                Items.HARD_DRIVE_CUSTOM,
-                Items.FLOPPY);
+            Items.HARD_DRIVE_SMALL,
+            Items.HARD_DRIVE_MEDIUM,
+            Items.HARD_DRIVE_LARGE,
+            Items.HARD_DRIVE_CUSTOM,
+            Items.FLOPPY);
     }
 
     public static int getColorByDye(final DyeColor dye) {

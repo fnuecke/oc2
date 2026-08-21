@@ -29,7 +29,7 @@ public final class IMCNeoForge {
         return map;
     });
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @SubscribeEvent
     public static void handleIMCMessages(final InterModProcessEvent event) {

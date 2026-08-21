@@ -24,7 +24,7 @@ public final class RecipeTestsNeoForge {
         RecipeTests.everyRecipeCraftsInCraftingTable(helper);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private RecipeTestsNeoForge() {
     }

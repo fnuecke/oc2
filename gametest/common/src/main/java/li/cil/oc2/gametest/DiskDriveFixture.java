@@ -17,7 +17,7 @@ public final class DiskDriveFixture {
     private final GameTestHelper helper;
     private final BlockPos pos;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static DiskDriveFixture place(final GameTestHelper helper) {
         return place(helper, fakePlayer(helper), DEVICE_POS);
@@ -32,7 +32,7 @@ public final class DiskDriveFixture {
         return new DiskDriveFixture(helper, pos);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public BlockPos pos() {
         return pos;
@@ -53,7 +53,7 @@ public final class DiskDriveFixture {
         return blockEntity().getFloppy();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private DiskDriveFixture(final GameTestHelper helper, final BlockPos pos) {
         this.helper = helper;

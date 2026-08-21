@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(MultiPlayerGameMode.class)
 public abstract class MultiPlayerGameModeMixin {
     @Redirect(
-            method = "performUseItemOn",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isSecondaryUseActive()Z")
+        method = "performUseItemOn",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isSecondaryUseActive()Z")
     )
     private boolean letWrenchReachBlockInteraction(final LocalPlayer player) {
         return player.isSecondaryUseActive() && !WrenchInteractionFabric.isHoldingWrench(player);

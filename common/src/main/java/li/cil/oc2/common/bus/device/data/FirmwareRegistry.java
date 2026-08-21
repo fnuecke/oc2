@@ -18,11 +18,11 @@ public final class FirmwareRegistry {
     private static final Registrar<Firmware> REGISTRY = RegistryUtils.builder(Registries.FIRMWARE).build();
     private static final DeferredRegister<Firmware> INITIALIZER = RegistryUtils.getInitializerFor(Registries.FIRMWARE);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final RegistrySupplier<Firmware> BUILDROOT = INITIALIZER.register("buildroot", BuildrootFirmware::new);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
     }

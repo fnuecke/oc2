@@ -28,7 +28,7 @@ public enum BusInterfaceNameRenderer {
     private static final int SEE_THROUGH_COLOR = 0x20FFFFFF;
     private static final int COLOR = 0xFFFFFFFF;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void render(final PoseStack poseStack) {
         final Minecraft mc = Minecraft.getInstance();
@@ -68,10 +68,10 @@ public enum BusInterfaceNameRenderer {
 
         final Vec3 camera = mc.gameRenderer.getMainCamera().getPosition();
         stack.translate(
-                blockPos.getX() + 0.5 + side.getStepX() * 0.5 - camera.x,
-                blockPos.getY() + 0.5 + side.getStepY() * 0.5 - camera.y
-                        + (side == Direction.DOWN ? -LABEL_HOVER : LABEL_HOVER),
-                blockPos.getZ() + 0.5 + side.getStepZ() * 0.5 - camera.z);
+            blockPos.getX() + 0.5 + side.getStepX() * 0.5 - camera.x,
+            blockPos.getY() + 0.5 + side.getStepY() * 0.5 - camera.y
+                + (side == Direction.DOWN ? -LABEL_HOVER : LABEL_HOVER),
+            blockPos.getZ() + 0.5 + side.getStepZ() * 0.5 - camera.z);
 
         final EntityRenderDispatcher renderManager = mc.getEntityRenderDispatcher();
         stack.mulPose(renderManager.cameraOrientation());
@@ -89,9 +89,9 @@ public enum BusInterfaceNameRenderer {
         final int packedLight = LightTexture.pack(15, 15);
 
         font.drawInBatch(name, horizontalTextOffset, 0, SEE_THROUGH_COLOR,
-                false, matrix, buffer, Font.DisplayMode.SEE_THROUGH, backgroundColor, packedLight);
+            false, matrix, buffer, Font.DisplayMode.SEE_THROUGH, backgroundColor, packedLight);
         font.drawInBatch(name, horizontalTextOffset, 0, COLOR,
-                false, matrix, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
+            false, matrix, buffer, Font.DisplayMode.NORMAL, 0, packedLight);
 
         buffer.endBatch();
 

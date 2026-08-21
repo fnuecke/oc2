@@ -21,7 +21,7 @@ final class RPCDeviceRegistry {
     @Serialized
     private int generation; // bumped whenever the device list changes, sent with every reply
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     int generation() {
         return generation;
@@ -82,8 +82,8 @@ final class RPCDeviceRegistry {
                 final Set<UUID> identifiers = controller.getDeviceIdentifiers(device);
                 for (final UUID identifier : identifiers) {
                     devicesByIdentifier
-                            .computeIfAbsent(identifier, unused -> new ArrayList<>())
-                            .add(rpcDevice);
+                        .computeIfAbsent(identifier, unused -> new ArrayList<>())
+                        .add(rpcDevice);
                 }
             }
         }
@@ -100,8 +100,8 @@ final class RPCDeviceRegistry {
             }
 
             identifiersByDevice
-                    .computeIfAbsent(device, unused -> new ArrayList<>())
-                    .add(identifier);
+                .computeIfAbsent(device, unused -> new ArrayList<>())
+                .add(identifier);
         });
 
         // Rebuild devices lists.
@@ -134,7 +134,7 @@ final class RPCDeviceRegistry {
         generation++;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static UUID selectIdentifierDeterministically(final ArrayList<UUID> identifiers) {
         UUID lowestIdentifier = identifiers.get(0);

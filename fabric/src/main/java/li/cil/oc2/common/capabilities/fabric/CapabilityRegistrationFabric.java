@@ -17,19 +17,19 @@ import java.util.List;
 
 public final class CapabilityRegistrationFabric {
     private static final List<CapabilityType<?>> BLOCK_ENTITY_CAPABILITIES = List.of(
-            Capabilities.DEVICE_BUS_ELEMENT,
-            Capabilities.DEVICE,
-            Capabilities.REDSTONE_EMITTER,
-            Capabilities.NETWORK_INTERFACE,
-            Capabilities.TERMINAL_USER_PROVIDER
+        Capabilities.DEVICE_BUS_ELEMENT,
+        Capabilities.DEVICE,
+        Capabilities.REDSTONE_EMITTER,
+        Capabilities.NETWORK_INTERFACE,
+        Capabilities.TERMINAL_USER_PROVIDER
     );
 
     private static final List<CapabilityType<?>> ENTITY_CAPABILITIES = List.of(
-            Capabilities.ROBOT,
-            Capabilities.TERMINAL_USER_PROVIDER
+        Capabilities.ROBOT,
+        Capabilities.TERMINAL_USER_PROVIDER
     );
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
         CapabilityWatchers.initialize();
@@ -47,14 +47,14 @@ public final class CapabilityRegistrationFabric {
         registerInteropEntity();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static <T> void registerBlockEntity(final CapabilityType<T> capability, final BlockEntityType<?>[] types) {
         CapabilitiesImpl.block(capability).registerForBlockEntities(
-                (blockEntity, side) -> blockEntity instanceof final ModBlockEntity modBlockEntity
-                        ? modBlockEntity.getCapability(capability, side)
-                        : null,
-                types);
+            (blockEntity, side) -> blockEntity instanceof final ModBlockEntity modBlockEntity
+                ? modBlockEntity.getCapability(capability, side)
+                : null,
+            types);
     }
 
     private static void registerInteropBlockEntities(final BlockEntityType<?>[] types) {
@@ -77,8 +77,8 @@ public final class CapabilityRegistrationFabric {
 
     private static <T> void registerEntity(final CapabilityType<T> capability) {
         CapabilitiesImpl.entity(capability).registerForType(
-                (final Robot robot, final Direction side) -> robot.getCapability(capability, side),
-                Entities.ROBOT.get());
+            (final Robot robot, final Direction side) -> robot.getCapability(capability, side),
+            Entities.ROBOT.get());
     }
 
     private static void registerInteropEntity() {

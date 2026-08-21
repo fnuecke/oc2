@@ -11,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 public final class OpenRobotTerminalMessage extends AbstractMessage {
     private int entityId;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public OpenRobotTerminalMessage(final Robot robot) {
         this.entityId = robot.getId();
@@ -21,7 +21,7 @@ public final class OpenRobotTerminalMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -33,14 +33,14 @@ public final class OpenRobotTerminalMessage extends AbstractMessage {
         buffer.writeVarInt(entityId);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         if (context.getPlayer() instanceof final ServerPlayer player) {
             MessageUtils.withNearbyServerEntity(context, entityId, Robot.class,
-                    robot -> robot.openTerminalScreen(player));
+                robot -> robot.openTerminalScreen(player));
         }
     }
 }

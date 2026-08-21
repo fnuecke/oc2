@@ -31,7 +31,7 @@ public final class BusCableItem extends ModBlockItem {
         super(block);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     @Override
@@ -52,7 +52,7 @@ public final class BusCableItem extends ModBlockItem {
         return result.consumesAction() ? result : super.place(context);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static InteractionResult tryAddToBlock(final UseOnContext context) {
         final Level level = context.getLevel();

@@ -14,12 +14,12 @@ import java.nio.file.Files;
 public final class ExportedFileMessage extends AbstractMessage {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private String name;
     private byte[] data;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ExportedFileMessage(final String name, final byte[] data) {
         this.name = name;
@@ -30,7 +30,7 @@ public final class ExportedFileMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -44,7 +44,7 @@ public final class ExportedFileMessage extends AbstractMessage {
         buffer.writeByteArray(data);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected void handleMessage(final NetworkManager.PacketContext context) {
         FileChooserScreen.openFileChooserForSave(name, path -> {

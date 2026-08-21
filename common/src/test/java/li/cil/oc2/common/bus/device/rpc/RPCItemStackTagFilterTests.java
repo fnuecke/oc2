@@ -91,7 +91,7 @@ public class RPCItemStackTagFilterTests {
         assertSame(first, paths(filter), "paths are documented as a cache, so they should survive a second call");
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static RPCItemStackTagFilter filterFor(final String... tags) {
         final RPCItemStackTagFilter filter = new RPCItemStackTagFilter();

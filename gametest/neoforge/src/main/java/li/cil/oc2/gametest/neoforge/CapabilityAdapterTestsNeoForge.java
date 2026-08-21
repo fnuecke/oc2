@@ -32,13 +32,13 @@ public final class CapabilityAdapterTestsNeoForge {
         return Capabilities.get(blockEntity(helper), Capabilities.ITEM_HANDLER, null);
     };
     private static final CapabilityAdapterTests.EnergyOperation ABORTED_INSERT =
-            (helper, storage, amount) -> storage.receiveEnergy(amount, true);
+        (helper, storage, amount) -> storage.receiveEnergy(amount, true);
     private static final CapabilityAdapterTests.EnergyOperation ABORTED_EXTRACT =
-            (helper, storage, amount) -> storage.extractEnergy(amount, true);
+        (helper, storage, amount) -> storage.extractEnergy(amount, true);
     private static final CapabilityAdapterTests.ItemOperation ABORTED_ITEM_INSERT =
-            (helper, handler, slot, stack) -> handler.insertItem(slot, stack, true);
+        (helper, handler, slot, stack) -> handler.insertItem(slot, stack, true);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE)
     public static void simulatedInsertDoesNotMutate(final GameTestHelper helper) {
@@ -95,7 +95,7 @@ public final class CapabilityAdapterTestsNeoForge {
         CapabilityAdapterTests.abortedItemInsertLeavesHandlerUnchanged(helper, ITEMS, ABORTED_ITEM_INSERT);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static BlockEntity blockEntity(final GameTestHelper helper) {
         final BlockEntity blockEntity = helper.getBlockEntity(DEVICE_POS);

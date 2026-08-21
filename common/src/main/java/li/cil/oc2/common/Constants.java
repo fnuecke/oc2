@@ -31,13 +31,13 @@ public final class Constants {
     public static final Direction.Axis[] AXES = Direction.Axis.values();
     public static final int BLOCK_FACE_COUNT = DIRECTIONS.length;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final String MOD_TAG_NAME = API.MOD_ID;
     public static final String ITEMS_TAG_NAME = "items";
     public static final String ENERGY_TAG_NAME = "energy";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final String TOOLTIP_DESCRIPTION_SUFFIX = ".desc";
     public static final String TOOLTIP_DEVICE_NEEDS_REBOOT = key("tooltip.{mod}.device_needs_reboot");
@@ -48,7 +48,7 @@ public final class Constants {
     public static final String TOOLTIP_CONFIRM = key("tooltip.{mod}.confirm");
     public static final String TOOLTIP_CANCEL = key("tooltip.{mod}.cancel");
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final String TERMINAL_CAPTURE_INPUT_CAPTION = key("gui.{mod}.computer.capture_input.capt");
     public static final String TERMINAL_CAPTURE_INPUT_DESCRIPTION = key("gui.{mod}.computer.capture_input.desc");
@@ -66,7 +66,7 @@ public final class Constants {
     public static final String MACHINE_OPEN_INVENTORY_CAPTION = key("gui.{mod}.machine.open_inventory.capt");
     public static final String MACHINE_OPEN_TERMINAL_CAPTION = key("gui.{mod}.machine.open_terminal.capt");
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final String CONNECTOR_ERROR_FULL = key("message.{mod}.connector.error.full");
     public static final String CONNECTOR_ERROR_TOO_FAR = key("message.{mod}.connector.error.too_far");

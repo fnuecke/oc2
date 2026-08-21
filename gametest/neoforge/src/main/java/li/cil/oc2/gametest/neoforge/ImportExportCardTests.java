@@ -27,22 +27,22 @@ public final class ImportExportCardTests {
         final ComputerFixture computer = ComputerFixture.place(helper);
 
         helper.startSequence()
-                .thenExecuteAfter(40, () -> computer.install(DeviceTypes.CARD,
-                        new ItemStack(Items.FILE_IMPORT_EXPORT_CARD.get())))
-                .thenExecuteAfter(80, () -> assertCardBoundTo(computer))
-                .thenExecute(() -> Levels.reloadBlockEntity(helper, computer.pos()))
-                .thenExecuteAfter(120, () -> assertCardBoundTo(computer))
-                .thenSucceed();
+            .thenExecuteAfter(40, () -> computer.install(DeviceTypes.CARD,
+                new ItemStack(Items.FILE_IMPORT_EXPORT_CARD.get())))
+            .thenExecuteAfter(80, () -> assertCardBoundTo(computer))
+            .thenExecute(() -> Levels.reloadBlockEntity(helper, computer.pos()))
+            .thenExecuteAfter(120, () -> assertCardBoundTo(computer))
+            .thenSucceed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static void assertCardBoundTo(final ComputerFixture computer) {
         final FileImportExportCardItemDevice device = computer.devices().stream()
-                .filter(FileImportExportCardItemDevice.class::isInstance)
-                .map(FileImportExportCardItemDevice.class::cast)
-                .findFirst()
-                .orElseThrow(() -> new GameTestAssertException("the import/export card is not on the bus"));
+            .filter(FileImportExportCardItemDevice.class::isInstance)
+            .map(FileImportExportCardItemDevice.class::cast)
+            .findFirst()
+            .orElseThrow(() -> new GameTestAssertException("the import/export card is not on the bus"));
 
         // Only used here, so let's just grab it with reflection...
         final Object userProvider;
@@ -56,11 +56,11 @@ public final class ImportExportCardTests {
 
         if (userProvider != computer.blockEntity()) {
             throw new GameTestAssertException(
-                    "the card is bound to a terminal user provider that is not the computer it sits in");
+                "the card is bound to a terminal user provider that is not the computer it sits in");
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private ImportExportCardTests() {
     }

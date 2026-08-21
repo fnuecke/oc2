@@ -26,31 +26,31 @@ public record BusCableModel(List<BlockElement> elements) implements IUnbakedGeom
     private static final ResourceLocation BUS_CABLE_STRAIGHT_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/cable_straight");
     private static final ResourceLocation BUS_CABLE_SUPPORT_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/cable_support");
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public BakedModel bake(final IGeometryBakingContext context, final ModelBaker baker,
                            final Function<Material, TextureAtlasSprite> spriteGetter,
                            final ModelState modelState, final ItemOverrides overrides) {
         final IModelBuilder<?> builder = IModelBuilder.of(
-                context.useAmbientOcclusion(), context.useBlockLight(), context.isGui3d(),
-                context.getTransforms(), overrides,
-                spriteGetter.apply(context.getMaterial("particle")), RenderTypeGroup.EMPTY);
+            context.useAmbientOcclusion(), context.useBlockLight(), context.isGui3d(),
+            context.getTransforms(), overrides,
+            spriteGetter.apply(context.getMaterial("particle")), RenderTypeGroup.EMPTY);
         bakeElementsResolvingTextureRefs(builder, spriteGetter, modelState, context);
         final BakedModel bakedBaseModel = builder.build();
 
         final BakedModel[] straightModelByAxis = {
-                bake(baker, BUS_CABLE_STRAIGHT_MODEL, modelState, BlockModelRotation.X0_Y90),
-                bake(baker, BUS_CABLE_STRAIGHT_MODEL, modelState, BlockModelRotation.X90_Y0),
-                bake(baker, BUS_CABLE_STRAIGHT_MODEL, modelState, null)
+            bake(baker, BUS_CABLE_STRAIGHT_MODEL, modelState, BlockModelRotation.X0_Y90),
+            bake(baker, BUS_CABLE_STRAIGHT_MODEL, modelState, BlockModelRotation.X90_Y0),
+            bake(baker, BUS_CABLE_STRAIGHT_MODEL, modelState, null)
         };
         final BakedModel[] supportModelByFace = {
-                bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X270_Y0), // -y
-                bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X90_Y0), // +y
-                bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X0_Y180), // -z
-                bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, null), // +z
-                bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X0_Y90), // -x
-                bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X0_Y270) // +x
+            bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X270_Y0), // -y
+            bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X90_Y0), // +y
+            bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X0_Y180), // -z
+            bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, null), // +z
+            bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X0_Y90), // -x
+            bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X0_Y270) // +x
         };
 
         return new BusCableBakedModel(bakedBaseModel, straightModelByAxis, supportModelByFace);
@@ -62,7 +62,7 @@ public record BusCableModel(List<BlockElement> elements) implements IUnbakedGeom
         modelGetter.apply(BUS_CABLE_SUPPORT_MODEL).resolveParents(modelGetter);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void bakeElementsResolvingTextureRefs(final IModelBuilder<?> builder,
                                                   final Function<Material, TextureAtlasSprite> spriteGetter,
@@ -84,7 +84,7 @@ public record BusCableModel(List<BlockElement> elements) implements IUnbakedGeom
     private static BakedModel bake(final ModelBaker baker, final ResourceLocation model,
                                    final ModelState modelState, final BlockModelRotation rotation) {
         final ModelState state = rotation == null ? modelState : new SimpleModelState(
-                modelState.getRotation().compose(rotation.getRotation()), modelState.isUvLocked());
+            modelState.getRotation().compose(rotation.getRotation()), modelState.isUvLocked());
         return requireNonNull(baker.bake(model, state));
     }
 }

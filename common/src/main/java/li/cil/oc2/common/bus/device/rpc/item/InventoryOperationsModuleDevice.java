@@ -29,7 +29,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     private final Entity entity;
     private final Robot robot;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public InventoryOperationsModuleDevice(final ItemStack identity, final Entity entity, final Robot robot) {
         super(identity, "inventory_operations");
@@ -37,7 +37,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         this.robot = robot;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Callback
     public void move(@Parameter("fromSlot") final int fromSlot,
@@ -192,10 +192,10 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
         final Direction direction = RobotOperationSide.toGlobal(entity, side);
         return getItemStackHandlersInDirection(direction).findFirst().map(handler ->
-                takeFromInventory(count, handler, fromSlot)).orElse(0);
+            takeFromInventory(count, handler, fromSlot)).orElse(0);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private ItemStack insertStartingAt(final ItemHandler handler, ItemStack stack, final int startSlot, final boolean simulate) {
         for (int i = 0; i < handler.getSlots(); i++) {
@@ -220,8 +220,8 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     private Stream<ItemHandler> getEntityItemHandlersAt(final Vec3 position, final Direction side) {
         final AABB bounds = AABB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
         return entity.level().getEntities(entity, bounds).stream()
-                .map(e -> Capabilities.get(e, Capabilities.ITEM_HANDLER, side))
-                .filter(Objects::nonNull);
+            .map(e -> Capabilities.get(e, Capabilities.ITEM_HANDLER, side))
+            .filter(Objects::nonNull);
     }
 
     private Stream<ItemHandler> getBlockItemHandlersAt(final Vec3 position, final Direction side) {

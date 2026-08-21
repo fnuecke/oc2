@@ -17,7 +17,7 @@ final class ManagedMemoryRangeAllocator implements MemoryRangeAllocator {
     private final ArrayList<MemoryMappedDevice> managedDevices = new ArrayList<>();
     private boolean isFrozen;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ManagedMemoryRangeAllocator(final MemoryRangeAllocator parent,
                                        final MemoryRangeManager memoryRangeManager,
@@ -27,7 +27,7 @@ final class ManagedMemoryRangeAllocator implements MemoryRangeAllocator {
         this.baseAddressSupplier = baseAddressSupplier;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void freeze() {
         isFrozen = true;

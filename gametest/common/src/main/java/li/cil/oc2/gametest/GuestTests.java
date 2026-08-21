@@ -17,13 +17,13 @@ public final class GuestTests {
     private record Case(String name, boolean passed, List<String> detail) {
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static GuestTests of(final VirtualMachine virtualMachine) {
         return new GuestTests((AbstractVirtualMachine) virtualMachine);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final AbstractVirtualMachine virtualMachine;
     private final List<Case> cases = new ArrayList<>();
@@ -33,7 +33,7 @@ public final class GuestTests {
     private boolean finished;
     private int failed;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void requireReady() {
         poll();
@@ -65,7 +65,7 @@ public final class GuestTests {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void poll() {
         final GuestTestChannel channel = channel();
@@ -93,7 +93,7 @@ public final class GuestTests {
         final GuestTestChannel channel = channel();
         if (channel == null) {
             throw new GameTestAssertException("no guest test port on the bus; " +
-                    "the machine needs a " + GuestTestPortDevice.PORT_NAME + " item installed");
+                "the machine needs a " + GuestTestPortDevice.PORT_NAME + " item installed");
         }
         return channel;
     }
@@ -107,7 +107,7 @@ public final class GuestTests {
                 final String[] verdict = argument.split(" ", 2);
                 detail = new ArrayList<>();
                 cases.add(new Case(verdict.length > 1 ? verdict[1] : "?",
-                        "PASS".equals(verdict[0]), detail));
+                    "PASS".equals(verdict[0]), detail));
             }
             case "detail" -> detail.add(argument);
             case "end" -> {
@@ -149,7 +149,7 @@ public final class GuestTests {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private GuestTests(final AbstractVirtualMachine virtualMachine) {
         this.virtualMachine = virtualMachine;

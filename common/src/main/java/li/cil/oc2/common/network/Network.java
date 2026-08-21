@@ -29,7 +29,7 @@ import java.util.function.Function;
 public final class Network {
     private static final Map<Class<?>, CustomPacketPayload.Type<? extends CustomPacketPayload>> MESSAGE_TYPES = new HashMap<>();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
         registerMessage(ComputerTerminalOutputMessage.class, ComputerTerminalOutputMessage::new, NetworkManager.serverToClient());
@@ -90,7 +90,7 @@ public final class Network {
         return (CustomPacketPayload.Type<T>) messageType;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void sendToServer(final AbstractMessage message) {
         NetworkManager.sendToServer(message);
@@ -131,12 +131,12 @@ public final class Network {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static String messageId(final Class<?> type) {
         final String name = type.getEnclosingClass() != null
-                ? type.getEnclosingClass().getSimpleName().replaceAll("Message$", "") + "_" + type.getSimpleName()
-                : type.getSimpleName().replaceAll("Message$", "");
+            ? type.getEnclosingClass().getSimpleName().replaceAll("Message$", "") + "_" + type.getSimpleName()
+            : type.getSimpleName().replaceAll("Message$", "");
         return name.replaceAll("(?<=[a-z0-9])(?=[A-Z])", "_").toLowerCase(Locale.ROOT);
     }
 
@@ -146,7 +146,7 @@ public final class Network {
         final ResourceLocation id = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, messageId(type));
         final CustomPacketPayload.Type<T> payloadType = new CustomPacketPayload.Type<>(id);
         final StreamCodec<RegistryFriendlyByteBuf, T> codec =
-                CustomPacketPayload.codec(AbstractMessage::toBytes, decoder::apply);
+            CustomPacketPayload.codec(AbstractMessage::toBytes, decoder::apply);
 
         MESSAGE_TYPES.put(type, payloadType);
 
@@ -154,7 +154,7 @@ public final class Network {
             NetworkManager.registerS2CPayloadType(payloadType, codec);
         } else {
             NetworkManager.registerReceiver(side, payloadType, codec,
-                    (message, context) -> context.queue(() -> message.handle(context)));
+                (message, context) -> context.queue(() -> message.handle(context)));
         }
     }
 
@@ -169,10 +169,10 @@ public final class Network {
 
         if (!level.getServer().isSameThread()) {
             throw new IllegalStateException(
-                    "Attempting to send location aware network message to Entity from non-server " +
-                            "thread [" + Thread.currentThread() + "]. This is not supported, " +
-                            "because we need world state to figure out chunk/entity tracking. " +
-                            "Queue this message send on the server thread, instead.");
+                "Attempting to send location aware network message to Entity from non-server " +
+                    "thread [" + Thread.currentThread() + "]. This is not supported, " +
+                    "because we need world state to figure out chunk/entity tracking. " +
+                    "Queue this message send on the server thread, instead.");
         }
 
         return true;

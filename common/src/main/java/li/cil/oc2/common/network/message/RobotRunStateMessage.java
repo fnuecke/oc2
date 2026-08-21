@@ -12,7 +12,7 @@ public final class RobotRunStateMessage extends AbstractMessage {
     private int entityId;
     private VMRunState value;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public RobotRunStateMessage(final Robot robot, final VMRunState value) {
         this.entityId = robot.getId();
@@ -23,7 +23,7 @@ public final class RobotRunStateMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -37,11 +37,11 @@ public final class RobotRunStateMessage extends AbstractMessage {
         buffer.writeEnum(value);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientEntity(entityId, Robot.class,
-                robot -> robot.getVirtualMachine().setRunStateClient(value));
+            robot -> robot.getVirtualMachine().setRunStateClient(value));
     }
 }

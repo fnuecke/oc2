@@ -19,7 +19,7 @@ public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackH
         super(stacks);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public abstract AbstractItemDeviceBusElement getBusElement();
 
@@ -87,7 +87,7 @@ public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackH
         return 1;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void onContentsChanged(final int slot) {

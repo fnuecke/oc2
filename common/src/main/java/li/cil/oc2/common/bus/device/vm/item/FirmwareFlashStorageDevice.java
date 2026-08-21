@@ -21,14 +21,14 @@ public final class FirmwareFlashStorageDevice extends IdentityProxy<ItemStack> i
     private final Firmware firmware;
     private MemoryMap memoryMap;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public FirmwareFlashStorageDevice(final ItemStack identity, final Firmware firmware) {
         super(identity);
         this.firmware = firmware;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public VMDeviceLoadResult mount(final VMContext context) {
@@ -53,7 +53,7 @@ public final class FirmwareFlashStorageDevice extends IdentityProxy<ItemStack> i
         copyDataToMemory(event.programStartAddress());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void copyDataToMemory(final long address) {
         if (!firmware.run(memoryMap, address)) {

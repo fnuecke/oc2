@@ -24,13 +24,13 @@ public class CommonDeviceBusController implements DeviceBusController {
         READY,
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final int MAX_BUS_ELEMENT_COUNT = 128;
     private static final int INCOMPLETE_RETRY_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(10));
     private static final int BAD_CONFIGURATION_RETRY_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(5));
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public final Event onAfterBusScan = new Event();
     public final Event onBeforeDeviceScan = new Event();
@@ -50,14 +50,14 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     private int energyConsumption;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public CommonDeviceBusController(final DeviceBusElement root, final int baseEnergyConsumption) {
         this.root = root;
         this.baseEnergyConsumption = baseEnergyConsumption;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void setDeviceContainersChanged() {
     }
@@ -105,7 +105,7 @@ public class CommonDeviceBusController implements DeviceBusController {
             for (final Device device : element.getLocalDevices()) {
                 newDevices.add(device);
                 element.getDeviceIdentifier(device).ifPresent(identifier -> newDeviceIds
-                        .computeIfAbsent(device, unused -> new HashSet<>()).add(identifier));
+                    .computeIfAbsent(device, unused -> new HashSet<>()).add(identifier));
             }
         }
 
@@ -126,7 +126,7 @@ public class CommonDeviceBusController implements DeviceBusController {
             didDeviceIdsChange = true;
         } else {
             didDeviceIdsChange = deviceIds.entrySet().stream().anyMatch(entry ->
-                    !Objects.equals(entry.getValue(), newDeviceIds.get(entry.getKey())));
+                !Objects.equals(entry.getValue(), newDeviceIds.get(entry.getKey())));
         }
 
         if (didDeviceIdsChange) {
@@ -187,7 +187,7 @@ public class CommonDeviceBusController implements DeviceBusController {
         });
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected Collection<DeviceBusElement> getElements() {
         return elements;
@@ -213,7 +213,7 @@ public class CommonDeviceBusController implements DeviceBusController {
         onDevicesRemoved.accept(new DevicesChangedEvent(devices));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void clearElements() {
         for (final DeviceBusElement element : elements) {
@@ -330,7 +330,7 @@ public class CommonDeviceBusController implements DeviceBusController {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public record AfterDeviceScanEvent(boolean didDevicesChange) {
     }

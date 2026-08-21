@@ -18,7 +18,7 @@ public final class ManagedVMContext implements VMContext {
     private final ManagedMemoryAllocator memoryAllocator;
     private final ManagedEventBus eventBus;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ManagedVMContext(final VMContext parent, final VMContextManagerCollection managers, final Supplier<OptionalLong> baseAddressSupplier) {
         this.memoryRangeAllocator = new ManagedMemoryRangeAllocator(parent.getMemoryRangeAllocator(), managers.getMemoryRangeManager(), baseAddressSupplier);
@@ -29,7 +29,7 @@ public final class ManagedVMContext implements VMContext {
         this.eventBus = new ManagedEventBus(parent.getEventBus(), managers.getEventManager());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void freeze() {
         memoryRangeAllocator.freeze();

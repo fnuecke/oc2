@@ -35,9 +35,9 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public record BusCableBakedModel(
-        BakedModel proxy,
-        BakedModel[] straightModelByAxis,
-        BakedModel[] supportModelByFace
+    BakedModel proxy,
+    BakedModel[] straightModelByAxis,
+    BakedModel[] supportModelByFace
 ) implements BakedModel, FabricBakedModel {
     @Override
     public boolean isVanillaAdapter() {
@@ -126,7 +126,7 @@ public record BusCableBakedModel(
         return proxy.getOverrides();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static void emitFacadeQuads(final BlockAndTintGetter level, final BlockPos pos,
                                         final Supplier<RandomSource> randomSupplier, final RenderContext context) {

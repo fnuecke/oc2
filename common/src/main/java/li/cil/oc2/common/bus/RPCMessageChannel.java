@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 final class RPCMessageChannel {
     private static final byte[] MESSAGE_DELIMITER = "\0".getBytes(StandardCharsets.US_ASCII);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final SerialDevice device;
 
@@ -24,14 +24,14 @@ final class RPCMessageChannel {
     @Serialized
     private volatile ByteBuffer hostToGuest; // for data written by device to VM
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     RPCMessageChannel(final SerialDevice device, final int maxMessageSize) {
         this.device = device;
         this.guestToHost = ByteBuffer.allocate(maxMessageSize);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     boolean isSending() {
         return hostToGuest != null;
@@ -102,7 +102,7 @@ final class RPCMessageChannel {
         hostToGuest = null;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     static ByteBuffer frame(final byte[] payload) {
         final ByteBuffer buffer = ByteBuffer.allocate(payload.length + MESSAGE_DELIMITER.length * 2);

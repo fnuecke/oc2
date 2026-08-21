@@ -61,29 +61,29 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
     // We bake the "screen" indent on the front into the collision shape, to prevent stuff being
     // placeable on that side, such as network connectors, torches, etc.
     private static final VoxelShape NEG_Z_SHAPE = Shapes.or(
-            Block.box(0, 0, 1, 16, 16, 16), // main body
-            Block.box(0, 15, 0, 16, 16, 1), // across top
-            Block.box(0, 0, 0, 16, 6, 1), // across bottom
-            Block.box(0, 0, 0, 1, 16, 1), // up left
-            Block.box(15, 0, 0, 16, 16, 1) // up right
+        Block.box(0, 0, 1, 16, 16, 16), // main body
+        Block.box(0, 15, 0, 16, 16, 1), // across top
+        Block.box(0, 0, 0, 16, 6, 1), // across bottom
+        Block.box(0, 0, 0, 1, 16, 1), // up left
+        Block.box(15, 0, 0, 16, 16, 1) // up right
     );
     private static final VoxelShape NEG_X_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_Z_SHAPE);
     private static final VoxelShape POS_Z_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_X_SHAPE);
     private static final VoxelShape POS_X_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(POS_Z_SHAPE);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ComputerBlock() {
         super(Properties
-                .of()
-                .mapColor(MapColor.METAL)
-                .sound(SoundType.METAL)
-                .strength(1.5f, 6.0f)
-                .isRedstoneConductor((state, level, pos) -> false));
+            .of()
+            .mapColor(MapColor.METAL)
+            .sound(SoundType.METAL)
+            .strength(1.5f, 6.0f)
+            .isRedstoneConductor((state, level, pos) -> false));
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     @Override
@@ -220,7 +220,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
     // EntityBlock
 
     @Nullable
@@ -235,7 +235,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
         return TickableBlockEntity.createTicker(level, type, BlockEntities.COMPUTER.get());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {

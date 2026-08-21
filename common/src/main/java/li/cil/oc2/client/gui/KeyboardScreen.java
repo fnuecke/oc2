@@ -28,19 +28,19 @@ public final class KeyboardScreen extends Screen {
 
     private static final MutableComponent CLOSE_INFO = Component.translatable("gui.oc2.keyboard.close_info");
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final KeyboardBlockEntity keyboard;
     private final IntSet pressedKeys = new IntOpenHashSet();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public KeyboardScreen(final KeyboardBlockEntity keyboard) {
         super(Items.KEYBOARD.get().getDescription());
         this.keyboard = keyboard;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void init() {
@@ -60,8 +60,8 @@ public final class KeyboardScreen extends Screen {
 
         final Vec3 keyboardCenter = Vec3.atCenterOf(keyboard.getBlockPos());
         if (!keyboard.isValid() ||
-                minecraft.player == null ||
-                minecraft.player.distanceToSqr(keyboardCenter) > 8 * 8) {
+            minecraft.player == null ||
+            minecraft.player.distanceToSqr(keyboardCenter) > 8 * 8) {
             onClose();
         }
     }
@@ -106,8 +106,8 @@ public final class KeyboardScreen extends Screen {
         renderBorderOverlay(graphics);
 
         graphics.drawWordWrap(font, CLOSE_INFO,
-                BORDER_SIZE * 3, height - BORDER_SIZE * 3 - font.lineHeight,
-                width - BORDER_SIZE * 6, 0x88FFFFFF);
+            BORDER_SIZE * 3, height - BORDER_SIZE * 3 - font.lineHeight,
+            width - BORDER_SIZE * 6, 0x88FFFFFF);
     }
 
     @Override
@@ -129,7 +129,7 @@ public final class KeyboardScreen extends Screen {
         ClientPlatform.setHotbarVisible(true);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void renderBorderOverlay(final GuiGraphics graphics) {
         graphics.fill(BORDER_SIZE, BORDER_SIZE, width - BORDER_SIZE, BORDER_SIZE * 2, BORDER_COLOR);

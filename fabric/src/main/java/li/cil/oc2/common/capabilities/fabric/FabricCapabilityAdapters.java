@@ -50,7 +50,7 @@ public final class FabricCapabilityAdapters {
         return Transaction.openNested(Transaction.getCurrentUnsafe());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private record EnergyStorageAdapter(team.reborn.energy.api.EnergyStorage inner) implements EnergyStorage {
         @Override
@@ -167,7 +167,7 @@ public final class FabricCapabilityAdapters {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private record ItemHandlerAdapter(Storage<ItemVariant> inner) implements ItemHandler {
         @Override

@@ -24,7 +24,7 @@ public final class CapabilityAdapterTests {
 
     private static final long AMOUNT = 100;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void simulatedInsertDoesNotMutate(final GameTestHelper helper, final Function<GameTestHelper, EnergyStorage> energy) {
         final EnergyStorage storage = require(energy.apply(helper), "energy storage");
@@ -45,7 +45,7 @@ public final class CapabilityAdapterTests {
 
         assertEquals("committed insert should report the accepted amount", AMOUNT, accepted);
         assertEquals("committed insert must move exactly the reported amount",
-                before + accepted, storage.getEnergyStored());
+            before + accepted, storage.getEnergyStored());
         helper.succeed();
     }
 
@@ -58,7 +58,7 @@ public final class CapabilityAdapterTests {
 
         assertEquals("committed extract should report the extracted amount", AMOUNT, extracted);
         assertEquals("committed extract must move exactly the reported amount",
-                before - extracted, storage.getEnergyStored());
+            before - extracted, storage.getEnergyStored());
         helper.succeed();
     }
 
@@ -114,7 +114,7 @@ public final class CapabilityAdapterTests {
         helper.succeed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void simulatedItemInsertDoesNotMutate(final GameTestHelper helper, final Function<GameTestHelper, ItemHandler> items) {
         final ItemHandler handler = require(items.apply(helper), "item handler");
@@ -157,7 +157,7 @@ public final class CapabilityAdapterTests {
 
         if (!extracted.is(stack.getItem())) {
             throw new GameTestAssertException("round trip changed the item: expected "
-                    + stack.getItem() + ", got " + extracted);
+                + stack.getItem() + ", got " + extracted);
         }
         assertEquals("round trip changed the count", 1, extracted.getCount());
         assertEquals("slot should be empty again", 0, handler.getStackInSlot(slot).getCount());
@@ -175,15 +175,15 @@ public final class CapabilityAdapterTests {
         final ItemStack remainder = abortedInsert.apply(helper, handler, slot, stack.copy());
 
         assertEquals("an aborted insert should still report what it would have moved",
-                0, remainder.getCount());
+            0, remainder.getCount());
         if (!ItemStack.matches(before, handler.getStackInSlot(slot))) {
             throw new GameTestAssertException("an aborted insert must leave slot " + slot
-                    + " untouched, found " + handler.getStackInSlot(slot));
+                + " untouched, found " + handler.getStackInSlot(slot));
         }
         helper.succeed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static int acceptingSlot(final ItemHandler handler, final ItemStack stack) {
         for (int slot = 0; slot < handler.getSlots(); slot++) {
@@ -192,7 +192,7 @@ public final class CapabilityAdapterTests {
             }
         }
         throw new GameTestAssertException("no slot accepts " + stack + " in a handler with "
-                + handler.getSlots() + " slot(s)");
+            + handler.getSlots() + " slot(s)");
     }
 
     private static <T> T require(final T value, final String what) {
@@ -208,7 +208,7 @@ public final class CapabilityAdapterTests {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private CapabilityAdapterTests() {
     }

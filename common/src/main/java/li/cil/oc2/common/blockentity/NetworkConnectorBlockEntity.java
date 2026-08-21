@@ -62,7 +62,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     private static final int MIN_ETHERNET_FRAME_SIZE = 42;
     private static final int TTL_COST = 1;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final NetworkConnectorNetworkInterface networkInterface = new NetworkConnectorNetworkInterface();
 
@@ -74,13 +74,13 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     private final HashSet<BlockPos> dirtyConnectors = new HashSet<>();
     private final HashMap<BlockPos, NetworkConnectorBlockEntity> connectors = new HashMap<>();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public NetworkConnectorBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.NETWORK_CONNECTOR.get(), pos, state);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static ConnectionResult connect(final NetworkConnectorBlockEntity connectorA, final NetworkConnectorBlockEntity connectorB) {
         if (connectorA == connectorB || !connectorA.isValid() || !connectorB.isValid()) {
@@ -257,7 +257,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void collectCapabilities(final CapabilityCollector collector, @Nullable final Direction direction) {
@@ -299,7 +299,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void resolveLocalInterface() {
         assert level != null;
@@ -369,22 +369,22 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         // symmetric. In particular when grazing corners perfectly, e.g. two connectors
         // attached to the same block at a 90-degree angle. So we check both ways.
         final BlockHitResult hitAB = level.clip(new ClipContext(
-                va.add(ab),
-                vb.subtract(ab),
-                ClipContext.Block.COLLIDER,
-                ClipContext.Fluid.NONE,
-                CollisionContext.empty()
+            va.add(ab),
+            vb.subtract(ab),
+            ClipContext.Block.COLLIDER,
+            ClipContext.Fluid.NONE,
+            CollisionContext.empty()
         ));
         final BlockHitResult hitBA = level.clip(new ClipContext(
-                vb.subtract(ab),
-                va.add(ab),
-                ClipContext.Block.COLLIDER,
-                ClipContext.Fluid.NONE,
-                CollisionContext.empty()
+            vb.subtract(ab),
+            va.add(ab),
+            ClipContext.Block.COLLIDER,
+            ClipContext.Fluid.NONE,
+            CollisionContext.empty()
         ));
 
         return hitAB.getType() != HitResult.Type.MISS ||
-                hitBA.getType() != HitResult.Type.MISS;
+            hitBA.getType() != HitResult.Type.MISS;
     }
 
     private void onConnectedPositionsChanged() {
@@ -394,7 +394,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final class NullNetworkInterface implements NetworkInterface {
         public static final NetworkInterface INSTANCE = new NullNetworkInterface();

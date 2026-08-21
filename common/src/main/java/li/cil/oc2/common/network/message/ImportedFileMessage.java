@@ -11,13 +11,13 @@ import net.minecraft.server.level.ServerPlayer;
 public final class ImportedFileMessage extends AbstractMessage {
     private static final int MAX_NAME_LENGTH = 256;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private int id;
     private String name;
     private byte[] data;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ImportedFileMessage(final int id, final String name, final byte[] data) {
         this.id = id;
@@ -29,7 +29,7 @@ public final class ImportedFileMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -45,7 +45,7 @@ public final class ImportedFileMessage extends AbstractMessage {
         buffer.writeByteArray(data);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {

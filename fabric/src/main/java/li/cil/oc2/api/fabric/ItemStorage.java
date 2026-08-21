@@ -25,20 +25,20 @@ public abstract class ItemStorage {
      * Entity access to item storages, {@code oc2:entity_item_storage}.
      */
     public static final EntityApiLookup<Storage<ItemVariant>, Direction> ENTITY =
-            EntityApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "entity_item_storage"),
-                    Storage.asClass(), Direction.class);
+        EntityApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "entity_item_storage"),
+            Storage.asClass(), Direction.class);
 
     /**
      * The transfer API's sided block lookup, {@code fabric:sided_item_storage}.
      */
     public static final BlockApiLookup<Storage<ItemVariant>, Direction> SIDED =
-            net.fabricmc.fabric.api.transfer.v1.item.ItemStorage.SIDED;
+        net.fabricmc.fabric.api.transfer.v1.item.ItemStorage.SIDED;
 
     /**
      * The transfer API's item lookup, {@code fabric:item_storage}.
      */
     public static final ItemApiLookup<Storage<ItemVariant>, ContainerItemContext> ITEM =
-            net.fabricmc.fabric.api.transfer.v1.item.ItemStorage.ITEM;
+        net.fabricmc.fabric.api.transfer.v1.item.ItemStorage.ITEM;
 
     private ItemStorage() {
     }

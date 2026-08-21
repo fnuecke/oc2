@@ -12,7 +12,7 @@ public abstract class AbstractTerminalBlockMessage extends AbstractMessage {
     protected BlockPos pos;
     protected byte[] data;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected AbstractTerminalBlockMessage(final ComputerBlockEntity computer, final ByteBuffer data) {
         this.pos = computer.getBlockPos();
@@ -23,7 +23,7 @@ public abstract class AbstractTerminalBlockMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {

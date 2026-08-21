@@ -33,7 +33,7 @@ public final class WrenchRecipeBuilder implements RecipeBuilder {
     @Nullable
     private String group;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private WrenchRecipeBuilder(final ItemLike result, final int count) {
         this.result = result.asItem();
@@ -50,7 +50,7 @@ public final class WrenchRecipeBuilder implements RecipeBuilder {
         return new WrenchRecipeBuilder(result, count);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public WrenchRecipeBuilder requires(final TagKey<Item> tag) {
         return requires(Ingredient.of(tag));
@@ -97,16 +97,16 @@ public final class WrenchRecipeBuilder implements RecipeBuilder {
         }
 
         final Advancement.Builder advancement = output.advancement()
-                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
-                .rewards(AdvancementRewards.Builder.recipe(id))
-                .requirements(AdvancementRequirements.Strategy.OR);
+            .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
+            .rewards(AdvancementRewards.Builder.recipe(id))
+            .requirements(AdvancementRequirements.Strategy.OR);
         criteria.forEach(advancement::addCriterion);
 
         final ShapelessRecipe shapeless = new ShapelessRecipe(
-                group == null ? "" : group,
-                RecipeBuilder.determineBookCategory(RecipeCategory.MISC),
-                new ItemStack(result, count),
-                ingredients);
+            group == null ? "" : group,
+            RecipeBuilder.determineBookCategory(RecipeCategory.MISC),
+            new ItemStack(result, count),
+            ingredients);
 
         output.accept(id, new WrenchRecipe(shapeless), advancement.build(id.withPrefix("recipes/misc/")));
     }

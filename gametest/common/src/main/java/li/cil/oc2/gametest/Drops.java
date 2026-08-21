@@ -13,7 +13,7 @@ import java.util.List;
 public final class Drops {
     public static List<ItemStack> all(final GameTestHelper helper) {
         return helper.getLevel().getEntitiesOfClass(ItemEntity.class, helper.getBounds().inflate(2))
-                .stream().map(ItemEntity::getItem).toList();
+            .stream().map(ItemEntity::getItem).toList();
     }
 
     public static ItemStack single(final GameTestHelper helper) {
@@ -31,7 +31,7 @@ public final class Drops {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private Drops() {
     }

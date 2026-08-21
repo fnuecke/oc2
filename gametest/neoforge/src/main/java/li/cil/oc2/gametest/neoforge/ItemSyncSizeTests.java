@@ -30,7 +30,7 @@ public final class ItemSyncSizeTests {
     private static final int MAX_DEVICE_STACK_BYTES = 256;
     private static final int MAX_COMPUTER_STACK_BYTES = 2048;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void storageItemsSyncByHandleNotByPayload(final GameTestHelper helper) {
@@ -42,41 +42,41 @@ public final class ItemSyncSizeTests {
         final DiskDriveFixture drive = DiskDriveFixture.place(helper, player, DEVICE_POS);
 
         helper.startSequence()
-                .thenExecuteAfter(60, () -> {
-                    computer.install(DeviceTypes.FLASH_MEMORY, new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
-                            .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
-                            .install(DeviceTypes.HARD_DRIVE, new ItemStack(Items.HARD_DRIVE_CUSTOM.get()));
-                    drive.insert(new ItemStack(Items.FLOPPY.get()));
-                })
-                .thenExecuteAfter(20, computer::start)
-                .thenExecuteAfter(300, () -> {
-                    computer.assertRunState(VMRunState.RUNNING, "precondition");
+            .thenExecuteAfter(60, () -> {
+                computer.install(DeviceTypes.FLASH_MEMORY, new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
+                    .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
+                    .install(DeviceTypes.HARD_DRIVE, new ItemStack(Items.HARD_DRIVE_CUSTOM.get()));
+                drive.insert(new ItemStack(Items.FLOPPY.get()));
+            })
+            .thenExecuteAfter(20, computer::start)
+            .thenExecuteAfter(300, () -> {
+                computer.assertRunState(VMRunState.RUNNING, "precondition");
 
-                    final RegistryAccess registries = helper.getLevel().registryAccess();
+                final RegistryAccess registries = helper.getLevel().registryAccess();
 
-                    final ItemStack hardDrive = computer.slot(DeviceTypes.HARD_DRIVE);
-                    final ItemStack floppy = drive.floppy();
+                final ItemStack hardDrive = computer.slot(DeviceTypes.HARD_DRIVE);
+                final ItemStack floppy = drive.floppy();
 
-                    assertBlobHandle("hard drive", hardDrive);
-                    assertBlobHandle("floppy", floppy);
+                assertBlobHandle("hard drive", hardDrive);
+                assertBlobHandle("floppy", floppy);
 
-                    assertSyncSize(registries, "flash memory",
-                            computer.slot(DeviceTypes.FLASH_MEMORY), MAX_DEVICE_STACK_BYTES);
-                    assertSyncSize(registries, "memory",
-                            computer.slot(DeviceTypes.MEMORY), MAX_DEVICE_STACK_BYTES);
-                    assertSyncSize(registries, "hard drive", hardDrive, MAX_DEVICE_STACK_BYTES);
-                    assertSyncSize(registries, "floppy", floppy, MAX_DEVICE_STACK_BYTES);
+                assertSyncSize(registries, "flash memory",
+                    computer.slot(DeviceTypes.FLASH_MEMORY), MAX_DEVICE_STACK_BYTES);
+                assertSyncSize(registries, "memory",
+                    computer.slot(DeviceTypes.MEMORY), MAX_DEVICE_STACK_BYTES);
+                assertSyncSize(registries, "hard drive", hardDrive, MAX_DEVICE_STACK_BYTES);
+                assertSyncSize(registries, "floppy", floppy, MAX_DEVICE_STACK_BYTES);
 
-                    // Breaking a computer folds its whole device inventory into the dropped item, so
-                    // this stack is the sum of everything above plus the block entity's own state.
-                    final ItemStack computerStack = new ItemStack(Items.COMPUTER.get());
-                    computer.blockEntity().exportToItemStack(computerStack);
-                    assertSyncSize(registries, "computer item", computerStack, MAX_COMPUTER_STACK_BYTES);
-                })
-                .thenSucceed();
+                // Breaking a computer folds its whole device inventory into the dropped item, so
+                // this stack is the sum of everything above plus the block entity's own state.
+                final ItemStack computerStack = new ItemStack(Items.COMPUTER.get());
+                computer.blockEntity().exportToItemStack(computerStack);
+                assertSyncSize(registries, "computer item", computerStack, MAX_COMPUTER_STACK_BYTES);
+            })
+            .thenSucceed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static void assertSyncSize(final RegistryAccess registries, final String what,
                                        final ItemStack stack, final int limit) {
@@ -107,7 +107,7 @@ public final class ItemSyncSizeTests {
         return false;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private ItemSyncSizeTests() {
     }

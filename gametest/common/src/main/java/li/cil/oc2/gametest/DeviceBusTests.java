@@ -20,27 +20,27 @@ public final class DeviceBusTests {
 
         final int[] base = new int[1];
         helper.startSequence()
-                .thenExecuteAfter(60, () -> base[0] = computer.deviceCount())
-                .thenExecute(() -> placeDevice(helper))
-                .thenExecuteAfter(60, () -> {
-                    final int withNeighbor = computer.deviceCount();
-                    if (withNeighbor <= base[0]) {
-                        throw new GameTestAssertException(
-                                "attaching a redstone interface added no device (alone=" + base[0]
-                                        + ", attached=" + withNeighbor + ")");
-                    }
-                })
-                .thenExecute(() -> breakBlock(helper, DEVICE_POS))
-                .thenExecuteAfter(60, () -> {
-                    final int after = computer.deviceCount();
-                    if (after != base[0]) {
-                        throw new GameTestAssertException(
-                                "device count did not return to baseline after removing the neighbour: alone="
-                                        + base[0] + ", after removal=" + after
-                                        + " (capability invalidation is not propagating)");
-                    }
-                })
-                .thenSucceed();
+            .thenExecuteAfter(60, () -> base[0] = computer.deviceCount())
+            .thenExecute(() -> placeDevice(helper))
+            .thenExecuteAfter(60, () -> {
+                final int withNeighbor = computer.deviceCount();
+                if (withNeighbor <= base[0]) {
+                    throw new GameTestAssertException(
+                        "attaching a redstone interface added no device (alone=" + base[0]
+                            + ", attached=" + withNeighbor + ")");
+                }
+            })
+            .thenExecute(() -> breakBlock(helper, DEVICE_POS))
+            .thenExecuteAfter(60, () -> {
+                final int after = computer.deviceCount();
+                if (after != base[0]) {
+                    throw new GameTestAssertException(
+                        "device count did not return to baseline after removing the neighbour: alone="
+                            + base[0] + ", after removal=" + after
+                            + " (capability invalidation is not propagating)");
+                }
+            })
+            .thenSucceed();
     }
 
     public static void busRediscoversReplacedNeighbor(final GameTestHelper helper) {
@@ -48,19 +48,19 @@ public final class DeviceBusTests {
 
         final int[] attached = new int[1];
         helper.startSequence()
-                .thenExecuteAfter(40, () -> placeDevice(helper))
-                .thenExecuteAfter(60, () -> attached[0] = computer.deviceCount())
-                .thenExecute(() -> breakBlock(helper, DEVICE_POS))
-                .thenExecuteAfter(60, () -> placeDevice(helper))
-                .thenExecuteAfter(60, () -> {
-                    final int rediscovered = computer.deviceCount();
-                    if (rediscovered < attached[0]) {
-                        throw new GameTestAssertException(
-                                "neighbour not rediscovered after being replaced: first attach="
-                                        + attached[0] + ", after replace=" + rediscovered);
-                    }
-                })
-                .thenSucceed();
+            .thenExecuteAfter(40, () -> placeDevice(helper))
+            .thenExecuteAfter(60, () -> attached[0] = computer.deviceCount())
+            .thenExecute(() -> breakBlock(helper, DEVICE_POS))
+            .thenExecuteAfter(60, () -> placeDevice(helper))
+            .thenExecuteAfter(60, () -> {
+                final int rediscovered = computer.deviceCount();
+                if (rediscovered < attached[0]) {
+                    throw new GameTestAssertException(
+                        "neighbour not rediscovered after being replaced: first attach="
+                            + attached[0] + ", after replace=" + rediscovered);
+                }
+            })
+            .thenSucceed();
     }
 
     public static void busNoticesNeighborCapabilityInvalidatedWithoutBlockUpdate(final GameTestHelper helper) {
@@ -69,27 +69,27 @@ public final class DeviceBusTests {
         final int[] base = new int[1];
         final int[] attached = new int[1];
         helper.startSequence()
-                .thenExecuteAfter(60, () -> base[0] = computer.deviceCount())
-                .thenExecute(() -> helper.setBlock(DEVICE_POS, Blocks.CHEST))
-                .thenWaitUntil(() -> {
-                    attached[0] = computer.deviceCount();
-                    if (attached[0] <= base[0]) {
-                        throw new GameTestAssertException(
-                                "chest did not attach in the first place (alone=" + base[0]
-                                        + ", attached=" + attached[0] + ")");
-                    }
-                })
-                .thenExecute(() -> helper.getLevel().setBlock(helper.absolutePos(DEVICE_POS),
-                        Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS))
-                .thenWaitUntil(() -> {
-                    final int after = computer.deviceCount();
-                    if (after != base[0]) {
-                        throw new GameTestAssertException(
-                                "bus did not notice its neighbour's capability going away without a block update: alone="
-                                        + base[0] + ", attached=" + attached[0] + ", after=" + after);
-                    }
-                })
-                .thenSucceed();
+            .thenExecuteAfter(60, () -> base[0] = computer.deviceCount())
+            .thenExecute(() -> helper.setBlock(DEVICE_POS, Blocks.CHEST))
+            .thenWaitUntil(() -> {
+                attached[0] = computer.deviceCount();
+                if (attached[0] <= base[0]) {
+                    throw new GameTestAssertException(
+                        "chest did not attach in the first place (alone=" + base[0]
+                            + ", attached=" + attached[0] + ")");
+                }
+            })
+            .thenExecute(() -> helper.getLevel().setBlock(helper.absolutePos(DEVICE_POS),
+                Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS))
+            .thenWaitUntil(() -> {
+                final int after = computer.deviceCount();
+                if (after != base[0]) {
+                    throw new GameTestAssertException(
+                        "bus did not notice its neighbour's capability going away without a block update: alone="
+                            + base[0] + ", attached=" + attached[0] + ", after=" + after);
+                }
+            })
+            .thenSucceed();
     }
 
     public static void busReachesAcrossChunkBoundary(final GameTestHelper helper) {
@@ -109,21 +109,21 @@ public final class DeviceBusTests {
 
         final int[] base = new int[1];
         helper.startSequence()
-                .thenExecuteAfter(80, () -> base[0] = computer.deviceCount())
-                .thenExecute(() -> place(helper, fakePlayer(helper),
-                        new ItemStack(Items.REDSTONE_INTERFACE.get()), farDevice))
-                .thenExecuteAfter(80, () -> {
-                    final int reached = computer.deviceCount();
-                    if (reached <= base[0]) {
-                        throw new GameTestAssertException(
-                                "device at the far end of a cross-chunk cable run was not found (run="
-                                        + base[0] + ", with device=" + reached + ")");
-                    }
-                })
-                .thenSucceed();
+            .thenExecuteAfter(80, () -> base[0] = computer.deviceCount())
+            .thenExecute(() -> place(helper, fakePlayer(helper),
+                new ItemStack(Items.REDSTONE_INTERFACE.get()), farDevice))
+            .thenExecuteAfter(80, () -> {
+                final int reached = computer.deviceCount();
+                if (reached <= base[0]) {
+                    throw new GameTestAssertException(
+                        "device at the far end of a cross-chunk cable run was not found (run="
+                            + base[0] + ", with device=" + reached + ")");
+                }
+            })
+            .thenSucceed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static ComputerFixture placeComputerAndCable(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
@@ -136,7 +136,7 @@ public final class DeviceBusTests {
         place(helper, fakePlayer(helper), new ItemStack(Items.REDSTONE_INTERFACE.get()), DEVICE_POS);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private DeviceBusTests() {
     }

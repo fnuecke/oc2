@@ -10,7 +10,7 @@ public final class Sprite {
     public final int width, height;
     public final int u0, v0;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public Sprite(final Texture texture) {
         this.texture = texture;
@@ -28,7 +28,7 @@ public final class Sprite {
         this.v0 = v0;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void draw(final GuiGraphics graphics, final int x, final int y) {
         draw(graphics, x, y, 0, 0);

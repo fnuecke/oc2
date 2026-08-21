@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 public abstract class ConfigManager {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final Map<Class<?>, ConfigFieldParser> PARSERS = new HashMap<>();
     private static final Map<Class<?>, Pair<Function<Object, String>, Function<String, Object>>> STRING_CONVERTERS = new HashMap<>();
@@ -44,7 +44,7 @@ public abstract class ConfigManager {
         STRING_CONVERTERS.put(ResourceLocation.class, Pair.of(Object::toString, ResourceLocation::parse));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @ExpectPlatform
     public static <T> void add(final Supplier<T> factory) {
@@ -56,7 +56,7 @@ public abstract class ConfigManager {
         throw new AssertionError();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected static <T> void fillSpec(final T instance, final Builder builder, final ArrayList<ConfigFieldPair<?>> values) {
         for (final Field field : instance.getClass().getFields()) {
@@ -68,7 +68,7 @@ public abstract class ConfigManager {
         return new ConfigDefinition(instance, values);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static <T> void parseField(final T instance, final Builder builder, final ArrayList<ConfigFieldPair<?>> values, final Field field) {
         try {
@@ -76,7 +76,7 @@ public abstract class ConfigManager {
                 final ItemType annotation = field.getAnnotation(ItemType.class);
                 if (annotation == null) {
                     LOGGER.error("Config field [{}.{}] has a collection type but no @ItemType annotation, ignoring.",
-                            field.getDeclaringClass().getName(), field.getName());
+                        field.getDeclaringClass().getName(), field.getName());
                     return;
                 }
 
@@ -85,7 +85,7 @@ public abstract class ConfigManager {
                 final KeyValueTypes annotation = field.getAnnotation(KeyValueTypes.class);
                 if (annotation == null) {
                     LOGGER.error("Config field [{}.{}] has a map type but no @KeyValueTypes annotation, ignoring.",
-                            field.getDeclaringClass().getName(), field.getName());
+                        field.getDeclaringClass().getName(), field.getName());
                     return;
                 }
 
@@ -203,7 +203,7 @@ public abstract class ConfigManager {
         final int maxValue = (int) Math.min(getMax(field), Integer.MAX_VALUE);
 
         return new SetFieldConfigItem<>(field, withCommonAttributes(field, builder)
-                .defineInRange(getPath(field), defaultValue, minValue, maxValue, Integer.class));
+            .defineInRange(getPath(field), defaultValue, minValue, maxValue, Integer.class));
     }
 
     private static ConfigFieldPair<?> parseLongField(final Object instance, final Field field, final Builder builder) throws IllegalAccessException {
@@ -212,7 +212,7 @@ public abstract class ConfigManager {
         final long maxValue = (long) Math.min(getMax(field), Long.MAX_VALUE);
 
         return new SetFieldConfigItem<>(field, withCommonAttributes(field, builder)
-                .defineInRange(getPath(field), defaultValue, minValue, maxValue, Long.class));
+            .defineInRange(getPath(field), defaultValue, minValue, maxValue, Long.class));
     }
 
     private static ConfigFieldPair<?> parseDoubleField(final Object instance, final Field field, final Builder builder) throws IllegalAccessException {
@@ -221,7 +221,7 @@ public abstract class ConfigManager {
         final double maxValue = getMax(field);
 
         return new SetFieldConfigItem<>(field, withCommonAttributes(field, builder)
-                .defineInRange(getPath(field), defaultValue, minValue, maxValue, Double.class));
+            .defineInRange(getPath(field), defaultValue, minValue, maxValue, Double.class));
     }
 
     private static ConfigFieldPair<?> parseStringLikeField(final Object instance, final Field field, final Builder builder, final Pair<Function<Object, String>, Function<String, Object>> defaultSerializers) throws IllegalAccessException {
@@ -233,10 +233,10 @@ public abstract class ConfigManager {
         final String defaultValue = serializers.getLeft().apply(field.get(instance));
 
         return new SetFieldConfigItem<>(field, withCommonAttributes(field, builder).define(getPath(field), defaultValue),
-                serializers.getRight());
+            serializers.getRight());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static Builder withCommonAttributes(final Field field, final Builder builder) {
         if (getWorldRestart(field)) {
@@ -285,16 +285,16 @@ public abstract class ConfigManager {
 
     private static boolean getWorldRestart(final Field field) {
         return field.getAnnotation(WorldRestart.class) != null
-                || field.getDeclaringClass().getAnnotation(WorldRestart.class) != null;
+            || field.getDeclaringClass().getAnnotation(WorldRestart.class) != null;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Nullable
     private static Pair<Function<Object, String>, Function<String, Object>> getSerializerPair(
-            final Object instance,
-            @Nullable final CustomSerializer annotation,
-            @Nullable final Pair<Function<Object, String>, Function<String, Object>> defaultSerializers) {
+        final Object instance,
+        @Nullable final CustomSerializer annotation,
+        @Nullable final Pair<Function<Object, String>, Function<String, Object>> defaultSerializers) {
         final Function<Object, String> defaultSerializer = defaultSerializers != null ? defaultSerializers.getLeft() : null;
         final Function<String, Object> defaultDeserializer = defaultSerializers != null ? defaultSerializers.getRight() : null;
 
@@ -323,7 +323,7 @@ public abstract class ConfigManager {
             final MethodType methodType = MethodType.methodType(String.class, Object.class);
             final MethodHandle methodHandle = lookup.findStatic(instance.getClass(), methodName, methodType);
             return (Function<Object, String>) LambdaMetafactory.metafactory(lookup, "apply",
-                    MethodType.methodType(Function.class), methodType.generic(), methodHandle, methodType).getTarget().invokeExact();
+                MethodType.methodType(Function.class), methodType.generic(), methodHandle, methodType).getTarget().invokeExact();
         } catch (final Throwable e) {
             LOGGER.error("Serializer [{}] not found on config [{}] or could not be accessed. Error was: {}", methodName, instance.getClass().getName(), e);
             warnAboutSignature(instance, methodName, "static String {}(Object) {...}");
@@ -343,7 +343,7 @@ public abstract class ConfigManager {
             final MethodType methodType = MethodType.methodType(Object.class, String.class);
             final MethodHandle methodHandle = lookup.findStatic(instance.getClass(), methodName, methodType);
             return (Function<String, Object>) LambdaMetafactory.metafactory(lookup, "apply",
-                    MethodType.methodType(Function.class), methodType.generic(), methodHandle, methodType).getTarget().invokeExact();
+                MethodType.methodType(Function.class), methodType.generic(), methodHandle, methodType).getTarget().invokeExact();
         } catch (final Throwable e) {
             LOGGER.error("Deserializer [{}] not found on config [{}] or could not be accessed. Error was: {}", methodName, instance.getClass().getName(), e);
             warnAboutSignature(instance, methodName, "static Object {}(String) {...}");
@@ -360,7 +360,7 @@ public abstract class ConfigManager {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @FunctionalInterface
     private interface ConfigFieldParser {
@@ -422,10 +422,10 @@ public abstract class ConfigManager {
                 field.set(instance, converter.apply(raw));
             } catch (final IllegalAccessException e) {
                 LOGGER.error("Failed setting config field [{}.{}].",
-                        field.getDeclaringClass().getName(), field.getName(), e);
+                    field.getDeclaringClass().getName(), field.getName(), e);
             } catch (final RuntimeException e) {
                 LOGGER.error("Invalid value for config field [{}.{}], keeping previous value.",
-                        field.getDeclaringClass().getName(), field.getName(), e);
+                    field.getDeclaringClass().getName(), field.getName(), e);
             }
         }
     }

@@ -23,13 +23,13 @@ import java.util.List;
 public final class FluidHandlerDevice extends IdentityProxy<Storage<FluidVariant>> implements NamedDevice {
     private static final long DROPLETS_PER_MILLIBUCKET = FluidConstants.BUCKET / 1000;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public FluidHandlerDevice(final Storage<FluidVariant> identity) {
         super(identity);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public Collection<String> getDeviceTypeNames() {
@@ -58,13 +58,13 @@ public final class FluidHandlerDevice extends IdentityProxy<Storage<FluidVariant
         return view == null ? 0 : toMillibuckets(view.getCapacity());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public record FluidInfo(String fluid, int amount) {
         static final FluidInfo EMPTY = new FluidInfo(BuiltInRegistries.FLUID.getKey(Fluids.EMPTY).toString(), 0);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static int toMillibuckets(final long droplets) {
         return (int) Math.min(droplets / DROPLETS_PER_MILLIBUCKET, Integer.MAX_VALUE);

@@ -20,7 +20,7 @@ public final class FluidHandlerBlockDeviceProvider extends AbstractBlockDevicePr
         }
 
         final IFluidHandler handler = level.getCapability(
-                Capabilities.FluidHandler.BLOCK, query.getQueryPosition(), query.getQuerySide());
+            Capabilities.FluidHandler.BLOCK, query.getQueryPosition(), query.getQuerySide());
         if (handler == null) {
             return Invalidatable.empty();
         }

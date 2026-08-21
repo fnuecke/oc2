@@ -13,14 +13,14 @@ public abstract class AbstractTerminalVMRunner extends VMRunner {
     private final UART16550A uart;
     private final Terminal terminal;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     // Thread-local buffers for lock-free read/writes in inner loop.
     private final ByteArrayFIFOQueue outputBuffer = new ByteArrayFIFOQueue(1024);
     private final ByteArrayFIFOQueue inputBuffer = new ByteArrayFIFOQueue(32);
     private final Queue<byte[]> pendingOutput = new ConcurrentLinkedQueue<>();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public AbstractTerminalVMRunner(final AbstractVirtualMachine virtualMachine, final Terminal terminal) {
         super(virtualMachine);
@@ -28,11 +28,11 @@ public abstract class AbstractTerminalVMRunner extends VMRunner {
         uart = virtualMachine.state.builtinDevices.uart;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected abstract void sendTerminalUpdateToClient(final ByteBuffer output);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void tick() {
@@ -86,7 +86,7 @@ public abstract class AbstractTerminalVMRunner extends VMRunner {
         putTerminalOutput(output);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void putTerminalOutput(final ByteBuffer output) {
         if (output.hasRemaining()) {

@@ -16,7 +16,7 @@ import static li.cil.oc2.gametest.TestSupport.WORK_Y;
 public final class BlockOperationsModuleTests {
     public static final BlockPos ROBOT_POS = new BlockPos(12, WORK_Y, 2);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void excavatesWithACorrectTool(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
@@ -62,14 +62,14 @@ public final class BlockOperationsModuleTests {
         helper.succeed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static BlockOperationsModuleDevice moduleFor(final RobotFixture robot) {
         return new BlockOperationsModuleDevice(
-                new ItemStack(Items.BLOCK_OPERATIONS_MODULE.get()), robot.entity(), robot.entity());
+            new ItemStack(Items.BLOCK_OPERATIONS_MODULE.get()), robot.entity(), robot.entity());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private BlockOperationsModuleTests() {
     }

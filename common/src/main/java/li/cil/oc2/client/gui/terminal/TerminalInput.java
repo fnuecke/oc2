@@ -53,25 +53,25 @@ public final class TerminalInput {
 
         for (int i = 'A'; i <= 'Z'; i++) {
             addSequence(
-                    GLFW.GLFW_MOD_CONTROL,
-                    GLFW.GLFW_KEY_A + i - 'A',
-                    (byte) (1 + i - 'A')
+                GLFW.GLFW_MOD_CONTROL,
+                GLFW.GLFW_KEY_A + i - 'A',
+                (byte) (1 + i - 'A')
             );
             addSequence(
-                    GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_SHIFT,
-                    GLFW.GLFW_KEY_A + i - 'A',
-                    (byte) (1 + i - 'A')
+                GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_SHIFT,
+                GLFW.GLFW_KEY_A + i - 'A',
+                (byte) (1 + i - 'A')
             );
 
             addSequence(
-                    GLFW.GLFW_MOD_ALT,
-                    GLFW.GLFW_KEY_A + i - 'A',
-                    (byte) '\033', (byte) ('a' + i - 'A')
+                GLFW.GLFW_MOD_ALT,
+                GLFW.GLFW_KEY_A + i - 'A',
+                (byte) '\033', (byte) ('a' + i - 'A')
             );
             addSequence(
-                    GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SHIFT,
-                    GLFW.GLFW_KEY_A + i - 'A',
-                    (byte) '\033', (byte) i
+                GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SHIFT,
+                GLFW.GLFW_KEY_A + i - 'A',
+                (byte) '\033', (byte) i
             );
         }
 
@@ -83,7 +83,7 @@ public final class TerminalInput {
         addSequence(GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_SHIFT, GLFW.GLFW_KEY_RIGHT_BRACKET, (byte) '\035');
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Nullable
     public static byte[] getSequence(final int keyCode) {
@@ -105,27 +105,27 @@ public final class TerminalInput {
         return getCsiSequence(keyCode, relevantModifiers);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Nullable
     private static byte[] getCsiSequence(final int keyCode, final int modifiers) {
         final int parameter = 1
-                + ((modifiers & GLFW.GLFW_MOD_SHIFT) != 0 ? 1 : 0)
-                + ((modifiers & GLFW.GLFW_MOD_ALT) != 0 ? 2 : 0)
-                + ((modifiers & GLFW.GLFW_MOD_CONTROL) != 0 ? 4 : 0);
+            + ((modifiers & GLFW.GLFW_MOD_SHIFT) != 0 ? 1 : 0)
+            + ((modifiers & GLFW.GLFW_MOD_ALT) != 0 ? 2 : 0)
+            + ((modifiers & GLFW.GLFW_MOD_CONTROL) != 0 ? 4 : 0);
 
         final char finalByte = CSI_FINAL_BYTES.get(keyCode);
         if (finalByte != '\0') {
             return toBytes(parameter == 1
-                    ? "\033[" + finalByte
-                    : "\033[1;" + parameter + finalByte);
+                ? "\033[" + finalByte
+                : "\033[1;" + parameter + finalByte);
         }
 
         final int code = CSI_CODES.get(keyCode);
         if (code != 0) {
             return toBytes(parameter == 1
-                    ? "\033[" + code + "~"
-                    : "\033[" + code + ";" + parameter + "~");
+                ? "\033[" + code + "~"
+                : "\033[" + code + ";" + parameter + "~");
         }
 
         return null;
@@ -157,8 +157,8 @@ public final class TerminalInput {
 
     private static void addSequence(final int modifiers, final int keyCode, final byte... sequence) {
         KEYCODE_SEQUENCES
-                .computeIfAbsent(modifiers, i -> new Int2ObjectArrayMap<>())
-                .put(keyCode, sequence);
+            .computeIfAbsent(modifiers, i -> new Int2ObjectArrayMap<>())
+            .put(keyCode, sequence);
     }
 
     private static byte[] toBytes(final String sequence) {

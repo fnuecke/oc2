@@ -33,7 +33,7 @@ public final class BlockOperationsModuleTestsNeoForge {
         BlockOperationsModuleTests.placesFromTheSelectedSlot(helper);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE)
     public static void refusesWhenTheToolCannotHarvest(final GameTestHelper helper) {
@@ -88,7 +88,7 @@ public final class BlockOperationsModuleTestsNeoForge {
 
         if (tool.getDamageValue() != 1) {
             throw new GameTestAssertException("expected the pickaxe to take exactly one point of " +
-                    "damage, got " + tool.getDamageValue());
+                "damage, got " + tool.getDamageValue());
         }
 
         helper.succeed();
@@ -106,16 +106,16 @@ public final class BlockOperationsModuleTestsNeoForge {
         }
 
         helper.startSequence()
-                .thenExecuteAfter(40, () -> {
-                    robot.putBlockInFront(Blocks.OBSIDIAN);
-                    if (module.excavate(RobotOperationSide.FRONT)) {
-                        throw new GameTestAssertException("should still be on cooldown");
-                    }
-                })
-                .thenSucceed();
+            .thenExecuteAfter(40, () -> {
+                robot.putBlockInFront(Blocks.OBSIDIAN);
+                if (module.excavate(RobotOperationSide.FRONT)) {
+                    throw new GameTestAssertException("should still be on cooldown");
+                }
+            })
+            .thenSucceed();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private BlockOperationsModuleTestsNeoForge() {
     }

@@ -29,7 +29,7 @@ public final class GuestTestPortDevice extends IdentityProxy<ItemStack> implemen
         DeviceTreeRegistry.putProvider(SteppablePort.class, new VirtIOProvider());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final OptionalAddress address = new OptionalAddress();
     private final OptionalInterrupt interrupt = new OptionalInterrupt();
@@ -39,13 +39,13 @@ public final class GuestTestPortDevice extends IdentityProxy<ItemStack> implemen
     @Nullable
     private GuestTestChannel channel;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public GuestTestPortDevice(final ItemStack identity) {
         super(identity);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     /**
      * The host end of the port, once the device has been mounted into a running machine.
@@ -91,7 +91,7 @@ public final class GuestTestPortDevice extends IdentityProxy<ItemStack> implemen
         interrupt.clear();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final class SteppablePort implements MemoryMappedDevice, InterruptSource, Resettable, Steppable {
         private final VirtIOConsoleDevice device;

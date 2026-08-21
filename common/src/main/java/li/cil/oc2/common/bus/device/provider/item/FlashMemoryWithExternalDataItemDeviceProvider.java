@@ -17,7 +17,7 @@ public final class FlashMemoryWithExternalDataItemDeviceProvider extends Abstrac
         super(FlashMemoryWithExternalDataItem.class);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {

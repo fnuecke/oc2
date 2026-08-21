@@ -21,7 +21,7 @@ public final class FluidHandlerBlockDeviceProvider extends AbstractBlockDevicePr
         }
 
         final Storage<FluidVariant> storage = FluidStorage.SIDED.find(
-                level, query.getQueryPosition(), query.getQuerySide());
+            level, query.getQueryPosition(), query.getQuerySide());
         if (storage == null) {
             return Invalidatable.empty();
         }

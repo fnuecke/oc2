@@ -35,7 +35,7 @@ public final class Registries {
      */
     public static final ResourceKey<Registry<Firmware>> FIRMWARE = key("firmware");
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static <T> ResourceKey<Registry<T>> key(final String name) {
         return ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name));

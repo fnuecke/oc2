@@ -18,11 +18,11 @@ public final class RobotTerminalOutputMessage extends AbstractTerminalEntityMess
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientEntity(entityId, Robot.class,
-                robot -> robot.getTerminal().putOutput(ByteBuffer.wrap(data)));
+            robot -> robot.getTerminal().putOutput(ByteBuffer.wrap(data)));
     }
 }

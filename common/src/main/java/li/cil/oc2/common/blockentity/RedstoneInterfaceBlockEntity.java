@@ -31,17 +31,17 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
     private static final String SIDE = "side";
     private static final String VALUE = "value";
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final byte[] output = new byte[Constants.BLOCK_FACE_COUNT];
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public RedstoneInterfaceBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.REDSTONE_INTERFACE.get(), pos, state);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
@@ -121,30 +121,30 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
     @Override
     public void getDeviceDocumentation(final DeviceVisitor visitor) {
         visitor.visitCallback(GET_REDSTONE_INPUT)
-                .description("Get the current redstone level received on the specified side. " +
-                        "Note that if the current output level on the specified side is not " +
-                        "zero, this will affect the measured level.\n" +
-                        "Sides may be specified by name or zero-based index. Please note that " +
-                        "the side depends on the orientation of the device.")
-                .returnValueDescription("the current received level on the specified side.")
-                .parameterDescription(SIDE, "the side to read the input level from.");
+            .description("Get the current redstone level received on the specified side. " +
+                "Note that if the current output level on the specified side is not " +
+                "zero, this will affect the measured level.\n" +
+                "Sides may be specified by name or zero-based index. Please note that " +
+                "the side depends on the orientation of the device.")
+            .returnValueDescription("the current received level on the specified side.")
+            .parameterDescription(SIDE, "the side to read the input level from.");
 
         visitor.visitCallback(GET_REDSTONE_OUTPUT)
-                .description("Get the current redstone level transmitted on the specified side. " +
-                        "This will return the value last set via setRedstoneOutput().\n" +
-                        "Sides may be specified by name or zero-based index. Please note that " +
-                        "the side depends on the orientation of the device.")
-                .returnValueDescription("the current transmitted level on the specified side.")
-                .parameterDescription(SIDE, "the side to read the output level from.");
+            .description("Get the current redstone level transmitted on the specified side. " +
+                "This will return the value last set via setRedstoneOutput().\n" +
+                "Sides may be specified by name or zero-based index. Please note that " +
+                "the side depends on the orientation of the device.")
+            .returnValueDescription("the current transmitted level on the specified side.")
+            .parameterDescription(SIDE, "the side to read the output level from.");
         visitor.visitCallback(SET_REDSTONE_OUTPUT)
-                .description("Set the new redstone level transmitted on the specified side.\n" +
-                        "Sides may be specified by name or zero-based index. Please note that " +
-                        "the side depends on the orientation of the device.")
-                .parameterDescription(SIDE, "the side to write the output level to.")
-                .parameterDescription(VALUE, "the output level to set, will be clamped to [0, 15].");
+            .description("Set the new redstone level transmitted on the specified side.\n" +
+                "Sides may be specified by name or zero-based index. Please note that " +
+                "the side depends on the orientation of the device.")
+            .parameterDescription(SIDE, "the side to write the output level to.")
+            .parameterDescription(VALUE, "the output level to set, will be clamped to [0, 15].");
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void notifyNeighbor(final Direction direction) {
         if (level == null) {

@@ -20,17 +20,17 @@ public class HardDriveDevice extends AbstractBlockStorageDevice<ByteBufferBlockD
     private final Supplier<Optional<BlockLocation>> location;
     private final ThrottledSoundEmitter soundEmitter;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public HardDriveDevice(final ItemStack identity, final int size, final boolean readonly, final Supplier<Optional<BlockLocation>> location) {
         super(identity, readonly);
         this.size = size;
         this.location = location;
         this.soundEmitter = new ThrottledSoundEmitter(location, SoundEvents.HDD_ACCESS.get())
-                .withMinInterval(Duration.ofSeconds(1));
+            .withMinInterval(Duration.ofSeconds(1));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected CompletableFuture<ByteBufferBlockDevice> createBlockDevice() throws IOException {
@@ -60,6 +60,6 @@ public class HardDriveDevice extends AbstractBlockStorageDevice<ByteBufferBlockD
     protected void handleDataUnavailable() {
         StorageItemUtils.setCorrupted(identity);
         location.get().ifPresent(blockLocation -> blockLocation.tryGetLevel().ifPresent(level ->
-                ChunkUtils.setLazyUnsaved(level, blockLocation.blockPos())));
+            ChunkUtils.setLazyUnsaved(level, blockLocation.blockPos())));
     }
 }

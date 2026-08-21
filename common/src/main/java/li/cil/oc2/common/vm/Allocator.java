@@ -21,12 +21,12 @@ import java.util.stream.Collectors;
 public final class Allocator {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final HashMap<UUID, Allocation> ALLOCATIONS = new HashMap<>();
     private static long allocated;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     /**
      * Creates a new handle that can be used to claim memory.
@@ -80,7 +80,7 @@ public final class Allocator {
             for (final Allocation allocation : ALLOCATIONS.values()) {
                 // Skip first three: Allocator::claimMemory, Allocation::new, Throwable::getStacktrace
                 LOGGER.error(Arrays.stream(allocation.stacktrace).skip(3).map(StackTraceElement::toString)
-                        .collect(Collectors.joining("\n  ", "Leaked memory allocation:\n  ", "")));
+                    .collect(Collectors.joining("\n  ", "Leaked memory allocation:\n  ", "")));
             }
         }
 
@@ -88,7 +88,7 @@ public final class Allocator {
         allocated = 0;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
         LifecycleEvent.SERVER_STOPPED.register(server -> handleServerStopped());
@@ -98,7 +98,7 @@ public final class Allocator {
         resetAndCheckLeaks();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static boolean checkArgs(final UUID handle, final int size) {
         if (ALLOCATIONS.containsKey(handle)) {

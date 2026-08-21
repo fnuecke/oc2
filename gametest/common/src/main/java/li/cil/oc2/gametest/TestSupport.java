@@ -60,11 +60,11 @@ public final class TestSupport {
     public static void useOn(final GameTestHelper helper, final Player player, final ItemStack stack, final BlockPos pos, final Direction face) {
         final BlockPos absolute = helper.absolutePos(pos);
         final Vec3 location = Vec3.atCenterOf(absolute)
-                .add(face.getStepX() * 0.5, face.getStepY() * 0.5, face.getStepZ() * 0.5);
+            .add(face.getStepX() * 0.5, face.getStepY() * 0.5, face.getStepZ() * 0.5);
 
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
-                new BlockHitResult(location, face, absolute, false)));
+            new BlockHitResult(location, face, absolute, false)));
     }
 
     public static void placePower(final GameTestHelper helper, final Player player) {
@@ -85,7 +85,7 @@ public final class TestSupport {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private TestSupport() {
     }

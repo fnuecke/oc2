@@ -16,7 +16,7 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     protected final Object2IntArrayMap<Device> devices = new Object2IntArrayMap<>();
     protected final HashSet<DeviceBusController> controllers = new HashSet<>();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void addDevice(final Device device) {
         devices.put(device, 0);
@@ -66,8 +66,8 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     public Collection<Device> getDevices() {
         if (!controllers.isEmpty()) {
             return controllers.stream()
-                    .flatMap(controller -> controller.getDevices().stream())
-                    .collect(Collectors.toUnmodifiableSet());
+                .flatMap(controller -> controller.getDevices().stream())
+                .collect(Collectors.toUnmodifiableSet());
         } else {
             return getLocalDevices();
         }
@@ -80,7 +80,7 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     protected void scanDevices() {
         for (final DeviceBusController controller : controllers) {

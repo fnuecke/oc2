@@ -28,13 +28,13 @@ import static java.util.Objects.requireNonNull;
 public final class Callbacks {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final Map<Class<?>, List<Method>> METHOD_BY_TYPE = Collections.synchronizedMap(new HashMap<>());
     private static final Map<Method, RPCParameter[]> PARAMETERS_BY_METHOD = Collections.synchronizedMap(new HashMap<>());
     private static final Map<Method, CallbackDocumentation> DOCUMENTATION_BY_METHOD = Collections.synchronizedMap(new HashMap<>());
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     /**
      * Collects all methods annotated with {@link Callback} in the specified object
@@ -89,13 +89,13 @@ public final class Callbacks {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static List<Method> getMethods(final Class<?> type) {
         synchronized (METHOD_BY_TYPE) {
             return METHOD_BY_TYPE.computeIfAbsent(type, c -> Arrays.stream(c.getMethods())
-                    .filter(m -> m.isAnnotationPresent(Callback.class))
-                    .collect(Collectors.toList()));
+                .filter(m -> m.isAnnotationPresent(Callback.class))
+                .collect(Collectors.toList()));
         }
     }
 
@@ -198,9 +198,9 @@ public final class Callbacks {
                 this.returnValueDescription = documentation.returnValueDescription;
 
                 this.parameters = PARAMETERS_BY_METHOD.computeIfAbsent(method,
-                        m -> Arrays.stream(m.getParameters())
-                                .map(parameter -> new ReflectionParameter(parameter, documentation.parameterDescriptions))
-                                .toArray(RPCParameter[]::new));
+                    m -> Arrays.stream(m.getParameters())
+                        .map(parameter -> new ReflectionParameter(parameter, documentation.parameterDescriptions))
+                        .toArray(RPCParameter[]::new));
             }
         }
 

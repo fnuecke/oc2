@@ -38,7 +38,7 @@ public final class FileSystems {
     private static final LayeredFileSystem LAYERED_FILE_SYSTEM = new LayeredFileSystem();
     private static final Map<ResourceLocation, BlockDeviceData> BLOCK_DEVICE_DATA = new HashMap<>();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static FileSystem getLayeredFileSystem() {
         return LAYERED_FILE_SYSTEM;
@@ -61,11 +61,11 @@ public final class FileSystems {
         BLOCK_DEVICE_DATA.clear();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
         ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
-                ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "file_systems"));
+            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "file_systems"));
         LifecycleEvent.SERVER_STOPPED.register(server -> handleServerStopped());
     }
 
@@ -73,14 +73,14 @@ public final class FileSystems {
         reset();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static void reload(final ResourceManager resourceManager) {
         reset();
 
         LOGGER.info("Searching for datapack filesystems...");
         final Map<ResourceLocation, Resource> fileSystemDescriptors = resourceManager
-                .listResources("file_systems", location -> location.getPath().endsWith(".json"));
+            .listResources("file_systems", location -> location.getPath().endsWith(".json"));
 
         final ArrayList<ZipStreamFileSystem> fileSystems = new ArrayList<>();
         final Object2IntArrayMap<ZipStreamFileSystem> fileSystemOrder = new Object2IntArrayMap<>();
@@ -148,7 +148,7 @@ public final class FileSystems {
         fileSystems.forEach(LAYERED_FILE_SYSTEM::addLayer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final class ReloadListener implements PreparableReloadListener {
         public static final ReloadListener INSTANCE = new ReloadListener();
@@ -156,8 +156,8 @@ public final class FileSystems {
         @Override
         public CompletableFuture<Void> reload(final PreparableReloadListener.PreparationBarrier stage, final ResourceManager resourceManager, final ProfilerFiller preparationsProfiler, final ProfilerFiller reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
             return CompletableFuture
-                    .runAsync(() -> FileSystems.reload(resourceManager), backgroundExecutor)
-                    .thenCompose(stage::wait);
+                .runAsync(() -> FileSystems.reload(resourceManager), backgroundExecutor)
+                .thenCompose(stage::wait);
         }
     }
 

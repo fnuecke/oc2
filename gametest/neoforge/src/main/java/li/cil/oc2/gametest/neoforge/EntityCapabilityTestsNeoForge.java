@@ -20,11 +20,11 @@ import static li.cil.oc2.gametest.TestSupport.TEMPLATE;
 @PrefixGameTestTemplate(false)
 public final class EntityCapabilityTestsNeoForge {
     private static final Predicate<Robot> HAS_ITEM_HANDLER = robot ->
-            robot.getCapability(Capabilities.ItemHandler.ENTITY_AUTOMATION, Direction.DOWN) != null;
+        robot.getCapability(Capabilities.ItemHandler.ENTITY_AUTOMATION, Direction.DOWN) != null;
     private static final Predicate<Robot> HAS_ENERGY_STORAGE = robot ->
-            robot.getCapability(Capabilities.EnergyStorage.ENTITY, Direction.DOWN) != null;
+        robot.getCapability(Capabilities.EnergyStorage.ENTITY, Direction.DOWN) != null;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE)
     public static void robotProvidesTerminalUsers(final GameTestHelper helper) {
@@ -46,7 +46,7 @@ public final class EntityCapabilityTestsNeoForge {
         EntityCapabilityTests.foreignEntityInventoryIsReachable(helper);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private EntityCapabilityTestsNeoForge() {
     }

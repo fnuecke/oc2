@@ -19,7 +19,7 @@ public final class RegistrationTestsNeoForge {
         RegistrationTests.deviceTypesAreRegistered(helper);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private RegistrationTestsNeoForge() {
     }

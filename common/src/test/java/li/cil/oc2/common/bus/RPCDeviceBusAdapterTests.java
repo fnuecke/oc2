@@ -43,7 +43,7 @@ public final class RPCDeviceBusAdapterTests {
     public void theRequestIdComesBackOnTheReply() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
-                serial, new TestSerialDevice(), new TestSerialDevice());
+            serial, new TestSerialDevice(), new TestSerialDevice());
         addDevice();
         busAdapter.resume(controller, true);
 
@@ -53,21 +53,21 @@ public final class RPCDeviceBusAdapterTests {
         final JsonObject reply = JsonParser.parseString(serial.readMessageAsVM()).getAsJsonObject();
         assertEquals("list", reply.get("type").getAsString());
         assertEquals(4711, reply.get("id").getAsInt(),
-                "without the id back the guest cannot tell whose answer this is");
+            "without the id back the guest cannot tell whose answer this is");
     }
 
     @Test
     public void aReplyTheHostCannotAttributeNamesNoRequest() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
-                serial, new TestSerialDevice(), new TestSerialDevice());
+            serial, new TestSerialDevice(), new TestSerialDevice());
         addDevice();
         busAdapter.resume(controller, true);
 
         serial.putAsVM("{\"type\":\"list\",\"id\":11}");
         busAdapter.step(0);
         assertEquals(11, JsonParser.parseString(serial.readMessageAsVM())
-                .getAsJsonObject().get("id").getAsInt());
+            .getAsJsonObject().get("id").getAsInt());
 
         serial.putAsVM("not json at all");
         busAdapter.step(0);
@@ -81,7 +81,7 @@ public final class RPCDeviceBusAdapterTests {
     public void aGuestThatSendsNoIdIsStillAnswered() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
-                serial, new TestSerialDevice(), new TestSerialDevice());
+            serial, new TestSerialDevice(), new TestSerialDevice());
         addDevice();
         busAdapter.resume(controller, true);
 
@@ -97,7 +97,7 @@ public final class RPCDeviceBusAdapterTests {
     public void anIdThatIsNotANumberIsRefused() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
-                serial, new TestSerialDevice(), new TestSerialDevice());
+            serial, new TestSerialDevice(), new TestSerialDevice());
         addDevice();
         busAdapter.resume(controller, true);
 
@@ -113,7 +113,7 @@ public final class RPCDeviceBusAdapterTests {
     public void anOversizedMessageIsRefusedAndTheChannelRecovers() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
-                serial, new TestSerialDevice(), new TestSerialDevice());
+            serial, new TestSerialDevice(), new TestSerialDevice());
         addDevice();
         busAdapter.resume(controller, true);
 
@@ -128,7 +128,7 @@ public final class RPCDeviceBusAdapterTests {
         final String refusal = serial.readMessageAsVM();
         assertNotNull(refusal, "an over-long message got no reply, so a guest would wait forever");
         assertEquals(RPCDeviceBusAdapter.ERROR_MESSAGE_TOO_LARGE,
-                JsonParser.parseString(refusal).getAsJsonObject().get("data").getAsString());
+            JsonParser.parseString(refusal).getAsJsonObject().get("data").getAsString());
 
         serial.putAsVM("{\"type\":\"list\"}");
         busAdapter.step(0);
@@ -144,7 +144,7 @@ public final class RPCDeviceBusAdapterTests {
 
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
-                serial, new TestSerialDevice(), new TestSerialDevice());
+            serial, new TestSerialDevice(), new TestSerialDevice());
         addDevice(new ObjectDevice(new Pingable(), "pingable"), second, first);
         busAdapter.resume(controller, true);
 
@@ -152,20 +152,20 @@ public final class RPCDeviceBusAdapterTests {
         busAdapter.step(0);
 
         final JsonArray listed = JsonParser.parseString(serial.readMessageAsVM())
-                .getAsJsonObject().getAsJsonArray("data");
+            .getAsJsonObject().getAsJsonArray("data");
         assertEquals(1, listed.size(), "the same device was exposed twice");
 
         final UUID chosen = first.compareTo(second) <= 0 ? first : second;
         assertEquals(chosen.toString(),
-                listed.get(0).getAsJsonObject().get("deviceId").getAsString());
+            listed.get(0).getAsJsonObject().get("deviceId").getAsString());
 
         busAdapter.resume(controller, true);
         serial.putAsVM("{\"type\":\"list\"}");
         busAdapter.step(0);
         assertEquals(chosen.toString(), JsonParser.parseString(serial.readMessageAsVM())
-                        .getAsJsonObject().getAsJsonArray("data")
-                        .get(0).getAsJsonObject().get("deviceId").getAsString(),
-                "the exposed identifier changed across a rebuild");
+                .getAsJsonObject().getAsJsonArray("data")
+                .get(0).getAsJsonObject().get("deviceId").getAsString(),
+            "the exposed identifier changed across a rebuild");
     }
 
     @Test

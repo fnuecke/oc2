@@ -46,7 +46,7 @@ public final class NetworkCableRenderer {
     private static final int[] cableLight = new int[CABLE_VERTEX_COUNT];
     private static final BlockPos.MutableBlockPos cablePos = new BlockPos.MutableBlockPos();
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void addNetworkConnector(final NetworkConnectorBlockEntity connector) {
         connectors.add(connector);
@@ -57,7 +57,7 @@ public final class NetworkCableRenderer {
         isDirty = true;
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void onChunkUnload(final ChunkPos chunkPos) {
         removeConnectors(connector -> Objects.equals(new ChunkPos(connector.getBlockPos()), chunkPos));
@@ -120,10 +120,10 @@ public final class NetworkCableRenderer {
             }
 
             final Vec3 p2 = animateCableSwing(
-                    lerp(p0, p1, 0.5f).subtract(0, computeCableHang(p0, p1), 0),
-                    connection.right,
-                    computeCableSwingAmount(p0, p1),
-                    connection.hashCode());
+                lerp(p0, p1, 0.5f).subtract(0, computeCableHang(p0, p1), 0),
+                connection.right,
+                computeCableSwingAmount(p0, p1),
+                connection.hashCode());
 
             buildCableOutline(level, eye, connection.forward, p0, p1, p2);
 
@@ -132,17 +132,17 @@ public final class NetworkCableRenderer {
                 final int light = cableLight[i];
 
                 consumer.addVertex(viewMatrix, cableLeft[i0], cableLeft[i0 + 1], cableLeft[i0 + 2])
-                        .setColor(r, g, b, 1f)
-                        .setLight(light);
+                    .setColor(r, g, b, 1f)
+                    .setLight(light);
                 consumer.addVertex(viewMatrix, cableRight[i0], cableRight[i0 + 1], cableRight[i0 + 2])
-                        .setColor(r, g, b, 1f)
-                        .setLight(light);
+                    .setColor(r, g, b, 1f)
+                    .setLight(light);
                 consumer.addVertex(viewMatrix, cableRight[i1], cableRight[i1 + 1], cableRight[i1 + 2])
-                        .setColor(r, g, b, 1f)
-                        .setLight(light);
+                    .setColor(r, g, b, 1f)
+                    .setLight(light);
                 consumer.addVertex(viewMatrix, cableLeft[i1], cableLeft[i1 + 1], cableLeft[i1 + 2])
-                        .setColor(r, g, b, 1f)
-                        .setLight(light);
+                    .setColor(r, g, b, 1f)
+                    .setLight(light);
             }
         }
 
@@ -159,8 +159,8 @@ public final class NetworkCableRenderer {
 
             cablePos.set(p.x, p.y, p.z);
             cableLight[i] = LightTexture.pack(
-                    level.getBrightness(LightLayer.BLOCK, cablePos),
-                    level.getBrightness(LightLayer.SKY, cablePos));
+                level.getBrightness(LightLayer.BLOCK, cablePos),
+                level.getBrightness(LightLayer.SKY, cablePos));
 
             final int o = i * 3;
             cableLeft[o] = (float) (p.x - n.x);
@@ -202,12 +202,12 @@ public final class NetworkCableRenderer {
 
         if (right == null) {
             return c.add(swingAmount * Mth.sin(relRadialTime),
-                    0,
-                    swingAmount * Mth.cos(relRadialTime));
+                0,
+                swingAmount * Mth.cos(relRadialTime));
         } else {
             return c.add(swingAmount * Mth.cos(relRadialTime) * right.x,
-                    0.5f * swingAmount * Mth.sin(relRadialTime * 2 - (float) Math.PI) - swingAmount,
-                    swingAmount * Mth.cos(relRadialTime) * right.z);
+                0.5f * swingAmount * Mth.sin(relRadialTime * 2 - (float) Math.PI) - swingAmount,
+                swingAmount * Mth.cos(relRadialTime) * right.z);
         }
     }
 
@@ -265,7 +265,7 @@ public final class NetworkCableRenderer {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static final class Connection {
         private static final Vec3 POS_Y = new Vec3(0, 1, 0);
@@ -287,7 +287,7 @@ public final class NetworkCableRenderer {
             to = Vec3.atCenterOf(toPos);
             forward = to.subtract(from).normalize();
             right = fromPos.getX() == toPos.getX() && fromPos.getZ() == toPos.getZ()
-                    ? null : forward.cross(POS_Y);
+                ? null : forward.cross(POS_Y);
             bounds = new AABB(from, to).inflate(0, CABLE_HANG_MAX, 0);
         }
 

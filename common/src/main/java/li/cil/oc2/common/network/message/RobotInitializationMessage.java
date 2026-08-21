@@ -24,7 +24,7 @@ public final class RobotInitializationMessage extends AbstractMessage {
     private Component bootError;
     private CompoundTag terminal;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public RobotInitializationMessage(final Robot robot) {
         this.entityId = robot.getId();
@@ -38,7 +38,7 @@ public final class RobotInitializationMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -58,16 +58,16 @@ public final class RobotInitializationMessage extends AbstractMessage {
         buffer.writeNbt(terminal);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientEntity(entityId, Robot.class,
-                robot -> {
-                    robot.getVirtualMachine().setBusStateClient(busState);
-                    robot.getVirtualMachine().setRunStateClient(runState);
-                    robot.getVirtualMachine().setBootErrorClient(bootError);
-                    NBTSerialization.deserialize(terminal, robot.getTerminal());
-                });
+            robot -> {
+                robot.getVirtualMachine().setBusStateClient(busState);
+                robot.getVirtualMachine().setRunStateClient(runState);
+                robot.getVirtualMachine().setBootErrorClient(bootError);
+                NBTSerialization.deserialize(terminal, robot.getTerminal());
+            });
     }
 }

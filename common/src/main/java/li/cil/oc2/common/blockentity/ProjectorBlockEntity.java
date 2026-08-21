@@ -42,7 +42,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         void processFrame(final Picture picture);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final int MAX_FRAME_SIZE = 1024 * 1024;
     public static final int MAX_RENDER_DISTANCE = 16;
@@ -62,7 +62,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         return thread;
     });
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final ProjectorDevice projectorDevice = new ProjectorDevice(this, this::handleMountedChanged);
     private boolean isMounted, hasEnergy;
@@ -89,7 +89,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     private AABB renderBounds; // Maximum possible render bounds, assuming we project on furthest away surface.
     private long lastKeepAliveSentAt;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ProjectorBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.PROJECTOR.get(), pos, state);
@@ -99,7 +99,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         updateRenderBounds();
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public boolean isProjecting() {
         if (!isMounted || level == null) {
@@ -232,8 +232,8 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
         final CompletableFuture<?> lastDecode = runningDecode;
         final CompletableFuture<?> previous = lastDecode != null
-                ? lastDecode.exceptionally(unused -> null)
-                : CompletableFuture.completedFuture(null);
+            ? lastDecode.exceptionally(unused -> null)
+            : CompletableFuture.completedFuture(null);
 
         runningDecode = previous.thenRunAsync(() -> {
             try {
@@ -256,7 +256,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         }, DECODER_WORKERS);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void onUnload(final boolean isRemove) {
@@ -291,7 +291,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private void handleMountedChanged(final boolean value) {
         updateProjectorState(value, hasEnergy);
@@ -364,8 +364,8 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         final BlockPos screenBasePos = projectorPos.relative(blockFacing, MAX_RENDER_DISTANCE);
         final BlockPos screenMinPos = screenBasePos.relative(canvasLeft.getOpposite(), MAX_WIDTH / 2);
         final BlockPos screenMaxPos = screenBasePos.relative(canvasLeft, MAX_WIDTH / 2)
-                // -1 for the MAX_HEIGHT padding, -1 for auto-expansion of AABB constructor
-                .relative(canvasUp, MAX_HEIGHT - 2);
+            // -1 for the MAX_HEIGHT padding, -1 for auto-expansion of AABB constructor
+            .relative(canvasUp, MAX_HEIGHT - 2);
 
         renderBounds = new AABB(getBlockPos()).minmax(new AABB(screenMinPos)).minmax(new AABB(screenMaxPos));
     }

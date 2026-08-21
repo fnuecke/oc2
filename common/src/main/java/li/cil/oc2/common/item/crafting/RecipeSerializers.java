@@ -12,12 +12,12 @@ import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 public final class RecipeSerializers {
     private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = RegistryUtils.getInitializerFor(Registries.RECIPE_SERIALIZER);
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static final RegistrySupplier<WrenchRecipe.Serializer> WRENCH = RECIPE_SERIALIZERS.register("wrench", WrenchRecipe.Serializer::new);
     public static final RegistrySupplier<SimpleCraftingRecipeSerializer<ResetRecipe>> RESET = RECIPE_SERIALIZERS.register("reset", () -> new SimpleCraftingRecipeSerializer<>(ResetRecipe::new));
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
     }

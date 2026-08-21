@@ -34,7 +34,7 @@ public final class ClientCommandRunnerImpl {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static boolean isUnknownCommand(final CommandExceptionType type) {
         return Objects.equals(type, CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand())

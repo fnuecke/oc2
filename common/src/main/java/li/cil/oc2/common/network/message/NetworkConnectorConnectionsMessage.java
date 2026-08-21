@@ -14,7 +14,7 @@ public final class NetworkConnectorConnectionsMessage extends AbstractMessage {
     private BlockPos pos;
     private ArrayList<BlockPos> connectedPositions;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public NetworkConnectorConnectionsMessage(final NetworkConnectorBlockEntity networkConnector) {
         this.pos = networkConnector.getBlockPos();
@@ -25,7 +25,7 @@ public final class NetworkConnectorConnectionsMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -47,11 +47,11 @@ public final class NetworkConnectorConnectionsMessage extends AbstractMessage {
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, NetworkConnectorBlockEntity.class,
-                networkConnector -> networkConnector.setConnectedPositionsClient(connectedPositions));
+            networkConnector -> networkConnector.setConnectedPositionsClient(connectedPositions));
     }
 }

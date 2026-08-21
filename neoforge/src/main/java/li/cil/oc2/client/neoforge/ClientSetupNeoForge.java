@@ -93,7 +93,7 @@ public final class ClientSetupNeoForge {
                 if (renderer == null) {
                     final Minecraft minecraft = Minecraft.getInstance();
                     renderer = new RobotWithoutLevelRenderer(
-                            minecraft.getBlockEntityRenderDispatcher(), minecraft.getEntityModels());
+                        minecraft.getBlockEntityRenderDispatcher(), minecraft.getEntityModels());
                 }
                 return renderer;
             }

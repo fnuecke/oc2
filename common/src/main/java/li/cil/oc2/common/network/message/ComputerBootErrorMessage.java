@@ -18,7 +18,7 @@ public final class ComputerBootErrorMessage extends AbstractMessage {
     @Nullable
     private Component value;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public ComputerBootErrorMessage(final ComputerBlockEntity computer, @Nullable final Component value) {
         this.pos = computer.getBlockPos();
@@ -29,7 +29,7 @@ public final class ComputerBootErrorMessage extends AbstractMessage {
         super(buffer);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
@@ -43,11 +43,11 @@ public final class ComputerBootErrorMessage extends AbstractMessage {
         ComponentSerialization.OPTIONAL_STREAM_CODEC.encode(buffer, Optional.ofNullable(value));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, ComputerBlockEntity.class,
-                computer -> computer.getVirtualMachine().setBootErrorClient(value));
+            computer -> computer.getVirtualMachine().setBootErrorClient(value));
     }
 }

@@ -14,7 +14,7 @@ public final class NetworkInterfaceCardDevice extends AbstractNetworkInterfaceDe
         super(identity);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Nullable
     @Override

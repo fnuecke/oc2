@@ -43,8 +43,8 @@ public enum RobotOperationSide {
      */
     public static Direction toGlobal(final Entity entity, @Nullable final RobotOperationSide side) {
         Direction direction = side == null
-                ? RobotOperationSide.FRONT.direction
-                : side.direction;
+            ? RobotOperationSide.FRONT.direction
+            : side.direction;
         if (direction.getAxis().isHorizontal()) {
             final int horizontalIndex = entity.getDirection().get2DDataValue();
             for (int i = 0; i < horizontalIndex; i++) {

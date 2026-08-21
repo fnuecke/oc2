@@ -13,12 +13,12 @@ public final class BlockTags {
     public static final TagKey<Block> CABLES = tag("cables");
     public static final TagKey<Block> WRENCH_BREAKABLE = tag("wrench_breakable");
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public static void initialize() {
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private static TagKey<Block> tag(final String name) {
         return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name));

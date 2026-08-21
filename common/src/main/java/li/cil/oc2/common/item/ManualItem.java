@@ -24,7 +24,7 @@ public final class ManualItem extends AbstractManualItem {
         super(new Properties());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     @Override
@@ -33,7 +33,7 @@ public final class ManualItem extends AbstractManualItem {
         TooltipUtils.tryAddDescription(stack, tooltip);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected ManualModel getManualModel() {

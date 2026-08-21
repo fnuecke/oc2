@@ -10,9 +10,9 @@ public final class ModShadersFabric {
     public static void initialize() {
         CoreShaderRegistrationCallback.EVENT.register(context -> {
             context.register(ModShaders.PROJECTORS_SHADER_LOCATION, DefaultVertexFormat.POSITION_TEX,
-                    ModShaders::setProjectorsShader);
+                ModShaders::setProjectorsShader);
             context.register(ModShaders.TERMINAL_SHADER_LOCATION, DefaultVertexFormat.POSITION_TEX_COLOR,
-                    ModShaders::setTerminalShader);
+                ModShaders::setTerminalShader);
         });
     }
 

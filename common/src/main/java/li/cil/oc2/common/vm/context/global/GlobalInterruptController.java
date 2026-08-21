@@ -10,7 +10,7 @@ final class GlobalInterruptController implements InterruptController {
     private final InterruptValidator validator;
     private int raisedInterruptMask;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public GlobalInterruptController(final InterruptController parent, final InterruptValidator validator) {
         this.parent = parent;
@@ -18,7 +18,7 @@ final class GlobalInterruptController implements InterruptController {
         raisedInterruptMask = validator.getMaskedInterrupts(parent.getRaisedInterrupts());
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public void invalidate() {
         parent.lowerInterrupts(raisedInterruptMask);

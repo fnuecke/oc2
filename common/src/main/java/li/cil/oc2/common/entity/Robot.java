@@ -99,7 +99,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     private static final int CONTAINING_BLOCK_CHECK_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(1));
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     private final Runnable unloadListener = this::handleUnload;
     private final Consumer<ChunkPos> chunkUnloadListener = this::handleChunkUnload;
@@ -121,7 +121,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private volatile List<ServerPlayer> terminalRecipients = List.of(); // Copy for threaded send.
     private long lastPistonMovement;
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public Robot(final EntityType<?> type, final Level world) {
         super(type, world);
@@ -133,7 +133,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         virtualMachine.state.builtinDevices.rtcMinecraft.setLevel(world);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     public AnimationState getAnimationState() {
@@ -383,7 +383,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         energy.deserializeNBT(NBTUtils.getChildTag(modTag, ENERGY_TAG_NAME));
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Override
     protected void defineSynchedData(final SynchedEntityData.Builder builder) {
@@ -438,7 +438,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         return super.limitPistonMovement(pos);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     private void requestInitialState() {
@@ -457,7 +457,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     private void handleChunkUnload(final ChunkPos chunkPos) {
         if (chunkPos.x != SectionPos.blockToSectionCoord(getBlockX()) ||
-                chunkPos.z != SectionPos.blockToSectionCoord(getBlockZ())) {
+            chunkPos.z != SectionPos.blockToSectionCoord(getBlockZ())) {
             return;
         }
 
@@ -491,8 +491,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             mutablePosition.set(x, y, z);
             final BlockState blockState = serverLevel.getBlockState(mutablePosition);
             if (blockState.isAir() ||
-                    blockState.is(Blocks.MOVING_PISTON) ||
-                    blockState.is(Blocks.PISTON_HEAD)) {
+                blockState.is(Blocks.MOVING_PISTON) ||
+                blockState.is(Blocks.PISTON_HEAD)) {
                 continue;
             }
 
@@ -506,8 +506,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private Cursor3D getBlockPosIterator() {
         final AABB bounds = getBoundingBox();
         return new Cursor3D(
-                Mth.floor(bounds.minX), Mth.floor(bounds.minY), Mth.floor(bounds.minZ),
-                Mth.floor(bounds.maxX), Mth.floor(bounds.maxY), Mth.floor(bounds.maxZ)
+            Mth.floor(bounds.minX), Mth.floor(bounds.minY), Mth.floor(bounds.minZ),
+            Mth.floor(bounds.maxX), Mth.floor(bounds.maxY), Mth.floor(bounds.maxZ)
         );
     }
 
@@ -547,7 +547,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public final class AnimationState {
         private static final float TOP_IDLE_Y = -2f / 16f;
@@ -672,7 +672,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                         action = null;
 
                         virtualMachine.state.rpcAdapter.addEvent(RobotActionCompletedEvent.TYPE,
-                                new RobotActionCompletedEvent(actionId, result));
+                            new RobotActionCompletedEvent(actionId, result));
                     }
                 }
                 if (action == null) {
@@ -780,10 +780,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final class RobotItemStackHandlers extends AbstractVMItemStackHandlers {
         public RobotItemStackHandlers() {
             super(
-                    new GroupDefinition(DeviceTypes.MEMORY, MEMORY_SLOTS),
-                    new GroupDefinition(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
-                    new GroupDefinition(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS),
-                    new GroupDefinition(DeviceTypes.ROBOT_MODULE, MODULE_SLOTS)
+                new GroupDefinition(DeviceTypes.MEMORY, MEMORY_SLOTS),
+                new GroupDefinition(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
+                new GroupDefinition(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS),
+                new GroupDefinition(DeviceTypes.ROBOT_MODULE, MODULE_SLOTS)
             );
         }
 

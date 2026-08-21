@@ -16,15 +16,15 @@ public abstract class AbstractModContainerScreen<T extends AbstractContainerMenu
         super(container, playerInventory, title);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
     public boolean isMouseOver(final int mouseX, final int mouseY, final int x, final int y, final int width, final int height) {
         final int localMouseX = mouseX - leftPos;
         final int localMouseY = mouseY - topPos;
         return localMouseX >= x &&
-                localMouseX < x + width &&
-                localMouseY >= y &&
-                localMouseY < y + height;
+            localMouseX < x + width &&
+            localMouseY >= y &&
+            localMouseY < y + height;
     }
 
     @Override
@@ -36,7 +36,7 @@ public abstract class AbstractModContainerScreen<T extends AbstractContainerMenu
         renderTooltip(graphics, mouseX, mouseY);
     }
 
-    // ------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
 
 
     protected void renderFg(final GuiGraphics graphics, final float partialTicks, final int mouseX, final int mouseY) {

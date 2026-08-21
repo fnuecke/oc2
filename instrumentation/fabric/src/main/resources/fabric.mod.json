@@ -1,0 +1,18 @@
+{
+    "schemaVersion": 1,
+    "id": "oc2instrumentation",
+    "version": "0.0.0",
+    "name": "OpenComputers II Instrumentation",
+    "description": "Devtime test framework. Forwards commands from a server console to connected clients and adds client-side commands (screenshot, hidegui) for automated testing.",
+    "license": "MIT",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "li.cil.oc2.instrumentation.fabric.InstrumentationFabric"
+        ]
+    },
+    "depends": {
+        "architectury": "*",
+        "oc2": "*"
+    }
+}

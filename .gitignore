@@ -1,8 +1,8 @@
-#system
+# system
 .DS_Store
 
 # eclipse
-bin
+bin/
 *.launch
 .settings
 .metadata
@@ -10,32 +10,30 @@ bin
 .project
 
 # idea
-out
+out/
 *.ipr
 *.iws
 *.iml
-.idea
-
-# gradle
-build
-.gradle
-
-# other
-eclipse
-run
-logs
-/assets/
-.architectury-transformer/
-__pycache__/
-
-# Files from Forge MDK
-forge*changelog.txt
-
-# generated resources
-**/src/generated/resources/.cache/
+.idea/
 
 #vscode
 .vscode
+
+# gradle
+build/
+.gradle/
+
+# other
+eclipse/
+run/
+logs/
+output/
+libs/
+classes/
+__pycache__/
+
+# generated resources
+**/src/generated/resources/.cache/
 
 # Don't ignore bin from scripts
 !/common/src/main/scripts/bin/

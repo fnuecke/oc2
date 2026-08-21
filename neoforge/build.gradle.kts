@@ -71,12 +71,6 @@ dependencies {
     neoForge(libs.neoforge.platform)
     modImplementation(libs.neoforge.architectury)
 
-    bundledLibs().forEach {
-        "shadowBundle"(it)
-        forgeRuntimeLibrary(it)
-    }
-
-    runtimeOnly(project(":instrumentation-neoforge"))
     gameTestRuntime(project(":gametest-neoforge"))
 
     if (useLocalMarkdownManual) {
@@ -84,6 +78,13 @@ dependencies {
     } else {
         modImplementation(libs.neoforge.manual)
     }
+
+    bundledLibs().forEach {
+        "shadowBundle"(it)
+        forgeRuntimeLibrary(it)
+    }
+
+    runtimeOnly(project(":instrumentation-neoforge"))
 }
 
 tasks {

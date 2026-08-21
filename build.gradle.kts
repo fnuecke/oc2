@@ -40,16 +40,15 @@ subprojects {
             filter { includeGroupByRegex("org\\.parchmentmc.*") }
         }
         exclusiveContent {
-            forRepository { maven("https://api.modrinth.com/maven") }
-            filter { includeGroup("maven.modrinth") }
-        }
-        exclusiveContent {
             forRepository { maven("https://maven.blamejared.com") }
             filter { includeGroup("mezz.jei") }
         }
         exclusiveContent {
             forRepository { maven("https://fnuecke.github.io/maven") }
-            filter { includeModule("li.cil.sedna", "sedna-buildroot") }
+            filter {
+                includeModule("li.cil.sedna", "sedna-buildroot")
+                includeGroup("li.cil.markdown_manual")
+            }
         }
         mavenCentral()
     }
@@ -181,7 +180,7 @@ for (extraModule in listOf("instrumentation", "gametest")) {
 }
 
 tasks.named("build") {
-    dependsOn("apiJar")
+    dependsOn("apiJar", "apiSourcesJar")
 }
 
 spotless {
@@ -202,3 +201,4 @@ spotless {
 registerGameTestTask()
 registerLintTask()
 registerApiJarTask(minecraftVersion)
+configureMavenPublishing(minecraftVersion, "https://github.com/fnuecke/oc2")

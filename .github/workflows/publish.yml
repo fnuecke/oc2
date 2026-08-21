@@ -3,6 +3,22 @@ name: publish
 on:
   release:
     types: [ published ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build (<mc-version>/<mod-version>, like a release tag)"
+        required: true
+      publish:
+        description: "Publish to the fnuecke/maven repository"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+env:
+  VERSION: ${{ github.event.release.tag_name || inputs.version }}
+  SHOULD_PUBLISH_MAVEN: ${{ github.event_name == 'release' || inputs.publish }}
 
 jobs:
   build:
@@ -17,8 +33,11 @@ jobs:
       - name: Extract Version from Tag
         id: split_tag
         run: |
-          tag=${{ github.event.release.tag_name }}
-          parts=(${tag//\// })
+          if [[ "$VERSION" != */* ]]; then
+            echo "Version must be of the form <mc-version>/<mod-version>: $VERSION"
+            exit 1
+          fi
+          parts=(${VERSION//\// })
           echo "mc_version=${parts[0]}" >> $GITHUB_OUTPUT
           echo "mod_version=${parts[1]}" >> $GITHUB_OUTPUT
 
@@ -40,12 +59,14 @@ jobs:
           rm neoforge/build/libs/*-dev-shadow.jar
 
       - name: Add Artifacts to Github Release
+        if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload '${{ github.event.release.tag_name }}' \
             ./fabric/build/libs/*.jar \
             ./neoforge/build/libs/*.jar \
+            ./build/libs/*-api*.jar \
             --clobber
 
       - uses: actions/upload-artifact@v7
@@ -56,9 +77,47 @@ jobs:
           path: |
             ./fabric/build/libs/*.jar
             ./neoforge/build/libs/*.jar
+            ./build/libs/*-api*.jar
           retention-days: 1
 
+      - name: Check out the static Maven repository
+        if: env.SHOULD_PUBLISH_MAVEN == 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: fnuecke/maven
+          token: ${{ secrets.MAVEN_REPO_TOKEN }}
+          path: maven
+
+      - name: Publish to the static Maven repository
+        if: env.SHOULD_PUBLISH_MAVEN == 'true'
+        run: >-
+          ./gradlew publish
+          -PmodVersion='${{ steps.split_tag.outputs.mod_version }}'
+          -PmavenRepoDir="${{ github.workspace }}/maven"
+
+      - name: Commit and push the static Maven repository
+        if: env.SHOULD_PUBLISH_MAVEN == 'true'
+        working-directory: maven
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing to publish."
+            exit 0
+          fi
+          git commit -m "oc2 $VERSION"
+          for attempt in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            git pull --rebase
+          done
+          echo "Failed to push after 5 attempts."
+          exit 1
+
   publish:
+    if: github.event_name == 'release'
     strategy:
       fail-fast: false
       matrix:
@@ -72,13 +131,6 @@ jobs:
         with:
           name: jar-files
 
-      - name: Check out the static Maven repository
-        uses: actions/checkout@v4
-        with:
-          repository: fnuecke/maven
-          token: ${{ secrets.MAVEN_REPO_TOKEN }}
-          path: maven
-
       - name: Publish (${{ matrix.loader }})
         uses: Kira-NT/mc-publish@v3.3.1
         with:
@@ -86,30 +138,9 @@ jobs:
           version: MC${{ needs.build.outputs.mc_version }}-${{ matrix.loader }}-${{ needs.build.outputs.mod_version }}
           java: Java 21
 
-          files: ${{ matrix.loader }}/build/libs/*.jar
+          files: ${{ matrix.loader }}/build/libs/!(*-@(dev|dev-shadow|sources)).jar
 
           fail-mode: skip
 
           modrinth-token: ${{ secrets.MODRINTH_API_KEY }}
           curseforge-token: ${{ secrets.CURSEFORGE_API_KEY }}
-
-      - name: Publish to the static Maven repository
-        working-directory: buildroot
-        run: >-
-          ./gradlew publish
-          -Psemver="$VERSION"
-          -PbuildrootDockerImage="$BUILDROOT_DOCKER_IMAGE"
-          -PmavenRepoDir="${{ github.workspace }}/maven"
-
-      - name: Commit and push the static Maven repository
-        working-directory: maven
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "Nothing to publish."
-            exit 0
-          fi
-          git commit -m "oc2 $VERSION"
-          git push

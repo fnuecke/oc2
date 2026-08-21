@@ -21,9 +21,9 @@ dependencies {
     bundledLibs().forEach { api(it) }
 
     if (useLocalMarkdownManual) {
-        compileOnly(files(markdownManualJar("common", "markdown_manual-MC*-common-*-api.jar")))
+        compileOnly(files(markdownManualJar(".", "markdown_manual-MC*-api.jar")))
     } else {
-        modApi(libs.fabric.manual)
+        compileOnly(libs.common.manual.api)
     }
 
     compileOnly(libs.jei.common.api)

@@ -2,14 +2,14 @@ import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.plugins.quality.Pmd
 import org.gradle.api.plugins.quality.PmdExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.*
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import java.util.concurrent.Callable
 
 fun Project.gitRef(): String =
@@ -24,15 +24,57 @@ fun Project.configureJava() {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
+
+    tasks.withType<JavaCompile>().configureEach {
+        options.encoding = "utf-8"
+        options.release.set(21)
+        options.compilerArgs.addAll(
+            listOf(
+                "-Xlint:all,-processing,-serial,-classfile,-this-escape",
+                "-Xmaxwarns", "1000",
+            )
+        )
+    }
 }
 
-fun Project.configurePmd() {
+fun Project.configurePmd(vararg additionalExcludes: String) {
     extensions.configure<PmdExtension> {
         toolVersion = "7.26.0"
         ruleSets = emptyList()
         ruleSetFiles = rootProject.files("config/pmd/ruleset.xml")
         isConsoleOutput = true
         isIgnoreFailures = false
+    }
+
+    tasks.withType<Pmd>().configureEach {
+        exclude("**/mixin/**", *additionalExcludes)
+        reports {
+            xml.required.set(false)
+            html.required.set(true)
+        }
+    }
+}
+
+fun Project.embedLicenses(vararg additionalLicenses: String) {
+    val modId = property("modId") as String
+
+    tasks.withType<Jar>().matching { it.name == "jar" }.configureEach {
+        from(rootProject.file("LICENSE")) {
+            rename { "${it}_${modId}" }
+        }
+        for (license in additionalLicenses) {
+            from(rootProject.file(license))
+        }
+    }
+}
+
+fun Project.configureIdeaExcludes() {
+    extensions.configure<IdeaModel> {
+        module {
+            for (exclude in arrayOf("out", "logs", "run")) {
+                excludeDirs.add(file(exclude))
+            }
+        }
     }
 }
 

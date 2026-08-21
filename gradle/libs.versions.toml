@@ -26,9 +26,9 @@ neoforge-loader = "4"
 neoforge-markdownManual = "MC1.21.1-neoforge-1.2.6"
 
 [plugins]
-loom = { id = "dev.architectury.loom", version = "1.11-SNAPSHOT" }
-architectury = { id = "architectury-plugin", version = "3.4-SNAPSHOT" }
-shadow = { id = "com.gradleup.shadow", version = "9.4.1" }
+loom = { id = "dev.architectury.loom", version = "1.17-SNAPSHOT" }
+architectury = { id = "architectury-plugin", version = "3.5-SNAPSHOT" }
+shadow = { id = "com.gradleup.shadow", version = "9.4.3" }
 spotless = { id = "com.diffplug.spotless", version = "6.22.0" }
 
 [libraries]

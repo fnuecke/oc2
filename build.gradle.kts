@@ -168,6 +168,11 @@ for (platform in enabledPlatforms.split(',')) {
                 exclude("architectury.common.json")
                 configurations = listOf(shadowBundle)
                 archiveClassifier.set("dev-shadow")
+
+                from(rootProject.file("LICENSE")) {
+                    rename { "${it}_${modId}" }
+                }
+                from(rootProject.file("LICENSE-JCODEC"))
             }
 
             withType<RemapJarTask> {
@@ -222,6 +227,14 @@ for (extraModule in listOf("instrumentation", "gametest")) {
                 ) { isTransitive = false }
             }
 
+            tasks.jar {
+                val bundleFiles = configurations["bundle"]
+                dependsOn(bundleFiles)
+                from(bundleFiles.elements.map { files -> files.map { zipTree(it) } }) {
+                    exclude("architectury.common.json", "META-INF/MANIFEST.MF")
+                }
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
         }
     }
 }

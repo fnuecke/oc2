@@ -5,6 +5,8 @@ val fabricApiVersion: String = libs.versions.fabric.api.get()
 val architecturyVersion: String = libs.versions.architectury.get()
 val forgeConfigPortVersion: String = libs.versions.fabric.forgeConfigPort.get()
 val manualVersion: String = markdownManualVersion(libs.versions.manual.get())
+
+val gameTestRuntime: Configuration by configurations.creating
 val gameTestResultsDir = layout.buildDirectory.dir("test-results/gameTest")
 
 loom {
@@ -19,7 +21,6 @@ loom {
             runDir = "run/gametest"
             vmArg("-Dfabric-api.gametest")
             vmArg("-Dfabric-api.gametest.report-file=${gameTestResultsDir.get().asFile.absolutePath}/fabric-game-tests.xml")
-            property("oc2.gameTest.junitDir", gameTestResultsDir.get().asFile.absolutePath)
             vmArg("-ea")
         }
     }
@@ -31,12 +32,23 @@ val gameTestBlobDirectories = listOf(
 )
 
 val cleanGameTestResults = tasks.register<Delete>("cleanGameTestResults") {
-    description = "Deletes game test results from previous runs."
+    description = "Deletes game test results and the scratch world from previous runs."
     delete(gameTestResultsDir)
+    delete(layout.projectDirectory.dir("run/gametest/world"))
 }
 
-tasks.named("runGameTest") {
+val fixGameTestReport = tasks.register("fixGameTestReport") {
+    val reportFile = gameTestResultsDir.map { it.file("fabric-game-tests.xml") }
+    outputs.upToDateWhen { false }
+    doLast {
+        normalizeGameTestReport(reportFile.get().asFile)
+    }
+}
+
+tasks.named<JavaExec>("runGameTest") {
     dependsOn(cleanGameTestResults)
+    classpath += gameTestRuntime
+    finalizedBy(fixGameTestReport)
     doFirst {
         gameTestBlobDirectories.forEach { it.deleteRecursively() }
     }
@@ -70,10 +82,10 @@ dependencies {
     }
 
     runtimeOnly(project(path = ":instrumentation-fabric", configuration = "namedElements")) { isTransitive = false }
-    runtimeOnly(project(path = ":gametest-fabric", configuration = "namedElements")) { isTransitive = false }
+
+    gameTestRuntime(project(path = ":gametest-fabric", configuration = "namedElements")) { isTransitive = false }
 
     "common"(project(path = ":instrumentation-common", configuration = "namedElements")) { isTransitive = false }
-    "common"(project(path = ":gametest-common", configuration = "namedElements")) { isTransitive = false }
 
     if (useLocalMarkdownManual) {
         modImplementation(files(markdownManualJar("fabric", "markdown_manual-MC*-fabric-*.jar")))

@@ -12,7 +12,7 @@ import java.util.OptionalInt;
  * during a {@link VMDevice#mount(VMContext)} call.
  * <p>
  * Allocated interrupts should be persisted and used in {@link #claimInterrupt(int)}
- * when restoring from a saved state to ensure correct behaviour of the loaded virtual
+ * when restoring from a saved state to ensure correct behavior of the loaded virtual
  * machine.
  */
 public interface InterruptAllocator {

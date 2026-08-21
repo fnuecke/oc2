@@ -33,7 +33,7 @@ import java.util.function.Supplier;
  * </ul>
  * <p>
  * To achieve this, there's a global budget and a per-projector skip count. The global budget
- * controls overall data sent from the server. The skip counts modulate the round-robin behaviour
+ * controls overall data sent from the server. The skip counts modulate the round-robin behavior
  * of the load balancer. For example, projectors further away from their closest player will get
  * a penalty, as will projectors with a large number of players watching them.
  */

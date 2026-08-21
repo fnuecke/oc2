@@ -12,7 +12,7 @@ import java.util.OptionalLong;
  * during a {@link VMDevice#mount(VMContext)} call.
  * <p>
  * Allocated addresses should be persisted and used in {@link #claimMemoryRange(long, MemoryMappedDevice)}
- * when restoring from a saved state to ensure correct behaviour of the loaded virtual
+ * when restoring from a saved state to ensure correct behavior of the loaded virtual
  * machine.
  */
 public interface MemoryRangeAllocator {

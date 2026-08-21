@@ -9,10 +9,10 @@ import net.minecraft.world.item.ItemStack;
  */
 public interface ColoredItem {
     /**
-     * The tint colour for the given stack, as packed RGB.
+     * The tint color for the given stack, as packed RGB.
      *
-     * @param stack the stack to get the colour for.
-     * @return the packed RGB colour.
+     * @param stack the stack to get the color for.
+     * @return the packed RGB color.
      */
     int getColor(ItemStack stack);
 }

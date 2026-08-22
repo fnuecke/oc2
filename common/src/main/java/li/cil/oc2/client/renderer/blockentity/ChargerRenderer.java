@@ -68,16 +68,18 @@ public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> 
     }
 
     private static void renderQuad(final Matrix4f matrix, final VertexConsumer consumer) {
-        consumer.addVertex(matrix, -0.5f, 0, -0.5f)
-            .setUv(0, 0);
+        // Not chained: vanilla's SpriteCoordinateExpander.addVertex returns the delegate, so a
+        // chained setUv would bypass the sprite remap (NeoForge patches this, Fabric does not).
+        consumer.addVertex(matrix, -0.5f, 0, -0.5f);
+        consumer.setUv(0, 0);
 
-        consumer.addVertex(matrix, -0.5f, 0, 0.5f)
-            .setUv(0, 1);
+        consumer.addVertex(matrix, -0.5f, 0, 0.5f);
+        consumer.setUv(0, 1);
 
-        consumer.addVertex(matrix, 0.5f, 0, 0.5f)
-            .setUv(1, 1);
+        consumer.addVertex(matrix, 0.5f, 0, 0.5f);
+        consumer.setUv(1, 1);
 
-        consumer.addVertex(matrix, 0.5f, 0, -0.5f)
-            .setUv(1, 0);
+        consumer.addVertex(matrix, 0.5f, 0, -0.5f);
+        consumer.setUv(1, 0);
     }
 }

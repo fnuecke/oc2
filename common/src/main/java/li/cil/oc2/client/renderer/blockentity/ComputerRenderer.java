@@ -236,17 +236,19 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     }
 
     private static void renderQuad(final Matrix4f matrix, final VertexConsumer consumer) {
-        consumer.addVertex(matrix, 0, 0, 0)
-            .setUv(0, 0);
+        // Not chained: vanilla's SpriteCoordinateExpander.addVertex returns the delegate, so a
+        // chained setUv would bypass the sprite remap (NeoForge patches this, Fabric does not).
+        consumer.addVertex(matrix, 0, 0, 0);
+        consumer.setUv(0, 0);
 
-        consumer.addVertex(matrix, 0, 16, 0)
-            .setUv(0, 1);
+        consumer.addVertex(matrix, 0, 16, 0);
+        consumer.setUv(0, 1);
 
-        consumer.addVertex(matrix, 16, 16, 0)
-            .setUv(1, 1);
+        consumer.addVertex(matrix, 16, 16, 0);
+        consumer.setUv(1, 1);
 
-        consumer.addVertex(matrix, 16, 0, 0)
-            .setUv(1, 0);
+        consumer.addVertex(matrix, 16, 0, 0);
+        consumer.setUv(1, 0);
     }
 
     public static void initialize() {

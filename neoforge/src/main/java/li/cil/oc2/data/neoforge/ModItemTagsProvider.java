@@ -21,6 +21,7 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
         super(output, lookupProvider, blockTags, API.MOD_ID, existingFileHelper);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected void addTags(final HolderLookup.Provider provider) {
         copy(BlockTags.CABLES, CABLES);

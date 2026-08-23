@@ -21,6 +21,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.network.connection.ConnectionType;
 
 import static li.cil.oc2.gametest.TestSupport.*;
 
@@ -80,7 +81,7 @@ public final class ItemSyncSizeTests {
 
     private static void assertSyncSize(final RegistryAccess registries, final String what,
                                        final ItemStack stack, final int limit) {
-        final RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), registries);
+        final RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), registries, ConnectionType.OTHER);
         ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, stack);
 
         final int size = buf.readableBytes();

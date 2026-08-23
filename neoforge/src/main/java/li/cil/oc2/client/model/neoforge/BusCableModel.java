@@ -85,6 +85,6 @@ public record BusCableModel(List<BlockElement> elements) implements IUnbakedGeom
                                    final ModelState modelState, final BlockModelRotation rotation) {
         final ModelState state = rotation == null ? modelState : new SimpleModelState(
             modelState.getRotation().compose(rotation.getRotation()), modelState.isUvLocked());
-        return requireNonNull(baker.bake(model, state));
+        return requireNonNull(baker.bake(model, state, baker.getModelTextureGetter()));
     }
 }

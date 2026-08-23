@@ -4,6 +4,7 @@ parchment-minecraft = "1.21.1"
 parchment-mappings = "2024.11.17"
 
 architectury = "13.0.11"
+injectables = "1.0.10"
 manual = "1.2.7"
 
 ceres = "0.0.4"
@@ -30,6 +31,7 @@ spotless = { id = "com.diffplug.spotless", version = "6.22.0" }
 [libraries]
 minecraft = { group = "com.mojang", name = "minecraft", version.ref = "minecraft" }
 architectury-api = { group = "dev.architectury", name = "architectury", version.ref = "architectury" }
+architectury-injectables = { group = "dev.architectury", name = "architectury-injectables", version.ref = "injectables" }
 
 # Fallbacks for when the sibling checkouts are absent.
 ceres = { group = "li.cil.ceres", name = "ceres", version.ref = "ceres" }

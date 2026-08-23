@@ -76,6 +76,9 @@ dependencies {
     neoForge(libs.neoforge.platform)
     modImplementation(libs.neoforge.architectury)
 
+    // Allows `remapSourcesJar` to resolve `@ExpectPlatform` in the common sources it bundles.
+    compileOnly(libs.architectury.injectables)
+
     // Not used by mod, just for dev convenience.
     devOnlyMods(libs.jei.neoforge)
 

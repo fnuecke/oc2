@@ -52,7 +52,7 @@ public class ServerSchedulerTests {
     public void anyChunkUnloadListenerMayUnsubscribeItself() {
         final LevelAccessor level = mock(LevelAccessor.class);
         final List<String> seen = new ArrayList<>();
-        @SuppressWarnings("unchecked") final Consumer<ChunkPos>[] selfRemoving = new Consumer[1];
+        @SuppressWarnings({"unchecked", "rawtypes"}) final Consumer<ChunkPos>[] selfRemoving = new Consumer[1];
         selfRemoving[0] = chunkPos -> {
             seen.add("self-removing");
             ServerScheduler.unsubscribeOnAnyChunkUnload(level, selfRemoving[0]);

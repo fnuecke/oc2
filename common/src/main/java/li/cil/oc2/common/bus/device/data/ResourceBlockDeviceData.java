@@ -29,7 +29,7 @@ public final class ResourceBlockDeviceData implements BlockDeviceData, AutoClose
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         blockDevice.close();
     }
 

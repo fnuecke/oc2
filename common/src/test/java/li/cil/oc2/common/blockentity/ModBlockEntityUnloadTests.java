@@ -59,6 +59,7 @@ public class ModBlockEntityUnloadTests {
 
     // --------------------------------------------------------------------- //
 
+    @SuppressWarnings("try")
     private static void withBlockEntity(final Consumer<CountingBlockEntity> test) {
         try (MockedStatic<Capabilities> ignored = mockStatic(Capabilities.class)) {
             final ServerLevel level = mock(ServerLevel.class);

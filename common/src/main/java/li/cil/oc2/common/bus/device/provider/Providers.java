@@ -32,6 +32,7 @@ public final class Providers {
         return optionalKey(blockDeviceProviderRegistry(), provider);
     }
 
+    @SuppressWarnings("overloads")
     public static Optional<String> optionalKey(@Nullable final ItemDeviceProvider provider) {
         return optionalKey(itemDeviceProviderRegistry(), provider);
     }

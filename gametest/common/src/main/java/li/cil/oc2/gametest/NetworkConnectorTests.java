@@ -70,6 +70,7 @@ public final class NetworkConnectorTests {
         helper.succeed();
     }
 
+    @SuppressWarnings("removal")
     public static void networkCableLinksConnectorsWhenUsed(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ConnectorFixture a = ConnectorFixture.place(helper, player, CONNECTOR_A);

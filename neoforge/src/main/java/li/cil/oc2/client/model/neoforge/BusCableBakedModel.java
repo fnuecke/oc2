@@ -7,7 +7,6 @@ import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.util.ItemStackUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -49,7 +48,7 @@ public record BusCableBakedModel(
         if (data.has(BUS_CABLE_FACADE_PROPERTY)) {
             final BusCableFacade facade = data.get(BUS_CABLE_FACADE_PROPERTY);
             return facade != null
-                ? ItemBlockRenderTypes.getRenderLayers(facade.blockState)
+                ? facade.model.getRenderTypes(facade.blockState, rand, facade.data)
                 : ChunkRenderTypeSet.none();
         }
 
@@ -60,7 +59,7 @@ public record BusCableBakedModel(
     public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, final RandomSource rand, final ModelData extraData, @Nullable final RenderType layer) {
         if (extraData.has(BUS_CABLE_FACADE_PROPERTY)) {
             final BusCableFacade facade = extraData.get(BUS_CABLE_FACADE_PROPERTY);
-            if (facade != null && (layer == null || ItemBlockRenderTypes.getRenderLayers(facade.blockState).contains(layer))) {
+            if (facade != null && (layer == null || facade.model.getRenderTypes(facade.blockState, rand, facade.data).contains(layer))) {
                 return facade.model.getQuads(facade.blockState, side, rand, facade.data, layer);
             } else {
                 return Collections.emptyList();

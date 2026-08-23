@@ -100,6 +100,7 @@ public final class WrenchTests {
 
     // --------------------------------------------------------------------- //
 
+    @SuppressWarnings("removal")
     private static void useWrench(final GameTestHelper helper, final BlockPos pos, final Direction face, final boolean sneaking) {
         final ServerPlayer player = helper.makeMockServerPlayerInLevel();
         player.setShiftKeyDown(sneaking);

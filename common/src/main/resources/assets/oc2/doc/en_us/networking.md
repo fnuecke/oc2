@@ -14,5 +14,21 @@ To set up a computer for networking, first ensure a network card is present. Aft
 ## DHCP
 DHCP is a protocol which allows a simplified network setup. Only one computer will need to have a statically configured network address, all other computers in the network may have their addresses assigned to them automatically. When going for this setup, ensure there is only a single computer that acts as a DHCP server. Also ensure that no computer uses a static IP address that falls into the range of dynamically distributed IP addresses.
 
+`setup-network.lua` starts the DHCP server for you once you configure a computer as one. It does not survive a reboot, however. See the "Daemons" section below for how to start it again, or how to make it start on its own.
+
 ## Tools
-Once you have a network setup running, with multiple computers in one network, you have all the options in the world. For example, you can copy files between computers using `scp`, log in to a remote computer using `ssh` and write custom network programs in Lua using the `socket` library. For samples on how to use the `socket` library, please the [samples in the official repository](https://github.com/diegonehab/luasocket/tree/master/samples).
+Once you have a network setup running, with multiple computers in one network, you have all the options in the world. For example, you can copy files between computers using `scp`, log in to a remote computer using `ssh` and write custom network programs in Lua using the `socket` library. For samples on how to use the `socket` library, please see the [samples in the official repository](https://github.com/diegonehab/luasocket/tree/master/samples).
+
+Note that `scp` and `ssh` are the client tools. Reaching a computer *from* elsewhere needs a server running on it. See the "Daemons" section below.
+
+## Daemons
+To keep idle computers cheap, the network daemons are shipped but not started at boot. Start the one you need by hand:
+
+`/etc/init.d/dropbear start` for the `ssh` and `scp` server  
+`/etc/init.d/telnet start` for the `telnet` server  
+`/etc/init.d/dnsmasq start` for the DHCP server
+
+The `ssh` server refuses to let anyone in while an account has a blank password, which is what `root` ships with. Set one with `passwd` before connecting for the first time. The `telnet` server has no such restriction, and accepts the blank password as-is, which also means anyone who reaches the computer can log into it.
+
+None of these survive a reboot. To have one start on its own, give its script a boot-sequence prefix, which is what the boot scripts look for:  
+`mv /etc/init.d/dropbear /etc/init.d/S50dropbear`

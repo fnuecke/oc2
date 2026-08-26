@@ -46,9 +46,7 @@ common-manual-api = { group = "li.cil.markdown_manual", name = "markdown_manual-
 fabric-manual = { group = "li.cil.markdown_manual", name = "markdown_manual-1.21.1-fabric", version.ref = "manual" }
 
 jei-common-api = { group = "mezz.jei", name = "jei-1.21.1-common-api", version.ref = "jei" }
-jei-neoforge-api = { group = "mezz.jei", name = "jei-1.21.1-neoforge-api", version.ref = "jei" }
 jei-neoforge = { group = "mezz.jei", name = "jei-1.21.1-neoforge", version.ref = "jei" }
-jei-fabric-api = { group = "mezz.jei", name = "jei-1.21.1-fabric-api", version.ref = "jei" }
 jei-fabric = { group = "mezz.jei", name = "jei-1.21.1-fabric", version.ref = "jei" }
 
 fabric-energy = { group = "teamreborn", name = "energy", version.ref = "fabric-energy" }

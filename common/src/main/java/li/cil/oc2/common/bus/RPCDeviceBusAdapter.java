@@ -10,7 +10,7 @@ import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceWithIdentifier;
-import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
+import li.cil.oc2.common.bus.device.rpc.RPCTypeAdapters;
 import li.cil.oc2.common.serialization.gson.*;
 import li.cil.sedna.api.device.Steppable;
 import li.cil.sedna.api.device.serial.SerialDevice;
@@ -68,7 +68,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         this.messages = new RPCMessageChannel(serialDevice, maxMessageSize);
         this.payloads = new RPCPayloadChannel(blobDevice);
         this.events = new RPCEventChannel(eventDevice);
-        this.gson = RPCMethodParameterTypeAdapters.beginBuildGson()
+        this.gson = RPCTypeAdapters.beginBuildGson()
             .registerTypeAdapter(byte[].class, blobs)
             .registerTypeAdapter(MethodInvocation.class, new MethodInvocationJsonDeserializer())
             .registerTypeAdapter(Message.class, new MessageJsonDeserializer())

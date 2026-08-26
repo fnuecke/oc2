@@ -5,7 +5,6 @@ package li.cil.oc2.common.fabric;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.platform.FabricRegistrationInitializer;
 import li.cil.oc2.common.Main;
-import li.cil.oc2.common.bus.device.rpc.RPCMethodParameterTypeAdapters;
 import li.cil.oc2.common.capabilities.fabric.CapabilityRegistrationFabric;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.util.fabric.FakePlayerUtilsImpl;
@@ -22,7 +21,6 @@ public final class MainFabric implements ModInitializer {
             .forEach(FabricRegistrationInitializer::registerObjects);
 
         Network.initialize();
-        RPCMethodParameterTypeAdapters.initialize();
 
         CapabilityRegistrationFabric.initialize();
         ChunkEventsFabric.initialize();

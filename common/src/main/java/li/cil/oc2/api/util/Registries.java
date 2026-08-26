@@ -3,10 +3,12 @@
 package li.cil.oc2.api.util;
 
 import li.cil.oc2.api.API;
+import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.data.Firmware;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
+import li.cil.oc2.api.bus.device.rpc.RPCTypeAdapter;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -34,6 +36,16 @@ public final class Registries {
      * The registry name of the registry holding firmwares.
      */
     public static final ResourceKey<Registry<Firmware>> FIRMWARE = key("firmware");
+
+    /**
+     * The registry name of the registry holding device types.
+     */
+    public static final ResourceKey<Registry<DeviceType>> DEVICE_TYPE = key("device_type");
+
+    /**
+     * The registry name of the registry holding RPC method parameter type adapters.
+     */
+    public static final ResourceKey<Registry<RPCTypeAdapter>> RPC_TYPE_ADAPTER = key("rpc_type_adapter");
 
     // --------------------------------------------------------------------- //
 

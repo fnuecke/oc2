@@ -17,7 +17,7 @@ import java.util.Set;
  * <p>
  * Method parameters are serialized and deserialized using Gson. When using custom
  * parameter types it may be necessary to register a custom type adapter for them
- * via {@link li.cil.oc2.api.API#IMC_ADD_RPC_METHOD_PARAMETER_TYPE_ADAPTER}.
+ * by registering an {@link RPCTypeAdapter} with the {@link li.cil.oc2.api.util.Registries#RPC_TYPE_ADAPTER} registry.
  *
  * @see ObjectDevice
  */

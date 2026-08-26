@@ -2,10 +2,7 @@
 
 package li.cil.oc2.api.bus.device;
 
-import li.cil.oc2.api.API;
-import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -18,11 +15,6 @@ import net.minecraft.world.item.Item;
  * For built-in slot types, see {@link DeviceTypes}.
  */
 public interface DeviceType {
-    /**
-     * The registry name of the registry holding device types.
-     */
-    ResourceKey<Registry<DeviceType>> REGISTRY = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "device_type"));
-
     /**
      * The tag representing this device type.
      *

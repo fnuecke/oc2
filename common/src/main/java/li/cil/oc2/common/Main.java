@@ -11,6 +11,7 @@ import li.cil.oc2.common.bus.device.data.FileSystems;
 import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.bus.device.provider.ProviderRegistry;
 import li.cil.oc2.common.bus.device.rpc.RPCItemStackTagFilters;
+import li.cil.oc2.common.bus.device.rpc.RPCTypeAdapters;
 import li.cil.oc2.common.bus.device.vm.item.NetworkTunnelDevice;
 import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
@@ -57,6 +58,7 @@ public final class Main {
         DeviceTypes.initialize();
         BlockDeviceDataRegistry.initialize();
         FirmwareRegistry.initialize();
+        RPCTypeAdapters.initialize();
 
         RegistryUtils.finish();
 

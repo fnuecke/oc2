@@ -6,6 +6,7 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.Registrar;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.DeviceType;
+import li.cil.oc2.api.util.Registries;
 import li.cil.oc2.common.bus.device.util.DeviceTypeImpl;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.RegistryUtils;
@@ -19,8 +20,8 @@ import java.util.function.Consumer;
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class DeviceTypes {
-    public static final Registrar<DeviceType> DEVICE_TYPE_REGISTRY = RegistryUtils.builder(DeviceType.REGISTRY).build();
-    private static final DeferredRegister<DeviceType> DEVICE_TYPES = RegistryUtils.getInitializerFor(DeviceType.REGISTRY);
+    public static final Registrar<DeviceType> DEVICE_TYPE_REGISTRY = RegistryUtils.builder(Registries.DEVICE_TYPE).build();
+    private static final DeferredRegister<DeviceType> DEVICE_TYPES = RegistryUtils.getInitializerFor(Registries.DEVICE_TYPE);
 
     // --------------------------------------------------------------------- //
 

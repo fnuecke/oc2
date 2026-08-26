@@ -33,6 +33,11 @@ public class HardDriveDevice extends AbstractBlockStorageDevice<ByteBufferBlockD
     // --------------------------------------------------------------------- //
 
     @Override
+    protected int getMappedByteCount() {
+        return size;
+    }
+
+    @Override
     protected CompletableFuture<ByteBufferBlockDevice> createBlockDevice() throws IOException {
         final boolean isNew = !BlobStorage.isValidHandle(blobHandle);
         final UUID handle = isNew ? BlobStorage.allocateHandle() : blobHandle;

@@ -29,6 +29,8 @@ public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements
     public static final int WIDTH = 640;
     public static final int HEIGHT = 480;
 
+    private static final int FRAMEBUFFER_SIZE = WIDTH * HEIGHT * SimpleFramebufferDevice.STRIDE;
+
     // --------------------------------------------------------------------- //
 
     private final BooleanConsumer onMountedChanged;
@@ -129,7 +131,7 @@ public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements
     // --------------------------------------------------------------------- //
 
     private boolean allocateDevice(final VMContext context) {
-        if (!context.getMemoryAllocator().claimMemory(Constants.PAGE_SIZE)) {
+        if (!context.getMemoryAllocator().claimMemory(Constants.PAGE_SIZE + FRAMEBUFFER_SIZE)) {
             return false;
         }
 
@@ -155,7 +157,7 @@ public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements
             channel = BlobStorage.open(blobHandle, true);
         }
 
-        final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, WIDTH * HEIGHT * SimpleFramebufferDevice.STRIDE);
+        final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, FRAMEBUFFER_SIZE);
         return new SimpleFramebufferDevice(WIDTH, HEIGHT, buffer);
     }
 }

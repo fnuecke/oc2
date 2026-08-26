@@ -58,6 +58,7 @@ public final class Constants {
     public static final String COMPUTER_ERROR_MISSING_FIRMWARE = key("gui.{mod}.computer.error.missing_firmware");
     public static final String COMPUTER_ERROR_INSUFFICIENT_MEMORY = key("gui.{mod}.computer.error.insufficient_memory");
     public static final String COMPUTER_ERROR_STORAGE_CORRUPTED = key("gui.{mod}.computer.error.storage_corrupted");
+    public static final String COMPUTER_ERROR_STORAGE_FULL = key("gui.{mod}.computer.error.storage_full");
     public static final String COMPUTER_ERROR_MEMORY_CORRUPTED = key("gui.{mod}.computer.error.memory_corrupted");
     public static final String COMPUTER_BUS_STATE_INCOMPLETE = key("gui.{mod}.computer.bus_state.incomplete");
     public static final String COMPUTER_BUS_STATE_TOO_COMPLEX = key("gui.{mod}.computer.bus_state.too_complex");

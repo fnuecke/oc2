@@ -82,7 +82,7 @@ public final class FileChooserScreen extends Screen {
 
         final FileChooserScreen screen = new FileChooserScreen(callback, false);
         Minecraft.getInstance().setScreen(screen);
-        screen.fileNameTextField.setValue(name);
+        screen.fileNameTextField.setValue(toFileName(name));
     }
 
     public static void openFileChooserForLoad(final FileChooserCallback callback) {
@@ -268,6 +268,15 @@ public final class FileChooserScreen extends Screen {
 
     private void handleCancelPressed(final Button button) { //NOPMD - required by Button.OnPress
         cancel();
+    }
+
+    private static String toFileName(final String name) {
+        try {
+            final Path fileName = Paths.get(name).getFileName();
+            return fileName != null ? fileName.toString() : "";
+        } catch (final InvalidPathException e) {
+            return "";
+        }
     }
 
     // --------------------------------------------------------------------- //

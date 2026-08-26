@@ -333,7 +333,7 @@ public final class BlobStorage {
         }
     }
 
-    private static void evictUntilBelowLimit() {
+    private static void evictUntilBelowLimit() throws BlobStorageFullException {
         final int limit = Config.maxBlobCount;
         if (limit <= 0 || blobCount < limit) {
             return;
@@ -374,6 +374,10 @@ public final class BlobStorage {
 
         if (anythingTrashed) {
             trimTrash();
+        }
+
+        if (blobCount >= limit) {
+            throw new BlobStorageFullException(limit);
         }
     }
 
@@ -499,6 +503,15 @@ public final class BlobStorage {
     public static final class BlobInUseException extends IOException {
         public BlobInUseException(final UUID handle) {
             super("Blob with handle [" + handle + "] is already in use.");
+        }
+    }
+
+    /**
+     * Thrown when a new blob would exceed the configured blob count limit and nothing can be evicted.
+     */
+    public static final class BlobStorageFullException extends IOException {
+        public BlobStorageFullException(final int limit) {
+            super("Blob storage is at its limit of " + limit + " blob(s) and no blob is old enough to evict.");
         }
     }
 }

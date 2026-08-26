@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.vm.block;
 
+import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.vm.item.AbstractBlockStorageDevice;
 import li.cil.oc2.common.item.FloppyItem;
 import li.cil.oc2.common.serialization.BlobStorage;
@@ -85,6 +86,11 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
     }
 
     // --------------------------------------------------------------------- //
+
+    @Override
+    protected int getMappedByteCount() {
+        return Math.min(FloppyItem.MAX_CAPACITY, Config.maxBlobCapacity);
+    }
 
     @Override
     protected CompletableFuture<BlockDevice> createBlockDevice() throws IOException {

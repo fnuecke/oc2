@@ -39,14 +39,20 @@ public final class MessageUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Entity> void withServerEntity(final NetworkManager.PacketContext context, final int id, final Class<T> type, final Consumer<T> callback) {
+    public static <T extends Entity> void withTrackedServerEntity(final NetworkManager.PacketContext context, final int id, final Class<T> type, final Consumer<T> callback) {
         if (!(context.getPlayer() instanceof final ServerPlayer player)) {
             return;
         }
 
         final ServerLevel level = player.serverLevel();
         final Entity entity = level.getEntity(id);
-        if (type.isInstance(entity)) {
+        if (!type.isInstance(entity)) {
+            return;
+        }
+
+        final double range = entity.getType().clientTrackingRange() * 16.0;
+        if (Math.abs(player.getX() - entity.getX()) <= range
+            && Math.abs(player.getZ() - entity.getZ()) <= range) {
             callback.accept((T) entity);
         }
     }

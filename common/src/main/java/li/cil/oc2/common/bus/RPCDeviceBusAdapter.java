@@ -14,6 +14,8 @@ import li.cil.oc2.common.bus.device.rpc.RPCTypeAdapters;
 import li.cil.oc2.common.serialization.gson.*;
 import li.cil.sedna.api.device.Steppable;
 import li.cil.sedna.api.device.serial.SerialDevice;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -23,6 +25,8 @@ import java.util.*;
 import java.util.concurrent.Semaphore;
 
 public final class RPCDeviceBusAdapter implements Steppable {
+    private static final Logger LOGGER = LogManager.getLogger();
+
     private static final int DEFAULT_MAX_MESSAGE_SIZE = 4 * Constants.KILOBYTE;
 
     public static final String ERROR_MESSAGE_TOO_LARGE = "message too large";
@@ -34,6 +38,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     public static final String ERROR_PAYLOAD_CORRUPT = "payload failed its checksum";
     public static final String ERROR_PAYLOAD_MISMATCH = "payload does not match its description";
     public static final String ERROR_MALFORMED_MESSAGE = "malformed message";
+    public static final String ERROR_INTERNAL = "internal error";
     public static final String ERROR_PAYLOAD_NEEDS_UNSYNCHRONIZED =
         "binary parameters (byte[]) require an rpc method to not be synchronized (synchronize = false)";
 
@@ -57,6 +62,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     private final RPCBlobJsonSerializer blobs = new RPCBlobJsonSerializer();
     private final Semaphore pauseLock = new Semaphore(1); // for tryAcquire in step()
     private volatile boolean isPaused; // server thread -> worker thread
+    private final transient Set<Class<?>> loggedInvocationErrors = new HashSet<>(); // avoid client-driven log spam
 
     // --------------------------------------------------------------------- //
 
@@ -285,8 +291,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
                 }
                 default -> writeError(ERROR_UNKNOWN_MESSAGE_TYPE);
             }
+        } catch (final JsonParseException e) {
+            writeError(ERROR_MALFORMED_MESSAGE);
         } catch (final Throwable e) {
-            writeError(e.getMessage());
+            LOGGER.error("Failed processing RPC message.", e);
+            writeError(ERROR_INTERNAL);
         }
     }
 
@@ -343,8 +352,22 @@ public final class RPCDeviceBusAdapter implements Steppable {
             final Object result = method.invoke(invocation);
             writeMessage(Message.MESSAGE_TYPE_RESULT, result);
         } catch (final Throwable e) {
-            writeError(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+            writeInvocationError(e);
         }
+    }
+
+    private void writeInvocationError(final Throwable e) {
+        if (e instanceof IllegalArgumentException || e instanceof IllegalStateException) {
+            final String message = e.getMessage();
+            writeError(message != null ? message : e.getClass().getSimpleName());
+            return;
+        }
+
+        if (loggedInvocationErrors.add(e.getClass())) {
+            LOGGER.error("Device method invocation failed.", e);
+        }
+
+        writeError(ERROR_INTERNAL);
     }
 
     private void writeDeviceList() {

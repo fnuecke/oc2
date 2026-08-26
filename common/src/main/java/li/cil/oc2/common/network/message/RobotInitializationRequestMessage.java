@@ -42,7 +42,7 @@ public final class RobotInitializationRequestMessage extends AbstractMessage {
             return;
         }
 
-        MessageUtils.withServerEntity(context, entityId, Robot.class,
+        MessageUtils.withTrackedServerEntity(context, entityId, Robot.class,
             robot -> Network.sendToClient(new RobotInitializationMessage(robot), player));
     }
 }

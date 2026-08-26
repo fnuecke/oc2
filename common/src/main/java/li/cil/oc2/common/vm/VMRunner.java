@@ -12,6 +12,8 @@ import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.riscv.R5Board;
 import net.minecraft.network.chat.Component;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
@@ -21,15 +23,18 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class VMRunner implements Runnable {
+    private static final Logger LOGGER = LogManager.getLogger();
+
     private static final int TICKS_PER_SECOND = 20;
     private static final int TIMESLICE_IN_MS = 500 / TICKS_PER_SECOND;
 
-    private static final ExecutorService VM_RUNNERS = Executors.newCachedThreadPool(r -> {
-        final Thread thread = new Thread(r);
-        thread.setDaemon(true);
-        thread.setName("VirtualMachine Runner");
-        return thread;
-    });
+    private static final ExecutorService VM_RUNNERS = Executors.newFixedThreadPool(
+        Math.max(1, Runtime.getRuntime().availableProcessors()), r -> {
+            final Thread thread = new Thread(r);
+            thread.setDaemon(true);
+            thread.setName("VirtualMachine Runner");
+            return thread;
+        });
 
     // --------------------------------------------------------------------- //
 
@@ -45,7 +50,7 @@ public class VMRunner implements Runnable {
     @Serialized
     private boolean firedInitializationEvent;
     @Serialized
-    private Component runtimeError;
+    private volatile Component runtimeError;
 
     @Serialized
     private long cycleLimit;
@@ -88,13 +93,50 @@ public class VMRunner implements Runnable {
             } catch (final InterruptedException e) {
                 // We do not mind this.
             } catch (final ExecutionException e) {
-                throw new RuntimeException(e.getCause());
+                handleRunException(e.getCause());
             }
         }
     }
 
     @Override
     public void run() {
+        try {
+            runUntilBudgetExhausted();
+        } catch (final Throwable e) {
+            handleRunException(e);
+        }
+    }
+
+    // --------------------------------------------------------------------- //
+
+    protected void handleBeforeRun() {
+        if (!firedInitializationEvent) {
+            firedInitializationEvent = true;
+            try {
+                context.postEvent(new VMInitializingEvent(board.getDefaultProgramStart()));
+            } catch (final VMInitializationException e) {
+                board.setRunning(false);
+                runtimeError = e.getErrorMessage().orElse(Component.translatable(Constants.COMPUTER_ERROR_UNKNOWN));
+                return;
+            }
+        }
+
+        if (!firedResumedRunningEvent) {
+            firedResumedRunningEvent = true;
+            context.postEvent(new VMResumedRunningEvent());
+        }
+    }
+
+    protected void step(final int cyclesPerStep) {
+        rpcAdapter.step(cyclesPerStep);
+    }
+
+    protected void handleAfterRun() {
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private void runUntilBudgetExhausted() {
         do {
             final long start = System.currentTimeMillis();
 
@@ -133,34 +175,11 @@ public class VMRunner implements Runnable {
         } while (cycles < cycleLimit && timeQuotaInMillis.get() > 0);
     }
 
-    // --------------------------------------------------------------------- //
-
-    protected void handleBeforeRun() {
-        if (!firedInitializationEvent) {
-            firedInitializationEvent = true;
-            try {
-                context.postEvent(new VMInitializingEvent(board.getDefaultProgramStart()));
-            } catch (final VMInitializationException e) {
-                board.setRunning(false);
-                runtimeError = e.getErrorMessage().orElse(Component.translatable(Constants.COMPUTER_ERROR_UNKNOWN));
-                return;
-            }
-        }
-
-        if (!firedResumedRunningEvent) {
-            firedResumedRunningEvent = true;
-            context.postEvent(new VMResumedRunningEvent());
-        }
+    private void handleRunException(final Throwable e) {
+        LOGGER.error("Virtual machine failed while running.", e);
+        board.setRunning(false);
+        runtimeError = Component.translatable(Constants.COMPUTER_ERROR_UNKNOWN);
     }
-
-    protected void step(final int cyclesPerStep) {
-        rpcAdapter.step(cyclesPerStep);
-    }
-
-    protected void handleAfterRun() {
-    }
-
-    // --------------------------------------------------------------------- //
 
     private static int getCyclesPerTick() {
         return Constants.CPU_FREQUENCY / TICKS_PER_SECOND;

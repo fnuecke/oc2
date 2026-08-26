@@ -41,11 +41,12 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     private static final String INTERRUPT_TAG_NAME = "interrupt";
     private static final String BLOB_HANDLE_TAG_NAME = "blob";
 
-    protected static final ExecutorService WORKERS = Executors.newCachedThreadPool(r -> {
-        final Thread thread = new Thread(r, "Block Device Initializer");
-        thread.setDaemon(false);
-        return thread;
-    });
+    protected static final ExecutorService WORKERS = Executors.newFixedThreadPool(
+        Math.max(1, Runtime.getRuntime().availableProcessors()), r -> {
+            final Thread thread = new Thread(r, "Block Device Initializer");
+            thread.setDaemon(true);
+            return thread;
+        });
 
     // --------------------------------------------------------------------- //
 
@@ -203,6 +204,8 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
     protected abstract CompletableFuture<TBlock> createBlockDevice() throws IOException;
 
+    protected abstract int getMappedByteCount();
+
     protected void handleDataAccess() {
     }
 
@@ -212,7 +215,8 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     // --------------------------------------------------------------------- //
 
     private AllocationResult allocateDevice(final VMContext context) {
-        if (!context.getMemoryAllocator().claimMemory(Constants.PAGE_SIZE)) {
+        final long claim = (long) Constants.PAGE_SIZE + getMappedByteCount();
+        if (!context.getMemoryAllocator().claimMemory((int) Math.min(Integer.MAX_VALUE, claim))) {
             return new AllocationFailure();
         }
 
@@ -221,6 +225,10 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         final CompletableFuture<TBlock> job;
         try {
             job = createBlockDevice();
+        } catch (final BlobStorage.BlobStorageFullException e) {
+            LOGGER.error(e);
+            handleDataUnavailable();
+            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_FULL));
         } catch (final BlobStorage.BlobMissingException | BlobStorage.BlobInUseException e) {
             handleDataUnavailable();
             return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_CORRUPTED));

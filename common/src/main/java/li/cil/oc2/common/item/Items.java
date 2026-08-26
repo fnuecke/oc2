@@ -64,7 +64,7 @@ public final class Items {
         new FlashMemoryWithExternalDataItem(FirmwareRegistry.BUILDROOT.getId()));
 
     public static final RegistrySupplier<FloppyItem> FLOPPY = register("floppy", () ->
-        new FloppyItem(512 * Constants.KILOBYTE));
+        new FloppyItem(FloppyItem.MAX_CAPACITY));
 
     public static final RegistrySupplier<Item> REDSTONE_INTERFACE_CARD = register("redstone_interface_card");
     public static final RegistrySupplier<Item> NETWORK_INTERFACE_CARD = register("network_interface_card", NetworkInterfaceCardItem::new);

@@ -124,6 +124,9 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
             final FileChannel channel = BlobStorage.open(blobHandle, isNew);
             final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, size);
             device = new ByteBufferMemory(size, buffer);
+        } catch (final BlobStorage.BlobStorageFullException e) {
+            LOGGER.error(e);
+            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_FULL));
         } catch (final BlobStorage.BlobMissingException | BlobStorage.BlobInUseException e) {
             // Memory got lost, show a message so it doesn't look like a bug.
             return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_MEMORY_CORRUPTED));

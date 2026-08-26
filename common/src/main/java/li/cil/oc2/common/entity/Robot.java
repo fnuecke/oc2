@@ -780,10 +780,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final class RobotItemStackHandlers extends AbstractVMItemStackHandlers {
         public RobotItemStackHandlers() {
             super(
-                new GroupDefinition(DeviceTypes.MEMORY, MEMORY_SLOTS),
-                new GroupDefinition(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS),
-                new GroupDefinition(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS),
-                new GroupDefinition(DeviceTypes.ROBOT_MODULE, MODULE_SLOTS)
+                new GroupDefinition(DeviceTypes.MEMORY.get(), MEMORY_SLOTS),
+                new GroupDefinition(DeviceTypes.HARD_DRIVE.get(), HARD_DRIVE_SLOTS),
+                new GroupDefinition(DeviceTypes.FLASH_MEMORY.get(), FLASH_MEMORY_SLOTS),
+                new GroupDefinition(DeviceTypes.ROBOT_MODULE.get(), MODULE_SLOTS)
             );
         }
 

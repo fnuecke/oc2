@@ -23,7 +23,7 @@ public abstract class AbstractRPCMethod implements RPCMethod {
     }
 
     protected AbstractRPCMethod(final String name, final Class<?> returnType, final RPCParameter... parameters) {
-        this(name, false, returnType, parameters);
+        this(name, true, returnType, parameters);
     }
 
     protected AbstractRPCMethod(final String name, final boolean synchronize, final RPCParameter... parameters) {
@@ -31,7 +31,7 @@ public abstract class AbstractRPCMethod implements RPCMethod {
     }
 
     protected AbstractRPCMethod(final String name, final RPCParameter... parameters) {
-        this(name, false, void.class, parameters);
+        this(name, true, void.class, parameters);
     }
 
     // --------------------------------------------------------------------- //

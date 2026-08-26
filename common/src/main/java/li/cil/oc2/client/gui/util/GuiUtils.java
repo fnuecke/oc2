@@ -28,9 +28,9 @@ public final class GuiUtils {
         if (warningByDeviceType == null) {
             final HashMap<DeviceType, Component> map = new HashMap<>();
 
-            map.put(DeviceTypes.FLASH_MEMORY, text("tooltip.{mod}.flash_memory_missing"));
-            map.put(DeviceTypes.MEMORY, text("tooltip.{mod}.memory_missing"));
-            map.put(DeviceTypes.HARD_DRIVE, text("tooltip.{mod}.hard_drive_missing"));
+            map.put(DeviceTypes.FLASH_MEMORY.get(), text("tooltip.{mod}.flash_memory_missing"));
+            map.put(DeviceTypes.MEMORY.get(), text("tooltip.{mod}.memory_missing"));
+            map.put(DeviceTypes.HARD_DRIVE.get(), text("tooltip.{mod}.hard_drive_missing"));
 
             warningByDeviceType = map;
         }

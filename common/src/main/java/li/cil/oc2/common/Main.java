@@ -5,7 +5,7 @@ package li.cil.oc2.common;
 import li.cil.ceres.Ceres;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.blockentity.BlockEntities;
-import li.cil.oc2.common.bus.device.DeviceTypes;
+import li.cil.oc2.common.bus.device.DeviceTypeRegistry;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.bus.device.data.FileSystems;
 import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
@@ -55,7 +55,7 @@ public final class Main {
         SoundEvents.initialize();
 
         ProviderRegistry.initialize();
-        DeviceTypes.initialize();
+        DeviceTypeRegistry.initialize();
         BlockDeviceDataRegistry.initialize();
         FirmwareRegistry.initialize();
         RPCTypeAdapters.initialize();

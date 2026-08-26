@@ -3,8 +3,6 @@
 package li.cil.oc2.api.bus.device.provider;
 
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.util.Invalidatable;
 import net.minecraft.nbt.CompoundTag;
 
@@ -47,6 +45,11 @@ import net.minecraft.nbt.CompoundTag;
 public interface BlockDeviceProvider {
     /**
      * Get a device for the specified query.
+     * <p>
+     * The result is {@link Invalidatable} because a block may drop its device out of band, e.g. when
+     * the capability backing it is invalidated. Invalidating the returned value makes the bus drop
+     * the device and rescan. Return {@link Invalidatable#empty()} when this provider has no device
+     * for the query.
      *
      * @param query the query describing the object to get a {@link Device} for.
      * @return a device for the specified query, if available.
@@ -54,11 +57,10 @@ public interface BlockDeviceProvider {
     Invalidatable<Device> getDevice(BlockDeviceQuery query);
 
     /**
-     * Last-resort cleanup method for devices provided by this provider.
+     * Last-resort cleanup for a device provided by this provider that has gone missing.
      * <p>
-     * This is the equivalent of {@link RPCDevice#dispose()} or {@link VMDevice#dispose()},
-     * for devices that have gone missing unexpectedly, so this method could no longer be
-     * called on the actual device.
+     * This is the equivalent of {@link Device#dispose()}, for devices that have gone missing
+     * unexpectedly, so this method could no longer be called on the actual device.
      * <p>
      * For block devices, this can happen if the block the device was created for has been
      * removed while the connected computer was unloaded, or the cable connecting the block
@@ -70,6 +72,6 @@ public interface BlockDeviceProvider {
      * @param query the query that resulted in a missing device being detected.
      * @param tag   data last serialized by the device that went missing.
      */
-    default void unmount(final BlockDeviceQuery query, final CompoundTag tag) {
+    default void disposeMissing(final BlockDeviceQuery query, final CompoundTag tag) {
     }
 }

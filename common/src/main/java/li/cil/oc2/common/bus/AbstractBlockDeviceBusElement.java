@@ -164,7 +164,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         final Registrar<BlockDeviceProvider> registry = Providers.blockDeviceProviderRegistry();
         final BlockDeviceProvider provider = registry.get(ResourceLocation.parse(dataKey));
         if (provider != null) {
-            provider.unmount(query, tag);
+            provider.disposeMissing(query, tag);
         }
     }
 

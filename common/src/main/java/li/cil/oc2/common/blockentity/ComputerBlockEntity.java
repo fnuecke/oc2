@@ -393,7 +393,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     private final class ComputerItemStackHandlers extends AbstractVMItemStackHandlers {
         public ComputerItemStackHandlers() {
-            super(new GroupDefinition(DeviceTypes.MEMORY, MEMORY_SLOTS), new GroupDefinition(DeviceTypes.HARD_DRIVE, HARD_DRIVE_SLOTS), new GroupDefinition(DeviceTypes.FLASH_MEMORY, FLASH_MEMORY_SLOTS), new GroupDefinition(DeviceTypes.CARD, CARD_SLOTS));
+            super(new GroupDefinition(DeviceTypes.MEMORY.get(), MEMORY_SLOTS), new GroupDefinition(DeviceTypes.HARD_DRIVE.get(), HARD_DRIVE_SLOTS), new GroupDefinition(DeviceTypes.FLASH_MEMORY.get(), FLASH_MEMORY_SLOTS), new GroupDefinition(DeviceTypes.CARD.get(), CARD_SLOTS));
         }
 
         @Override

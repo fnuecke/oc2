@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
 import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
-import static li.cil.oc2.common.bus.device.DeviceTypes.key;
+import static li.cil.oc2.common.bus.device.DeviceTypeRegistry.key;
 import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
@@ -36,7 +36,7 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
 
         ItemStackUtils.modifyBlockEntityDataTag(computer, BlockEntities.COMPUTER.get(), tag -> {
             final var itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
-            itemsTag.put(key(DeviceTypes.FLASH_MEMORY), makeInventoryTag(provider,
+            itemsTag.put(key(DeviceTypes.FLASH_MEMORY.get()), makeInventoryTag(provider,
                 new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
             ));
         });
@@ -49,16 +49,16 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
 
         ItemStackUtils.modifyBlockEntityDataTag(computer, BlockEntities.COMPUTER.get(), tag -> {
             final var itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
-            itemsTag.put(key(DeviceTypes.MEMORY), makeInventoryTag(provider,
+            itemsTag.put(key(DeviceTypes.MEMORY.get()), makeInventoryTag(provider,
                 new ItemStack(Items.MEMORY_LARGE.get()),
                 new ItemStack(Items.MEMORY_LARGE.get()),
                 new ItemStack(Items.MEMORY_LARGE.get()),
                 new ItemStack(Items.MEMORY_LARGE.get())
             ));
-            itemsTag.put(key(DeviceTypes.HARD_DRIVE), makeInventoryTag(provider,
+            itemsTag.put(key(DeviceTypes.HARD_DRIVE.get()), makeInventoryTag(provider,
                 new ItemStack(Items.HARD_DRIVE_CUSTOM.get())
             ));
-            itemsTag.put(key(DeviceTypes.CARD), makeInventoryTag(provider,
+            itemsTag.put(key(DeviceTypes.CARD.get()), makeInventoryTag(provider,
                 new ItemStack(Items.NETWORK_INTERFACE_CARD.get())
             ));
         });

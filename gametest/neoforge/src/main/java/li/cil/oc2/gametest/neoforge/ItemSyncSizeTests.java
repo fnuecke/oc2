@@ -44,9 +44,9 @@ public final class ItemSyncSizeTests {
 
         helper.startSequence()
             .thenExecuteAfter(60, () -> {
-                computer.install(DeviceTypes.FLASH_MEMORY, new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
-                    .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
-                    .install(DeviceTypes.HARD_DRIVE, new ItemStack(Items.HARD_DRIVE_CUSTOM.get()));
+                computer.install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
+                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
+                    .install(DeviceTypes.HARD_DRIVE.get(), new ItemStack(Items.HARD_DRIVE_CUSTOM.get()));
                 drive.insert(new ItemStack(Items.FLOPPY.get()));
             })
             .thenExecuteAfter(20, computer::start)
@@ -55,16 +55,16 @@ public final class ItemSyncSizeTests {
 
                 final RegistryAccess registries = helper.getLevel().registryAccess();
 
-                final ItemStack hardDrive = computer.slot(DeviceTypes.HARD_DRIVE);
+                final ItemStack hardDrive = computer.slot(DeviceTypes.HARD_DRIVE.get());
                 final ItemStack floppy = drive.floppy();
 
                 assertBlobHandle("hard drive", hardDrive);
                 assertBlobHandle("floppy", floppy);
 
                 assertSyncSize(registries, "flash memory",
-                    computer.slot(DeviceTypes.FLASH_MEMORY), MAX_DEVICE_STACK_BYTES);
+                    computer.slot(DeviceTypes.FLASH_MEMORY.get()), MAX_DEVICE_STACK_BYTES);
                 assertSyncSize(registries, "memory",
-                    computer.slot(DeviceTypes.MEMORY), MAX_DEVICE_STACK_BYTES);
+                    computer.slot(DeviceTypes.MEMORY.get()), MAX_DEVICE_STACK_BYTES);
                 assertSyncSize(registries, "hard drive", hardDrive, MAX_DEVICE_STACK_BYTES);
                 assertSyncSize(registries, "floppy", floppy, MAX_DEVICE_STACK_BYTES);
 

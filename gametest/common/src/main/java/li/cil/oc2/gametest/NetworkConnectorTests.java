@@ -104,7 +104,7 @@ public final class NetworkConnectorTests {
                         "a computer with no network card must not expose a network interface");
                 }
 
-                computer.install(DeviceTypes.CARD, new ItemStack(Items.NETWORK_INTERFACE_CARD.get()));
+                computer.install(DeviceTypes.CARD.get(), new ItemStack(Items.NETWORK_INTERFACE_CARD.get()));
             })
             .thenExecuteAfter(80, () -> {
                 final NetworkInterface card = computer.networkInterface(Direction.UP);
@@ -132,7 +132,7 @@ public final class NetworkConnectorTests {
         final ConnectorFixture connector = ConnectorFixture.place(helper, player, computer.pos().above());
 
         helper.startSequence()
-            .thenExecuteAfter(20, () -> computer.install(DeviceTypes.CARD,
+            .thenExecuteAfter(20, () -> computer.install(DeviceTypes.CARD.get(),
                 new ItemStack(Items.NETWORK_INTERFACE_CARD.get())))
             .thenExecuteAfter(80, () -> {
                 if (connector.adjacentInterface() == null) {
@@ -140,7 +140,7 @@ public final class NetworkConnectorTests {
                         "the connector did not find the installed network card");
                 }
             })
-            .thenExecute(() -> computer.uninstall(DeviceTypes.CARD))
+            .thenExecute(() -> computer.uninstall(DeviceTypes.CARD.get()))
             .thenExecuteAfter(80, () -> {
                 if (computer.networkInterface(Direction.UP) != null) {
                     throw new GameTestAssertException(

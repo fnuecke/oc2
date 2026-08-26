@@ -2,9 +2,8 @@
 
 package li.cil.oc2.api.bus.device.provider;
 
+import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.api.bus.device.vm.VMDevice;
 import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nullable;
@@ -64,11 +63,10 @@ public interface ItemDeviceProvider {
     }
 
     /**
-     * Last-resort cleanup method for devices provided by this provider.
+     * Last-resort cleanup for a device provided by this provider that has gone missing.
      * <p>
-     * This is the equivalent of {@link RPCDevice#dispose()} or {@link VMDevice#dispose()},
-     * for devices that have gone missing unexpectedly, so this method could no longer be
-     * called on the actual device.
+     * This is the equivalent of {@link Device#dispose()}, for devices that have gone missing
+     * unexpectedly, so this method could no longer be  called on the actual device.
      * <p>
      * For item devices this is rather unlikely. It means an item disappeared while the
      * block managing the item device was unloaded.
@@ -79,6 +77,6 @@ public interface ItemDeviceProvider {
      * @param query the query that resulted in a missing device being detected, if available.
      * @param tag   the data last serialized by the device went missing.
      */
-    default void unmount(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
+    default void disposeMissing(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
     }
 }

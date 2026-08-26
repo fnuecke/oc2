@@ -25,8 +25,8 @@ public final class HardDriveWithExternalDataItemDeviceProvider extends AbstractI
     // --------------------------------------------------------------------- //
 
     @Override
-    public void unmount(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
-        super.unmount(query, tag);
+    public void disposeMissing(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
+        super.disposeMissing(query, tag);
         HardDriveDeviceWithInitialData.unmount(tag);
     }
 

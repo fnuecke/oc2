@@ -196,7 +196,7 @@ public final class RPCMethodTests {
             if (!parameters.get(1).isJsonPrimitive() || !parameters.get(1).getAsJsonPrimitive().isString())
                 return Optional.empty();
 
-            return Optional.of(new AbstractRPCMethod("test", int.class, () -> int.class, () -> String.class) {
+            return Optional.of(new AbstractRPCMethod("test", false, int.class, () -> int.class, () -> String.class) {
                 @Override
                 protected Object invoke(final Object... parameters) {
                     return 42;

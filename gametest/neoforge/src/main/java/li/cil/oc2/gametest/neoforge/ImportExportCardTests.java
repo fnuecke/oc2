@@ -27,7 +27,7 @@ public final class ImportExportCardTests {
         final ComputerFixture computer = ComputerFixture.place(helper);
 
         helper.startSequence()
-            .thenExecuteAfter(40, () -> computer.install(DeviceTypes.CARD,
+            .thenExecuteAfter(40, () -> computer.install(DeviceTypes.CARD.get(),
                 new ItemStack(Items.FILE_IMPORT_EXPORT_CARD.get())))
             .thenExecuteAfter(80, () -> assertCardBoundTo(computer))
             .thenExecute(() -> Levels.reloadBlockEntity(helper, computer.pos()))

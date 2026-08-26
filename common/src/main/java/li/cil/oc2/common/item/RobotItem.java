@@ -31,7 +31,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
-import static li.cil.oc2.common.bus.device.DeviceTypes.key;
+import static li.cil.oc2.common.bus.device.DeviceTypeRegistry.key;
 import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
 
 public final class RobotItem extends ModItem implements CreativeTabItemProvider {
@@ -103,7 +103,7 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
 
         ItemStackUtils.modifyModDataTag(robot, tag -> {
             final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
-            itemsTag.put(key(DeviceTypes.FLASH_MEMORY), makeInventoryTag(provider,
+            itemsTag.put(key(DeviceTypes.FLASH_MEMORY.get()), makeInventoryTag(provider,
                 new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
             ));
         });

@@ -62,7 +62,7 @@ public final class NetworkTunnelContainer extends AbstractContainer {
         createPlayerInventoryAndHotbarSlots(player.getInventory(), 8, 115);
 
         addSlot(new LockedSlot(player.getInventory(), getHandSlot(), 80, 25));
-        addSlot(new DeviceTypeSlot(linkSlot, DeviceTypes.NETWORK_TUNNEL, 0, 80, 51));
+        addSlot(new DeviceTypeSlot(linkSlot, DeviceTypes.NETWORK_TUNNEL.get(), 0, 80, 51));
     }
 
     // --------------------------------------------------------------------- //

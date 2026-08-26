@@ -46,7 +46,7 @@ public final class ComputerTests {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         helper.startSequence()
-            .thenExecuteAfter(20, () -> computer.install(DeviceTypes.MEMORY,
+            .thenExecuteAfter(20, () -> computer.install(DeviceTypes.MEMORY.get(),
                 new ItemStack(Items.MEMORY_SMALL.get())))
             .thenExecuteAfter(10, () -> breakBlockAndDrop(helper, computer.pos()))
             .thenExecuteAfter(10, () -> {
@@ -72,7 +72,7 @@ public final class ComputerTests {
                 place(helper, player, dropped, computer.pos());
             })
             .thenExecuteAfter(20, () -> helper.assertFalse(
-                computer.handler(DeviceTypes.MEMORY).extractItem(0, 1, false).isEmpty(),
+                computer.handler(DeviceTypes.MEMORY.get()).extractItem(0, 1, false).isEmpty(),
                 "memory item was not restored after re-placing computer"))
             .thenSucceed();
     }

@@ -347,7 +347,7 @@ public class BlockDeviceBusControllerTests {
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
 
         final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().get(TEST_PROVIDER_REGISTRY_NAME);
-        verify(provider, times(1)).unmount(any(), any());
+        verify(provider, times(1)).disposeMissing(any(), any());
     }
 
     // Loaded: [ ] Controller, [x] Element, [ ] Device
@@ -387,7 +387,7 @@ public class BlockDeviceBusControllerTests {
         busElementInfo.getBusElement().setRemoved();
 
         final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().get(TEST_PROVIDER_REGISTRY_NAME);
-        verify(provider, times(1)).unmount(any(), any());
+        verify(provider, times(1)).disposeMissing(any(), any());
     }
 
     // Loaded: [ ] Controller, [x] Element, [x] Device
@@ -420,7 +420,7 @@ public class BlockDeviceBusControllerTests {
         verify(objectDevice, times(1)).dispose();
 
         final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().get(TEST_PROVIDER_REGISTRY_NAME);
-        verify(provider, never()).unmount(any(), any());
+        verify(provider, never()).disposeMissing(any(), any());
     }
 
     //  -> Removing Device:
@@ -452,7 +452,7 @@ public class BlockDeviceBusControllerTests {
         verify(objectDevice, times(1)).dispose();
 
         final BlockDeviceProvider provider = Providers.blockDeviceProviderRegistry().get(TEST_PROVIDER_REGISTRY_NAME);
-        verify(provider, never()).unmount(any(), any());
+        verify(provider, never()).disposeMissing(any(), any());
     }
 
     // Loaded: [x] Controller, [ ] Element, [ ] Device

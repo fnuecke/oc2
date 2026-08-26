@@ -24,8 +24,8 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
     // --------------------------------------------------------------------- //
 
     @Override
-    public void unmount(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
-        super.unmount(query, tag);
+    public void disposeMissing(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
+        super.disposeMissing(query, tag);
         HardDriveDevice.unmount(tag);
     }
 

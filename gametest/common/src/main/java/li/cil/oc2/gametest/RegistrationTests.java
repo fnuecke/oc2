@@ -9,13 +9,13 @@ import static li.cil.oc2.gametest.TestSupport.assertNotNull;
 
 public final class RegistrationTests {
     public static void deviceTypesAreRegistered(final GameTestHelper helper) {
-        assertNotNull(helper, DeviceTypes.MEMORY, "DeviceTypes.MEMORY");
-        assertNotNull(helper, DeviceTypes.HARD_DRIVE, "DeviceTypes.HARD_DRIVE");
-        assertNotNull(helper, DeviceTypes.FLASH_MEMORY, "DeviceTypes.FLASH_MEMORY");
-        assertNotNull(helper, DeviceTypes.CARD, "DeviceTypes.CARD");
-        assertNotNull(helper, DeviceTypes.ROBOT_MODULE, "DeviceTypes.ROBOT_MODULE");
-        assertNotNull(helper, DeviceTypes.FLOPPY, "DeviceTypes.FLOPPY");
-        assertNotNull(helper, DeviceTypes.NETWORK_TUNNEL, "DeviceTypes.NETWORK_TUNNEL");
+        assertNotNull(helper, DeviceTypes.MEMORY.get(), "DeviceTypes.MEMORY.get()");
+        assertNotNull(helper, DeviceTypes.HARD_DRIVE.get(), "DeviceTypes.HARD_DRIVE.get()");
+        assertNotNull(helper, DeviceTypes.FLASH_MEMORY.get(), "DeviceTypes.FLASH_MEMORY.get()");
+        assertNotNull(helper, DeviceTypes.CARD.get(), "DeviceTypes.CARD.get()");
+        assertNotNull(helper, DeviceTypes.ROBOT_MODULE.get(), "DeviceTypes.ROBOT_MODULE.get()");
+        assertNotNull(helper, DeviceTypes.FLOPPY.get(), "DeviceTypes.FLOPPY.get()");
+        assertNotNull(helper, DeviceTypes.NETWORK_TUNNEL.get(), "DeviceTypes.NETWORK_TUNNEL.get()");
         helper.succeed();
     }
 

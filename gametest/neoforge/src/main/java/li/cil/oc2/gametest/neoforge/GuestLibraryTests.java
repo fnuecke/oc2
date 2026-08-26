@@ -36,11 +36,11 @@ public final class GuestLibraryTests {
 
         helper.startSequence()
             .thenExecuteAfter(20, () -> computer
-                .install(DeviceTypes.FLASH_MEMORY, new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
-                .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
-                .install(DeviceTypes.MEMORY, new ItemStack(Items.MEMORY_LARGE.get()))
-                .install(DeviceTypes.HARD_DRIVE, new ItemStack(Items.HARD_DRIVE_CUSTOM.get()))
-                .install(DeviceTypes.CARD, new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get())))
+                .install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
+                .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
+                .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
+                .install(DeviceTypes.HARD_DRIVE.get(), new ItemStack(Items.HARD_DRIVE_CUSTOM.get()))
+                .install(DeviceTypes.CARD.get(), new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get())))
             .thenExecuteAfter(20, computer::start)
             .thenWaitUntil(() -> {
                 computer.assertNoGuestPanic();

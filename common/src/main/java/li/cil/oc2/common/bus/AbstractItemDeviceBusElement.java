@@ -104,7 +104,7 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
         final Registrar<ItemDeviceProvider> registry = Providers.itemDeviceProviderRegistry();
         final ItemDeviceProvider provider = registry.get(ResourceLocation.parse(dataKey));
         if (provider != null) {
-            provider.unmount(query, tag);
+            provider.disposeMissing(query, tag);
         }
     }
 

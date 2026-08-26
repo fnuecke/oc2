@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static li.cil.oc2.common.bus.device.DeviceTypes.key;
+import static li.cil.oc2.common.bus.device.DeviceTypeRegistry.key;
 
 public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers {
     public record GroupDefinition(DeviceType deviceType, int count) {
@@ -82,7 +82,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
                     // Ahhh, such special casing, much wow. Honestly I don't expect this
                     // special case to ever be needed for anything other than physical
                     // memory, so it's fine. Prove me wrong.
-                    if (deviceType == DeviceTypes.MEMORY) {
+                    if (deviceType == DeviceTypes.MEMORY.get()) {
                         return OptionalLong.empty();
                     } else {
                         return OptionalLong.of(address);

@@ -11,6 +11,8 @@ To recharge a robot, it is recommended to make use the [charger](../block/charge
 
 The default Linux distribution provides a utility Lua library, `robot`, that eases controlling robots. The underlying API offers asynchronous methods for movement. The library implements synchronous alternatives, making sequential programming more convenient.
 
+For an overview of how robots move, how they draw energy and how to script them, see the [robotics](../robotics.md) entry.
+
 ## API
 Device name: `robot`
 
@@ -85,16 +87,22 @@ This is a Lua library. It can be used in the default Linux distribution. For exa
 `stack([slot:number]):table` gets a description of the item in the specified slot.
 - `slot` is the index of the slot to get the item description for. Optional, defaults to `slot()`.
 
-`move(direction):boolean` tries to move into the specified direction. Blocks until the movement operation has completed.
+`move(direction[,timeout:number]):boolean` tries to move into the specified direction. Blocks until the movement operation has completed.
 - `direction` is the direction to move in.
-- Returns whether the operation was successful.
+- `timeout` is how long to wait for, in milliseconds. Optional, defaults to 30000.
+- Returns whether the operation was successful. Returns `false` if the timeout ran out first.
 
-`moveAsync(direction)` tries to asynchronously move into the specified direction. Blocks until the action was successfully enqueued.
+`moveAsync(direction[,timeout:number]):boolean` tries to asynchronously move into the specified direction. Blocks until the action was successfully enqueued.
 - `direction` is the direction to move in.
+- `timeout` is how long to wait for a free slot in the action queue, in milliseconds. Optional, defaults to 30000.
+- Returns whether the action was enqueued. Returns `false` if the timeout ran out first.
 
-`turn(direction):boolean` tries to turn towards the specified direction. Blocks until the rotation operation has completed.
+`turn(direction[,timeout:number]):boolean` tries to turn towards the specified direction. Blocks until the rotation operation has completed.
 - `direction` is the direction to turn towards.
-- Returns whether the operation was successfully.
+- `timeout` is how long to wait for, in milliseconds. Optional, defaults to 30000.
+- Returns whether the operation was successful. Returns `false` if the timeout ran out first.
 
-`turnAsync(direction)` tries to asynchronously turn into the specified direction. Blocks until the action was successfully enqueued.
+`turnAsync(direction[,timeout:number]):boolean` tries to asynchronously turn into the specified direction. Blocks until the action was successfully enqueued.
 - `direction` is the direction to turn towards.
+- `timeout` is how long to wait for a free slot in the action queue, in milliseconds. Optional, defaults to 30000.
+- Returns whether the action was enqueued. Returns `false` if the timeout ran out first.

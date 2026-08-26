@@ -99,7 +99,7 @@ dependencies {
     "common"(project(path = ":instrumentation-common", configuration = "namedElements")) { isTransitive = false }
 
     if (useLocalMarkdownManual) {
-        modImplementation(files(markdownManualJar("fabric", "markdown_manual-MC*-fabric-*.jar")))
+        modImplementation(files(markdownManualJar("fabric", "fabric-*.jar")))
     } else {
         modImplementation(libs.fabric.manual)
     }

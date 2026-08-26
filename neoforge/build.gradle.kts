@@ -85,7 +85,7 @@ dependencies {
     gameTestRuntime(project(":gametest-neoforge"))
 
     if (useLocalMarkdownManual) {
-        modImplementation(files(markdownManualJar("neoforge", "markdown_manual-MC*-neoforge-*.jar")))
+        modImplementation(files(markdownManualJar("neoforge", "neoforge-*.jar")))
     } else {
         modImplementation(libs.neoforge.manual)
     }

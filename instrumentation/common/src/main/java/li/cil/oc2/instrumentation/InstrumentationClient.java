@@ -2,63 +2,87 @@
 
 package li.cil.oc2.instrumentation;
 
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import dev.architectury.event.events.client.ClientCommandRegistrationEvent;
-import net.minecraft.client.GraphicsStatus;
+import li.cil.oc2.instrumentation.reflect.ReflectContext;
+import li.cil.oc2.instrumentation.reflect.ReflectOps;
+import li.cil.oc2.instrumentation.reflect.Results;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
+import net.minecraft.client.multiplayer.ClientLevel;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class InstrumentationClient {
+    private static final int MAX_DEPTH = 4;
+    private static final int SCREENSHOT_TIMEOUT_SECONDS = 10;
+
     public static void initialize() {
         ClientCommandRegistrationEvent.EVENT.register((dispatcher, context) -> {
+            var reflect = ClientCommandRegistrationEvent.literal("oc2reflect");
+            for (final String op : ReflectCommand.OPS) {
+                reflect = reflect.then(ClientCommandRegistrationEvent.literal(op)
+                    .executes(ctx -> run(op, ""))
+                    .then(ClientCommandRegistrationEvent.argument("args", StringArgumentType.greedyString())
+                        .executes(ctx -> run(op, StringArgumentType.getString(ctx, "args")))));
+            }
+            dispatcher.register(reflect);
+
             dispatcher.register(ClientCommandRegistrationEvent.literal("screenshot")
-                    .executes(ctx -> screenshot(null))
-                    .then(ClientCommandRegistrationEvent.argument("name", StringArgumentType.word())
-                            .executes(ctx -> screenshot(StringArgumentType.getString(ctx, "name")))));
-
-            dispatcher.register(ClientCommandRegistrationEvent.literal("hidegui")
-                    .then(ClientCommandRegistrationEvent.argument("value", BoolArgumentType.bool())
-                            .executes(ctx -> {
-                                Minecraft.getInstance().options.hideGui = BoolArgumentType.getBool(ctx, "value");
-                                return 1;
-                            })));
-
-            dispatcher.register(ClientCommandRegistrationEvent.literal("graphics")
-                    .then(ClientCommandRegistrationEvent.argument("mode", StringArgumentType.word())
-                            .executes(ctx -> graphics(StringArgumentType.getString(ctx, "mode")))));
+                .executes(ctx -> screenshot(null))
+                .then(ClientCommandRegistrationEvent.argument("name", StringArgumentType.word())
+                    .executes(ctx -> screenshot(StringArgumentType.getString(ctx, "name")))));
         });
     }
 
     // --------------------------------------------------------------------- //
 
-    private static int graphics(final String mode) {
-        final GraphicsStatus status = switch (mode) {
-            case "fast" -> GraphicsStatus.FAST;
-            case "fancy" -> GraphicsStatus.FANCY;
-            case "fabulous" -> GraphicsStatus.FABULOUS;
-            default -> throw new IllegalArgumentException("expected fast, fancy or fabulous");
-        };
-
+    private static int run(final String op, final String args) {
         final Minecraft minecraft = Minecraft.getInstance();
-        minecraft.execute(() -> {
-            minecraft.options.graphicsMode().set(status);
-            // What the options screen does on change; without it the render targets fabulous
-            // needs are never allocated.
-            minecraft.levelRenderer.allChanged();
-            minecraft.options.save();
-        });
-        return 1;
+        final ClientLevel level = minecraft.level;
+        final ReflectContext ctx = new ReflectContext(
+            level == null ? null : level.registryAccess(), null, MAX_DEPTH);
+
+        final Results.Outcome outcome;
+        try {
+            outcome = ReflectOps.run(op, args, minecraft, ctx);
+        } catch (final Throwable e) {
+            ClientCommandResult.set(Results.render(Results.Outcome.error(e)));
+            return 0;
+        }
+        ClientCommandResult.set(Results.render(outcome));
+        return "success".equals(outcome.result()) ? 1 : 0;
     }
 
     private static int screenshot(@Nullable final String name) {
         final Minecraft minecraft = Minecraft.getInstance();
-        // Grabs the last rendered frame, so it has to run where that frame is still current.
-        minecraft.execute(() -> Screenshot.grab(minecraft.gameDirectory, name != null ? name + ".png" : null,
-                minecraft.getMainRenderTarget(), message -> {
-                }));
+        final CountDownLatch done = new CountDownLatch(1);
+        final AtomicReference<String> outcome = new AtomicReference<>();
+
+        Screenshot.grab(minecraft.gameDirectory, name != null ? name + ".png" : null,
+            minecraft.getMainRenderTarget(), message -> {
+                outcome.set(message.getString());
+                done.countDown();
+            });
+
+        try {
+            if (!done.await(SCREENSHOT_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                ClientCommandResult.set(Results.render(Results.Outcome.error(new Results.Failure(
+                    "no answer within " + SCREENSHOT_TIMEOUT_SECONDS + "s", "Timeout"))));
+                return 0;
+            }
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            ClientCommandResult.set(Results.render(Results.Outcome.error(new Results.Failure(
+                "interrupted while waiting", "InterruptedException"))));
+            return 0;
+        }
+
+        ClientCommandResult.set(Results.render(Results.Outcome.success(
+            new Results.Screenshot(name, outcome.get()))));
         return 1;
     }
 

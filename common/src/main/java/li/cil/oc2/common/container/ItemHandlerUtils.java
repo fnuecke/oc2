@@ -6,7 +6,7 @@ import li.cil.oc2.api.inventory.ItemHandler;
 import net.minecraft.world.item.ItemStack;
 
 public final class ItemHandlerUtils {
-    public static ItemStack insertItemStacked(final ItemHandler handler, ItemStack stack, final boolean simulate) {
+    public static ItemStack insertItemStack(final ItemHandler handler, ItemStack stack, final boolean simulate) {
         if (stack.isEmpty()) {
             return ItemStack.EMPTY;
         }

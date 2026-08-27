@@ -89,7 +89,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         final Direction direction = RobotOperationSide.toGlobal(entity, side);
         final List<ItemHandler> itemHandlers = getItemStackHandlersInDirection(direction).toList();
         for (final ItemHandler handler : itemHandlers) {
-            stack = ItemHandlerUtils.insertItemStacked(handler, stack, false);
+            stack = ItemHandlerUtils.insertItemStack(handler, stack, false);
 
             if (stack.isEmpty()) {
                 break;

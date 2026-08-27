@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -277,6 +278,9 @@ public final class Values {
         return CODECS.computeIfAbsent(type, t -> {
             if (Component.class.isAssignableFrom(t)) {
                 return Optional.of(ComponentSerialization.CODEC);
+            }
+            if (ItemStack.class.isAssignableFrom(t)) {
+                return Optional.of(ItemStack.OPTIONAL_CODEC);
             }
             for (final Class<?> c : ClassUtils.getAllSuperclasses(t)) {
                 final Optional<Codec<?>> inherited = declaredCodec(c, t);

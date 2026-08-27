@@ -122,17 +122,19 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         return facade;
     }
 
-    public void setFacade(ItemStack stack) {
+    public void setFacade(final ItemStack stack) {
         if (level == null) {
             return;
         }
 
-        final BlockState facadeState = ItemStackUtils.getBlockState(stack);
-        if (getFacadeType(facadeState) != FacadeType.VALID_BLOCK) {
-            stack = ItemStack.EMPTY;
+        if (stack.isEmpty()) {
+            removeFacade();
+            return;
         }
 
-        if (ItemStack.isSameItemSameComponents(stack, facade)) {
+        final BlockState facadeState = ItemStackUtils.getBlockState(stack);
+        if (getFacadeType(facadeState) != FacadeType.VALID_BLOCK
+            || ItemStack.isSameItemSameComponents(stack, facade)) {
             return;
         }
 
@@ -150,7 +152,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     }
 
     public void removeFacade() {
-        if (level == null) {
+        if (level == null || facade.isEmpty()) {
             return;
         }
 

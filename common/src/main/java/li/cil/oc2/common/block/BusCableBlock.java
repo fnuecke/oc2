@@ -190,8 +190,10 @@ public final class BusCableBlock extends BaseEntityBlock {
 
         level.setBlock(pos, state.setValue(HAS_FACADE, value), Block.UPDATE_ALL_IMMEDIATE);
 
-        final BlockState soundsSource = facadeState != null ? facadeState : state;
-        LevelUtils.playSound(level, pos, soundsSource.getSoundType(), value ? SoundType::getPlaceSound : SoundType::getBreakSound);
+        if (!level.isClientSide()) {
+            final BlockState soundsSource = facadeState != null ? facadeState : state;
+            LevelUtils.playSound(level, pos, soundsSource.getSoundType(), value ? SoundType::getPlaceSound : SoundType::getBreakSound);
+        }
     }
 
     @SuppressWarnings("deprecation")

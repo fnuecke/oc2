@@ -31,7 +31,7 @@ public final class WrenchRecipe extends ShapelessRecipe {
 
         for (int slot = 0; slot < input.size(); slot++) {
             final ItemStack stack = input.getItem(slot);
-            if (StorageItemUtils.isCorrupted(stack)) {
+            if (StorageItemUtils.needsRepair(stack)) {
                 return false;
             }
         }

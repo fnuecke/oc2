@@ -44,6 +44,10 @@ public final class TooltipUtils {
         Component.translatable(Constants.TOOLTIP_DATA_CORRUPTED)
             .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.RED)));
 
+    private static final MutableComponent DATA_INCONSISTENT =
+        Component.translatable(Constants.TOOLTIP_DATA_INCONSISTENT)
+            .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.YELLOW)));
+
     private static final ThreadLocal<List<ItemStack>> ITEM_STACKS = ThreadLocal.withInitial(ArrayList::new);
     private static final ThreadLocal<IntList> ITEM_STACKS_SIZES = ThreadLocal.withInitial(IntArrayList::new);
 
@@ -162,12 +166,22 @@ public final class TooltipUtils {
     }
 
     public static void addDataCorrupted(final ItemStack stack, final List<Component> tooltip) {
-        if (stack.isEmpty() || !StorageItemUtils.isCorrupted(stack)) {
+        if (stack.isEmpty()) {
             return;
         }
 
-        tooltip.add(DATA_CORRUPTED);
-        tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_DATA_CORRUPTED_HINT), ChatFormatting.GRAY));
+        switch (StorageItemUtils.getState(stack)) {
+            case CORRUPTED -> {
+                tooltip.add(DATA_CORRUPTED);
+                tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_DATA_CORRUPTED_HINT), ChatFormatting.DARK_GRAY));
+            }
+            case INCONSISTENT -> {
+                tooltip.add(DATA_INCONSISTENT);
+                tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_DATA_INCONSISTENT_HINT), ChatFormatting.DARK_GRAY));
+            }
+            default -> {
+            }
+        }
     }
 
     // --------------------------------------------------------------------- //

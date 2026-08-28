@@ -106,7 +106,7 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
 
     @Override
     protected void handleDataUnavailable() {
-        StorageItemUtils.setCorrupted(identity.getDiskItemStack());
+        StorageItemUtils.setState(identity.getDiskItemStack(), StorageItemUtils.State.CORRUPTED);
         identity.setChanged();
     }
 

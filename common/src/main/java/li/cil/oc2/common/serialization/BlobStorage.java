@@ -40,11 +40,14 @@ public final class BlobStorage {
 
     // --------------------------------------------------------------------- //
 
+    private static final String MARKER_SUFFIX = ".dirty";
+
     private static final LevelResource BLOBS_FOLDER_NAME = new LevelResource(API.MOD_ID + "-blobs");
     private static final LevelResource TRASH_FOLDER_NAME = new LevelResource(API.MOD_ID + "-blobs-trash");
     private static final UUID INVALID_HANDLE = new UUID(0, 0);
 
     private static final Map<UUID, FileChannel> BLOBS = new HashMap<>();
+    private static final Set<UUID> CLOSED_SINCE_SAVE = new HashSet<>();
 
     @Nullable
     private static Path dataDirectory; // Directory blobs get saved to.
@@ -75,6 +78,13 @@ public final class BlobStorage {
         blobCount = countBlobs(dataDirectory);
         LOGGER.info("Blob storage in [{}] currently holds {} blob(s).", dataDirectory, blobCount);
 
+        final int markerCount = countMarkers(dataDirectory);
+        if (markerCount > 0) {
+            LOGGER.warn("{} blob(s) were still mapped when the previous session ended. Their content may not "
+                + "match the world that references them, so the devices holding them will refuse to run "
+                + "until that is acknowledged.", markerCount);
+        }
+
         final int limit = Config.maxBlobCount;
         if (limit > 0 && blobCount >= limit) {
             LOGGER.warn("Blob storage is at or above the configured limit of {} blob(s). Least recently used " +
@@ -96,7 +106,20 @@ public final class BlobStorage {
             }
         }
 
+        CLOSED_SINCE_SAVE.addAll(BLOBS.keySet());
         BLOBS.clear();
+
+        clearMarkersOfClosedBlobs();
+    }
+
+    /**
+     * Notifies blob storage that the world's references to blobs have been written to disk.
+     * <p>
+     * Blobs that were closed since the last such point are no longer ahead of the world, so their
+     * markers are dropped. Blobs still open keep theirs; they will keep diverging.
+     */
+    public static synchronized void handleSaved() {
+        clearMarkersOfClosedBlobs();
     }
 
     /**
@@ -118,6 +141,21 @@ public final class BlobStorage {
      */
     public static boolean isValidHandle(@Nullable final UUID handle) {
         return handle != null && !INVALID_HANDLE.equals(handle);
+    }
+
+    /**
+     * Checks whether the blob with the specified handle was left mapped by a previous session.
+     * <p>
+     * Such a blob may hold data the world does not know about, because the process died before the
+     * world was saved again. Stays true until the blob is closed cleanly and the world is saved.
+     *
+     * @param handle the handle to check.
+     * @return {@code true} if the blob outlived a previous session; {@code false} otherwise.
+     */
+    public static synchronized boolean isStaleHandle(@Nullable final UUID handle) {
+        // Open and closed-since-save between them cover every blob this session has touched, because the
+        // save that drops a handle from the closed set deletes its marker in the same pass.
+        return handle != null && !isOpen(handle) && !CLOSED_SINCE_SAVE.contains(handle) && isMarkedHandle(handle);
     }
 
     /**
@@ -188,7 +226,9 @@ public final class BlobStorage {
         }
 
         BLOBS.put(handle, blob);
+        CLOSED_SINCE_SAVE.remove(handle);
         touch(handle);
+        createMarker(handle);
 
         return blob;
     }
@@ -205,6 +245,7 @@ public final class BlobStorage {
         }
 
         touch(handle);
+        CLOSED_SINCE_SAVE.add(handle);
 
         try {
             blob.close();
@@ -236,6 +277,8 @@ public final class BlobStorage {
             if (Files.deleteIfExists(pathOf(handle))) {
                 blobCount--;
             }
+            Files.deleteIfExists(markerPathOf(handle));
+            CLOSED_SINCE_SAVE.remove(handle);
         } catch (final IOException e) {
             LOGGER.error(e);
         }
@@ -291,6 +334,11 @@ public final class BlobStorage {
 
     // --------------------------------------------------------------------- //
 
+    // Technically internal, public for tests.
+    public static synchronized boolean isMarkedHandle(final UUID handle) {
+        return dataDirectory != null && Files.exists(markerPathOf(handle));
+    }
+
     private static Path pathOf(final UUID handle) {
         assert dataDirectory != null;
         return dataDirectory.resolve(handle.toString());
@@ -308,6 +356,43 @@ public final class BlobStorage {
             }
         } catch (final IOException e) {
             LOGGER.debug("Failed refreshing last use time of blob [{}].", handle, e);
+        }
+    }
+
+    private static Path markerPathOf(final UUID handle) {
+        assert dataDirectory != null;
+        return dataDirectory.resolve(handle + MARKER_SUFFIX);
+    }
+
+    private static void createMarker(final UUID handle) {
+        try {
+            final Path path = markerPathOf(handle);
+            if (!Files.exists(path)) {
+                Files.createFile(path);
+            }
+        } catch (final IOException e) {
+            LOGGER.error("Failed marking blob [{}] as in use.", handle, e);
+        }
+    }
+
+    private static void clearMarkersOfClosedBlobs() {
+        for (final UUID handle : CLOSED_SINCE_SAVE) {
+            try {
+                Files.deleteIfExists(markerPathOf(handle));
+            } catch (final IOException e) {
+                LOGGER.error("Failed clearing marker of blob [{}].", handle, e);
+            }
+        }
+
+        CLOSED_SINCE_SAVE.clear();
+    }
+
+    private static int countMarkers(final Path directory) {
+        try (Stream<Path> paths = Files.list(directory)) {
+            return (int) paths.filter(path -> path.getFileName().toString().endsWith(MARKER_SUFFIX)).count();
+        } catch (final IOException e) {
+            LOGGER.error(e);
+            return 0;
         }
     }
 
@@ -425,13 +510,20 @@ public final class BlobStorage {
     }
 
     private static boolean evict(final UUID handle, final Path path) throws IOException {
+        final Path marker = markerPathOf(handle);
+        CLOSED_SINCE_SAVE.remove(handle);
+
         if (Config.maxTrashedBlobCount <= 0 || trashDirectory == null) {
             Files.deleteIfExists(path);
+            Files.deleteIfExists(marker);
             return false;
         }
 
         Files.createDirectories(trashDirectory);
         Files.move(path, trashDirectory.resolve(handle.toString()), StandardCopyOption.REPLACE_EXISTING);
+        if (Files.exists(marker)) {
+            Files.move(marker, trashDirectory.resolve(handle + MARKER_SUFFIX), StandardCopyOption.REPLACE_EXISTING);
+        }
         return true;
     }
 
@@ -477,6 +569,7 @@ public final class BlobStorage {
         for (int i = 0; i < toDelete; i++) {
             try {
                 Files.deleteIfExists(trashed.get(i).path());
+                Files.deleteIfExists(trashDirectory.resolve(trashed.get(i).handle() + MARKER_SUFFIX));
             } catch (final IOException e) {
                 LOGGER.error(e);
             }

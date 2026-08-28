@@ -76,19 +76,22 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
     @Override
     public VMDeviceLoadResult mount(final VMContext context) {
-        if (allocateDevice(context) instanceof AllocationFailure(Component message)) {
-            final var result = failMount();
-            return message != null ? result.withErrorMessage(message) : result;
+        if (allocateDevice(context) instanceof AllocationFailure(Component message, boolean permanent)) {
+            var result = failMount();
+            if (message != null) {
+                result = result.withErrorMessage(message);
+            }
+            return permanent ? result.asPermanent() : result;
         }
 
         if (!address.claim(context, device)) {
-            return failMount();
+            return failMount().asPermanent();
         }
 
         if (interrupt.claim(context)) {
             device.getInterrupt().set(interrupt.getAsInt(), context.getInterruptController());
         } else {
-            return failMount();
+            return failMount().asPermanent();
         }
 
         context.getEventBus().register(this);
@@ -214,12 +217,20 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     protected void handleDataUnavailable() {
     }
 
+    protected boolean handleDataStale() {
+        return true;
+    }
+
     // --------------------------------------------------------------------- //
 
     private AllocationResult allocateDevice(final VMContext context) {
         final long claim = (long) Constants.PAGE_SIZE + getMappedByteCount();
         if (!context.getMemoryAllocator().claimMemory((int) Math.min(Integer.MAX_VALUE, claim))) {
-            return new AllocationFailure();
+            return new AllocationFailure(true);
+        }
+
+        if (BlobStorage.isStaleHandle(blobHandle) && !handleDataStale()) {
+            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_INCONSISTENT), true);
         }
 
         device = new VirtIOBlockDevice(context.getMemoryMap(), readonly, Constants.VIRTIO_BLOCK_QUEUE_SIZE);
@@ -229,13 +240,13 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
             job = createBlockDevice();
         } catch (final BlobStorage.BlobStorageFullException e) {
             LOGGER.error(e);
-            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_FULL));
+            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_FULL), false);
         } catch (final BlobStorage.BlobMissingException | BlobStorage.BlobInUseException e) {
             handleDataUnavailable();
-            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_CORRUPTED));
+            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_CORRUPTED), true);
         } catch (final IOException e) {
             LOGGER.error(e);
-            return new AllocationFailure();
+            return new AllocationFailure(false);
         }
 
         setOpenJob(job.thenAcceptAsync(blockDevice -> {
@@ -288,9 +299,9 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     private record AllocationSuccess() implements AllocationResult {
     }
 
-    private record AllocationFailure(@Nullable Component message) implements AllocationResult {
-        public AllocationFailure() {
-            this(null);
+    private record AllocationFailure(@Nullable Component message, boolean permanent) implements AllocationResult {
+        public AllocationFailure(final boolean permanent) {
+            this(null, permanent);
         }
     }
 

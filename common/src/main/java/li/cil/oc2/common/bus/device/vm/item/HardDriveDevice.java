@@ -4,6 +4,7 @@ package li.cil.oc2.common.bus.device.vm.item;
 
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.*;
+import li.cil.oc2.common.util.StorageItemUtils.State;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.world.item.ItemStack;
 
@@ -63,7 +64,22 @@ public class HardDriveDevice extends AbstractBlockStorageDevice<ByteBufferBlockD
 
     @Override
     protected void handleDataUnavailable() {
-        StorageItemUtils.setCorrupted(identity);
+        flag(State.CORRUPTED);
+    }
+
+    @Override
+    protected boolean handleDataStale() {
+        if (StorageItemUtils.getState(identity) == State.ACKNOWLEDGED) {
+            flag(State.OK);
+            return true;
+        }
+
+        flag(State.INCONSISTENT);
+        return false;
+    }
+
+    private void flag(final State state) {
+        StorageItemUtils.setState(identity, state);
         location.get().ifPresent(blockLocation -> blockLocation.tryGetLevel().ifPresent(level ->
             ChunkUtils.setLazyUnsaved(level, blockLocation.blockPos())));
     }

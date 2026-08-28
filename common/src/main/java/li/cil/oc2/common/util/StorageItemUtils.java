@@ -12,22 +12,41 @@ import java.util.List;
 import java.util.UUID;
 
 public final class StorageItemUtils {
-    private static final String CORRUPTED_TAG_NAME = "corrupted";
+    private static final String STATE_TAG_NAME = "state";
     private static final String BLOB_HANDLE_TAG_NAME = "blob";
     private static final String DISK_DATA_TAG_NAME = "data";
 
-    // --------------------------------------------------------------------- //
-
-    public static boolean isCorrupted(final ItemStack stack) {
-        return ItemStackUtils.getModDataTag(stack).getBoolean(CORRUPTED_TAG_NAME);
+    public enum State {
+        OK,
+        INCONSISTENT,
+        ACKNOWLEDGED,
+        CORRUPTED,
     }
 
-    public static void setCorrupted(final ItemStack stack) {
-        if (stack.isEmpty() || isCorrupted(stack)) {
+    // --------------------------------------------------------------------- //
+
+    public static State getState(final ItemStack stack) {
+        final State state = NBTUtils.getEnum(ItemStackUtils.getModDataTag(stack), STATE_TAG_NAME, State.class);
+        return state != null ? state : State.OK;
+    }
+
+    public static void setState(final ItemStack stack, final State state) {
+        if (stack.isEmpty() || getState(stack) == state) {
             return;
         }
 
-        ItemStackUtils.modifyModDataTag(stack, tag -> tag.putBoolean(CORRUPTED_TAG_NAME, true));
+        ItemStackUtils.modifyModDataTag(stack, tag -> {
+            if (state == State.OK) {
+                tag.remove(STATE_TAG_NAME);
+            } else {
+                NBTUtils.putEnum(tag, STATE_TAG_NAME, state);
+            }
+        });
+    }
+
+    public static boolean needsRepair(final ItemStack stack) {
+        final State state = getState(stack);
+        return state == State.CORRUPTED || state == State.INCONSISTENT;
     }
 
     public static void clearBlobData(final ItemStack stack) {
@@ -66,7 +85,7 @@ public final class StorageItemUtils {
                 takeHandle(tag.getCompound(DISK_DATA_TAG_NAME), handles);
             }
 
-            tag.remove(CORRUPTED_TAG_NAME);
+            tag.remove(STATE_TAG_NAME);
         });
     }
 

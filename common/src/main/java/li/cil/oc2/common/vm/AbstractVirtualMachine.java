@@ -300,12 +300,13 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
         final VMDeviceLoadResult loadResult = state.vmAdapter.mountDevices();
         if (!loadResult.wasSuccessful()) {
-            if (loadResult.getErrorMessage() != null) {
-                error(loadResult.getErrorMessage(), false);
-            } else {
-                error(Component.translatable(Constants.COMPUTER_ERROR_UNKNOWN), false);
+            final Component message = loadResult.getErrorMessage() != null
+                ? loadResult.getErrorMessage()
+                : Component.translatable(Constants.COMPUTER_ERROR_UNKNOWN);
+            error(message, loadResult.isPermanent());
+            if (!loadResult.isPermanent()) {
+                loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
             }
-            loadDevicesDelay = DEVICE_LOAD_RETRY_INTERVAL;
             return;
         }
 

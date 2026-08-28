@@ -52,13 +52,16 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     @Override
     public VMDeviceLoadResult mount(final VMContext context) {
-        if (allocateDevice(context) instanceof AllocationFailure(Component message)) {
-            final VMDeviceLoadResult result = VMDeviceLoadResult.fail();
-            return message != null ? result.withErrorMessage(message) : result;
+        if (allocateDevice(context) instanceof AllocationFailure(Component message, boolean permanent)) {
+            VMDeviceLoadResult result = VMDeviceLoadResult.fail();
+            if (message != null) {
+                result = result.withErrorMessage(message);
+            }
+            return permanent ? result.asPermanent() : result;
         }
 
         if (!address.claim(context, device)) {
-            return VMDeviceLoadResult.fail();
+            return VMDeviceLoadResult.fail().asPermanent();
         }
 
         return VMDeviceLoadResult.success();
@@ -112,27 +115,27 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     private AllocationResult allocateDevice(final VMContext context) {
         if (!context.getMemoryAllocator().claimMemory(size)) {
-            return new AllocationFailure();
+            return new AllocationFailure(true);
+        }
+
+        if (BlobStorage.isStaleHandle(blobHandle)) {
+            BlobStorage.delete(blobHandle);
+            blobHandle = null;
+            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STATE_LOST), true);
         }
 
         try {
-            final boolean isNew = !BlobStorage.isValidHandle(blobHandle);
-            if (isNew) {
-                blobHandle = BlobStorage.allocateHandle();
-            }
-
-            final FileChannel channel = BlobStorage.open(blobHandle, isNew);
-            final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, size);
+            final MappedByteBuffer buffer = openBlob().map(FileChannel.MapMode.READ_WRITE, 0, size);
             device = new ByteBufferMemory(size, buffer);
         } catch (final BlobStorage.BlobStorageFullException e) {
             LOGGER.error(e);
-            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_FULL));
+            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_FULL), false);
         } catch (final BlobStorage.BlobMissingException | BlobStorage.BlobInUseException e) {
-            // Memory got lost, show a message so it doesn't look like a bug.
-            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_MEMORY_CORRUPTED));
+            blobHandle = null;
+            return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_MEMORY_CORRUPTED), true);
         } catch (final IOException e) {
             LOGGER.error(e);
-            return new AllocationFailure();
+            return new AllocationFailure(false);
         }
 
         return new AllocationSuccess();
@@ -152,15 +155,28 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
         device = null;
     }
 
+    private FileChannel openBlob() throws IOException {
+        final boolean isNew = !BlobStorage.isValidHandle(blobHandle);
+        final UUID handle = isNew ? BlobStorage.allocateHandle() : blobHandle;
+
+        final FileChannel channel = BlobStorage.open(handle, isNew);
+
+        // Only set after we actually managed to open/create the storage. Will look
+        // like a missing one if the open errors otherwise.
+        blobHandle = handle;
+
+        return channel;
+    }
+
     private sealed interface AllocationResult permits AllocationSuccess, AllocationFailure {
     }
 
     private record AllocationSuccess() implements AllocationResult {
     }
 
-    private record AllocationFailure(@Nullable Component message) implements AllocationResult {
-        public AllocationFailure() {
-            this(null);
+    private record AllocationFailure(@Nullable Component message, boolean permanent) implements AllocationResult {
+        public AllocationFailure(final boolean permanent) {
+            this(null, permanent);
         }
     }
 }

@@ -30,6 +30,7 @@ public final class VMDeviceLoadResult {
     }
 
     private final boolean wasSuccessful;
+    private boolean permanent;
     @Nullable
     private Component message;
 
@@ -67,5 +68,24 @@ public final class VMDeviceLoadResult {
     @Nullable
     public Component getErrorMessage() {
         return message;
+    }
+
+    /**
+     * Marks failures as permanent, i.s. VM should not try again periodically.
+     *
+     * @return this load failure, marked as permanent.
+     */
+    public VMDeviceLoadResult asPermanent() {
+        permanent = true;
+        return this;
+    }
+
+    /**
+     * Whether retrying the emitting will never succeed.
+     *
+     * @return {@code true} if the machine should stop rather than retry.
+     */
+    public boolean isPermanent() {
+        return permanent;
     }
 }

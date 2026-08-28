@@ -45,6 +45,8 @@ public final class Constants {
     public static final String TOOLTIP_ENERGY_CONSUMPTION = key("tooltip.{mod}.energyConsumption");
     public static final String TOOLTIP_DATA_CORRUPTED = key("tooltip.{mod}.data_corrupted");
     public static final String TOOLTIP_DATA_CORRUPTED_HINT = key("tooltip.{mod}.data_corrupted.hint");
+    public static final String TOOLTIP_DATA_INCONSISTENT = key("tooltip.{mod}.data_inconsistent");
+    public static final String TOOLTIP_DATA_INCONSISTENT_HINT = key("tooltip.{mod}.data_inconsistent.hint");
     public static final String TOOLTIP_CONFIRM = key("tooltip.{mod}.confirm");
     public static final String TOOLTIP_CANCEL = key("tooltip.{mod}.cancel");
 
@@ -60,6 +62,8 @@ public final class Constants {
     public static final String COMPUTER_ERROR_STORAGE_CORRUPTED = key("gui.{mod}.computer.error.storage_corrupted");
     public static final String COMPUTER_ERROR_STORAGE_FULL = key("gui.{mod}.computer.error.storage_full");
     public static final String COMPUTER_ERROR_MEMORY_CORRUPTED = key("gui.{mod}.computer.error.memory_corrupted");
+    public static final String COMPUTER_ERROR_STATE_LOST = key("gui.{mod}.computer.error.state_lost");
+    public static final String COMPUTER_ERROR_STORAGE_INCONSISTENT = key("gui.{mod}.computer.error.storage_inconsistent");
     public static final String COMPUTER_BUS_STATE_INCOMPLETE = key("gui.{mod}.computer.bus_state.incomplete");
     public static final String COMPUTER_BUS_STATE_TOO_COMPLEX = key("gui.{mod}.computer.bus_state.too_complex");
     public static final String COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS = key("gui.{mod}.computer.bus_state.multiple_controllers");

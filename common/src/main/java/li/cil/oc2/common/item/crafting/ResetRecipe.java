@@ -4,6 +4,7 @@ package li.cil.oc2.common.item.crafting;
 
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.util.StorageItemUtils;
+import li.cil.oc2.common.util.StorageItemUtils.State;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
@@ -22,7 +23,7 @@ public final class ResetRecipe extends CustomRecipe {
 
     @Override
     public boolean matches(final CraftingInput input, final Level level) {
-        int corruptedCount = 0, wrenchCount = 0;
+        int damagedCount = 0, wrenchCount = 0;
 
         for (int slot = 0; slot < input.size(); slot++) {
             final ItemStack stack = input.getItem(slot);
@@ -30,8 +31,8 @@ public final class ResetRecipe extends CustomRecipe {
                 continue;
             }
 
-            if (StorageItemUtils.isCorrupted(stack)) {
-                corruptedCount++;
+            if (StorageItemUtils.needsRepair(stack)) {
+                damagedCount++;
             } else if (Wrenches.isWrench(stack)) {
                 wrenchCount++;
             } else {
@@ -39,19 +40,24 @@ public final class ResetRecipe extends CustomRecipe {
             }
         }
 
-        return corruptedCount == 1 && wrenchCount == 1;
+        return damagedCount == 1 && wrenchCount == 1;
     }
 
     @Override
     public ItemStack assemble(final CraftingInput input, final HolderLookup.Provider registries) {
-        final ItemStack stack = findCorruptedDataItem(input);
+        final ItemStack stack = findDamagedDataItem(input);
         if (stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
 
         final ItemStack result = stack.copy();
         result.setCount(1);
-        StorageItemUtils.stripBlobData(result);
+
+        if (StorageItemUtils.getState(stack) == State.INCONSISTENT) {
+            StorageItemUtils.setState(result, State.ACKNOWLEDGED);
+        } else {
+            StorageItemUtils.stripBlobData(result);
+        }
 
         return result;
     }
@@ -62,8 +68,7 @@ public final class ResetRecipe extends CustomRecipe {
 
         for (int slot = 0; slot < input.size(); slot++) {
             final ItemStack stack = input.getItem(slot);
-            if (StorageItemUtils.isCorrupted(stack)) {
-                // Only reached when the crafting result is actually picked up.
+            if (StorageItemUtils.getState(stack) == State.CORRUPTED) {
                 StorageItemUtils.clearBlobData(stack);
             } else if (stack.getItem().hasCraftingRemainingItem()) {
                 result.set(slot, new ItemStack(stack.getItem().getCraftingRemainingItem()));
@@ -89,10 +94,10 @@ public final class ResetRecipe extends CustomRecipe {
 
     // --------------------------------------------------------------------- //
 
-    private static ItemStack findCorruptedDataItem(final CraftingInput input) {
+    private static ItemStack findDamagedDataItem(final CraftingInput input) {
         for (int slot = 0; slot < input.size(); slot++) {
             final ItemStack stack = input.getItem(slot);
-            if (!stack.isEmpty() && StorageItemUtils.isCorrupted(stack)) {
+            if (!stack.isEmpty() && StorageItemUtils.needsRepair(stack)) {
                 return stack;
             }
         }

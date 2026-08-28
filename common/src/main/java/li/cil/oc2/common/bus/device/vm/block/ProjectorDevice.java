@@ -15,6 +15,8 @@ import li.cil.oc2.common.vm.device.SimpleFramebufferDevice;
 import li.cil.oc2.jcodec.common.model.Picture;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -23,6 +25,8 @@ import java.nio.channels.FileChannel;
 import java.util.UUID;
 
 public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements VMDevice {
+    private static final Logger LOGGER = LogManager.getLogger();
+
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String BLOB_HANDLE_TAG_NAME = "blob";
 
@@ -145,6 +149,12 @@ public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements
     }
 
     private SimpleFramebufferDevice createFrameBufferDevice() throws IOException {
+        if (BlobStorage.isStaleHandle(blobHandle)) {
+            LOGGER.error("Discarding stale projector framebuffer data [{}].", blobHandle);
+            BlobStorage.delete(blobHandle);
+            blobHandle = null;
+        }
+
         if (!BlobStorage.isValidHandle(blobHandle)) {
             blobHandle = BlobStorage.allocateHandle();
         }

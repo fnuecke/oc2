@@ -4,6 +4,7 @@ package li.cil.oc2.client.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
+import li.cil.oc2.client.renderer.TerminalRenderer;
 import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.vm.Terminal;
 import net.fabricmc.api.EnvType;
@@ -38,7 +39,7 @@ public final class MachineTerminalWidget {
     private final Terminal terminal;
     private int leftPos, topPos;
     private boolean isMouseOverTerminal;
-    private Terminal.RendererView rendererView;
+    private TerminalRenderer terminalRenderer;
 
     // --------------------------------------------------------------------- //
 
@@ -64,12 +65,12 @@ public final class MachineTerminalWidget {
             terminalStack.translate(leftPos + TERMINAL_X, topPos + TERMINAL_Y, 0);
             terminalStack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
 
-            if (rendererView == null) {
-                rendererView = terminal.getRenderer();
+            if (terminalRenderer == null) {
+                terminalRenderer = new TerminalRenderer(terminal);
             }
 
             final Matrix4f projectionMatrix = new Matrix4f().setOrtho(0, parent.width, parent.height, 0, -10, 10f);
-            rendererView.render(terminalStack, new Matrix4f(), projectionMatrix);
+            terminalRenderer.render(terminalStack, new Matrix4f(), projectionMatrix);
         } else {
             final Font font = getClient().font;
             if (error != null) {
@@ -126,9 +127,9 @@ public final class MachineTerminalWidget {
     }
 
     public void onClose() {
-        if (rendererView != null) {
-            terminal.releaseRenderer(rendererView);
-            rendererView = null;
+        if (terminalRenderer != null) {
+            terminalRenderer.close();
+            terminalRenderer = null;
         }
     }
 

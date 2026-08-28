@@ -12,6 +12,7 @@ import com.mojang.math.Axis;
 import dev.architectury.event.events.client.ClientTickEvent;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.ModRenderType;
+import li.cil.oc2.client.renderer.TerminalRenderer;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.vm.Terminal;
@@ -46,7 +47,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     private static final Material TEXTURE_STATUS = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_STATUS_LOCATION);
     private static final Material TEXTURE_TERMINAL = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_TERMINAL_LOCATION);
 
-    private static final Cache<Terminal, Terminal.RendererView> rendererViews = CacheBuilder.newBuilder()
+    private static final Cache<Terminal, TerminalRenderer> terminalRenderers = CacheBuilder.newBuilder()
         .expireAfterAccess(Duration.ofSeconds(5))
         .removalListener(ComputerRenderer::handleNoLongerRendering)
         .build();
@@ -158,7 +159,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
             RenderSystem.enableDepthTest();
 
             try {
-                rendererViews.get(terminal, terminal::getRenderer)
+                terminalRenderers.get(terminal, () -> new TerminalRenderer(terminal))
                     .render(stack, RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix());
             } catch (final ExecutionException e) {
                 throw new RuntimeException(e);
@@ -252,14 +253,13 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     }
 
     public static void initialize() {
-        ClientTickEvent.CLIENT_POST.register(minecraft -> rendererViews.cleanUp());
+        ClientTickEvent.CLIENT_POST.register(minecraft -> terminalRenderers.cleanUp());
     }
 
-    private static void handleNoLongerRendering(final RemovalNotification<Terminal, Terminal.RendererView> notification) {
-        final Terminal key = notification.getKey();
-        final Terminal.RendererView value = notification.getValue();
-        if (key != null && value != null) {
-            key.releaseRenderer(value);
+    private static void handleNoLongerRendering(final RemovalNotification<Terminal, TerminalRenderer> notification) {
+        final TerminalRenderer value = notification.getValue();
+        if (value != null) {
+            value.close();
         }
     }
 }

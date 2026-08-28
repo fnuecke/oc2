@@ -2,21 +2,13 @@
 
 package li.cil.oc2.common.vm;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
-import li.cil.oc2.api.API;
 import li.cil.oc2.client.audio.TerminalBell;
-import li.cil.oc2.client.renderer.ModShaders;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.resources.ResourceLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -28,7 +20,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 // VT100 emulation: https://vt100.net/docs/vt100-ug/chapter3.html
 @Serialized
@@ -38,10 +29,11 @@ public final class Terminal {
     public static final int WIDTH = 80, HEIGHT = 24;
     public static final int CHAR_WIDTH = 8;
     public static final int CHAR_HEIGHT = 16;
+    public static final int COLOR_WHITE = Color.WHITE;
 
     private static final int TAB_WIDTH = 4;
     private static final char UNRENDERABLE = '?';
-    private static final int MAX_EXPECTED_RENDERERS = 4;
+    private static final int MAX_EXPECTED_LISTENERS = 4;
     private static final int MAX_INPUT_SIZE = 4 * 1024;
 
     @SuppressWarnings("unused")
@@ -84,6 +76,9 @@ public final class Terminal {
     private static final byte DEFAULT_COLORS = Color.WHITE << COLOR_FOREGROUND_SHIFT;
     private static final byte DEFAULT_STYLE = 0;
 
+    private static final int CELL_COLORS_SHIFT = 8;
+    private static final int CELL_STYLE_SHIFT = 16;
+
     // --------------------------------------------------------------------- //
 
     public enum State { // Must be public for serialization.
@@ -95,9 +90,8 @@ public final class Terminal {
         CONTROL_SEQUENCE, // Know what sequence we have, now parsing it.
     }
 
-    @Environment(EnvType.CLIENT)
-    public interface RendererView {
-        void render(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix);
+    public interface Listener {
+        void handleTerminalChanged();
     }
 
     // --------------------------------------------------------------------- //
@@ -122,8 +116,7 @@ public final class Terminal {
     // Style info packed into one byte for compact storage
     private byte style;
 
-    // Rendering data for client
-    private final transient Set<RendererModel> renderers = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    private final transient Set<Listener> listeners = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private transient boolean displayOnly; // Set on client to not send responses to status requests.
     private transient boolean hasPendingBell;
 
@@ -158,26 +151,74 @@ public final class Terminal {
         displayOnly = value;
     }
 
-    @Environment(EnvType.CLIENT)
-    public RendererView getRenderer() {
-        final Renderer renderer = new Renderer(this);
-        renderers.add(renderer);
+    public void addListener(final Listener listener) {
+        listeners.add(listener);
 
-        // Runtime quasi-assert to avoid leaking renderers again...
-        if (renderers.size() > MAX_EXPECTED_RENDERERS) {
-            LOGGER.warn("Terminal has {} renderers; one is likely not being released.", renderers.size());
-        }
-
-        return renderer;
-    }
-
-    @Environment(EnvType.CLIENT)
-    public void releaseRenderer(final RendererView renderer) {
-        if (renderer instanceof final RendererModel rendererModel) {
-            rendererModel.close();
-            renderers.remove(rendererModel);
+        // Runtime quasi-assert to avoid leaking listeners again...
+        if (listeners.size() > MAX_EXPECTED_LISTENERS) {
+            LOGGER.warn("Terminal has {} listeners; one is likely not being removed.", listeners.size());
         }
     }
+
+    public void removeListener(final Listener listener) {
+        listeners.remove(listener);
+    }
+
+    // --------------------------------------------------------------------- //
+
+    public int getCursorX() {
+        return x;
+    }
+
+    public int getCursorY() {
+        return y;
+    }
+
+    public int getCell(final int index) {
+        return (buffer[index] & 0xFF) | ((colors[index] & 0xFF) << CELL_COLORS_SHIFT) | ((styles[index] & 0xFF) << CELL_STYLE_SHIFT);
+    }
+
+    public static int getCharacter(final int cell) {
+        return cell & 0xFF;
+    }
+
+    public static int getForegroundColorIndex(final int cell) {
+        return isInverted(cell) ? backgroundColorIndexOf(cell) : foregroundColorIndexOf(cell);
+    }
+
+    public static int getBackgroundColorIndex(final int cell) {
+        return isInverted(cell) ? foregroundColorIndexOf(cell) : backgroundColorIndexOf(cell);
+    }
+
+    public static boolean isBold(final int cell) {
+        return (cell >> CELL_STYLE_SHIFT & STYLE_BOLD_MASK) != 0;
+    }
+
+    public static boolean isDim(final int cell) {
+        return (cell >> CELL_STYLE_SHIFT & STYLE_DIM_MASK) != 0;
+    }
+
+    public static boolean isUnderline(final int cell) {
+        return (cell >> CELL_STYLE_SHIFT & STYLE_UNDERLINE_MASK) != 0;
+    }
+
+    public static boolean isHidden(final int cell) {
+        return (cell >> CELL_STYLE_SHIFT & STYLE_HIDDEN_MASK) != 0;
+    }
+
+    private static boolean isInverted(final int cell) {
+        return (cell >> CELL_STYLE_SHIFT & STYLE_INVERT_MASK) != 0;
+    }
+
+    private static int foregroundColorIndexOf(final int cell) {
+        return cell >> (CELL_COLORS_SHIFT + COLOR_FOREGROUND_SHIFT) & COLOR_MASK;
+    }
+
+    private static int backgroundColorIndexOf(final int cell) {
+        return cell >> CELL_COLORS_SHIFT & COLOR_MASK;
+    }
+
+    // --------------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     public void clientTick() {
@@ -358,7 +399,7 @@ public final class Terminal {
                     } // Change this line to double-width single-height (DECDWL)
                     case '8' -> { // Fill Screen with Es (DECALN)
                         Arrays.fill(buffer, (byte) 'E');
-                        renderers.forEach(RendererModel::setDirty);
+                        listeners.forEach(Listener::handleTerminalChanged);
                     }
                 }
             }
@@ -623,12 +664,12 @@ public final class Terminal {
     }
 
     private void setClampedCursorPos(final int x, final int y) {
-        setCursorPos(x, Math.max(scrollFirst, Math.min(scrollLast, y)));
+        setCursorPos(x, Math.clamp(scrollLast, scrollFirst, y));
     }
 
     private void setCursorPos(final int x, final int y) {
-        this.x = Math.max(0, Math.min(WIDTH - 1, x));
-        this.y = Math.max(0, Math.min(HEIGHT - 1, y));
+        this.x = Math.clamp(x, 0, WIDTH - 1);
+        this.y = Math.clamp(y, 0, HEIGHT - 1);
     }
 
     private void putUtf8(final byte value) {
@@ -677,14 +718,14 @@ public final class Terminal {
         buffer[index] = (byte) ch;
         colors[index] = color;
         styles[index] = style;
-        renderers.forEach(RendererModel::setDirty);
+        listeners.forEach(Listener::handleTerminalChanged);
     }
 
     private void clear() {
         Arrays.fill(buffer, (byte) ' ');
         Arrays.fill(colors, DEFAULT_COLORS);
         Arrays.fill(styles, DEFAULT_STYLE);
-        renderers.forEach(RendererModel::setDirty);
+        listeners.forEach(Listener::handleTerminalChanged);
     }
 
     private void clearLine(final int y) {
@@ -695,7 +736,7 @@ public final class Terminal {
         Arrays.fill(buffer, y * WIDTH + fromIndex, y * WIDTH + toIndex, (byte) ' ');
         Arrays.fill(colors, y * WIDTH + fromIndex, y * WIDTH + toIndex, DEFAULT_COLORS);
         Arrays.fill(styles, y * WIDTH + fromIndex, y * WIDTH + toIndex, DEFAULT_STYLE);
-        renderers.forEach(RendererModel::setDirty);
+        listeners.forEach(Listener::handleTerminalChanged);
     }
 
     private void shiftUpOne() {
@@ -725,293 +766,6 @@ public final class Terminal {
         Arrays.fill(colors, clearIndex, clearIndex + clearCount, DEFAULT_COLORS);
         Arrays.fill(styles, clearIndex, clearIndex + clearCount, DEFAULT_STYLE);
 
-        renderers.forEach(RendererModel::setDirty);
-    }
-
-    // --------------------------------------------------------------------- //
-
-    private interface RendererModel {
-        void setDirty();
-
-        void close();
-    }
-
-    @Environment(EnvType.CLIENT)
-    private static final class Renderer implements RendererModel, RendererView {
-        private static final ResourceLocation LOCATION_FONT_TEXTURE = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/font/terminus.png");
-        private static final int TEXTURE_RESOLUTION = 256;
-        private static final float ONE_OVER_TEXTURE_RESOLUTION = 1.0f / TEXTURE_RESOLUTION;
-        private static final float CHAR_WIDTH_IN_UV = CHAR_WIDTH * ONE_OVER_TEXTURE_RESOLUTION;
-        private static final float CHAR_HEIGHT_IN_UV = CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION;
-        private static final int TEXTURE_COLUMNS = 16;
-        private static final int TEXTURE_BOLD_SHIFT = TEXTURE_COLUMNS; // Bold chars are in right half of texture.
-        private static final float WHITE_U = (TEXTURE_RESOLUTION - 1.5f) * ONE_OVER_TEXTURE_RESOLUTION;
-        private static final float WHITE_V = 1.5f * ONE_OVER_TEXTURE_RESOLUTION;
-
-        private static final int[] COLORS = {
-            0x010101, // Black
-            0xEE3322, // Red
-            0x33DD44, // Green
-            0xFFCC11, // Yellow
-            0x1188EE, // Blue
-            0xDD33CC, // Magenta
-            0x22CCDD, // Cyan
-            0xEEEEEE, // White
-        };
-
-        private static final int[] DIM_COLORS = {
-            0x010101, // Black
-            0x772211, // Red
-            0x116622, // Green
-            0x886611, // Yellow
-            0x115588, // Blue
-            0x771177, // Magenta
-            0x116677, // Cyan
-            0x777777, // White
-        };
-
-        // --------------------------------------------------------------------- //
-
-        private final Terminal terminal;
-
-        @Nullable
-        private VertexBuffer buffer;
-
-        private final AtomicBoolean dirty = new AtomicBoolean(true);
-
-        private final Matrix4f rowMatrix = new Matrix4f();
-        private final Matrix4f modelViewMatrix = new Matrix4f();
-
-        // --------------------------------------------------------------------- //
-
-        public Renderer(final Terminal terminal) {
-            this.terminal = terminal;
-        }
-
-        // --------------------------------------------------------------------- //
-
-        @Override
-        public void render(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
-            validateMesh();
-            renderBuffer(stack, modelViewBase, projectionMatrix);
-
-            if ((System.currentTimeMillis() + terminal.hashCode()) % 1000 > 500) {
-                renderCursor(stack);
-            }
-        }
-
-        @Override
-        public void setDirty() {
-            dirty.set(true);
-        }
-
-        @Override
-        public void close() {
-            if (buffer != null) {
-                buffer.close();
-                buffer = null;
-            }
-        }
-
-        // --------------------------------------------------------------------- //
-
-        private void renderBuffer(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
-            if (buffer == null) {
-                return;
-            }
-
-            ShaderInstance shader = ModShaders.getTerminalShader();
-            if (shader == null) {
-                // Shouldn't really happen, but just in case.
-                shader = GameRenderer.getPositionTexColorShader();
-            }
-            if (shader == null) {
-                return;
-            }
-
-            RenderSystem.depthMask(false);
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.setShaderTexture(0, LOCATION_FONT_TEXTURE);
-
-            modelViewMatrix.set(modelViewBase).mul(stack.last().pose());
-
-            buffer.bind();
-            buffer.drawWithShader(modelViewMatrix, projectionMatrix, shader);
-            VertexBuffer.unbind();
-
-            RenderSystem.disableBlend();
-            RenderSystem.depthMask(true);
-        }
-
-        private void validateMesh() {
-            if (!dirty.getAndSet(false)) {
-                return;
-            }
-
-            final BufferBuilder builder = Tesselator.getInstance()
-                .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-
-            for (int row = 0; row < HEIGHT; row++) {
-                rowMatrix.translation(0, row * CHAR_HEIGHT, 0);
-                renderBackground(rowMatrix, builder, row);
-                renderForeground(rowMatrix, builder, row);
-            }
-
-            final MeshData mesh = builder.build();
-            if (mesh == null) {
-                // Nothing visible at all; drop the buffer rather than leave the last frame on screen.
-                close();
-                return;
-            }
-
-            if (buffer == null) {
-                buffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-            }
-
-            buffer.bind();
-            buffer.upload(mesh);
-            VertexBuffer.unbind();
-        }
-
-        private void renderBackground(final Matrix4f matrix, final BufferBuilder buffer, final int row) {
-            // State tracking for drawing background quads spanning multiple characters.
-            float backgroundStartX = -1;
-            int backgroundColor = 0;
-
-            float tx = 0f;
-            for (int col = 0, index = row * WIDTH; col < WIDTH; col++, index++) {
-                final byte colors = terminal.colors[index];
-                final byte style = terminal.styles[index];
-
-                if ((style & STYLE_HIDDEN_MASK) != 0) continue;
-
-                final int[] palette = (style & STYLE_DIM_MASK) != 0 ? DIM_COLORS : COLORS;
-
-                final int foregroundIndex = (colors >> COLOR_FOREGROUND_SHIFT) & COLOR_MASK;
-                final int backgroundIndex = colors & COLOR_MASK;
-                final int background = palette[(style & STYLE_INVERT_MASK) == 0 ? backgroundIndex : foregroundIndex];
-
-                final boolean hadBackground = backgroundStartX >= 0;
-                final boolean hasBackground = background != palette[0];
-                if (!hadBackground && hasBackground) {
-                    backgroundStartX = tx;
-                    backgroundColor = background;
-                } else if (hadBackground && (!hasBackground || backgroundColor != background)) {
-                    renderBackground(matrix, buffer, backgroundStartX, tx, backgroundColor);
-
-                    if (hasBackground) {
-                        backgroundStartX = tx;
-                        backgroundColor = background;
-                    } else {
-                        backgroundStartX = -1;
-                    }
-                }
-
-                tx += CHAR_WIDTH;
-            }
-
-            if (backgroundStartX >= 0) {
-                renderBackground(matrix, buffer, backgroundStartX, tx, backgroundColor);
-            }
-        }
-
-        private void renderBackground(final Matrix4f matrix, final BufferBuilder buffer, final float x0, final float x1, final int color) {
-            final float r = ((color >> 16) & 0xFF) / 255f;
-            final float g = ((color >> 8) & 0xFF) / 255f;
-            final float b = (color & 0xFF) / 255f;
-
-            buffer.addVertex(matrix, x0, CHAR_HEIGHT, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
-            buffer.addVertex(matrix, x1, CHAR_HEIGHT, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
-            buffer.addVertex(matrix, x1, 0, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
-            buffer.addVertex(matrix, x0, 0, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
-        }
-
-        private void renderForeground(final Matrix4f matrix, final BufferBuilder buffer, final int row) {
-            float tx = 0f;
-            for (int col = 0, index = row * WIDTH; col < WIDTH; col++, index++) {
-                final byte colors = terminal.colors[index];
-                final byte style = terminal.styles[index];
-
-                if ((style & STYLE_HIDDEN_MASK) != 0) continue;
-
-                final int[] palette = (style & STYLE_DIM_MASK) != 0 ? DIM_COLORS : COLORS;
-
-                final int foregroundIndex = (colors >> COLOR_FOREGROUND_SHIFT) & COLOR_MASK;
-                final int backgroundIndex = colors & COLOR_MASK;
-                final int foreground = palette[(style & STYLE_INVERT_MASK) == 0 ? foregroundIndex : backgroundIndex];
-
-                final int character = terminal.buffer[index] & 0xFF;
-
-                renderForeground(matrix, buffer, tx, character, foreground, style);
-
-                tx += CHAR_WIDTH;
-            }
-        }
-
-        private void renderForeground(final Matrix4f matrix, final BufferBuilder buffer, final float offset, final int character, final int color, final byte style) {
-            final float r = ((color >> 16) & 0xFF) / 255f;
-            final float g = ((color >> 8) & 0xFF) / 255f;
-            final float b = (color & 0xFF) / 255f;
-
-            if (isPrintableCharacter((char) character)) {
-                final int x = character % TEXTURE_COLUMNS + ((style & STYLE_BOLD_MASK) != 0 ? TEXTURE_BOLD_SHIFT : 0);
-                final int y = character / TEXTURE_COLUMNS;
-                final float u0 = x * CHAR_WIDTH_IN_UV;
-                final float u1 = (x + 1) * CHAR_WIDTH_IN_UV;
-                final float v0 = y * CHAR_HEIGHT_IN_UV;
-                final float v1 = (y + 1) * CHAR_HEIGHT_IN_UV;
-
-                buffer.addVertex(matrix, offset, CHAR_HEIGHT, 0).setColor(r, g, b, 1).setUv(u0, v1);
-                buffer.addVertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT, 0).setColor(r, g, b, 1).setUv(u1, v1);
-                buffer.addVertex(matrix, offset + CHAR_WIDTH, 0, 0).setColor(r, g, b, 1).setUv(u1, v0);
-                buffer.addVertex(matrix, offset, 0, 0).setColor(r, g, b, 1).setUv(u0, v0);
-            }
-
-            if ((style & STYLE_UNDERLINE_MASK) != 0) {
-                buffer.addVertex(matrix, offset, CHAR_HEIGHT - 3, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
-                buffer.addVertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 3, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
-                buffer.addVertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
-                buffer.addVertex(matrix, offset, CHAR_HEIGHT - 2, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
-            }
-        }
-
-        private void renderCursor(final PoseStack stack) {
-            if (terminal.x < 0 || terminal.x >= WIDTH || terminal.y < 0 || terminal.y >= HEIGHT) {
-                return;
-            }
-
-            RenderSystem.depthMask(false);
-            RenderSystem.setShader(GameRenderer::getPositionColorShader);
-
-            stack.pushPose();
-            stack.translate(terminal.x * CHAR_WIDTH, terminal.y * CHAR_HEIGHT, 0);
-
-            final Matrix4f matrix = stack.last().pose();
-            final BufferBuilder buffer = Tesselator.getInstance()
-                .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-
-            final int foreground = COLORS[Color.WHITE];
-            final float r = ((foreground >> 16) & 0xFF) / 255f;
-            final float g = ((foreground >> 8) & 0xFF) / 255f;
-            final float b = (foreground & 0xFF) / 255f;
-
-            buffer.addVertex(matrix, 0, CHAR_HEIGHT, 0).setColor(r, g, b, 1);
-            buffer.addVertex(matrix, CHAR_WIDTH, CHAR_HEIGHT, 0).setColor(r, g, b, 1);
-            buffer.addVertex(matrix, CHAR_WIDTH, 0, 0).setColor(r, g, b, 1);
-            buffer.addVertex(matrix, 0, 0, 0).setColor(r, g, b, 1);
-
-            BufferUploader.drawWithShader(buffer.buildOrThrow());
-
-            stack.popPose();
-
-            RenderSystem.depthMask(true);
-        }
-
-        private static boolean isPrintableCharacter(final char ch) {
-            return ch == 0 ||
-                (ch > ' ' && ch <= '~') ||
-                ch >= 177;
-        }
+        listeners.forEach(Listener::handleTerminalChanged);
     }
 }

@@ -10,7 +10,6 @@ import li.cil.oc2.common.entity.robot.RobotActions;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.NBTUtils;
-import li.cil.oc2.common.util.TooltipUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;

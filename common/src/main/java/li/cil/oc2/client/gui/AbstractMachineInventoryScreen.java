@@ -5,11 +5,11 @@ package li.cil.oc2.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.gui.util.GuiUtils;
+import li.cil.oc2.client.gui.util.TooltipRenderer;
 import li.cil.oc2.client.gui.widget.ImageButton;
 import li.cil.oc2.client.gui.widget.ToggleImageButton;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
-import li.cil.oc2.common.util.TooltipUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -143,7 +143,7 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
                     Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION,
                         withFormat(String.valueOf(menu.getEnergyConsumption()), ChatFormatting.GREEN))
                 );
-                TooltipUtils.drawTooltip(graphics, tooltip, mouseX, mouseY, 200);
+                TooltipRenderer.drawTooltip(graphics, tooltip, mouseX, mouseY, 200);
             }
         }
     }

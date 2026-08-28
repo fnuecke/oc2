@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.util;
+package li.cil.oc2.common.item;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -12,17 +12,19 @@ import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.EnergyStorage;
 import li.cil.oc2.common.tags.ItemTags;
+import li.cil.oc2.common.util.ItemStackUtils;
+import li.cil.oc2.common.util.NBTTagIds;
+import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.StorageItemUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.StringSplitter;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 
@@ -52,33 +54,6 @@ public final class TooltipUtils {
     private static final ThreadLocal<IntList> ITEM_STACKS_SIZES = ThreadLocal.withInitial(IntArrayList::new);
 
     // --------------------------------------------------------------------- //
-
-    public static void drawTooltip(final GuiGraphics graphics, final List<? extends FormattedText> tooltip, final int x, final int y) {
-        drawTooltip(graphics, tooltip, x, y, 200, ItemStack.EMPTY);
-    }
-
-    public static void drawTooltip(final GuiGraphics graphics, final List<? extends FormattedText> tooltip, final int x, final int y, final int widthHint) {
-        drawTooltip(graphics, tooltip, x, y, widthHint, ItemStack.EMPTY);
-    }
-
-    public static void drawTooltip(final GuiGraphics graphics, final List<? extends FormattedText> tooltip, final int x, final int y, final int widthHint, final ItemStack itemStack) {
-        final Minecraft minecraft = Minecraft.getInstance();
-        final Screen screen = minecraft.screen;
-        if (screen == null) {
-            return;
-        }
-
-        final int availableWidth = Math.max(x, screen.width - x);
-        final int targetWidth = Math.min(availableWidth, widthHint);
-        final Font font = minecraft.font;
-
-        final StringSplitter splitter = font.getSplitter();
-        final boolean needsWrapping = tooltip.stream().anyMatch(line -> font.width(line) > targetWidth);
-        final List<? extends FormattedText> lines = needsWrapping
-            ? tooltip.stream().flatMap(line -> splitter.splitLines(line, targetWidth, Style.EMPTY).stream()).toList()
-            : tooltip;
-        graphics.renderTooltip(font, lines.stream().map(Language.getInstance()::getVisualOrder).toList(), x, y);
-    }
 
     public static void tryAddDescription(final ItemStack stack, final List<Component> tooltip) {
         if (stack.isEmpty()) {
@@ -218,5 +193,10 @@ public final class TooltipUtils {
                 stackSizes.add(itemStack.getCount());
             }
         }
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private TooltipUtils() {
     }
 }

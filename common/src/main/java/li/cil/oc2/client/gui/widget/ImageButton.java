@@ -3,7 +3,7 @@
 package li.cil.oc2.client.gui.widget;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import li.cil.oc2.common.util.TooltipUtils;
+import li.cil.oc2.client.gui.util.TooltipRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -82,7 +82,7 @@ public abstract class ImageButton extends AbstractButton {
             }
 
             if ((System.currentTimeMillis() - hoveringStartedAt) > TOOLTIP_DELAY) {
-                TooltipUtils.drawTooltip(graphics, tooltip, mouseX, mouseY, 200);
+                TooltipRenderer.drawTooltip(graphics, tooltip, mouseX, mouseY, 200);
             }
         } else {
             hoveringStartedAt = 0;

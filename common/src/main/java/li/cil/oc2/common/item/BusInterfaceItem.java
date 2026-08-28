@@ -7,7 +7,6 @@ import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.block.BusCableBlock.ConnectionType;
 import li.cil.oc2.common.util.LevelUtils;
-import li.cil.oc2.common.util.TooltipUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.advancements.CriteriaTriggers;

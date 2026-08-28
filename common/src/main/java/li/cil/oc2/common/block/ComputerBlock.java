@@ -11,7 +11,7 @@ import li.cil.oc2.common.blockentity.TickableBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.util.TooltipUtils;
+import li.cil.oc2.common.item.TooltipUtils;
 import li.cil.oc2.common.util.VoxelShapeUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

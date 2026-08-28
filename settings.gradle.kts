@@ -26,6 +26,15 @@ pluginManagement {
     }
 }
 
+val vox2mcDir = providers.gradleProperty("vox2mcDir").getOrElse("")
+if (vox2mcDir.isNotBlank()) {
+    includeBuild(vox2mcDir) {
+        dependencySubstitution {
+            substitute(module("li.cil.vox2mc:vox2mc")).using(project(":"))
+        }
+    }
+}
+
 include("common")
 
 val enabledPlatforms: String by settings

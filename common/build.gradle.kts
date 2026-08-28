@@ -35,6 +35,8 @@ dependencies {
     testImplementation("org.mockito:mockito-core:5.11.0")
 }
 
+registerBlockModelsTask()
+
 tasks {
     register<Zip>("packageScripts") {
         archiveFileName.set("scripts.zip")

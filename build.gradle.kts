@@ -47,6 +47,7 @@ subprojects {
             forRepository { maven("https://fnuecke.github.io/maven") }
             filter {
                 includeModule("li.cil.sedna", "sedna-buildroot")
+                includeModule("li.cil.vox2mc", "vox2mc")
                 includeGroup("li.cil.markdown_manual")
             }
         }

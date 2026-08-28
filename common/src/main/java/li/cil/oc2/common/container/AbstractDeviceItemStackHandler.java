@@ -8,8 +8,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
-import javax.annotation.Nonnull;
-
 public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackHandler {
     public AbstractDeviceItemStackHandler(final int size) {
         this(NonNullList.withSize(size, ItemStack.EMPTY));
@@ -65,7 +63,6 @@ public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackH
     }
 
     @Override
-    @Nonnull
     public ItemStack getStackInSlot(final int slot) {
         final ItemStack stack = super.getStackInSlot(slot);
         getBusElement().exportDeviceDataToItemStack(slot, stack);
@@ -73,7 +70,6 @@ public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackH
     }
 
     @Override
-    @Nonnull
     public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
         if (!simulate && amount > 0) {
             getBusElement().exportDeviceDataToItemStack(slot, super.getStackInSlot(slot));
@@ -92,6 +88,6 @@ public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackH
     @Override
     protected void onContentsChanged(final int slot) {
         super.onContentsChanged(slot);
-        getBusElement().handleSlotContentsChanged(slot, getStackInSlot(slot));
+        getBusElement().handleSlotContentsChanged(slot, super.getStackInSlot(slot));
     }
 }

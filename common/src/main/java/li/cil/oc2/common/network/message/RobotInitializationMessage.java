@@ -64,9 +64,9 @@ public final class RobotInitializationMessage extends AbstractMessage {
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientEntity(entityId, Robot.class,
             robot -> {
-                robot.getVirtualMachine().setBusStateClient(busState);
-                robot.getVirtualMachine().setRunStateClient(runState);
-                robot.getVirtualMachine().setBootErrorClient(bootError);
+                robot.getVirtualMachineClientState().setBusStateClient(busState);
+                robot.getVirtualMachineClientState().setRunStateClient(runState);
+                robot.getVirtualMachineClientState().setBootErrorClient(bootError);
                 NBTSerialization.deserialize(terminal, robot.getTerminal());
             });
     }

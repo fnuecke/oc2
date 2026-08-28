@@ -10,6 +10,7 @@ import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.client.audio.LoopingSoundManager;
+import li.cil.oc2.client.audio.TerminalBell;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.bus.AbstractBlockDeviceBusElement;
@@ -28,6 +29,7 @@ import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.vm.*;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -107,6 +109,10 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         return virtualMachine;
     }
 
+    public VirtualMachineClientState getVirtualMachineClientState() {
+        return virtualMachine;
+    }
+
     public VMItemStackHandlers getItemStackHandlers() {
         return deviceItems;
     }
@@ -179,7 +185,9 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     @Override
     public void clientTick() {
-        terminal.clientTick();
+        if (terminal.consumePendingBell()) {
+            TerminalBell.play();
+        }
     }
 
     @Override
@@ -502,6 +510,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
 
         @Override
+        @Environment(EnvType.CLIENT)
         public void setRunStateClient(final VMRunState value) {
             super.setRunStateClient(value);
 

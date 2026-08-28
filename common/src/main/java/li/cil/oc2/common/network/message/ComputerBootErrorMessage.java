@@ -48,6 +48,6 @@ public final class ComputerBootErrorMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, ComputerBlockEntity.class,
-            computer -> computer.getVirtualMachine().setBootErrorClient(value));
+            computer -> computer.getVirtualMachineClientState().setBootErrorClient(value));
     }
 }

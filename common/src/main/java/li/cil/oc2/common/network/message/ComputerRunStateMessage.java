@@ -43,6 +43,6 @@ public final class ComputerRunStateMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, ComputerBlockEntity.class,
-            computer -> computer.getVirtualMachine().setRunStateClient(value));
+            computer -> computer.getVirtualMachineClientState().setRunStateClient(value));
     }
 }

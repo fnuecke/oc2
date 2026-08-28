@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.function.LongSupplier;
 
-public abstract class AbstractVirtualMachine implements VirtualMachine {
+public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualMachineClientState {
     private static final Logger LOGGER = LogManager.getLogger();
 
     // --------------------------------------------------------------------- //
@@ -108,21 +108,12 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         state.rpcAdapter.unmountDevices();
     }
 
-    @Override
-    public boolean isRunning() {
-        return getBusState() == CommonDeviceBusController.BusState.READY &&
-            getRunState() == VMRunState.RUNNING;
-    }
+    // --------------------------------------------------------------------- //
+    // VirtualMachine
 
     @Override
     public CommonDeviceBusController.BusState getBusState() {
         return busState;
-    }
-
-    @Override
-    @Environment(EnvType.CLIENT)
-    public void setBusStateClient(final CommonDeviceBusController.BusState value) {
-        busState = value;
     }
 
     @Override
@@ -131,21 +122,9 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     }
 
     @Override
-    @Environment(EnvType.CLIENT)
-    public void setRunStateClient(final VMRunState value) {
-        runState = value;
-    }
-
-    @Override
     @Nullable
     public Component getBootError() {
         return bootError;
-    }
-
-    @Override
-    @Environment(EnvType.CLIENT)
-    public void setBootErrorClient(@Nullable final Component value) {
-        bootError = value;
     }
 
     @Override
@@ -171,6 +150,12 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     }
 
     @Override
+    public boolean isRunning() {
+        return getBusState() == CommonDeviceBusController.BusState.READY &&
+            getRunState() == VMRunState.RUNNING;
+    }
+
+    @Override
     public void start() {
         if (runState == VMRunState.RUNNING) {
             return;
@@ -185,6 +170,29 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     public void stop() {
         stopRunnerAndReset();
     }
+
+    // --------------------------------------------------------------------- /
+    // VirtualMachineClientState
+
+    @Override
+    @Environment(EnvType.CLIENT)
+    public void setBusStateClient(final CommonDeviceBusController.BusState value) {
+        busState = value;
+    }
+
+    @Override
+    @Environment(EnvType.CLIENT)
+    public void setRunStateClient(final VMRunState value) {
+        runState = value;
+    }
+
+    @Override
+    @Environment(EnvType.CLIENT)
+    public void setBootErrorClient(@Nullable final Component value) {
+        bootError = value;
+    }
+
+    // --------------------------------------------------------------------- //
 
     public void tick() {
         busController.scan();

@@ -12,6 +12,7 @@ import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.api.util.Invalidatable;
+import li.cil.oc2.client.audio.TerminalBell;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
@@ -148,6 +149,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         return virtualMachine;
     }
 
+    public VirtualMachineClientState getVirtualMachineClientState() {
+        return virtualMachine;
+    }
+
     public VMItemStackHandlers getItemStackHandlers() {
         return deviceItems;
     }
@@ -269,8 +274,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         super.tick();
 
-        if (isClient) {
-            terminal.clientTick();
+        if (isClient && terminal.consumePendingBell()) {
+            TerminalBell.play();
         }
 
         if (!isClient) {

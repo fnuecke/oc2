@@ -4,7 +4,6 @@ package li.cil.oc2.common.vm;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
-import li.cil.oc2.client.audio.TerminalBell;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import org.apache.logging.log4j.LogManager;
@@ -220,12 +219,13 @@ public final class Terminal {
 
     // --------------------------------------------------------------------- //
 
-    @Environment(EnvType.CLIENT)
-    public void clientTick() {
-        if (hasPendingBell) {
-            hasPendingBell = false;
-            TerminalBell.play();
+    public boolean consumePendingBell() {
+        if (!hasPendingBell) {
+            return false;
         }
+
+        hasPendingBell = false;
+        return true;
     }
 
     public synchronized int readInput() {

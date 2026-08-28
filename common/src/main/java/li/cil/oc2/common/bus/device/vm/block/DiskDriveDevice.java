@@ -30,21 +30,8 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
     // --------------------------------------------------------------------- //
 
     public void updateBlockDevice(final CompoundTag tag) {
-        joinOpenJob();
-
-        if (device == null) {
+        if (!checkAndClearBlockDevice()) {
             return;
-        }
-
-        try {
-            device.setBlock(EMPTY_BLOCK_DEVICE);
-        } catch (final IOException e) {
-            LOGGER.error(e);
-        }
-
-        if (blobHandle != null) {
-            BlobStorage.close(blobHandle);
-            blobHandle = null;
         }
 
         importFromItemStack(tag);
@@ -67,22 +54,7 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
     }
 
     public void removeBlockDevice() {
-        joinOpenJob();
-
-        if (device == null) {
-            return;
-        }
-
-        try {
-            device.setBlock(EMPTY_BLOCK_DEVICE);
-        } catch (final IOException e) {
-            LOGGER.error(e);
-        }
-
-        if (blobHandle != null) {
-            BlobStorage.close(blobHandle);
-            blobHandle = null;
-        }
+        checkAndClearBlockDevice();
     }
 
     // --------------------------------------------------------------------- //
@@ -136,5 +108,27 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
     protected void handleDataUnavailable() {
         StorageItemUtils.setCorrupted(identity.getDiskItemStack());
         identity.setChanged();
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private boolean checkAndClearBlockDevice() {
+        joinOpenJob();
+
+        if (device == null) {
+            return false;
+        }
+
+        try {
+            device.setBlock(EMPTY_BLOCK_DEVICE);
+        } catch (final IOException e) {
+            LOGGER.error(e);
+        }
+
+        if (blobHandle != null) {
+            BlobStorage.close(blobHandle);
+            blobHandle = null;
+        }
+        return true;
     }
 }

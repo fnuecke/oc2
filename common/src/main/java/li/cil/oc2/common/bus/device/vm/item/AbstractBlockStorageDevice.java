@@ -132,6 +132,8 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
     @Override
     public CompoundTag serializeNBT() {
+        joinOpenJob();
+
         final CompoundTag tag = new CompoundTag();
 
         if (blobHandle != null) {

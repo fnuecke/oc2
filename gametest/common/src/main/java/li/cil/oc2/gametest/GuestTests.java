@@ -80,7 +80,7 @@ public final class GuestTests {
 
     @Nullable
     private GuestTestChannel channel() {
-        for (final Device device : virtualMachine.busController.getDevices()) {
+        for (final Device device : virtualMachine.getBusController().getDevices()) {
             if (device instanceof final GuestTestPortDevice port) {
                 return port.getChannel();
             }

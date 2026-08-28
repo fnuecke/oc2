@@ -110,9 +110,7 @@ public final class ReflectOps {
 
     private static void join(final Object value) {
         if (value instanceof final AbstractVirtualMachine vm) {
-            if (vm.runner != null) {
-                vm.runner.join();
-            }
+            vm.joinWorkerThread();
             return;
         }
 
@@ -124,8 +122,8 @@ public final class ReflectOps {
             try {
                 field.setAccessible(true);
                 final AbstractVirtualMachine vm = (AbstractVirtualMachine) field.get(value);
-                if (vm != null && vm.runner != null) {
-                    vm.runner.join();
+                if (vm != null) {
+                    vm.joinWorkerThread();
                 }
             } catch (final Throwable ignored) {
             }

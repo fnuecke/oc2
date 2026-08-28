@@ -130,7 +130,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         final CommonDeviceBusController busController = new CommonDeviceBusController(busElement, Config.robotEnergyPerTick);
         virtualMachine = new RobotVirtualMachine(busController);
-        virtualMachine.state.builtinDevices.rtcMinecraft.setLevel(world);
+        virtualMachine.setGameTimeSource(LevelUtils.gameTimeSupplier(world));
     }
 
     // --------------------------------------------------------------------- //
@@ -183,7 +183,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             return (T) this;
         }
 
-        for (final Device device : virtualMachine.busController.getDevices()) {
+        for (final Device device : virtualMachine.getBusController().getDevices()) {
             if (device instanceof final CapabilityProvider capabilityProvider) {
                 final T value = capabilityProvider.getCapability(capability, side);
                 if (value != null) {
@@ -215,11 +215,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         // For full terminal snapshot.
         Network.sendToClient(new RobotInitializationMessage(this), player);
 
-        RobotTerminalContainer.createServer(this, energy, virtualMachine.busController, player);
+        RobotTerminalContainer.createServer(this, energy, virtualMachine.getBusController(), player);
     }
 
     public void openInventoryScreen(final ServerPlayer player) {
-        RobotInventoryContainer.createServer(this, energy, virtualMachine.busController, player);
+        RobotInventoryContainer.createServer(this, energy, virtualMachine.getBusController(), player);
     }
 
     public void addTerminalUser(final Player player) {
@@ -671,7 +671,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
                         action = null;
 
-                        virtualMachine.state.rpcAdapter.addEvent(RobotActionCompletedEvent.TYPE,
+                        virtualMachine.sendEvent(RobotActionCompletedEvent.TYPE,
                             new RobotActionCompletedEvent(actionId, result));
                     }
                 }
@@ -796,7 +796,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         protected void onChanged() {
             super.onChanged();
             if (!level().isClientSide()) {
-                virtualMachine.busController.scheduleBusScan();
+                virtualMachine.getBusController().scheduleBusScan();
             }
         }
     }
@@ -860,7 +860,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final class RobotVirtualMachine extends AbstractVirtualMachine {
         private RobotVirtualMachine(final CommonDeviceBusController busController) {
             super(busController);
-            state.vmAdapter.setBaseAddressProvider(deviceItems::getDeviceAddressBase);
+            setBaseAddressProvider(deviceItems::getDeviceAddressBase);
         }
 
         @Override

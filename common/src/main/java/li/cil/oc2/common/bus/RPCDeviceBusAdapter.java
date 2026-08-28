@@ -121,7 +121,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         try {
             if (didDevicesChange) {
                 registry.rebuild(controller);
-                addEvent(Message.MESSAGE_TYPE_DEVICES_CHANGED, null);
+                sendEvent(Message.MESSAGE_TYPE_DEVICES_CHANGED, null);
             }
         } finally {
             isPaused = false;
@@ -160,8 +160,8 @@ public final class RPCDeviceBusAdapter implements Steppable {
         }
     }
 
-    public boolean addEvent(final String type, @Nullable final Object data) {
-        return events.addEvent(RPCMessageChannel.frame(
+    public boolean sendEvent(final String type, @Nullable final Object data) {
+        return events.sendEvent(RPCMessageChannel.frame(
             encode(new Message(type, 0, registry.generation(), data, null))));
     }
 
@@ -426,7 +426,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     private void announceDroppedEvents() {
         final int dropped = events.takeDropped();
         if (dropped > 0) {
-            events.addNotice(RPCMessageChannel.frame(encode(new Message(
+            events.sendNotice(RPCMessageChannel.frame(encode(new Message(
                 Message.MESSAGE_TYPE_EVENTS_DROPPED, 0, registry.generation(), dropped, null))));
         }
     }

@@ -110,19 +110,19 @@ public final class RPCEventChannelTests {
         final byte[] kilobyte = new byte[Constants.KILOBYTE];
 
         int accepted = 0;
-        while (channel.addEvent(RPCMessageChannel.frame(kilobyte))) {
+        while (channel.sendEvent(RPCMessageChannel.frame(kilobyte))) {
             accepted++;
             assertTrue(accepted <= 16, "the queue accepted " + accepted + " KiB and kept going");
         }
 
         final TestSerialDevice reader = new TestSerialDevice();
         final RPCEventChannel drained = new RPCEventChannel(reader);
-        while (drained.addEvent(RPCMessageChannel.frame(kilobyte))) {
+        while (drained.sendEvent(RPCMessageChannel.frame(kilobyte))) {
             // fill it
         }
         drained.flush();
         assertTrue(reader.drainAsVM().length > 0, "precondition: the queue drained");
-        assertTrue(drained.addEvent(RPCMessageChannel.frame(kilobyte)),
+        assertTrue(drained.sendEvent(RPCMessageChannel.frame(kilobyte)),
             "the queue never recovered after being drained");
     }
 
@@ -132,10 +132,10 @@ public final class RPCEventChannelTests {
         final RPCEventChannel channel = new RPCEventChannel(deaf);
         final byte[] kilobyte = new byte[Constants.KILOBYTE];
 
-        while (channel.addEvent(RPCMessageChannel.frame(kilobyte))) {
+        while (channel.sendEvent(RPCMessageChannel.frame(kilobyte))) {
             // fill it
         }
-        channel.addEvent(RPCMessageChannel.frame(kilobyte));
+        channel.sendEvent(RPCMessageChannel.frame(kilobyte));
 
         assertTrue(channel.takeDropped() > 0, "refusing an event went unreported");
         assertEquals(0, channel.takeDropped(), "taking the count must clear it");
@@ -147,14 +147,14 @@ public final class RPCEventChannelTests {
         final RPCEventChannel channel = new RPCEventChannel(deaf);
         final byte[] kilobyte = new byte[Constants.KILOBYTE];
 
-        while (channel.addEvent(RPCMessageChannel.frame(kilobyte))) {
+        while (channel.sendEvent(RPCMessageChannel.frame(kilobyte))) {
             // fill it
         }
         assertTrue(channel.takeDropped() > 0, "precondition: something was refused");
 
-        channel.addNotice(RPCMessageChannel.frame("notice".getBytes(StandardCharsets.UTF_8)));
+        channel.sendNotice(RPCMessageChannel.frame("notice".getBytes(StandardCharsets.UTF_8)));
 
-        channel.addEvent(RPCMessageChannel.frame(kilobyte));
+        channel.sendEvent(RPCMessageChannel.frame(kilobyte));
         assertEquals(0, channel.takeDropped(),
             "a second notice would have queued up after the first");
     }
@@ -165,13 +165,13 @@ public final class RPCEventChannelTests {
         final RPCEventChannel channel = new RPCEventChannel(reader);
         final byte[] kilobyte = new byte[Constants.KILOBYTE];
 
-        while (channel.addEvent(RPCMessageChannel.frame(kilobyte))) {
+        while (channel.sendEvent(RPCMessageChannel.frame(kilobyte))) {
             // fill it
         }
         assertTrue(channel.takeDropped() > 0, "precondition: something was refused");
-        channel.addNotice(RPCMessageChannel.frame("notice".getBytes(StandardCharsets.UTF_8)));
+        channel.sendNotice(RPCMessageChannel.frame("notice".getBytes(StandardCharsets.UTF_8)));
 
-        channel.addEvent(RPCMessageChannel.frame(kilobyte));
+        channel.sendEvent(RPCMessageChannel.frame(kilobyte));
         assertEquals(0, channel.takeDropped(), "a second notice queued up after the first");
 
         channel.flush();
@@ -188,7 +188,7 @@ public final class RPCEventChannelTests {
 
         boolean refused = false;
         for (int i = 0; i < 4000 && !refused; i++) {
-            refused = !adapter.addEvent(RobotActionCompletedEvent.TYPE,
+            refused = !adapter.sendEvent(RobotActionCompletedEvent.TYPE,
                 new RobotActionCompletedEvent(i, RobotActionResult.SUCCESS));
             adapter.step(0);
         }
@@ -322,7 +322,7 @@ public final class RPCEventChannelTests {
 
     @Test
     public void deviceEventCarriesItsPayload() {
-        assertTrue(adapter.addEvent(RobotActionCompletedEvent.TYPE,
+        assertTrue(adapter.sendEvent(RobotActionCompletedEvent.TYPE,
             new RobotActionCompletedEvent(7, RobotActionResult.FAILURE)));
         adapter.step(0);
 
@@ -343,7 +343,7 @@ public final class RPCEventChannelTests {
 
         final Thread producer = new Thread(() -> {
             for (int i = 0; i < count; i++) {
-                while (!adapter.addEvent(RobotActionCompletedEvent.TYPE,
+                while (!adapter.sendEvent(RobotActionCompletedEvent.TYPE,
                     new RobotActionCompletedEvent(i, RobotActionResult.SUCCESS))) {
                     Thread.onSpinWait(); // queue is full; let the reader catch up
                 }

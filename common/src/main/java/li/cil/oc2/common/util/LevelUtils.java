@@ -11,14 +11,18 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.LevelData;
 
 import javax.annotation.Nullable;
+import java.lang.ref.WeakReference;
 import java.util.function.Function;
+import java.util.function.LongSupplier;
 
 public final class LevelUtils {
     @ExpectPlatform
@@ -32,6 +36,14 @@ public final class LevelUtils {
     }
 
     // --------------------------------------------------------------------- //
+
+    public static LongSupplier gameTimeSupplier(final Level level) {
+        final WeakReference<LevelData> levelData = new WeakReference<>(level.getLevelData());
+        return () -> {
+            final LevelData data = levelData.get();
+            return data != null ? data.getGameTime() : 0;
+        };
+    }
 
     @Nullable
     public static BlockEntity getBlockEntityIfChunkExists(final LevelAccessor level, final BlockPos pos) {

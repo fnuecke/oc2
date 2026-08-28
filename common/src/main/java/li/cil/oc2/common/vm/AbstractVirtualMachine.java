@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
+import java.util.function.LongSupplier;
 
 public abstract class AbstractVirtualMachine implements VirtualMachine {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -41,12 +42,12 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     // --------------------------------------------------------------------- //
 
-    public final CommonDeviceBusController busController;
+    private final CommonDeviceBusController busController;
     private CommonDeviceBusController.BusState busState = CommonDeviceBusController.BusState.SCAN_PENDING;
     private int loadDevicesDelay;
 
     @Serialized
-    public static final class SerializedState {
+    static final class SerializedState {
         public R5Board board;
         public GlobalVMContext context;
         public BuiltinDevices builtinDevices;
@@ -54,8 +55,8 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         public transient VMDeviceBusAdapter vmAdapter;
     }
 
-    public final SerializedState state = new SerializedState();
-    public AbstractTerminalVMRunner runner;
+    final SerializedState state = new SerializedState();
+    private AbstractTerminalVMRunner runner;
     private VMRunState runState = VMRunState.STOPPED;
     @Nullable
     private Component bootError;
@@ -82,6 +83,18 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
     }
 
     // --------------------------------------------------------------------- //
+
+    public CommonDeviceBusController getBusController() {
+        return busController;
+    }
+
+    public void setGameTimeSource(final LongSupplier gameTime) {
+        state.builtinDevices.rtcMinecraft.setGameTimeSource(gameTime);
+    }
+
+    public boolean sendEvent(final String type, @Nullable final Object data) {
+        return state.rpcAdapter.sendEvent(type, data);
+    }
 
     public void dispose() {
         joinWorkerThread();
@@ -234,7 +247,17 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
         }
     }
 
+    public void joinWorkerThread() {
+        if (runner != null) {
+            runner.join();
+        }
+    }
+
     // --------------------------------------------------------------------- //
+
+    protected final void setBaseAddressProvider(final BaseAddressProvider provider) {
+        state.vmAdapter.setBaseAddressProvider(provider);
+    }
 
     protected abstract AbstractTerminalVMRunner createRunner();
 
@@ -275,10 +298,9 @@ public abstract class AbstractVirtualMachine implements VirtualMachine {
 
     // --------------------------------------------------------------------- //
 
-    private void joinWorkerThread() {
-        if (runner != null) {
-            runner.join();
-        }
+    // Technically private, for tests only.
+    public long getInstructionsRetired() {
+        return state.board.getCpu().getInstructionsRetired();
     }
 
     private void load() {

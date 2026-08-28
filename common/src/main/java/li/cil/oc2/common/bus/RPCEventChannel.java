@@ -32,7 +32,7 @@ final class RPCEventChannel {
 
     // --------------------------------------------------------------------- //
 
-    boolean addEvent(final ByteBuffer frame) {
+    boolean sendEvent(final ByteBuffer frame) {
         synchronized (queued) {
             if (queued.size() + frame.remaining() > MAX_QUEUED_SIZE) {
                 dropped += dropped < 0 ? -1 : 1;
@@ -47,6 +47,15 @@ final class RPCEventChannel {
         return true;
     }
 
+    void sendNotice(final ByteBuffer frame) {
+        synchronized (queued) {
+            dropped = -1; // nothing refused since this one; anything new counts further down
+            while (frame.hasRemaining()) {
+                queued.enqueue(frame.get());
+            }
+        }
+    }
+
     int takeDropped() {
         synchronized (queued) {
             if (dropped <= 0) {
@@ -56,15 +65,6 @@ final class RPCEventChannel {
             final int count = dropped;
             dropped = 0;
             return count;
-        }
-    }
-
-    void addNotice(final ByteBuffer frame) {
-        synchronized (queued) {
-            dropped = -1; // nothing refused since this one; anything new counts further down
-            while (frame.hasRemaining()) {
-                queued.enqueue(frame.get());
-            }
         }
     }
 

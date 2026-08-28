@@ -133,7 +133,7 @@ public final class ComputerFixture {
     }
 
     public Set<Device> devices() {
-        return ((AbstractVirtualMachine) virtualMachine()).busController.getDevices();
+        return ((AbstractVirtualMachine) virtualMachine()).getBusController().getDevices();
     }
 
     public int deviceCount() {
@@ -202,7 +202,7 @@ public final class ComputerFixture {
     }
 
     public long guestInstructions() {
-        return ((AbstractVirtualMachine) virtualMachine()).state.board.getCpu().getInstructionsRetired();
+        return ((AbstractVirtualMachine) virtualMachine()).getInstructionsRetired();
     }
 
     // --------------------------------------------------------------------- //

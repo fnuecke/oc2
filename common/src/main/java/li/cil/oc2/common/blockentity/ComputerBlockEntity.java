@@ -96,7 +96,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         setNeedsLevelUnloadEvent();
 
         // Device scan can change our capability set (cards in the computer having capabilities).
-        virtualMachine.busController.onAfterDeviceScan.add(this::handleAfterDeviceScan);
+        virtualMachine.getBusController().onAfterDeviceScan.add(this::handleAfterDeviceScan);
     }
 
     public Terminal getTerminal() {
@@ -124,11 +124,11 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     }
 
     public void openTerminalScreen(final ServerPlayer player) {
-        ComputerTerminalContainer.createServer(this, energy, virtualMachine.busController, player);
+        ComputerTerminalContainer.createServer(this, energy, virtualMachine.getBusController(), player);
     }
 
     public void openInventoryScreen(final ServerPlayer player) {
-        ComputerInventoryContainer.createServer(this, energy, virtualMachine.busController, player);
+        ComputerInventoryContainer.createServer(this, energy, virtualMachine.getBusController(), player);
     }
 
     public void addTerminalUser(final Player player) {
@@ -148,7 +148,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     public void handleNeighborChanged() {
         if (level != null && !level.isClientSide()) {
-            virtualMachine.busController.scheduleBusScan();
+            virtualMachine.getBusController().scheduleBusScan();
         }
     }
 
@@ -165,7 +165,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
 
         final Direction localSide = HorizontalBlockUtils.toLocal(getBlockState(), side);
-        for (final Device device : virtualMachine.busController.getDevices()) {
+        for (final Device device : virtualMachine.getBusController().getDevices()) {
             if (device instanceof final CapabilityProvider capabilityProvider) {
                 final T value = capabilityProvider.getCapability(capability, localSide);
                 if (value != null) {
@@ -307,7 +307,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         assert level != null;
 
-        virtualMachine.state.builtinDevices.rtcMinecraft.setLevel(level);
+        virtualMachine.setGameTimeSource(LevelUtils.gameTimeSupplier(level));
     }
 
     @Override
@@ -405,7 +405,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         protected void onChanged() {
             super.onChanged();
             if (level != null && !level.isClientSide()) {
-                virtualMachine.busController.scheduleBusScan();
+                virtualMachine.getBusController().scheduleBusScan();
                 ChunkUtils.setLazyUnsaved(level, getBlockPos());
             }
             isNeighborUpdateScheduled = true;
@@ -498,7 +498,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private final class ComputerVirtualMachine extends AbstractVirtualMachine {
         private ComputerVirtualMachine(final CommonDeviceBusController busController, final BaseAddressProvider baseAddressProvider) {
             super(busController);
-            state.vmAdapter.setBaseAddressProvider(baseAddressProvider);
+            setBaseAddressProvider(baseAddressProvider);
         }
 
         @Override
@@ -520,7 +520,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
             if (isRunning()) {
                 ChunkUtils.setLazyUnsaved(level, getBlockPos());
-                busController.setDeviceContainersChanged();
+                getBusController().setDeviceContainersChanged();
             }
 
             super.tick();

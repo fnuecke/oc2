@@ -13,8 +13,6 @@ import net.minecraft.world.item.ItemStack;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import javax.annotation.Nonnull;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GuestInputBoundsTests {
@@ -85,19 +83,16 @@ public class GuestInputBoundsTests {
         }
 
         @Override
-        @Nonnull
         public ItemStack getStackInSlot(final int slot) {
             return ItemStack.EMPTY;
         }
 
         @Override
-        @Nonnull
-        public ItemStack insertItem(final int slot, @Nonnull final ItemStack stack, final boolean simulate) {
+        public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
             return stack;
         }
 
         @Override
-        @Nonnull
         public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
             return ItemStack.EMPTY;
         }

@@ -7,13 +7,14 @@ import com.google.gson.internal.bind.TypeAdapters;
 import com.google.gson.reflect.TypeToken;
 import li.cil.oc2.api.util.Side;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 
 public final class SideJsonDeserializer implements JsonDeserializer<Side> {
     private static final Side[] SIDES = Side.values();
 
     @Override
-    public Side deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) throws JsonParseException {
+    public Side deserialize(final JsonElement json, final Type typeOfT, @Nullable final JsonDeserializationContext context) throws JsonParseException {
         if (json.isJsonPrimitive()) {
             final JsonPrimitive jsonPrimitive = json.getAsJsonPrimitive();
             if (jsonPrimitive.isNumber()) {

@@ -51,7 +51,6 @@ public class BlockDeviceBusControllerTests {
 
     // --------------------------------------------------------------------- //
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     @BeforeEach
     public void setupEach() {
         capabilitiesMock = mockStatic(Capabilities.class);

@@ -3,6 +3,7 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.common.Config;
+import li.cil.oc2.common.bus.device.vm.item.HardDriveDevice;
 import li.cil.oc2.common.item.HardDriveItem;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.ResetRecipe;
@@ -10,6 +11,9 @@ import li.cil.oc2.common.item.crafting.WrenchRecipe;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
+import li.cil.oc2.common.vm.VMDeviceBusAdapter;
+import li.cil.oc2.common.vm.context.global.GlobalVMContext;
+import li.cil.sedna.riscv.R5Board;
 import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -30,6 +34,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -307,6 +312,35 @@ public final class BlobStorageTests {
         } finally {
             config.restore();
             releaseAll(handles);
+        }
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void fullStorageDoesNotFlagTheDriveAsCorrupted(final GameTestHelper helper) {
+        final ConfigSnapshot config = ConfigSnapshot.take();
+        final ItemStack stack = new ItemStack(Items.HARD_DRIVE_SMALL.get());
+        try {
+            // Nothing is old enough to evict, so creating another blob has to fail outright.
+            Config.blobEvictionGraceHours = 24 * 365;
+            Config.maxTrashedBlobCount = 0;
+            Config.maxBlobCount = Math.max(1, BlobStorage.getBlobCount());
+
+            final VMDeviceBusAdapter adapter = new VMDeviceBusAdapter(new GlobalVMContext(new R5Board()));
+            adapter.addDevices(List.of(new HardDriveDevice(stack, 4096, false, Optional::empty)));
+
+            if (adapter.mountDevices().wasSuccessful()) {
+                throw new GameTestAssertException("Mounting a new drive should fail when blob storage is full");
+            }
+            if (StorageItemUtils.isCorrupted(stack)) {
+                throw new GameTestAssertException("A drive that never got a blob because storage was full is not "
+                    + "corrupted; flagging it offers a reset that would restore nothing, and the "
+                    + "flag would outlive the condition once storage frees up");
+            }
+        } finally {
+            config.restore();
+            StorageItemUtils.clearBlobData(stack);
         }
 
         helper.succeed();

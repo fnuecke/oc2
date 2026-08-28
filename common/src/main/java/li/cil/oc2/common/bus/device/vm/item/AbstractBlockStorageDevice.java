@@ -229,7 +229,6 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
             job = createBlockDevice();
         } catch (final BlobStorage.BlobStorageFullException e) {
             LOGGER.error(e);
-            handleDataUnavailable();
             return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_FULL));
         } catch (final BlobStorage.BlobMissingException | BlobStorage.BlobInUseException e) {
             handleDataUnavailable();

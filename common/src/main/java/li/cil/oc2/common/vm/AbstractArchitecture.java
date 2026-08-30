@@ -7,6 +7,7 @@ import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
+import li.cil.oc2.api.bus.device.vm.context.VMRuntime;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.Board;
 import li.cil.sedna.api.DeviceBus;
@@ -23,26 +24,29 @@ public abstract class AbstractArchitecture {
     private final GlobalVMContext context;
     private final transient VMDeviceBusAdapter vmAdapter;
 
-    // --------------------------------------------------------------------- //
-
-    protected AbstractArchitecture(final Board board) {
-        this(board, null);
+    public record Config(
+        DeviceLocationProvider deviceLocationProvider,
+        VMRuntime runtime,
+        LongSupplier gameTimeProvider) {
     }
 
-    protected AbstractArchitecture(final Board board, @Nullable final DeviceBus deviceBus) {
-        context = new GlobalVMContext(board, deviceBus);
-        vmAdapter = new VMDeviceBusAdapter(context);
+    // --------------------------------------------------------------------- //
+
+    protected AbstractArchitecture(final Board board, final Config config) {
+        this(board, config, null);
+    }
+
+    protected AbstractArchitecture(
+        final Board board,
+        final Config config,
+        @Nullable final DeviceBus deviceBus
+    ) {
+        context = new GlobalVMContext(board, config.runtime(), deviceBus);
+        vmAdapter = new VMDeviceBusAdapter(context, device -> getDeviceAddress(config.deviceLocationProvider().getDeviceLocation(device)));
     }
 
     // --------------------------------------------------------------------- //
     // Configuration / State
-
-    public final void setDeviceLocationProvider(final DeviceLocationProvider provider) {
-        vmAdapter.setBaseAddressProvider(device -> getDeviceAddress(provider.getDeviceLocation(device)));
-    }
-
-    public void setGameTimeSource(final LongSupplier gameTime) {
-    }
 
     public abstract ArchitectureType getType();
 

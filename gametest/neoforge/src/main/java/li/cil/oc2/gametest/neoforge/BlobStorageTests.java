@@ -33,10 +33,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static li.cil.oc2.gametest.TestSupport.MOD_ID;
@@ -552,7 +549,8 @@ public final class BlobStorageTests {
             Config.maxTrashedBlobCount = 0;
             Config.maxBlobCount = Math.max(1, BlobStorage.getBlobCount());
 
-            final VMDeviceBusAdapter adapter = new VMDeviceBusAdapter(new GlobalVMContext(new R5Board(), null));
+            final VMDeviceBusAdapter adapter = new VMDeviceBusAdapter(new GlobalVMContext(new R5Board(), () -> {
+            }, null), unused -> OptionalLong.empty());
             adapter.addDevices(List.of(new HardDriveDevice(stack, 4096, false, Optional::empty)));
 
             if (adapter.mountDevices().wasSuccessful()) {

@@ -332,13 +332,14 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             runner = null;
         }
 
+        final var config = new AbstractArchitecture.Config(
+            device -> deviceLocationProvider.getDeviceLocation(device),
+            this::joinWorkerThread,
+            () -> gameTimeSource.getAsLong());
         architecture = switch (type) {
-            case RISCV -> new R5Architecture();
-            case Z80 -> new Z80Architecture();
+            case RISCV -> new R5Architecture(config);
+            case Z80 -> new Z80Architecture(config);
         };
-
-        architecture.setDeviceLocationProvider(device -> deviceLocationProvider.getDeviceLocation(device));
-        architecture.setGameTimeSource(() -> gameTimeSource.getAsLong());
 
         applyPendingState(architecture);
 

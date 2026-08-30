@@ -40,6 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.UUID;
 
 import static li.cil.oc2.gametest.TestSupport.*;
@@ -359,7 +360,8 @@ public final class MountFailureTests {
     }
 
     private static VMDeviceBusAdapter adapter() {
-        return new VMDeviceBusAdapter(new GlobalVMContext(new R5Board(), null));
+        return new VMDeviceBusAdapter(new GlobalVMContext(new R5Board(), () -> {
+        }, null), unused -> OptionalLong.empty());
     }
 
     private static CompoundTag tagReferencing(final UUID handle) {

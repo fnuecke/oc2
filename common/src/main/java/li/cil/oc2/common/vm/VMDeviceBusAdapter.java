@@ -17,7 +17,7 @@ import java.util.function.Function;
 public final class VMDeviceBusAdapter {
     private final HashMap<VMDevice, ManagedVMContext> mountedDevices = new HashMap<>();
     private final LinkedHashSet<VMDevice> unmountedDevices = new LinkedHashSet<>();
-    private Function<VMDevice, OptionalLong> baseAddressProvider = unused -> OptionalLong.empty();
+    private final Function<VMDevice, OptionalLong> baseAddressProvider;
 
     // --------------------------------------------------------------------- //
 
@@ -25,15 +25,12 @@ public final class VMDeviceBusAdapter {
 
     // --------------------------------------------------------------------- //
 
-    public VMDeviceBusAdapter(final GlobalVMContext context) {
+    public VMDeviceBusAdapter(final GlobalVMContext context, final Function<VMDevice, OptionalLong> baseAddressProvider) {
         this.globalContext = context;
+        this.baseAddressProvider = baseAddressProvider;
     }
 
     // --------------------------------------------------------------------- //
-
-    public void setBaseAddressProvider(final Function<VMDevice, OptionalLong> provider) {
-        baseAddressProvider = provider;
-    }
 
     public VMDeviceLoadResult mountDevices() {
         for (final VMDevice device : unmountedDevices) {

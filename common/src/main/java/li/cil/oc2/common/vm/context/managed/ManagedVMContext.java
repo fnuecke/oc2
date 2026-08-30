@@ -3,11 +3,13 @@
 package li.cil.oc2.common.vm.context.managed;
 
 import li.cil.oc2.api.bus.device.vm.context.*;
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.vm.context.VMContextManagerCollection;
 import li.cil.sedna.api.device.InterruptController;
 import li.cil.sedna.api.memory.MemoryMap;
 
 import java.util.OptionalLong;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class ManagedVMContext implements VMContext {
@@ -17,6 +19,7 @@ public final class ManagedVMContext implements VMContext {
     private final ManagedMemoryRangeAllocator deviceRangeAllocator;
     private final ManagedInterruptAllocator interruptAllocator;
     private final ManagedMemoryAllocator memoryAllocator;
+    private final Invalidatable<VMRuntime> runtime;
     private final ManagedEventBus eventBus;
 
     // --------------------------------------------------------------------- //
@@ -28,6 +31,7 @@ public final class ManagedVMContext implements VMContext {
         this.memoryMap = new ManagedMemoryMap(parent.getMemoryMap());
         this.interruptController = new ManagedInterruptController(parent.getInterruptController(), interruptAllocator);
         this.memoryAllocator = new ManagedMemoryAllocator();
+        this.runtime = parent.getRuntime().mapWithDependency(Function.identity());
         this.eventBus = new ManagedEventBus(parent.getEventBus(), managers.getEventManager());
     }
 
@@ -48,6 +52,7 @@ public final class ManagedVMContext implements VMContext {
         interruptController.invalidate();
         interruptAllocator.invalidate();
         memoryAllocator.invalidate();
+        runtime.invalidate();
         eventBus.invalidate();
     }
 
@@ -79,6 +84,11 @@ public final class ManagedVMContext implements VMContext {
     @Override
     public MemoryAllocator getMemoryAllocator() {
         return memoryAllocator;
+    }
+
+    @Override
+    public Invalidatable<VMRuntime> getRuntime() {
+        return runtime;
     }
 
     @Override

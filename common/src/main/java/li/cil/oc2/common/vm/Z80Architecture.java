@@ -43,12 +43,12 @@ public final class Z80Architecture extends AbstractArchitecture {
 
     // --------------------------------------------------------------------- //
 
-    public Z80Architecture() {
-        this(new Z80Board());
+    public Z80Architecture(final Config config) {
+        this(new Z80Board(), config);
     }
 
-    private Z80Architecture(final Z80Board board) {
-        super(board, board.getPortBus());
+    private Z80Architecture(final Z80Board board, final Config config) {
+        super(board, config, board.getPortBus());
         this.board = board;
         this.uart = new UART16550A();
         this.controller = new WD1793();
@@ -133,13 +133,12 @@ public final class Z80Architecture extends AbstractArchitecture {
     }
 
     private void insertRomDrive() {
-        final BlockDevice drive;
+        controller.setUnitCount(ROM_DRIVE_UNITS);
         try {
-            drive = ByteBufferBlockDevice.createFromStream(Cpm.getFloppyImage(), true);
+            final BlockDevice drive = ByteBufferBlockDevice.createFromStream(Cpm.getFloppyImage(), true);
+            controller.setDisk(0, drive, Cpm.SIDES, Cpm.TRACKS, Cpm.SECTORS_PER_TRACK, Cpm.SECTOR_SIZE);
         } catch (final IOException e) {
             throw new IllegalStateException("Missing the built-in system disk.", e);
         }
-        controller.setUnitCount(ROM_DRIVE_UNITS);
-        controller.setDisk(0, drive, Cpm.SIDES, Cpm.TRACKS, Cpm.SECTORS_PER_TRACK, Cpm.SECTOR_SIZE);
     }
 }

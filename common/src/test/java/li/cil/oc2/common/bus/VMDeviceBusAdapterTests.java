@@ -61,8 +61,9 @@ public final class VMDeviceBusAdapterTests {
         when(board.getInterruptController()).thenReturn(interruptController);
         when(board.getInterruptCount()).thenReturn(16);
 
-        context = new GlobalVMContext(board, null);
-        adapter = new VMDeviceBusAdapter(context);
+        context = new GlobalVMContext(board, () -> {
+        }, null);
+        adapter = new VMDeviceBusAdapter(context, unused -> OptionalLong.empty());
     }
 
     @Test

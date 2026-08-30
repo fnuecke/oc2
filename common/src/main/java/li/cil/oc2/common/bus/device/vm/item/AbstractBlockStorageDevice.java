@@ -7,7 +7,9 @@ import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
+import li.cil.oc2.api.bus.device.vm.context.VMRuntime;
 import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
@@ -51,7 +53,8 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
     protected boolean readonly;
     protected MappedStorage storage;
-    private CompletableFuture<Void> openJob;
+    protected Invalidatable<VMRuntime> runtime = Invalidatable.empty();
+    private volatile CompletableFuture<Void> openJob;
 
     // --------------------------------------------------------------------- //
 
@@ -75,6 +78,8 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
     @Override
     public VMDeviceLoadResult mount(final VMContext context) {
+        runtime = context.getRuntime();
+
         if (allocateDevice(context) instanceof AllocationFailure(Component message, boolean permanent)) {
             var result = failMount();
             if (message != null) {

@@ -20,8 +20,6 @@ public final class FloppyControllerStorage implements MappedStorage {
     private static final int UNIT = 0;
 
     private final WD1793 controller = new WD1793();
-    @Nullable
-    private BlockDevice medium;
 
     // --------------------------------------------------------------------- //
 
@@ -47,23 +45,16 @@ public final class FloppyControllerStorage implements MappedStorage {
     }
 
     @Override
-    public void setBlockDevice(@Nullable final BlockDevice block) {
+    public void setBlockDevice(@Nullable final BlockDevice block) throws IOException {
         if (block == null) {
             controller.removeDisk(UNIT);
         } else {
             controller.setDisk(UNIT, block, Cpm.SIDES, Cpm.TRACKS, Cpm.SECTORS_PER_TRACK, Cpm.SECTOR_SIZE);
         }
-
-        medium = block;
     }
 
     @Override
     public void close() throws IOException {
         controller.removeDisk(UNIT);
-
-        if (medium != null) {
-            medium.close();
-            medium = null;
-        }
     }
 }

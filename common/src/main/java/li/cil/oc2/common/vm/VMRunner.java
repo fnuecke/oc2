@@ -25,12 +25,7 @@ public class VMRunner implements Runnable {
     private static final int TIMESLICE_IN_MS = 500 / TICKS_PER_SECOND;
 
     private static final ExecutorService VM_RUNNERS = Executors.newFixedThreadPool(
-        Math.max(1, Runtime.getRuntime().availableProcessors()), r -> {
-            final Thread thread = new Thread(r);
-            thread.setDaemon(true);
-            thread.setName("VirtualMachine Runner");
-            return thread;
-        });
+        Math.max(1, Runtime.getRuntime().availableProcessors()), WorkerThread::new);
 
     // --------------------------------------------------------------------- //
 
@@ -77,17 +72,32 @@ public class VMRunner implements Runnable {
     }
 
     public void join() {
+        if (Thread.currentThread() instanceof WorkerThread) {
+            throw new IllegalStateException("Cannot join a virtual machine from a virtual machine worker thread.");
+        }
+
         architecture.sendLifecycleEvent(new VMPausingEvent());
-        firedResumedRunningEvent = false;
         if (lastSchedule != null) {
-            try {
-                lastSchedule.get();
-            } catch (final InterruptedException e) {
-                // We do not mind this.
-            } catch (final ExecutionException e) {
-                handleRunException(e.getCause());
+            // We have to make sure our worker is joined before passing on an interrupt,
+            // to make sure resources the worker uses aren't released from underneath them.
+            boolean interrupted = false;
+            for (; ; ) {
+                try {
+                    lastSchedule.get();
+                    break;
+                } catch (final InterruptedException e) {
+                    interrupted = true;
+                } catch (final ExecutionException e) {
+                    handleRunException(e.getCause());
+                    break;
+                }
+            }
+            if (interrupted) {
+                Thread.currentThread().interrupt();
             }
         }
+
+        firedResumedRunningEvent = false;
     }
 
     @Override
@@ -174,5 +184,14 @@ public class VMRunner implements Runnable {
 
     private int getCyclesPerTick() {
         return architecture.getFrequency() / TICKS_PER_SECOND;
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static final class WorkerThread extends Thread {
+        private WorkerThread(final Runnable runnable) {
+            super(runnable, "VirtualMachine Runner");
+            setDaemon(true);
+        }
     }
 }

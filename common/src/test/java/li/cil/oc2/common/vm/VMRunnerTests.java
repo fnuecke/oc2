@@ -12,7 +12,9 @@ public final class VMRunnerTests {
 
     @BeforeEach
     public void setupEach() {
-        architecture = new R5Architecture();
+        architecture = new R5Architecture(new AbstractArchitecture.Config(
+            unused -> DeviceLocation.UNSPECIFIED, () -> {
+        }, () -> 0L));
     }
 
     @Test

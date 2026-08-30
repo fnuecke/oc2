@@ -14,7 +14,6 @@ import li.cil.sedna.riscv.R5Board;
 
 import javax.annotation.Nullable;
 import java.util.OptionalLong;
-import java.util.function.LongSupplier;
 
 public final class R5Architecture extends AbstractArchitecture {
     private static final long ITEM_DEVICE_BASE_ADDRESS = 0x20000000L;
@@ -30,14 +29,15 @@ public final class R5Architecture extends AbstractArchitecture {
 
     // --------------------------------------------------------------------- //
 
-    public R5Architecture() {
-        this(new R5Board());
+    public R5Architecture(final Config config) {
+        this(new R5Board(), config);
     }
 
-    private R5Architecture(final R5Board board) {
-        super(board);
+    private R5Architecture(final R5Board board, final Config config) {
+        super(board, config);
         this.board = board;
         this.builtinDevices = new BuiltinDevices(getContext());
+        builtinDevices.rtcMinecraft.setGameTimeSource(config.gameTimeProvider());
         this.rpcAdapter = new RPCDeviceBusAdapter(builtinDevices.getRpcPort(), builtinDevices.getBlobPort(), builtinDevices.getEventPort());
 
         board.getCpu().setFrequency(Constants.CPU_FREQUENCY);
@@ -46,11 +46,6 @@ public final class R5Architecture extends AbstractArchitecture {
     }
 
     // --------------------------------------------------------------------- //
-
-    @Override
-    public void setGameTimeSource(final LongSupplier gameTime) {
-        builtinDevices.rtcMinecraft.setGameTimeSource(gameTime);
-    }
 
     @Override
     public ArchitectureType getType() {

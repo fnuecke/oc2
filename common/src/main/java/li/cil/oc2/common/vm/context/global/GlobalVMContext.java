@@ -4,6 +4,7 @@ package li.cil.oc2.common.vm.context.global;
 
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.vm.context.*;
+import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.vm.context.EventManager;
 import li.cil.oc2.common.vm.context.InterruptManager;
 import li.cil.oc2.common.vm.context.MemoryRangeManager;
@@ -25,6 +26,7 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     private final GlobalInterruptController interruptController;
     private final GlobalMemoryAllocator memoryAllocator;
     private final GlobalEventBus eventBus;
+    private final Invalidatable<VMRuntime> runtime;
 
     // --------------------------------------------------------------------- //
 
@@ -47,7 +49,7 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
 
     // --------------------------------------------------------------------- //
 
-    public GlobalVMContext(final Board board, @Nullable final DeviceBus deviceBus) {
+    public GlobalVMContext(final Board board, final VMRuntime runtime, @Nullable final DeviceBus deviceBus) {
         this.hasSeparateDeviceBus = deviceBus != null;
         this.memoryMap = new GlobalMemoryMap(board.getMemoryMap());
         this.memoryRangeAllocator = new GlobalMemoryRangeAllocator(board.getDeviceBus(), reservedMemoryRanges);
@@ -57,6 +59,7 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
         this.interruptAllocator = new GlobalInterruptAllocator(board.getInterruptCount(), reservedInterrupts);
         this.interruptController = new GlobalInterruptController(board.getInterruptController(), interruptAllocator);
         this.memoryAllocator = new GlobalMemoryAllocator();
+        this.runtime = Invalidatable.of(runtime);
         this.eventBus = new GlobalEventBus();
     }
 
@@ -80,6 +83,7 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     }
 
     public void invalidate() {
+        runtime.invalidate();
         memoryRangeAllocator.invalidate();
         if (hasSeparateDeviceBus) {
             deviceRangeAllocator.invalidate();
@@ -116,6 +120,11 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     @Override
     public MemoryAllocator getMemoryAllocator() {
         return memoryAllocator;
+    }
+
+    @Override
+    public Invalidatable<VMRuntime> getRuntime() {
+        return runtime;
     }
 
     @Override

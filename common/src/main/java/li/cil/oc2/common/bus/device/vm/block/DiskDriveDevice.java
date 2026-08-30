@@ -184,6 +184,8 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
             return false;
         }
 
+        runtime.get().join();
+
         try {
             setMedium(null);
         } catch (final IOException e) {

@@ -9,6 +9,7 @@ import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.bus.device.provider.Providers;
 import net.minecraft.core.BlockPos;
@@ -16,7 +17,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -26,29 +26,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Objects.requireNonNull;
-
 public final class Devices {
-    public static BlockDeviceQuery makeQuery(final BlockEntity blockEntity, @Nullable final Direction side) {
-        final Level level = requireNonNull(blockEntity.getLevel());
-        final BlockPos pos = blockEntity.getBlockPos();
-        return new BlockQuery(level, pos, side);
-    }
-
-    public static BlockDeviceQuery makeQuery(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side) {
-        return new BlockQuery(level, pos, side);
+    public static BlockDeviceQuery makeQuery(@Nullable final ArchitectureType architectureType, final LevelAccessor level, final BlockPos pos, @Nullable final Direction side) {
+        return new BlockQuery(architectureType, level, pos, side);
     }
 
     public static ItemDeviceQuery makeQuery(final ItemStack stack) {
-        return new ItemQuery(stack);
+        return new ItemQuery(null, null, null, stack);
     }
 
-    public static ItemDeviceQuery makeQuery(final BlockEntity blockEntity, final ItemStack stack) {
-        return new ItemQuery(blockEntity, stack);
+    public static ItemDeviceQuery makeQuery(@Nullable final ArchitectureType architectureType, final BlockEntity blockEntity, final ItemStack stack) {
+        return new ItemQuery(architectureType, blockEntity, null, stack);
     }
 
-    public static ItemDeviceQuery makeQuery(final Entity entity, final ItemStack stack) {
-        return new ItemQuery(entity, stack);
+    public static ItemDeviceQuery makeQuery(@Nullable final ArchitectureType architectureType, final Entity entity, final ItemStack stack) {
+        return new ItemQuery(architectureType, null, entity, stack);
     }
 
     public static Optional<List<Invalidatable<BlockDeviceInfo>>> getDevices(final BlockDeviceQuery query) {
@@ -102,7 +94,17 @@ public final class Devices {
 
     // --------------------------------------------------------------------- //
 
-    private record BlockQuery(LevelAccessor level, BlockPos pos, @Nullable Direction side) implements BlockDeviceQuery {
+    private record BlockQuery(
+        @Nullable ArchitectureType architectureType,
+        LevelAccessor level,
+        BlockPos pos,
+        @Nullable Direction side
+    ) implements BlockDeviceQuery {
+        @Override
+        public Optional<ArchitectureType> getArchitectureType() {
+            return Optional.ofNullable(architectureType);
+        }
+
         @Override
         public LevelAccessor getLevel() {
             return level;
@@ -121,20 +123,14 @@ public final class Devices {
     }
 
     private record ItemQuery(
+        @Nullable ArchitectureType architectureType,
         @Nullable BlockEntity blockEntity,
         @Nullable Entity entity,
         ItemStack stack
     ) implements ItemDeviceQuery {
-        public ItemQuery(final ItemStack stack) {
-            this(null, null, stack);
-        }
-
-        public ItemQuery(final BlockEntity blockEntity, final ItemStack stack) {
-            this(blockEntity, null, stack);
-        }
-
-        public ItemQuery(final Entity entity, final ItemStack stack) {
-            this(null, entity, stack);
+        @Override
+        public Optional<ArchitectureType> getArchitectureType() {
+            return Optional.ofNullable(architectureType);
         }
 
         @Override

@@ -1,5 +1,6 @@
 {
   "values": [
+    "#oc2:devices/cpu",
     "#oc2:devices/memory",
     "#oc2:devices/hard_drive",
     "#oc2:devices/flash_memory",

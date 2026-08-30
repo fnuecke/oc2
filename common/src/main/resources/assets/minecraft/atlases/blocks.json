@@ -6,6 +6,10 @@
     },
     {
       "type": "minecraft:single",
+      "resource": "oc2:gui/icon/cpu"
+    },
+    {
+      "type": "minecraft:single",
       "resource": "oc2:gui/icon/flash_memory"
     },
     {

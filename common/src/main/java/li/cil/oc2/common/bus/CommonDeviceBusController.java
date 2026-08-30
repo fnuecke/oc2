@@ -5,13 +5,16 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.util.Event;
 import li.cil.oc2.common.util.ParameterizedEvent;
 import li.cil.oc2.common.util.TickUtils;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Supplier;
 
 import static java.util.Collections.emptySet;
 
@@ -39,6 +42,9 @@ public class CommonDeviceBusController implements DeviceBusController {
     public final ParameterizedEvent<DevicesChangedEvent> onDevicesRemoved = new ParameterizedEvent<>();
 
     private final DeviceBusElement root;
+    private final Supplier<Optional<ArchitectureType>> architectureType;
+    @Nullable
+    private ArchitectureType lastArchitecture;
     private final int baseEnergyConsumption;
 
     private final Set<DeviceBusElement> elements = new HashSet<>();
@@ -52,8 +58,10 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     // --------------------------------------------------------------------- //
 
-    public CommonDeviceBusController(final DeviceBusElement root, final int baseEnergyConsumption) {
+    public CommonDeviceBusController(final DeviceBusElement root, final int baseEnergyConsumption,
+                                     final Supplier<Optional<ArchitectureType>> architectureType) {
         this.root = root;
+        this.architectureType = architectureType;
         this.baseEnergyConsumption = baseEnergyConsumption;
     }
 
@@ -81,6 +89,10 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     public int getEnergyConsumption() {
         return energyConsumption;
+    }
+
+    public Optional<ArchitectureType> getArchitectureType() {
+        return architectureType.get();
     }
 
     @Override
@@ -177,6 +189,8 @@ public class CommonDeviceBusController implements DeviceBusController {
                 optionals.get(element).addListener(ignored -> scheduleBusScan(ScanReason.BUS_CHANGE));
             }
 
+            updateArchitecture();
+
             scanDevices();
 
             updateEnergyConsumption();
@@ -265,6 +279,18 @@ public class CommonDeviceBusController implements DeviceBusController {
         }
 
         return Optional.of(optionals);
+    }
+
+    private void updateArchitecture() {
+        final ArchitectureType currentArchitecture = getArchitectureType().orElse(null);
+        if (currentArchitecture == lastArchitecture) {
+            return;
+        }
+
+        lastArchitecture = currentArchitecture;
+        for (final DeviceBusElement element : elements) {
+            element.invalidateDevices();
+        }
     }
 
     private HashSet<DeviceBusElement> updateElements(final Set<DeviceBusElement> newElements) {

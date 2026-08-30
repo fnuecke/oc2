@@ -69,6 +69,13 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         return Optional.of(neighbors);
     }
 
+    @Override
+    public void invalidateDevices() {
+        for (final Direction side : Direction.values()) {
+            updateDevicesForNeighbor(side);
+        }
+    }
+
     // --------------------------------------------------------------------- //
 
     public void updateDevicesForNeighbor(final Direction side) {
@@ -95,7 +102,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         for (final Direction side : Direction.values()) {
             final int index = side.get3DDataValue();
             final BlockPos pos = getPosition().relative(side);
-            final BlockDeviceQuery query = Devices.makeQuery(level, pos, side.getOpposite());
+            final BlockDeviceQuery query = Devices.makeQuery(getArchitectureType().orElse(null), level, pos, side.getOpposite());
             setEntriesForGroup(index, new BlockQueryResult(query, Collections.emptySet()));
         }
 
@@ -113,7 +120,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
     }
 
     protected Optional<BlockQueryResult> collectDevices(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side) {
-        final BlockDeviceQuery query = Devices.makeQuery(level, pos, side != null ? side.getOpposite() : null);
+        final BlockDeviceQuery query = Devices.makeQuery(getArchitectureType().orElse(null), level, pos, side != null ? side.getOpposite() : null);
         final HashSet<BlockEntry> entries = new HashSet<>();
 
         if (canDetectDevicesTowards(side)) {

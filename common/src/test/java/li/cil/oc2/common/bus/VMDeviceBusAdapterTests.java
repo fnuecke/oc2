@@ -8,6 +8,7 @@ import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.vm.VMDeviceBusAdapter;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.Board;
+import li.cil.sedna.api.DeviceBus;
 import li.cil.sedna.api.device.InterruptController;
 import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.memory.MemoryMap;
@@ -39,11 +40,9 @@ public final class VMDeviceBusAdapterTests {
         interruptController = new R5PlatformLevelInterruptController();
         allocationStrategy = new R5MemoryRangeAllocationStrategy();
 
-        final Board board = mock(Board.class);
-        when(board.getMemoryMap()).thenReturn(memoryMap);
-        when(board.getInterruptController()).thenReturn(interruptController);
-        when(board.getInterruptCount()).thenReturn(16);
-        when(board.addDevice(any())).then(invocation -> {
+        final DeviceBus deviceBus = mock(DeviceBus.class);
+        when(deviceBus.getMemoryMap()).thenReturn(memoryMap);
+        when(deviceBus.addDevice(any())).then(invocation -> {
             final MemoryMappedDevice device = invocation.getArgument(0);
             final OptionalLong address = allocationStrategy.findMemoryRange(device, MemoryRangeAllocationStrategy.getMemoryMapIntersectionProvider(memoryMap));
             if (address.isPresent() && memoryMap.addDevice(address.getAsLong(), device)) {
@@ -54,9 +53,15 @@ public final class VMDeviceBusAdapterTests {
         doAnswer(invocation -> {
             memoryMap.removeDevice(invocation.getArgument(0));
             return null;
-        }).when(board).removeDevice(any());
+        }).when(deviceBus).removeDevice(any());
 
-        context = new GlobalVMContext(board);
+        final Board board = mock(Board.class);
+        when(board.getMemoryMap()).thenReturn(memoryMap);
+        when(board.getDeviceBus()).thenReturn(deviceBus);
+        when(board.getInterruptController()).thenReturn(interruptController);
+        when(board.getInterruptCount()).thenReturn(16);
+
+        context = new GlobalVMContext(board, null);
         adapter = new VMDeviceBusAdapter(context);
     }
 

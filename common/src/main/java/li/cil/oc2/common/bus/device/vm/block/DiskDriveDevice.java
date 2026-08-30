@@ -2,10 +2,15 @@
 
 package li.cil.oc2.common.bus.device.vm.block;
 
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
+import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.vm.item.AbstractBlockStorageDevice;
+import li.cil.oc2.common.bus.device.vm.item.FloppyControllerStorage;
+import li.cil.oc2.common.bus.device.vm.item.MappedStorage;
 import li.cil.oc2.common.item.FloppyItem;
 import li.cil.oc2.common.serialization.BlobStorage;
+import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
@@ -13,18 +18,56 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> extends AbstractBlockStorageDevice<BlockDevice, T> {
+    public static final String DATA_TAG_NAME = "data";
+
     private static final ByteBufferBlockDevice EMPTY_BLOCK_DEVICE = ByteBufferBlockDevice.create(0, false);
+    private static final byte EMPTY_DIRECTORY_ENTRY = (byte) 0xE5; // CPM empty dir marker
 
     // --------------------------------------------------------------------- //
 
-    public DiskDriveDevice(final T container) {
+    private final ArchitectureType architectureType;
+
+    // --------------------------------------------------------------------- //
+
+    public DiskDriveDevice(final T container, final ArchitectureType architectureType) {
         super(container, false);
+        this.architectureType = architectureType;
+    }
+
+    // --------------------------------------------------------------------- //
+
+    public ArchitectureType getArchitectureType() {
+        return architectureType;
+    }
+
+    @Override
+    protected MappedStorage createStorage(final VMContext context) {
+        return switch (architectureType) {
+            case RISCV -> super.createStorage(context);
+            case Z80 -> new FloppyControllerStorage();
+        };
+    }
+
+    // --------------------------------------------------------------------- //
+
+    @Override
+    public boolean equals(@Nullable final Object o) {
+        return super.equals(o) && architectureType == ((DiskDriveDevice<?>) o).architectureType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), architectureType);
     }
 
     // --------------------------------------------------------------------- //
@@ -46,7 +89,7 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
 
         setOpenJob(job.thenAcceptAsync(blockDevice -> {
             try {
-                device.setBlock(blockDevice);
+                setMedium(blockDevice);
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
@@ -76,6 +119,10 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
         }
 
+        if (!BlobStorage.isValidHandle(blobHandle)) {
+            importFromItemStack(ItemStackUtils.getModDataTag(stack).getCompound(DATA_TAG_NAME));
+        }
+
         final boolean isNew = !BlobStorage.isValidHandle(blobHandle);
         final UUID handle = isNew ? BlobStorage.allocateHandle() : blobHandle;
 
@@ -92,11 +139,20 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return ByteBufferBlockDevice.createFromFileChannel(channel, capacity, false);
+                final ByteBufferBlockDevice medium = ByteBufferBlockDevice.createFromFileChannel(channel, capacity, false);
+                if (isNew) {
+                    format(medium);
+                }
+                return medium;
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
         }, WORKERS);
+    }
+
+    @Override
+    protected void setBlockDevice(final BlockDevice blockDevice) throws IOException {
+        setMedium(blockDevice);
     }
 
     @Override
@@ -112,15 +168,24 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
 
     // --------------------------------------------------------------------- //
 
+    private void setMedium(@Nullable final BlockDevice medium) throws IOException {
+        if (storage == null) {
+            return;
+        }
+
+        final BlockDevice present = medium == EMPTY_BLOCK_DEVICE ? null : medium;
+        storage.setBlockDevice(present != null ? withAccessListener(present) : null);
+    }
+
     private boolean checkAndClearBlockDevice() {
         joinOpenJob();
 
-        if (device == null) {
+        if (storage == null) {
             return false;
         }
 
         try {
-            device.setBlock(EMPTY_BLOCK_DEVICE);
+            setMedium(null);
         } catch (final IOException e) {
             LOGGER.error(e);
         }
@@ -130,5 +195,19 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
             blobHandle = null;
         }
         return true;
+    }
+
+    private static void format(final ByteBufferBlockDevice medium) throws IOException {
+        final byte[] empty = new byte[4096];
+        Arrays.fill(empty, EMPTY_DIRECTORY_ENTRY);
+
+        try (OutputStream stream = medium.getOutputStream()) {
+            long remaining = medium.getCapacity();
+            while (remaining > 0) {
+                final int count = (int) Math.min(empty.length, remaining);
+                stream.write(empty, 0, count);
+                remaining -= count;
+            }
+        }
     }
 }

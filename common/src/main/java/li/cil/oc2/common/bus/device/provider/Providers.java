@@ -7,6 +7,7 @@ import dev.architectury.registry.registries.Registrar;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.block.BlockEntityCapabilityDeviceProvider;
+import li.cil.oc2.common.bus.device.provider.block.DiskDriveDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.item.*;
 import li.cil.oc2.common.bus.device.rpc.block.BlockEntityObjectDeviceProvider;
 import li.cil.oc2.common.bus.device.rpc.block.BlockStateObjectDeviceProvider;
@@ -55,6 +56,7 @@ public final class Providers {
         registry.accept("block_entity", BlockEntityObjectDeviceProvider::new);
 
         registry.accept("block_entity/capability", BlockEntityCapabilityDeviceProvider::new);
+        registry.accept("disk_drive", DiskDriveDeviceProvider::new);
         registry.accept("energy_storage", EnergyStorageBlockDeviceProvider::new);
         registry.accept("item_handler", ItemHandlerBlockDeviceProvider::new);
 

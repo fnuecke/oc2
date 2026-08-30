@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": {
+      "tag": "c:gems/diamond"
+    },
+    "Q": {
+      "tag": "c:gems/quartz"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    }
+  },
+  "pattern": [
+    "TQT",
+    "RDR",
+    "TQT"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:cpu_riscv"
+  }
+}

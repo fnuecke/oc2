@@ -54,6 +54,22 @@ public interface VMContext {
     MemoryRangeAllocator getMemoryRangeAllocator();
 
     /**
+     * Allows adding devices that are not memory to wherever this machine maps its devices.
+     * <p>
+     * On a machine that addresses everything through its memory map this is the same thing as
+     * {@link #getMemoryRangeAllocator()}. On one with a separate space for devices, such as a Z80's
+     * ports, it is that space instead.
+     * <p>
+     * Prefer this over {@link #getMemoryRangeAllocator()} for anything that is not memory, so the
+     * device lands wherever the machine keeps devices.
+     * <p>
+     * Other than that, same rules as for {@link #getMemoryRangeAllocator()} apply.
+     *
+     * @return the device range allocator.
+     */
+    MemoryRangeAllocator getDeviceRangeAllocator();
+
+    /**
      * Allows claiming interrupts for use with the VM's {@link InterruptController}.
      * <p>
      * Interrupts can only be claimed inside {@link VMDevice#mount(VMContext)}.

@@ -28,12 +28,17 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
 
         copy(BlockTags.DEVICES, DEVICES);
         tag(DEVICES).addTags(
+            DEVICES_CPU,
             DEVICES_MEMORY,
             DEVICES_HARD_DRIVE,
             DEVICES_FLASH_MEMORY,
             DEVICES_CARD,
             DEVICES_ROBOT_MODULE,
             DEVICES_FLOPPY
+        );
+        tag(DEVICES_CPU).add(
+            Items.CPU_RISCV.get(),
+            Items.CPU_Z80.get()
         );
         tag(DEVICES_MEMORY).add(
             Items.MEMORY_SMALL.get(),
@@ -48,7 +53,8 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
         );
         tag(DEVICES_FLASH_MEMORY).add(
             Items.FLASH_MEMORY.get(),
-            Items.FLASH_MEMORY_CUSTOM.get()
+            Items.FLASH_MEMORY_CUSTOM.get(),
+            Items.FLASH_MEMORY_CPM.get()
         );
         tag(DEVICES_FLOPPY).add(
             Items.FLOPPY.get()
@@ -73,9 +79,12 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
         tag(WRENCHES).add(Items.WRENCH.get());
 
         tag(DEVICE_NEEDS_REBOOT).add(
+            Items.CPU_RISCV.get(),
+            Items.CPU_Z80.get(),
             Items.DISK_DRIVE.get(),
             Items.FLASH_MEMORY.get(),
             Items.FLASH_MEMORY_CUSTOM.get(),
+            Items.FLASH_MEMORY_CPM.get(),
             Items.HARD_DRIVE_SMALL.get(),
             Items.HARD_DRIVE_MEDIUM.get(),
             Items.HARD_DRIVE_LARGE.get(),

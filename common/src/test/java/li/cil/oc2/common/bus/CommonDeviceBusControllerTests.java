@@ -4,6 +4,7 @@ package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.util.Invalidatable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ public class CommonDeviceBusControllerTests {
         when(busControllerBusElement.getLocalDevices()).thenReturn(emptyList());
         when(busControllerBusElement.getNeighbors()).thenReturn(Optional.empty());
 
-        busController = new CommonDeviceBusController(busControllerBusElement, 0);
+        busController = new CommonDeviceBusController(busControllerBusElement, 0, () -> Optional.of(ArchitectureType.RISCV));
     }
 
     @Test

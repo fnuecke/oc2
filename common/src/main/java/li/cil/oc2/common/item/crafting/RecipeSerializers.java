@@ -14,7 +14,7 @@ public final class RecipeSerializers {
 
     // --------------------------------------------------------------------- //
 
-    public static final RegistrySupplier<WrenchRecipe.Serializer> WRENCH = RECIPE_SERIALIZERS.register("wrench", WrenchRecipe.Serializer::new);
+    public static final RegistrySupplier<ToolRecipe.Serializer> TOOL = RECIPE_SERIALIZERS.register("tool", ToolRecipe.Serializer::new);
     public static final RegistrySupplier<SimpleCraftingRecipeSerializer<ResetRecipe>> RESET = RECIPE_SERIALIZERS.register("reset", () -> new SimpleCraftingRecipeSerializer<>(ResetRecipe::new));
 
     // --------------------------------------------------------------------- //

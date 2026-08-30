@@ -54,8 +54,9 @@ public final class ByteBufferFlashStorageDevice extends IdentityProxy<ItemStack>
             return VMDeviceLoadResult.fail();
         }
 
-        if (!address.claim(context, device)) {
-            return VMDeviceLoadResult.fail();
+        if (!address.claim(context.getMemoryRangeAllocator(), device)) {
+            return VMDeviceLoadResult.fail()
+                .withErrorMessage(Component.translatable(Constants.COMPUTER_ERROR_DEVICE_DOES_NOT_FIT));
         }
 
         loadPersistedState();

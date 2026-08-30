@@ -1,0 +1,16 @@
+{
+  "type": "oc2:tool",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "oc2:flash_memory"
+    },
+    {
+      "item": "oc2:cpu_z80"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:flash_memory_cpm"
+  }
+}

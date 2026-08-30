@@ -10,6 +10,7 @@ import net.minecraft.world.item.Item;
 
 public final class ItemTags {
     public static final TagKey<Item> DEVICES = tag("devices");
+    public static final TagKey<Item> DEVICES_CPU = tag("devices/cpu");
     public static final TagKey<Item> DEVICES_MEMORY = tag("devices/memory");
     public static final TagKey<Item> DEVICES_HARD_DRIVE = tag("devices/hard_drive");
     public static final TagKey<Item> DEVICES_FLASH_MEMORY = tag("devices/flash_memory");

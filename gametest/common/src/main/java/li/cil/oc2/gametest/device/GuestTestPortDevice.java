@@ -65,7 +65,7 @@ public final class GuestTestPortDevice extends IdentityProxy<ItemStack> implemen
         final GuestTestChannel newChannel = new GuestTestChannel(console.getPort(0));
         port = new SteppablePort(console, newChannel);
 
-        if (!address.claim(context, port)) {
+        if (!address.claim(context.getDeviceRangeAllocator(), port)) {
             return VMDeviceLoadResult.fail();
         }
 

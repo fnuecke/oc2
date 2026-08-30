@@ -14,6 +14,7 @@ import java.util.function.Supplier;
  * Lists built-in device types for convenience.
  */
 public final class DeviceTypes {
+    public static final Supplier<DeviceType> CPU = of("cpu");
     public static final Supplier<DeviceType> MEMORY = of("memory");
     public static final Supplier<DeviceType> HARD_DRIVE = of("hard_drive");
     public static final Supplier<DeviceType> FLASH_MEMORY = of("flash_memory");

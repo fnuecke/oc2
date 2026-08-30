@@ -57,8 +57,10 @@ public final class Constants {
     public static final String COMPUTER_SCREEN_POWER_CAPTION = key("gui.{mod}.computer.power.capt");
     public static final String COMPUTER_SCREEN_POWER_DESCRIPTION = key("gui.{mod}.computer.power.desc");
     public static final String COMPUTER_ERROR_UNKNOWN = key("gui.{mod}.computer.error.unknown");
+    public static final String COMPUTER_ERROR_MISSING_CPU = key("gui.{mod}.computer.error.missing_cpu");
     public static final String COMPUTER_ERROR_MISSING_FIRMWARE = key("gui.{mod}.computer.error.missing_firmware");
     public static final String COMPUTER_ERROR_INSUFFICIENT_MEMORY = key("gui.{mod}.computer.error.insufficient_memory");
+    public static final String COMPUTER_ERROR_DEVICE_DOES_NOT_FIT = key("gui.{mod}.computer.error.device_does_not_fit");
     public static final String COMPUTER_ERROR_STORAGE_CORRUPTED = key("gui.{mod}.computer.error.storage_corrupted");
     public static final String COMPUTER_ERROR_STORAGE_FULL = key("gui.{mod}.computer.error.storage_full");
     public static final String COMPUTER_ERROR_MEMORY_CORRUPTED = key("gui.{mod}.computer.error.memory_corrupted");

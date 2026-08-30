@@ -3,14 +3,14 @@
 package li.cil.oc2.common.vm;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
-import li.cil.sedna.device.serial.UART16550A;
+import li.cil.sedna.api.device.serial.SerialDevice;
 
 import java.nio.ByteBuffer;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class AbstractTerminalVMRunner extends VMRunner {
-    private final UART16550A uart;
+    private final SerialDevice uart;
     private final Terminal terminal;
 
     // --------------------------------------------------------------------- //
@@ -22,10 +22,10 @@ public abstract class AbstractTerminalVMRunner extends VMRunner {
 
     // --------------------------------------------------------------------- //
 
-    public AbstractTerminalVMRunner(final AbstractVirtualMachine virtualMachine, final Terminal terminal) {
-        super(virtualMachine);
+    public AbstractTerminalVMRunner(final AbstractArchitecture architecture, final Terminal terminal) {
+        super(architecture);
         this.terminal = terminal;
-        uart = virtualMachine.state.builtinDevices.uart;
+        uart = architecture.getTerminalDevice();
     }
 
     // --------------------------------------------------------------------- //

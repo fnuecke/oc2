@@ -31,5 +31,6 @@ fun Project.bundledLibs(): List<Any> {
         lib("ceresDir", "ceres-*.jar", "ceres"),
         lib("sednaDir", "sedna-*.jar", "sedna"),
         lib("buildrootDir", "sedna-buildroot-*.jar", "sedna-buildroot"),
+        lib("sednaCpmDir", "sedna-cpm-*.jar", "sedna-cpm"),
     )
 }

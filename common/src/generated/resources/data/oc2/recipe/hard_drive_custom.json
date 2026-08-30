@@ -1,12 +1,12 @@
 {
-  "type": "oc2:wrench",
+  "type": "oc2:tool",
   "category": "misc",
   "ingredients": [
     {
-      "item": "oc2:wrench"
+      "item": "oc2:hard_drive_large"
     },
     {
-      "item": "oc2:hard_drive_large"
+      "item": "oc2:cpu_riscv"
     }
   ],
   "result": {

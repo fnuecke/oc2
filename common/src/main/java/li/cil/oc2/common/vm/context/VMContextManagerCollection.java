@@ -7,5 +7,7 @@ public interface VMContextManagerCollection {
 
     MemoryRangeManager getMemoryRangeManager();
 
+    MemoryRangeManager getDeviceRangeManager();
+
     EventManager getEventManager();
 }

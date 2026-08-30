@@ -3,7 +3,9 @@
 package li.cil.oc2.api.bus;
 
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -40,6 +42,11 @@ public interface DeviceBusController {
     }
 
     /**
+     * The architecture of the machine owning this bus, if any.
+     */
+    Optional<ArchitectureType> getArchitectureType();
+
+    /**
      * Schedules a scan.
      * <p>
      * Multiple sequential calls to this method do nothing, the actual scan will be performed
@@ -72,12 +79,12 @@ public interface DeviceBusController {
     void scanDevices();
 
     /**
-     * The list of all devices currently known to this controller.
+     * The set of all devices currently known to this controller.
      * <p>
      * This is the aggregation of all {@link Device}s added to all {@link DeviceBusElement}s known
      * to the controller as found during the last scan scheduled via {@link #scheduleBusScan()}.
      *
-     * @return the list of all devices on the bus managed by this controller.
+     * @return the set of all devices on the bus managed by this controller.
      */
     Set<Device> getDevices();
 

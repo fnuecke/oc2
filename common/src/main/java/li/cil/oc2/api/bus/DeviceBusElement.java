@@ -104,6 +104,14 @@ public interface DeviceBusElement extends DeviceBus {
     Optional<UUID> getDeviceIdentifier(Device device);
 
     /**
+     * Called when the machine this element belongs to changes architecture, meaning devices
+     * managed by this bus element have to be recreated because their providers may return
+     * a different device based on the new architecture.
+     */
+    default void invalidateDevices() {
+    }
+
+    /**
      * Returns the energy consumption of this bus element.
      * <p>
      * Energy cost of a single bus element may vary depending on its configuration. For example,

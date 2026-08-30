@@ -156,8 +156,9 @@ public final class ModRecipesProvider extends RecipeProvider {
             .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
             .save(consumer);
 
-        WrenchRecipeBuilder
-            .wrenchRecipe(Items.MANUAL.get())
+        ToolRecipeBuilder
+            .toolRecipe(Items.MANUAL.get())
+            .requires(Items.WRENCH.get())
             .requires(net.minecraft.world.item.Items.BOOK)
             .unlockedBy("has_book", inventoryChange(net.minecraft.world.item.Items.BOOK))
             .unlockedBy("has_wrench", inventoryChange(Items.WRENCH.get()))
@@ -185,6 +186,31 @@ public final class ModRecipesProvider extends RecipeProvider {
             .define('P', net.minecraft.world.item.Items.PISTON)
             .define('T', Items.TRANSISTOR.get())
             .define('B', Items.CIRCUIT_BOARD.get())
+            .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
+            .unlockedBy("has_circuit_board", inventoryChange(Items.CIRCUIT_BOARD.get()))
+            .save(consumer);
+
+        ShapedRecipeBuilder
+            .shaped(RecipeCategory.MISC, Items.CPU_RISCV.get())
+            .pattern("TQT")
+            .pattern("RDR")
+            .pattern("TQT")
+            .define('T', Items.TRANSISTOR.get())
+            .define('D', Tags.Items.GEMS_DIAMOND)
+            .define('Q', Tags.Items.GEMS_QUARTZ)
+            .define('R', Tags.Items.DUSTS_REDSTONE)
+            .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
+            .unlockedBy("has_circuit_board", inventoryChange(Items.CIRCUIT_BOARD.get()))
+            .save(consumer);
+
+        ShapedRecipeBuilder
+            .shaped(RecipeCategory.MISC, Items.CPU_Z80.get())
+            .pattern("TRT")
+            .pattern("RCR")
+            .pattern("TRT")
+            .define('T', Items.TRANSISTOR.get())
+            .define('C', Tags.Items.INGOTS_COPPER)
+            .define('R', Tags.Items.DUSTS_REDSTONE)
             .unlockedBy("has_transistor", inventoryChange(Items.TRANSISTOR.get()))
             .unlockedBy("has_circuit_board", inventoryChange(Items.CIRCUIT_BOARD.get()))
             .save(consumer);
@@ -258,12 +284,19 @@ public final class ModRecipesProvider extends RecipeProvider {
             .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
             .save(consumer);
 
-        WrenchRecipeBuilder
-            .wrenchRecipe(Items.HARD_DRIVE_CUSTOM.get())
+        ToolRecipeBuilder
+            .toolRecipe(Items.HARD_DRIVE_CUSTOM.get())
             .requires(Items.HARD_DRIVE_LARGE.get())
-            .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
-            .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+            .requires(Items.CPU_RISCV.get())
+            .unlockedBy("has_cpu_riscv", inventoryChange(Items.CPU_RISCV.get()))
             .save(consumer);
+
+        ToolRecipeBuilder
+            .toolRecipe(Items.HARD_DRIVE_LARGE.get())
+            .requires(Items.WRENCH.get())
+            .requires(Items.HARD_DRIVE_CUSTOM.get())
+            .unlockedBy("has_hard_drive_custom", inventoryChange(Items.HARD_DRIVE_CUSTOM.get()))
+            .save(consumer, API.MOD_ID + ":hard_drive_large_from_custom");
 
         ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.FLASH_MEMORY.get())
@@ -277,12 +310,33 @@ public final class ModRecipesProvider extends RecipeProvider {
             .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
             .save(consumer);
 
-        WrenchRecipeBuilder
-            .wrenchRecipe(Items.FLASH_MEMORY_CUSTOM.get())
+        ToolRecipeBuilder
+            .toolRecipe(Items.FLASH_MEMORY_CUSTOM.get())
             .requires(Items.FLASH_MEMORY.get())
-            .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
-            .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+            .requires(Items.CPU_RISCV.get())
+            .unlockedBy("has_cpu_riscv", inventoryChange(Items.CPU_RISCV.get()))
             .save(consumer);
+
+        ToolRecipeBuilder
+            .toolRecipe(Items.FLASH_MEMORY_CPM.get())
+            .requires(Items.FLASH_MEMORY.get())
+            .requires(Items.CPU_Z80.get())
+            .unlockedBy("has_cpu_z80", inventoryChange(Items.CPU_Z80.get()))
+            .save(consumer);
+
+        ToolRecipeBuilder
+            .toolRecipe(Items.FLASH_MEMORY.get())
+            .requires(Items.WRENCH.get())
+            .requires(Items.FLASH_MEMORY_CUSTOM.get())
+            .unlockedBy("has_flash_memory_custom", inventoryChange(Items.FLASH_MEMORY_CUSTOM.get()))
+            .save(consumer, API.MOD_ID + ":flash_memory_from_custom");
+
+        ToolRecipeBuilder
+            .toolRecipe(Items.FLASH_MEMORY.get())
+            .requires(Items.WRENCH.get())
+            .requires(Items.FLASH_MEMORY_CPM.get())
+            .unlockedBy("has_flash_memory_cpm", inventoryChange(Items.FLASH_MEMORY_CPM.get()))
+            .save(consumer, API.MOD_ID + ":flash_memory_from_cpm");
 
         SpecialRecipeBuilder
             .special(ResetRecipe::new)

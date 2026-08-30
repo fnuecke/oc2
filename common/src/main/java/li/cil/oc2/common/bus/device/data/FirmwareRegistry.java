@@ -21,6 +21,7 @@ public final class FirmwareRegistry {
     // --------------------------------------------------------------------- //
 
     public static final RegistrySupplier<Firmware> BUILDROOT = INITIALIZER.register("buildroot", BuildrootFirmware::new);
+    public static final RegistrySupplier<Firmware> CPM = INITIALIZER.register("cpm", CpmFirmware::new);
 
     // --------------------------------------------------------------------- //
 

@@ -25,6 +25,7 @@ public final class DeviceTypeRegistry {
     // --------------------------------------------------------------------- //
 
     public static void initialize() {
+        register(ItemTags.DEVICES_CPU);
         register(ItemTags.DEVICES_MEMORY);
         register(ItemTags.DEVICES_HARD_DRIVE);
         register(ItemTags.DEVICES_FLASH_MEMORY);

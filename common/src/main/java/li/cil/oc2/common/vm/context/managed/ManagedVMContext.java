@@ -14,6 +14,7 @@ public final class ManagedVMContext implements VMContext {
     private final ManagedMemoryMap memoryMap;
     private final ManagedInterruptController interruptController;
     private final ManagedMemoryRangeAllocator memoryRangeAllocator;
+    private final ManagedMemoryRangeAllocator deviceRangeAllocator;
     private final ManagedInterruptAllocator interruptAllocator;
     private final ManagedMemoryAllocator memoryAllocator;
     private final ManagedEventBus eventBus;
@@ -22,6 +23,7 @@ public final class ManagedVMContext implements VMContext {
 
     public ManagedVMContext(final VMContext parent, final VMContextManagerCollection managers, final Supplier<OptionalLong> baseAddressSupplier) {
         this.memoryRangeAllocator = new ManagedMemoryRangeAllocator(parent.getMemoryRangeAllocator(), managers.getMemoryRangeManager(), baseAddressSupplier);
+        this.deviceRangeAllocator = new ManagedMemoryRangeAllocator(parent.getDeviceRangeAllocator(), managers.getDeviceRangeManager(), baseAddressSupplier);
         this.interruptAllocator = new ManagedInterruptAllocator(parent.getInterruptAllocator(), managers.getInterruptManager());
         this.memoryMap = new ManagedMemoryMap(parent.getMemoryMap());
         this.interruptController = new ManagedInterruptController(parent.getInterruptController(), interruptAllocator);
@@ -33,6 +35,7 @@ public final class ManagedVMContext implements VMContext {
 
     public void freeze() {
         memoryRangeAllocator.freeze();
+        deviceRangeAllocator.freeze();
         interruptAllocator.freeze();
         memoryAllocator.freeze();
         eventBus.freeze();
@@ -41,6 +44,7 @@ public final class ManagedVMContext implements VMContext {
     public void invalidate() {
         memoryMap.invalidate();
         memoryRangeAllocator.invalidate();
+        deviceRangeAllocator.invalidate();
         interruptController.invalidate();
         interruptAllocator.invalidate();
         memoryAllocator.invalidate();
@@ -60,6 +64,11 @@ public final class ManagedVMContext implements VMContext {
     @Override
     public MemoryRangeAllocator getMemoryRangeAllocator() {
         return memoryRangeAllocator;
+    }
+
+    @Override
+    public MemoryRangeAllocator getDeviceRangeAllocator() {
+        return deviceRangeAllocator;
     }
 
     @Override

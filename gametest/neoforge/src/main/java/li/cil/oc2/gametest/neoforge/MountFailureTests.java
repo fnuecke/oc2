@@ -9,7 +9,7 @@ import li.cil.oc2.common.bus.device.vm.item.HardDriveDevice;
 import li.cil.oc2.common.bus.device.vm.item.MemoryDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.ResetRecipe;
-import li.cil.oc2.common.item.crafting.WrenchRecipe;
+import li.cil.oc2.common.item.crafting.ToolRecipe;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
@@ -299,14 +299,14 @@ public final class MountFailureTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void wrenchRecipeStepsAsideForUnverifiedDrives(final GameTestHelper helper) {
-        final WrenchRecipe recipe = new WrenchRecipe(new ShapelessRecipe("", CraftingBookCategory.MISC,
-            new ItemStack(Items.HARD_DRIVE_CUSTOM.get()),
+    public static void toolRecipeStepsAsideForUnverifiedDrives(final GameTestHelper helper) {
+        final ToolRecipe recipe = new ToolRecipe(new ShapelessRecipe("", CraftingBookCategory.MISC,
+            new ItemStack(Items.HARD_DRIVE_LARGE.get()),
             NonNullList.of(Ingredient.EMPTY,
-                Ingredient.of(Items.HARD_DRIVE_LARGE.get()),
-                Ingredient.of(Items.WRENCH.get()))));
+                Ingredient.of(Items.WRENCH.get()),
+                Ingredient.of(Items.HARD_DRIVE_CUSTOM.get()))));
 
-        final ItemStack drive = new ItemStack(Items.HARD_DRIVE_LARGE.get());
+        final ItemStack drive = new ItemStack(Items.HARD_DRIVE_CUSTOM.get());
         StorageItemUtils.setState(drive, State.INCONSISTENT);
 
         if (recipe.matches(CraftingInput.of(2, 1, List.of(drive, new ItemStack(Items.WRENCH.get()))),
@@ -333,6 +333,7 @@ public final class MountFailureTests {
 
         helper.startSequence()
             .thenExecuteAfter(20, () -> computer
+                .install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
                 .install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
                 .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_SMALL.get()))
                 .install(DeviceTypes.HARD_DRIVE.get(), drive))
@@ -358,7 +359,7 @@ public final class MountFailureTests {
     }
 
     private static VMDeviceBusAdapter adapter() {
-        return new VMDeviceBusAdapter(new GlobalVMContext(new R5Board()));
+        return new VMDeviceBusAdapter(new GlobalVMContext(new R5Board(), null));
     }
 
     private static CompoundTag tagReferencing(final UUID handle) {

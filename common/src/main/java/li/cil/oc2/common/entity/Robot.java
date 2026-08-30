@@ -92,6 +92,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private static final int MAX_QUEUED_ACTIONS = 16;
     private static final int MAX_QUEUED_RESULTS = 16;
 
+    private static final int CPU_SLOTS = 1;
     private static final int MEMORY_SLOTS = 4;
     private static final int HARD_DRIVE_SLOTS = 2;
     private static final int FLASH_MEMORY_SLOTS = 1;
@@ -129,7 +130,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         this.blocksBuilding = true;
         setNoGravity(true);
 
-        final CommonDeviceBusController busController = new CommonDeviceBusController(busElement, Config.robotEnergyPerTick);
+        final CommonDeviceBusController busController = new CommonDeviceBusController(busElement, Config.robotEnergyPerTick, deviceItems::getArchitectureType);
         virtualMachine = new RobotVirtualMachine(busController);
         virtualMachine.setGameTimeSource(LevelUtils.gameTimeSupplier(world));
     }
@@ -785,6 +786,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final class RobotItemStackHandlers extends AbstractVMItemStackHandlers {
         public RobotItemStackHandlers() {
             super(
+                new GroupDefinition(DeviceTypes.CPU.get(), CPU_SLOTS),
                 new GroupDefinition(DeviceTypes.MEMORY.get(), MEMORY_SLOTS),
                 new GroupDefinition(DeviceTypes.HARD_DRIVE.get(), HARD_DRIVE_SLOTS),
                 new GroupDefinition(DeviceTypes.FLASH_MEMORY.get(), FLASH_MEMORY_SLOTS),
@@ -794,7 +796,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         @Override
         protected ItemDeviceQuery makeQuery(final ItemStack stack) {
-            return Devices.makeQuery(Robot.this, stack);
+            return Devices.makeQuery(deviceItems.getArchitectureType().orElse(null), Robot.this, stack);
         }
 
         @Override
@@ -844,8 +846,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     private final class RobotVMRunner extends AbstractTerminalVMRunner {
-        public RobotVMRunner(final AbstractVirtualMachine virtualMachine, final Terminal terminal) {
-            super(virtualMachine, terminal);
+        public RobotVMRunner(final AbstractArchitecture architecture, final Terminal terminal) {
+            super(architecture, terminal);
         }
 
         @Override
@@ -865,7 +867,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final class RobotVirtualMachine extends AbstractVirtualMachine {
         private RobotVirtualMachine(final CommonDeviceBusController busController) {
             super(busController);
-            setBaseAddressProvider(deviceItems::getDeviceAddressBase);
+            setDeviceLocationProvider(deviceItems::getDeviceLocation);
         }
 
         @Override
@@ -896,8 +898,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         @Override
-        protected AbstractTerminalVMRunner createRunner() {
-            return new RobotVMRunner(this, terminal);
+        protected AbstractTerminalVMRunner createRunner(final AbstractArchitecture architecture) {
+            return new RobotVMRunner(architecture, terminal);
         }
 
         @Override

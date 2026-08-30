@@ -19,6 +19,7 @@ import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.device.virtio.VirtIONetworkDevice;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -61,8 +62,9 @@ public abstract class AbstractNetworkInterfaceDevice extends IdentityProxy<ItemS
     public VMDeviceLoadResult mount(final VMContext context) {
         device = new VirtIONetworkDevice(context.getMemoryMap(), Constants.VIRTIO_NETWORK_QUEUE_SIZE);
 
-        if (!address.claim(context, device)) {
-            return VMDeviceLoadResult.fail();
+        if (!address.claim(context.getDeviceRangeAllocator(), device)) {
+            return VMDeviceLoadResult.fail()
+                .withErrorMessage(Component.translatable(Constants.COMPUTER_ERROR_DEVICE_DOES_NOT_FIT));
         }
 
         if (interrupt.claim(context)) {

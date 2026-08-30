@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.util.Invalidatable;
 
 import java.util.*;
@@ -25,7 +26,9 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
 
     @Override
     public void addController(final DeviceBusController controller) {
-        controllers.add(controller);
+        if (controllers.add(controller)) {
+            invalidateDevices();
+        }
     }
 
     @Override
@@ -81,6 +84,14 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     }
 
     // --------------------------------------------------------------------- //
+
+    protected Optional<ArchitectureType> getArchitectureType() {
+        return getControllers().stream()
+            .map(DeviceBusController::getArchitectureType)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .findFirst();
+    }
 
     protected void scanDevices() {
         for (final DeviceBusController controller : controllers) {

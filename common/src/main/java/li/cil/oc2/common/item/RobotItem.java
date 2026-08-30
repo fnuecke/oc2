@@ -102,6 +102,9 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
 
         ItemStackUtils.modifyModDataTag(robot, tag -> {
             final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
+            itemsTag.put(key(DeviceTypes.CPU.get()), makeInventoryTag(provider,
+                new ItemStack(Items.CPU_RISCV.get())
+            ));
             itemsTag.put(key(DeviceTypes.FLASH_MEMORY.get()), makeInventoryTag(provider,
                 new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
             ));

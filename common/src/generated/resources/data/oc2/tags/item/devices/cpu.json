@@ -1,0 +1,6 @@
+{
+  "values": [
+    "oc2:cpu_riscv",
+    "oc2:cpu_z80"
+  ]
+}

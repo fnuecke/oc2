@@ -13,6 +13,7 @@ import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.device.virtio.VirtIOKeyboardDevice;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nullable;
 
@@ -53,8 +54,9 @@ public final class KeyboardDevice<T> extends IdentityProxy<T> implements VMDevic
         }
 
         assert device != null;
-        if (!address.claim(context, device)) {
-            return VMDeviceLoadResult.fail();
+        if (!address.claim(context.getDeviceRangeAllocator(), device)) {
+            return VMDeviceLoadResult.fail()
+                .withErrorMessage(Component.translatable(Constants.COMPUTER_ERROR_DEVICE_DOES_NOT_FIT));
         }
 
         if (interrupt.claim(context)) {

@@ -6,8 +6,9 @@ import it.unimi.dsi.fastutil.objects.Object2LongArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import li.cil.oc2.api.bus.device.vm.context.MemoryRangeAllocator;
 import li.cil.oc2.common.vm.context.MemoryRangeManager;
-import li.cil.sedna.api.Board;
+import li.cil.sedna.api.DeviceBus;
 import li.cil.sedna.api.device.MemoryMappedDevice;
+import li.cil.sedna.api.memory.MappedMemoryRange;
 import li.cil.sedna.api.memory.MemoryRange;
 import li.cil.sedna.api.memory.MemoryRangeAllocationStrategy;
 
@@ -17,14 +18,14 @@ import java.util.Optional;
 import java.util.OptionalLong;
 
 final class GlobalMemoryRangeAllocator implements MemoryRangeAllocator, MemoryRangeManager {
-    private final Board board;
+    private final DeviceBus bus;
     private final ArrayList<MemoryRange> reservedMemoryRanges;
     private final Object2LongArrayMap<MemoryMappedDevice> claimedMemoryRanges = new Object2LongArrayMap<>();
 
     // --------------------------------------------------------------------- //
 
-    public GlobalMemoryRangeAllocator(final Board board, final ArrayList<MemoryRange> reservedMemoryRanges) {
-        this.board = board;
+    public GlobalMemoryRangeAllocator(final DeviceBus bus, final ArrayList<MemoryRange> reservedMemoryRanges) {
+        this.bus = bus;
         this.reservedMemoryRanges = reservedMemoryRanges;
     }
 
@@ -35,21 +36,22 @@ final class GlobalMemoryRangeAllocator implements MemoryRangeAllocator, MemoryRa
         for (final Object2LongMap.Entry<MemoryMappedDevice> entry : claimedMemoryRanges.object2LongEntrySet()) {
             final MemoryMappedDevice device = entry.getKey();
             final long address = entry.getLongValue();
-            result.add(MemoryRange.at(address, device.getLength()));
+            final MappedMemoryRange mapped = bus.getMemoryMap().getMemoryRange(device).orElse(null);
+            result.add(MemoryRange.at(address, mapped != null ? mapped.size() : device.getLength()));
         }
         return result;
     }
 
     public void invalidate() {
         for (final MemoryMappedDevice device : claimedMemoryRanges.keySet()) {
-            board.removeDevice(device);
+            bus.removeDevice(device);
         }
         claimedMemoryRanges.clear();
     }
 
     @Override
     public boolean claimMemoryRange(final long address, final MemoryMappedDevice device) {
-        if (board.addDevice(address, device)) {
+        if (bus.addDevice(address, device)) {
             claimedMemoryRanges.put(device, address);
             return true;
         }
@@ -59,7 +61,7 @@ final class GlobalMemoryRangeAllocator implements MemoryRangeAllocator, MemoryRa
 
     @Override
     public OptionalLong claimMemoryRange(final MemoryMappedDevice device) {
-        final OptionalLong address = board.addDevice(device);
+        final OptionalLong address = bus.addDevice(device);
         if (address.isPresent()) {
             claimedMemoryRanges.put(device, address.getAsLong());
             return address;
@@ -70,19 +72,19 @@ final class GlobalMemoryRangeAllocator implements MemoryRangeAllocator, MemoryRa
 
     @Override
     public OptionalLong findMemoryRange(final MemoryMappedDevice device, final long start) {
-        return board.getAllocationStrategy().findMemoryRange(device, range -> {
+        return bus.getAllocationStrategy().findMemoryRange(device, range -> {
             for (final MemoryRange reservedRange : reservedMemoryRanges) {
                 if (reservedRange.intersects(range)) {
                     return Optional.of(reservedRange);
                 }
             }
-            return MemoryRangeAllocationStrategy.getMemoryMapIntersectionProvider(board.getMemoryMap()).apply(range);
+            return MemoryRangeAllocationStrategy.getMemoryMapIntersectionProvider(bus.getMemoryMap()).apply(range);
         }, start);
     }
 
     @Override
     public void releaseMemoryRange(final MemoryMappedDevice device) {
-        board.removeDevice(device);
+        bus.removeDevice(device);
         claimedMemoryRanges.removeLong(device);
     }
 }

@@ -1,21 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_computer": {
+    "has_cpu_riscv": {
       "conditions": {
         "items": [
           {
-            "items": "oc2:computer"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "has_robot": {
-      "conditions": {
-        "items": [
-          {
-            "items": "oc2:robot"
+            "items": "oc2:cpu_riscv"
           }
         ]
       },
@@ -31,8 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_computer",
-      "has_robot"
+      "has_cpu_riscv"
     ]
   ],
   "rewards": {

@@ -44,6 +44,29 @@ public final class VirtualMachineTests {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
+    public static void computerWithoutProcessorRefusesToStart(final GameTestHelper helper) {
+        final ComputerFixture computer = placeMachine(helper);
+
+        helper.startSequence()
+            .thenExecuteAfter(20, () -> computer
+                .install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
+                .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
+                .install(DeviceTypes.HARD_DRIVE.get(), new ItemStack(Items.HARD_DRIVE_CUSTOM.get())))
+            .thenExecuteAfter(20, computer::start)
+            .thenExecuteAfter(60, () -> {
+                computer.assertRunState(VMRunState.STOPPED, "without a processor");
+                if (computer.virtualMachine().getBootError() == null) {
+                    throw new GameTestAssertException("a machine with no processor must say so, not fail silently");
+                }
+            })
+            .thenExecute(() -> computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get())))
+            .thenExecuteAfter(20, computer::start)
+            .thenExecuteAfter(300, () -> computer.assertRunState(VMRunState.RUNNING, "once a processor is installed"))
+            .thenExecute(computer::stop)
+            .thenSucceed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void runningComputerConsumesEnergy(final GameTestHelper helper) {
         final ComputerFixture computer = placeMachine(helper);
 
@@ -147,7 +170,8 @@ public final class VirtualMachineTests {
     }
 
     private static void installHardware(final ComputerFixture computer) {
-        computer.install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
+        computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
+            .install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
             .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
             .install(DeviceTypes.HARD_DRIVE.get(), new ItemStack(Items.HARD_DRIVE_CUSTOM.get()));
     }

@@ -2,19 +2,16 @@
 
 package li.cil.oc2.common.vm;
 
-import li.cil.ceres.api.Serialized;
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.bus.device.vm.FirmwareLoader;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.NBTUtils;
 import li.cil.oc2.common.util.TickUtils;
-import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.memory.MemoryAccessException;
-import li.cil.sedna.riscv.R5Board;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.nbt.CompoundTag;
@@ -31,6 +28,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
 
     // --------------------------------------------------------------------- //
 
+    private static final String ARCHITECTURE_TAG_NAME = "architecture";
     private static final String STATE_TAG_NAME = "state";
     private static final String RUNNER_TAG_NAME = "runner";
 
@@ -46,16 +44,14 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
     private CommonDeviceBusController.BusState busState = CommonDeviceBusController.BusState.SCAN_PENDING;
     private int loadDevicesDelay;
 
-    @Serialized
-    static final class SerializedState {
-        public R5Board board;
-        public GlobalVMContext context;
-        public BuiltinDevices builtinDevices;
-        public RPCDeviceBusAdapter rpcAdapter;
-        public transient VMDeviceBusAdapter vmAdapter;
-    }
+    @Nullable
+    private AbstractArchitecture architecture;
+    @Nullable
+    private PendingState pending;
 
-    final SerializedState state = new SerializedState();
+    private DeviceLocationProvider deviceLocationProvider = unused -> DeviceLocation.UNSPECIFIED;
+    private LongSupplier gameTimeSource = () -> 0L;
+
     private AbstractTerminalVMRunner runner;
     private VMRunState runState = VMRunState.STOPPED;
     @Nullable
@@ -70,16 +66,6 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         busController.onAfterDeviceScan.add(this::handleAfterDeviceScan);
         busController.onDevicesAdded.add(this::handleDevicesAdded);
         busController.onDevicesRemoved.add(this::handleDevicesRemoved);
-
-        state.board = new R5Board();
-        state.context = new GlobalVMContext(state.board);
-        state.builtinDevices = new BuiltinDevices(state.context);
-        state.rpcAdapter = new RPCDeviceBusAdapter(state.builtinDevices.getRpcPort(), state.builtinDevices.getBlobPort(), state.builtinDevices.getEventPort());
-        state.vmAdapter = new VMDeviceBusAdapter(state.context);
-
-        state.board.getCpu().setFrequency(Constants.CPU_FREQUENCY);
-        state.board.setBootArguments("root=/dev/vda rw");
-        state.board.setStandardOutputDevice(state.builtinDevices.uart);
     }
 
     // --------------------------------------------------------------------- //
@@ -89,23 +75,23 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
     }
 
     public void setGameTimeSource(final LongSupplier gameTime) {
-        state.builtinDevices.rtcMinecraft.setGameTimeSource(gameTime);
+        gameTimeSource = gameTime;
     }
 
     public boolean sendEvent(final String type, @Nullable final Object data) {
-        return state.rpcAdapter.sendEvent(type, data);
+        return architecture != null && architecture.sendGuestEvent(type, data);
     }
 
     public void dispose() {
-        joinWorkerThread();
-        state.context.invalidate();
+        disposeArchitecture();
         busController.dispose();
     }
 
     public void suspend() {
         joinWorkerThread();
-        state.vmAdapter.unmountDevices();
-        state.rpcAdapter.unmountDevices();
+        if (architecture != null) {
+            architecture.unmountDevices();
+        }
     }
 
     // --------------------------------------------------------------------- //
@@ -201,7 +187,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             return;
         }
 
-        if (state.board.isRestarting()) {
+        if (architecture != null && architecture.isRestarting()) {
             stop();
             start();
         }
@@ -217,13 +203,28 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
 
         final CompoundTag tag = new CompoundTag();
 
+        if (architecture == null) {
+            // Didn't get to set architecture, save what we loaded, if anything.
+            if (pending != null) {
+                tag.putString(ARCHITECTURE_TAG_NAME, pending.architectureType().name());
+                tag.put(STATE_TAG_NAME, pending.state());
+            }
+            if (pending != null && pending.runner() != null) {
+                tag.put(RUNNER_TAG_NAME, pending.runner());
+            } else {
+                NBTUtils.putEnum(tag, RUN_STATE_TAG_NAME, runState);
+            }
+            return tag;
+        }
+
         if (runner != null) {
             tag.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
         } else {
             NBTUtils.putEnum(tag, RUN_STATE_TAG_NAME, runState);
         }
 
-        tag.put(STATE_TAG_NAME, NBTSerialization.serialize(state));
+        tag.put(STATE_TAG_NAME, NBTSerialization.serialize(architecture));
+        tag.putString(ARCHITECTURE_TAG_NAME, architecture.getType().name());
 
         return tag;
     }
@@ -231,9 +232,9 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
     public void deserialize(final CompoundTag tag) {
         joinWorkerThread();
 
-        if (tag.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            runner = createRunner();
-            NBTSerialization.deserialize(tag.getCompound(RUNNER_TAG_NAME), runner);
+        final CompoundTag runnerTag = tag.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)
+            ? tag.getCompound(RUNNER_TAG_NAME) : null;
+        if (runnerTag != null) {
             runState = VMRunState.LOADING_DEVICES;
         } else {
             runState = NBTUtils.getEnum(tag, RUN_STATE_TAG_NAME, VMRunState.class);
@@ -244,15 +245,10 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             }
         }
 
-        if (tag.contains(STATE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            try {
-                NBTSerialization.deserialize(tag.getCompound(STATE_TAG_NAME), state);
-            } catch (final Throwable e) {
-                LOGGER.error("Failed restoring virtual machine state; it will start from cold.", e);
-                runState = VMRunState.STOPPED;
-                runner = null;
-            }
-        }
+        final ArchitectureType architectureType = findArchitecture(tag.getString(ARCHITECTURE_TAG_NAME));
+        pending = architectureType != null && tag.contains(STATE_TAG_NAME, NBTTagIds.TAG_COMPOUND)
+            ? new PendingState(architectureType, tag.getCompound(STATE_TAG_NAME), runnerTag)
+            : null;
     }
 
     public void joinWorkerThread() {
@@ -263,11 +259,11 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
 
     // --------------------------------------------------------------------- //
 
-    protected final void setBaseAddressProvider(final BaseAddressProvider provider) {
-        state.vmAdapter.setBaseAddressProvider(provider);
+    protected final void setDeviceLocationProvider(final DeviceLocationProvider provider) {
+        deviceLocationProvider = provider;
     }
 
-    protected abstract AbstractTerminalVMRunner createRunner();
+    protected abstract AbstractTerminalVMRunner createRunner(AbstractArchitecture architecture);
 
     protected abstract boolean consumeEnergy(final int amount, final boolean simulate);
 
@@ -295,12 +291,11 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         joinWorkerThread();
         setRunState(VMRunState.STOPPED);
 
-        state.board.setRunning(false);
-        state.board.reset();
-        state.rpcAdapter.reset();
-        state.rpcAdapter.disposeDevices();
-        state.vmAdapter.disposeDevices();
+        if (architecture != null) {
+            architecture.stopAndReset();
+        }
 
+        pending = null;
         runner = null;
     }
 
@@ -308,7 +303,77 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
 
     // Technically private, for tests only.
     public long getInstructionsRetired() {
-        return state.board.getCpu().getInstructionsRetired();
+        return architecture != null ? architecture.getInstructionsRetired() : 0;
+    }
+
+    @Nullable
+    private static ArchitectureType findArchitecture(final String name) {
+        for (final ArchitectureType value : ArchitectureType.values()) {
+            if (value.name().equals(name)) {
+                return value;
+            }
+        }
+
+        LOGGER.warn("Discarding state of unknown architectureType [{}].", name);
+        return null;
+    }
+
+    private void applyArchitecture(final ArchitectureType type) {
+        if (architecture != null && architecture.getType() == type) {
+            applyPendingState(architecture);
+            return;
+        }
+
+        joinWorkerThread();
+
+        if (architecture != null) {
+            architecture.stopAndReset();
+            architecture.dispose();
+            runner = null;
+        }
+
+        architecture = switch (type) {
+            case RISCV -> new R5Architecture();
+            case Z80 -> new Z80Architecture();
+        };
+
+        architecture.setDeviceLocationProvider(device -> deviceLocationProvider.getDeviceLocation(device));
+        architecture.setGameTimeSource(() -> gameTimeSource.getAsLong());
+
+        applyPendingState(architecture);
+
+        architecture.addDevices(busController.getDevices());
+        architecture.handleAfterDeviceScan(busController, true);
+    }
+
+    private void disposeArchitecture() {
+        joinWorkerThread();
+        if (architecture != null) {
+            architecture.dispose();
+            architecture = null;
+            runner = null;
+        }
+    }
+
+    private void applyPendingState(final AbstractArchitecture architecture) {
+        final PendingState pending = this.pending;
+        this.pending = null;
+
+        if (pending == null || pending.architectureType() != architecture.getType()) {
+            return;
+        }
+
+        try {
+            NBTSerialization.deserialize(pending.state(), architecture);
+            if (pending.runner() != null) {
+                runner = createRunner(architecture);
+                NBTSerialization.deserialize(pending.runner(), runner);
+            }
+        } catch (final Throwable e) {
+            LOGGER.error("Failed restoring virtual machine state; it will start cold.", e);
+            setRunState(VMRunState.STOPPED);
+            runner = null;
+        }
     }
 
     private void load() {
@@ -323,12 +388,20 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             return;
         }
 
+        final var selected = busController.getArchitectureType();
+        if (selected.isEmpty()) {
+            error(Component.translatable(Constants.COMPUTER_ERROR_MISSING_CPU));
+            return;
+        }
+
+        applyArchitecture(selected.get());
+
         if (busController.getDevices().stream().noneMatch(device -> device instanceof FirmwareLoader)) {
             error(Component.translatable(Constants.COMPUTER_ERROR_MISSING_FIRMWARE));
             return;
         }
 
-        final VMDeviceLoadResult loadResult = state.vmAdapter.mountDevices();
+        final VMDeviceLoadResult loadResult = architecture.mountDevices();
         if (!loadResult.wasSuccessful()) {
             final Component message = loadResult.getErrorMessage() != null
                 ? loadResult.getErrorMessage()
@@ -344,9 +417,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         // bus setup and devices to load. So we can keep using it.
         if (runner == null) {
             try {
-                state.board.reset();
-                state.board.initialize();
-                state.board.setRunning(true);
+                architecture.boot();
             } catch (final IllegalStateException e) {
                 // FDT did not fit into memory. Technically it's possible to run with
                 // a program that only uses registers. But not supporting that esoteric
@@ -355,15 +426,15 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
                 error(Component.translatable(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
                 return;
             } catch (final MemoryAccessException e) {
-                LOGGER.error(e);
+                LOGGER.error("Failed booting virtual machine.", e);
                 error(Component.translatable(Constants.COMPUTER_ERROR_UNKNOWN));
                 return;
             }
 
-            runner = createRunner();
+            runner = createRunner(architecture);
         }
 
-        state.rpcAdapter.mountDevices();
+        architecture.startDevicesLayer();
 
         setRunState(VMRunState.RUNNING);
 
@@ -378,7 +449,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             return;
         }
 
-        if (!state.board.isRunning()) {
+        if (!architecture.isRunning()) {
             stopRunnerAndReset();
             return;
         }
@@ -417,7 +488,9 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
     }
 
     private void handleBeforeDeviceScan() {
-        state.rpcAdapter.pause();
+        if (architecture != null) {
+            architecture.handleBeforeDeviceScan();
+        }
 
         // Since scans can be delayed we must adjust our run state accordingly, to avoid
         // running before the scan finishes.
@@ -427,16 +500,25 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
     }
 
     private void handleAfterDeviceScan(final CommonDeviceBusController.AfterDeviceScanEvent event) {
-        state.rpcAdapter.resume(busController, event.didDevicesChange());
+        if (architecture != null) {
+            architecture.handleAfterDeviceScan(busController, event.didDevicesChange());
+        }
     }
 
     private void handleDevicesAdded(final CommonDeviceBusController.DevicesChangedEvent event) {
         joinWorkerThread();
-        state.vmAdapter.addDevices(event.devices());
+        if (architecture != null) {
+            architecture.addDevices(event.devices());
+        }
     }
 
     private void handleDevicesRemoved(final CommonDeviceBusController.DevicesChangedEvent event) {
         joinWorkerThread();
-        state.vmAdapter.removeDevices(event.devices());
+        if (architecture != null) {
+            architecture.removeDevices(event.devices());
+        }
+    }
+
+    private record PendingState(ArchitectureType architectureType, CompoundTag state, @Nullable CompoundTag runner) {
     }
 }

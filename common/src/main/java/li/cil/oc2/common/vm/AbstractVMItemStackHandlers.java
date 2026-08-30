@@ -6,6 +6,7 @@ import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.api.util.Invalidatable;
@@ -14,11 +15,15 @@ import li.cil.oc2.common.bus.AbstractItemDeviceBusElement;
 import li.cil.oc2.common.container.AbstractDeviceItemStackHandler;
 import li.cil.oc2.common.container.AbstractTypedDeviceItemStackHandler;
 import li.cil.oc2.common.container.CombinedItemHandler;
+import li.cil.oc2.common.item.CpuItem;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static li.cil.oc2.common.bus.device.DeviceTypeRegistry.key;
@@ -26,12 +31,6 @@ import static li.cil.oc2.common.bus.device.DeviceTypeRegistry.key;
 public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers {
     public record GroupDefinition(DeviceType deviceType, int count) {
     }
-
-    // --------------------------------------------------------------------- //
-
-    private static final long ITEM_DEVICE_BASE_ADDRESS = 0x20000000L;
-    private static final int ITEM_DEVICE_STRIDE = 0x1000;
-    private static final long OTHER_DEVICE_BASE_ADDRESS = 0x30000000L;
 
     // --------------------------------------------------------------------- //
 
@@ -70,8 +69,16 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         return true;
     }
 
-    public OptionalLong getDeviceAddressBase(final VMDevice wrapper) {
-        long address = ITEM_DEVICE_BASE_ADDRESS;
+    public Optional<ArchitectureType> getArchitectureType() {
+        return getItemHandler(DeviceTypes.CPU.get())
+            .filter(handler -> handler.getSlots() > 0)
+            .map(handler -> handler.getStackInSlot(0))
+            .filter(stack -> stack.getItem() instanceof CpuItem)
+            .map(stack -> ((CpuItem) stack.getItem()).getArchitectureType());
+    }
+
+    public DeviceLocation getDeviceLocation(final VMDevice wrapper) {
+        int slot = 0;
 
         for (final Map.Entry<DeviceType, AbstractDeviceItemStackHandler> entry : itemHandlers.entrySet()) {
             final DeviceType deviceType = entry.getKey();
@@ -83,17 +90,17 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
                     // special case to ever be needed for anything other than physical
                     // memory, so it's fine. Prove me wrong.
                     if (deviceType == DeviceTypes.MEMORY.get()) {
-                        return OptionalLong.empty();
+                        return DeviceLocation.UNSPECIFIED;
                     } else {
-                        return OptionalLong.of(address);
+                        return DeviceLocation.slot(slot);
                     }
                 }
 
-                address += ITEM_DEVICE_STRIDE;
+                slot++;
             }
         }
 
-        return OptionalLong.of(OTHER_DEVICE_BASE_ADDRESS);
+        return DeviceLocation.BUS;
     }
 
     @Override
@@ -174,6 +181,11 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
     private final class VMItemBusElement extends AbstractItemDeviceBusElement {
         public VMItemBusElement(final int groupCount) {
             super(groupCount);
+        }
+
+        @Override
+        public void invalidateDevices() {
+            updateDevices();
         }
 
         @Override

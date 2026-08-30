@@ -62,6 +62,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private static final String STATE_TAG_NAME = "state";
     private static final String ENERGY_TAG_NAME = "energy";
 
+    private static final int CPU_SLOTS = 1;
     private static final int MEMORY_SLOTS = 4;
     private static final int HARD_DRIVE_SLOTS = 4;
     private static final int FLASH_MEMORY_SLOTS = 1;
@@ -84,7 +85,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private final ComputerBusElement busElement = new ComputerBusElement();
     private final ComputerItemStackHandlers deviceItems = new ComputerItemStackHandlers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
-    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockDeviceBusController(busElement, Config.computerEnergyPerTick, this), deviceItems::getDeviceAddressBase);
+    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockDeviceBusController(busElement, Config.computerEnergyPerTick, this, deviceItems::getArchitectureType), deviceItems::getDeviceLocation);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
     private volatile List<ServerPlayer> terminalRecipients = List.of(); // Players to send live terminal updates to.
     private int terminalRecipientRefreshCountdown;
@@ -401,12 +402,18 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     private final class ComputerItemStackHandlers extends AbstractVMItemStackHandlers {
         public ComputerItemStackHandlers() {
-            super(new GroupDefinition(DeviceTypes.MEMORY.get(), MEMORY_SLOTS), new GroupDefinition(DeviceTypes.HARD_DRIVE.get(), HARD_DRIVE_SLOTS), new GroupDefinition(DeviceTypes.FLASH_MEMORY.get(), FLASH_MEMORY_SLOTS), new GroupDefinition(DeviceTypes.CARD.get(), CARD_SLOTS));
+            super(
+                new GroupDefinition(DeviceTypes.CPU.get(), CPU_SLOTS),
+                new GroupDefinition(DeviceTypes.MEMORY.get(), MEMORY_SLOTS),
+                new GroupDefinition(DeviceTypes.HARD_DRIVE.get(), HARD_DRIVE_SLOTS),
+                new GroupDefinition(DeviceTypes.FLASH_MEMORY.get(), FLASH_MEMORY_SLOTS),
+                new GroupDefinition(DeviceTypes.CARD.get(), CARD_SLOTS)
+            );
         }
 
         @Override
         protected ItemDeviceQuery makeQuery(final ItemStack stack) {
-            return Devices.makeQuery(ComputerBlockEntity.this, stack);
+            return Devices.makeQuery(deviceItems.getArchitectureType().orElse(null), ComputerBlockEntity.this, stack);
         }
 
         @Override
@@ -493,8 +500,8 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     }
 
     private final class ComputerVMRunner extends AbstractTerminalVMRunner {
-        public ComputerVMRunner(final AbstractVirtualMachine virtualMachine, final Terminal terminal) {
-            super(virtualMachine, terminal);
+        public ComputerVMRunner(final AbstractArchitecture architecture, final Terminal terminal) {
+            super(architecture, terminal);
         }
 
         @Override
@@ -504,9 +511,9 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     }
 
     private final class ComputerVirtualMachine extends AbstractVirtualMachine {
-        private ComputerVirtualMachine(final CommonDeviceBusController busController, final BaseAddressProvider baseAddressProvider) {
+        private ComputerVirtualMachine(final CommonDeviceBusController busController, final DeviceLocationProvider deviceLocationProvider) {
             super(busController);
-            setBaseAddressProvider(baseAddressProvider);
+            setDeviceLocationProvider(deviceLocationProvider);
         }
 
         @Override
@@ -557,8 +564,8 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
 
         @Override
-        protected AbstractTerminalVMRunner createRunner() {
-            return new ComputerVMRunner(this, terminal);
+        protected AbstractTerminalVMRunner createRunner(final AbstractArchitecture architecture) {
+            return new ComputerVMRunner(architecture, terminal);
         }
 
         @Override

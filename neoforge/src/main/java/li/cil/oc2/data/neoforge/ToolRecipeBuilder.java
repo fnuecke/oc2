@@ -2,8 +2,7 @@
 
 package li.cil.oc2.data.neoforge;
 
-import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.item.crafting.WrenchRecipe;
+import li.cil.oc2.common.item.crafting.ToolRecipe;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
@@ -25,7 +24,7 @@ import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public final class WrenchRecipeBuilder implements RecipeBuilder {
+public final class ToolRecipeBuilder implements RecipeBuilder {
     private final Item result;
     private final int count;
     private final NonNullList<Ingredient> ingredients = NonNullList.create();
@@ -35,32 +34,30 @@ public final class WrenchRecipeBuilder implements RecipeBuilder {
 
     // --------------------------------------------------------------------- //
 
-    private WrenchRecipeBuilder(final ItemLike result, final int count) {
+    private ToolRecipeBuilder(final ItemLike result, final int count) {
         this.result = result.asItem();
         this.count = count;
-
-        requires(Items.WRENCH.get());
     }
 
-    public static WrenchRecipeBuilder wrenchRecipe(final ItemLike result) {
-        return new WrenchRecipeBuilder(result, 1);
+    public static ToolRecipeBuilder toolRecipe(final ItemLike result) {
+        return new ToolRecipeBuilder(result, 1);
     }
 
-    public static WrenchRecipeBuilder wrenchRecipe(final ItemLike result, final int count) {
-        return new WrenchRecipeBuilder(result, count);
+    public static ToolRecipeBuilder toolRecipe(final ItemLike result, final int count) {
+        return new ToolRecipeBuilder(result, count);
     }
 
     // --------------------------------------------------------------------- //
 
-    public WrenchRecipeBuilder requires(final TagKey<Item> tag) {
+    public ToolRecipeBuilder requires(final TagKey<Item> tag) {
         return requires(Ingredient.of(tag));
     }
 
-    public WrenchRecipeBuilder requires(final ItemLike item) {
+    public ToolRecipeBuilder requires(final ItemLike item) {
         return requires(item, 1);
     }
 
-    public WrenchRecipeBuilder requires(final ItemLike item, final int quantity) {
+    public ToolRecipeBuilder requires(final ItemLike item, final int quantity) {
         for (int i = 0; i < quantity; i++) {
             requires(Ingredient.of(item));
         }
@@ -68,19 +65,19 @@ public final class WrenchRecipeBuilder implements RecipeBuilder {
         return this;
     }
 
-    public WrenchRecipeBuilder requires(final Ingredient ingredient) {
+    public ToolRecipeBuilder requires(final Ingredient ingredient) {
         ingredients.add(ingredient);
         return this;
     }
 
     @Override
-    public WrenchRecipeBuilder unlockedBy(final String name, final Criterion<?> criterion) {
+    public ToolRecipeBuilder unlockedBy(final String name, final Criterion<?> criterion) {
         criteria.put(name, criterion);
         return this;
     }
 
     @Override
-    public WrenchRecipeBuilder group(@Nullable final String group) {
+    public ToolRecipeBuilder group(@Nullable final String group) {
         this.group = group;
         return this;
     }
@@ -108,6 +105,6 @@ public final class WrenchRecipeBuilder implements RecipeBuilder {
             new ItemStack(result, count),
             ingredients);
 
-        output.accept(id, new WrenchRecipe(shapeless), advancement.build(id.withPrefix("recipes/misc/")));
+        output.accept(id, new ToolRecipe(shapeless), advancement.build(id.withPrefix("recipes/misc/")));
     }
 }

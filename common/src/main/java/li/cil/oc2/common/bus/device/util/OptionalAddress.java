@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.bus.device.util;
 
-import li.cil.oc2.api.bus.device.vm.context.VMContext;
+import li.cil.oc2.api.bus.device.vm.context.MemoryRangeAllocator;
 import li.cil.sedna.api.device.MemoryMappedDevice;
 
 import java.util.OptionalLong;
@@ -26,12 +26,12 @@ public final class OptionalAddress {
         this.value = null;
     }
 
-    public boolean claim(final VMContext context, final MemoryMappedDevice device) {
+    public boolean claim(final MemoryRangeAllocator allocator, final MemoryMappedDevice device) {
         final OptionalLong claimedAddress;
-        if (value != null && context.getMemoryRangeAllocator().claimMemoryRange(value, device)) {
+        if (value != null && allocator.claimMemoryRange(value, device)) {
             claimedAddress = OptionalLong.of(value);
         } else {
-            claimedAddress = context.getMemoryRangeAllocator().claimMemoryRange(device);
+            claimedAddress = allocator.claimMemoryRange(device);
         }
 
         if (claimedAddress.isPresent()) {

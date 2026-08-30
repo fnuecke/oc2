@@ -36,6 +36,7 @@ public final class GuestLibraryTests {
 
         helper.startSequence()
             .thenExecuteAfter(20, () -> computer
+                .install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
                 .install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
                 .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
                 .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))

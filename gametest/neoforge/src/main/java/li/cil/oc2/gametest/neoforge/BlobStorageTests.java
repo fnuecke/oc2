@@ -7,7 +7,7 @@ import li.cil.oc2.common.bus.device.vm.item.HardDriveDevice;
 import li.cil.oc2.common.item.HardDriveItem;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.ResetRecipe;
-import li.cil.oc2.common.item.crafting.WrenchRecipe;
+import li.cil.oc2.common.item.crafting.ToolRecipe;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
@@ -552,7 +552,7 @@ public final class BlobStorageTests {
             Config.maxTrashedBlobCount = 0;
             Config.maxBlobCount = Math.max(1, BlobStorage.getBlobCount());
 
-            final VMDeviceBusAdapter adapter = new VMDeviceBusAdapter(new GlobalVMContext(new R5Board()));
+            final VMDeviceBusAdapter adapter = new VMDeviceBusAdapter(new GlobalVMContext(new R5Board(), null));
             adapter.addDevices(List.of(new HardDriveDevice(stack, 4096, false, Optional::empty)));
 
             if (adapter.mountDevices().wasSuccessful()) {
@@ -660,7 +660,7 @@ public final class BlobStorageTests {
         final ItemStack healthy = new ItemStack(Items.HARD_DRIVE_LARGE.get());
         if (recipe.matches(gridOf(healthy, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
             throw new GameTestAssertException("Resetting must not apply to a healthy drive, or players would "
-                + "wipe good drives by accident and it would fight the wrench "
+                + "wipe good drives by accident and it would fight the tool "
                 + "recipes that convert drives");
         }
 
@@ -699,20 +699,20 @@ public final class BlobStorageTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void wrenchRecipeStepsAsideForCorruptedDrives(final GameTestHelper helper) {
-        // Mirrors the data generated recipe that turns a large hard drive into one with custom data.
-        final WrenchRecipe recipe = new WrenchRecipe(new ShapelessRecipe("", CraftingBookCategory.MISC,
-            new ItemStack(Items.HARD_DRIVE_CUSTOM.get()),
+    public static void toolRecipeStepsAsideForCorruptedDrives(final GameTestHelper helper) {
+        // Mirrors the data generated recipe that wipes a drive with custom data back to a large hard drive.
+        final ToolRecipe recipe = new ToolRecipe(new ShapelessRecipe("", CraftingBookCategory.MISC,
+            new ItemStack(Items.HARD_DRIVE_LARGE.get()),
             NonNullList.of(Ingredient.EMPTY,
-                Ingredient.of(Items.HARD_DRIVE_LARGE.get()),
-                Ingredient.of(Items.WRENCH.get()))));
+                Ingredient.of(Items.WRENCH.get()),
+                Ingredient.of(Items.HARD_DRIVE_CUSTOM.get()))));
 
-        final ItemStack healthy = new ItemStack(Items.HARD_DRIVE_LARGE.get());
+        final ItemStack healthy = new ItemStack(Items.HARD_DRIVE_CUSTOM.get());
         if (!recipe.matches(gridOf(healthy, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
             throw new GameTestAssertException("Converting a healthy drive should still work");
         }
 
-        final ItemStack corrupted = new ItemStack(Items.HARD_DRIVE_LARGE.get());
+        final ItemStack corrupted = new ItemStack(Items.HARD_DRIVE_CUSTOM.get());
         StorageItemUtils.setState(corrupted, State.CORRUPTED);
         if (recipe.matches(gridOf(corrupted, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
             throw new GameTestAssertException("A corrupted drive must be reset before it can be converted, "

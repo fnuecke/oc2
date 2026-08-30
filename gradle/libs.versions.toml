@@ -10,6 +10,7 @@ manual = "1.2.7"
 ceres = "0.0.4"
 sedna = "2.0.9"
 sedna-buildroot = "0.0.8"
+sedna-cpm = "0.0.2"
 vox2mc = "1.0.0"
 
 fabric-loader = "0.19.3"
@@ -37,6 +38,7 @@ architectury-injectables = { group = "dev.architectury", name = "architectury-in
 ceres = { group = "li.cil.ceres", name = "ceres", version.ref = "ceres" }
 sedna = { group = "li.cil.sedna", name = "sedna", version.ref = "sedna" }
 sedna-buildroot = { group = "li.cil.sedna", name = "sedna-buildroot", version.ref = "sedna-buildroot" }
+sedna-cpm = { group = "li.cil.sedna", name = "sedna-cpm", version.ref = "sedna-cpm" }
 vox2mc = { group = "li.cil.vox2mc", name = "vox2mc", version.ref = "vox2mc" }
 
 fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }

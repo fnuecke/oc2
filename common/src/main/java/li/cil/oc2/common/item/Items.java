@@ -4,6 +4,7 @@ package li.cil.oc2.common.item;
 
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
@@ -42,6 +43,11 @@ public final class Items {
     public static final RegistrySupplier<Item> ROBOT = register("robot", RobotItem::new);
     public static final RegistrySupplier<NetworkCableItem> NETWORK_CABLE = register("network_cable", NetworkCableItem::new);
 
+    public static final RegistrySupplier<CpuItem> CPU_RISCV = register("cpu_riscv", () ->
+        new CpuItem(ArchitectureType.RISCV));
+    public static final RegistrySupplier<CpuItem> CPU_Z80 = register("cpu_z80", () ->
+        new CpuItem(ArchitectureType.Z80));
+
     public static final RegistrySupplier<MemoryItem> MEMORY_SMALL = register("memory_small", () ->
         new MemoryItem(2 * Constants.MEGABYTE));
     public static final RegistrySupplier<MemoryItem> MEMORY_MEDIUM = register("memory_medium", () ->
@@ -62,6 +68,8 @@ public final class Items {
         new FlashMemoryItem(4 * Constants.KILOBYTE));
     public static final RegistrySupplier<FlashMemoryWithExternalDataItem> FLASH_MEMORY_CUSTOM = register("flash_memory_custom", () ->
         new FlashMemoryWithExternalDataItem(FirmwareRegistry.BUILDROOT.getId()));
+    public static final RegistrySupplier<FlashMemoryWithExternalDataItem> FLASH_MEMORY_CPM = register("flash_memory_cpm", () ->
+        new FlashMemoryWithExternalDataItem(FirmwareRegistry.CPM.getId()));
 
     public static final RegistrySupplier<FloppyItem> FLOPPY = register("floppy", () ->
         new FloppyItem(FloppyItem.MAX_CAPACITY));

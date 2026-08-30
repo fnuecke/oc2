@@ -9,14 +9,18 @@ import li.cil.oc2.common.vm.context.InterruptManager;
 import li.cil.oc2.common.vm.context.MemoryRangeManager;
 import li.cil.oc2.common.vm.context.VMContextManagerCollection;
 import li.cil.sedna.api.Board;
+import li.cil.sedna.api.DeviceBus;
 import li.cil.sedna.api.device.InterruptController;
 import li.cil.sedna.api.memory.MemoryMap;
 
+import javax.annotation.Nullable;
 import java.util.BitSet;
 
 public final class GlobalVMContext implements VMContext, VMContextManagerCollection {
+    private final boolean hasSeparateDeviceBus;
     private final GlobalMemoryMap memoryMap;
     private final GlobalMemoryRangeAllocator memoryRangeAllocator;
+    private final GlobalMemoryRangeAllocator deviceRangeAllocator;
     private final GlobalInterruptAllocator interruptAllocator;
     private final GlobalInterruptController interruptController;
     private final GlobalMemoryAllocator memoryAllocator;
@@ -37,11 +41,19 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     @SuppressWarnings("FieldMayBeFinal")
     private MemoryRangeList reservedMemoryRanges = new MemoryRangeList();
 
+    @Serialized
+    @SuppressWarnings("FieldMayBeFinal")
+    private MemoryRangeList reservedDeviceRanges = new MemoryRangeList();
+
     // --------------------------------------------------------------------- //
 
-    public GlobalVMContext(final Board board) {
+    public GlobalVMContext(final Board board, @Nullable final DeviceBus deviceBus) {
+        this.hasSeparateDeviceBus = deviceBus != null;
         this.memoryMap = new GlobalMemoryMap(board.getMemoryMap());
-        this.memoryRangeAllocator = new GlobalMemoryRangeAllocator(board, reservedMemoryRanges);
+        this.memoryRangeAllocator = new GlobalMemoryRangeAllocator(board.getDeviceBus(), reservedMemoryRanges);
+        this.deviceRangeAllocator = hasSeparateDeviceBus
+            ? new GlobalMemoryRangeAllocator(deviceBus, reservedDeviceRanges)
+            : memoryRangeAllocator;
         this.interruptAllocator = new GlobalInterruptAllocator(board.getInterruptCount(), reservedInterrupts);
         this.interruptController = new GlobalInterruptController(board.getInterruptController(), interruptAllocator);
         this.memoryAllocator = new GlobalMemoryAllocator();
@@ -56,14 +68,22 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
 
         reservedMemoryRanges.clear();
         reservedMemoryRanges.addAll(memoryRangeAllocator.getClaimedMemoryRanges());
+
+        if (hasSeparateDeviceBus) {
+            reservedDeviceRanges.clear();
+            reservedDeviceRanges.addAll(deviceRangeAllocator.getClaimedMemoryRanges());
+        }
     }
 
-    public void postEvent(final Object event) {
+    public void sendEvent(final Object event) {
         eventBus.post(event);
     }
 
     public void invalidate() {
         memoryRangeAllocator.invalidate();
+        if (hasSeparateDeviceBus) {
+            deviceRangeAllocator.invalidate();
+        }
         interruptController.invalidate();
         memoryAllocator.invalidate();
     }
@@ -81,6 +101,11 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     @Override
     public MemoryRangeAllocator getMemoryRangeAllocator() {
         return memoryRangeAllocator;
+    }
+
+    @Override
+    public MemoryRangeAllocator getDeviceRangeAllocator() {
+        return deviceRangeAllocator;
     }
 
     @Override
@@ -106,6 +131,11 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     @Override
     public MemoryRangeManager getMemoryRangeManager() {
         return memoryRangeAllocator;
+    }
+
+    @Override
+    public MemoryRangeManager getDeviceRangeManager() {
+        return deviceRangeAllocator;
     }
 
     @Override

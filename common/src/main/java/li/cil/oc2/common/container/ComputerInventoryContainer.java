@@ -55,6 +55,12 @@ public final class ComputerInventoryContainer extends AbstractComputerContainer 
 
         final VMItemStackHandlers handlers = computer.getItemStackHandlers();
 
+        handlers.getItemHandler(DeviceTypes.CPU.get()).ifPresent(itemHandler -> {
+            if (itemHandler.getSlots() > 0) {
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.CPU.get(), 0, 64, 52));
+            }
+        });
+
         handlers.getItemHandler(DeviceTypes.FLASH_MEMORY.get()).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {
                 addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.FLASH_MEMORY.get(), 0, 64, 78));

@@ -4,13 +4,9 @@ package li.cil.oc2.common.vm;
 
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
-import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
 import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
 import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
-import li.cil.oc2.common.vm.context.global.GlobalVMContext;
-import li.cil.sedna.riscv.R5Board;
 import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,9 +34,7 @@ public class VMRunner implements Runnable {
 
     // --------------------------------------------------------------------- //
 
-    private final R5Board board;
-    private final GlobalVMContext context;
-    private final RPCDeviceBusAdapter rpcAdapter;
+    private final AbstractArchitecture architecture;
     private final AtomicInteger timeQuotaInMillis = new AtomicInteger();
     private Future<?> lastSchedule;
 
@@ -59,10 +53,8 @@ public class VMRunner implements Runnable {
 
     // --------------------------------------------------------------------- //
 
-    public VMRunner(final AbstractVirtualMachine virtualMachine) {
-        this.board = virtualMachine.state.board;
-        context = virtualMachine.state.context;
-        rpcAdapter = virtualMachine.state.rpcAdapter;
+    public VMRunner(final AbstractArchitecture architecture) {
+        this.architecture = architecture;
     }
 
     // --------------------------------------------------------------------- //
@@ -73,7 +65,7 @@ public class VMRunner implements Runnable {
     }
 
     public void tick() {
-        rpcAdapter.tick();
+        architecture.tickDeviceLayer();
 
         cycleLimit += getCyclesPerTick();
 
@@ -85,7 +77,7 @@ public class VMRunner implements Runnable {
     }
 
     public void join() {
-        context.postEvent(new VMPausingEvent());
+        architecture.sendLifecycleEvent(new VMPausingEvent());
         firedResumedRunningEvent = false;
         if (lastSchedule != null) {
             try {
@@ -113,9 +105,9 @@ public class VMRunner implements Runnable {
         if (!firedInitializationEvent) {
             firedInitializationEvent = true;
             try {
-                context.postEvent(new VMInitializingEvent(board.getDefaultProgramStart()));
+                architecture.sendInitializingEvent();
             } catch (final VMInitializationException e) {
-                board.setRunning(false);
+                architecture.setRunning(false);
                 runtimeError = e.getErrorMessage().orElse(Component.translatable(Constants.COMPUTER_ERROR_UNKNOWN));
                 return;
             }
@@ -123,12 +115,12 @@ public class VMRunner implements Runnable {
 
         if (!firedResumedRunningEvent) {
             firedResumedRunningEvent = true;
-            context.postEvent(new VMResumedRunningEvent());
+            architecture.sendLifecycleEvent(new VMResumedRunningEvent());
         }
     }
 
     protected void step(final int cyclesPerStep) {
-        rpcAdapter.step(cyclesPerStep);
+        architecture.step(cyclesPerStep);
     }
 
     protected void handleAfterRun() {
@@ -152,14 +144,13 @@ public class VMRunner implements Runnable {
 
             handleBeforeRun();
 
-            if (!board.isRunning()) {
+            if (!architecture.isRunning()) {
                 break;
             }
 
             while (steps > 0) {
                 for (int i = 0; i < batchStep && steps > 0; ++i, --steps) {
                     cycles += cyclesPerStep;
-                    board.step(cyclesPerStep);
                     step(cyclesPerStep);
                 }
 
@@ -177,11 +168,11 @@ public class VMRunner implements Runnable {
 
     private void handleRunException(final Throwable e) {
         LOGGER.error("Virtual machine failed while running.", e);
-        board.setRunning(false);
+        architecture.setRunning(false);
         runtimeError = Component.translatable(Constants.COMPUTER_ERROR_UNKNOWN);
     }
 
-    private static int getCyclesPerTick() {
-        return Constants.CPU_FREQUENCY / TICKS_PER_SECOND;
+    private int getCyclesPerTick() {
+        return architecture.getFrequency() / TICKS_PER_SECOND;
     }
 }

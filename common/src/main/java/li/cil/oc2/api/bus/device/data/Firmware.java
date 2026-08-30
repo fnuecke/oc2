@@ -24,11 +24,9 @@ public interface Firmware {
      * Runs this firmware.
      * <p>
      * This will usually load machine code into memory at the specified start address.
-     * <p>
-     * Typically, only returns {@code false} when there was not enough memory to fit the firmware.
      *
-     * @param memory       access to the memory map of the machine.
-     * @param startAddress the memory address where execution will commence.
+     * @param memory       the memory to copy into, as chosen by the machine.
+     * @param startAddress the address where execution will commence.
      * @return {@code true} if the firmware was loaded successfully; {@code false} otherwise.
      */
     boolean run(final MemoryMap memory, final long startAddress);

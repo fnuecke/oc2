@@ -17,7 +17,6 @@ import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.Event;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.BlockDevice;
-import li.cil.sedna.device.virtio.VirtIOBlockDevice;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
@@ -51,7 +50,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     // --------------------------------------------------------------------- //
 
     protected boolean readonly;
-    protected VirtIOBlockDevice device;
+    protected MappedStorage storage;
     private CompletableFuture<Void> openJob;
 
     // --------------------------------------------------------------------- //
@@ -84,20 +83,16 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
             return permanent ? result.asPermanent() : result;
         }
 
-        if (!address.claim(context, device)) {
-            return failMount().asPermanent();
-        }
-
-        if (interrupt.claim(context)) {
-            device.getInterrupt().set(interrupt.getAsInt(), context.getInterruptController());
-        } else {
-            return failMount().asPermanent();
+        final VMDeviceLoadResult claim = storage.claim(context, address, interrupt);
+        if (!claim.wasSuccessful()) {
+            releaseOnFailure();
+            return claim.asPermanent();
         }
 
         context.getEventBus().register(this);
 
         if (deviceTag != null) {
-            NBTSerialization.deserialize(deviceTag, device);
+            NBTSerialization.deserialize(deviceTag, storage.getDevice());
         }
 
         return VMDeviceLoadResult.success();
@@ -143,8 +138,8 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
             tag.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
         }
 
-        if (device != null) {
-            deviceTag = NBTSerialization.serialize(device);
+        if (storage != null) {
+            deviceTag = NBTSerialization.serialize(storage.getDevice());
         }
         if (deviceTag != null) {
             tag.put(DEVICE_TAG_NAME, deviceTag);
@@ -207,9 +202,17 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         }
     }
 
+    protected abstract int getMappedByteCount();
+
     protected abstract CompletableFuture<TBlock> createBlockDevice() throws IOException;
 
-    protected abstract int getMappedByteCount();
+    protected void setBlockDevice(final BlockDevice blockDevice) throws IOException {
+        storage.setBlockDevice(withAccessListener(blockDevice));
+    }
+
+    protected MappedStorage createStorage(final VMContext context) {
+        return new VirtIOStorage(context, readonly);
+    }
 
     protected void handleDataAccess() {
     }
@@ -219,6 +222,12 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
     protected boolean handleDataStale() {
         return true;
+    }
+
+    protected final BlockDevice withAccessListener(final BlockDevice block) {
+        final ListenableBlockDevice listenable = new ListenableBlockDevice(block);
+        listenable.onAccess.add(this::handleDataAccess);
+        return listenable;
     }
 
     // --------------------------------------------------------------------- //
@@ -233,7 +242,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
             return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_INCONSISTENT), true);
         }
 
-        device = new VirtIOBlockDevice(context.getMemoryMap(), readonly, Constants.VIRTIO_BLOCK_QUEUE_SIZE);
+        storage = createStorage(context);
 
         final CompletableFuture<TBlock> job;
         try {
@@ -251,9 +260,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
         setOpenJob(job.thenAcceptAsync(blockDevice -> {
             try {
-                final ListenableBlockDevice listenableData = new ListenableBlockDevice(blockDevice);
-                listenableData.onAccess.add(this::handleDataAccess);
-                device.setBlock(listenableData);
+                setBlockDevice(blockDevice);
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
@@ -268,27 +275,30 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         // meaning further access to it will hard-crash the JVM.
         joinOpenJob();
 
-        if (device == null) {
+        if (storage == null) {
             return;
         }
 
         try {
-            device.close();
+            storage.close();
         } catch (final IOException e) {
             LOGGER.error(e);
         }
 
-        device = null;
+        storage = null;
     }
 
     private VMDeviceLoadResult failMount() {
+        releaseOnFailure();
+        return VMDeviceLoadResult.fail();
+    }
+
+    private void releaseOnFailure() {
         closeDevice();
 
         if (blobHandle != null) {
             BlobStorage.close(blobHandle);
         }
-
-        return VMDeviceLoadResult.fail();
     }
 
     // --------------------------------------------------------------------- //

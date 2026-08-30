@@ -44,7 +44,8 @@ public final class ItemSyncSizeTests {
 
         helper.startSequence()
             .thenExecuteAfter(60, () -> {
-                computer.install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
+                computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
+                    .install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
                     .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
                     .install(DeviceTypes.HARD_DRIVE.get(), new ItemStack(Items.HARD_DRIVE_CUSTOM.get()));
                 drive.insert(new ItemStack(Items.FLOPPY.get()));

@@ -13,6 +13,7 @@ import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.provider.Providers;
@@ -619,7 +620,7 @@ public class BlockDeviceBusControllerTests {
 
         public TestBusControllerBlockEntity(final BlockPos pos) {
             super(pos);
-            busController = new BlockDeviceBusController(getBusElement(), 0, getBlockEntity());
+            busController = new BlockDeviceBusController(getBusElement(), 0, getBlockEntity(), () -> Optional.of(ArchitectureType.RISCV));
         }
 
         public BlockDeviceBusController getBusController() {

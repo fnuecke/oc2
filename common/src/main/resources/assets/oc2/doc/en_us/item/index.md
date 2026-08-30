@@ -14,6 +14,7 @@ This index lists all documented items. If you're looking for a block, see the [b
 - [Network Tunnel Card](network_tunnel_card.md)
 - [Network Tunnel Module](network_tunnel_module.md)
 - [Redstone Interface Card](redstone_interface_card.md)
+- [RISC-V Processor](cpu_riscv.md)
 - [Robot](robot.md)
 - [Scrench](wrench.md)
 - [Sound Card](sound_card.md)

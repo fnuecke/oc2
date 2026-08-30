@@ -1,8 +1,11 @@
 {
   "values": [
+    "oc2:cpu_riscv",
+    "oc2:cpu_z80",
     "oc2:disk_drive",
     "oc2:flash_memory",
     "oc2:flash_memory_custom",
+    "oc2:flash_memory_cpm",
     "oc2:hard_drive_small",
     "oc2:hard_drive_medium",
     "oc2:hard_drive_large",

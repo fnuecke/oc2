@@ -12,11 +12,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.OptionalLong;
+import java.util.function.Function;
 
 public final class VMDeviceBusAdapter {
     private final HashMap<VMDevice, ManagedVMContext> mountedDevices = new HashMap<>();
     private final LinkedHashSet<VMDevice> unmountedDevices = new LinkedHashSet<>();
-    private BaseAddressProvider baseAddressProvider = unused -> OptionalLong.empty();
+    private Function<VMDevice, OptionalLong> baseAddressProvider = unused -> OptionalLong.empty();
 
     // --------------------------------------------------------------------- //
 
@@ -30,14 +31,14 @@ public final class VMDeviceBusAdapter {
 
     // --------------------------------------------------------------------- //
 
-    public void setBaseAddressProvider(final BaseAddressProvider provider) {
+    public void setBaseAddressProvider(final Function<VMDevice, OptionalLong> provider) {
         baseAddressProvider = provider;
     }
 
     public VMDeviceLoadResult mountDevices() {
         for (final VMDevice device : unmountedDevices) {
             final ManagedVMContext context = new ManagedVMContext(globalContext, globalContext,
-                () -> baseAddressProvider.getBaseAddress(device));
+                () -> baseAddressProvider.apply(device));
 
             final VMDeviceLoadResult result = device.mount(context);
             context.freeze();

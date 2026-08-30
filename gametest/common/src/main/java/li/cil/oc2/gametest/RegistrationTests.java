@@ -9,6 +9,7 @@ import static li.cil.oc2.gametest.TestSupport.assertNotNull;
 
 public final class RegistrationTests {
     public static void deviceTypesAreRegistered(final GameTestHelper helper) {
+        assertNotNull(helper, DeviceTypes.CPU.get(), "DeviceTypes.CPU.get()");
         assertNotNull(helper, DeviceTypes.MEMORY.get(), "DeviceTypes.MEMORY.get()");
         assertNotNull(helper, DeviceTypes.HARD_DRIVE.get(), "DeviceTypes.HARD_DRIVE.get()");
         assertNotNull(helper, DeviceTypes.FLASH_MEMORY.get(), "DeviceTypes.FLASH_MEMORY.get()");

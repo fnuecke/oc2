@@ -36,6 +36,9 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
 
         ItemStackUtils.modifyBlockEntityDataTag(computer, BlockEntities.COMPUTER.get(), tag -> {
             final var itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
+            itemsTag.put(key(DeviceTypes.CPU.get()), makeInventoryTag(provider,
+                new ItemStack(Items.CPU_RISCV.get())
+            ));
             itemsTag.put(key(DeviceTypes.FLASH_MEMORY.get()), makeInventoryTag(provider,
                 new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
             ));

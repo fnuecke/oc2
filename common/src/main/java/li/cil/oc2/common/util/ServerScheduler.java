@@ -4,6 +4,7 @@ package li.cil.oc2.common.util;
 
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 
@@ -26,6 +27,7 @@ public final class ServerScheduler {
     }
 
     public static void schedule(final Runnable runnable, final int afterTicks) {
+        validateServerThread();
         globalTickScheduler.schedule(runnable, afterTicks);
     }
 
@@ -34,14 +36,16 @@ public final class ServerScheduler {
     }
 
     public static void schedule(final LevelAccessor level, final Runnable runnable, final int afterTicks) {
-        final TickScheduler scheduler = levelTickSchedulers.computeIfAbsent(level, w -> new TickScheduler());
-        scheduler.schedule(runnable, afterTicks);
+        runOnServerThread(level, () -> {
+            final TickScheduler scheduler = levelTickSchedulers.computeIfAbsent(level, w -> new TickScheduler());
+            scheduler.schedule(runnable, afterTicks);
+        });
     }
 
     public static void scheduleOnUnload(final LevelAccessor level, final Runnable listener) {
-        levelUnloadSchedulers
+        runOnServerThread(level, () -> levelUnloadSchedulers
             .computeIfAbsent(level, unused -> new SimpleScheduler())
-            .add(listener);
+            .add(listener));
     }
 
     public static void cancelOnUnload(@Nullable final LevelAccessor level, final Runnable listener) {
@@ -49,68 +53,40 @@ public final class ServerScheduler {
             return;
         }
 
-        final SimpleScheduler scheduler = levelUnloadSchedulers.get(level);
-        if (scheduler != null) {
-            scheduler.remove(listener);
-        }
+        runOnServerThread(level, () -> {
+            final SimpleScheduler scheduler = levelUnloadSchedulers.get(level);
+            if (scheduler != null) {
+                scheduler.remove(listener);
+            }
+        });
     }
 
     public static void subscribeOnLoad(final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
-        chunkLoadSchedulers
+        runOnServerThread(level, () -> chunkLoadSchedulers
             .computeIfAbsent(level, unused -> new HashMap<>())
             .computeIfAbsent(chunkPos, unused -> new ListenerCollection())
-            .add(listener);
+            .add(listener));
     }
 
     public static void unsubscribeOnLoad(@Nullable final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
-        if (level == null) {
-            return;
-        }
-
-        final HashMap<ChunkPos, ListenerCollection> chunkMap = chunkLoadSchedulers.get(level);
-        if (chunkMap == null) {
-            return;
-        }
-
-        final ListenerCollection listeners = chunkMap.get(chunkPos);
-        if (listeners != null) {
-            listeners.remove(listener);
-            if (listeners.isEmpty()) {
-                chunkMap.remove(chunkPos);
-            }
-        }
+        unsubscribe(level, chunkPos, listener, chunkLoadSchedulers);
     }
 
     public static void subscribeOnUnload(final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
-        chunkUnloadSchedulers
+        runOnServerThread(level, () -> chunkUnloadSchedulers
             .computeIfAbsent(level, unused -> new HashMap<>())
             .computeIfAbsent(chunkPos, unused -> new ListenerCollection())
-            .add(listener);
+            .add(listener));
     }
 
     public static void unsubscribeOnUnload(@Nullable final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener) {
-        if (level == null) {
-            return;
-        }
-
-        final HashMap<ChunkPos, ListenerCollection> chunkMap = chunkUnloadSchedulers.get(level);
-        if (chunkMap == null) {
-            return;
-        }
-
-        final ListenerCollection listeners = chunkMap.get(chunkPos);
-        if (listeners != null) {
-            listeners.remove(listener);
-            if (listeners.isEmpty()) {
-                chunkMap.remove(chunkPos);
-            }
-        }
+        unsubscribe(level, chunkPos, listener, chunkUnloadSchedulers);
     }
 
     public static void subscribeOnAnyChunkUnload(final LevelAccessor level, final Consumer<ChunkPos> listener) {
-        anyChunkUnloadObservers
+        runOnServerThread(level, () -> anyChunkUnloadObservers
             .computeIfAbsent(level, unused -> new ChunkListenerCollection())
-            .add(listener);
+            .add(listener));
     }
 
     public static void unsubscribeOnAnyChunkUnload(@Nullable final LevelAccessor level, final Consumer<ChunkPos> listener) {
@@ -118,10 +94,12 @@ public final class ServerScheduler {
             return;
         }
 
-        final ChunkListenerCollection listeners = anyChunkUnloadObservers.get(level);
-        if (listeners != null) {
-            listeners.remove(listener);
-        }
+        runOnServerThread(level, () -> {
+            final ChunkListenerCollection listeners = anyChunkUnloadObservers.get(level);
+            if (listeners != null) {
+                listeners.remove(listener);
+            }
+        });
     }
 
     // --------------------------------------------------------------------- //
@@ -166,16 +144,64 @@ public final class ServerScheduler {
         });
     }
 
+    private static void unsubscribe(@Nullable final LevelAccessor level, final ChunkPos chunkPos, final Runnable listener, final WeakHashMap<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> schedulers) {
+        if (level == null) {
+            return;
+        }
+
+        runOnServerThread(level, () -> {
+            final HashMap<ChunkPos, ListenerCollection> chunkMap = schedulers.get(level);
+            if (chunkMap == null) {
+                return;
+            }
+
+            final ListenerCollection listeners = chunkMap.get(chunkPos);
+            if (listeners != null) {
+                listeners.remove(listener);
+                if (listeners.isEmpty()) {
+                    chunkMap.remove(chunkPos);
+                }
+            }
+        });
+    }
+
     public static void onChunkLoad(final LevelAccessor level, final ChunkPos chunkPos) {
+        validateServerThread();
         runChunkListeners(chunkLoadSchedulers, level, chunkPos);
     }
 
     public static void onChunkUnload(final LevelAccessor level, final ChunkPos chunkPos) {
+        validateServerThread();
         runChunkListeners(chunkUnloadSchedulers, level, chunkPos);
 
         final ChunkListenerCollection observers = anyChunkUnloadObservers.get(level);
         if (observers != null) {
             observers.run(chunkPos);
+        }
+    }
+
+    private static void validateServerThread() {
+        if (!ServerUtils.isOnServerThread()) {
+            throw new IllegalStateException("ServerScheduler must only be used from the server thread.");
+        }
+    }
+
+    private static void runOnServerThread(final LevelAccessor level, final Runnable runnable) {
+        final MinecraftServer server = level.getServer();
+        if (server == null) {
+            // No server for this level: client level or test mock. Validate rather than dispatch.
+            validateServerThread();
+            runnable.run();
+        } else if (server.isSameThread()) {
+            runnable.run();
+        } else {
+            server.execute(() -> {
+                // A stopped server runs submitted tasks inline on the calling thread; drop the
+                // operation instead of touching the collections off-thread.
+                if (server.isSameThread()) {
+                    runnable.run();
+                }
+            });
         }
     }
 

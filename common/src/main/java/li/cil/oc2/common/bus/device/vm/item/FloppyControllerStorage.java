@@ -49,7 +49,7 @@ public final class FloppyControllerStorage implements MappedStorage {
         if (block == null) {
             controller.removeDisk(UNIT);
         } else {
-            controller.setDisk(UNIT, block, Cpm.SIDES, Cpm.TRACKS, Cpm.SECTORS_PER_TRACK, Cpm.SECTOR_SIZE);
+            controller.setDisk(UNIT, block, Cpm.DiskGeometry.SIDES, Cpm.DiskGeometry.TRACKS, Cpm.DiskGeometry.SECTORS_PER_TRACK, Cpm.DiskGeometry.SECTOR_SIZE);
         }
     }
 

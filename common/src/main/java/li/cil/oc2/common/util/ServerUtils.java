@@ -11,16 +11,30 @@ import javax.annotation.Nullable;
 
 public final class ServerUtils {
     @Nullable
-    private static MinecraftServer server;
+    private static volatile MinecraftServer serverInstance;
+    @Nullable
+    private static volatile Thread serverThread;
 
     // --------------------------------------------------------------------- //
 
     public static void initialize() {
-        LifecycleEvent.SERVER_BEFORE_START.register(value -> server = value);
-        LifecycleEvent.SERVER_STOPPED.register(value -> server = null);
+        LifecycleEvent.SERVER_BEFORE_START.register(value -> {
+            serverInstance = value;
+            serverThread = value.getRunningThread();
+        });
+        LifecycleEvent.SERVER_STOPPED.register(value -> {
+            serverInstance = null;
+            // Don't clear thread for isOnServerThread correctness.
+        });
+    }
+
+    public static boolean isOnServerThread() {
+        final Thread thread = serverThread;
+        return thread == null || thread == Thread.currentThread();
     }
 
     public static HolderLookup.Provider getRegistryAccess() {
+        final MinecraftServer server = serverInstance;
         return server != null ? server.registryAccess() : RegistryAccess.EMPTY;
     }
 

@@ -136,7 +136,7 @@ public final class Z80Architecture extends AbstractArchitecture {
         controller.setUnitCount(ROM_DRIVE_UNITS);
         try {
             final BlockDevice drive = ByteBufferBlockDevice.createFromStream(Cpm.getFloppyImage(), true);
-            controller.setDisk(0, drive, Cpm.SIDES, Cpm.TRACKS, Cpm.SECTORS_PER_TRACK, Cpm.SECTOR_SIZE);
+            controller.setDisk(0, drive, Cpm.DiskGeometry.SIDES, Cpm.DiskGeometry.TRACKS, Cpm.DiskGeometry.SECTORS_PER_TRACK, Cpm.DiskGeometry.SECTOR_SIZE);
         } catch (final IOException e) {
             throw new IllegalStateException("Missing the built-in system disk.", e);
         }

@@ -21,7 +21,7 @@ public final class ThrottledSoundEmitter {
     private float pitch = 0.9f;
     private float pitchVariance = 0.1f;
 
-    private long lastEmittedTime;
+    private volatile long lastEmittedTime;
 
     // --------------------------------------------------------------------- //
 

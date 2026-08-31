@@ -261,7 +261,7 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
     }
 
     private void renderCursor(final PoseStack stack) {
-        final int cursorX = Math.min(terminal.getCursorX(), WIDTH - 1);
+        final int cursorX = terminal.getCursorX();
         final int cursorY = terminal.getCursorY();
 
         RenderSystem.depthMask(false);

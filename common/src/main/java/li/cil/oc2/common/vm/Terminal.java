@@ -124,6 +124,7 @@ public final class Terminal {
     private int modes, privateModes;
     private int scrollFirst, scrollLast = HEIGHT - 1;
     private int x, y;
+    private boolean isWrapPending;
     private int savedX, savedY;
     private byte savedColor, savedStyle;
 
@@ -423,6 +424,7 @@ public final class Terminal {
     }
 
     private void IND() {
+        isWrapPending = false;
         if (y == scrollLast) {
             shiftUpOne();
         } else {
@@ -436,6 +438,7 @@ public final class Terminal {
     }
 
     private void RI() {
+        isWrapPending = false;
         if (y == scrollFirst) {
             shiftDownOne();
         } else {
@@ -468,6 +471,7 @@ public final class Terminal {
         argCount = 0;
         ignoreSequence = isPrivateSequence = false;
         isG0Graphics = isG1Graphics = isShiftedOut = false;
+        isWrapPending = false;
         modes = 0;
         privateModes = DEFAULT_PRIVATE_MODES;
         color = DEFAULT_COLORS;
@@ -501,7 +505,7 @@ public final class Terminal {
     }
 
     private void CUB() {
-        setCursorPos(cursorColumn() - distance(args[0], WIDTH), y);
+        setCursorPos(x - distance(args[0], WIDTH), y);
     }
 
     private void CUP() {
@@ -526,9 +530,9 @@ public final class Terminal {
     private void EL() {
         switch (args[0]) {
             case 0 ->  // From cursor to end of line
-                clearLine(y, cursorColumn(), WIDTH);
+                clearLine(y, x, WIDTH);
             case 1 ->  // From beginning of line to cursor
-                clearLine(y, 0, cursorColumn() + 1);
+                clearLine(y, 0, x + 1);
             case 2 ->  // Entire line containing cursor
                 clearLine(y);
         }
@@ -537,7 +541,7 @@ public final class Terminal {
     private void ED() {
         switch (args[0]) {
             case 0 -> {  // From cursor to end of screen
-                clearLine(y, cursorColumn(), WIDTH);
+                clearLine(y, x, WIDTH);
                 for (int iy = y + 1; iy < HEIGHT; iy++) {
                     clearLine(iy);
                 }
@@ -546,7 +550,7 @@ public final class Terminal {
                 for (int iy = 0; iy < y; iy++) {
                     clearLine(iy);
                 }
-                clearLine(y, 0, cursorColumn() + 1);
+                clearLine(y, 0, x + 1);
             }
             case 2 ->  // Entire screen
                 clear();
@@ -606,7 +610,7 @@ public final class Terminal {
                 putResponse("\033[0n"); // Ready, No malfunctions detected
             case 6 -> { // Report cursor position
                 final int row = getPrivateMode(Mode.DECOM) ? y - scrollFirst + 1 : y + 1;
-                putResponse(String.format(Locale.ROOT, "\033[%d;%dR", row, cursorColumn() + 1));
+                putResponse(String.format(Locale.ROOT, "\033[%d;%dR", row, x + 1));
             }
         }
     }
@@ -634,13 +638,13 @@ public final class Terminal {
                 }
             }
             case (byte) '\t' /* 011 */ -> {
-                if (x < WIDTH) {
-                    do {
-                        x++;
-                    } while (x < WIDTH && !tabs[x]);
-                }
+                int stop = x;
+                do {
+                    stop++;
+                } while (stop < WIDTH - 1 && !tabs[stop]);
+                setCursorPos(stop, y);
             }
-            case (byte) '\b' /* 010 */ -> setCursorPos(cursorColumn() - 1, y);
+            case (byte) '\b' /* 010 */ -> setCursorPos(x - 1, y);
 
             default -> {
                 return false;
@@ -804,10 +808,7 @@ public final class Terminal {
     private void setCursorPos(final int x, final int y) {
         this.x = Math.clamp(x, 0, WIDTH - 1);
         this.y = Math.clamp(y, 0, HEIGHT - 1);
-    }
-
-    private int cursorColumn() {
-        return Math.min(x, WIDTH - 1);
+        isWrapPending = false;
     }
 
     private void putUtf8(final byte value) {
@@ -835,16 +836,16 @@ public final class Terminal {
 
         final char glyph = isGraphicsCharacter(ch) ? (char) (ch - ACS_FIRST) : ch;
 
-        if (x >= WIDTH) {
-            if (getPrivateMode(Mode.DECAWM)) {
-                NEL();
-            } else {
-                setCursorPos(WIDTH - 1, y);
-            }
+        if (isWrapPending && getPrivateMode(Mode.DECAWM)) {
+            NEL();
         }
 
         setChar(x, y, glyph);
-        x++;
+        if (x < WIDTH - 1) {
+            x++;
+        } else {
+            isWrapPending = true;
+        }
     }
 
     private boolean isGraphicsCharacter(final char ch) {

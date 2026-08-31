@@ -812,6 +812,38 @@ public class TerminalTests {
         assertEquals(0, terminal.getCursorX());
     }
 
+    @Test
+    public void theCursorColumnNeverLeavesTheScreen() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, fill(Terminal.WIDTH));
+
+        assertEquals(Terminal.WIDTH - 1, terminal.getCursorX());
+    }
+
+    @Test
+    public void aTabPastTheLastStopMovesToTheRightMargin() {
+        final Terminal terminal = new Terminal();
+        write(terminal, fill(72)); // The last tab stop.
+
+        write(terminal, "\tX");
+
+        assertEquals('X', readLine(terminal, 0).charAt(Terminal.WIDTH - 1));
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 1), "a tab must not wrap the line");
+    }
+
+    @Test
+    public void aPendingWrapSurvivesSaveAndLoad() {
+        final Terminal saved = new Terminal();
+        write(saved, fill(Terminal.WIDTH));
+
+        final Terminal loaded = new Terminal();
+        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+
+        write(loaded, "X");
+        assertEquals('X', readLine(loaded, 1).charAt(0), "the deferred wrap should still happen");
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int cellCharacter(final Terminal terminal, final int index) {

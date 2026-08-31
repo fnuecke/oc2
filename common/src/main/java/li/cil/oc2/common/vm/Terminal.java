@@ -30,7 +30,7 @@ public final class Terminal {
     public static final int CHAR_HEIGHT = 16;
     public static final int COLOR_WHITE = Color.WHITE;
 
-    private static final int TAB_WIDTH = 4;
+    private static final int TAB_WIDTH = 8;
     private static final char UNRENDERABLE = '?';
     private static final int MAX_EXPECTED_LISTENERS = 4;
     private static final int MAX_INPUT_SIZE = 4 * 1024;
@@ -74,6 +74,10 @@ public final class Terminal {
     // Default style: no modifiers, white foreground, black background.
     private static final byte DEFAULT_COLORS = Color.WHITE << COLOR_FOREGROUND_SHIFT;
     private static final byte DEFAULT_STYLE = 0;
+    private static final int DEFAULT_MODES = 1 << Mode.DECAWM;
+
+    private static final int SGR_FOREGROUND_EXTENDED = 38;
+    private static final int SGR_BACKGROUND_EXTENDED = 48;
 
     private static final int CELL_COLORS_SHIFT = 8;
     private static final int CELL_STYLE_SHIFT = 16;
@@ -101,12 +105,13 @@ public final class Terminal {
     private final byte[] styles = new byte[WIDTH * HEIGHT];
     private final boolean[] tabs = new boolean[WIDTH];
     private State state = State.NORMAL;
-    private final int[] args = new int[4];
+    private final int[] args = new int[8];
     private int argCount;
     private int modes;
     private int scrollFirst, scrollLast = HEIGHT - 1;
     private int x, y;
     private int savedX, savedY;
+    private byte savedColor, savedStyle;
 
     // Color info packed into one byte for compact storage
     // 0-2: background color (index)
@@ -295,7 +300,7 @@ public final class Terminal {
                             } while (x < WIDTH && !tabs[x]);
                         }
                     }
-                    case (byte) '\b' /* 010 */ -> setCursorPos(Math.min(x, WIDTH - 1) - 1, y);
+                    case (byte) '\b' /* 010 */ -> setCursorPos(cursorColumn() - 1, y);
 
                     default -> putUtf8(value);
                 }
@@ -407,7 +412,7 @@ public final class Terminal {
     }
 
     private void IND() {
-        if (y >= scrollLast) {
+        if (y == scrollLast) {
             shiftUpOne();
         } else {
             setCursorPos(x, y + 1);
@@ -415,30 +420,29 @@ public final class Terminal {
     }
 
     private void NEL() {
-        if (y >= scrollLast) {
-            shiftUpOne();
-            setCursorPos(0, y);
-        } else {
-            setCursorPos(0, y + 1);
-        }
+        IND();
+        setCursorPos(0, y);
     }
 
     private void RI() {
-        if (y <= scrollFirst) {
+        if (y == scrollFirst) {
             shiftDownOne();
         } else {
-            setCursorPos(0, y - 1);
+            setCursorPos(x, y - 1);
         }
     }
 
     private void DECSC() {
         savedX = x;
         savedY = y;
+        savedColor = color;
+        savedStyle = style;
     }
 
     private void DECRC() {
-        x = savedX;
-        y = savedY;
+        setCursorPos(savedX, savedY);
+        color = savedColor;
+        style = savedStyle;
     }
 
     private void HTS() {
@@ -449,8 +453,16 @@ public final class Terminal {
 
     private void RIS() {
         utf8PendingCount = 0;
+        state = State.NORMAL;
+        argCount = 0;
+        modes = DEFAULT_MODES;
         color = DEFAULT_COLORS;
         style = DEFAULT_STYLE;
+        savedColor = DEFAULT_COLORS;
+        savedStyle = DEFAULT_STYLE;
+        x = y = savedX = savedY = 0;
+        scrollFirst = 0;
+        scrollLast = HEIGHT - 1;
         clear();
         Arrays.fill(tabs, false);
         for (int i = 1; i < WIDTH; i++) {
@@ -461,19 +473,21 @@ public final class Terminal {
     }
 
     private void CUU() {
-        setClampedCursorPos(x, y - Math.max(1, args[0]));
+        final int top = y < scrollFirst ? 0 : scrollFirst;
+        setCursorPos(x, Math.max(top, y - Math.max(1, args[0])));
     }
 
     private void CUD() {
-        setClampedCursorPos(x, y + Math.max(1, args[0]));
+        final int bottom = y > scrollLast ? HEIGHT - 1 : scrollLast;
+        setCursorPos(x, Math.min(bottom, y + Math.max(1, args[0])));
     }
 
     private void CUF() {
-        setClampedCursorPos(x + Math.max(1, args[0]), y);
+        setCursorPos(x + Math.max(1, args[0]), y);
     }
 
     private void CUB() {
-        setClampedCursorPos(x - Math.max(1, args[0]), y);
+        setCursorPos(cursorColumn() - Math.max(1, args[0]), y);
     }
 
     private void CUP() {
@@ -486,7 +500,12 @@ public final class Terminal {
 
     private void SGR() {
         for (int i = 0; i < argCount; i++) {
-            selectStyle(args[i]);
+            final int sgr = args[i];
+            if (sgr == SGR_FOREGROUND_EXTENDED || sgr == SGR_BACKGROUND_EXTENDED) {
+                i = selectExtendedColor(i);
+            } else {
+                selectStyle(sgr);
+            }
         }
     }
 
@@ -521,14 +540,8 @@ public final class Terminal {
     }
 
     private void DECSTBM() {
-        final int first, last;
-        if (argCount == 2) {
-            first = args[0] - 1;
-            last = args[1] - 1;
-        } else {
-            first = 0;
-            last = HEIGHT - 1;
-        }
+        final int first = args[0] > 0 ? args[0] - 1 : 0;
+        final int last = argCount > 1 && args[1] > 0 ? args[1] - 1 : HEIGHT - 1;
         if (first < 0 || last > HEIGHT - 1 || last - first <= 0) {
             return;
         }
@@ -569,7 +582,6 @@ public final class Terminal {
             }
             if (mode == Mode.DECOM) {
                 setRelativeCursorPos(0, 0);
-                clear();
             }
         }
     }
@@ -579,11 +591,8 @@ public final class Terminal {
             case 5 -> // Report console status
                 putResponse("\033[0n"); // Ready, No malfunctions detected
             case 6 -> { // Report cursor position
-                if (getMode(Mode.DECOM)) {
-                    putResponse(String.format("\033[%d;%dR", y - scrollFirst + 1, x + 1));
-                } else {
-                    putResponse(String.format("\033[%d;%dR", (y % HEIGHT) + 1, x + 1));
-                }
+                final int row = getMode(Mode.DECOM) ? y - scrollFirst + 1 : y + 1;
+                putResponse(String.format("\033[%d;%dR", row, cursorColumn() + 1));
             }
         }
     }
@@ -644,14 +653,68 @@ public final class Terminal {
                 style &= ~STYLE_INVERT_MASK;
             case 28 -> // Reveal conceal off
                 style &= ~STYLE_HIDDEN_MASK;
-            case 30, 31, 32, 33, 34, 35, 36, 37 -> { // Set foreground color
-                final int color = sgr - 30;
-                this.color = (byte) ((this.color & ~(COLOR_MASK << COLOR_FOREGROUND_SHIFT)) | (color << COLOR_FOREGROUND_SHIFT));
+            case 30, 31, 32, 33, 34, 35, 36, 37 -> // Set foreground color
+                setColor(true, sgr - 30);
+            case 40, 41, 42, 43, 44, 45, 46, 47 -> //–47 Set background color
+                setColor(false, sgr - 40);
+        }
+    }
+
+    private int selectExtendedColor(final int index) {
+        if (index + 1 >= argCount) {
+            return index;
+        }
+
+        final boolean isForeground = args[index] == SGR_FOREGROUND_EXTENDED;
+        switch (args[index + 1]) {
+            case 5 -> { // ESC[38;5;n – 256 color palette
+                if (index + 2 >= argCount) {
+                    return argCount;
+                }
+                setColor(isForeground, paletteToColorIndex(args[index + 2]));
+                return index + 2;
             }
-            case 40, 41, 42, 43, 44, 45, 46, 47 -> { //–47 Set background color
-                final int color = sgr - 40;
-                this.color = (byte) ((this.color & ~COLOR_MASK) | color);
+            case 2 -> { // ESC[38;2;r;g;b – 24 bit color
+                if (index + 4 >= argCount) {
+                    return argCount;
+                }
+                setColor(isForeground, rgbToColorIndex(args[index + 2], args[index + 3], args[index + 4]));
+                return index + 4;
             }
+            default -> {
+                return index + 1;
+            }
+        }
+    }
+
+    private static int paletteToColorIndex(final int palette) {
+        if (palette < 16) { // Standard and bright colors.
+            return palette & COLOR_MASK;
+        }
+        if (palette < 232) { // 6x6x6 color cube.
+            final int index = palette - 16;
+            return channelToColorMask(index / 36, 3, Color.RED)
+                | channelToColorMask((index / 6) % 6, 3, Color.GREEN)
+                | channelToColorMask(index % 6, 3, Color.BLUE);
+        }
+        return palette - 232 < 12 ? Color.BLACK : Color.WHITE; // Grayscale ramp.
+    }
+
+    private static int rgbToColorIndex(final int r, final int g, final int b) {
+        return channelToColorMask(r, 128, Color.RED)
+            | channelToColorMask(g, 128, Color.GREEN)
+            | channelToColorMask(b, 128, Color.BLUE);
+    }
+
+    private static int channelToColorMask(final int value, final int threshold, final int mask) {
+        return value >= threshold ? mask : 0;
+    }
+
+    private void setColor(final boolean isForeground, final int value) {
+        if (isForeground) {
+            color = (byte) ((color & ~(COLOR_MASK << COLOR_FOREGROUND_SHIFT)) | (value << COLOR_FOREGROUND_SHIFT));
+        } else {
+            color = (byte) ((color & ~COLOR_MASK) | value);
         }
     }
 
@@ -661,10 +724,6 @@ public final class Terminal {
         } else {
             setCursorPos(x, y);
         }
-    }
-
-    private void setClampedCursorPos(final int x, final int y) {
-        setCursorPos(x, Math.clamp(y, scrollFirst, scrollLast));
     }
 
     private void setCursorPos(final int x, final int y) {
@@ -725,9 +784,13 @@ public final class Terminal {
         listeners.forEach(Listener::handleTerminalChanged);
     }
 
+    private byte eraseColor() {
+        return (byte) ((DEFAULT_COLORS & ~COLOR_MASK) | (color & COLOR_MASK));
+    }
+
     private void clear() {
         Arrays.fill(buffer, (byte) ' ');
-        Arrays.fill(colors, DEFAULT_COLORS);
+        Arrays.fill(colors, eraseColor());
         Arrays.fill(styles, DEFAULT_STYLE);
         listeners.forEach(Listener::handleTerminalChanged);
     }
@@ -738,7 +801,7 @@ public final class Terminal {
 
     private void clearLine(final int y, final int fromIndex, final int toIndex) {
         Arrays.fill(buffer, y * WIDTH + fromIndex, y * WIDTH + toIndex, (byte) ' ');
-        Arrays.fill(colors, y * WIDTH + fromIndex, y * WIDTH + toIndex, DEFAULT_COLORS);
+        Arrays.fill(colors, y * WIDTH + fromIndex, y * WIDTH + toIndex, eraseColor());
         Arrays.fill(styles, y * WIDTH + fromIndex, y * WIDTH + toIndex, DEFAULT_STYLE);
         listeners.forEach(Listener::handleTerminalChanged);
     }
@@ -766,8 +829,7 @@ public final class Terminal {
         final int clearIndex = count > 0 ? srcIndex : (dstIndex + charCount);
         final int clearCount = Math.abs(count * WIDTH);
         Arrays.fill(buffer, clearIndex, clearIndex + clearCount, (byte) ' ');
-        // TODO Copy color and style from last line.
-        Arrays.fill(colors, clearIndex, clearIndex + clearCount, DEFAULT_COLORS);
+        Arrays.fill(colors, clearIndex, clearIndex + clearCount, eraseColor());
         Arrays.fill(styles, clearIndex, clearIndex + clearCount, DEFAULT_STYLE);
 
         listeners.forEach(Listener::handleTerminalChanged);

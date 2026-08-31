@@ -13,8 +13,12 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TerminalTests {
+    private static final int COLOR_RED = 1;
+    private static final int COLOR_BLUE = 4;
+
     @BeforeAll
     public static void bootstrap() {
         SharedConstants.tryDetectVersion();
@@ -217,6 +221,217 @@ public class TerminalTests {
         assertEquals(' ', readLine(terminal, 0).charAt(Terminal.WIDTH - 1));
     }
 
+    @Test
+    public void reverseIndexKeepsTheColumn() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;40H");
+
+        write(terminal, "\033M");
+
+        assertEquals(39, terminal.getCursorX());
+        assertEquals(3, terminal.getCursorY());
+    }
+
+    @Test
+    public void reverseIndexAtTheTopOfTheScrollRegionScrolls() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[1;1HTOP");
+
+        write(terminal, "\033[1;1H\033M");
+
+        assertEquals("TOP", read(terminal, Terminal.WIDTH, 3), "the top line should have moved down one");
+    }
+
+    @Test
+    public void horizontalMovementDoesNotChangeTheRow() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;20r");
+
+        write(terminal, "\033[C");
+
+        assertEquals(0, terminal.getCursorY(), "moving right must not drag the cursor into the scroll region");
+    }
+
+    @Test
+    public void linesWrapByDefault() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, fill(Terminal.WIDTH + 5));
+
+        assertEquals(fill(5) + " ".repeat(Terminal.WIDTH - 5), readLine(terminal, 1));
+    }
+
+    @Test
+    public void wrappingCanBeTurnedOff() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?7l");
+
+        write(terminal, fill(Terminal.WIDTH + 5));
+
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 1));
+    }
+
+    @Test
+    public void tabStopsAreEightColumnsApart() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "A\tB");
+
+        assertEquals("A" + " ".repeat(7) + "B", read(terminal, 9));
+    }
+
+    @Test
+    public void tabStopsAreEightColumnsApartAfterReset() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033cA\tB");
+
+        assertEquals("A" + " ".repeat(7) + "B", read(terminal, 9));
+    }
+
+    @Test
+    public void paletteColorsDoNotLeakIntoStyles() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[38;5;196mX");
+
+        assertEquals(COLOR_RED, Terminal.getForegroundColorIndex(terminal.getCell(0)));
+    }
+
+    @Test
+    public void paletteBackgroundColorsAreApplied() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[48;5;21mX");
+
+        assertEquals(COLOR_BLUE, Terminal.getBackgroundColorIndex(terminal.getCell(0)));
+    }
+
+    @Test
+    public void trueColorIsMappedOntoThePalette() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[38;2;255;0;0mX");
+
+        assertEquals(COLOR_RED, Terminal.getForegroundColorIndex(terminal.getCell(0)));
+    }
+
+    @Test
+    public void anExtendedColorTruncatedByTheArgumentLimitIsIgnored() {
+        final Terminal terminal = new Terminal();
+
+        // More parameters than we keep, so the trailing color index is never seen.
+        write(terminal, "\033[1;1;1;1;1;1;38;5;196mX");
+
+        final int cell = terminal.getCell(0);
+        assertEquals(Terminal.COLOR_WHITE, Terminal.getForegroundColorIndex(cell), "a partial color run must not paint");
+        assertTrue(Terminal.isBold(cell), "arguments before the color run still apply");
+    }
+
+    @Test
+    public void extendedColorsStillWorkAfterSaveAndLoad() {
+        final Terminal saved = new Terminal();
+
+        final Terminal loaded = new Terminal();
+        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+
+        write(loaded, "\033[38;2;255;0;0mX");
+
+        assertEquals(COLOR_RED, Terminal.getForegroundColorIndex(loaded.getCell(0)));
+    }
+
+    @Test
+    public void resettingOriginModeDoesNotClearTheScreen() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "hello");
+
+        write(terminal, "\033[?6l");
+
+        assertEquals("hello", read(terminal, 5));
+    }
+
+    @Test
+    public void resetRestoresTheFullScrollRegion() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;10r\033c");
+
+        write(terminal, "TOP\033[24;1H\n");
+
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0), "the whole screen should scroll again");
+    }
+
+    @Test
+    public void resetRestoresTheCursorAndModes() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[10;10H\033[?7l");
+
+        write(terminal, "\033c");
+
+        assertEquals(0, terminal.getCursorX());
+        assertEquals(0, terminal.getCursorY());
+
+        write(terminal, fill(Terminal.WIDTH + 5));
+        assertEquals(fill(5) + " ".repeat(Terminal.WIDTH - 5), readLine(terminal, 1), "wrapping should be back on");
+    }
+
+    @Test
+    public void erasingKeepsTheCurrentBackground() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[44m\033[2K");
+
+        assertEquals(COLOR_BLUE, Terminal.getBackgroundColorIndex(terminal.getCell(0)));
+    }
+
+    @Test
+    public void scrollingExposesLinesWithTheCurrentBackground() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[44m\033[24;1H\n");
+
+        final int cell = terminal.getCell((Terminal.HEIGHT - 1) * Terminal.WIDTH);
+        assertEquals(COLOR_BLUE, Terminal.getBackgroundColorIndex(cell));
+    }
+
+    @Test
+    public void savedCursorRestoresAttributes() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\0337\033[31m\0338X");
+
+        assertEquals(Terminal.COLOR_WHITE, Terminal.getForegroundColorIndex(terminal.getCell(0)));
+    }
+
+    @Test
+    public void indexBelowTheScrollRegionMovesDownInsteadOfScrolling() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[1;11r\033[21;1H");
+
+        write(terminal, "\n");
+
+        assertEquals(21, terminal.getCursorY());
+    }
+
+    @Test
+    public void scrollRegionWithAnOmittedFirstLineCoversTheScreen() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;10r\033[;24r");
+
+        write(terminal, "TOP\033[24;1H\n");
+
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0));
+    }
+
+    @Test
+    public void cursorPositionReportStaysOnScreenAtTheRightMargin() {
+        final Terminal terminal = new Terminal();
+        write(terminal, fill(Terminal.WIDTH));
+
+        write(terminal, "\033[6n");
+
+        assertEquals("\033[1;80R", readResponse(terminal));
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int drainInput(final Terminal terminal) {
@@ -225,6 +440,15 @@ public class TerminalTests {
             count++;
         }
         return count;
+    }
+
+    private static String readResponse(final Terminal terminal) {
+        final StringBuilder response = new StringBuilder();
+        int value;
+        while ((value = terminal.readInput()) != -1) {
+            response.append((char) value);
+        }
+        return response.toString();
     }
 
     private static int maxInputSize() {

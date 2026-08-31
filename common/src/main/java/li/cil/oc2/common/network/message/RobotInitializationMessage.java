@@ -7,6 +7,7 @@ import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.MessageUtils;
 import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VMRunState;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -31,7 +32,10 @@ public final class RobotInitializationMessage extends AbstractMessage {
         this.busState = robot.getVirtualMachine().getBusState();
         this.runState = robot.getVirtualMachine().getRunState();
         this.bootError = robot.getVirtualMachine().getBootError();
-        this.terminal = NBTSerialization.serialize(robot.getTerminal());
+        final Terminal robotTerminal = robot.getTerminal();
+        synchronized (robotTerminal) {
+            this.terminal = NBTSerialization.serialize(robotTerminal);
+        }
     }
 
     public RobotInitializationMessage(final RegistryFriendlyByteBuf buffer) {

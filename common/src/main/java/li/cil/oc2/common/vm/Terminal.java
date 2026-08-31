@@ -268,7 +268,7 @@ public final class Terminal {
         }
     }
 
-    public void putOutput(final byte value) {
+    public synchronized void putOutput(final byte value) {
         final char ch = (char) value;
         switch (state) {
             case NORMAL -> {

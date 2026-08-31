@@ -17,6 +17,7 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -82,9 +83,12 @@ public final class Terminal {
     // DEC special graphics covers _ through ~; the font holds those glyphs at ch - ACS_FIRST.
     private static final char ACS_FIRST = 0x5F, ACS_LAST = 0x7E;
 
+    private static final byte CAN = 0x18, SUB = 0x1A;
+    private static final char DEL = 0x7F;
+
     // ECMA-48 byte ranges inside a control sequence. End on anything in 0x40 to 0x7E.
     private static final char CSI_INTERMEDIATE_FIRST = 0x20, CSI_INTERMEDIATE_LAST = 0x2F;
-    private static final char CSI_PRIVATE_FIRST = 0x3C, CSI_PRIVATE_LAST = 0x3F;
+    private static final char CSI_UNHANDLED_PARAMETER_FIRST = 0x3A, CSI_UNHANDLED_PARAMETER_LAST = 0x3F;
 
     private static final int CELL_COLORS_SHIFT = 8;
     private static final int CELL_STYLE_SHIFT = 16;
@@ -296,29 +300,8 @@ public final class Terminal {
         final char ch = (char) value;
         switch (state) {
             case NORMAL -> {
-                switch (value) {
-                    case '\007' -> hasPendingBell = true;
-                    case '\016' -> isShiftedOut = true;  // SO – select G1 into GL
-                    case '\017' -> isShiftedOut = false; // SI – select G0 into GL
-
-                    case (byte) '\r' /* 015 */ -> setCursorPos(0, y);
-                    case (byte) '\n' /* 012 */, '\013', '\014' -> {
-                        if (getMode(Mode.LNM)) {
-                            NEL();
-                        } else {
-                            IND();
-                        }
-                    }
-                    case (byte) '\t' /* 011 */ -> {
-                        if (x < WIDTH) {
-                            do {
-                                x++;
-                            } while (x < WIDTH && !tabs[x]);
-                        }
-                    }
-                    case (byte) '\b' /* 010 */ -> setCursorPos(cursorColumn() - 1, y);
-
-                    default -> putUtf8(value);
+                if (!executeControl(value)) {
+                    putUtf8(value);
                 }
             }
             case ESCAPE -> {
@@ -353,7 +336,11 @@ public final class Terminal {
                 }
             }
             case CONTROL_SEQUENCE -> {
-                if (ch >= '0' && ch <= '9') {
+                if (value == CAN || value == SUB) {
+                    state = State.NORMAL; // Both stop the sequence without displaying anything.
+                } else if (ch < ' ' || ch == DEL) {
+                    executeControl(value); // Handle controls right away.
+                } else if (ch >= '0' && ch <= '9') {
                     if (argCount < args.length) {
                         final int digit = ch - '0';
                         if (args[argCount] < (Integer.MAX_VALUE - digit) / 10) {
@@ -368,7 +355,7 @@ public final class Terminal {
                     }
                 } else if (ch == '?') {
                     // DEC private marker; the modes we implement are addressed this way.
-                } else if (ch >= CSI_PRIVATE_FIRST && ch <= CSI_PRIVATE_LAST
+                } else if (ch >= CSI_UNHANDLED_PARAMETER_FIRST && ch <= CSI_UNHANDLED_PARAMETER_LAST
                     || ch >= CSI_INTERMEDIATE_FIRST && ch <= CSI_INTERMEDIATE_LAST) {
                     ignoreSequence = true; // We implement no sequence using these.
                 } else {
@@ -618,7 +605,7 @@ public final class Terminal {
                 putResponse("\033[0n"); // Ready, No malfunctions detected
             case 6 -> { // Report cursor position
                 final int row = getMode(Mode.DECOM) ? y - scrollFirst + 1 : y + 1;
-                putResponse(String.format("\033[%d;%dR", row, cursorColumn() + 1));
+                putResponse(String.format(Locale.ROOT, "\033[%d;%dR", row, cursorColumn() + 1));
             }
         }
     }
@@ -629,6 +616,36 @@ public final class Terminal {
 
     private static int distance(final int argument, final int limit) {
         return Math.clamp(argument, 1, limit);
+    }
+
+    private boolean executeControl(final byte value) {
+        switch (value) {
+            case '\007' -> hasPendingBell = true;
+            case '\016' -> isShiftedOut = true;  // SO – select G1 into GL
+            case '\017' -> isShiftedOut = false; // SI – select G0 into GL
+
+            case (byte) '\r' /* 015 */ -> setCursorPos(0, y);
+            case (byte) '\n' /* 012 */, '\013', '\014' -> {
+                if (getMode(Mode.LNM)) {
+                    NEL();
+                } else {
+                    IND();
+                }
+            }
+            case (byte) '\t' /* 011 */ -> {
+                if (x < WIDTH) {
+                    do {
+                        x++;
+                    } while (x < WIDTH && !tabs[x]);
+                }
+            }
+            case (byte) '\b' /* 010 */ -> setCursorPos(cursorColumn() - 1, y);
+
+            default -> {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void setMode(final int mode) {
@@ -759,7 +776,7 @@ public final class Terminal {
 
     private void setRelativeCursorPos(final int x, final int y) {
         if (getMode(Mode.DECOM)) {
-            setCursorPos(x, Math.min(scrollFirst + y, scrollLast));
+            setCursorPos(x, Math.clamp(scrollFirst + y, scrollFirst, scrollLast));
         } else {
             setCursorPos(x, y);
         }

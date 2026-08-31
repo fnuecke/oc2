@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -631,6 +632,143 @@ public class TerminalTests {
 
         write(terminal, "\033[?1l");
         assertFalse(terminal.isCursorKeyApplicationMode());
+    }
+
+    @Test
+    public void escapeAbandonsAnUnfinishedControlSequence() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "ABC\033[1;");
+
+        write(terminal, "\033[2JX");
+
+        assertEquals("   X" + " ".repeat(Terminal.WIDTH - 4), readLine(terminal, 0));
+    }
+
+    @Test
+    public void escapeAbandonsAnUnfinishedCharacterSetSelection() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033(");
+
+        write(terminal, "\033[2JX");
+
+        assertEquals("X" + " ".repeat(Terminal.WIDTH - 1), readLine(terminal, 0));
+    }
+
+    @Test
+    public void escapeAbandonsAnUnfinishedHashSequence() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033#");
+
+        write(terminal, "\033[2JX");
+
+        assertEquals("X" + " ".repeat(Terminal.WIDTH - 1), readLine(terminal, 0));
+    }
+
+    @Test
+    public void aSaturatedCursorForwardStopsAtTheLastColumn() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[1;2H"); // Not column 0, or the addition would not overflow.
+
+        write(terminal, "\033[2147483647C");
+
+        assertEquals(Terminal.WIDTH - 1, terminal.getCursorX());
+    }
+
+    @Test
+    public void aSaturatedCursorDownStopsAtTheLastRow() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[2;1H"); // Not row 0, or the addition would not overflow.
+
+        write(terminal, "\033[2147483647B");
+
+        assertEquals(Terminal.HEIGHT - 1, terminal.getCursorY());
+    }
+
+    @Test
+    public void aSaturatedCursorPositionStopsAtTheLastRow() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[2147483647;2147483647H");
+
+        assertEquals(Terminal.WIDTH - 1, terminal.getCursorX());
+        assertEquals(Terminal.HEIGHT - 1, terminal.getCursorY());
+    }
+
+    @Test
+    public void aSaturatedCursorPositionStopsAtTheBottomMarginInOriginMode() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;20r\033[?6h");
+
+        write(terminal, "\033[2147483647;1H");
+
+        assertEquals(19, terminal.getCursorY());
+    }
+
+    @Test
+    public void subParameterSequencesAreNotPrintedToTheScreen() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[38:2::255:0:0mX");
+
+        assertEquals("X", read(terminal, 1));
+        assertEquals(Terminal.COLOR_WHITE, Terminal.getForegroundColorIndex(terminal.getCell(0)),
+            "we do not implement the colon form, so it must not paint a guessed color");
+    }
+
+    @Test
+    public void controlCharactersInsideASequenceStillExecute() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "ABC");
+
+        write(terminal, "\033[1\rZ");
+
+        assertEquals("ABC", read(terminal, 3), "the sequence must not leak its final byte");
+        assertEquals(0, terminal.getCursorX(), "the carriage return must still have moved the cursor");
+    }
+
+    @Test
+    public void deleteInsideASequenceIsIgnored() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;1H");
+
+        write(terminal, "\033[1\177A");
+
+        assertEquals(3, terminal.getCursorY(), "the sequence should still be a cursor up");
+    }
+
+    @Test
+    public void cancelAbandonsASequence() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[1\030A");
+
+        assertEquals(0, terminal.getCursorY());
+        assertEquals("A" + " ".repeat(Terminal.WIDTH - 1), readLine(terminal, 0));
+    }
+
+    @Test
+    public void cursorPositionReportsUseLatinDigits() {
+        final Locale previous = Locale.getDefault(Locale.Category.FORMAT);
+        try {
+            Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag("ar-EG-u-nu-arab"));
+
+            final Terminal terminal = new Terminal();
+            write(terminal, "\033[12;34H\033[6n");
+
+            assertEquals("\033[12;34R", readResponse(terminal));
+        } finally {
+            Locale.setDefault(Locale.Category.FORMAT, previous);
+        }
+    }
+
+    @Test
+    public void originModeHomesToTheTopMargin() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;20r\033[?6h");
+
+        write(terminal, "\033[H");
+
+        assertEquals(4, terminal.getCursorY());
     }
 
     // --------------------------------------------------------------------- //

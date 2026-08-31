@@ -493,9 +493,9 @@ public final class Terminal {
     private void EL() {
         switch (args[0]) {
             case 0 ->  // From cursor to end of line
-                clearLine(y, x, WIDTH);
+                clearLine(y, cursorColumn(), WIDTH);
             case 1 ->  // From beginning of line to cursor
-                clearLine(y, 0, x + 1);
+                clearLine(y, 0, cursorColumn() + 1);
             case 2 ->  // Entire line containing cursor
                 clearLine(y);
         }
@@ -504,7 +504,7 @@ public final class Terminal {
     private void ED() {
         switch (args[0]) {
             case 0 -> {  // From cursor to end of screen
-                clearLine(y, x, WIDTH);
+                clearLine(y, cursorColumn(), WIDTH);
                 for (int iy = y + 1; iy < HEIGHT; iy++) {
                     clearLine(iy);
                 }
@@ -513,7 +513,7 @@ public final class Terminal {
                 for (int iy = 0; iy < y; iy++) {
                     clearLine(iy);
                 }
-                clearLine(y, 0, x + 1);
+                clearLine(y, 0, cursorColumn() + 1);
             }
             case 2 ->  // Entire screen
                 clear();
@@ -670,6 +670,10 @@ public final class Terminal {
     private void setCursorPos(final int x, final int y) {
         this.x = Math.clamp(x, 0, WIDTH - 1);
         this.y = Math.clamp(y, 0, HEIGHT - 1);
+    }
+
+    private int cursorColumn() {
+        return Math.min(x, WIDTH - 1);
     }
 
     private void putUtf8(final byte value) {

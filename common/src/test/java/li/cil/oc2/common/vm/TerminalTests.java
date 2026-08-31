@@ -164,6 +164,59 @@ public class TerminalTests {
         assertEquals(0, terminal.getCursorX());
     }
 
+    @Test
+    public void eraseToStartOfLineAtTheRightMarginClearsTheWholeLine() {
+        final Terminal terminal = new Terminal();
+        write(terminal, fill(Terminal.WIDTH));
+
+        write(terminal, "\033[1K");
+
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0));
+    }
+
+    @Test
+    public void eraseToStartOfLineAtTheRightMarginLeavesTheNextLineAlone() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[2;1HZ\033[1;1H");
+        write(terminal, fill(Terminal.WIDTH));
+
+        write(terminal, "\033[1K");
+
+        assertEquals('Z', readLine(terminal, 1).charAt(0), "erase must not run past the end of the line");
+    }
+
+    @Test
+    public void eraseToStartOfLineAtTheRightMarginOfTheLastLineStaysInBounds() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[24;1H");
+        write(terminal, fill(Terminal.WIDTH));
+
+        write(terminal, "\033[1K");
+
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, Terminal.HEIGHT - 1));
+    }
+
+    @Test
+    public void eraseToStartOfScreenAtTheRightMarginOfTheLastLineStaysInBounds() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[24;1H");
+        write(terminal, fill(Terminal.WIDTH));
+
+        write(terminal, "\033[1J");
+
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, Terminal.HEIGHT - 1));
+    }
+
+    @Test
+    public void eraseToEndOfLineAtTheRightMarginClearsTheLastColumn() {
+        final Terminal terminal = new Terminal();
+        write(terminal, fill(Terminal.WIDTH));
+
+        write(terminal, "\033[K");
+
+        assertEquals(' ', readLine(terminal, 0).charAt(Terminal.WIDTH - 1));
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int drainInput(final Terminal terminal) {
@@ -200,13 +253,25 @@ public class TerminalTests {
         return read(terminal, expectedLength);
     }
 
+    private static String fill(final int length) {
+        return "#".repeat(length);
+    }
+
+    private static String readLine(final Terminal terminal, final int y) {
+        return read(terminal, y * Terminal.WIDTH, Terminal.WIDTH);
+    }
+
     private static String read(final Terminal terminal, final int length) {
+        return read(terminal, 0, length);
+    }
+
+    private static String read(final Terminal terminal, final int offset, final int length) {
         // Only used here, so let's just grab it with reflection...
         try {
             final Field field = Terminal.class.getDeclaredField("buffer");
             field.setAccessible(true);
             final byte[] cells = new byte[length];
-            System.arraycopy(field.get(terminal), 0, cells, 0, length);
+            System.arraycopy(field.get(terminal), offset, cells, 0, length);
             return new String(cells, StandardCharsets.ISO_8859_1);
         } catch (final ReflectiveOperationException e) {
             throw new AssertionError("could not read the terminal's cell buffer", e);

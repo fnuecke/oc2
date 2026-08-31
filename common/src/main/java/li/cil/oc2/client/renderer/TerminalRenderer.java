@@ -27,8 +27,11 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
     private static final float CHAR_HEIGHT_IN_UV = CHAR_HEIGHT * ONE_OVER_TEXTURE_RESOLUTION;
     private static final int TEXTURE_COLUMNS = 16;
     private static final int TEXTURE_BOLD_SHIFT = TEXTURE_COLUMNS; // Bold chars are in right half of texture.
-    private static final float WHITE_U = (TEXTURE_RESOLUTION - 1.5f) * ONE_OVER_TEXTURE_RESOLUTION;
-    private static final float WHITE_V = 1.5f * ONE_OVER_TEXTURE_RESOLUTION;
+    private static final int WHITE_CELL = 0x7F;
+    private static final int WHITE_CELL_X = (WHITE_CELL % TEXTURE_COLUMNS + TEXTURE_BOLD_SHIFT) * CHAR_WIDTH + CHAR_WIDTH / 2;
+    private static final int WHITE_CELL_Y = WHITE_CELL / TEXTURE_COLUMNS * CHAR_HEIGHT + CHAR_HEIGHT / 2;
+    private static final float WHITE_U = WHITE_CELL_X * ONE_OVER_TEXTURE_RESOLUTION;
+    private static final float WHITE_V = WHITE_CELL_Y * ONE_OVER_TEXTURE_RESOLUTION;
 
     private static final int[] COLORS = {
         0x010101, // Black
@@ -258,11 +261,8 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
     }
 
     private void renderCursor(final PoseStack stack) {
-        final int cursorX = terminal.getCursorX();
+        final int cursorX = Math.min(terminal.getCursorX(), WIDTH - 1);
         final int cursorY = terminal.getCursorY();
-        if (cursorX < 0 || cursorX >= WIDTH || cursorY < 0 || cursorY >= HEIGHT) {
-            return;
-        }
 
         RenderSystem.depthMask(false);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
@@ -290,9 +290,7 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         RenderSystem.depthMask(true);
     }
 
-    private static boolean isPrintableCharacter(final char ch) {
-        return ch == 0 ||
-            (ch > ' ' && ch <= '~') ||
-            ch >= 177;
+    static boolean isPrintableCharacter(final char ch) {
+        return ch > 0 && ch != ' ' && (ch < 0x7F || ch > 0xA0);
     }
 }

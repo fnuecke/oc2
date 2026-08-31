@@ -288,12 +288,16 @@ public final class Terminal {
     }
 
     public synchronized void putOutput(final byte value) {
+        if (value == '\033') {
+            state = State.ESCAPE;
+            return;
+        }
+
         final char ch = (char) value;
         switch (state) {
             case NORMAL -> {
                 switch (value) {
                     case '\007' -> hasPendingBell = true;
-                    case '\033' -> state = State.ESCAPE;
                     case '\016' -> isShiftedOut = true;  // SO – select G1 into GL
                     case '\017' -> isShiftedOut = false; // SI – select G0 into GL
 
@@ -397,11 +401,8 @@ public final class Terminal {
                 }
             }
             case STRING -> {
-                // Ends on BEL, or on ST (ESC \) which the escape state discards for us.
-                if (value == '\007') {
+                if (value == '\007') { // The other terminator, ST, arrives as ESC.
                     state = State.NORMAL;
-                } else if (value == '\033') {
-                    state = State.ESCAPE;
                 }
             }
             case SHIFT_IN_CHARACTER_SET, SHIFT_OUT_CHARACTER_SET -> {
@@ -499,24 +500,24 @@ public final class Terminal {
 
     private void CUU() {
         final int top = y < scrollFirst ? 0 : scrollFirst;
-        setCursorPos(x, Math.max(top, y - Math.max(1, args[0])));
+        setCursorPos(x, Math.max(top, y - distance(args[0], HEIGHT)));
     }
 
     private void CUD() {
         final int bottom = y > scrollLast ? HEIGHT - 1 : scrollLast;
-        setCursorPos(x, Math.min(bottom, y + Math.max(1, args[0])));
+        setCursorPos(x, Math.min(bottom, y + distance(args[0], HEIGHT)));
     }
 
     private void CUF() {
-        setCursorPos(x + Math.max(1, args[0]), y);
+        setCursorPos(x + distance(args[0], WIDTH), y);
     }
 
     private void CUB() {
-        setCursorPos(cursorColumn() - Math.max(1, args[0]), y);
+        setCursorPos(cursorColumn() - distance(args[0], WIDTH), y);
     }
 
     private void CUP() {
-        setRelativeCursorPos(args[1] - 1, args[0] - 1);
+        setRelativeCursorPos(Math.min(args[1], WIDTH) - 1, Math.min(args[0], HEIGHT) - 1);
     }
 
     private void HVP() {
@@ -624,6 +625,10 @@ public final class Terminal {
 
     private void DA() {
         putResponse("\033[?1;0c"); // No options.
+    }
+
+    private static int distance(final int argument, final int limit) {
+        return Math.clamp(argument, 1, limit);
     }
 
     private void setMode(final int mode) {

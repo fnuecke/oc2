@@ -13,6 +13,7 @@ public final class Bdf2Png {
     private static final String ATLAS = "common/src/main/resources/assets/oc2/textures/font/terminus.png";
 
     private static final int COLUMNS = 16, ROWS = 16;
+    private static final int WHITE_CELL = 0x7F;
 
     private static final int[] SPECIAL_GRAPHICS = {
         0x0020, 0x25C6, 0x2592, 0x2409, 0x240C, 0x240D, 0x240A, 0x00B0,
@@ -30,6 +31,7 @@ public final class Bdf2Png {
             bounds[0] * COLUMNS * 2, bounds[1] * ROWS, BufferedImage.TYPE_INT_ARGB);
         draw(atlas, regular, 0, bounds);
         draw(atlas, bold, COLUMNS, bounds);
+        fillWhiteCell(atlas, bounds);
 
         final File file = new File(ATLAS);
         ImageIO.write(atlas, "png", file);
@@ -52,6 +54,16 @@ public final class Bdf2Png {
                         atlas.setRGB(x + column, y + row, 0xFFFFFFFF);
                     }
                 }
+            }
+        }
+    }
+
+    private static void fillWhiteCell(final BufferedImage atlas, final int[] bounds) {
+        final int x = (WHITE_CELL % COLUMNS + COLUMNS) * bounds[0];
+        final int y = (WHITE_CELL / COLUMNS) * bounds[1];
+        for (int row = 0; row < bounds[1]; row++) {
+            for (int column = 0; column < bounds[0]; column++) {
+                atlas.setRGB(x + column, y + row, 0xFFFFFFFF);
             }
         }
     }

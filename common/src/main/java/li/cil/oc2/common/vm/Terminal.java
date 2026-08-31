@@ -664,7 +664,7 @@ public final class Terminal {
     }
 
     private void setClampedCursorPos(final int x, final int y) {
-        setCursorPos(x, Math.clamp(scrollLast, scrollFirst, y));
+        setCursorPos(x, Math.clamp(y, scrollFirst, scrollLast));
     }
 
     private void setCursorPos(final int x, final int y) {

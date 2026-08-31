@@ -105,6 +105,65 @@ public class TerminalTests {
         assertEquals(1, drainInput(terminal));
     }
 
+    @Test
+    public void cursorUpAtTheTopRowStaysAtTheTopRow() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[A");
+
+        assertEquals(0, terminal.getCursorY());
+    }
+
+    @Test
+    public void cursorUpFarPastTheTopRowStaysAtTheTopRow() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[3;1H");
+
+        write(terminal, "\033[5A");
+
+        assertEquals(0, terminal.getCursorY());
+    }
+
+    @Test
+    public void cursorDownAtTheBottomRowStaysAtTheBottomRow() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[24;1H");
+
+        write(terminal, "\033[B");
+
+        assertEquals(Terminal.HEIGHT - 1, terminal.getCursorY());
+    }
+
+    @Test
+    public void cursorUpStopsAtTheTopOfTheScrollRegion() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;20r\033[10;1H");
+
+        write(terminal, "\033[20A");
+
+        assertEquals(4, terminal.getCursorY());
+    }
+
+    @Test
+    public void cursorDownStopsAtTheBottomOfTheScrollRegion() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;20r\033[10;1H");
+
+        write(terminal, "\033[20B");
+
+        assertEquals(19, terminal.getCursorY());
+    }
+
+    @Test
+    public void cursorMovesWhileAboveTheScrollRegion() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;20r");
+
+        write(terminal, "\033[C\033[D\033[A\033[B");
+
+        assertEquals(0, terminal.getCursorX());
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int drainInput(final Terminal terminal) {
@@ -128,11 +187,15 @@ public class TerminalTests {
 
     // --------------------------------------------------------------------- //
 
-    private static String render(final String value, final int expectedLength) {
-        final Terminal terminal = new Terminal();
+    private static void write(final Terminal terminal, final String value) {
         for (final byte b : value.getBytes(StandardCharsets.UTF_8)) {
             terminal.putOutput(b);
         }
+    }
+
+    private static String render(final String value, final int expectedLength) {
+        final Terminal terminal = new Terminal();
+        write(terminal, value);
 
         return read(terminal, expectedLength);
     }

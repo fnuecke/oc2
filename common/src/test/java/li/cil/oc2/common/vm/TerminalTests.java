@@ -844,6 +844,19 @@ public class TerminalTests {
         assertEquals('X', readLine(loaded, 1).charAt(0), "the deferred wrap should still happen");
     }
 
+    @Test
+    public void aControlSequenceSurvivesSaveAndLoad() {
+        final Terminal saved = new Terminal();
+        write(saved, "\033[2");
+
+        final Terminal loaded = new Terminal();
+        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+
+        write(loaded, ";3HX");
+
+        assertEquals('X', readLine(loaded, 1).charAt(2), "the split sequence should still be a CUP");
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int cellCharacter(final Terminal terminal, final int index) {

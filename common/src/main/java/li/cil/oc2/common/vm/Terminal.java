@@ -11,10 +11,6 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
@@ -95,16 +91,6 @@ public final class Terminal {
 
     // --------------------------------------------------------------------- //
 
-    public enum State { // Must be public for serialization.
-        NORMAL, // Reading characters normally.
-        ESCAPE, // Last character was ESC, figure out what kind next.
-        SHIFT_IN_CHARACTER_SET, // Shift in character set.
-        SHIFT_OUT_CHARACTER_SET, // Shift out character set.
-        HASH, // Escape sequence with # intermediate.
-        CONTROL_SEQUENCE, // Know what sequence we have, now parsing it.
-        STRING, // Inside an OSC/DCS/PM/APC string, discarding until it terminates.
-    }
-
     public interface Listener {
         void handleTerminalChanged();
     }
@@ -116,10 +102,7 @@ public final class Terminal {
     private final byte[] colors = new byte[WIDTH * HEIGHT];
     private final byte[] styles = new byte[WIDTH * HEIGHT];
     private final boolean[] tabs = new boolean[WIDTH];
-    private State state = State.NORMAL;
-    private final int[] args = new int[8];
-    private int argCount;
-    private boolean ignoreSequence, isPrivateSequence;
+    private final TerminalParser parser = new TerminalParser();
     private boolean isG0Graphics, isG1Graphics, isShiftedOut;
     private int modes, privateModes;
     private int scrollFirst, scrollLast = HEIGHT - 1;
@@ -139,15 +122,7 @@ public final class Terminal {
     private transient boolean displayOnly; // Set on client to not send responses to status requests.
     private transient boolean hasPendingBell;
 
-    // Persisted state of the decoder below, to resume decoding after load.
-    private final byte[] utf8Pending = new byte[4];
-    private int utf8PendingCount;
-
-    private final transient CharsetDecoder utf8Decoder = StandardCharsets.UTF_8.newDecoder()
-        .onMalformedInput(CodingErrorAction.REPLACE)
-        .onUnmappableCharacter(CodingErrorAction.REPLACE);
-    private final transient ByteBuffer utf8Input = ByteBuffer.allocate(8);
-    private final transient CharBuffer utf8Output = CharBuffer.allocate(8);
+    private final transient TerminalParser.Sink sink = new ParserSink();
 
     // --------------------------------------------------------------------- //
 
@@ -293,35 +268,35 @@ public final class Terminal {
     }
 
     public synchronized void putOutput(final byte value) {
-        if (value == '\033') {
-            state = State.ESCAPE;
-            return;
+        parser.put(value, sink);
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private final class ParserSink implements TerminalParser.Sink {
+        @Override
+        public void print(final char ch) {
+            putChar(ch <= 0xFF ? ch : UNRENDERABLE);
         }
 
-        final char ch = (char) value;
-        switch (state) {
-            case NORMAL -> {
-                if (!executeControl(value)) {
-                    putUtf8(value);
+        @Override
+        public void execute(final byte control) {
+            executeControl(control);
+        }
+
+        @Override
+        public void escapeDispatch(final char intermediate, final char finalByte) {
+            switch (intermediate) {
+                case '(' -> isG0Graphics = isGraphicsSet(finalByte); // SCS – Select Character Set
+                case ')' -> isG1Graphics = isGraphicsSet(finalByte); // SCS – Select Character Set
+                case '#' -> {
+                    if (finalByte == '8') { // DECALN – Screen Alignment Display
+                        Arrays.fill(buffer, (byte) 'E');
+                        listeners.forEach(Listener::handleTerminalChanged);
+                    }
                 }
-            }
-            case ESCAPE -> {
-                if (ch == '[') { // Control Sequence Indicator
-                    Arrays.fill(args, (byte) 0);
-                    argCount = 0;
-                    ignoreSequence = isPrivateSequence = false;
-                    state = State.CONTROL_SEQUENCE;
-                } else if (ch == ']' || ch == 'P' || ch == '^' || ch == '_') { // OSC, DCS, PM, APC
-                    state = State.STRING;
-                } else if (ch == '(') { // SCS – Select Character Set
-                    state = State.SHIFT_IN_CHARACTER_SET;
-                } else if (ch == ')') { // SCS – Select Character Set
-                    state = State.SHIFT_OUT_CHARACTER_SET;
-                } else if (ch == '#') { // # Intermediate
-                    state = State.HASH;
-                } else {
-                    state = State.NORMAL;
-                    switch (ch) {
+                default -> {
+                    switch (finalByte) {
                         case 'D' -> IND();   // IND – Index
                         case 'E' -> NEL();   // NEL – Next Line
                         case 'M' -> RI();    // RI – Reverse Index
@@ -329,98 +304,37 @@ public final class Terminal {
                         case '8' -> DECRC(); // DECRC – Restore Cursor (DEC Private)
                         case 'H' -> HTS();   // HTS – Horizontal Tabulation Set
                         case 'c' -> RIS();   // RIS – Reset To Initial State
-                        case '=' -> {
-                        }      // DECKPAM – Keypad Application Mode (DEC Private)
-                        case '>' -> {
-                        }      // DECKPNM – Keypad Numeric Mode (DEC Private)
-                    }
-                }
-            }
-            case CONTROL_SEQUENCE -> {
-                if (value == CAN || value == SUB) {
-                    state = State.NORMAL; // Both stop the sequence without displaying anything.
-                } else if (ch < ' ' || ch == DEL) {
-                    executeControl(value); // Handle controls right away.
-                } else if (ch >= '0' && ch <= '9') {
-                    if (argCount < args.length) {
-                        final int digit = ch - '0';
-                        if (args[argCount] < (Integer.MAX_VALUE - digit) / 10) {
-                            args[argCount] = args[argCount] * 10 + digit;
-                        } else {
-                            args[argCount] = Integer.MAX_VALUE;
-                        }
-                    }
-                } else if (ch == ';') {
-                    if (argCount < args.length) {
-                        argCount++;
-                    }
-                } else if (ch == '?') {
-                    isPrivateSequence = true;
-                } else if (ch >= CSI_UNHANDLED_PARAMETER_FIRST && ch <= CSI_UNHANDLED_PARAMETER_LAST
-                    || ch >= CSI_INTERMEDIATE_FIRST && ch <= CSI_INTERMEDIATE_LAST) {
-                    ignoreSequence = true; // We implement no sequence using these.
-                } else {
-                    if (argCount < args.length) {
-                        argCount++;
-                    }
-
-                    state = State.NORMAL;
-                    if (ignoreSequence) {
-                        break;
-                    }
-
-                    switch (ch) {
-                        case 'A' -> CUU(); // CUU - Cursor Up
-                        case 'B' -> CUD(); // CUD – Cursor Down
-                        case 'C' -> CUF(); // CUF – Cursor Forward
-                        case 'D' -> CUB(); // CUB – Cursor Backward
-                        case 'H' -> CUP(); // CUP - Cursor Position
-                        case 'f' -> HVP(); // HVP – Horizontal and Vertical Position
-                        case 'm' -> SGR(); // SGR – Select Graphic Rendition
-                        case 'K' -> EL();  // EL – Erase In Line
-                        case 'J' -> ED();  // ED – Erase In Display
-                        case 'r' -> DECSTBM(); // DECSTBM – Set Top and Bottom Margins (DEC Private)
-                        case 'g' -> TBC(); // TBC – Tabulation Clear
-                        case 'h' -> SM();  // SM – Set Mode
-                        case 'l' -> RM();  // RM – Reset Mode
-                        case 'n' -> DSR(); // DSR – Device Status Report
-                        case 'c' -> DA();  // DA – Device Attributes
-                    }
-                }
-            }
-            case STRING -> {
-                if (value == '\007') { // The other terminator, ST, arrives as ESC.
-                    state = State.NORMAL;
-                }
-            }
-            case SHIFT_IN_CHARACTER_SET, SHIFT_OUT_CHARACTER_SET -> {
-                // 0 is Special Graphics, 2 the alternate ROM's; A, B and 1 are text sets.
-                final boolean isGraphics = ch == '0' || ch == '2';
-                if (state == State.SHIFT_IN_CHARACTER_SET) {
-                    isG0Graphics = isGraphics;
-                } else {
-                    isG1Graphics = isGraphics;
-                }
-                state = State.NORMAL;
-            }
-            case HASH -> {
-                state = State.NORMAL;
-                switch (ch) {
-                    case '3' -> {
-                    } // Change this line to double-height top half (DECDHL)
-                    case '4' -> {
-                    } // Change this line to double-height bottom half (DECDHL)
-                    case '5' -> {
-                    } // Change this line to single-width single-height (DECSWL)
-                    case '6' -> {
-                    } // Change this line to double-width single-height (DECDWL)
-                    case '8' -> { // Fill Screen with Es (DECALN)
-                        Arrays.fill(buffer, (byte) 'E');
-                        listeners.forEach(Listener::handleTerminalChanged);
                     }
                 }
             }
         }
+
+        @Override
+        public void controlSequenceDispatch(final char finalByte, final TerminalParser.Parameters parameters) {
+            switch (finalByte) {
+                case 'A' -> CUU(parameters);      // CUU – Cursor Up
+                case 'B' -> CUD(parameters);      // CUD – Cursor Down
+                case 'C' -> CUF(parameters);      // CUF – Cursor Forward
+                case 'D' -> CUB(parameters);      // CUB – Cursor Backward
+                case 'H', 'f' -> CUP(parameters); // CUP, HVP – Cursor Position
+                case 'm' -> SGR(parameters);      // SGR – Select Graphic Rendition
+                case 'K' -> EL(parameters);       // EL – Erase In Line
+                case 'J' -> ED(parameters);       // ED – Erase In Display
+                case 'r' -> DECSTBM(parameters);  // DECSTBM – Set Top and Bottom Margins
+                case 'g' -> TBC(parameters);      // TBC – Tabulation Clear
+                case 'h' -> SM(parameters);       // SM – Set Mode
+                case 'l' -> RM(parameters);       // RM – Reset Mode
+                case 'n' -> DSR(parameters);      // DSR – Device Status Report
+                case 'c' -> DA();                 // DA – Device Attributes
+            }
+        }
+    }
+
+    // --------------------------------------------------------------------- //
+
+    // 0 is Special Graphics, 2 the alternate ROM's; A, B and 1 are text sets.
+    private static boolean isGraphicsSet(final char set) {
+        return set == '0' || set == '2';
     }
 
     private void IND() {
@@ -466,10 +380,7 @@ public final class Terminal {
     }
 
     private void RIS() {
-        utf8PendingCount = 0;
-        state = State.NORMAL;
-        argCount = 0;
-        ignoreSequence = isPrivateSequence = false;
+        parser.reset();
         isG0Graphics = isG1Graphics = isShiftedOut = false;
         isWrapPending = false;
         modes = 0;
@@ -490,45 +401,41 @@ public final class Terminal {
         }
     }
 
-    private void CUU() {
+    private void CUU(final TerminalParser.Parameters parameters) {
         final int top = y < scrollFirst ? 0 : scrollFirst;
-        setCursorPos(x, Math.max(top, y - distance(args[0], HEIGHT)));
+        setCursorPos(x, Math.max(top, y - distance(parameters.get(0), HEIGHT)));
     }
 
-    private void CUD() {
+    private void CUD(final TerminalParser.Parameters parameters) {
         final int bottom = y > scrollLast ? HEIGHT - 1 : scrollLast;
-        setCursorPos(x, Math.min(bottom, y + distance(args[0], HEIGHT)));
+        setCursorPos(x, Math.min(bottom, y + distance(parameters.get(0), HEIGHT)));
     }
 
-    private void CUF() {
-        setCursorPos(x + distance(args[0], WIDTH), y);
+    private void CUF(final TerminalParser.Parameters parameters) {
+        setCursorPos(x + distance(parameters.get(0), WIDTH), y);
     }
 
-    private void CUB() {
-        setCursorPos(x - distance(args[0], WIDTH), y);
+    private void CUB(final TerminalParser.Parameters parameters) {
+        setCursorPos(x - distance(parameters.get(0), WIDTH), y);
     }
 
-    private void CUP() {
-        setRelativeCursorPos(Math.min(args[1], WIDTH) - 1, Math.min(args[0], HEIGHT) - 1);
+    private void CUP(final TerminalParser.Parameters parameters) {
+        setRelativeCursorPos(Math.min(parameters.get(1), WIDTH) - 1, Math.min(parameters.get(0), HEIGHT) - 1);
     }
 
-    private void HVP() {
-        CUP();
-    }
-
-    private void SGR() {
-        for (int i = 0; i < argCount; i++) {
-            final int sgr = args[i];
+    private void SGR(final TerminalParser.Parameters parameters) {
+        for (int i = 0; i < parameters.count(); i++) {
+            final int sgr = parameters.get(i);
             if (sgr == SGR_FOREGROUND_EXTENDED || sgr == SGR_BACKGROUND_EXTENDED) {
-                i = selectExtendedColor(i);
+                i = selectExtendedColor(i, parameters);
             } else {
                 selectStyle(sgr);
             }
         }
     }
 
-    private void EL() {
-        switch (args[0]) {
+    private void EL(final TerminalParser.Parameters parameters) {
+        switch (parameters.get(0)) {
             case 0 ->  // From cursor to end of line
                 clearLine(y, x, WIDTH);
             case 1 ->  // From beginning of line to cursor
@@ -538,8 +445,8 @@ public final class Terminal {
         }
     }
 
-    private void ED() {
-        switch (args[0]) {
+    private void ED(final TerminalParser.Parameters parameters) {
+        switch (parameters.get(0)) {
             case 0 -> {  // From cursor to end of screen
                 clearLine(y, x, WIDTH);
                 for (int iy = y + 1; iy < HEIGHT; iy++) {
@@ -557,9 +464,9 @@ public final class Terminal {
         }
     }
 
-    private void DECSTBM() {
-        final int first = args[0] > 0 ? args[0] - 1 : 0;
-        final int last = argCount > 1 && args[1] > 0 ? args[1] - 1 : HEIGHT - 1;
+    private void DECSTBM(final TerminalParser.Parameters parameters) {
+        final int first = parameters.get(0) > 0 ? parameters.get(0) - 1 : 0;
+        final int last = parameters.count() > 1 && parameters.get(1) > 0 ? parameters.get(1) - 1 : HEIGHT - 1;
         if (first < 0 || last > HEIGHT - 1 || last - first <= 0) {
             return;
         }
@@ -568,8 +475,8 @@ public final class Terminal {
         setRelativeCursorPos(0, 0); // send cursor home
     }
 
-    private void TBC() {
-        switch (args[0]) {
+    private void TBC(final TerminalParser.Parameters parameters) {
+        switch (parameters.get(0)) {
             case 0 -> { // Clear tab at current column
                 if (x >= 0 && x < WIDTH) {
                     tabs[x] = false;
@@ -580,32 +487,32 @@ public final class Terminal {
         }
     }
 
-    private void SM() {
-        for (int i = 0; i < argCount; i++) {
-            final int mode = args[i];
+    private void SM(final TerminalParser.Parameters parameters) {
+        for (int i = 0; i < parameters.count(); i++) {
+            final int mode = parameters.get(i);
             if (mode != 0) {
-                setMode(isPrivateSequence, mode);
+                setMode(parameters.isPrivate(), mode);
             }
-            if (isPrivateSequence && mode == Mode.DECOM) {
+            if (parameters.isPrivate() && mode == Mode.DECOM) {
                 setRelativeCursorPos(0, 0);
             }
         }
     }
 
-    private void RM() {
-        for (int i = 0; i < argCount; i++) {
-            final int mode = args[i];
+    private void RM(final TerminalParser.Parameters parameters) {
+        for (int i = 0; i < parameters.count(); i++) {
+            final int mode = parameters.get(i);
             if (mode != 0) {
-                resetMode(isPrivateSequence, mode);
+                resetMode(parameters.isPrivate(), mode);
             }
-            if (isPrivateSequence && mode == Mode.DECOM) {
+            if (parameters.isPrivate() && mode == Mode.DECOM) {
                 setRelativeCursorPos(0, 0);
             }
         }
     }
 
-    private void DSR() {
-        switch (args[0]) {
+    private void DSR(final TerminalParser.Parameters parameters) {
+        switch (parameters.get(0)) {
             case 5 -> // Report console status
                 putResponse("\033[0n"); // Ready, No malfunctions detected
             case 6 -> { // Report cursor position
@@ -739,25 +646,25 @@ public final class Terminal {
         }
     }
 
-    private int selectExtendedColor(final int index) {
-        if (index + 1 >= argCount) {
+    private int selectExtendedColor(final int index, final TerminalParser.Parameters parameters) {
+        if (index + 1 >= parameters.count()) {
             return index;
         }
 
-        final boolean isForeground = args[index] == SGR_FOREGROUND_EXTENDED;
-        switch (args[index + 1]) {
+        final boolean isForeground = parameters.get(index) == SGR_FOREGROUND_EXTENDED;
+        switch (parameters.get(index + 1)) {
             case 5 -> { // ESC[38;5;n – 256 color palette
-                if (index + 2 >= argCount) {
-                    return argCount;
+                if (index + 2 >= parameters.count()) {
+                    return parameters.count();
                 }
-                setColor(isForeground, paletteToColorIndex(args[index + 2]));
+                setColor(isForeground, paletteToColorIndex(parameters.get(index + 2)));
                 return index + 2;
             }
             case 2 -> { // ESC[38;2;r;g;b – 24 bit color
-                if (index + 4 >= argCount) {
-                    return argCount;
+                if (index + 4 >= parameters.count()) {
+                    return parameters.count();
                 }
-                setColor(isForeground, rgbToColorIndex(args[index + 2], args[index + 3], args[index + 4]));
+                setColor(isForeground, rgbToColorIndex(parameters.get(index + 2), parameters.get(index + 3), parameters.get(index + 4)));
                 return index + 4;
             }
             default -> {
@@ -809,25 +716,6 @@ public final class Terminal {
         this.x = Math.clamp(x, 0, WIDTH - 1);
         this.y = Math.clamp(y, 0, HEIGHT - 1);
         isWrapPending = false;
-    }
-
-    private void putUtf8(final byte value) {
-        utf8Input.clear();
-        utf8Input.put(utf8Pending, 0, utf8PendingCount);
-        utf8Input.put(value);
-        utf8Input.flip();
-
-        utf8Output.clear();
-        utf8Decoder.decode(utf8Input, utf8Output, false);
-
-        utf8PendingCount = utf8Input.remaining();
-        utf8Input.get(utf8Pending, 0, utf8PendingCount);
-
-        utf8Output.flip();
-        while (utf8Output.hasRemaining()) {
-            final char ch = utf8Output.get();
-            putChar(ch <= 0xFF ? ch : UNRENDERABLE);
-        }
     }
 
     private void putChar(final char ch) {

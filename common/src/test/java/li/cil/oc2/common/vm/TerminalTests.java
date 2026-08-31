@@ -771,6 +771,47 @@ public class TerminalTests {
         assertEquals(4, terminal.getCursorY());
     }
 
+    @Test
+    public void ansiModesDoNotReachDecPrivateModes() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;20r");
+
+        write(terminal, "\033[6h\033[H"); // ANSI mode 6, not DECOM.
+
+        assertEquals(0, terminal.getCursorY(), "setting an ANSI mode must not turn on origin mode");
+    }
+
+    @Test
+    public void resettingAnAnsiModeLeavesTheDecPrivateModeAlone() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[7l"); // ANSI mode 7, not DECAWM.
+
+        write(terminal, fill(Terminal.WIDTH + 5));
+        assertEquals(fill(5) + " ".repeat(Terminal.WIDTH - 5), readLine(terminal, 1),
+            "wrapping is a DEC private mode and must be untouched");
+    }
+
+    @Test
+    public void modeNumbersBeyondTheBitfieldAreIgnored() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[?2004h"); // Bracketed paste; 2004 mod 32 would alias onto LNM.
+
+        write(terminal, "abc\n");
+        assertEquals(3, terminal.getCursorX(), "a line feed must not have turned into a new line");
+    }
+
+    @Test
+    public void ansiNewLineModeStillApplies() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[20h");
+
+        write(terminal, "abc\n");
+        assertEquals(0, terminal.getCursorX());
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int cellCharacter(final Terminal terminal, final int index) {

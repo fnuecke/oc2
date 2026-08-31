@@ -75,7 +75,7 @@ public final class Terminal {
     // Default style: no modifiers, white foreground, black background.
     private static final byte DEFAULT_COLORS = Color.WHITE << COLOR_FOREGROUND_SHIFT;
     private static final byte DEFAULT_STYLE = 0;
-    private static final int DEFAULT_MODES = 1 << Mode.DECAWM;
+    private static final int DEFAULT_PRIVATE_MODES = 1 << Mode.DECAWM;
 
     private static final int SGR_FOREGROUND_EXTENDED = 38;
     private static final int SGR_BACKGROUND_EXTENDED = 48;
@@ -119,9 +119,9 @@ public final class Terminal {
     private State state = State.NORMAL;
     private final int[] args = new int[8];
     private int argCount;
-    private boolean ignoreSequence;
+    private boolean ignoreSequence, isPrivateSequence;
     private boolean isG0Graphics, isG1Graphics, isShiftedOut;
-    private int modes;
+    private int modes, privateModes;
     private int scrollFirst, scrollLast = HEIGHT - 1;
     private int x, y;
     private int savedX, savedY;
@@ -185,7 +185,7 @@ public final class Terminal {
     // --------------------------------------------------------------------- //
 
     public boolean isCursorKeyApplicationMode() {
-        return getMode(Mode.DECCKM);
+        return getPrivateMode(Mode.DECCKM);
     }
 
     public int getCursorX() {
@@ -308,7 +308,7 @@ public final class Terminal {
                 if (ch == '[') { // Control Sequence Indicator
                     Arrays.fill(args, (byte) 0);
                     argCount = 0;
-                    ignoreSequence = false;
+                    ignoreSequence = isPrivateSequence = false;
                     state = State.CONTROL_SEQUENCE;
                 } else if (ch == ']' || ch == 'P' || ch == '^' || ch == '_') { // OSC, DCS, PM, APC
                     state = State.STRING;
@@ -354,7 +354,7 @@ public final class Terminal {
                         argCount++;
                     }
                 } else if (ch == '?') {
-                    // DEC private marker; the modes we implement are addressed this way.
+                    isPrivateSequence = true;
                 } else if (ch >= CSI_UNHANDLED_PARAMETER_FIRST && ch <= CSI_UNHANDLED_PARAMETER_LAST
                     || ch >= CSI_INTERMEDIATE_FIRST && ch <= CSI_INTERMEDIATE_LAST) {
                     ignoreSequence = true; // We implement no sequence using these.
@@ -466,9 +466,10 @@ public final class Terminal {
         utf8PendingCount = 0;
         state = State.NORMAL;
         argCount = 0;
-        ignoreSequence = false;
+        ignoreSequence = isPrivateSequence = false;
         isG0Graphics = isG1Graphics = isShiftedOut = false;
-        modes = DEFAULT_MODES;
+        modes = 0;
+        privateModes = DEFAULT_PRIVATE_MODES;
         color = DEFAULT_COLORS;
         style = DEFAULT_STYLE;
         savedColor = DEFAULT_COLORS;
@@ -579,9 +580,9 @@ public final class Terminal {
         for (int i = 0; i < argCount; i++) {
             final int mode = args[i];
             if (mode != 0) {
-                setMode(mode);
+                setMode(isPrivateSequence, mode);
             }
-            if (mode == Mode.DECOM) {
+            if (isPrivateSequence && mode == Mode.DECOM) {
                 setRelativeCursorPos(0, 0);
             }
         }
@@ -591,9 +592,9 @@ public final class Terminal {
         for (int i = 0; i < argCount; i++) {
             final int mode = args[i];
             if (mode != 0) {
-                resetMode(mode);
+                resetMode(isPrivateSequence, mode);
             }
-            if (mode == Mode.DECOM) {
+            if (isPrivateSequence && mode == Mode.DECOM) {
                 setRelativeCursorPos(0, 0);
             }
         }
@@ -604,7 +605,7 @@ public final class Terminal {
             case 5 -> // Report console status
                 putResponse("\033[0n"); // Ready, No malfunctions detected
             case 6 -> { // Report cursor position
-                final int row = getMode(Mode.DECOM) ? y - scrollFirst + 1 : y + 1;
+                final int row = getPrivateMode(Mode.DECOM) ? y - scrollFirst + 1 : y + 1;
                 putResponse(String.format(Locale.ROOT, "\033[%d;%dR", row, cursorColumn() + 1));
             }
         }
@@ -648,16 +649,34 @@ public final class Terminal {
         return true;
     }
 
-    private void setMode(final int mode) {
-        modes |= 1 << mode;
+    private void setMode(final boolean isPrivate, final int mode) {
+        if (mode >= Integer.SIZE) {
+            return;
+        }
+        if (isPrivate) {
+            privateModes |= 1 << mode;
+        } else {
+            modes |= 1 << mode;
+        }
     }
 
-    private void resetMode(final int mode) {
-        modes &= ~(1 << mode);
+    private void resetMode(final boolean isPrivate, final int mode) {
+        if (mode >= Integer.SIZE) {
+            return;
+        }
+        if (isPrivate) {
+            privateModes &= ~(1 << mode);
+        } else {
+            modes &= ~(1 << mode);
+        }
     }
 
     private boolean getMode(final int mode) {
         return (modes & (1 << mode)) != 0;
+    }
+
+    private boolean getPrivateMode(final int mode) {
+        return (privateModes & (1 << mode)) != 0;
     }
 
     private void putResponse(final String value) {
@@ -775,7 +794,7 @@ public final class Terminal {
     }
 
     private void setRelativeCursorPos(final int x, final int y) {
-        if (getMode(Mode.DECOM)) {
+        if (getPrivateMode(Mode.DECOM)) {
             setCursorPos(x, Math.clamp(scrollFirst + y, scrollFirst, scrollLast));
         } else {
             setCursorPos(x, y);
@@ -817,7 +836,7 @@ public final class Terminal {
         final char glyph = isGraphicsCharacter(ch) ? (char) (ch - ACS_FIRST) : ch;
 
         if (x >= WIDTH) {
-            if (getMode(Mode.DECAWM)) {
+            if (getPrivateMode(Mode.DECAWM)) {
                 NEL();
             } else {
                 setCursorPos(WIDTH - 1, y);

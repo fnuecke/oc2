@@ -79,6 +79,9 @@ public final class Terminal {
     private static final int SGR_FOREGROUND_EXTENDED = 38;
     private static final int SGR_BACKGROUND_EXTENDED = 48;
 
+    // DEC special graphics covers _ through ~; the font holds those glyphs at ch - ACS_FIRST.
+    private static final char ACS_FIRST = 0x5F, ACS_LAST = 0x7E;
+
     // ECMA-48 byte ranges inside a control sequence. End on anything in 0x40 to 0x7E.
     private static final char CSI_INTERMEDIATE_FIRST = 0x20, CSI_INTERMEDIATE_LAST = 0x2F;
     private static final char CSI_PRIVATE_FIRST = 0x3C, CSI_PRIVATE_LAST = 0x3F;
@@ -113,6 +116,7 @@ public final class Terminal {
     private final int[] args = new int[8];
     private int argCount;
     private boolean ignoreSequence;
+    private boolean isG0Graphics, isG1Graphics, isShiftedOut;
     private int modes;
     private int scrollFirst, scrollLast = HEIGHT - 1;
     private int x, y;
@@ -175,6 +179,10 @@ public final class Terminal {
     }
 
     // --------------------------------------------------------------------- //
+
+    public boolean isCursorKeyApplicationMode() {
+        return getMode(Mode.DECCKM);
+    }
 
     public int getCursorX() {
         return x;
@@ -286,10 +294,8 @@ public final class Terminal {
                 switch (value) {
                     case '\007' -> hasPendingBell = true;
                     case '\033' -> state = State.ESCAPE;
-                    case '\016' -> {
-                    } // SO
-                    case '\017' -> {
-                    } // SI
+                    case '\016' -> isShiftedOut = true;  // SO – select G1 into GL
+                    case '\017' -> isShiftedOut = false; // SI – select G0 into GL
 
                     case (byte) '\r' /* 015 */ -> setCursorPos(0, y);
                     case (byte) '\n' /* 012 */, '\013', '\014' -> {
@@ -399,19 +405,14 @@ public final class Terminal {
                 }
             }
             case SHIFT_IN_CHARACTER_SET, SHIFT_OUT_CHARACTER_SET -> {
-                state = State.NORMAL;
-                switch (ch) {
-                    case 'A' -> {
-                    } // United Kingdom Set
-                    case 'B' -> {
-                    } // ASCII Set
-                    case '0' -> {
-                    } // Special Graphics
-                    case '1' -> {
-                    } // Alternate Character ROM Standard Character Set
-                    case '2' -> {
-                    } // Alternate Character ROM Special Graphics
+                // 0 is Special Graphics, 2 the alternate ROM's; A, B and 1 are text sets.
+                final boolean isGraphics = ch == '0' || ch == '2';
+                if (state == State.SHIFT_IN_CHARACTER_SET) {
+                    isG0Graphics = isGraphics;
+                } else {
+                    isG1Graphics = isGraphics;
                 }
+                state = State.NORMAL;
             }
             case HASH -> {
                 state = State.NORMAL;
@@ -478,6 +479,7 @@ public final class Terminal {
         state = State.NORMAL;
         argCount = 0;
         ignoreSequence = false;
+        isG0Graphics = isG1Graphics = isShiftedOut = false;
         modes = DEFAULT_MODES;
         color = DEFAULT_COLORS;
         style = DEFAULT_STYLE;
@@ -678,8 +680,17 @@ public final class Terminal {
                 style &= ~STYLE_HIDDEN_MASK;
             case 30, 31, 32, 33, 34, 35, 36, 37 -> // Set foreground color
                 setColor(true, sgr - 30);
+            case 39 -> // Default foreground color
+                setColor(true, Color.WHITE);
             case 40, 41, 42, 43, 44, 45, 46, 47 -> //–47 Set background color
                 setColor(false, sgr - 40);
+            case 49 -> // Default background color
+                setColor(false, Color.BLACK);
+            // We only have the one intensity, so the bright colors are the regular ones.
+            case 90, 91, 92, 93, 94, 95, 96, 97 -> // Set bright foreground color
+                setColor(true, sgr - 90);
+            case 100, 101, 102, 103, 104, 105, 106, 107 -> // Set bright background color
+                setColor(false, sgr - 100);
         }
     }
 
@@ -717,7 +728,7 @@ public final class Terminal {
         if (palette < 232) { // 6x6x6 color cube.
             final int index = palette - 16;
             return channelToColorMask(index / 36, 3, Color.RED)
-                | channelToColorMask((index / 6) % 6, 3, Color.GREEN)
+                | channelToColorMask(index / 6 % 6, 3, Color.GREEN)
                 | channelToColorMask(index % 6, 3, Color.BLUE);
         }
         return palette - 232 < 12 ? Color.BLACK : Color.WHITE; // Grayscale ramp.
@@ -781,6 +792,8 @@ public final class Terminal {
         if (Character.isISOControl(ch))
             return;
 
+        final char glyph = isGraphicsCharacter(ch) ? (char) (ch - ACS_FIRST) : ch;
+
         if (x >= WIDTH) {
             if (getMode(Mode.DECAWM)) {
                 NEL();
@@ -789,8 +802,12 @@ public final class Terminal {
             }
         }
 
-        setChar(x, y, ch);
+        setChar(x, y, glyph);
         x++;
+    }
+
+    private boolean isGraphicsCharacter(final char ch) {
+        return ch >= ACS_FIRST && ch <= ACS_LAST && (isShiftedOut ? isG1Graphics : isG0Graphics);
     }
 
     private void setChar(final int x, final int y, final char ch) {

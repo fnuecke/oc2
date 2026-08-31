@@ -110,7 +110,7 @@ public final class MachineTerminalWidget {
         if ((modifiers & GLFW.GLFW_MOD_CONTROL) != 0 && keyCode == GLFW.GLFW_KEY_V) {
             putInput(getClient().keyboardHandler.getClipboard());
         } else {
-            final byte[] sequence = TerminalInput.getSequence(keyCode, modifiers);
+            final byte[] sequence = TerminalInput.getSequence(keyCode, modifiers, terminal.isCursorKeyApplicationMode());
             if (sequence != null) {
                 for (final byte b : sequence) {
                     terminal.putInput(b);

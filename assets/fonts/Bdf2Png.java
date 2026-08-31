@@ -1,73 +1,101 @@
 package li.cil.oc2.client.render.font;
 
-import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class Bdf2Png {
-    private static final String LOCATION_FONT_NORMAL = "modules/oc2/src/main/resources/assets/oc2/fonts/terminus/ter-u16n.bdf";
-    private static final String LOCATION_FONT_BOLD = "modules/oc2/src/main/resources/assets/oc2/fonts/terminus/ter-u16b.bdf";
+    private static final String FONT_REGULAR = "assets/fonts/ter-u16n.bdf";
+    private static final String FONT_BOLD = "assets/fonts/ter-u16b.bdf";
+    private static final String ATLAS = "common/src/main/resources/assets/oc2/textures/font/terminus.png";
+
+    private static final int COLUMNS = 16, ROWS = 16;
+
+    private static final int[] SPECIAL_GRAPHICS = {
+        0x0020, 0x25C6, 0x2592, 0x2409, 0x240C, 0x240D, 0x240A, 0x00B0,
+        0x00B1, 0x2424, 0x240B, 0x2518, 0x2510, 0x250C, 0x2514, 0x253C,
+        0x23BA, 0x23BB, 0x2500, 0x23BC, 0x23BD, 0x251C, 0x2524, 0x2534,
+        0x252C, 0x2502, 0x2264, 0x2265, 0x03C0, 0x2260, 0x00A3, 0x00B7,
+    };
 
     public static void main(final String[] args) throws IOException {
-        bdf2png(LOCATION_FONT_NORMAL);
-        bdf2png(LOCATION_FONT_BOLD);
+        final int[] bounds = new int[4];
+        final Map<Integer, int[]> regular = readFont(FONT_REGULAR, bounds);
+        final Map<Integer, int[]> bold = readFont(FONT_BOLD, new int[4]);
+
+        final BufferedImage atlas = new BufferedImage(
+            bounds[0] * COLUMNS * 2, bounds[1] * ROWS, BufferedImage.TYPE_INT_ARGB);
+        draw(atlas, regular, 0, bounds);
+        draw(atlas, bold, COLUMNS, bounds);
+
+        final File file = new File(ATLAS);
+        ImageIO.write(atlas, "png", file);
+        System.out.println("Wrote " + file.getAbsolutePath());
     }
 
-    private static void bdf2png(final String path) throws IOException {
-        final int[] bounds = new int[4];
+    private static void draw(final BufferedImage atlas, final Map<Integer, int[]> glyphs, final int columnOffset, final int[] bounds) {
+        for (int cell = 0; cell < COLUMNS * ROWS; cell++) {
+            final int codePoint = cell < SPECIAL_GRAPHICS.length ? SPECIAL_GRAPHICS[cell] : cell;
+            final int[] rows = glyphs.get(codePoint);
+            if (rows == null) {
+                continue;
+            }
+
+            final int x = (cell % COLUMNS + columnOffset) * bounds[0];
+            final int y = (cell / COLUMNS) * bounds[1];
+            for (int row = 0; row < rows.length; row++) {
+                for (int column = 0; column < bounds[0]; column++) {
+                    if ((rows[row] & (1 << (Integer.SIZE - 1 - column))) != 0) {
+                        atlas.setRGB(x + column, y + row, 0xFFFFFFFF);
+                    }
+                }
+            }
+        }
+    }
+
+    private static Map<Integer, int[]> readFont(final String path, final int[] bounds) throws IOException {
         try (final InputStream inputStream = new FileInputStream(path)) {
             final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
             expectLine(readHeader(reader, bounds), "CHARS ");
 
             if (bounds[0] <= 0 || bounds[1] <= 0) {
-                throw new IOException();
+                throw new IOException("Font has no usable bounding box.");
             }
 
-            final BufferedImage image = new BufferedImage(bounds[0] * 16, bounds[1] * 16, BufferedImage.TYPE_INT_ARGB);
-
+            final Map<Integer, int[]> glyphs = new HashMap<>();
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("ENDFONT")) {
-                    ImageIO.write(image, "png", new File(path + ".png"));
-                    return;
+                    return glyphs;
                 }
-                readChar(reader, image, bounds);
+                readChar(reader, glyphs, bounds);
             }
         }
-        throw new IOException();
+        throw new IOException("Font ended without ENDFONT.");
     }
 
-    private static void readChar(final BufferedReader reader, final BufferedImage image, final int[] defaultBounds) throws IOException {
+    private static void readChar(final BufferedReader reader, final Map<Integer, int[]> glyphs, final int[] defaultBounds) throws IOException {
         final int encoding = Integer.parseInt(expectLine(reader, "ENCODING "));
         expectLine(reader, "SWIDTH ");
         expectLine(reader, "DWIDTH ");
         final int[] bounds = expectBounds(expectLine(reader, "BBX "), new int[4]);
-        if (!Arrays.equals(bounds, defaultBounds)) throw new IOException();
+        if (!Arrays.equals(bounds, defaultBounds)) throw new IOException("Glyph " + encoding + " has its own bounding box.");
 
         expectLine(reader, "BITMAP");
+        final int[] rows = new int[defaultBounds[1]];
         String line;
         int row = 0;
         while ((line = reader.readLine()) != null && !line.equals("ENDCHAR")) {
-            final int rowBitmap = Integer.parseInt(line, 16);
-            if (encoding < 0 || encoding >= 256) {
-                continue;
-            }
-
-            final int x = (encoding % 16) * defaultBounds[0];
-            final int y = (encoding / 16) * defaultBounds[1] + row++;
-
-            for (int i = 1 << defaultBounds[0], j = 0; i > 0; i = i >>> 1, j++) {
-                if ((rowBitmap & i) != 0) {
-                    image.setRGB(x + j, y, 0xFFFFFFFF);
-                }
-            }
+            rows[row++] = Integer.parseUnsignedInt(line, 16) << (Integer.SIZE - line.length() * 4);
         }
+
+        glyphs.put(encoding, rows);
     }
 
-    @Nullable
     private static String readHeader(final BufferedReader reader, final int[] bounds) throws IOException {
         expectLine(reader, "STARTFONT ");
         expectLine(reader, "FONT ");
@@ -100,7 +128,7 @@ public final class Bdf2Png {
         return expectLine(reader.readLine(), prefix);
     }
 
-    private static String expectLine(@Nullable final String line, final String prefix) throws IOException {
+    private static String expectLine(final String line, final String prefix) throws IOException {
         if (line == null || !line.startsWith(prefix)) throw new IOException();
         return line.substring(prefix.length());
     }

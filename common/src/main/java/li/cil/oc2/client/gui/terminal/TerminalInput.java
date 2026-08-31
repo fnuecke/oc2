@@ -87,11 +87,11 @@ public final class TerminalInput {
 
     @Nullable
     public static byte[] getSequence(final int keyCode) {
-        return getSequence(keyCode, 0);
+        return getSequence(keyCode, 0, false);
     }
 
     @Nullable
-    public static byte[] getSequence(final int keyCode, final int modifiers) {
+    public static byte[] getSequence(final int keyCode, final int modifiers, final boolean isCursorKeyApplicationMode) {
         final int relevantModifiers = modifiers & MODIFIER_MASK;
 
         final Int2ObjectArrayMap<byte[]> map = KEYCODE_SEQUENCES.get(relevantModifiers);
@@ -102,13 +102,13 @@ public final class TerminalInput {
             }
         }
 
-        return getCsiSequence(keyCode, relevantModifiers);
+        return getCsiSequence(keyCode, relevantModifiers, isCursorKeyApplicationMode);
     }
 
     // --------------------------------------------------------------------- //
 
     @Nullable
-    private static byte[] getCsiSequence(final int keyCode, final int modifiers) {
+    private static byte[] getCsiSequence(final int keyCode, final int modifiers, final boolean isCursorKeyApplicationMode) {
         final int parameter = 1
             + ((modifiers & GLFW.GLFW_MOD_SHIFT) != 0 ? 1 : 0)
             + ((modifiers & GLFW.GLFW_MOD_ALT) != 0 ? 2 : 0)
@@ -116,9 +116,10 @@ public final class TerminalInput {
 
         final char finalByte = CSI_FINAL_BYTES.get(keyCode);
         if (finalByte != '\0') {
-            return toBytes(parameter == 1
-                ? "\033[" + finalByte
-                : "\033[1;" + parameter + finalByte);
+            if (parameter == 1) {
+                return toBytes((isCursorKeyApplicationMode ? "\033O" : "\033[") + finalByte);
+            }
+            return toBytes("\033[1;" + parameter + finalByte);
         }
 
         final int code = CSI_CODES.get(keyCode);

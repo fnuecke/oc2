@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TerminalTests {
+    private static final int COLOR_BLACK = 0;
     private static final int COLOR_RED = 1;
     private static final int COLOR_BLUE = 4;
 
@@ -525,7 +526,118 @@ public class TerminalTests {
         assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 1), "ESC[?7l must still turn wrapping off");
     }
 
+    @Test
+    public void defaultForegroundColorIsRestored() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[31mA\033[39mB");
+
+        assertEquals(Terminal.COLOR_WHITE, Terminal.getForegroundColorIndex(terminal.getCell(1)));
+    }
+
+    @Test
+    public void defaultBackgroundColorIsRestored() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[44mA\033[49mB");
+
+        assertEquals(COLOR_BLACK, Terminal.getBackgroundColorIndex(terminal.getCell(1)));
+    }
+
+    @Test
+    public void brightForegroundColorsAreApplied() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[91mA");
+
+        assertEquals(COLOR_RED, Terminal.getForegroundColorIndex(terminal.getCell(0)));
+    }
+
+    @Test
+    public void brightBackgroundColorsAreApplied() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[104mA");
+
+        assertEquals(COLOR_BLUE, Terminal.getBackgroundColorIndex(terminal.getCell(0)));
+    }
+
+    @Test
+    public void lineDrawingIsOffByDefault() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "lqk");
+
+        assertEquals("lqk", read(terminal, 3));
+    }
+
+    @Test
+    public void shiftOutSelectsTheLineDrawingSet() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033)0\016lqk");
+
+        assertEquals('l' - '_', cellCharacter(terminal, 0));
+        assertEquals('q' - '_', cellCharacter(terminal, 1));
+        assertEquals('k' - '_', cellCharacter(terminal, 2));
+    }
+
+    @Test
+    public void shiftInReturnsToText() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033)0\016l\017l");
+
+        assertEquals('l' - '_', cellCharacter(terminal, 0));
+        assertEquals('l', cellCharacter(terminal, 1));
+    }
+
+    @Test
+    public void theLineDrawingSetCanBeMappedIntoG0() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033(0lqk");
+
+        assertEquals('l' - '_', cellCharacter(terminal, 0));
+    }
+
+    @Test
+    public void charactersOutsideTheLineDrawingRangeAreUnchanged() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033(0AZ");
+
+        assertEquals('A', cellCharacter(terminal, 0));
+        assertEquals('Z', cellCharacter(terminal, 1));
+    }
+
+    @Test
+    public void resetReturnsToTheTextCharacterSet() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033)0\016");
+
+        write(terminal, "\033clqk");
+
+        assertEquals("lqk", read(terminal, 3));
+    }
+
+    @Test
+    public void cursorKeyApplicationModeFollowsTheMode() {
+        final Terminal terminal = new Terminal();
+        assertFalse(terminal.isCursorKeyApplicationMode());
+
+        write(terminal, "\033[?1h");
+        assertTrue(terminal.isCursorKeyApplicationMode());
+
+        write(terminal, "\033[?1l");
+        assertFalse(terminal.isCursorKeyApplicationMode());
+    }
+
     // --------------------------------------------------------------------- //
+
+    private static int cellCharacter(final Terminal terminal, final int index) {
+        return Terminal.getCharacter(terminal.getCell(index));
+    }
 
     private static int drainInput(final Terminal terminal) {
         int count = 0;

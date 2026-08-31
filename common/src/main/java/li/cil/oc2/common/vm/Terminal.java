@@ -79,6 +79,10 @@ public final class Terminal {
     private static final int SGR_FOREGROUND_EXTENDED = 38;
     private static final int SGR_BACKGROUND_EXTENDED = 48;
 
+    // ECMA-48 byte ranges inside a control sequence. End on anything in 0x40 to 0x7E.
+    private static final char CSI_INTERMEDIATE_FIRST = 0x20, CSI_INTERMEDIATE_LAST = 0x2F;
+    private static final char CSI_PRIVATE_FIRST = 0x3C, CSI_PRIVATE_LAST = 0x3F;
+
     private static final int CELL_COLORS_SHIFT = 8;
     private static final int CELL_STYLE_SHIFT = 16;
 
@@ -91,6 +95,7 @@ public final class Terminal {
         SHIFT_OUT_CHARACTER_SET, // Shift out character set.
         HASH, // Escape sequence with # intermediate.
         CONTROL_SEQUENCE, // Know what sequence we have, now parsing it.
+        STRING, // Inside an OSC/DCS/PM/APC string, discarding until it terminates.
     }
 
     public interface Listener {
@@ -107,6 +112,7 @@ public final class Terminal {
     private State state = State.NORMAL;
     private final int[] args = new int[8];
     private int argCount;
+    private boolean ignoreSequence;
     private int modes;
     private int scrollFirst, scrollLast = HEIGHT - 1;
     private int x, y;
@@ -309,7 +315,10 @@ public final class Terminal {
                 if (ch == '[') { // Control Sequence Indicator
                     Arrays.fill(args, (byte) 0);
                     argCount = 0;
+                    ignoreSequence = false;
                     state = State.CONTROL_SEQUENCE;
+                } else if (ch == ']' || ch == 'P' || ch == '^' || ch == '_') { // OSC, DCS, PM, APC
+                    state = State.STRING;
                 } else if (ch == '(') { // SCS – Select Character Set
                     state = State.SHIFT_IN_CHARACTER_SET;
                 } else if (ch == ')') { // SCS – Select Character Set
@@ -343,20 +352,25 @@ public final class Terminal {
                             args[argCount] = Integer.MAX_VALUE;
                         }
                     }
-                } else {
-                    if (ch == '?') {
-                        break; // Ignore ? intermediate character.
+                } else if (ch == ';') {
+                    if (argCount < args.length) {
+                        argCount++;
                     }
-
+                } else if (ch == '?') {
+                    // DEC private marker; the modes we implement are addressed this way.
+                } else if (ch >= CSI_PRIVATE_FIRST && ch <= CSI_PRIVATE_LAST
+                    || ch >= CSI_INTERMEDIATE_FIRST && ch <= CSI_INTERMEDIATE_LAST) {
+                    ignoreSequence = true; // We implement no sequence using these.
+                } else {
                     if (argCount < args.length) {
                         argCount++;
                     }
 
-                    if (ch == ';') {
-                        break; // Keep going, we have another argument.
+                    state = State.NORMAL;
+                    if (ignoreSequence) {
+                        break;
                     }
 
-                    state = State.NORMAL;
                     switch (ch) {
                         case 'A' -> CUU(); // CUU - Cursor Up
                         case 'B' -> CUD(); // CUD – Cursor Down
@@ -374,6 +388,14 @@ public final class Terminal {
                         case 'n' -> DSR(); // DSR – Device Status Report
                         case 'c' -> DA();  // DA – Device Attributes
                     }
+                }
+            }
+            case STRING -> {
+                // Ends on BEL, or on ST (ESC \) which the escape state discards for us.
+                if (value == '\007') {
+                    state = State.NORMAL;
+                } else if (value == '\033') {
+                    state = State.ESCAPE;
                 }
             }
             case SHIFT_IN_CHARACTER_SET, SHIFT_OUT_CHARACTER_SET -> {
@@ -455,6 +477,7 @@ public final class Terminal {
         utf8PendingCount = 0;
         state = State.NORMAL;
         argCount = 0;
+        ignoreSequence = false;
         modes = DEFAULT_MODES;
         color = DEFAULT_COLORS;
         style = DEFAULT_STYLE;

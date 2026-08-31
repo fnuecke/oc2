@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TerminalTests {
@@ -430,6 +431,98 @@ public class TerminalTests {
         write(terminal, "\033[6n");
 
         assertEquals("\033[1;80R", readResponse(terminal));
+    }
+
+    @Test
+    public void windowTitlesAreNotPrintedToTheScreen() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033]0;some title\007X");
+
+        assertEquals("X", read(terminal, 1));
+    }
+
+    @Test
+    public void windowTitlesDoNotRingTheBell() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033]0;some title\007");
+
+        assertFalse(terminal.consumePendingBell());
+    }
+
+    @Test
+    public void stringTerminatorEndsAString() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033]0;some title\033\\X");
+
+        assertEquals("X", read(terminal, 1));
+    }
+
+    @Test
+    public void deviceControlStringsAreNotPrintedToTheScreen() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033P1;2|junk\033\\X");
+
+        assertEquals("X", read(terminal, 1));
+    }
+
+    @Test
+    public void anUnterminatedStringIsRecoveredByReset() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033]0;never terminated");
+
+        write(terminal, "\033cX");
+
+        assertEquals("X", read(terminal, 1));
+    }
+
+    @Test
+    public void cursorStyleIsNotPrintedToTheScreen() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[2 qX");
+
+        assertEquals("X", read(terminal, 1));
+    }
+
+    @Test
+    public void softResetIsNotPrintedToTheScreen() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[!pX");
+
+        assertEquals("X", read(terminal, 1));
+    }
+
+    @Test
+    public void privateControlSequencesAreNotPrintedToTheScreen() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[>4;2mX");
+
+        assertEquals("X", read(terminal, 1));
+    }
+
+    @Test
+    public void privateControlSequencesDoNotRunTheirPublicCounterpart() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[>31mX");
+
+        assertEquals(Terminal.COLOR_WHITE, Terminal.getForegroundColorIndex(terminal.getCell(0)));
+    }
+
+    @Test
+    public void decPrivateModesStillApply() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[?7l");
+
+        write(terminal, fill(Terminal.WIDTH + 5));
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 1), "ESC[?7l must still turn wrapping off");
     }
 
     // --------------------------------------------------------------------- //

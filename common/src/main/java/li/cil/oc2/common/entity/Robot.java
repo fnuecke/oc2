@@ -402,7 +402,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     protected void addAdditionalSaveData(final CompoundTag tag) {
         if (virtualMachine.getRunState() != VMRunState.STOPPED) {
             tag.put(STATE_TAG_NAME, virtualMachine.serialize());
-            tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+            synchronized (terminal) {
+                tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+            }
         }
 
         tag.put(COMMAND_PROCESSOR_TAG_NAME, actionProcessor.serialize());

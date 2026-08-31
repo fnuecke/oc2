@@ -249,7 +249,9 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
         if (virtualMachine.getRunState() != VMRunState.STOPPED) {
             tag.put(STATE_TAG_NAME, virtualMachine.serialize());
-            tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+            synchronized (terminal) {
+                tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+            }
         }
 
         tag.put(ENERGY_TAG_NAME, energy.serializeNBT());

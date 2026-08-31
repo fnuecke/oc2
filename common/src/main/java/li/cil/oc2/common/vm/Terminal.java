@@ -95,6 +95,20 @@ public final class Terminal {
         void handleTerminalChanged();
     }
 
+    @Serialized
+    public static final class SavedCursor {
+        public int x, y;
+        public byte color = DEFAULT_COLORS, style = DEFAULT_STYLE;
+        public boolean isG0Graphics, isG1Graphics, isShiftedOut, isOriginMode, isWrapPending;
+
+        void reset() {
+            x = y = 0;
+            color = DEFAULT_COLORS;
+            style = DEFAULT_STYLE;
+            isG0Graphics = isG1Graphics = isShiftedOut = isOriginMode = isWrapPending = false;
+        }
+    }
+
     // --------------------------------------------------------------------- //
 
     private final ByteArrayFIFOQueue input = new ByteArrayFIFOQueue(32);
@@ -108,8 +122,7 @@ public final class Terminal {
     private int scrollFirst, scrollLast = HEIGHT - 1;
     private int x, y;
     private boolean isWrapPending;
-    private int savedX, savedY;
-    private byte savedColor, savedStyle;
+    private final SavedCursor savedCursor = new SavedCursor();
 
     // Color info packed into one byte for compact storage
     // 0-2: background color (index)
@@ -361,16 +374,30 @@ public final class Terminal {
     }
 
     private void DECSC() {
-        savedX = x;
-        savedY = y;
-        savedColor = color;
-        savedStyle = style;
+        savedCursor.x = x;
+        savedCursor.y = y;
+        savedCursor.color = color;
+        savedCursor.style = style;
+        savedCursor.isG0Graphics = isG0Graphics;
+        savedCursor.isG1Graphics = isG1Graphics;
+        savedCursor.isShiftedOut = isShiftedOut;
+        savedCursor.isOriginMode = getPrivateMode(Mode.DECOM);
+        savedCursor.isWrapPending = isWrapPending;
     }
 
     private void DECRC() {
-        setCursorPos(savedX, savedY);
-        color = savedColor;
-        style = savedStyle;
+        color = savedCursor.color;
+        style = savedCursor.style;
+        isG0Graphics = savedCursor.isG0Graphics;
+        isG1Graphics = savedCursor.isG1Graphics;
+        isShiftedOut = savedCursor.isShiftedOut;
+        if (savedCursor.isOriginMode) {
+            setMode(true, Mode.DECOM);
+        } else {
+            resetMode(true, Mode.DECOM);
+        }
+        setCursorPos(savedCursor.x, savedCursor.y);
+        isWrapPending = savedCursor.isWrapPending; // Placing the cursor cleared it.
     }
 
     private void HTS() {
@@ -387,9 +414,8 @@ public final class Terminal {
         privateModes = DEFAULT_PRIVATE_MODES;
         color = DEFAULT_COLORS;
         style = DEFAULT_STYLE;
-        savedColor = DEFAULT_COLORS;
-        savedStyle = DEFAULT_STYLE;
-        x = y = savedX = savedY = 0;
+        savedCursor.reset();
+        x = y = 0;
         scrollFirst = 0;
         scrollLast = HEIGHT - 1;
         clear();
@@ -466,12 +492,15 @@ public final class Terminal {
 
     private void DECSTBM(final TerminalParser.Parameters parameters) {
         final int first = parameters.get(0) > 0 ? parameters.get(0) - 1 : 0;
-        final int last = parameters.count() > 1 && parameters.get(1) > 0 ? parameters.get(1) - 1 : HEIGHT - 1;
-        if (first < 0 || last > HEIGHT - 1 || last - first <= 0) {
-            return;
+        final int requested = parameters.count() > 1 && parameters.get(1) > 0 ? parameters.get(1) - 1 : HEIGHT - 1;
+        final int last = Math.min(requested, HEIGHT - 1);
+        if (first < last) {
+            scrollFirst = first;
+            scrollLast = last;
+        } else { // A region that is not at least two lines tall means the whole screen.
+            scrollFirst = 0;
+            scrollLast = HEIGHT - 1;
         }
-        scrollFirst = first; // to index
-        scrollLast = last; // to index
         setRelativeCursorPos(0, 0); // send cursor home
     }
 

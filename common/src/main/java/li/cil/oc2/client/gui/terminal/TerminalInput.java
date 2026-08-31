@@ -86,11 +86,6 @@ public final class TerminalInput {
     // --------------------------------------------------------------------- //
 
     @Nullable
-    public static byte[] getSequence(final int keyCode) {
-        return getSequence(keyCode, 0, false);
-    }
-
-    @Nullable
     public static byte[] getSequence(final int keyCode, final int modifiers, final boolean isCursorKeyApplicationMode) {
         final int relevantModifiers = modifiers & MODIFIER_MASK;
 

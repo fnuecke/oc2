@@ -169,6 +169,7 @@ public class TerminalTests {
         write(terminal, "\033[C\033[D\033[A\033[B");
 
         assertEquals(0, terminal.getCursorX());
+        assertEquals(1, terminal.getCursorY(), "only the vertical moves should have moved the row");
     }
 
     @Test
@@ -855,6 +856,68 @@ public class TerminalTests {
         write(loaded, ";3HX");
 
         assertEquals('X', readLine(loaded, 1).charAt(2), "the split sequence should still be a CUP");
+    }
+
+    @Test
+    public void theSavedCursorRestoresTheCharacterSet() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033(0\0337\033(B\0338l");
+
+        assertEquals('l' - '_', cellCharacter(terminal, 0));
+    }
+
+    @Test
+    public void theSavedCursorRestoresOriginMode() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;20r\033[?6h");
+
+        write(terminal, "\0337\033[?6l\0338\033[H");
+
+        assertEquals(4, terminal.getCursorY());
+    }
+
+    @Test
+    public void theSavedCursorRestoresAPendingWrap() {
+        final Terminal terminal = new Terminal();
+        write(terminal, fill(Terminal.WIDTH));
+
+        write(terminal, "\0337\033[1;1H\0338X");
+
+        assertEquals('X', readLine(terminal, 1).charAt(0), "the deferred wrap should have been restored");
+    }
+
+    @Test
+    public void theSavedCursorSurvivesSaveAndLoad() {
+        final Terminal saved = new Terminal();
+        write(saved, "\033[6;7H\0337\033[1;1H");
+
+        final Terminal loaded = new Terminal();
+        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+
+        write(loaded, "\0338");
+        assertEquals(6, loaded.getCursorX());
+        assertEquals(5, loaded.getCursorY());
+    }
+
+    @Test
+    public void aScrollRegionPastTheLastRowIsClamped() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;10r");
+
+        write(terminal, "\033[1;30rTOP\033[24;1H\n");
+
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0), "the whole screen should scroll");
+    }
+
+    @Test
+    public void aDegenerateScrollRegionCoversTheScreen() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;10r");
+
+        write(terminal, "\033[10;5rTOP\033[24;1H\n");
+
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0), "the whole screen should scroll");
     }
 
     // --------------------------------------------------------------------- //

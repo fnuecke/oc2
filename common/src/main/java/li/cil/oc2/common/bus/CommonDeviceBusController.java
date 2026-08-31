@@ -37,6 +37,7 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     public final Event onAfterBusScan = new Event();
     public final Event onBeforeDeviceScan = new Event();
+    public final Event onSaving = new Event();
     public final ParameterizedEvent<AfterDeviceScanEvent> onAfterDeviceScan = new ParameterizedEvent<>();
     public final ParameterizedEvent<DevicesChangedEvent> onDevicesAdded = new ParameterizedEvent<>();
     public final ParameterizedEvent<DevicesChangedEvent> onDevicesRemoved = new ParameterizedEvent<>();
@@ -225,6 +226,10 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     protected void onDevicesRemoved(final Collection<Device> devices) {
         onDevicesRemoved.accept(new DevicesChangedEvent(devices));
+    }
+
+    public void onSaving() {
+        onSaving.run();
     }
 
     // --------------------------------------------------------------------- //

@@ -66,6 +66,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         busController.onAfterDeviceScan.add(this::handleAfterDeviceScan);
         busController.onDevicesAdded.add(this::handleDevicesAdded);
         busController.onDevicesRemoved.add(this::handleDevicesRemoved);
+        busController.onSaving.add(this::joinWorkerThread);
     }
 
     // --------------------------------------------------------------------- //

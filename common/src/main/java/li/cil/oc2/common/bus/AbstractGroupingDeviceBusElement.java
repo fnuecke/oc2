@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus;
 
+import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundTag;
@@ -58,6 +59,10 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
     // --------------------------------------------------------------------- //
 
     public CompoundTag save() {
+        if (groups.stream().anyMatch(group -> !group.isEmpty())) {
+            onSaving();
+        }
+
         final ListTag listTag = new ListTag();
         for (int i = 0; i < groupCount; i++) {
             saveGroup(i);
@@ -122,6 +127,7 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
             return;
         }
 
+        onSaving();
         saveGroup(index);
 
         for (final TEntry entry : oldEntries) {
@@ -239,6 +245,14 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
     }
 
     // --------------------------------------------------------------------- //
+
+    private void onSaving() {
+        for (final DeviceBusController controller : controllers) {
+            if (controller instanceof final CommonDeviceBusController commonController) {
+                commonController.onSaving();
+            }
+        }
+    }
 
     private void saveGroup(final int index) {
         final CompoundTag devicesTag = new CompoundTag();

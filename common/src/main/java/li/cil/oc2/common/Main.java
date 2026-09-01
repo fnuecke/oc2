@@ -28,6 +28,8 @@ import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.util.ServerUtils;
 import li.cil.oc2.common.util.SoundEvents;
 import li.cil.oc2.common.vm.Allocator;
+import li.cil.oc2.common.vm.CpmRomDrive;
+import li.cil.oc2.common.vm.provider.DeviceDescriptionProviders;
 import li.cil.oc2.common.vm.provider.DeviceTreeProviders;
 import li.cil.sedna.Sedna;
 
@@ -36,6 +38,7 @@ public final class Main {
         Ceres.initialize();
         Sedna.initialize();
         DeviceTreeProviders.initialize();
+        DeviceDescriptionProviders.initialize();
         Serializers.initialize();
 
         ConfigManager.add(Config::new);
@@ -58,6 +61,7 @@ public final class Main {
         DeviceTypeRegistry.initialize();
         BlockDeviceDataRegistry.initialize();
         FirmwareRegistry.initialize();
+        CpmRomDrive.initialize();
         RPCTypeAdapters.initialize();
 
         RegistryUtils.finish();

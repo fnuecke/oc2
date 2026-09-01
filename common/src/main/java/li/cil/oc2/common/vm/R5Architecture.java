@@ -87,11 +87,6 @@ public final class R5Architecture extends AbstractArchitecture {
     }
 
     @Override
-    public void tickDeviceLayer() {
-        rpcAdapter.tick();
-    }
-
-    @Override
     public void step(final int cycles) {
         board.step(cycles);
         rpcAdapter.step(cycles);
@@ -130,6 +125,20 @@ public final class R5Architecture extends AbstractArchitecture {
     // --------------------------------------------------------------------- //
 
     @Override
+    public void unmountDevices() {
+        super.unmountDevices();
+        rpcAdapter.unmountDevices();
+    }
+
+    @Override
+    public void disposeDevices() {
+        rpcAdapter.disposeDevices();
+        super.disposeDevices();
+    }
+
+    // --------------------------------------------------------------------- //
+
+    @Override
     public void handleBeforeDeviceScan() {
         rpcAdapter.pause();
     }
@@ -145,18 +154,9 @@ public final class R5Architecture extends AbstractArchitecture {
     }
 
     @Override
-    public void unmountDevices() {
-        super.unmountDevices();
-        rpcAdapter.unmountDevices();
+    public void tickDeviceLayer() {
+        rpcAdapter.tick();
     }
-
-    @Override
-    public void disposeDevices() {
-        rpcAdapter.disposeDevices();
-        super.disposeDevices();
-    }
-
-    // --------------------------------------------------------------------- //
 
     @Override
     protected void resetDeviceLayer() {

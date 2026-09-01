@@ -19,6 +19,12 @@ import java.lang.annotation.Target;
  * Method parameters are serialized and deserialized using Gson. When using custom
  * parameter types it may be necessary to register a custom type adapter for them
  * by registering an {@link RPCTypeAdapter} with the {@link li.cil.oc2.api.util.Registries#RPC_TYPE_ADAPTER} registry.
+ * <p>
+ * This is the high-level API for Linux guests. Also see {@link li.cil.oc2.api.bus.device.io.IOCallback}
+ * for the mid-level API for CP/M guests.
+ *
+ * @see Callbacks#collectMethods(Object)
+ * @see li.cil.oc2.api.bus.device.rpc.RPCDevice
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

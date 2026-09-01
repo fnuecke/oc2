@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.bus.device.rpc.item;
 
+import li.cil.oc2.api.bus.device.io.IOCallback;
+import li.cil.oc2.api.bus.device.io.IOName;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
@@ -22,7 +24,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
+@IOName("REDSTN")
 public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice implements DocumentedDevice, CapabilityProvider {
     private static final String OUTPUT_TAG_NAME = "output";
 
@@ -31,6 +37,9 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
     private static final String SET_REDSTONE_OUTPUT = "setRedstoneOutput";
     private static final String SIDE = "side";
     private static final String VALUE = "value";
+    private static final int GET_REDSTONE_INPUT_CODE = 1;
+    private static final int GET_REDSTONE_OUTPUT_CODE = 2;
+    private static final int SET_REDSTONE_OUTPUT_CODE = 3;
 
     // --------------------------------------------------------------------- //
 
@@ -149,6 +158,28 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
                 "the side depends on the orientation of the device's container.")
             .parameterDescription(SIDE, "the side to write the output level to.")
             .parameterDescription(VALUE, "the output level to set, will be clamped to [0, 15].");
+    }
+
+    // --------------------------------------------------------------------- //
+
+    @IOCallback(GET_REDSTONE_INPUT_CODE)
+    public void getRedstoneInputIO(final InputStream arguments, final OutputStream results) throws IOException {
+        results.write(getRedstoneInput(Side.byIndex(arguments.read())));
+    }
+
+    @IOCallback(value = GET_REDSTONE_OUTPUT_CODE, synchronize = false)
+    public void getRedstoneOutputIO(final InputStream arguments, final OutputStream results) throws IOException {
+        results.write(getRedstoneOutput(Side.byIndex(arguments.read())));
+    }
+
+    @IOCallback(SET_REDSTONE_OUTPUT_CODE)
+    public void setRedstoneOutputIO(final InputStream arguments) throws IOException {
+        final Side side = Side.byIndex(arguments.read());
+        final int value = arguments.read();
+        if (value < 0) {
+            throw new IllegalArgumentException("Missing output level.");
+        }
+        setRedstoneOutput(side, value);
     }
 
     // --------------------------------------------------------------------- //

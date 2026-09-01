@@ -21,9 +21,13 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Provides automated extraction of {@link RPCMethod}s from instances of
- * class with methods annotated with the {@link Callback} annotation.
+ * classes with methods annotated with the {@link Callback} annotation.
  * <p>
  * Prefer using {@link ObjectDevice} instead of using this class directly.
+ *
+ * @see RPCMethod
+ * @see Callback
+ * @see li.cil.oc2.api.bus.device.io.IOCallbacks
  */
 public final class Callbacks {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -60,7 +64,7 @@ public final class Callbacks {
     public static List<RPCMethodGroup> collectMethods(final Object methodContainer) {
         final List<Method> reflectedMethods = getMethods(methodContainer.getClass());
 
-        final ArrayList<RPCMethodGroup> methods = new ArrayList<>();
+        final ArrayList<RPCMethodGroup> methods = new ArrayList<>(reflectedMethods.size());
         for (final Method method : reflectedMethods) {
             try {
                 methods.add(new ObjectRPCMethod(methodContainer, method));

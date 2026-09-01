@@ -19,7 +19,7 @@ import java.util.List;
  * for some aspect of an underlying device, which may be shared with other devices.
  * <p>
  * The easiest, and hence recommended, way of implementing this interface, is to use
- * the {@link ObjectDevice} class.
+ * the {@link ObjectDevice} class, which collects {@link li.cil.oc2.api.bus.device.object.Callback} methods.
  * <p>
  * The lifecycle for {@link RPCDevice}s is as follows:
  * <pre>
@@ -47,8 +47,10 @@ import java.util.List;
  * </pre>
  *
  * @see ObjectDevice
+ * @see li.cil.oc2.api.bus.device.object.Callback
  * @see li.cil.oc2.api.bus.device.provider.BlockDeviceProvider
  * @see li.cil.oc2.api.bus.device.provider.ItemDeviceProvider
+ * @see li.cil.oc2.api.bus.device.io.IODevice
  */
 public interface RPCDevice extends Device {
     /**

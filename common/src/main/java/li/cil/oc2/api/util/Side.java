@@ -52,6 +52,8 @@ public enum Side {
     r(EAST),
     ;
 
+    private static final Side[] BY_INDEX = {DOWN, UP, NORTH, SOUTH, WEST, EAST};
+
     @Nullable
     private final Side base;
     private final Direction direction;
@@ -64,6 +66,13 @@ public enum Side {
     Side(final Side side) {
         this.base = side;
         this.direction = side.direction;
+    }
+
+    public static Side byIndex(final int index) {
+        if (index < 0 || index >= BY_INDEX.length) {
+            throw new IllegalArgumentException("Side index [" + index + "] is outside [0, " + (BY_INDEX.length - 1) + "].");
+        }
+        return BY_INDEX[index];
     }
 
     public Direction getDirection() {

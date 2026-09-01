@@ -18,7 +18,11 @@ import java.util.Set;
  * Method parameters are serialized and deserialized using Gson. When using custom
  * parameter types it may be necessary to register a custom type adapter for them
  * by registering an {@link RPCTypeAdapter} with the {@link li.cil.oc2.api.util.Registries#RPC_TYPE_ADAPTER} registry.
+ * <p>
+ * This is the high-level API targeting Linux guests. Also see the mid-level API equivalent for
+ * CP/M guests, {@link li.cil.oc2.api.bus.device.io.IOMethod}.
  *
+ * @see RPCDevice
  * @see ObjectDevice
  */
 public interface RPCMethod extends RPCMethodGroup {
@@ -37,9 +41,9 @@ public interface RPCMethod extends RPCMethodGroup {
     Class<?> getReturnType();
 
     /**
-     * The list of parameters this method accepts.
+     * The parameters this method accepts.
      *
-     * @return the list of parameters.
+     * @return the array of parameters.
      */
     RPCParameter[] getParameters();
 

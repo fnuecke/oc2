@@ -24,6 +24,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import static li.cil.oc2.gametest.TestSupport.COMPUTER_POS;
@@ -186,6 +187,32 @@ public final class ComputerFixture {
             text.append('\n');
         }
         return text.toString();
+    }
+
+    public void type(final String text) {
+        final Terminal terminal = blockEntity().getTerminal();
+        for (final byte value : text.getBytes(StandardCharsets.US_ASCII)) {
+            terminal.putInput(value);
+        }
+    }
+
+    public void assertScreenContains(final String expected, final String what) {
+        final String text = screen();
+        if (!text.contains(expected)) {
+            throw new GameTestAssertException(what + ": screen does not hold [" + expected + "]; "
+                + describe() + "\n" + text);
+        }
+    }
+
+    public String describe() {
+        final VirtualMachine vm = virtualMachine();
+        return "runState=" + vm.getRunState()
+            + ", bootError=" + vm.getBootError()
+            + ", error=" + vm.getError()
+            + ", devices=" + deviceCount()
+            + ", cycles=" + guestInstructions()
+            + ", energy=" + energy()
+            + ", deviceList=" + devices().stream().map(d -> d.getClass().getSimpleName()).sorted().toList();
     }
 
     public GuestTests guestTests() {

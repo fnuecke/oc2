@@ -1,0 +1,111 @@
+; MIT licensed, see LICENSE.
+;
+; REDSTN -- drive a redstone interface.
+;
+; An example. It sets the output level on every side to 15, then stops.
+;
+; Build it with the assembler and linker on this disk. A: is read only, so the
+; output has to land on a floppy in a disk drive:
+;
+;	ZMAC REDSTN		; REDSTN.Z80 -> REDSTN.REL
+;	ZML REDSTN		; REDSTN.REL -> REDSTN.COM
+;	REDSTN
+
+BDOS	equ	0005h
+PSTR	equ	9
+
+FNGETI	equ	1		; getRedstoneInput(side) -> level
+FNGETO	equ	2		; getRedstoneOutput(side) -> level
+FNSETO	equ	3		; setRedstoneOutput(side, level)
+
+LEVEL	equ	15
+NSIDES	equ	6
+
+; The linker places this at 0100h, which is where CP/M loads a program.
+	CSEG
+
+	ld	hl,RSNAME
+	ld	b,0		; the first redstone interface on the bus
+	call	OCFIND
+	jp	c,NODEV
+
+	ld	(PORT),a
+	ld	a,OCSEL
+	call	PORTAT
+	out	(c),e		; select the redstone device
+
+; Sides are numbered 0 down, 1 up, 2 north, 3 south, 4 west, 5 east.
+	ld	d,0
+SIDE:
+	ld	a,OCFUN
+	call	PORTAT
+	ld	a,FNSETO
+	out	(c),a
+
+	ld	a,OCDAT
+	call	PORTAT
+	out	(c),d		; argument: the side
+	ld	a,LEVEL
+	out	(c),a		; argument: the level
+
+	ld	a,OCSTA
+	call	PORTAT
+	ld	a,OCEXEC
+	out	(c),a
+
+; Setting an output touches the world, so the call runs on the server thread
+; and takes a game tick to come back. Busy waiting until that's done.
+WAIT:	in	a,(c)
+	and	OCBUSY
+	jr	nz,WAIT
+
+	in	a,(c)
+	and	OCERR
+	jr	nz,FAILED
+
+	inc	d
+	ld	a,d
+	cp	NSIDES
+	jr	c,SIDE
+
+	ld	de,MSGOK
+	jr	SAY
+
+FAILED:	ld	a,OCDAT
+	call	PORTAT
+	in	a,(c)		; once OCERR is set, OCDAT reads the error code
+	add	a,'0'
+	ld	(ERRNUM),a
+	ld	de,MSGERR
+	jr	SAY
+
+NODEV:	ld	de,MSGNO
+
+SAY:	ld	c,PSTR
+	call	BDOS
+	jp	0		; warm boot, back to A>
+
+; PORTAT -- bc = the device's port base plus the register offset in a.
+; The base is not known until run time, so every access goes through:
+;   IN r,(C) / OUT (C),r.
+PORTAT:
+	ld	b,0
+	ld	c,a
+	ld	a,(PORT)
+	add	a,c
+	ld	c,a
+	ret
+
+PORT:	db	0
+
+RSNAME:	db	'REDSTN',0
+
+MSGOK:	db	'Redstone output set to 15 on every side.',0Dh,0Ah,'$'
+MSGNO:	db	'No redstone interface on the bus.',0Dh,0Ah,'$'
+MSGERR:	db	'Device error '
+ERRNUM:	db	'0',0Dh,0Ah,'$'
+
+	INCLUDE	DEVLIB.INC
+	INCLUDE	OCAPI.INC
+
+	end

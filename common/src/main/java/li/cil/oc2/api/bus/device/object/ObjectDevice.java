@@ -3,6 +3,9 @@
 package li.cil.oc2.api.bus.device.object;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
+import li.cil.oc2.api.bus.device.io.IOCallbacks;
+import li.cil.oc2.api.bus.device.io.IODevice;
+import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
@@ -19,13 +22,17 @@ import static java.util.Collections.singletonList;
 /**
  * A reflection based implementation of {@link RPCDevice} using the {@link Callback}
  * annotation to discover {@link RPCMethod}s in a target object via
- * {@link Callbacks#collectMethods(Object)}.
+ * {@link Callbacks#collectMethods(Object)}, and equally of {@link IODevice} using the {@link li.cil.oc2.api.bus.device.io.IOCallback}
+ * annotation to discover {@link IOMethod}s in a target object via
+ * {@link IOCallbacks#collectMethods(Object)}.
  */
-public final class ObjectDevice implements RPCDevice, ItemDevice {
+public final class ObjectDevice implements RPCDevice, IODevice, ItemDevice {
     private final Object object;
     private final ArrayList<String> typeNames;
-    private final List<RPCMethodGroup> methods;
+    private final List<RPCMethodGroup> rpcMethods;
     private final String className;
+    private final List<IOMethod> ioMethods;
+    private final String ioName;
 
     // --------------------------------------------------------------------- //
 
@@ -39,8 +46,10 @@ public final class ObjectDevice implements RPCDevice, ItemDevice {
     public ObjectDevice(final Object object, final List<String> typeNames) {
         this.object = object;
         this.typeNames = new ArrayList<>(typeNames);
-        this.methods = Callbacks.collectMethods(object);
+        this.rpcMethods = Callbacks.collectMethods(object);
         this.className = object.getClass().getSimpleName();
+        this.ioMethods = IOCallbacks.collectMethods(object);
+        this.ioName = ioMethods.isEmpty() ? "" : IOCallbacks.getName(object);
 
         if (object instanceof final NamedDevice namedDevice) {
             this.typeNames.addAll(namedDevice.getDeviceTypeNames());
@@ -91,7 +100,7 @@ public final class ObjectDevice implements RPCDevice, ItemDevice {
 
     @Override
     public List<RPCMethodGroup> getMethodGroups() {
-        return methods;
+        return rpcMethods;
     }
 
     @Override
@@ -108,12 +117,28 @@ public final class ObjectDevice implements RPCDevice, ItemDevice {
         }
     }
 
+    // --------------------------------------------------------------------- //
+
+    @Override
+    public String getIOName() {
+        return ioName;
+    }
+
+    @Override
+    public List<IOMethod> getIOMethods() {
+        return ioMethods;
+    }
+
+    // --------------------------------------------------------------------- //
+
     @Override
     public void dispose() {
         if (object instanceof LifecycleAwareDevice device) {
             device.onDeviceDisposed();
         }
     }
+
+    // --------------------------------------------------------------------- //
 
     @Override
     public boolean equals(@Nullable final Object o) {

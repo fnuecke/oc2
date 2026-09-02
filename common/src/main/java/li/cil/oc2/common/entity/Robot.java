@@ -94,7 +94,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     private static final int CPU_SLOTS = 1;
     private static final int MEMORY_SLOTS = 4;
-    private static final int HARD_DRIVE_SLOTS = 2;
+    private static final int HARD_DRIVE_SLOTS = 1;
+    private static final int FLOPPY_SLOTS = 1;
     private static final int FLASH_MEMORY_SLOTS = 1;
     private static final int MODULE_SLOTS = 4;
     private static final int INVENTORY_SIZE = 12;
@@ -795,6 +796,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                 new GroupDefinition(DeviceTypes.CPU.get(), CPU_SLOTS),
                 new GroupDefinition(DeviceTypes.MEMORY.get(), MEMORY_SLOTS),
                 new GroupDefinition(DeviceTypes.HARD_DRIVE.get(), HARD_DRIVE_SLOTS),
+                new GroupDefinition(DeviceTypes.FLOPPY.get(), FLOPPY_SLOTS),
                 new GroupDefinition(DeviceTypes.FLASH_MEMORY.get(), FLASH_MEMORY_SLOTS),
                 new GroupDefinition(DeviceTypes.ROBOT_MODULE.get(), MODULE_SLOTS)
             );

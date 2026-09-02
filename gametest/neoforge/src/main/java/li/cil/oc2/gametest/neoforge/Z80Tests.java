@@ -31,7 +31,7 @@ public final class Z80Tests {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
-    public static void theRomDriveCarriesTheFilesOc2Ships(final GameTestHelper helper) {
+    public static void theSystemDiskCarriesTheFilesOc2Ships(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
         placePower(helper, player);

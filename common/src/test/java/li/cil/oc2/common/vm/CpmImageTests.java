@@ -127,12 +127,11 @@ public final class CpmImageTests {
         for (final String name : List.of("ocapi.inc", "redstn.z80")) {
             files.put(name, resource(SHIPPED + name));
         }
-        return CpmRomDrive.compose(files);
+        return CpmSystemDisk.compose(files);
     }
 
     private static void assertContentMatches(final String resource, final byte[] stored) throws IOException {
-        // What lands on the disk is the CP/M form of the file, not the bytes in the repository.
-        final byte[] expected = CpmRomDrive.toCpmText(resource(resource));
+        final byte[] expected = CpmSystemDisk.toCpmText(resource(resource));
         assertNotNull(stored, resource + " is missing from the image");
         assertArrayEquals(expected, Arrays.copyOf(stored, expected.length), resource + " did not survive");
     }

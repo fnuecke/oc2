@@ -1,0 +1,23 @@
+{
+  "type": "oc2:tool",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "oc2:floppy"
+    },
+    {
+      "item": "oc2:cpu_z80"
+    }
+  ],
+  "result": {
+    "components": {
+      "minecraft:custom_data": {
+        "oc2": {
+          "data": "oc2:cpm"
+        }
+      }
+    },
+    "count": 1,
+    "id": "oc2:floppy"
+  }
+}

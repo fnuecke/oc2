@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-public final class CpmRomDrive {
+public final class CpmSystemDisk {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final String DIRECTORY = "cpm";
@@ -39,7 +39,7 @@ public final class CpmRomDrive {
     public static byte[] getImage() {
         final byte[] result = image;
         if (result == null) {
-            throw new IllegalStateException("The CP/M ROM drive has not been loaded yet.");
+            throw new IllegalStateException("The CP/M system disk has not been composed yet.");
         }
         return result;
     }
@@ -94,9 +94,9 @@ public final class CpmRomDrive {
             final String name = path.substring(path.lastIndexOf('/') + 1);
             try (InputStream stream = resources.get(location).open()) {
                 CpmImage.addFile(composed, name, toCpmText(stream.readAllBytes()));
-                LOGGER.info("Added [{}] to the CP/M ROM drive as [{}].", location, name);
+                LOGGER.info("Added [{}] to the CP/M system disk as [{}].", location, name);
             } catch (final Throwable e) {
-                LOGGER.error("Failed adding [{}] to the CP/M ROM drive.", location, e);
+                LOGGER.error("Failed adding [{}] to the CP/M system disk.", location, e);
             }
         }
 
@@ -111,7 +111,7 @@ public final class CpmRomDrive {
         }
     }
 
-    private CpmRomDrive() {
+    private CpmSystemDisk() {
     }
 
     // --------------------------------------------------------------------- //
@@ -122,7 +122,7 @@ public final class CpmRomDrive {
         @Override
         public CompletableFuture<Void> reload(final PreparableReloadListener.PreparationBarrier stage, final ResourceManager resourceManager, final ProfilerFiller preparationsProfiler, final ProfilerFiller reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
             return CompletableFuture
-                .runAsync(() -> CpmRomDrive.reload(resourceManager), backgroundExecutor)
+                .runAsync(() -> CpmSystemDisk.reload(resourceManager), backgroundExecutor)
                 .thenCompose(stage::wait);
         }
     }

@@ -313,6 +313,20 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ToolRecipeBuilder
+            .toolRecipe(Items.FLOPPY.get().withData(BlockDeviceDataRegistry.CPM.getId()))
+            .requires(Items.FLOPPY.get())
+            .requires(Items.CPU_Z80.get())
+            .unlockedBy("has_cpu_z80", inventoryChange(Items.CPU_Z80.get()))
+            .save(consumer, API.MOD_ID + ":floppy_cpm");
+
+        ToolRecipeBuilder
+            .toolRecipe(Items.FLOPPY.get())
+            .requires(Items.WRENCH.get())
+            .requires(Items.FLOPPY.get())
+            .unlockedBy("has_floppy", inventoryChange(Items.FLOPPY.get()))
+            .save(consumer, API.MOD_ID + ":floppy_erase");
+
+        ToolRecipeBuilder
             .toolRecipe(Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId()))
             .requires(Items.FLASH_MEMORY.get())
             .requires(Items.CPU_RISCV.get())

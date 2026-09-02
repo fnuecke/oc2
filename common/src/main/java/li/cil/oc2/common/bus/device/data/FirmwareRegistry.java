@@ -11,6 +11,7 @@ import li.cil.oc2.common.util.RegistryUtils;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.cpm.Cpm;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.DyeColor;
 
 import javax.annotation.Nullable;
 import java.util.stream.Stream;
@@ -23,9 +24,9 @@ public final class FirmwareRegistry {
     // --------------------------------------------------------------------- //
 
     public static final RegistrySupplier<BlockDeviceData> RISCV = INITIALIZER.register("riscv",
-        () -> new FirmwareBlockDeviceData(Buildroot::getSednaFirmware, "Sedna Linux"));
+        () -> new FirmwareBlockDeviceData(Buildroot::getSednaFirmware, "Sedna Linux", DyeColor.GREEN));
     public static final RegistrySupplier<BlockDeviceData> Z80 = INITIALIZER.register("z80",
-        () -> new FirmwareBlockDeviceData(Cpm::getBootRom, "CP/M 2.2"));
+        () -> new FirmwareBlockDeviceData(Cpm::getBootRom, "CP/M 2.2", DyeColor.ORANGE));
 
     // --------------------------------------------------------------------- //
 

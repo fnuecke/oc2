@@ -8,28 +8,21 @@ import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.IODeviceBusAdapter;
-import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import li.cil.sedna.api.memory.MemoryMap;
-import li.cil.sedna.cpm.Cpm;
-import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import li.cil.sedna.device.bus.DeviceEnumerator;
-import li.cil.sedna.device.disk.WD1793;
 import li.cil.sedna.device.flash.FlashMemoryDevice;
 import li.cil.sedna.device.serial.UART16550A;
 import li.cil.sedna.memory.SimpleMemoryMap;
 import li.cil.sedna.z80.BootRomLatch;
 import li.cil.sedna.z80.Z80Board;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public final class Z80Architecture extends AbstractArchitecture {
     private static final int ENUMERATOR_PORT = 0xE0;
-    private static final int ROM_DRIVE_UNITS = 1;
 
     // --------------------------------------------------------------------- //
 
@@ -37,8 +30,6 @@ public final class Z80Architecture extends AbstractArchitecture {
     private final Z80Board board;
     @Serialized
     private final UART16550A uart;
-    @Serialized
-    private final WD1793 controller;
     @Serialized
     private final IODeviceBusAdapter ioAdapter;
     @Serialized
@@ -56,7 +47,6 @@ public final class Z80Architecture extends AbstractArchitecture {
         super(board, config, board.getPortBus());
         this.board = board;
         this.uart = new UART16550A();
-        this.controller = new WD1793();
         this.ioAdapter = new IODeviceBusAdapter(config.runtime());
 
         board.getCpu().setFrequency(Constants.Z80_CPU_FREQUENCY);
@@ -69,7 +59,6 @@ public final class Z80Architecture extends AbstractArchitecture {
         this.bootRomMap = romMap;
 
         mapPorts();
-        insertRomDrive();
     }
 
     // --------------------------------------------------------------------- //
@@ -157,20 +146,9 @@ public final class Z80Architecture extends AbstractArchitecture {
             board.getPortMap(), board.getDevices(), board.getInterruptController());
         if (!board.addPortDevice(ENUMERATOR_PORT, enumerator)
             || board.addPortDevice(uart).isEmpty()
-            || board.addPortDevice(controller).isEmpty()
             || board.addPortDevice(ioAdapter).isEmpty()
             || board.addPortDevice(new BootRomLatch(board)).isEmpty()) {
             throw new IllegalStateException("Built-in devices do not fit the port space.");
-        }
-    }
-
-    private void insertRomDrive() {
-        controller.setUnitCount(ROM_DRIVE_UNITS);
-        try {
-            final BlockDevice drive = ByteBufferBlockDevice.createFromStream(new ByteArrayInputStream(CpmRomDrive.getImage()), true);
-            controller.setDisk(0, drive, Cpm.DiskGeometry.SIDES, Cpm.DiskGeometry.TRACKS, Cpm.DiskGeometry.SECTORS_PER_TRACK, Cpm.DiskGeometry.SECTOR_SIZE);
-        } catch (final IOException e) {
-            throw new IllegalStateException("Missing the built-in system disk.", e);
         }
     }
 }

@@ -3,19 +3,28 @@
 package li.cil.oc2.gametest;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+import static li.cil.oc2.gametest.TestSupport.CABLE_POS;
+import static li.cil.oc2.gametest.TestSupport.DEVICE_POS;
+
 public final class Z80Fixture {
     private final ComputerFixture computer;
+    private final DiskDriveFixture drive;
 
     // --------------------------------------------------------------------- //
 
     public static Z80Fixture place(final GameTestHelper helper, final Player player) {
-        return new Z80Fixture(ComputerFixture.place(helper, player));
+        final ComputerFixture computer = ComputerFixture.place(helper, player);
+        BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.EAST);
+        player.setYRot(90);
+        return new Z80Fixture(computer, DiskDriveFixture.place(helper, player, DEVICE_POS));
     }
 
     // --------------------------------------------------------------------- //
@@ -28,7 +37,12 @@ public final class Z80Fixture {
         computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_Z80.get()));
         computer.install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(FirmwareRegistry.Z80.getId()));
         computer.install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_SMALL.get()));
+        drive.insert(Items.FLOPPY.get().withData(BlockDeviceDataRegistry.CPM.getId()));
         return this;
+    }
+
+    public DiskDriveFixture drive() {
+        return drive;
     }
 
     public Z80Fixture withRedstoneCard() {
@@ -54,7 +68,8 @@ public final class Z80Fixture {
 
     // --------------------------------------------------------------------- //
 
-    private Z80Fixture(final ComputerFixture computer) {
+    private Z80Fixture(final ComputerFixture computer, final DiskDriveFixture drive) {
         this.computer = computer;
+        this.drive = drive;
     }
 }

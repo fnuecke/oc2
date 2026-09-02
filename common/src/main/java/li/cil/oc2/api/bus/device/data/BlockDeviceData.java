@@ -4,6 +4,9 @@ package li.cil.oc2.api.bus.device.data;
 
 import li.cil.sedna.api.device.BlockDevice;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.DyeColor;
+
+import javax.annotation.Nullable;
 
 /**
  * Implementations of this interface that are registered with the registry for
@@ -39,4 +42,15 @@ public interface BlockDeviceData {
      * @return the display name of this block device.
      */
     Component getDisplayName();
+
+    /**
+     * The color items preloaded with this data are tinted with.
+     * {@code null} leaves the item its own default color.
+     *
+     * @return the color, or {@code null} to keep the item's default.
+     */
+    @Nullable
+    default DyeColor getColor() {
+        return null;
+    }
 }

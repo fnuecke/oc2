@@ -22,8 +22,6 @@ import javax.annotation.Nullable;
 public final class HardDriveItem extends AbstractStorageItem implements ColoredItem, CreativeTabItemProvider {
     public static final String DATA_TAG_NAME = "data";
 
-    private static final DyeColor PRELOADED_COLOR = DyeColor.BROWN;
-
     // --------------------------------------------------------------------- //
 
     private final int defaultColor;
@@ -80,12 +78,16 @@ public final class HardDriveItem extends AbstractStorageItem implements ColoredI
         final int capacity = getCapacity(new ItemStack(this));
         BlockDeviceDataRegistry.values().forEach(data -> {
             final ResourceLocation key = BlockDeviceDataRegistry.getKey(data);
-            if (key == null || data.getBlockDevice().getCapacity() > capacity) {
+            final long size = data.getBlockDevice().getCapacity();
+            if (key == null || size > capacity || size <= FloppyItem.MAX_CAPACITY) {
                 return;
             }
 
             final ItemStack stack = withData(key);
-            stack.set(DataComponents.DYED_COLOR, new DyedItemColor(PRELOADED_COLOR.getTextureDiffuseColor(), true));
+            final DyeColor color = data.getColor();
+            if (color != null) {
+                stack.set(DataComponents.DYED_COLOR, new DyedItemColor(color.getTextureDiffuseColor(), true));
+            }
             output.accept(stack);
         });
     }

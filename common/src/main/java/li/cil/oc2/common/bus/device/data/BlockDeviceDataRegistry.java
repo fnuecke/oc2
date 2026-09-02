@@ -21,6 +21,7 @@ public final class BlockDeviceDataRegistry {
     // --------------------------------------------------------------------- //
 
     public static final RegistrySupplier<BlockDeviceData> BUILDROOT = INITIALIZER.register("buildroot", BuildrootBlockDeviceData::new);
+    public static final RegistrySupplier<BlockDeviceData> CPM = INITIALIZER.register("cpm", CpmBlockDeviceData::new);
 
     // --------------------------------------------------------------------- //
 

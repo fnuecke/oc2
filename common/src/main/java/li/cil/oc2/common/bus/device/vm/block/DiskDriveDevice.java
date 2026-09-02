@@ -2,11 +2,13 @@
 
 package li.cil.oc2.common.bus.device.vm.block;
 
+import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.vm.item.AbstractBlockStorageDevice;
 import li.cil.oc2.common.bus.device.vm.item.FloppyControllerStorage;
+import li.cil.oc2.common.bus.device.vm.item.FloppyMedia;
 import li.cil.oc2.common.bus.device.vm.item.MappedStorage;
 import li.cil.oc2.common.item.FloppyItem;
 import li.cil.oc2.common.serialization.BlobStorage;
@@ -20,9 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.channels.FileChannel;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -31,7 +31,6 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
     public static final String DATA_TAG_NAME = "data";
 
     private static final ByteBufferBlockDevice EMPTY_BLOCK_DEVICE = ByteBufferBlockDevice.create(0, false);
-    private static final byte EMPTY_DIRECTORY_ENTRY = (byte) 0xE5; // CPM empty dir marker
 
     // --------------------------------------------------------------------- //
 
@@ -119,6 +118,8 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
         }
 
+        final BlockDeviceData data = floppy.getData(stack);
+
         if (!BlobStorage.isValidHandle(blobHandle)) {
             importFromItemStack(ItemStackUtils.getModDataTag(stack).getCompound(DATA_TAG_NAME));
         }
@@ -141,7 +142,11 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
             try {
                 final ByteBufferBlockDevice medium = ByteBufferBlockDevice.createFromFileChannel(channel, capacity, false);
                 if (isNew) {
-                    format(medium);
+                    if (data != null) {
+                        FloppyMedia.image(medium, data.getBlockDevice());
+                    } else {
+                        FloppyMedia.format(medium);
+                    }
                 }
                 return medium;
             } catch (final IOException e) {
@@ -199,17 +204,4 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
         return true;
     }
 
-    private static void format(final ByteBufferBlockDevice medium) throws IOException {
-        final byte[] empty = new byte[4096];
-        Arrays.fill(empty, EMPTY_DIRECTORY_ENTRY);
-
-        try (OutputStream stream = medium.getOutputStream()) {
-            long remaining = medium.getCapacity();
-            while (remaining > 0) {
-                final int count = (int) Math.min(empty.length, remaining);
-                stream.write(empty, 0, count);
-                remaining -= count;
-            }
-        }
-    }
 }

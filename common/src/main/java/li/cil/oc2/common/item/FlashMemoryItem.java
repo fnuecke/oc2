@@ -22,7 +22,6 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
     public static final String DATA_TAG_NAME = "data";
 
     private static final int BLANK_COLOR = 0xFF77B294; // green
-    private static final DyeColor[] PROGRAMMED_COLORS = {DyeColor.CYAN, DyeColor.ORANGE, DyeColor.MAGENTA, DyeColor.LIME};
 
     // --------------------------------------------------------------------- //
 
@@ -73,16 +72,17 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
     public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
         output.accept(new ItemStack(this));
 
-        final int[] index = {0};
         FirmwareRegistry.values().forEach(data -> {
             final ResourceLocation key = FirmwareRegistry.getKey(data);
             if (key == null) {
                 return;
             }
 
-            final DyeColor color = PROGRAMMED_COLORS[index[0]++ % PROGRAMMED_COLORS.length];
             final ItemStack stack = withData(key);
-            stack.set(DataComponents.DYED_COLOR, new DyedItemColor(color.getTextureDiffuseColor(), true));
+            final DyeColor color = data.getColor();
+            if (color != null) {
+                stack.set(DataComponents.DYED_COLOR, new DyedItemColor(color.getTextureDiffuseColor(), true));
+            }
             output.accept(stack);
         });
     }

@@ -75,7 +75,13 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
 
         handlers.getItemHandler(DeviceTypes.HARD_DRIVE.get()).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE.get(), slot, 70 + slot % 2 * SLOT_SIZE, 60 + slot / 2 * SLOT_SIZE));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE.get(), slot, 70, 60 + slot * SLOT_SIZE));
+            }
+        });
+
+        handlers.getItemHandler(DeviceTypes.FLOPPY.get()).ifPresent(itemHandler -> {
+            for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.FLOPPY.get(), slot, 70 + SLOT_SIZE, 60 + slot * SLOT_SIZE));
             }
         });
 

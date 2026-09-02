@@ -7,7 +7,9 @@ import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
+import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.bus.device.vm.item.HardDriveDevice;
+import li.cil.oc2.common.bus.device.vm.item.HardDriveDeviceWithInitialData;
 import li.cil.oc2.common.item.HardDriveItem;
 import li.cil.oc2.common.util.LocationSupplierUtils;
 import net.minecraft.nbt.CompoundTag;
@@ -33,7 +35,11 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
-        return Optional.of(new HardDriveDevice(query.getItemStack(), getCapacity(query), false, LocationSupplierUtils.of(query)));
+        final ItemStack stack = query.getItemStack();
+        final BlockDeviceData data = getData(query);
+        return Optional.of(data != null
+            ? new HardDriveDeviceWithInitialData(stack, data.getBlockDevice(), false, LocationSupplierUtils.of(query))
+            : new HardDriveDevice(stack, getCapacity(query), false, LocationSupplierUtils.of(query)));
     }
 
     @Override
@@ -43,8 +49,19 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
 
     // --------------------------------------------------------------------- //
 
+    @Nullable
+    private static BlockDeviceData getData(final ItemDeviceQuery query) {
+        final ItemStack stack = query.getItemStack();
+        return ((HardDriveItem) stack.getItem()).getData(stack);
+    }
+
     private static int getCapacity(final ItemDeviceQuery query) {
         final ItemStack stack = query.getItemStack();
+        final BlockDeviceData data = getData(query);
+        if (data != null) {
+            return (int) Math.max(data.getBlockDevice().getCapacity(), 0);
+        }
+
         final HardDriveItem item = (HardDriveItem) stack.getItem();
         return Math.max(item.getCapacity(stack), 0);
     }

@@ -79,9 +79,7 @@ public final class Providers {
     public static void registerItemDeviceProviders(final BiConsumer<String, Supplier<ItemDeviceProvider>> registry) {
         registry.accept("memory", MemoryItemDeviceProvider::new);
         registry.accept("hard_drive", HardDriveItemDeviceProvider::new);
-        registry.accept("hard_drive_custom", HardDriveWithExternalDataItemDeviceProvider::new);
         registry.accept("flash_memory", FlashMemoryItemDeviceProvider::new);
-        registry.accept("flash_memory_custom", FlashMemoryWithExternalDataItemDeviceProvider::new);
         registry.accept("redstone_interface_card", RedstoneInterfaceCardItemDeviceProvider::new);
         registry.accept("network_interface_card", NetworkInterfaceCardItemDeviceProvider::new);
         registry.accept("network_tunnel_card", NetworkTunnelCardItemDeviceProvider::new);

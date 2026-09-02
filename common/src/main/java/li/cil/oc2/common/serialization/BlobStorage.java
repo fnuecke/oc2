@@ -50,6 +50,7 @@ public final class BlobStorage {
     private static final Set<UUID> CLOSED_SINCE_SAVE = new HashSet<>();
 
     @Nullable
+    private static MinecraftServer server; // Server owning the store, for thread checks.
     private static Path dataDirectory; // Directory blobs get saved to.
     @Nullable
     private static Path trashDirectory; // Directory evicted blobs get moved to.
@@ -67,6 +68,7 @@ public final class BlobStorage {
      * @param server the currently active server.
      */
     public static synchronized void setServer(final MinecraftServer server) {
+        BlobStorage.server = server;
         dataDirectory = server.getWorldPath(BLOBS_FOLDER_NAME);
         trashDirectory = server.getWorldPath(TRASH_FOLDER_NAME);
         try {
@@ -264,7 +266,7 @@ public final class BlobStorage {
      * @param handle the handle of the blob to delete.
      */
     public static synchronized void delete(final UUID handle) {
-        if (dataDirectory == null) {
+        if (dataDirectory == null || server == null || !server.isSameThread()) {
             return;
         }
 

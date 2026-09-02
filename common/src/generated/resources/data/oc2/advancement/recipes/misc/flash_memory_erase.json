@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_flash_memory_custom": {
+    "has_flash_memory": {
       "conditions": {
         "items": [
           {
-            "items": "oc2:flash_memory_custom"
+            "items": "oc2:flash_memory"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "oc2:flash_memory_from_custom"
+        "recipe": "oc2:flash_memory_erase"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_flash_memory_custom"
+      "has_flash_memory"
     ]
   ],
   "rewards": {
     "recipes": [
-      "oc2:flash_memory_from_custom"
+      "oc2:flash_memory_erase"
     ]
   }
 }

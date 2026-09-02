@@ -41,7 +41,7 @@ public final class CustomItemColors {
             Items.HARD_DRIVE_SMALL,
             Items.HARD_DRIVE_MEDIUM,
             Items.HARD_DRIVE_LARGE,
-            Items.HARD_DRIVE_CUSTOM,
+            Items.FLASH_MEMORY,
             Items.FLOPPY);
     }
 

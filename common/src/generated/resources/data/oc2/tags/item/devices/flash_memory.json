@@ -1,7 +1,5 @@
 {
   "values": [
-    "oc2:flash_memory",
-    "oc2:flash_memory_custom",
-    "oc2:flash_memory_cpm"
+    "oc2:flash_memory"
   ]
 }

@@ -6,6 +6,8 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.gametest.ComputerFixture;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -49,9 +51,9 @@ public final class VirtualMachineTests {
 
         helper.startSequence()
             .thenExecuteAfter(20, () -> computer
-                .install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
+                .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId()))
                 .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                .install(DeviceTypes.HARD_DRIVE.get(), new ItemStack(Items.HARD_DRIVE_CUSTOM.get())))
+                .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId())))
             .thenExecuteAfter(20, computer::start)
             .thenExecuteAfter(60, () -> {
                 computer.assertRunState(VMRunState.STOPPED, "without a processor");
@@ -171,9 +173,9 @@ public final class VirtualMachineTests {
 
     private static void installHardware(final ComputerFixture computer) {
         computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-            .install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
+            .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId()))
             .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-            .install(DeviceTypes.HARD_DRIVE.get(), new ItemStack(Items.HARD_DRIVE_CUSTOM.get()));
+            .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()));
     }
 
     // --------------------------------------------------------------------- //

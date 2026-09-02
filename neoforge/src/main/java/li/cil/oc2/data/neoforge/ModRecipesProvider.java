@@ -5,6 +5,8 @@ package li.cil.oc2.data.neoforge;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.ResetRecipe;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.core.HolderLookup;
@@ -285,18 +287,18 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ToolRecipeBuilder
-            .toolRecipe(Items.HARD_DRIVE_CUSTOM.get())
+            .toolRecipe(Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
             .requires(Items.HARD_DRIVE_LARGE.get())
             .requires(Items.CPU_RISCV.get())
             .unlockedBy("has_cpu_riscv", inventoryChange(Items.CPU_RISCV.get()))
-            .save(consumer);
+            .save(consumer, API.MOD_ID + ":hard_drive_large_preloaded");
 
         ToolRecipeBuilder
             .toolRecipe(Items.HARD_DRIVE_LARGE.get())
             .requires(Items.WRENCH.get())
-            .requires(Items.HARD_DRIVE_CUSTOM.get())
-            .unlockedBy("has_hard_drive_custom", inventoryChange(Items.HARD_DRIVE_CUSTOM.get()))
-            .save(consumer, API.MOD_ID + ":hard_drive_large_from_custom");
+            .requires(Items.HARD_DRIVE_LARGE.get())
+            .unlockedBy("has_hard_drive_large", inventoryChange(Items.HARD_DRIVE_LARGE.get()))
+            .save(consumer, API.MOD_ID + ":hard_drive_large_erase");
 
         ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.FLASH_MEMORY.get())
@@ -311,32 +313,25 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ToolRecipeBuilder
-            .toolRecipe(Items.FLASH_MEMORY_CUSTOM.get())
+            .toolRecipe(Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId()))
             .requires(Items.FLASH_MEMORY.get())
             .requires(Items.CPU_RISCV.get())
             .unlockedBy("has_cpu_riscv", inventoryChange(Items.CPU_RISCV.get()))
-            .save(consumer);
+            .save(consumer, API.MOD_ID + ":flash_memory_riscv");
 
         ToolRecipeBuilder
-            .toolRecipe(Items.FLASH_MEMORY_CPM.get())
+            .toolRecipe(Items.FLASH_MEMORY.get().withData(FirmwareRegistry.Z80.getId()))
             .requires(Items.FLASH_MEMORY.get())
             .requires(Items.CPU_Z80.get())
             .unlockedBy("has_cpu_z80", inventoryChange(Items.CPU_Z80.get()))
-            .save(consumer);
+            .save(consumer, API.MOD_ID + ":flash_memory_z80");
 
         ToolRecipeBuilder
             .toolRecipe(Items.FLASH_MEMORY.get())
             .requires(Items.WRENCH.get())
-            .requires(Items.FLASH_MEMORY_CUSTOM.get())
-            .unlockedBy("has_flash_memory_custom", inventoryChange(Items.FLASH_MEMORY_CUSTOM.get()))
-            .save(consumer, API.MOD_ID + ":flash_memory_from_custom");
-
-        ToolRecipeBuilder
-            .toolRecipe(Items.FLASH_MEMORY.get())
-            .requires(Items.WRENCH.get())
-            .requires(Items.FLASH_MEMORY_CPM.get())
-            .unlockedBy("has_flash_memory_cpm", inventoryChange(Items.FLASH_MEMORY_CPM.get()))
-            .save(consumer, API.MOD_ID + ":flash_memory_from_cpm");
+            .requires(Items.FLASH_MEMORY.get())
+            .unlockedBy("has_flash_memory", inventoryChange(Items.FLASH_MEMORY.get()))
+            .save(consumer, API.MOD_ID + ":flash_memory_erase");
 
         SpecialRecipeBuilder
             .special(ResetRecipe::new)

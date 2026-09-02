@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "oc2:flash_memory_custom"
+        "recipe": "oc2:flash_memory_riscv"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "oc2:flash_memory_custom"
+      "oc2:flash_memory_riscv"
     ]
   }
 }

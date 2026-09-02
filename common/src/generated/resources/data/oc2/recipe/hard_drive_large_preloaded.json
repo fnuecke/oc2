@@ -10,7 +10,14 @@
     }
   ],
   "result": {
+    "components": {
+      "minecraft:custom_data": {
+        "oc2": {
+          "data": "oc2:buildroot"
+        }
+      }
+    },
     "count": 1,
-    "id": "oc2:hard_drive_custom"
+    "id": "oc2:hard_drive_large"
   }
 }

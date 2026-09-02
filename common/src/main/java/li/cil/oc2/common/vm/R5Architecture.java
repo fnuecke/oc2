@@ -43,6 +43,7 @@ public final class R5Architecture extends AbstractArchitecture {
         board.getCpu().setFrequency(Constants.R5_CPU_FREQUENCY);
         board.setBootArguments("root=/dev/vda rw");
         board.setStandardOutputDevice(builtinDevices.uart);
+        board.setFirmwareSize(Constants.FLASH_MEMORY_SIZE);
     }
 
     // --------------------------------------------------------------------- //

@@ -19,7 +19,7 @@ public final class CustomItemModelProperties {
             (stack, level, entity, seed) -> CustomItemColors.getColor(stack));
         ClientPlatform.registerItemProperty(Items.HARD_DRIVE_LARGE.get(), CustomItemModelProperties.COLOR_PROPERTY,
             (stack, level, entity, seed) -> CustomItemColors.getColor(stack));
-        ClientPlatform.registerItemProperty(Items.HARD_DRIVE_CUSTOM.get(), CustomItemModelProperties.COLOR_PROPERTY,
+        ClientPlatform.registerItemProperty(Items.FLASH_MEMORY.get(), CustomItemModelProperties.COLOR_PROPERTY,
             (stack, level, entity, seed) -> CustomItemColors.getColor(stack));
         ClientPlatform.registerItemProperty(Items.FLOPPY.get(), CustomItemModelProperties.COLOR_PROPERTY,
             (stack, level, entity, seed) -> CustomItemColors.getColor(stack));

@@ -25,8 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class ToolRecipeBuilder implements RecipeBuilder {
-    private final Item result;
-    private final int count;
+    private final ItemStack result;
     private final NonNullList<Ingredient> ingredients = NonNullList.create();
     private final Map<String, Criterion<?>> criteria = new LinkedHashMap<>();
     @Nullable
@@ -34,17 +33,20 @@ public final class ToolRecipeBuilder implements RecipeBuilder {
 
     // --------------------------------------------------------------------- //
 
-    private ToolRecipeBuilder(final ItemLike result, final int count) {
-        this.result = result.asItem();
-        this.count = count;
+    private ToolRecipeBuilder(final ItemStack result) {
+        this.result = result;
     }
 
     public static ToolRecipeBuilder toolRecipe(final ItemLike result) {
-        return new ToolRecipeBuilder(result, 1);
+        return new ToolRecipeBuilder(new ItemStack(result));
     }
 
     public static ToolRecipeBuilder toolRecipe(final ItemLike result, final int count) {
-        return new ToolRecipeBuilder(result, count);
+        return new ToolRecipeBuilder(new ItemStack(result, count));
+    }
+
+    public static ToolRecipeBuilder toolRecipe(final ItemStack result) {
+        return new ToolRecipeBuilder(result);
     }
 
     // --------------------------------------------------------------------- //
@@ -84,7 +86,7 @@ public final class ToolRecipeBuilder implements RecipeBuilder {
 
     @Override
     public Item getResult() {
-        return result;
+        return result.getItem();
     }
 
     @Override
@@ -102,7 +104,7 @@ public final class ToolRecipeBuilder implements RecipeBuilder {
         final ShapelessRecipe shapeless = new ShapelessRecipe(
             group == null ? "" : group,
             RecipeBuilder.determineBookCategory(RecipeCategory.MISC),
-            new ItemStack(result, count),
+            result,
             ingredients);
 
         output.accept(id, new ToolRecipe(shapeless), advancement.build(id.withPrefix("recipes/misc/")));

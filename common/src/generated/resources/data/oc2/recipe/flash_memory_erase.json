@@ -3,14 +3,14 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "oc2:flash_memory"
+      "item": "oc2:wrench"
     },
     {
-      "item": "oc2:cpu_z80"
+      "item": "oc2:flash_memory"
     }
   ],
   "result": {
     "count": 1,
-    "id": "oc2:flash_memory_cpm"
+    "id": "oc2:flash_memory"
   }
 }

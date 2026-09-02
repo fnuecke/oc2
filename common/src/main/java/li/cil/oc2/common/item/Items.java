@@ -7,8 +7,6 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.Blocks;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.DyeColor;
@@ -61,15 +59,9 @@ public final class Items {
         new HardDriveItem(4 * Constants.MEGABYTE, DyeColor.GREEN));
     public static final RegistrySupplier<HardDriveItem> HARD_DRIVE_LARGE = register("hard_drive_large", () ->
         new HardDriveItem(8 * Constants.MEGABYTE, DyeColor.CYAN));
-    public static final RegistrySupplier<HardDriveWithExternalDataItem> HARD_DRIVE_CUSTOM = register("hard_drive_custom", () ->
-        new HardDriveWithExternalDataItem(BlockDeviceDataRegistry.BUILDROOT.getId(), DyeColor.BROWN));
 
     public static final RegistrySupplier<FlashMemoryItem> FLASH_MEMORY = register("flash_memory", () ->
         new FlashMemoryItem(Constants.FLASH_MEMORY_SIZE));
-    public static final RegistrySupplier<FlashMemoryWithExternalDataItem> FLASH_MEMORY_CUSTOM = register("flash_memory_custom", () ->
-        new FlashMemoryWithExternalDataItem(FirmwareRegistry.BUILDROOT.getId()));
-    public static final RegistrySupplier<FlashMemoryWithExternalDataItem> FLASH_MEMORY_CPM = register("flash_memory_cpm", () ->
-        new FlashMemoryWithExternalDataItem(FirmwareRegistry.CPM.getId()));
 
     public static final RegistrySupplier<FloppyItem> FLOPPY = register("floppy", () ->
         new FloppyItem(FloppyItem.MAX_CAPACITY));

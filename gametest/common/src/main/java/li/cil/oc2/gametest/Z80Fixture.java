@@ -4,6 +4,7 @@ package li.cil.oc2.gametest;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -25,7 +26,7 @@ public final class Z80Fixture {
 
     public Z80Fixture install() {
         computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_Z80.get()));
-        computer.install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CPM.get()));
+        computer.install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(FirmwareRegistry.Z80.getId()));
         computer.install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_SMALL.get()));
         return this;
     }

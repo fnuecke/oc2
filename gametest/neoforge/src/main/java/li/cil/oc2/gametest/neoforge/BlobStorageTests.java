@@ -14,6 +14,7 @@ import li.cil.oc2.common.util.StorageItemUtils;
 import li.cil.oc2.common.util.StorageItemUtils.State;
 import li.cil.oc2.common.vm.VMDeviceBusAdapter;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.sedna.riscv.R5Board;
 import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTest;
@@ -703,14 +704,14 @@ public final class BlobStorageTests {
             new ItemStack(Items.HARD_DRIVE_LARGE.get()),
             NonNullList.of(Ingredient.EMPTY,
                 Ingredient.of(Items.WRENCH.get()),
-                Ingredient.of(Items.HARD_DRIVE_CUSTOM.get()))));
+                Ingredient.of(Items.HARD_DRIVE_LARGE.get()))));
 
-        final ItemStack healthy = new ItemStack(Items.HARD_DRIVE_CUSTOM.get());
+        final ItemStack healthy = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId());
         if (!recipe.matches(gridOf(healthy, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
             throw new GameTestAssertException("Converting a healthy drive should still work");
         }
 
-        final ItemStack corrupted = new ItemStack(Items.HARD_DRIVE_CUSTOM.get());
+        final ItemStack corrupted = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId());
         StorageItemUtils.setState(corrupted, State.CORRUPTED);
         if (recipe.matches(gridOf(corrupted, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
             throw new GameTestAssertException("A corrupted drive must be reset before it can be converted, "

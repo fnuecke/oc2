@@ -18,6 +18,8 @@ import li.cil.oc2.common.vm.VMDeviceBusAdapter;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.oc2.gametest.ComputerFixture;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.sedna.riscv.R5Board;
 import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTest;
@@ -305,9 +307,9 @@ public final class MountFailureTests {
             new ItemStack(Items.HARD_DRIVE_LARGE.get()),
             NonNullList.of(Ingredient.EMPTY,
                 Ingredient.of(Items.WRENCH.get()),
-                Ingredient.of(Items.HARD_DRIVE_CUSTOM.get()))));
+                Ingredient.of(Items.HARD_DRIVE_LARGE.get()))));
 
-        final ItemStack drive = new ItemStack(Items.HARD_DRIVE_CUSTOM.get());
+        final ItemStack drive = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId());
         StorageItemUtils.setState(drive, State.INCONSISTENT);
 
         if (recipe.matches(CraftingInput.of(2, 1, List.of(drive, new ItemStack(Items.WRENCH.get()))),
@@ -335,7 +337,7 @@ public final class MountFailureTests {
         helper.startSequence()
             .thenExecuteAfter(20, () -> computer
                 .install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-                .install(DeviceTypes.FLASH_MEMORY.get(), new ItemStack(Items.FLASH_MEMORY_CUSTOM.get()))
+                .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId()))
                 .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_SMALL.get()))
                 .install(DeviceTypes.HARD_DRIVE.get(), drive))
             .thenExecuteAfter(20, computer::start)

@@ -6,6 +6,8 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
@@ -40,7 +42,7 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
                 new ItemStack(Items.CPU_RISCV.get())
             ));
             itemsTag.put(key(DeviceTypes.FLASH_MEMORY.get()), makeInventoryTag(provider,
-                new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
+                Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId())
             ));
         });
 
@@ -59,7 +61,7 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
                 new ItemStack(Items.MEMORY_LARGE.get())
             ));
             itemsTag.put(key(DeviceTypes.HARD_DRIVE.get()), makeInventoryTag(provider,
-                new ItemStack(Items.HARD_DRIVE_CUSTOM.get())
+                Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId())
             ));
             itemsTag.put(key(DeviceTypes.CARD.get()), makeInventoryTag(provider,
                 new ItemStack(Items.NETWORK_INTERFACE_CARD.get())

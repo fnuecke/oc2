@@ -1,0 +1,23 @@
+{
+  "type": "oc2:tool",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "oc2:flash_memory"
+    },
+    {
+      "item": "oc2:cpu_z80"
+    }
+  ],
+  "result": {
+    "components": {
+      "minecraft:custom_data": {
+        "oc2": {
+          "data": "oc2:z80"
+        }
+      }
+    },
+    "count": 1,
+    "id": "oc2:flash_memory"
+  }
+}

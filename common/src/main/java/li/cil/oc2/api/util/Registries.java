@@ -5,7 +5,6 @@ package li.cil.oc2.api.util;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
-import li.cil.oc2.api.bus.device.data.Firmware;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.rpc.RPCTypeAdapter;
@@ -33,9 +32,9 @@ public final class Registries {
     public static final ResourceKey<Registry<BlockDeviceData>> BLOCK_DEVICE_DATA = key("block_device_data");
 
     /**
-     * The registry name of the registry holding firmwares.
+     * The registry name of the registry holding bootloader images for flash memory.
      */
-    public static final ResourceKey<Registry<Firmware>> FIRMWARE = key("firmware");
+    public static final ResourceKey<Registry<BlockDeviceData>> FIRMWARE = key("firmware");
 
     /**
      * The registry name of the registry holding device types.

@@ -9,6 +9,7 @@ import li.cil.oc2.common.entity.robot.RobotActions;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -104,7 +105,7 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
                 new ItemStack(Items.CPU_RISCV.get())
             ));
             itemsTag.put(key(DeviceTypes.FLASH_MEMORY.get()), makeInventoryTag(provider,
-                new ItemStack(Items.FLASH_MEMORY_CUSTOM.get())
+                Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId())
             ));
         });
 

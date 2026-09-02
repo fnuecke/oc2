@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_cpu_riscv": {
+    "has_cpu_z80": {
       "conditions": {
         "items": [
           {
-            "items": "oc2:cpu_riscv"
+            "items": "oc2:cpu_z80"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "oc2:hard_drive_custom"
+        "recipe": "oc2:flash_memory_z80"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_cpu_riscv"
+      "has_cpu_z80"
     ]
   ],
   "rewards": {
     "recipes": [
-      "oc2:hard_drive_custom"
+      "oc2:flash_memory_z80"
     ]
   }
 }

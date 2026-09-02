@@ -1,5 +1,7 @@
-# Scripting
-Controlling devices using Lua is a core concept when using [computers](block/computer.md). Many devices are so-called high level API (HLAPI) devices. This means they are not controlled using regular Linux drivers, but via a simple RPC system, employing JSON messages over a serial device.
+# High-level API
+Controlling devices using Lua is a core concept when using [computers](block/computer.md). Many devices are so-called high-level API (HLAPI) devices. This means they are not controlled using regular Linux drivers, but via a simple RPC system, employing JSON messages over a serial device.
+
+Everything in this entry needs the Linux system that ships for the [RISC-V processor](item/cpu_riscv.md). To reach devices from a [Z80 processor](item/cpu_z80.md), see the [mid-level API](mlapi.md) (MLAPI) entry.
 
 ## The Devices Library
 The default Linux distribution includes libraries to make HLAPI devices more easily accessible. The `devices` library provides utilities for discovering devices and calling methods on them, as well as obtaining documentation on devices, when available.

@@ -6,7 +6,7 @@ The block operations module provides to [robots](robot.md) the ability to break 
 ## API
 Device name: `block_operations`
 
-This is a high level API device. It can be controlled using Lua in the default Linux distribution. For example:  
+This is a high-level API device. It can be controlled using Lua in the default Linux distribution. For example:  
 `local d = require("devices")`  
 `local m = d:find("block_operations")`  
 `m:excavate("front")`

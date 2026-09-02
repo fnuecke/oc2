@@ -1,12 +1,12 @@
 # Robotics
-[Robots](item/robot.md) are [computers](block/computer.md) that can move. Everything in the [basics](basics.md) and [scripting](scripting.md) entries applies to them as well. For the full method reference, see the [robot](item/robot.md) entry.
+[Robots](item/robot.md) are [computers](block/computer.md) that can move. Everything in the [basics](basics.md) and [HLAPI](hlapi.md) entries applies to them as well. For the full method reference, see the [robot](item/robot.md) entry.
 
 ## Building a Robot
 A robot is configured much like a computer, with two differences.
 
 It cannot connect to [bus cables](block/bus_cable.md), so every device it can talk to has to sit inside the robot itself. In place of cards, robots take modules: the [block operations module](item/block_operations_module.md), the [inventory operations module](item/inventory_operations_module.md) and the [network tunnel module](item/network_tunnel_module.md).
 
-It has two inventories. The component inventory holds memory, storage and modules, and must be filled by hand. The regular inventory is what the robot carries around, and is the only one a hopper or similar machine can reach.
+It has two inventories. The component inventory holds the processor, memory, storage and modules, and must be filled by hand. The regular inventory is what the robot carries around, and is the only one a hopper or similar machine can reach.
 
 ## Energy
 A robot draws energy from its internal storage for as long as its computer runs. Consumption depends on the installed components; moving and turning cost nothing on top of that. When the batteries run dry, the computer stops with an out-of-energy error, wherever the robot happens to be standing.

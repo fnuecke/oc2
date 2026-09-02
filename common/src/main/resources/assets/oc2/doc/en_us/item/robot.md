@@ -16,7 +16,7 @@ For an overview of how robots move, how they draw energy and how to script them,
 ## API
 Device name: `robot`
 
-This is a high level API device. It can be controlled using Lua in the default Linux distribution. For example:  
+This is a high-level API device. It can be controlled using Lua in the default Linux distribution. For example:  
 `local d = require("devices")`  
 `local r = d:find("robot")`  
 `r:move("forward")`

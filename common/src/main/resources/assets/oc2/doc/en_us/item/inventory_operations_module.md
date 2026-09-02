@@ -6,7 +6,7 @@ The inventory operations module provides to [robots](robot.md) the ability to in
 ## API
 Device name: `inventory_operations`
 
-This is a high level API device. It can be controlled using Lua in the default Linux distribution. For example:  
+This is a high-level API device. It can be controlled using Lua in the default Linux distribution. For example:  
 `local d = require("devices")`  
 `local m = d:find("inventory_operations")`  
 `m:drop(1, "front")`

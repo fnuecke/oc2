@@ -3,12 +3,12 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.ComputerFixture;
 import li.cil.oc2.gametest.GuestTests;
 import li.cil.oc2.gametest.device.GuestTestDevices;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;

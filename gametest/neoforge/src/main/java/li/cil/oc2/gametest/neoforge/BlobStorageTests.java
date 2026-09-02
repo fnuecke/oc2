@@ -3,6 +3,7 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.common.Config;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.bus.device.vm.item.HardDriveDevice;
 import li.cil.oc2.common.item.HardDriveItem;
 import li.cil.oc2.common.item.Items;
@@ -14,7 +15,6 @@ import li.cil.oc2.common.util.StorageItemUtils;
 import li.cil.oc2.common.util.StorageItemUtils.State;
 import li.cil.oc2.common.vm.VMDeviceBusAdapter;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.sedna.riscv.R5Board;
 import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTest;

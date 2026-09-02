@@ -37,7 +37,7 @@ public final class FlashStorageDeviceWithInitialData extends FlashStorageDevice 
         }
 
         final ByteBuffer buffer = ByteBuffer.allocate(size);
-        try (final InputStream stream = base.getInputStream(0)) {
+        try (InputStream stream = base.getInputStream(0)) {
             buffer.put(stream.readAllBytes());
         }
         buffer.flip();

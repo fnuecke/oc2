@@ -3,13 +3,13 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.entity.robot.RobotActions;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.NBTUtils;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;

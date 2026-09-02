@@ -159,7 +159,11 @@ public class FlashStorageDevice extends IdentityProxy<ItemStack> implements VMDe
         final FileChannel channel = BlobStorage.open(handle, createIfMissing);
         try {
             final ByteBuffer buffer = ByteBuffer.allocate(size);
-            while (buffer.hasRemaining() && channel.read(buffer) >= 0) ;
+            while (buffer.hasRemaining()) {
+                if (channel.read(buffer) < 0) {
+                    break;
+                }
+            }
             return buffer;
         } catch (final IOException e) {
             BlobStorage.close(handle);

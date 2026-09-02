@@ -4,8 +4,8 @@ package li.cil.oc2.gametest;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
-import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
+import li.cil.oc2.common.item.Items;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;

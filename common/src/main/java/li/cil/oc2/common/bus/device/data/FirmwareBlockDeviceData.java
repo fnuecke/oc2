@@ -27,7 +27,7 @@ public final class FirmwareBlockDeviceData implements BlockDeviceData {
 
     public FirmwareBlockDeviceData(final Supplier<InputStream> source, final String name, final DyeColor color) {
         BlockDevice device;
-        try (final InputStream stream = source.get()) {
+        try (InputStream stream = source.get()) {
             device = ByteBufferBlockDevice.createFromStream(stream, true);
         } catch (final IOException e) {
             LOGGER.error(e);

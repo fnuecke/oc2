@@ -3,10 +3,10 @@
 package li.cil.oc2.data.neoforge;
 
 import li.cil.oc2.api.API;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.ResetRecipe;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.core.HolderLookup;

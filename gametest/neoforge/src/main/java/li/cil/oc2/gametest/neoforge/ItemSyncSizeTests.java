@@ -4,14 +4,14 @@ package li.cil.oc2.gametest.neoforge;
 
 import io.netty.buffer.Unpooled;
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.gametest.BusCables;
 import li.cil.oc2.gametest.ComputerFixture;
 import li.cil.oc2.gametest.DiskDriveFixture;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.gametest.framework.GameTest;

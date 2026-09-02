@@ -4,10 +4,10 @@ package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.blockentity.BlockEntities;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
+import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTUtils;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;

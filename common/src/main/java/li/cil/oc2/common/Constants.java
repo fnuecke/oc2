@@ -14,6 +14,8 @@ public final class Constants {
 
     public static final int PAGE_SIZE = 4 * 1024;
 
+    public static final int FLASH_MEMORY_SIZE = 8 * KILOBYTE;
+
     public static final int R5_CPU_FREQUENCY = 25_000_000;
     public static final int Z80_CPU_FREQUENCY = 4_000_000;
 

@@ -65,7 +65,7 @@ public final class Items {
         new HardDriveWithExternalDataItem(BlockDeviceDataRegistry.BUILDROOT.getId(), DyeColor.BROWN));
 
     public static final RegistrySupplier<FlashMemoryItem> FLASH_MEMORY = register("flash_memory", () ->
-        new FlashMemoryItem(4 * Constants.KILOBYTE));
+        new FlashMemoryItem(Constants.FLASH_MEMORY_SIZE));
     public static final RegistrySupplier<FlashMemoryWithExternalDataItem> FLASH_MEMORY_CUSTOM = register("flash_memory_custom", () ->
         new FlashMemoryWithExternalDataItem(FirmwareRegistry.BUILDROOT.getId()));
     public static final RegistrySupplier<FlashMemoryWithExternalDataItem> FLASH_MEMORY_CPM = register("flash_memory_cpm", () ->

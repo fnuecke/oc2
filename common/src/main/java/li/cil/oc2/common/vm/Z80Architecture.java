@@ -28,7 +28,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public final class Z80Architecture extends AbstractArchitecture {
-    private static final int BOOT_ROM_SIZE = 8 * Constants.KILOBYTE;
     private static final int ENUMERATOR_PORT = 0xE0;
     private static final int ROM_DRIVE_UNITS = 1;
 
@@ -43,7 +42,7 @@ public final class Z80Architecture extends AbstractArchitecture {
     @Serialized
     private final IODeviceBusAdapter ioAdapter;
     @Serialized
-    private final byte[] bootRom = new byte[BOOT_ROM_SIZE];
+    private final byte[] bootRom = new byte[Constants.FLASH_MEMORY_SIZE];
 
     private final transient MemoryMap bootRomMap;
 

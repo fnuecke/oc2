@@ -13,7 +13,7 @@
     "components": {
       "minecraft:custom_data": {
         "oc2": {
-          "data": "oc2:z80"
+          "image": "oc2:z80"
         }
       }
     },

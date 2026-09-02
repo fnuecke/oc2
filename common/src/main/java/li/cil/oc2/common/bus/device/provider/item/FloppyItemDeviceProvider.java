@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.provider.item;
 
+import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
@@ -19,6 +20,11 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 public final class FloppyItemDeviceProvider extends AbstractItemDeviceProvider {
+    public static final String NAME = "floppy";
+    public static final String DEVICE_DATA_KEY = API.MOD_ID + ":" + NAME;
+
+    // --------------------------------------------------------------------- //
+
     public FloppyItemDeviceProvider() {
         super(FloppyItem.class);
     }

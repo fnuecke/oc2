@@ -6,13 +6,14 @@ import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.Config;
+import li.cil.oc2.common.bus.device.provider.item.FloppyItemDeviceProvider;
 import li.cil.oc2.common.bus.device.vm.item.AbstractBlockStorageDevice;
 import li.cil.oc2.common.bus.device.vm.item.FloppyControllerStorage;
 import li.cil.oc2.common.bus.device.vm.item.FloppyMedia;
 import li.cil.oc2.common.bus.device.vm.item.MappedStorage;
 import li.cil.oc2.common.item.FloppyItem;
 import li.cil.oc2.common.serialization.BlobStorage;
-import li.cil.oc2.common.util.ItemStackUtils;
+import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
@@ -28,8 +29,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> extends AbstractBlockStorageDevice<BlockDevice, T> {
-    public static final String DATA_TAG_NAME = "data";
-
     private static final ByteBufferBlockDevice EMPTY_BLOCK_DEVICE = ByteBufferBlockDevice.create(0, false);
 
     // --------------------------------------------------------------------- //
@@ -121,7 +120,7 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
         final BlockDeviceData data = floppy.getData(stack);
 
         if (!BlobStorage.isValidHandle(blobHandle)) {
-            importFromItemStack(ItemStackUtils.getModDataTag(stack).getCompound(DATA_TAG_NAME));
+            importFromItemStack(ItemDeviceUtils.getDeviceData(stack, FloppyItemDeviceProvider.DEVICE_DATA_KEY));
         }
 
         final boolean isNew = !BlobStorage.isValidHandle(blobHandle);

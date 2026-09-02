@@ -5,6 +5,7 @@ package li.cil.oc2.common.item;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.util.ItemStackUtils;
+import li.cil.oc2.common.util.StorageItemUtils;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.Util;
 import net.minecraft.core.component.DataComponents;
@@ -19,8 +20,6 @@ import net.minecraft.world.item.component.DyedItemColor;
 import javax.annotation.Nullable;
 
 public final class FlashMemoryItem extends AbstractStorageItem implements ColoredItem, CreativeTabItemProvider {
-    public static final String DATA_TAG_NAME = "data";
-
     private static final int BLANK_COLOR = 0xFF77B294; // green
 
     // --------------------------------------------------------------------- //
@@ -40,7 +39,7 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
             return null;
         }
 
-        final String registryName = ItemStackUtils.getModDataTag(stack).getString(DATA_TAG_NAME);
+        final String registryName = ItemStackUtils.getModDataTag(stack).getString(StorageItemUtils.IMAGE_TAG_NAME);
         if (StringUtil.isNullOrEmpty(registryName)) {
             return null;
         }
@@ -57,7 +56,7 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
             return ItemStack.EMPTY;
         }
 
-        ItemStackUtils.modifyModDataTag(stack, tag -> tag.putString(DATA_TAG_NAME, key.toString()));
+        ItemStackUtils.modifyModDataTag(stack, tag -> tag.putString(StorageItemUtils.IMAGE_TAG_NAME, key.toString()));
 
         return stack;
     }

@@ -6,6 +6,7 @@ import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.util.ItemStackUtils;
+import li.cil.oc2.common.util.StorageItemUtils;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -20,7 +21,6 @@ import javax.annotation.Nullable;
 
 public final class FloppyItem extends AbstractStorageItem implements ColoredItem, CreativeTabItemProvider {
     public static final int MAX_CAPACITY = 512 * Constants.KILOBYTE;
-    public static final String DATA_TAG_NAME = "data";
 
     // --------------------------------------------------------------------- //
 
@@ -36,7 +36,7 @@ public final class FloppyItem extends AbstractStorageItem implements ColoredItem
             return null;
         }
 
-        final String registryName = ItemStackUtils.getModDataTag(stack).getString(DATA_TAG_NAME);
+        final String registryName = ItemStackUtils.getModDataTag(stack).getString(StorageItemUtils.IMAGE_TAG_NAME);
         if (StringUtil.isNullOrEmpty(registryName)) {
             return null;
         }
@@ -53,7 +53,7 @@ public final class FloppyItem extends AbstractStorageItem implements ColoredItem
             return ItemStack.EMPTY;
         }
 
-        ItemStackUtils.modifyModDataTag(stack, tag -> tag.putString(DATA_TAG_NAME, key.toString()));
+        ItemStackUtils.modifyModDataTag(stack, tag -> tag.putString(StorageItemUtils.IMAGE_TAG_NAME, key.toString()));
 
         return stack;
     }

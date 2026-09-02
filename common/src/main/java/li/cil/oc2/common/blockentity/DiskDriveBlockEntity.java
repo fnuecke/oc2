@@ -4,6 +4,7 @@ package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.DiskDriveBlock;
+import li.cil.oc2.common.bus.device.provider.item.FloppyItemDeviceProvider;
 import li.cil.oc2.common.bus.device.vm.block.DiskDriveContainer;
 import li.cil.oc2.common.bus.device.vm.block.DiskDriveDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -11,10 +12,7 @@ import li.cil.oc2.common.container.TypedItemStackHandler;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.DiskDriveFloppyMessage;
 import li.cil.oc2.common.tags.ItemTags;
-import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.LocationSupplierUtils;
-import li.cil.oc2.common.util.SoundEvents;
-import li.cil.oc2.common.util.ThrottledSoundEmitter;
+import li.cil.oc2.common.util.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
@@ -27,8 +25,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
-
-import static li.cil.oc2.common.bus.device.vm.block.DiskDriveDevice.DATA_TAG_NAME;
 
 public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDriveContainer {
     private final DiskDriveItemStackHandler itemHandler = new DiskDriveItemStackHandler();
@@ -206,7 +202,7 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
                 if (stack.isEmpty()) {
                     device.removeBlockDevice();
                 } else {
-                    device.updateBlockDevice(ItemStackUtils.getModDataTag(stack).getCompound(DATA_TAG_NAME));
+                    device.updateBlockDevice(ItemDeviceUtils.getDeviceData(stack, FloppyItemDeviceProvider.DEVICE_DATA_KEY));
                 }
             }
 
@@ -235,7 +231,7 @@ public final class DiskDriveBlockEntity extends ModBlockEntity implements DiskDr
                 return;
             }
 
-            ItemStackUtils.modifyModDataTag(stack, modTag -> modTag.put(DATA_TAG_NAME, tag));
+            ItemDeviceUtils.setDeviceData(stack, FloppyItemDeviceProvider.DEVICE_DATA_KEY, tag);
         }
     }
 }

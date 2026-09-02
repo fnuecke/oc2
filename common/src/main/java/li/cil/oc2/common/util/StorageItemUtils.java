@@ -14,7 +14,7 @@ import java.util.UUID;
 public final class StorageItemUtils {
     private static final String STATE_TAG_NAME = "state";
     private static final String BLOB_HANDLE_TAG_NAME = "blob";
-    private static final String DISK_DATA_TAG_NAME = "data";
+    public static final String IMAGE_TAG_NAME = "image";
 
     public enum State {
         OK,
@@ -78,11 +78,6 @@ public final class StorageItemUtils {
                         takeHandle(deviceData.getCompound(key), handles);
                     }
                 }
-            }
-
-            // Floppy disks: data -> blob
-            if (tag.contains(DISK_DATA_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-                takeHandle(tag.getCompound(DISK_DATA_TAG_NAME), handles);
             }
 
             tag.remove(STATE_TAG_NAME);

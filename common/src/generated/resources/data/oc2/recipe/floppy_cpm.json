@@ -13,7 +13,7 @@
     "components": {
       "minecraft:custom_data": {
         "oc2": {
-          "data": "oc2:cpm"
+          "image": "oc2:cpm"
         }
       }
     },

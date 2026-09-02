@@ -4,10 +4,10 @@ package li.cil.oc2.common.integration.jei;
 
 import com.google.common.base.Strings;
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.item.HardDriveItem;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.StorageItemUtils;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.VanillaTypes;
@@ -36,7 +36,9 @@ public class ExtraItemsJEIPlugin implements IModPlugin {
     public void registerItemSubtypes(final ISubtypeRegistration registration) {
         registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.COMPUTER.get(), new ComputerSubtypeInterpreter());
         registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.ROBOT.get(), new RobotSubtypeInterpreter());
-        registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.HARD_DRIVE_LARGE.get(), new BlockDeviceSubtypeInterpreter());
+        registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.HARD_DRIVE_LARGE.get(), new ImageSubtypeInterpreter());
+        registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.FLASH_MEMORY.get(), new ImageSubtypeInterpreter());
+        registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.FLOPPY.get(), new ImageSubtypeInterpreter());
     }
 
     private static final class ComputerSubtypeInterpreter implements IIngredientSubtypeInterpreter<ItemStack> {
@@ -55,10 +57,10 @@ public class ExtraItemsJEIPlugin implements IModPlugin {
         }
     }
 
-    private static final class BlockDeviceSubtypeInterpreter implements IIngredientSubtypeInterpreter<ItemStack> {
+    private static final class ImageSubtypeInterpreter implements IIngredientSubtypeInterpreter<ItemStack> {
         @Override
         public String apply(final ItemStack ingredient, final UidContext context) {
-            final String registryName = ItemStackUtils.getModDataTag(ingredient).getString(HardDriveItem.DATA_TAG_NAME);
+            final String registryName = ItemStackUtils.getModDataTag(ingredient).getString(StorageItemUtils.IMAGE_TAG_NAME);
             return Strings.isNullOrEmpty(registryName) ? NONE : registryName;
         }
     }

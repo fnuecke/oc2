@@ -1,7 +1,7 @@
 # Robot
 ![I, for one, welcome our new robot overlords](item:oc2:robot)
 
-Robots are essentially mobile [computers](../block/computer.md). Due to their non-stationary nature, there is some behavior that differs from regular computers. They cannot connect to [bus interfaces](../block/bus_interface.md). Instead of card devices, they support module devices. These are specialized devices taking into account the robots' mobility.
+Robots are essentially mobile [computers](../block/computer.md). Due to their non-stationary nature, there is some behavior that differs from regular computers. They cannot connect to [bus interfaces](../block/bus_interface.md). Instead of card devices, they support module devices. These are specialized devices taking into account the robots' mobility. In place of a second [hard drive](hard_drive.md) bay they have a [floppy](floppy.md) slot, since they cannot use [disk drives](../block/disk_drive.md).
 
 Robots have a fixed-size inventory and sport a state-of-the-art energy storage. Only the regular inventory of robots can be automatically filled and emptied, for example by devices such as a hopper. The component inventory of the robot must be manually configured.
 

@@ -15,7 +15,7 @@ The other type of device are high- and mid-level API devices, sometimes also cal
 Due to the nature of the employed protocols, data rate is rather limited. Most devices therefore usually only provide comparatively simple APIs which do not require sending large amounts of data either way.
 
 ## Configuration
-Computers can be configured to some degree. The amount of memory, extra storage in the form of [hard drives](item/hard_drive.md) and most importantly, which cards to install, are largely up to the user. Note that the default Linux distribution does require at least 10M of memory, 12M are recommended. CP/M is less hungry and any modern RAM will satisfy it's 64KB need.
+Computers can be configured to some degree. The amount of memory, extra storage in the form of [hard drives](item/hard_drive.md) and most importantly, which cards to install, are largely up to the user. Note that the default Linux distribution does require at least 8M of memory, 10M are recommended. CP/M is less hungry and any modern RAM will satisfy its 64KB need.
 
 Most components contribute to the overall energy consumption of a computer. To conserve energy, choosing only the necessary components is essential.
 

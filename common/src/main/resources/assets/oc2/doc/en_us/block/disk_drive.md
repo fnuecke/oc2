@@ -16,5 +16,7 @@ configure them, first. For example, on the default Linux distribution, the follo
 - `umount <mount directory>` to unmount a floppy disk. Make sure to run this before removing the floppy from the disk
   drive, to avoid data loss.
 
+On a CP/M system, drives are lettered in the order they are found, starting at `A:`. The disk the machine booted from always comes first.
+
 Computers *have to be shut down* before installing or removing this component. Installing it while the computer is
 running will have no effect, removing it may lead to system errors.

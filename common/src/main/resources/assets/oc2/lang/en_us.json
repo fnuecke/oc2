@@ -97,6 +97,7 @@
   "gui.oc2.device_type.memory": "Memory",
   "gui.oc2.device_type.hard_drive": "Hard Drive",
   "gui.oc2.device_type.flash_memory": "Flash Memory",
+  "gui.oc2.device_type.floppy": "Floppy",
   "gui.oc2.device_type.card": "Card",
 
   "gui.oc2.file_chooser.title.load": "Open file",

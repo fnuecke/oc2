@@ -1,5 +1,5 @@
 # Getting Started
-This article describes the steps required to get a [computer](block/computer.md) up and running, and gives an example of how it can be used to interact with devices. We will focus on the [RISC-V processor](item/cpu_riscv.md) here, but building a [Z80](item/cpu_z80.md) computer works equivalently. It makes for a cheaper start, but lacks many of the RISC-V architecture's capabilities.
+This article describes the steps required to get a [computer](block/computer.md) up and running, and gives an example of how it can be used to interact with devices. We will focus on the [RISC-V processor](item/cpu_riscv.md) here, but building a [Z80](item/cpu_z80.md) computer works the same way, with a different set of parts. It makes for a cheaper start, but lacks many of the RISC-V architecture's capabilities.
 
 ## Building
 First things first, you need an actual computer case, plus a couple of components. If you haven't already, craft these first:

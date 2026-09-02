@@ -2,8 +2,10 @@
 
 package li.cil.oc2.common;
 
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.common.config.*;
 
+import javax.annotation.Nullable;
 import java.util.UUID;
 
 @WorldRestart
@@ -17,8 +19,6 @@ public final class Config {
     @Path("energy.blocks")
     public static double busInterfaceEnergyPerTick = 0.5;
     @Path("energy.blocks")
-    public static int computerEnergyPerTick = 10;
-    @Path("energy.blocks")
     public static int computerEnergyStorage = 2000;
     @Path("energy.blocks")
     public static int chargerEnergyPerTick = 2500;
@@ -30,10 +30,14 @@ public final class Config {
     public static int projectorEnergyStorage = 2000;
 
     @Path("energy.entities")
-    public static int robotEnergyPerTick = 5;
+    public static double robotCpuEnergyMultiplier = 0.5;
     @Path("energy.entities")
     public static int robotEnergyStorage = 750000;
 
+    @Path("energy.items")
+    public static int riscvCpuEnergyPerTick = 10;
+    @Path("energy.items")
+    public static int z80CpuEnergyPerTick = 2;
     @Path("energy.items")
     public static double memoryEnergyPerMegabytePerTick = 0.5;
     @Path("energy.items")
@@ -79,8 +83,22 @@ public final class Config {
     @Path("admin.virtual_network")
     public static int hubEthernetFramesPerTick = 32;
 
+    public static int cpuEnergyPerTick(@Nullable final ArchitectureType architecture) {
+        if (architecture == null) {
+            return 0;
+        }
+        return switch (architecture) {
+            case RISCV -> riscvCpuEnergyPerTick;
+            case Z80 -> z80CpuEnergyPerTick;
+        };
+    }
+
+    public static int robotCpuEnergyPerTick(@Nullable final ArchitectureType architecture) {
+        return (int) Math.round(cpuEnergyPerTick(architecture) * robotCpuEnergyMultiplier);
+    }
+
     public static boolean computersUseEnergy() {
-        return computerEnergyPerTick > 0 && computerEnergyStorage > 0;
+        return computerEnergyStorage > 0;
     }
 
     public static boolean chargerUseEnergy() {
@@ -92,6 +110,6 @@ public final class Config {
     }
 
     public static boolean robotsUseEnergy() {
-        return robotEnergyPerTick > 0 && robotEnergyStorage > 0;
+        return robotEnergyStorage > 0;
     }
 }

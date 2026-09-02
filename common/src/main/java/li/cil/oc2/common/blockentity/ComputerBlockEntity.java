@@ -85,7 +85,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private final ComputerBusElement busElement = new ComputerBusElement();
     private final ComputerItemStackHandlers deviceItems = new ComputerItemStackHandlers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
-    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockDeviceBusController(busElement, Config.computerEnergyPerTick, this, deviceItems::getArchitectureType), deviceItems::getDeviceLocation);
+    private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockDeviceBusController(busElement, this::cpuEnergyPerTick, this, deviceItems::getArchitectureType), deviceItems::getDeviceLocation);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
     private volatile List<ServerPlayer> terminalRecipients = List.of(); // Players to send live terminal updates to.
     private int terminalRecipientRefreshCountdown;
@@ -353,6 +353,10 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     }
 
     // --------------------------------------------------------------------- //
+
+    private int cpuEnergyPerTick() {
+        return Config.cpuEnergyPerTick(deviceItems.getArchitectureType().orElse(null));
+    }
 
     private void updateTerminalRecipients() {
         if (!(level instanceof final ServerLevel serverLevel)) {

@@ -3,7 +3,6 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.common.Config;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.entity.robot.RobotActions;
@@ -42,7 +41,6 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
     @Override
     public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip, final TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
-        TooltipUtils.addEnergyConsumption(Config.robotEnergyPerTick, tooltip);
         TooltipUtils.addEntityEnergyInformation(stack, tooltip);
         TooltipUtils.addEntityInventoryInformation(stack, tooltip);
     }

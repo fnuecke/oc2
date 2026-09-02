@@ -421,10 +421,10 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             try {
                 architecture.boot();
             } catch (final IllegalStateException e) {
-                // FDT did not fit into memory. Technically it's possible to run with
-                // a program that only uses registers. But not supporting that esoteric
-                // use-case loses out against avoiding people getting confused for having
-                // forgotten to add some RAM modules.
+                // Either no memory is installed at all, or on RISC-V the FDT did not fit into
+                // what there is. Technically it's possible to run with a program that only uses
+                // registers. But not supporting that esoteric use-case loses out against
+                // avoiding people getting confused for having forgotten to add some RAM modules.
                 error(Component.translatable(Constants.COMPUTER_ERROR_INSUFFICIENT_MEMORY));
                 return;
             } catch (final MemoryAccessException e) {

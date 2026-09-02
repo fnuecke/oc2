@@ -14,6 +14,7 @@ import li.cil.oc2.common.util.TickUtils;
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 import static java.util.Collections.emptySet;
@@ -46,7 +47,7 @@ public class CommonDeviceBusController implements DeviceBusController {
     private final Supplier<Optional<ArchitectureType>> architectureType;
     @Nullable
     private ArchitectureType lastArchitecture;
-    private final int baseEnergyConsumption;
+    private final IntSupplier baseEnergyConsumption;
 
     private final Set<DeviceBusElement> elements = new HashSet<>();
     private final HashSet<Device> devices = new HashSet<>();
@@ -59,7 +60,7 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     // --------------------------------------------------------------------- //
 
-    public CommonDeviceBusController(final DeviceBusElement root, final int baseEnergyConsumption,
+    public CommonDeviceBusController(final DeviceBusElement root, final IntSupplier baseEnergyConsumption,
                                      final Supplier<Optional<ArchitectureType>> architectureType) {
         this.root = root;
         this.architectureType = architectureType;
@@ -349,7 +350,7 @@ public class CommonDeviceBusController implements DeviceBusController {
     }
 
     private void updateEnergyConsumption() {
-        double accumulator = baseEnergyConsumption;
+        double accumulator = baseEnergyConsumption.getAsInt();
         for (final DeviceBusElement element : elements) {
             accumulator += Math.max(0, element.getEnergyConsumption());
         }

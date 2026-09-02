@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 public final class BlockDeviceBusController extends CommonDeviceBusController {
@@ -44,7 +45,7 @@ public final class BlockDeviceBusController extends CommonDeviceBusController {
     // --------------------------------------------------------------------- //
 
     public BlockDeviceBusController(final DeviceBusElement root,
-                                    final int baseEnergyConsumption,
+                                    final IntSupplier baseEnergyConsumption,
                                     final BlockEntity blockEntity,
                                     final Supplier<Optional<ArchitectureType>> architecture) {
         super(root, baseEnergyConsumption, architecture);

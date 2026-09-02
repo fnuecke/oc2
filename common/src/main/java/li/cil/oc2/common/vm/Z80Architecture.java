@@ -9,6 +9,7 @@ import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.IODeviceBusAdapter;
 import li.cil.sedna.api.device.BlockDevice;
+import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.cpm.Cpm;
@@ -59,6 +60,8 @@ public final class Z80Architecture extends AbstractArchitecture {
         this.controller = new WD1793();
         this.ioAdapter = new IODeviceBusAdapter(config.runtime());
 
+        board.getCpu().setFrequency(Constants.Z80_CPU_FREQUENCY);
+
         final ByteBuffer romData = ByteBuffer.wrap(bootRom).order(ByteOrder.LITTLE_ENDIAN);
         board.setBootRom(new FlashMemoryDevice(romData, true));
 
@@ -96,6 +99,10 @@ public final class Z80Architecture extends AbstractArchitecture {
 
     @Override
     public void boot() {
+        if (board.getDevices().stream().noneMatch(device -> device instanceof PhysicalMemory)) {
+            throw new IllegalStateException("No memory mapped.");
+        }
+
         board.reset();
         board.setRunning(true);
     }

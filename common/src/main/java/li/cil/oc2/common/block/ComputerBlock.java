@@ -4,7 +4,6 @@ package li.cil.oc2.common.block;
 
 import com.mojang.serialization.MapCodec;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
-import li.cil.oc2.common.Config;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
@@ -89,7 +88,6 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
     @Override
     public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip, final TooltipFlag advanced) {
         super.appendHoverText(stack, context, tooltip, advanced);
-        TooltipUtils.addEnergyConsumption(Config.computerEnergyPerTick, tooltip);
         TooltipUtils.addBlockEntityInventoryInformation(stack, tooltip);
     }
 

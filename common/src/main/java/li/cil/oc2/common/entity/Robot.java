@@ -130,7 +130,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         this.blocksBuilding = true;
         setNoGravity(true);
 
-        final CommonDeviceBusController busController = new CommonDeviceBusController(busElement, Config.robotEnergyPerTick, deviceItems::getArchitectureType);
+        final CommonDeviceBusController busController = new CommonDeviceBusController(busElement, this::cpuEnergyPerTick, deviceItems::getArchitectureType);
         virtualMachine = new RobotVirtualMachine(busController);
         virtualMachine.setGameTimeSource(LevelUtils.gameTimeSupplier(world));
     }
@@ -447,6 +447,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     // --------------------------------------------------------------------- //
+
+    private int cpuEnergyPerTick() {
+        return Config.robotCpuEnergyPerTick(deviceItems.getArchitectureType().orElse(null));
+    }
 
     @Environment(EnvType.CLIENT)
     private void requestInitialState() {

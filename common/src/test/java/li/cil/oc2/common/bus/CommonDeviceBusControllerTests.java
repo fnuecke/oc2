@@ -29,7 +29,7 @@ public class CommonDeviceBusControllerTests {
         when(busControllerBusElement.getLocalDevices()).thenReturn(emptyList());
         when(busControllerBusElement.getNeighbors()).thenReturn(Optional.empty());
 
-        busController = new CommonDeviceBusController(busControllerBusElement, 0, () -> Optional.of(ArchitectureType.RISCV));
+        busController = new CommonDeviceBusController(busControllerBusElement, () -> 0, () -> Optional.of(ArchitectureType.RISCV));
     }
 
     @Test

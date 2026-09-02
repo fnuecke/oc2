@@ -620,7 +620,7 @@ public class BlockDeviceBusControllerTests {
 
         public TestBusControllerBlockEntity(final BlockPos pos) {
             super(pos);
-            busController = new BlockDeviceBusController(getBusElement(), 0, getBlockEntity(), () -> Optional.of(ArchitectureType.RISCV));
+            busController = new BlockDeviceBusController(getBusElement(), () -> 0, getBlockEntity(), () -> Optional.of(ArchitectureType.RISCV));
         }
 
         public BlockDeviceBusController getBusController() {

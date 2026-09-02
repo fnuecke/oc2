@@ -2,28 +2,82 @@
 ;
 ; REDSTN -- drive a redstone interface.
 ;
-; An example. It sets the output level on every side to 15, then stops.
+; An example.
 ;
-; Build it with the assembler and linker on this disk. A: is read only, so the
-; output has to land on a floppy in a disk drive:
+;	REDSTN <side>		 print that side's levels
+;	REDSTN <side> <level>	 set that side's output level
 ;
-;	ZMAC REDSTN		; REDSTN.Z80 -> REDSTN.REL
-;	ZML REDSTN		; REDSTN.REL -> REDSTN.COM
-;	REDSTN
+; Sides are 0 down, 1 up, 2 north, 3 south, 4 west, 5 east. Levels are 0 to 15.
+;
+; Build it with the assembler and linker on this disk. You need a disk drive
+; with a floppy in it, because A: is read only and the output has to go
+; somewhere. Stay on A: while you build:
+;
+;	ZMAC REDSTN /OB:REDSTN /E	; A:REDSTN.Z80 -> B:REDSTN.REL
+;	ZML B:REDSTN			; -> B:REDSTN.COM
+;	B:REDSTN
+;
+; /O puts the object file on B:. /E turns off the error log, which would
+; otherwise be written beside the source, on the drive that is read only.
+;
+; Each block below is introduced by the C it would be, if you find that easier
+; to read than the assembly.
 
 BDOS	equ	0005h
-PSTR	equ	9
+TAIL	equ	0080h		; command tail: a length byte, then the text
+PSTR	equ	9		; print the $ terminated string at DE
+CONOUT	equ	2		; print the character in E
 
 FNGETI	equ	1		; getRedstoneInput(side) -> level
 FNGETO	equ	2		; getRedstoneOutput(side) -> level
 FNSETO	equ	3		; setRedstoneOutput(side, level)
 
-LEVEL	equ	15
 NSIDES	equ	6
+NLEVEL	equ	16
 
-; The linker places this at 0100h, which is where CP/M loads a program.
 	CSEG
 
+;	char *p = TAIL + 1;
+;	p[TAIL[0]] = '\0';	// nothing terminates the tail for us
+	ld	hl,TAIL
+	ld	e,(hl)
+	ld	d,0
+	inc	hl
+	push	hl
+	add	hl,de
+	ld	(hl),0
+	pop	hl
+
+;	side = getnum(&p);
+;	if (side < 0 || side >= NSIDES) goto usage;
+	call	SKIPSP
+	call	GETNUM
+	jp	c,USAGE
+	cp	NSIDES
+	jp	nc,USAGE
+	ld	(SIDE),a
+
+;	if (*p != '\0') {
+;		level = getnum(&p);
+;		if (level < 0 || level >= NLEVEL) goto usage;
+;		wrmode = 1;
+;	}
+	call	SKIPSP
+	ld	a,(hl)
+	or	a
+	jr	z,FIND		; one argument only, so just read
+
+	call	GETNUM
+	jp	c,USAGE
+	cp	NLEVEL
+	jp	nc,USAGE
+	ld	(LEVEL),a
+	ld	a,1
+	ld	(WRMODE),a
+
+;	if (!ocfind("REDSTN", 0, &port, &index)) goto nodev;
+;	outp(port + OCSEL, index);
+FIND:
 	ld	hl,RSNAME
 	ld	b,0		; the first redstone interface on the bus
 	call	OCFIND
@@ -32,62 +86,154 @@ NSIDES	equ	6
 	ld	(PORT),a
 	ld	a,OCSEL
 	call	PORTAT
-	out	(c),e		; select the redstone device
+	out	(c),e		; select it, by the index OCFIND returned
 
-; Sides are numbered 0 down, 1 up, 2 north, 3 south, 4 west, 5 east.
-	ld	d,0
-SIDE:
+;   if (!wrmode) goto read;
+	ld	a,(WRMODE)
+	or	a
+	jr	z,READ
+
+;	if (setRedstoneOutput(side, level) != 0) goto failed;
+;	printf("side %d: out = %d", side, level);
+;
+; Setting an output touches the world, so the call runs on the server thread
+; and takes a game tick to come back. RUNFN spins until it does.
+	ld	a,FNSETO
+	call	BEGIN
+	ld	a,(SIDE)
+	call	ARG
+	ld	a,(LEVEL)
+	call	ARG
+	call	RUNFN
+	jp	c,FAILED
+
+	call	PSIDE
+	ld	de,MOUT
+	call	PMSG
+	ld	a,(LEVEL)
+	call	PDEC
+	jr	DONE
+
+;	outval = getRedstoneOutput(side);
+;	inval = getRedstoneInput(side);
+;	printf("side %d: out = %d, in = %d", side, outval, inval);
+READ:
+	ld	a,FNGETO
+	call	BEGIN
+	ld	a,(SIDE)
+	call	ARG
+	call	RUNFN
+	jp	c,FAILED
+	call	RESULT
+	ld	(OUTVAL),a
+
+	ld	a,FNGETI
+	call	BEGIN
+	ld	a,(SIDE)
+	call	ARG
+	call	RUNFN
+	jp	c,FAILED
+	call	RESULT
+	ld	(INVAL),a
+
+	call	PSIDE
+	ld	de,MOUT
+	call	PMSG
+	ld	a,(OUTVAL)
+	call	PDEC
+	ld	de,MIN
+	call	PMSG
+	ld	a,(INVAL)
+	call	PDEC
+
+;	putchar('\n'); exit();
+DONE:
+	ld	de,CRLF
+	call	PMSG
+	jp	0		; warm boot, back to A>
+
+;	printf("Device error %d", err); exit();
+FAILED:
+	push	af
+	ld	de,MERR
+	call	PMSG
+	pop	af
+	call	PDEC
+	jr	DONE
+
+USAGE:
+	ld	de,MUSAGE
+	call	PMSG
+	jp	0
+
+NODEV:
+	ld	de,MNODEV
+	call	PMSG
+	jp	0
+
+;	void pside(void) { printf("side %d: ", side); }
+PSIDE:
+	ld	de,MSIDE
+	call	PMSG
+	ld	a,(SIDE)
+	call	PDEC
+	ld	de,MSEP
+	jp	PMSG
+
+;	void begin(byte fn) { outp(port + OCFUN, fn); }
+BEGIN:
+	push	af
 	ld	a,OCFUN
 	call	PORTAT
-	ld	a,FNSETO
+	pop	af
 	out	(c),a
+	ret
 
+;	void arg(byte b) { outp(port + OCDAT, b); }
+ARG:
+	push	af
 	ld	a,OCDAT
 	call	PORTAT
-	out	(c),d		; argument: the side
-	ld	a,LEVEL
-	out	(c),a		; argument: the level
+	pop	af
+	out	(c),a
+	ret
 
+;	byte result(void) { return inp(port + OCDAT); }
+RESULT:
+	ld	a,OCDAT
+	call	PORTAT
+	in	a,(c)
+	ret
+
+;	int runfn(void) {
+;		outp(port + OCSTA, OCEXEC);
+;		while (inp(port + OCSTA) & OCBUSY) {}
+;		if (inp(port + OCSTA) & OCERR) return inp(port + OCDAT);
+;		return 0;
+;	}
+; Returns with carry set when it failed, and the code in A.
+RUNFN:
 	ld	a,OCSTA
 	call	PORTAT
 	ld	a,OCEXEC
 	out	(c),a
-
-; Setting an output touches the world, so the call runs on the server thread
-; and takes a game tick to come back. Busy waiting until that's done.
-WAIT:	in	a,(c)
+RUNF1:	in	a,(c)
 	and	OCBUSY
-	jr	nz,WAIT
-
+	jr	nz,RUNF1
 	in	a,(c)
 	and	OCERR
-	jr	nz,FAILED
-
-	inc	d
-	ld	a,d
-	cp	NSIDES
-	jr	c,SIDE
-
-	ld	de,MSGOK
-	jr	SAY
-
-FAILED:	ld	a,OCDAT
+	jr	nz,RUNF2
+	or	a		; clears carry
+	ret
+RUNF2:	ld	a,OCDAT
 	call	PORTAT
-	in	a,(c)		; once OCERR is set, OCDAT reads the error code
-	add	a,'0'
-	ld	(ERRNUM),a
-	ld	de,MSGERR
-	jr	SAY
+	in	a,(c)		; once OCERR is set, OCDAT reads the code
+	scf
+	ret
 
-NODEV:	ld	de,MSGNO
-
-SAY:	ld	c,PSTR
-	call	BDOS
-	jp	0		; warm boot, back to A>
-
-; PORTAT -- bc = the device's port base plus the register offset in a.
-; The base is not known until run time, so every access goes through:
-;   IN r,(C) / OUT (C),r.
+;	word portat(byte offset) { return port + offset; }
+; The base is not known until run time, so every access goes through
+; IN r,(C) / OUT (C),r, which take the port in BC.
 PORTAT:
 	ld	b,0
 	ld	c,a
@@ -96,16 +242,103 @@ PORTAT:
 	ld	c,a
 	ret
 
+;	while (*p == ' ') p++;
+SKIPSP:
+	ld	a,(hl)
+	cp	' '
+	ret	nz
+	inc	hl
+	jr	SKIPSP
+
+;	int getnum(char **p) {
+;		int n = 0, digits = 0;
+;		while (isdigit(**p)) {
+;			n = n * 10 + (*(*p)++ - '0');
+;			digits++;
+;		}
+;		return digits ? n : -1;
+;	}
+; Returns with carry set when there were no digits.
+GETNUM:
+	ld	c,0
+	ld	b,0
+GETN1:	ld	a,(hl)
+	sub	'0'
+	jr	c,GETN2
+	cp	10
+	jr	nc,GETN2
+	ld	d,a
+	ld	a,c
+	add	a,a
+	ld	e,a
+	add	a,a
+	add	a,a
+	add	a,e		; a = c * 10
+	add	a,d
+	ld	c,a
+	inc	b
+	inc	hl
+	jr	GETN1
+GETN2:	ld	a,b
+	or	a
+	scf
+	ret	z
+	ld	a,c
+	or	a		; clears carry
+	ret
+
+;	void pdec(byte n) {		// 0 to 99, no leading zero
+;		if (n >= 10) putchar('0' + n / 10);
+;		putchar('0' + n % 10);
+;	}
+PDEC:
+	ld	b,0
+PDEC1:	cp	10
+	jr	c,PDEC2
+	sub	10
+	inc	b
+	jr	PDEC1
+PDEC2:	ld	c,a
+	ld	a,b
+	or	a
+	jr	z,PDEC3
+	add	a,'0'
+	call	PCHAR
+PDEC3:	ld	a,c
+	add	a,'0'
+;	void pchar(char c) { bdos(CONOUT, c); }
+PCHAR:
+	push	bc
+	ld	e,a
+	ld	c,CONOUT
+	call	BDOS
+	pop	bc
+	ret
+
+;	void pmsg(char *s) { bdos(PSTR, s); }	// s ends with '$'
+PMSG:
+	ld	c,PSTR
+	jp	BDOS
+
 PORT:	db	0
+SIDE:	db	0
+LEVEL:	db	0
+OUTVAL:	db	0
+INVAL:	db	0
+WRMODE:	db	0
 
 RSNAME:	db	'REDSTN',0
 
-MSGOK:	db	'Redstone output set to 15 on every side.',0Dh,0Ah,'$'
-MSGNO:	db	'No redstone interface on the bus.',0Dh,0Ah,'$'
-MSGERR:	db	'Device error '
-ERRNUM:	db	'0',0Dh,0Ah,'$'
+MSIDE:	db	'side $'
+MSEP:	db	': $'
+MOUT:	db	'out = $'
+MIN:	db	', in = $'
+CRLF:	db	0Dh,0Ah,'$'
+MERR:	db	'Device error $'
+MUSAGE:	db	'Usage: REDSTN <side 0-5> [<level 0-15>]',0Dh,0Ah,'$'
+MNODEV:	db	'No redstone interface on the bus.',0Dh,0Ah,'$'
 
 	INCLUDE	DEVLIB.INC
 	INCLUDE	OCAPI.INC
 
-	end
+	END

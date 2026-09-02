@@ -196,7 +196,6 @@ public final class BusCableBlock extends BaseEntityBlock {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -322,7 +321,6 @@ public final class BusCableBlock extends BaseEntityBlock {
         return state;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public BlockState updateShape(BlockState state, final Direction facing, final BlockState facingState, final LevelAccessor level, final BlockPos currentPos, final BlockPos facingPos) {
         final EnumProperty<ConnectionType> property = FACING_TO_CONNECTION_MAP.get(facing);
@@ -344,7 +342,6 @@ public final class BusCableBlock extends BaseEntityBlock {
         return state;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public VoxelShape getShape(final BlockState state, final BlockGetter level, final BlockPos pos, final CollisionContext context) {
         if (state.getValue(HAS_FACADE)) {
@@ -466,6 +463,10 @@ public final class BusCableBlock extends BaseEntityBlock {
     }
 
     private static void onConnectionTypeChanged(final LevelAccessor level, final BlockPos pos, @Nullable final Direction face, final boolean neighborConnectionChanged) {
+        if (level.isClientSide()) {
+            return;
+        }
+
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof final BusCableBlockEntity busCable) {
             busCable.handleConfigurationChanged(face, neighborConnectionChanged);

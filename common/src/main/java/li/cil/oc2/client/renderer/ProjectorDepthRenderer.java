@@ -11,6 +11,7 @@ import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.TextureUtil;
+import com.mojang.blaze3d.shaders.FogShape;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
@@ -90,6 +91,10 @@ public final class ProjectorDepthRenderer {
     private static boolean entityShadowsBak;
     private static Entity minecraftCameraEntityBak;
     private static Camera gameRendererMainCameraBak;
+    private static float shaderFogStartBak;
+    private static float shaderFogEndBak;
+    private static final float[] SHADER_FOG_COLOR_BAK = new float[4];
+    private static FogShape shaderFogShapeBak;
 
     private static void handleProjectorNoLongerRendering(final RemovalNotification<ProjectorBlockEntity, RenderInfo> notification) {
         final ProjectorBlockEntity projector = notification.getKey();
@@ -379,6 +384,8 @@ public final class ProjectorDepthRenderer {
         RenderSystem.backupProjectionMatrix();
         RenderSystem.getModelViewStack().pushMatrix().identity();
         RenderSystem.applyModelViewMatrix();
+
+        backupFog();
     }
 
     private static void finishDepthBufferRendering(final Minecraft minecraft) {
@@ -396,6 +403,22 @@ public final class ProjectorDepthRenderer {
         RenderSystem.applyModelViewMatrix();
 
         isRenderingProjectorDepth = false;
+
+        restoreFog();
+    }
+
+    private static void backupFog() {
+        shaderFogStartBak = RenderSystem.getShaderFogStart();
+        shaderFogEndBak = RenderSystem.getShaderFogEnd();
+        System.arraycopy(RenderSystem.getShaderFogColor(), 0, SHADER_FOG_COLOR_BAK, 0, SHADER_FOG_COLOR_BAK.length);
+        shaderFogShapeBak = RenderSystem.getShaderFogShape();
+    }
+
+    private static void restoreFog() {
+        RenderSystem.setShaderFogStart(shaderFogStartBak);
+        RenderSystem.setShaderFogEnd(shaderFogEndBak);
+        RenderSystem.setShaderFogColor(SHADER_FOG_COLOR_BAK[0], SHADER_FOG_COLOR_BAK[1], SHADER_FOG_COLOR_BAK[2], SHADER_FOG_COLOR_BAK[3]);
+        RenderSystem.setShaderFogShape(shaderFogShapeBak);
     }
 
     private static void configureProjectorDepthCamera(final ClientLevel level, final Vec3 pos, final float rotationY) {

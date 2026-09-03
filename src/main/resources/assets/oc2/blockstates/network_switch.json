@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "oc2:block/network_hub"
+    },
+    "facing=south": {
+      "model": "oc2:block/network_hub",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "oc2:block/network_hub",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "oc2:block/network_hub",
+      "y": 90
+    }
+  }
+}

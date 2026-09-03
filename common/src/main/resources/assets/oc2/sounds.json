@@ -6,7 +6,7 @@
       {
         "name": "oc2:computer_running",
         "stream": true,
-        "volume": 0.25
+        "volume": 0.5
       }
     ]
   },

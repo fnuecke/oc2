@@ -6,6 +6,7 @@ import li.cil.oc2.common.bus.device.vm.block.KeyboardDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -23,6 +24,10 @@ public final class KeyboardBlockEntity extends ModBlockEntity {
 
     public void handleInput(final int keycode, final boolean isDown) {
         keyboardDevice.sendKeyEvent(keycode, isDown);
+    }
+
+    public void handleUsedBy(final Player player) {
+        keyboardDevice.handleUsedBy(player);
     }
 
     // --------------------------------------------------------------------- //

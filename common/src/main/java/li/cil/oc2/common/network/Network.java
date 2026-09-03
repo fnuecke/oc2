@@ -74,6 +74,7 @@ public final class Network {
         registerMessage(ProjectorFramebufferMessage.class, ProjectorFramebufferMessage::new, NetworkManager.serverToClient());
         registerMessage(ProjectorStateMessage.class, ProjectorStateMessage::new, NetworkManager.serverToClient());
 
+        registerMessage(KeyboardKeepAliveMessage.class, KeyboardKeepAliveMessage::new, NetworkManager.clientToServer());
         registerMessage(KeyboardInputMessage.class, KeyboardInputMessage::new, NetworkManager.clientToServer());
 
         registerMessage(MultipartMessage.class, MultipartMessage::new, NetworkManager.clientToServer());

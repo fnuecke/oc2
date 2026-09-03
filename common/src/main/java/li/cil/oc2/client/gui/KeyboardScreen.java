@@ -7,9 +7,11 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import li.cil.oc2.client.ClientPlatform;
 import li.cil.oc2.common.blockentity.KeyboardBlockEntity;
+import li.cil.oc2.common.bus.device.vm.block.KeyboardDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.KeyboardInputMessage;
+import li.cil.oc2.common.network.message.KeyboardKeepAliveMessage;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -32,6 +34,7 @@ public final class KeyboardScreen extends Screen {
 
     private final KeyboardBlockEntity keyboard;
     private final IntSet pressedKeys = new IntOpenHashSet();
+    private long lastKeepAliveSentAt;
 
     // --------------------------------------------------------------------- //
 
@@ -63,6 +66,8 @@ public final class KeyboardScreen extends Screen {
             minecraft.player == null ||
             minecraft.player.distanceToSqr(keyboardCenter) > 8 * 8) {
             onClose();
+        } else {
+            sendKeepAlive();
         }
     }
 
@@ -142,6 +147,14 @@ public final class KeyboardScreen extends Screen {
         final MouseHandler mouseHandler = minecraft.mouseHandler;
         mouseHandler.mouseGrabbed = true;
         InputConstants.grabOrReleaseMouse(minecraft.getWindow().getWindow(), InputConstants.CURSOR_DISABLED, mouseHandler.xpos(), mouseHandler.ypos());
+    }
+
+    private void sendKeepAlive() {
+        final long now = System.currentTimeMillis();
+        if (now - lastKeepAliveSentAt > KeyboardDevice.USER_KEEPALIVE_EVERY) {
+            lastKeepAliveSentAt = now;
+            Network.sendToServer(new KeyboardKeepAliveMessage(keyboard));
+        }
     }
 
     private void sendInputMessage(final int keycode, final boolean isDown) {

@@ -150,7 +150,14 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     @Override
     public Iterable<Player> getTerminalUsers() {
-        return terminalUsers;
+        final Set<Player> users = new LinkedHashSet<>(terminalUsers);
+        for (final Device device : virtualMachine.getBusController().getDevices()) {
+            if (device instanceof final TerminalUserProvider provider) {
+                provider.getTerminalUsers().forEach(users::add);
+            }
+        }
+
+        return users;
     }
 
     public void handleNeighborChanged() {

@@ -10,3 +10,9 @@ Note that the only face of the keyboard device large enough to fit a bus interfa
 To start typing on a keyboard, simply interact with it. Experienced typists will find they do not need to look at the keys while typing (you can still look around while using the keyboard). Interact again to stop using the keyboard.
 
 Computers *have to be shut down* before installing or removing this component. Installing it while the computer is running will have no effect, removing it may lead to system errors.
+
+## Layouts
+Unlike the terminal screen, keyboards sends key positions (scancodes), which the computer interprets using its own layout, defaulting to US. If that gives you the wrong characters, load a matching layout:  
+`loadkmap < /usr/share/keymaps/de.bmap`
+
+Check that directory for a list of available layouts.

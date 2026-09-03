@@ -73,6 +73,30 @@ public final class GuestToolingTests {
             .thenSucceed();
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    public static void guestCanUseASecondDriveAsSwap(final GameTestHelper helper) {
+        final ComputerFixture computer = machine(helper);
+
+        helper.startSequence()
+            .thenExecuteAfter(20, () -> installHardware(computer)
+                .install(DeviceTypes.HARD_DRIVE.get(), new ItemStack(Items.HARD_DRIVE_SMALL.get())))
+            .thenExecuteAfter(20, computer::start)
+            .thenWaitUntil(() -> requireScreen(computer, "login:"))
+            .thenExecute(() -> computer.type("root\n"))
+            .thenWaitUntil(() -> requireScreen(computer, PROMPT))
+            .thenExecuteAfter(20, () -> computer.type(
+                "mkswap /dev/vdb >/dev/null && swapon /dev/vdb && grep -q vdb /proc/swaps"
+                    + " && echo SWAP''-OK || echo SWAP''-FAIL\n"))
+            .thenWaitUntil(() -> requireScreen(computer, "SWAP-OK", "SWAP-FAIL"))
+            .thenExecute(() -> {
+                final String screen = computer.screen();
+                if (screen.contains("SWAP-FAIL")) {
+                    throw new GameTestAssertException("guest could not enable swap:\n" + screen);
+                }
+            })
+            .thenSucceed();
+    }
+
     // --------------------------------------------------------------------- //
 
     private static ComputerFixture machine(final GameTestHelper helper) {
@@ -82,8 +106,8 @@ public final class GuestToolingTests {
         return computer;
     }
 
-    private static void installHardware(final ComputerFixture computer) {
-        computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
+    private static ComputerFixture installHardware(final ComputerFixture computer) {
+        return computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
             .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId()))
             .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
             .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()));

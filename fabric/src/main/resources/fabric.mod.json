@@ -3,7 +3,7 @@
     "id": "oc2",
     "version": "${version}",
     "name": "OpenComputers II",
-    "description": "Modern computers for the modern player.\n\nThis mod uses the Terminus Font under the Open Font License. The full license can be found in the JAR of this mod.",
+    "description": "Modern computers for the modern player.\\n\\nThis mod uses the Terminus Font under the Open Font License. The full license can be found in the JAR of this mod.",
     "authors": [
         "Sangar"
     ],
@@ -43,11 +43,13 @@
     },
     "custom": {
         "mc-publish": {
+            "modrinth": "xkOonJ4E",
             "curseforge": 437654,
             "dependencies": [
-                "architectury@>=${architecturyVersion}(required){curseforge:419699}",
-                "forgeconfigapiport@>=${forgeConfigPortVersion}(required){curseforge:547434}",
-                "markdown_manual@>=${manualVersion}(required){curseforge:502485}"
+                "fabric-api@>=${fabricApiVersion}(required){modrinth:P7dR8mSH}{curseforge:306612}",
+                "architectury@>=${architecturyVersion}(required){modrinth:lhGA9TYQ}{curseforge:419699}",
+                "forgeconfigapiport@>=${forgeConfigPortVersion}(required){modrinth:ohNO6lps}{curseforge:547434}",
+                "markdown_manual@>=${manualVersion}(required){modrinth:nPQ9xkPg}{curseforge:502485}"
             ]
         }
     }

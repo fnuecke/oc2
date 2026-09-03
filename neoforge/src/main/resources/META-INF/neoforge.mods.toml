@@ -47,8 +47,9 @@ config = "oc2.mixins.json"
 config = "oc2.neoforge.mixins.json"
 
 [mc-publish]
+modrinth = "xkOonJ4E"
 curseforge = 437654
 dependencies = [
-    "architectury@>=${architecturyVersion}(required){curseforge:419699}",
-    "markdown_manual@>=${manualVersion}(required){curseforge:502485}"
+    "architectury@>=${architecturyVersion}(required){modrinth:lhGA9TYQ}{curseforge:419699}",
+    "markdown_manual@>=${manualVersion}(required){modrinth:nPQ9xkPg}{curseforge:502485}"
 ]

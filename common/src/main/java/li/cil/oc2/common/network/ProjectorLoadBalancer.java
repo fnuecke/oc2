@@ -17,7 +17,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 /**
  * Mostly round-robin load balancer for allowing projectors to send data to clients.
@@ -75,9 +74,12 @@ public final class ProjectorLoadBalancer {
      * Updates timestamp of a player currently watching a projector.
      */
     public static void updateWatcher(final ProjectorBlockEntity projector, final ServerPlayer player) {
-        PROJECTOR_INFO
-            .computeIfAbsent(projector, ProjectorLoadBalancer::addProjectorInfo)
-            .handleWatchedBy(player);
+        final ProjectorInfo info = PROJECTOR_INFO
+            .computeIfAbsent(projector, ProjectorLoadBalancer::addProjectorInfo);
+        final boolean startedWatching = info.handleWatchedBy(player);
+        if (startedWatching) {
+            projector.setRequiresKeyframe();
+        }
     }
 
     /**
@@ -85,10 +87,10 @@ public final class ProjectorLoadBalancer {
      * <p>
      * Ignored if there are no players watching the projector.
      */
-    public static void offerFrame(final ProjectorBlockEntity projector, final Supplier<byte[]> messageSupplier) {
+    public static void offerFrame(final ProjectorBlockEntity projector, final ProjectorBlockEntity.FrameSupplier frameSupplier) {
         final ProjectorInfo info = PROJECTOR_INFO.get(projector);
         if (info != null) {
-            info.nextFrameSupplier = messageSupplier;
+            info.nextFrameSupplier = frameSupplier;
         }
     }
 
@@ -135,7 +137,6 @@ public final class ProjectorLoadBalancer {
     }
 
     private static ProjectorInfo addProjectorInfo(final ProjectorBlockEntity projector) {
-        projector.setRequiresKeyframe(); // When first watcher starts, immediately request keyframe.
         final ProjectorInfo info = new ProjectorInfo(projector.getBlockPos());
         if (lastSender == null) {
             // No sender yet, start the circle.
@@ -210,7 +211,7 @@ public final class ProjectorLoadBalancer {
         private int skipCount;
 
         @Nullable
-        private Supplier<byte[]> nextFrameSupplier;
+        private ProjectorBlockEntity.FrameSupplier nextFrameSupplier;
         @Nullable
         private Future<?> runningEncode;
 
@@ -238,8 +239,8 @@ public final class ProjectorLoadBalancer {
             next = null;
         }
 
-        public void handleWatchedBy(final ServerPlayer player) {
-            players.put(player, System.currentTimeMillis());
+        public boolean handleWatchedBy(final ServerPlayer player) {
+            return players.put(player, System.currentTimeMillis()) == null;
         }
 
         public void removeExpiredPlayers() {
@@ -267,13 +268,14 @@ public final class ProjectorLoadBalancer {
 
         private void sendAsync() {
             assert nextFrameSupplier != null;
-            final Supplier<byte[]> frameSupplier = nextFrameSupplier;
+            final var frameSupplier = nextFrameSupplier;
             nextFrameSupplier = null;
 
+            final boolean forceKeyframe = frameSupplier.consumeRequiresKeyframe();
             final List<ServerPlayer> recipients = List.copyOf(players.keySet());
             assert runningEncode == null || runningEncode.isDone();
             runningEncode = ENCODER_WORKERS.submit(() -> {
-                final byte[] frame = frameSupplier.get();
+                final byte[] frame = frameSupplier.encode(forceKeyframe);
                 if (frame == null) {
                     return;
                 }

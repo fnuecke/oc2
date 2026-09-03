@@ -42,6 +42,26 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         void processFrame(final Picture picture);
     }
 
+    public interface FrameSupplier {
+        /**
+         * Get and resets the keyframe flag, to be passed to {@link #encode(boolean)}.
+         * <p>
+         * Separate so this can run on the server thread whereas encoding runs on a worker thread.
+         *
+         * @return whether the next encode should be a keyframe.
+         */
+        boolean consumeRequiresKeyframe();
+
+        /**
+         * Encodes the frame to send.
+         *
+         * @param forceKeyframe whether the frame must be decodable on its own.
+         * @return the encoded frame, or {@code null} if there is nothing to send.
+         */
+        @Nullable
+        byte[] encode(boolean forceKeyframe);
+    }
+
     // --------------------------------------------------------------------- //
 
     public static final int MAX_FRAME_SIZE = 1024 * 1024;
@@ -74,8 +94,8 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     private final ByteBuffer encoderBuffer = ByteBuffer.allocateDirect(MAX_FRAME_SIZE); // Re-used compression buffer.
     private final ByteBuffer compressedBuffer = ByteBuffer.allocateDirect(MAX_FRAME_SIZE); // Re-used compression buffer.
     private final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION); // Re-used, native memory.
-    // Set on the server thread (setRequiresKeyframe), read and cleared on the encoder thread.
-    private volatile boolean needsIDR; // Whether we need to send a keyframe next.
+    private boolean needsIDR; // Whether we need to send a keyframe next.
+    private final FrameSupplierImpl frameSupplier = new FrameSupplierImpl(); // Limited interface for load balancer.
 
     // Video decoding.
     private final H264Decoder decoder = new H264Decoder();
@@ -167,7 +187,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
             return;
         }
 
-        ProjectorLoadBalancer.offerFrame(this, this::encodeFrame);
+        ProjectorLoadBalancer.offerFrame(this, frameSupplier);
     }
 
     @Override
@@ -320,39 +340,47 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         }
     }
 
-    @Nullable
-    private byte[] encodeFrame() {
-        final boolean hasChanges = projectorDevice.applyChanges(picture);
-        if (!hasChanges && !needsIDR) {
-            return null;
+    private final class FrameSupplierImpl implements FrameSupplier {
+        @Override
+        public boolean consumeRequiresKeyframe() {
+            final boolean result = needsIDR;
+            needsIDR = false;
+            return result;
         }
 
-        encoderBuffer.clear();
-        final ByteBuffer frameData;
-        try {
-            if (needsIDR) {
-                // Cleared before encoding so a keyframe requested while we encode is not swallowed.
-                needsIDR = false;
-                frameData = encoder.encodeIDRFrame(picture, encoderBuffer);
-            } else {
-                frameData = encoder.encodeFrame(picture, encoderBuffer).data();
+        @Override
+        @Nullable
+        public byte[] encode(final boolean forceKeyframe) {
+            final boolean hasChanges = projectorDevice.applyChanges(picture);
+            if (!hasChanges && !forceKeyframe) {
+                return null;
             }
-        } catch (final BufferOverflowException ignored) {
-            return null;
+
+            encoderBuffer.clear();
+            final ByteBuffer frameData;
+            try {
+                if (forceKeyframe) {
+                    frameData = encoder.encodeIDRFrame(picture, encoderBuffer);
+                } else {
+                    frameData = encoder.encodeFrame(picture, encoderBuffer).data();
+                }
+            } catch (final BufferOverflowException ignored) {
+                return null;
+            }
+
+            deflater.reset();
+            deflater.setInput(frameData);
+            deflater.finish();
+
+            compressedBuffer.clear();
+            deflater.deflate(compressedBuffer, Deflater.FULL_FLUSH);
+            compressedBuffer.flip();
+
+            final byte[] compressedFrameData = new byte[compressedBuffer.remaining()];
+            compressedBuffer.get(compressedFrameData);
+
+            return compressedFrameData;
         }
-
-        deflater.reset();
-        deflater.setInput(frameData);
-        deflater.finish();
-
-        compressedBuffer.clear();
-        deflater.deflate(compressedBuffer, Deflater.FULL_FLUSH);
-        compressedBuffer.flip();
-
-        final byte[] compressedFrameData = new byte[compressedBuffer.remaining()];
-        compressedBuffer.get(compressedFrameData);
-
-        return compressedFrameData;
     }
 
     private void updateRenderBounds() {

@@ -7,6 +7,8 @@ import org.gradle.api.plugins.quality.Pmd
 import org.gradle.api.plugins.quality.PmdExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
@@ -87,6 +89,19 @@ fun Project.registerLintTask() {
         description = "Runs Spotless and PMD across all modules."
         dependsOn("spotlessCheck")
         dependsOn(subprojects.map { "${it.path}:pmdMain" })
+    }
+}
+
+abstract class ArchitecturyTransformLock : BuildService<BuildServiceParameters.None>
+
+fun Project.serializeArchitecturyTransforms() {
+    val lock = gradle.sharedServices.registerIfAbsent(
+        "architecturyTransformLock",
+        ArchitecturyTransformLock::class
+    ) { maxParallelUsages.set(1) }
+
+    subprojects {
+        tasks.matching { it.name.startsWith("transformProduction") }.configureEach { usesService(lock) }
     }
 }
 

@@ -200,6 +200,7 @@ spotless {
     }
 }
 
+serializeArchitecturyTransforms()
 registerGameTestTask()
 registerLintTask()
 registerApiJarTask(minecraftVersion)

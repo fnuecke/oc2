@@ -11,19 +11,16 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 
 public final class SideJsonDeserializer implements JsonDeserializer<Side> {
-    private static final Side[] SIDES = Side.values();
-
     @Override
     public Side deserialize(final JsonElement json, final Type typeOfT, @Nullable final JsonDeserializationContext context) throws JsonParseException {
         if (json.isJsonPrimitive()) {
             final JsonPrimitive jsonPrimitive = json.getAsJsonPrimitive();
             if (jsonPrimitive.isNumber()) {
-                final int ordinal = jsonPrimitive.getAsNumber().intValue();
-                if (ordinal < 0 || ordinal >= SIDES.length) {
-                    throw new JsonParseException("side out of range: " + ordinal
-                        + " (expected 0 to " + (SIDES.length - 1) + ")");
+                try {
+                    return Side.byIndex(jsonPrimitive.getAsNumber().intValue());
+                } catch (final IllegalArgumentException e) {
+                    throw new JsonParseException(e.getMessage());
                 }
-                return SIDES[ordinal];
             }
         }
 

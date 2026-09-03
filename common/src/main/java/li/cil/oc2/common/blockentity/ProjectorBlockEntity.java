@@ -44,7 +44,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     public interface FrameSupplier {
         /**
-         * Get and resets the keyframe flag, to be passed to {@link #encode(boolean)}.
+         * Gets and resets the keyframe flag, to be passed to {@link #encode(boolean)}.
          * <p>
          * Separate so this can run on the server thread whereas encoding runs on a worker thread.
          *

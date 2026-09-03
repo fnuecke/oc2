@@ -23,19 +23,19 @@ public class GuestInputBoundsTests {
     }
 
     @Test
-    public void sideOrdinalsInRangeAreAccepted() {
-        for (int ordinal = 0; ordinal < Side.values().length; ordinal++) {
-            assertEquals(Side.values()[ordinal], deserializeSide(ordinal));
+    public void sideIndicesInRangeAreAccepted() {
+        for (int index = 0; index < 6; index++) {
+            assertEquals(Side.byIndex(index), deserializeSide(index));
         }
     }
 
     @Test
-    public void sideOrdinalPastTheEndIsRejected() {
-        assertThrows(JsonParseException.class, () -> deserializeSide(Side.values().length));
+    public void sideIndexPastTheEndIsRejected() {
+        assertThrows(JsonParseException.class, () -> deserializeSide(6));
     }
 
     @Test
-    public void negativeSideOrdinalIsRejected() {
+    public void negativeSideIndexIsRejected() {
         assertThrows(JsonParseException.class, () -> deserializeSide(-1));
     }
 

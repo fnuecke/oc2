@@ -6,6 +6,7 @@ import li.cil.oc2.api.util.Side;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Contract;
 
 import javax.annotation.Nullable;
 
@@ -14,6 +15,7 @@ public final class HorizontalBlockUtils {
 
     // --------------------------------------------------------------------- //
 
+    @Contract("_, !null -> !null")
     @Nullable
     public static Direction toLocal(final BlockState blockState, @Nullable final Direction direction) {
         if (direction == null) {
@@ -34,6 +36,16 @@ public final class HorizontalBlockUtils {
         return Direction.from2DDataValue(rotatedIndex);
     }
 
+    @Contract("_, !null -> !null")
+    @Nullable
+    public static Direction toLocal(final BlockState blockState, @Nullable final Side side) {
+        if (side == null) {
+            return null;
+        }
+
+        return side.isRelative() ? side.getDirection() : toLocal(blockState, side.getDirection());
+    }
+
     @Nullable
     public static Direction toGlobal(final BlockState blockState, @Nullable final Side side) {
         if (side == null) {
@@ -41,6 +53,9 @@ public final class HorizontalBlockUtils {
         }
 
         final Direction direction = side.getDirection();
+        if (!side.isRelative()) {
+            return direction;
+        }
         if (direction.getAxis().isVertical()) {
             return direction;
         }

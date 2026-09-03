@@ -97,7 +97,7 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
     @Callback(name = GET_REDSTONE_OUTPUT, synchronize = false)
     public int getRedstoneOutput(@Parameter(SIDE) @Nullable final Side side) {
         if (side == null) throw new IllegalArgumentException();
-        final int index = side.getDirection().get3DDataValue();
+        final int index = toLocalIndex(side);
 
         return output[index];
     }
@@ -105,7 +105,7 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
     @Callback(name = SET_REDSTONE_OUTPUT)
     public void setRedstoneOutput(@Parameter(SIDE) @Nullable final Side side, @Parameter(VALUE) final int value) {
         if (side == null) throw new IllegalArgumentException();
-        final int index = side.getDirection().get3DDataValue();
+        final int index = toLocalIndex(side);
 
         final byte clampedValue = (byte) Mth.clamp(value, 0, 15);
         if (clampedValue == output[index]) {
@@ -133,22 +133,25 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
             .description("Get the current redstone level received on the specified side. " +
                 "Note that if the current output level on the specified side is not " +
                 "zero, this will affect the measured level.\n" +
-                "Sides may be specified by name or zero-based index. Please note that " +
-                "the side depends on the orientation of the device.")
+                "Sides may be specified by name or zero-based index. Relative sides " +
+                "(front, back, left, right) and indices depend on the orientation of the " +
+                "device; absolute sides (north, south, west, east) do not.")
             .returnValueDescription("the current received level on the specified side.")
             .parameterDescription(SIDE, "the side to read the input level from.");
 
         visitor.visitCallback(GET_REDSTONE_OUTPUT)
             .description("Get the current redstone level transmitted on the specified side. " +
                 "This will return the value last set via setRedstoneOutput().\n" +
-                "Sides may be specified by name or zero-based index. Please note that " +
-                "the side depends on the orientation of the device.")
+                "Sides may be specified by name or zero-based index. Relative sides " +
+                "(front, back, left, right) and indices depend on the orientation of the " +
+                "device; absolute sides (north, south, west, east) do not.")
             .returnValueDescription("the current transmitted level on the specified side.")
             .parameterDescription(SIDE, "the side to read the output level from.");
         visitor.visitCallback(SET_REDSTONE_OUTPUT)
             .description("Set the new redstone level transmitted on the specified side.\n" +
-                "Sides may be specified by name or zero-based index. Please note that " +
-                "the side depends on the orientation of the device.")
+                "Sides may be specified by name or zero-based index. Relative sides " +
+                "(front, back, left, right) and indices depend on the orientation of the " +
+                "device; absolute sides (north, south, west, east) do not.")
             .parameterDescription(SIDE, "the side to write the output level to.")
             .parameterDescription(VALUE, "the output level to set, will be clamped to [0, 15].");
     }
@@ -176,6 +179,10 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
     }
 
     // --------------------------------------------------------------------- //
+
+    private int toLocalIndex(final Side side) {
+        return HorizontalBlockUtils.toLocal(getBlockState(), side).get3DDataValue();
+    }
 
     private void notifyNeighbor(final Direction direction) {
         if (level == null) {

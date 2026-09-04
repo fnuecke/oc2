@@ -177,6 +177,10 @@ public final class Terminal {
         return getPrivateMode(Mode.DECCKM);
     }
 
+    public boolean isNewLineMode() {
+        return getMode(Mode.LNM);
+    }
+
     public int getCursorX() {
         return x;
     }
@@ -522,9 +526,7 @@ public final class Terminal {
             if (mode != 0) {
                 setMode(parameters.isPrivate(), mode);
             }
-            if (parameters.isPrivate() && mode == Mode.DECOM) {
-                setRelativeCursorPos(0, 0);
-            }
+            applyModeSideEffects(parameters.isPrivate(), mode);
         }
     }
 
@@ -534,9 +536,7 @@ public final class Terminal {
             if (mode != 0) {
                 resetMode(parameters.isPrivate(), mode);
             }
-            if (parameters.isPrivate() && mode == Mode.DECOM) {
-                setRelativeCursorPos(0, 0);
-            }
+            applyModeSideEffects(parameters.isPrivate(), mode);
         }
     }
 
@@ -549,6 +549,14 @@ public final class Terminal {
                 putResponse(String.format(Locale.ROOT, "\033[%d;%dR", row, x + 1));
             }
         }
+    }
+
+    private void DECCOLM() {
+        scrollFirst = 0;
+        scrollLast = HEIGHT - 1;
+        isWrapPending = false;
+        setCursorPos(0, 0);
+        clear();
     }
 
     private void DA() {
@@ -587,6 +595,18 @@ public final class Terminal {
             }
         }
         return true;
+    }
+
+    private void applyModeSideEffects(final boolean isPrivate, final int mode) {
+        if (!isPrivate) {
+            return;
+        }
+        switch (mode) {
+            case Mode.DECOM -> setRelativeCursorPos(0, 0);
+            case Mode.DECCOLM -> DECCOLM();
+            default -> {
+            }
+        }
     }
 
     private void setMode(final boolean isPrivate, final int mode) {

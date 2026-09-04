@@ -253,10 +253,10 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         }
 
         if (isUnderline) {
-            buffer.addVertex(matrix, offset, CHAR_HEIGHT - 3, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
-            buffer.addVertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 3, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
-            buffer.addVertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
             buffer.addVertex(matrix, offset, CHAR_HEIGHT - 2, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
+            buffer.addVertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 2, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
+            buffer.addVertex(matrix, offset + CHAR_WIDTH, CHAR_HEIGHT - 3, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
+            buffer.addVertex(matrix, offset, CHAR_HEIGHT - 3, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
         }
     }
 

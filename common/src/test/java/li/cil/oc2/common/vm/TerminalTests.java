@@ -355,6 +355,59 @@ public class TerminalTests {
     }
 
     @Test
+    public void switchingColumnModeClearsTheScreen() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[10;10Hhello");
+
+        write(terminal, "\033[?3h");
+
+        assertEquals(" ".repeat(5), read(terminal, 9 * Terminal.WIDTH + 9, 5));
+        assertEquals(0, terminal.getCursorX());
+        assertEquals(0, terminal.getCursorY());
+    }
+
+    @Test
+    public void switchingBackToEightyColumnsAlsoClearsTheScreen() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "hello");
+
+        write(terminal, "\033[?3l");
+
+        assertEquals(" ".repeat(5), read(terminal, 5));
+    }
+
+    @Test
+    public void switchingColumnModeRestoresTheFullScrollRegion() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;10r\033[?3h");
+
+        write(terminal, "TOP\033[24;1H\n");
+
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0), "the whole screen should scroll again");
+    }
+
+    @Test
+    public void underlineReachesTheCell() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[4mu\033[24mv");
+
+        assertTrue(Terminal.isUnderline(terminal.getCell(0)));
+        assertFalse(Terminal.isUnderline(terminal.getCell(1)));
+    }
+
+    @Test
+    public void newLineModeFollowsTheMode() {
+        final Terminal terminal = new Terminal();
+        assertFalse(terminal.isNewLineMode());
+
+        write(terminal, "\033[20h");
+        assertTrue(terminal.isNewLineMode());
+
+        write(terminal, "\033[20l");
+        assertFalse(terminal.isNewLineMode());
+    }
+
+    @Test
     public void resetRestoresTheFullScrollRegion() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[5;10r\033c");

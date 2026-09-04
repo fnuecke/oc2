@@ -14,12 +14,13 @@ public final class TerminalInput {
     private static final Int2ObjectArrayMap<Int2ObjectArrayMap<byte[]>> KEYCODE_SEQUENCES = new Int2ObjectArrayMap<>();
     private static final Int2CharArrayMap CSI_FINAL_BYTES = new Int2CharArrayMap();
     private static final Int2IntArrayMap CSI_CODES = new Int2IntArrayMap();
+    private static final byte[] RETURN = {'\r'};
+    private static final byte[] RETURN_NEW_LINE = {'\r', '\n'};
 
     static {
         CSI_FINAL_BYTES.defaultReturnValue('\0');
         CSI_CODES.defaultReturnValue(0);
 
-        addSequence(GLFW.GLFW_KEY_ENTER, '\r');
         addSequence(GLFW.GLFW_KEY_TAB, '\t');
         addSequence(GLFW.GLFW_KEY_BACKSPACE, '\b');
         addSequence(GLFW.GLFW_MOD_ALT, GLFW.GLFW_KEY_BACKSPACE, (byte) '\033', (byte) '\b');
@@ -86,8 +87,12 @@ public final class TerminalInput {
     // --------------------------------------------------------------------- //
 
     @Nullable
-    public static byte[] getSequence(final int keyCode, final int modifiers, final boolean isCursorKeyApplicationMode) {
+    public static byte[] getSequence(final int keyCode, final int modifiers, final boolean isCursorKeyApplicationMode, final boolean isNewLineMode) {
         final int relevantModifiers = modifiers & MODIFIER_MASK;
+
+        if (keyCode == GLFW.GLFW_KEY_ENTER && relevantModifiers == 0) {
+            return isNewLineMode ? RETURN_NEW_LINE : RETURN;
+        }
 
         final Int2ObjectArrayMap<byte[]> map = KEYCODE_SEQUENCES.get(relevantModifiers);
         if (map != null) {

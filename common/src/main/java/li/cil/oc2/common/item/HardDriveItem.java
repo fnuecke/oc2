@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.item;
 
-import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;

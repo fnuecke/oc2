@@ -15,6 +15,11 @@ import static li.cil.oc2.gametest.TestSupport.TEMPLATE;
 @PrefixGameTestTemplate(false)
 public final class NetworkConnectorTestsNeoForge {
     @GameTest(template = TEMPLATE, timeoutTicks = 300)
+    public static void connectorsAttachToPostsAndNothingElse(final GameTestHelper helper) {
+        NetworkConnectorTests.connectorsAttachToPostsAndNothingElse(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 300)
     public static void connectorsLinkWithClearLineOfSight(final GameTestHelper helper) {
         NetworkConnectorTests.connectorsLinkWithClearLineOfSight(helper);
     }

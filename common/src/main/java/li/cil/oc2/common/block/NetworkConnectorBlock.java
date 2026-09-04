@@ -10,10 +10,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock;
-import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -61,7 +59,14 @@ public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirection
         return FaceAttachedHorizontalDirectionalBlock.getConnectedDirection(state);
     }
 
-    @SuppressWarnings("deprecation")
+    @Override
+    protected boolean canSurvive(final BlockState state, final LevelReader level, final BlockPos pos) {
+        final Direction direction = getFacing(state).getOpposite();
+        final BlockPos neighborPos = pos.relative(direction);
+        return level.getBlockState(neighborPos)
+            .isFaceSturdy(level, neighborPos, direction.getOpposite(), SupportType.CENTER);
+    }
+
     @Override
     public void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
         if (Objects.equals(changedBlockPos, pos.relative(getFacing(state).getOpposite()))) {
@@ -72,7 +77,6 @@ public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirection
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public VoxelShape getShape(final BlockState state, final BlockGetter level, final BlockPos pos, final CollisionContext context) {
         return switch (state.getValue(FACE)) {

@@ -13,6 +13,10 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.AttachFace;
 
 import static li.cil.oc2.gametest.TestSupport.*;
 
@@ -21,8 +25,39 @@ public final class NetworkConnectorTests {
     private static final BlockPos CONNECTOR_B = new BlockPos(6, WORK_Y, 2);
     private static final BlockPos OBSTRUCTION = new BlockPos(4, WORK_Y, 2);
     private static final BlockPos CONNECTOR_TOO_FAR = new BlockPos(25, WORK_Y, 2);
+    private static final BlockPos FENCE = new BlockPos(2, WORK_Y, 5);
+    private static final BlockPos WALL = new BlockPos(4, WORK_Y, 5);
+    private static final BlockPos MIDAIR = new BlockPos(6, WORK_Y, 5);
 
     // --------------------------------------------------------------------- //
+
+    public static void connectorsAttachToPostsAndNothingElse(final GameTestHelper helper) {
+        final Player player = fakePlayer(helper);
+        helper.setBlock(FENCE, Blocks.OAK_FENCE);
+        helper.setBlock(WALL, Blocks.COBBLESTONE_WALL);
+        helper.setBlock(MIDAIR.below(), Blocks.AIR);
+
+        // Neither has a full face, but both have a post covering the center of it.
+        ConnectorFixture.place(helper, player, FENCE.above());
+        ConnectorFixture.place(helper, player, WALL.above());
+
+        // Still nothing to hold on to where there is no block at all.
+        requireCanSurvive(helper, FENCE.above(), true);
+        requireCanSurvive(helper, WALL.above(), true);
+        requireCanSurvive(helper, MIDAIR, false);
+
+        helper.succeed();
+    }
+
+    private static void requireCanSurvive(final GameTestHelper helper, final BlockPos pos, final boolean expected) {
+        final BlockState state = li.cil.oc2.common.block.Blocks.NETWORK_CONNECTOR.get().defaultBlockState()
+            .setValue(FaceAttachedHorizontalDirectionalBlock.FACE, AttachFace.FLOOR)
+            .setValue(FaceAttachedHorizontalDirectionalBlock.FACING, Direction.NORTH);
+        if (state.canSurvive(helper.getLevel(), helper.absolutePos(pos)) != expected) {
+            throw new GameTestAssertException("a connector standing on [" + helper.getBlockState(pos.below())
+                + "] should " + (expected ? "" : "not ") + "survive");
+        }
+    }
 
     public static void connectorsLinkWithClearLineOfSight(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);

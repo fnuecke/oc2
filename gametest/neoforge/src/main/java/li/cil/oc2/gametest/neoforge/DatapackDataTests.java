@@ -106,7 +106,7 @@ public final class DatapackDataTests {
 
     @GameTest(template = TEMPLATE)
     public static void registeredDataUsesImagePaths(final GameTestHelper helper) {
-        requireKey(BlockDeviceDataRegistry.BUILDROOT.get(), "oc2:block_devices/hdd/buildroot.bin");
+        requireKey(BlockDeviceDataRegistry.BUILDROOT.get(), "oc2:block_devices/hdd/sedna.bin");
         requireKey(BlockDeviceDataRegistry.CPM.get(), "oc2:block_devices/floppy/cpm.bin");
         requireKey(BlockDeviceDataRegistry.FIRMWARE_RISCV.get(), "oc2:block_devices/flash/riscv.bin");
         requireKey(BlockDeviceDataRegistry.FIRMWARE_Z80.get(), "oc2:block_devices/flash/z80.bin");

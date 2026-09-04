@@ -132,6 +132,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         this.blocksBuilding = true;
         setNoGravity(true);
 
+        if (world.isClientSide()) {
+            terminal.setDisplayOnly(true);
+        }
+
         final CommonDeviceBusController busController = new CommonDeviceBusController(busElement, this::cpuEnergyPerTick, deviceItems::getArchitectureType);
         virtualMachine = new RobotVirtualMachine(busController);
         virtualMachine.setGameTimeSource(LevelUtils.gameTimeSupplier(world));

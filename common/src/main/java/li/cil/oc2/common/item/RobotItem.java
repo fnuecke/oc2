@@ -13,7 +13,7 @@ import li.cil.oc2.common.util.NBTUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
@@ -32,11 +32,14 @@ import java.util.List;
 import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 import static li.cil.oc2.common.bus.device.DeviceTypeRegistry.key;
 import static li.cil.oc2.common.util.NBTUtils.makeInventoryTag;
+import static li.cil.oc2.common.util.TranslationUtils.text;
+
 
 public final class RobotItem extends ModItem implements CreativeTabItemProvider {
     @Override
     public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
-        output.accept(getRobotWithFlash(parameters.holders()));
+        output.accept(new ItemStack(this));
+        output.accept(preconfigured(parameters.holders()));
     }
 
     @Override
@@ -93,21 +96,32 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
         return false;
     }
 
-
     // --------------------------------------------------------------------- //
 
-    private ItemStack getRobotWithFlash(final HolderLookup.Provider provider) {
-        final ItemStack robot = new ItemStack(this);
+    private ItemStack preconfigured(final HolderLookup.Provider provider) {
+        final var robot = new ItemStack(this);
 
         ItemStackUtils.modifyModDataTag(robot, tag -> {
-            final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
+            final var itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
             itemsTag.put(key(DeviceTypes.CPU.get()), makeInventoryTag(provider,
                 new ItemStack(Items.CPU_RISCV.get())
             ));
             itemsTag.put(key(DeviceTypes.FLASH_MEMORY.get()), makeInventoryTag(provider,
                 Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId())
             ));
+            itemsTag.put(key(DeviceTypes.MEMORY.get()), makeInventoryTag(provider,
+                new ItemStack(Items.MEMORY_LARGE.get()),
+                new ItemStack(Items.MEMORY_LARGE.get())
+            ));
+            itemsTag.put(key(DeviceTypes.HARD_DRIVE.get()), makeInventoryTag(provider,
+                Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId())
+            ));
+            itemsTag.put(key(DeviceTypes.ROBOT_MODULE.get()), makeInventoryTag(provider,
+                new ItemStack(Items.BLOCK_OPERATIONS_MODULE.get())
+            ));
         });
+
+        robot.set(DataComponents.CUSTOM_NAME, text("item.{mod}.robot.preconfigured"));
 
         return robot;
     }

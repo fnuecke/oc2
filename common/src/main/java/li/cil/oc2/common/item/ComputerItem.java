@@ -8,6 +8,7 @@ import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTUtils;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -26,14 +27,14 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
 
     @Override
     public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
-        output.accept(withFlash(parameters.holders()));
+        output.accept(new ItemStack(this));
         output.accept(preconfigured(parameters.holders()));
     }
 
     // --------------------------------------------------------------------- //
 
-    private ItemStack withFlash(final HolderLookup.Provider provider) {
-        final ItemStack computer = new ItemStack(this);
+    private ItemStack preconfigured(final HolderLookup.Provider provider) {
+        final var computer = new ItemStack(this);
 
         ItemStackUtils.modifyBlockEntityDataTag(computer, BlockEntities.COMPUTER.get(), tag -> {
             final var itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
@@ -43,19 +44,7 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
             itemsTag.put(key(DeviceTypes.FLASH_MEMORY.get()), makeInventoryTag(provider,
                 Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId())
             ));
-        });
-
-        return computer;
-    }
-
-    private ItemStack preconfigured(final HolderLookup.Provider provider) {
-        final ItemStack computer = withFlash(provider);
-
-        ItemStackUtils.modifyBlockEntityDataTag(computer, BlockEntities.COMPUTER.get(), tag -> {
-            final var itemsTag = NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME);
             itemsTag.put(key(DeviceTypes.MEMORY.get()), makeInventoryTag(provider,
-                new ItemStack(Items.MEMORY_LARGE.get()),
-                new ItemStack(Items.MEMORY_LARGE.get()),
                 new ItemStack(Items.MEMORY_LARGE.get()),
                 new ItemStack(Items.MEMORY_LARGE.get())
             ));
@@ -67,7 +56,7 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
             ));
         });
 
-        computer.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, text("block.{mod}.computer.preconfigured"));
+        computer.set(DataComponents.CUSTOM_NAME, text("block.{mod}.computer.preconfigured"));
 
         return computer;
     }

@@ -42,6 +42,12 @@ if first is None:
     report()
 
 expect("it chose the socket transport", first.transport, "socket")
+
+doc = str(first.get("redstone-1"))
+expect("the docs name the method", "documented(" in doc, True)
+expect("and carry its description", "Does a documented thing." in doc, True)
+expect("and its parameter description", "count  how many." in doc, True)
+expect("and its return value description", "returns  the documented result." in doc, True)
 expect("and learned the generation from the handshake", first.generation, 1)
 
 devices = first.list()

@@ -35,6 +35,10 @@ local DEVICES = {
 local METHODS = {
   { name = "getRedstoneOutput", parameters = {} },
   { name = "setRedstoneOutput", parameters = { { name = "side" }, { name = "value" } } },
+  { name = "documented", returnType = "number",
+    description = "Does a documented thing.",
+    returnValueDescription = "the documented result.",
+    parameters = { { name = "count", type = "number", description = "how many." } } },
   { name = "echoBlob", parameters = {} },
 }
 
@@ -108,6 +112,15 @@ if not first then
 end
 
 expect("it chose the socket transport", first.transport, "socket")
+
+-- The documentation the host sends must all survive the formatter. The return value
+-- description in particular is easy to drop silently, since nothing else reads that key.
+local doc = tostring(first:get("redstone-1"))
+expect("the docs name the method", doc:find("documented(", 1, true) ~= nil, true)
+expect("and carry its description", doc:find("Does a documented thing.", 1, true) ~= nil, true)
+expect("and its parameter description", doc:find("count  how many.", 1, true) ~= nil, true)
+expect("and its return value description",
+       doc:find("returns  the documented result.", 1, true) ~= nil, true)
 expect("and learned the generation from the handshake", first.generation, 1)
 
 local devices = first:list()

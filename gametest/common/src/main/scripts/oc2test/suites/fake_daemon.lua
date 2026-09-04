@@ -38,6 +38,10 @@ local DEVICES = {
 local METHODS = {
   { name = "getRedstoneOutput", parameters = {} },
   { name = "setRedstoneOutput", parameters = { { name = "side" }, { name = "value" } } },
+  { name = "documented", returnType = "number",
+    description = "Does a documented thing.",
+    returnValueDescription = "the documented result.",
+    parameters = { { name = "count", type = "number", description = "how many." } } },
   { name = "echoBlob", parameters = {} },
 }
 

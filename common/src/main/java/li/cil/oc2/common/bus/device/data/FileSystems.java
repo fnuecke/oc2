@@ -9,7 +9,6 @@ import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.registry.ReloadListenerRegistry;
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import li.cil.oc2.api.API;
-import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.vm.fs.LayeredFileSystem;
 import li.cil.sedna.fs.FileSystem;
 import li.cil.sedna.fs.ZipStreamFileSystem;
@@ -26,17 +25,18 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-import static li.cil.oc2.common.util.TextFormatUtils.formatSize;
-
 public final class FileSystems {
     private static final Logger LOGGER = LogManager.getLogger();
+
+    private static final String DIRECTORY = "file_systems";
+    private static final String ARCHIVE_EXTENSION = ".zip";
+    private static final String DESCRIPTOR_EXTENSION = ".json";
+
     private static final LayeredFileSystem LAYERED_FILE_SYSTEM = new LayeredFileSystem();
-    private static final Map<ResourceLocation, BlockDeviceData> BLOCK_DEVICE_DATA = new HashMap<>();
 
     // --------------------------------------------------------------------- //
 
@@ -44,100 +44,50 @@ public final class FileSystems {
         return LAYERED_FILE_SYSTEM;
     }
 
-    public static Map<ResourceLocation, BlockDeviceData> getBlockData() {
-        return BLOCK_DEVICE_DATA;
-    }
-
-    public static void reset() {
-        LAYERED_FILE_SYSTEM.clear();
-
-        for (final BlockDeviceData data : BLOCK_DEVICE_DATA.values()) {
-            try {
-                ((ResourceBlockDeviceData) data).close();
-            } catch (final Exception e) {
-                LOGGER.error(e);
-            }
-        }
-        BLOCK_DEVICE_DATA.clear();
-    }
-
-    // --------------------------------------------------------------------- //
-
     public static void initialize() {
         ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
-            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "file_systems"));
-        LifecycleEvent.SERVER_STOPPED.register(server -> handleServerStopped());
-    }
-
-    private static void handleServerStopped() {
-        reset();
+            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, DIRECTORY));
+        LifecycleEvent.SERVER_STOPPED.register(server -> LAYERED_FILE_SYSTEM.clear());
     }
 
     // --------------------------------------------------------------------- //
 
     private static void reload(final ResourceManager resourceManager) {
-        reset();
+        LAYERED_FILE_SYSTEM.clear();
 
-        LOGGER.info("Searching for datapack filesystems...");
-        final Map<ResourceLocation, Resource> fileSystemDescriptors = resourceManager
-            .listResources("file_systems", location -> location.getPath().endsWith(".json"));
+        LOGGER.info("Searching for datapack file systems...");
+        final Map<ResourceLocation, Resource> descriptors = resourceManager
+            .listResources(DIRECTORY, location -> location.getPath().endsWith(DESCRIPTOR_EXTENSION));
 
         final ArrayList<ZipStreamFileSystem> fileSystems = new ArrayList<>();
         final Object2IntArrayMap<ZipStreamFileSystem> fileSystemOrder = new Object2IntArrayMap<>();
 
-        for (final Map.Entry<ResourceLocation, Resource> entry : fileSystemDescriptors.entrySet()) {
-            final ResourceLocation fileSystemDescriptorLocation = entry.getKey();
-            LOGGER.info("Found [{}]", fileSystemDescriptorLocation);
+        for (final Map.Entry<ResourceLocation, Resource> entry : descriptors.entrySet()) {
+            LOGGER.info("Found [{}]", entry.getKey());
             try {
                 final JsonObject json;
                 try (Reader reader = entry.getValue().openAsReader()) {
                     json = JsonParser.parseReader(reader).getAsJsonObject();
                 }
-                final String type = json.getAsJsonPrimitive("type").getAsString();
-                switch (type) {
-                    case "layer" -> {
-                        final ResourceLocation location = ResourceLocation.parse(json.getAsJsonPrimitive("location").getAsString());
 
-                        final ZipStreamFileSystem fileSystem;
-                        try (InputStream stream = resourceManager.getResourceOrThrow(location).open()) {
-                            fileSystem = new ZipStreamFileSystem(stream);
-                        }
+                final ZipStreamFileSystem fileSystem;
+                try (InputStream stream = resourceManager.getResourceOrThrow(getArchiveLocation(entry.getKey())).open()) {
+                    fileSystem = new ZipStreamFileSystem(stream);
+                }
 
-                        final long fileCount = fileSystem.statfs().fileCount;
-                        if (fileCount > 0) {
-                            LOGGER.info("  Adding layer with [{}] file(s).", fileCount);
-                            fileSystems.add(fileSystem);
-                        } else {
-                            LOGGER.info("  Skipping empty layer.");
-                        }
+                final long fileCount = fileSystem.statfs().fileCount;
+                if (fileCount > 0) {
+                    LOGGER.info("  Adding layer with [{}] file(s).", fileCount);
+                    fileSystems.add(fileSystem);
+                } else {
+                    LOGGER.info("  Skipping empty layer.");
+                }
 
-                        if (json.has("order")) {
-                            final JsonPrimitive order = json.getAsJsonPrimitive("order");
-                            fileSystemOrder.put(fileSystem, order.getAsInt());
-                        } else {
-                            fileSystemOrder.put(fileSystem, 0);
-                        }
-                    }
-                    case "block" -> {
-                        final ResourceLocation location = ResourceLocation.parse(json.getAsJsonPrimitive("location").getAsString());
-                        if (BlockDeviceDataRegistry.getValue(location) != null) {
-                            LOGGER.error("Block device from datapack collides with already registered location [{}].", location);
-                            continue;
-                        }
-
-                        final String name;
-                        if (json.has("name")) {
-                            name = json.getAsJsonPrimitive("name").getAsString();
-                        } else {
-                            name = "???";
-                        }
-
-                        final ResourceBlockDeviceData data = new ResourceBlockDeviceData(resourceManager, location, name);
-
-                        LOGGER.info("  Adding block device [{}] with id [{}] and a size of [{}].", name, location, formatSize(data.getBlockDevice().getCapacity()));
-                        BLOCK_DEVICE_DATA.put(location, data);
-                    }
-                    default -> LOGGER.error("Unsupported file system type [{}].", type);
+                if (json.has("order")) {
+                    final JsonPrimitive order = json.getAsJsonPrimitive("order");
+                    fileSystemOrder.put(fileSystem, order.getAsInt());
+                } else {
+                    fileSystemOrder.put(fileSystem, 0);
                 }
             } catch (final Throwable e) {
                 LOGGER.error(e);
@@ -146,6 +96,11 @@ public final class FileSystems {
 
         fileSystems.sort(Comparator.comparingInt(fileSystemOrder::getInt));
         fileSystems.forEach(LAYERED_FILE_SYSTEM::addLayer);
+    }
+
+    private static ResourceLocation getArchiveLocation(final ResourceLocation descriptorLocation) {
+        final String path = descriptorLocation.getPath();
+        return descriptorLocation.withPath(path.substring(0, path.length() - DESCRIPTOR_EXTENSION.length()) + ARCHIVE_EXTENSION);
     }
 
     // --------------------------------------------------------------------- //
@@ -161,4 +116,6 @@ public final class FileSystems {
         }
     }
 
+    private FileSystems() {
+    }
 }

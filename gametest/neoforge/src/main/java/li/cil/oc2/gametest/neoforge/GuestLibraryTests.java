@@ -4,7 +4,6 @@ package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.ComputerFixture;
 import li.cil.oc2.gametest.GuestTests;
@@ -39,7 +38,7 @@ public final class GuestLibraryTests {
         helper.startSequence()
             .thenExecuteAfter(20, () -> computer
                 .install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-                .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId()))
+                .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
                 .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
                 .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
                 .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))

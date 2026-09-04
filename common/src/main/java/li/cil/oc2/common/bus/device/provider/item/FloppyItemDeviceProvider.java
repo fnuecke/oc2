@@ -4,6 +4,7 @@ package li.cil.oc2.common.bus.device.provider.item;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.ItemDevice;
+import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.common.Config;
@@ -59,8 +60,19 @@ public final class FloppyItemDeviceProvider extends AbstractItemDeviceProvider {
 
     // --------------------------------------------------------------------- //
 
+    @Nullable
+    private static BlockDeviceData getData(final ItemDeviceQuery query) {
+        final ItemStack stack = query.getItemStack();
+        return ((FloppyItem) stack.getItem()).getData(stack);
+    }
+
     private static int getCapacity(final ItemDeviceQuery query) {
         final ItemStack stack = query.getItemStack();
+        final BlockDeviceData data = getData(query);
+        if (data != null) {
+            return (int) Math.max(data.getBlockDevice().getCapacity(), 0);
+        }
+
         final FloppyItem item = (FloppyItem) stack.getItem();
         return Math.max(item.getCapacity(stack), 0);
     }

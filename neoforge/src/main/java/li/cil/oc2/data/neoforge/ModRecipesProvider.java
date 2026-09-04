@@ -4,7 +4,6 @@ package li.cil.oc2.data.neoforge;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.ResetRecipe;
 import net.minecraft.advancements.Criterion;
@@ -327,14 +326,14 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer, API.MOD_ID + ":floppy_erase");
 
         ToolRecipeBuilder
-            .toolRecipe(Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId()))
+            .toolRecipe(Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
             .requires(Items.FLASH_MEMORY.get())
             .requires(Items.CPU_RISCV.get())
             .unlockedBy("has_cpu_riscv", inventoryChange(Items.CPU_RISCV.get()))
             .save(consumer, API.MOD_ID + ":flash_memory_riscv");
 
         ToolRecipeBuilder
-            .toolRecipe(Items.FLASH_MEMORY.get().withData(FirmwareRegistry.Z80.getId()))
+            .toolRecipe(Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_Z80.getId()))
             .requires(Items.FLASH_MEMORY.get())
             .requires(Items.CPU_Z80.get())
             .unlockedBy("has_cpu_z80", inventoryChange(Items.CPU_Z80.get()))

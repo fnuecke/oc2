@@ -3,7 +3,7 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
 import net.minecraft.ResourceLocationException;
@@ -45,7 +45,7 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
         }
 
         try {
-            return FirmwareRegistry.getValue(ResourceLocation.parse(registryName));
+            return BlockDeviceDataRegistry.getValue(ResourceLocation.parse(registryName));
         } catch (final ResourceLocationException ignored) {
             return null;
         }
@@ -71,8 +71,8 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
     public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
         output.accept(new ItemStack(this));
 
-        FirmwareRegistry.values().forEach(data -> {
-            final ResourceLocation key = FirmwareRegistry.getKey(data);
+        BlockDeviceDataRegistry.firmwareValues().forEach(data -> {
+            final ResourceLocation key = BlockDeviceDataRegistry.getKey(data);
             if (key == null) {
                 return;
             }

@@ -13,6 +13,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -47,24 +48,27 @@ public final class Items {
         new CpuItem(ArchitectureType.Z80));
 
     public static final RegistrySupplier<MemoryItem> MEMORY_SMALL = register("memory_small", () ->
-        new MemoryItem(2 * Constants.MEGABYTE));
+        new MemoryItem(Constants.MEMORY_SMALL_SIZE));
     public static final RegistrySupplier<MemoryItem> MEMORY_MEDIUM = register("memory_medium", () ->
-        new MemoryItem(4 * Constants.MEGABYTE));
+        new MemoryItem(Constants.MEMORY_MEDIUM_SIZE));
     public static final RegistrySupplier<MemoryItem> MEMORY_LARGE = register("memory_large", () ->
-        new MemoryItem(8 * Constants.MEGABYTE));
+        new MemoryItem(Constants.MEMORY_LARGE_SIZE));
 
     public static final RegistrySupplier<HardDriveItem> HARD_DRIVE_SMALL = register("hard_drive_small", () ->
-        new HardDriveItem(2 * Constants.MEGABYTE, DyeColor.LIGHT_GRAY));
+        new HardDriveItem(Constants.HARD_DRIVE_SMALL_SIZE, DyeColor.LIGHT_GRAY));
     public static final RegistrySupplier<HardDriveItem> HARD_DRIVE_MEDIUM = register("hard_drive_medium", () ->
-        new HardDriveItem(4 * Constants.MEGABYTE, DyeColor.GREEN));
+        new HardDriveItem(Constants.HARD_DRIVE_MEDIUM_SIZE, DyeColor.GREEN));
     public static final RegistrySupplier<HardDriveItem> HARD_DRIVE_LARGE = register("hard_drive_large", () ->
-        new HardDriveItem(8 * Constants.MEGABYTE, DyeColor.CYAN));
+        new HardDriveItem(Constants.HARD_DRIVE_LARGE_SIZE, DyeColor.CYAN));
+
+    public static final List<RegistrySupplier<HardDriveItem>> HARD_DRIVES =
+        List.of(HARD_DRIVE_SMALL, HARD_DRIVE_MEDIUM, HARD_DRIVE_LARGE);
 
     public static final RegistrySupplier<FlashMemoryItem> FLASH_MEMORY = register("flash_memory", () ->
         new FlashMemoryItem(Constants.FLASH_MEMORY_SIZE));
 
     public static final RegistrySupplier<FloppyItem> FLOPPY = register("floppy", () ->
-        new FloppyItem(FloppyItem.MAX_CAPACITY));
+        new FloppyItem(Constants.FLOPPY_SIZE));
 
     public static final RegistrySupplier<Item> REDSTONE_INTERFACE_CARD = register("redstone_interface_card");
     public static final RegistrySupplier<Item> NETWORK_INTERFACE_CARD = register("network_interface_card", NetworkInterfaceCardItem::new);

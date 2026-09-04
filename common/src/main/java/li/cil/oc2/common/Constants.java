@@ -16,6 +16,16 @@ public final class Constants {
 
     public static final int FLASH_MEMORY_SIZE = 8 * KILOBYTE;
 
+    public static final int MEMORY_SMALL_SIZE = 2 * MEGABYTE;
+    public static final int MEMORY_MEDIUM_SIZE = 4 * MEGABYTE;
+    public static final int MEMORY_LARGE_SIZE = 8 * MEGABYTE;
+
+    public static final int HARD_DRIVE_SMALL_SIZE = 2 * MEGABYTE;
+    public static final int HARD_DRIVE_MEDIUM_SIZE = 4 * MEGABYTE;
+    public static final int HARD_DRIVE_LARGE_SIZE = 8 * MEGABYTE;
+
+    public static final int FLOPPY_SIZE = 512 * KILOBYTE;
+
     public static final int R5_CPU_FREQUENCY = 25_000_000;
     public static final int Z80_CPU_FREQUENCY = 4_000_000;
 

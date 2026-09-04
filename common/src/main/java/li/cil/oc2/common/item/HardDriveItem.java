@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.item;
 
+import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
@@ -66,17 +67,26 @@ public final class HardDriveItem extends AbstractStorageItem implements ColoredI
         return withData(new ItemStack(this), key);
     }
 
+    public boolean isSmallestDriveFor(final long size) {
+        HardDriveItem best = null;
+        for (final var supplier : Items.HARD_DRIVES) {
+            best = supplier.get();
+            if (size <= best.getCapacity(new ItemStack(best))) {
+                break;
+            }
+        }
+        return best == this;
+    }
+
     // --------------------------------------------------------------------- //
 
     @Override
     public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
         output.accept(new ItemStack(this));
 
-        final int capacity = getCapacity(new ItemStack(this));
-        BlockDeviceDataRegistry.values().forEach(data -> {
+        BlockDeviceDataRegistry.hardDriveValues().forEach(data -> {
             final ResourceLocation key = BlockDeviceDataRegistry.getKey(data);
-            final long size = data.getBlockDevice().getCapacity();
-            if (key == null || size > capacity || size <= FloppyItem.MAX_CAPACITY) {
+            if (key == null || !isSmallestDriveFor(data.getBlockDevice().getCapacity())) {
                 return;
             }
 

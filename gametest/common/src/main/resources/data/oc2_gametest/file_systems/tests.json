@@ -1,5 +1,3 @@
 {
-  "type": "layer",
-  "order": 100,
-  "location": "oc2_gametest:file_systems/tests.zip"
+  "order": 100
 }

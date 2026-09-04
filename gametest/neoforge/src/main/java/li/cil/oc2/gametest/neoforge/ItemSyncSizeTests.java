@@ -5,7 +5,6 @@ package li.cil.oc2.gametest.neoforge;
 import io.netty.buffer.Unpooled;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.vm.VMRunState;
@@ -47,7 +46,7 @@ public final class ItemSyncSizeTests {
         helper.startSequence()
             .thenExecuteAfter(60, () -> {
                 computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-                    .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId()))
+                    .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
                     .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
                     .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()));
                 drive.insert(new ItemStack(Items.FLOPPY.get()));

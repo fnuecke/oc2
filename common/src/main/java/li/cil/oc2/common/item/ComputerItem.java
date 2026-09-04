@@ -5,7 +5,6 @@ package li.cil.oc2.common.item;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTUtils;
 import net.minecraft.core.HolderLookup;
@@ -42,7 +41,7 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
                 new ItemStack(Items.CPU_RISCV.get())
             ));
             itemsTag.put(key(DeviceTypes.FLASH_MEMORY.get()), makeInventoryTag(provider,
-                Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId())
+                Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId())
             ));
         });
 

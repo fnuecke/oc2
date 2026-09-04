@@ -3,7 +3,6 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
@@ -20,10 +19,6 @@ import net.minecraft.world.item.component.DyedItemColor;
 import javax.annotation.Nullable;
 
 public final class FloppyItem extends AbstractStorageItem implements ColoredItem, CreativeTabItemProvider {
-    public static final int MAX_CAPACITY = 512 * Constants.KILOBYTE;
-
-    // --------------------------------------------------------------------- //
-
     public FloppyItem(final int capacity) {
         super(capacity);
     }
@@ -69,7 +64,7 @@ public final class FloppyItem extends AbstractStorageItem implements ColoredItem
         output.accept(new ItemStack(this));
 
         final int capacity = getCapacity(new ItemStack(this));
-        BlockDeviceDataRegistry.values().forEach(data -> {
+        BlockDeviceDataRegistry.floppyValues().forEach(data -> {
             final ResourceLocation key = BlockDeviceDataRegistry.getKey(data);
             if (key == null || data.getBlockDevice().getCapacity() > capacity) {
                 return;

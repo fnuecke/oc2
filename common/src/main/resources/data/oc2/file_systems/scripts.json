@@ -1,5 +1,3 @@
 {
-  "type": "layer",
-  "order": 0,
-  "location": "oc2:file_systems/scripts.zip"
+  "order": 0
 }

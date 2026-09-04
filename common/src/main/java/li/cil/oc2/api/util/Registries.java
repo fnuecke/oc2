@@ -32,11 +32,6 @@ public final class Registries {
     public static final ResourceKey<Registry<BlockDeviceData>> BLOCK_DEVICE_DATA = key("block_device_data");
 
     /**
-     * The registry name of the registry holding bootloader images for flash memory.
-     */
-    public static final ResourceKey<Registry<BlockDeviceData>> FIRMWARE = key("firmware");
-
-    /**
      * The registry name of the registry holding device types.
      */
     public static final ResourceKey<Registry<DeviceType>> DEVICE_TYPE = key("device_type");

@@ -8,7 +8,6 @@ import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.bus.device.DeviceTypeRegistry;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.bus.device.data.FileSystems;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.bus.device.provider.ProviderRegistry;
 import li.cil.oc2.common.bus.device.rpc.RPCItemStackTagFilters;
 import li.cil.oc2.common.bus.device.rpc.RPCTypeAdapters;
@@ -60,7 +59,6 @@ public final class Main {
         ProviderRegistry.initialize();
         DeviceTypeRegistry.initialize();
         BlockDeviceDataRegistry.initialize();
-        FirmwareRegistry.initialize();
         CpmSystemDisk.initialize();
         RPCTypeAdapters.initialize();
 

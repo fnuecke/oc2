@@ -3,7 +3,7 @@
 package li.cil.oc2.common.item;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.entity.robot.RobotActions;
@@ -105,7 +105,7 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
                 new ItemStack(Items.CPU_RISCV.get())
             ));
             itemsTag.put(key(DeviceTypes.FLASH_MEMORY.get()), makeInventoryTag(provider,
-                Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId())
+                Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId())
             ));
         });
 

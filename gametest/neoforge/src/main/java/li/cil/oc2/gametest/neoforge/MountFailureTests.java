@@ -6,7 +6,6 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
-import li.cil.oc2.common.bus.device.data.FirmwareRegistry;
 import li.cil.oc2.common.bus.device.vm.item.HardDriveDevice;
 import li.cil.oc2.common.bus.device.vm.item.MemoryDevice;
 import li.cil.oc2.common.item.Items;
@@ -337,7 +336,7 @@ public final class MountFailureTests {
         helper.startSequence()
             .thenExecuteAfter(20, () -> computer
                 .install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-                .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(FirmwareRegistry.RISCV.getId()))
+                .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
                 .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_SMALL.get()))
                 .install(DeviceTypes.HARD_DRIVE.get(), drive))
             .thenExecuteAfter(20, computer::start)

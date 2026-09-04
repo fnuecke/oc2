@@ -12,6 +12,7 @@ state = {
     "queue_calls": 0,
     "last_event_type": None,
     "last_queued": None,
+    "last_detect_side": None,
 }
 
 
@@ -47,6 +48,10 @@ class FakeDevice:
 
     def turn(self, direction):
         return self._queue("turn")
+
+    def detect(self, side):
+        state["last_detect_side"] = side
+        return "solid"
 
     def _queue(self, kind):
         state["queue_calls"] += 1
@@ -172,5 +177,16 @@ completed(1, "SUCCESS")
 expect("turn waits the same way", robot.turn("left"), True)
 expect("turn used the event", state["result_calls"], 1)
 expect("turn queued a turn, not a move", state["last_queued"], "turn")
+
+# Detecting
+robot = reset()
+expect("detect passes the side through", robot.detect(robot.side["front"]), "solid")
+expect("and sends the side it was given", state["last_detect_side"], "front")
+expect("detect is a query, not a queued action", state["queue_calls"], 0)
+try:
+    robot.detect(None)
+    expect("calling detect without a side is an error", True, False)
+except Exception:
+    expect("calling detect without a side is an error", True, True)
 
 report()

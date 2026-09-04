@@ -46,6 +46,10 @@ local device = {
   end,
   move = queueAction("move"),
   turn = queueAction("turn"),
+  detect = function(_, side)
+    state.lastDetectSide = side
+    return "solid"
+  end,
 }
 
 package.preload["devices"] = function()
@@ -158,5 +162,13 @@ completed(1, "SUCCESS")
 expect("turn waits the same way", robot.turn("left"), true)
 expect("turn used the event", state.resultCalls, 1)
 expect("turn queued a turn, not a move", state.lastQueued, "turn")
+
+-- Detecting
+robot = reset()
+expect("detect passes the side through", robot.detect(robot.side.front), "solid")
+expect("and sends the side it was given", state.lastDetectSide, "front")
+expect("detect is a query, not a queued action", state.queueCalls, 0)
+expect("calling detect without a side is an error",
+       select(1, pcall(robot.detect)), false)
 
 report()

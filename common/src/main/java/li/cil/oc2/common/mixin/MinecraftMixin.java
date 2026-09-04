@@ -3,6 +3,7 @@
 package li.cil.oc2.common.mixin;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
 import li.cil.oc2.common.ext.MinecraftExt;
 import net.minecraft.client.Minecraft;
@@ -39,7 +40,7 @@ public abstract class MinecraftMixin implements MinecraftExt {
      */
     @Inject(method = "useShaderTransparency", at = @At("HEAD"), cancellable = true)
     private static void noTransparencyWhileRenderingProjectorDepth(final CallbackInfoReturnable<Boolean> cir) {
-        if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {
+        if (RenderSystem.isOnRenderThread() && ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {
             cir.setReturnValue(false);
         }
     }

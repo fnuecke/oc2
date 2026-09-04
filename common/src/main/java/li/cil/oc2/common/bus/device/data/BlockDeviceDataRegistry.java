@@ -13,6 +13,7 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.util.Registries;
 import li.cil.oc2.common.util.RegistryUtils;
+import li.cil.oc2.common.vm.CpmSystemDisk;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.cpm.Cpm;
 import net.minecraft.resources.ResourceLocation;
@@ -54,16 +55,18 @@ public final class BlockDeviceDataRegistry {
     // --------------------------------------------------------------------- //
 
     public static final RegistrySupplier<BlockDeviceData> BUILDROOT =
-        INITIALIZER.register(path(HARD_DRIVE_MEDIUM, "sedna"), BuildrootBlockDeviceData::new);
+        INITIALIZER.register(path(HARD_DRIVE_MEDIUM, "sedna"), () -> new BuiltinBlockDeviceData(
+            BuiltinBlockDeviceData.readOnce(Buildroot::getRootFilesystem), "Sedna Linux", DyeColor.GREEN));
     public static final RegistrySupplier<BlockDeviceData> CPM =
-        INITIALIZER.register(path(FLOPPY_MEDIUM, "cpm"), CpmBlockDeviceData::new);
+        INITIALIZER.register(path(FLOPPY_MEDIUM, "cpm"), () -> new BuiltinBlockDeviceData(
+            BuiltinBlockDeviceData.readEachTime(CpmSystemDisk::getImage), "CP/M 2.2", DyeColor.ORANGE));
 
     public static final RegistrySupplier<BlockDeviceData> FIRMWARE_RISCV =
-        INITIALIZER.register(path(FLASH_MEDIUM, "riscv"),
-            () -> new FirmwareBlockDeviceData(Buildroot::getSednaFirmware, "Sedna Linux", DyeColor.GREEN));
+        INITIALIZER.register(path(FLASH_MEDIUM, "riscv"), () -> new BuiltinBlockDeviceData(
+            BuiltinBlockDeviceData.readOnce(Buildroot::getSednaFirmware), "Sedna Linux", DyeColor.GREEN));
     public static final RegistrySupplier<BlockDeviceData> FIRMWARE_Z80 =
-        INITIALIZER.register(path(FLASH_MEDIUM, "z80"),
-            () -> new FirmwareBlockDeviceData(Cpm::getBootRom, "CP/M 2.2", DyeColor.ORANGE));
+        INITIALIZER.register(path(FLASH_MEDIUM, "z80"), () -> new BuiltinBlockDeviceData(
+            BuiltinBlockDeviceData.readOnce(Cpm::getBootRom), "CP/M 2.2", DyeColor.ORANGE));
 
     // --------------------------------------------------------------------- //
 

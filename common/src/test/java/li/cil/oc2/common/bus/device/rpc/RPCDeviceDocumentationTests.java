@@ -8,7 +8,9 @@ import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 import li.cil.oc2.api.bus.device.rpc.RPCParameter;
 import li.cil.oc2.api.inventory.ItemHandler;
+import li.cil.oc2.common.bus.device.rpc.item.AbstractItemRPCDevice;
 import li.cil.oc2.common.bus.device.rpc.item.BlockOperationsModuleDevice;
+import li.cil.oc2.common.bus.device.rpc.item.InventoryOperationsModuleDevice;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
@@ -44,18 +46,34 @@ public class RPCDeviceDocumentationTests {
     }
 
     @Test
-    public void blockOperationsDocumentsOnlyCallbacksThatExist() {
-        final BlockOperationsModuleDevice device = new BlockOperationsModuleDevice(ItemStack.EMPTY, null, null);
-        final Set<String> callbacks = device.getMethodGroups().stream()
-            .map(RPCMethodGroup::getName).collect(Collectors.toSet());
+    public void robotModulesDocumentOnlyCallbacksThatExist() {
+        for (final AbstractItemRPCDevice device : documentedRobotModules()) {
+            final Set<String> callbacks = device.getMethodGroups().stream()
+                .map(RPCMethodGroup::getName).collect(Collectors.toSet());
 
-        final RecordingVisitor visitor = new RecordingVisitor();
-        device.getDeviceDocumentation(visitor);
+            final RecordingVisitor visitor = new RecordingVisitor();
+            ((DocumentedDevice) device).getDeviceDocumentation(visitor);
 
-        assertFalse(visitor.documented.isEmpty(), "no documentation was declared at all");
-        for (final String documented : visitor.documented) {
-            assertTrue(callbacks.contains(documented),
-                "documented callback \"" + documented + "\" does not exist; its documentation is silently dropped");
+            assertFalse(visitor.documented.isEmpty(),
+                device.getClass().getSimpleName() + " declared no documentation at all");
+            for (final String documented : visitor.documented) {
+                assertTrue(callbacks.contains(documented),
+                    device.getClass().getSimpleName() + " documents callback \"" + documented
+                        + "\", which does not exist; its documentation is silently dropped");
+            }
+        }
+    }
+
+    @Test
+    public void robotModuleCallbacksAreFullyDocumented() {
+        for (final AbstractItemRPCDevice device : documentedRobotModules()) {
+            final RecordingVisitor visitor = new RecordingVisitor();
+            ((DocumentedDevice) device).getDeviceDocumentation(visitor);
+
+            for (final RPCMethodGroup group : device.getMethodGroups()) {
+                assertTrue(visitor.documented.contains(group.getName()),
+                    device.getClass().getSimpleName() + " callback \"" + group.getName() + "\" is undocumented");
+            }
         }
     }
 
@@ -77,6 +95,12 @@ public class RPCDeviceDocumentationTests {
     }
 
     // --------------------------------------------------------------------- //
+
+    private static List<AbstractItemRPCDevice> documentedRobotModules() {
+        return List.of(
+            new BlockOperationsModuleDevice(ItemStack.EMPTY, null, null),
+            new InventoryOperationsModuleDevice(ItemStack.EMPTY, null, null));
+    }
 
     private static Set<RPCMethod> overloadsOf(final List<RPCMethodGroup> groups, final String name) {
         return groups.stream()

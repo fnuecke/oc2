@@ -3,6 +3,7 @@
 package li.cil.oc2.common.bus.device.rpc.item;
 
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.inventory.ItemHandler;
@@ -25,7 +26,17 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice {
+public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice implements DocumentedDevice {
+    private static final String MOVE = "move";
+    private static final String DROP = "drop";
+    private static final String DROP_INTO = "dropInto";
+    private static final String TAKE = "take";
+    private static final String TAKE_FROM = "takeFrom";
+    private static final String FROM_SLOT = "fromSlot";
+    private static final String INTO_SLOT = "intoSlot";
+    private static final String COUNT = "count";
+    private static final String SIDE = "side";
+
     private final Entity entity;
     private final Robot robot;
 
@@ -39,7 +50,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
     // --------------------------------------------------------------------- //
 
-    @Callback
+    @Callback(name = MOVE)
     public void move(@Parameter("fromSlot") final int fromSlot,
                      @Parameter("intoSlot") final int intoSlot,
                      @Parameter("count") final int count) {
@@ -66,12 +77,12 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         }
     }
 
-    @Callback
+    @Callback(name = DROP)
     public int drop(@Parameter("count") final int count) {
         return drop(count, null);
     }
 
-    @Callback
+    @Callback(name = DROP)
     public int drop(@Parameter("count") final int count,
                     @Parameter("side") @Nullable final RobotOperationSide side) {
         if (count <= 0) {
@@ -112,13 +123,13 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         return dropped;
     }
 
-    @Callback
+    @Callback(name = DROP_INTO)
     public int dropInto(@Parameter("intoSlot") final int intoSlot,
                         @Parameter("count") final int count) {
         return dropInto(intoSlot, count, null);
     }
 
-    @Callback
+    @Callback(name = DROP_INTO)
     public int dropInto(@Parameter("intoSlot") final int intoSlot,
                         @Parameter("count") final int count,
                         @Parameter("side") @Nullable final RobotOperationSide side) {
@@ -155,12 +166,12 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         return dropped;
     }
 
-    @Callback
+    @Callback(name = TAKE)
     public int take(@Parameter("count") final int count) {
         return take(count, null);
     }
 
-    @Callback
+    @Callback(name = TAKE)
     public int take(@Parameter("count") final int count,
                     @Parameter("side") @Nullable final RobotOperationSide side) {
         if (count <= 0) {
@@ -176,13 +187,13 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         }
     }
 
-    @Callback
+    @Callback(name = TAKE_FROM)
     public int takeFrom(@Parameter("fromSlot") final int fromSlot,
                         @Parameter("count") final int count) {
         return takeFrom(fromSlot, count, null);
     }
 
-    @Callback
+    @Callback(name = TAKE_FROM)
     public int takeFrom(@Parameter("fromSlot") final int fromSlot,
                         @Parameter("count") final int count,
                         @Parameter("side") @Nullable final RobotOperationSide side) {
@@ -193,6 +204,50 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         final Direction direction = RobotOperationSide.toGlobal(entity, side);
         return getItemStackHandlersInDirection(direction).findFirst().map(handler ->
             takeFromInventory(count, handler, fromSlot)).orElse(0);
+    }
+
+
+    @Override
+    public void getDeviceDocumentation(final DocumentedDevice.DeviceVisitor visitor) {
+        visitor.visitCallback(MOVE)
+            .description("Try to move the specified number of items from one robot inventory slot to another.")
+            .parameterDescription(FROM_SLOT, "the slot to extract items from.")
+            .parameterDescription(INTO_SLOT, "the slot to insert items into.")
+            .parameterDescription(COUNT, "the number of items to move.");
+
+        visitor.visitCallback(DROP)
+            .description("Try to drop items from the selected slot in the specified direction. Items are " +
+                "dropped into an inventory, or into the world if no inventory is present.")
+            .returnValueDescription("the number of items dropped.")
+            .parameterDescription(COUNT, "the number of items to drop.")
+            .parameterDescription(SIDE, "the relative direction to drop the items in. " +
+                "Optional, defaults to front. Valid values are front, up and down.");
+
+        visitor.visitCallback(DROP_INTO)
+            .description("Try to drop items from the selected slot into the specified slot of an inventory " +
+                "in the specified direction. Items are only dropped into an inventory, never into the world.")
+            .returnValueDescription("the number of items dropped.")
+            .parameterDescription(INTO_SLOT, "the slot to insert the items into.")
+            .parameterDescription(COUNT, "the number of items to drop.")
+            .parameterDescription(SIDE, "the relative direction to drop the items in. " +
+                "Optional, defaults to front. Valid values are front, up and down.");
+
+        visitor.visitCallback(TAKE)
+            .description("Try to take the specified number of items from the specified direction. Items are " +
+                "taken from an inventory, or from the world if no inventory is present.")
+            .returnValueDescription("the number of items taken.")
+            .parameterDescription(COUNT, "the number of items to take.")
+            .parameterDescription(SIDE, "the relative direction to take the items from. " +
+                "Optional, defaults to front. Valid values are front, up and down.");
+
+        visitor.visitCallback(TAKE_FROM)
+            .description("Try to take the specified number of items from the specified slot of an inventory " +
+                "in the specified direction. Items are only taken from an inventory, never from the world.")
+            .returnValueDescription("the number of items taken.")
+            .parameterDescription(FROM_SLOT, "the slot to take the items from.")
+            .parameterDescription(COUNT, "the number of items to take.")
+            .parameterDescription(SIDE, "the relative direction to take the items from. " +
+                "Optional, defaults to front. Valid values are front, up and down.");
     }
 
     // --------------------------------------------------------------------- //

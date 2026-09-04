@@ -98,6 +98,7 @@ for (platform in enabledPlatforms.split(',')) {
 
             shadowBundle.isCanBeResolved = true
             shadowBundle.isCanBeConsumed = false
+            shadowBundle.isTransitive = false
         }
 
         dependencies {

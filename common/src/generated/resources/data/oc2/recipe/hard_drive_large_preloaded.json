@@ -13,7 +13,7 @@
     "components": {
       "minecraft:custom_data": {
         "oc2": {
-          "image": "oc2:buildroot"
+          "image": "oc2:block_devices/hdd/sedna.bin"
         }
       }
     },

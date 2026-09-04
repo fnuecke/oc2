@@ -13,7 +13,7 @@
     "components": {
       "minecraft:custom_data": {
         "oc2": {
-          "image": "oc2:riscv"
+          "image": "oc2:block_devices/flash/riscv.bin"
         }
       }
     },

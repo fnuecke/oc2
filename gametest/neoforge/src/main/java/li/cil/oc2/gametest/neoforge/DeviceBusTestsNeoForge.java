@@ -34,6 +34,11 @@ public final class DeviceBusTestsNeoForge {
         DeviceBusTests.busReachesAcrossChunkBoundary(helper);
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 600)
+    public static void blockDeviceIsReachableFromItsMountingFaceOnly(final GameTestHelper helper) {
+        DeviceBusTests.blockDeviceIsReachableFromItsMountingFaceOnly(helper);
+    }
+
     // --------------------------------------------------------------------- //
 
     private DeviceBusTestsNeoForge() {

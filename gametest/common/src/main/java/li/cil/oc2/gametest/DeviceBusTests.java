@@ -2,6 +2,8 @@
 
 package li.cil.oc2.gametest;
 
+import li.cil.oc2.common.blockentity.FlashDriveBlockEntity;
+import li.cil.oc2.common.bus.device.vm.block.FlashDriveDevice;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -123,6 +125,39 @@ public final class DeviceBusTests {
             .thenSucceed();
     }
 
+    public static void blockDeviceIsReachableFromItsMountingFaceOnly(final GameTestHelper helper) {
+        final Player player = fakePlayer(helper);
+
+        // The drive sits on top of the first cable, so its mounting face is the one that cable's
+        // interface touches. The second cable is diagonal to the first, i.e. a separate bus.
+        final BlockPos drivePos = CABLE_POS.above();
+        final BlockPos otherCable = drivePos.east();
+
+        final ComputerFixture owner = ComputerFixture.place(helper, player, COMPUTER_POS);
+        BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.UP);
+        useOn(helper, player, new ItemStack(Items.FLASH_DRIVE.get()), CABLE_POS, Direction.UP);
+        if (!(helper.getBlockEntity(drivePos) instanceof FlashDriveBlockEntity)) {
+            throw new GameTestAssertException("no flash drive at " + drivePos);
+        }
+
+        BusCables.placeCableWithInterfaces(helper, player, otherCable, Direction.WEST, Direction.EAST);
+        final ComputerFixture bystander = ComputerFixture.place(helper, player, otherCable.east());
+
+        helper.startSequence()
+            .thenExecuteAfter(80, () -> {
+                if (countFlashDrives(owner) == 0) {
+                    throw new GameTestAssertException(
+                        "the bus touching the drive's mounting face does not see it: " + owner.describe());
+                }
+                if (countFlashDrives(bystander) != 0) {
+                    throw new GameTestAssertException(
+                        "a bus touching a side face sees the drive, so two bus controllers mount the same "
+                            + "device and both open its blob: " + bystander.describe());
+                }
+            })
+            .thenSucceed();
+    }
+
     // --------------------------------------------------------------------- //
 
     private static ComputerFixture placeComputerAndCable(final GameTestHelper helper) {
@@ -130,6 +165,10 @@ public final class DeviceBusTests {
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.EAST);
         return computer;
+    }
+
+    private static long countFlashDrives(final ComputerFixture computer) {
+        return computer.devices().stream().filter(FlashDriveDevice.class::isInstance).count();
     }
 
     private static void placeDevice(final GameTestHelper helper) {

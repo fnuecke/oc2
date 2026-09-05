@@ -12,11 +12,7 @@ import org.apache.logging.log4j.Logger;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 
 // VT100 emulation: https://vt100.net/docs/vt100-ug/chapter3.html
 @Serialized
@@ -60,6 +56,10 @@ public final class Terminal {
         static final int DECARM = 8;  // Auto-repeating
         static final int DECINLM = 9; // Interlace
         static final int DECTCEM = 25; // Text cursor enable
+        static final int ALT_BUFFER = 47;
+        static final int ALT_BUFFER_CLEAR = 1047;
+        static final int SAVE_CURSOR = 1048;
+        static final int ALT_BUFFER_AND_CURSOR = 1049;
         static final int BRACKETED_PASTE = 2004;
     }
 
@@ -104,6 +104,13 @@ public final class Terminal {
     }
 
     @Serialized
+    public static final class SavedScreen {
+        public byte[] buffer, colors, styles;
+        @Nullable
+        public SavedCursor cursor;
+    }
+
+    @Serialized
     public static final class SavedCursor {
         public int x, y;
         public byte color = DEFAULT_COLORS, style = DEFAULT_STYLE;
@@ -131,6 +138,8 @@ public final class Terminal {
     private int x, y;
     private boolean isWrapPending;
     private final SavedCursor savedCursor = new SavedCursor();
+    @Nullable
+    private SavedScreen savedScreen;
 
     // Color info packed into one byte for compact storage
     // 0-2: background color (index)
@@ -195,6 +204,10 @@ public final class Terminal {
 
     public boolean isBracketedPasteMode() {
         return getPrivateMode(Mode.BRACKETED_PASTE);
+    }
+
+    boolean isAltBufferActive() {
+        return savedScreen != null;
     }
 
     public int getCursorX() {
@@ -407,11 +420,6 @@ public final class Terminal {
 
     // --------------------------------------------------------------------- //
 
-    // 0 is Special Graphics, 2 the alternate ROM's; A, B and 1 are text sets.
-    private static boolean isGraphicsSet(final char set) {
-        return set == '0' || set == '2';
-    }
-
     private void IND() {
         isWrapPending = false;
         if (y == scrollLast) {
@@ -436,30 +444,11 @@ public final class Terminal {
     }
 
     private void DECSC() {
-        savedCursor.x = x;
-        savedCursor.y = y;
-        savedCursor.color = color;
-        savedCursor.style = style;
-        savedCursor.isG0Graphics = isG0Graphics;
-        savedCursor.isG1Graphics = isG1Graphics;
-        savedCursor.isShiftedOut = isShiftedOut;
-        savedCursor.isOriginMode = getPrivateMode(Mode.DECOM);
-        savedCursor.isWrapPending = isWrapPending;
+        saveCursor(savedCursor);
     }
 
     private void DECRC() {
-        color = savedCursor.color;
-        style = savedCursor.style;
-        isG0Graphics = savedCursor.isG0Graphics;
-        isG1Graphics = savedCursor.isG1Graphics;
-        isShiftedOut = savedCursor.isShiftedOut;
-        if (savedCursor.isOriginMode) {
-            setMode(true, Mode.DECOM);
-        } else {
-            resetMode(true, Mode.DECOM);
-        }
-        setCursorPos(savedCursor.x, savedCursor.y);
-        isWrapPending = savedCursor.isWrapPending; // Placing the cursor cleared it.
+        restoreCursor(savedCursor);
     }
 
     private void HTS() {
@@ -475,6 +464,7 @@ public final class Terminal {
         modes = 0;
         privateModes = DEFAULT_PRIVATE_MODES;
         highPrivateModes = 0;
+        savedScreen = null;
         color = DEFAULT_COLORS;
         style = DEFAULT_STYLE;
         savedCursor.reset();
@@ -670,6 +660,37 @@ public final class Terminal {
         return Math.clamp(argument, 1, limit);
     }
 
+    private static boolean isGraphicsSet(final char set) {
+        return set == '0' || set == '2';
+    }
+
+    private void saveCursor(final SavedCursor savedCursor) {
+        savedCursor.x = x;
+        savedCursor.y = y;
+        savedCursor.color = color;
+        savedCursor.style = style;
+        savedCursor.isG0Graphics = isG0Graphics;
+        savedCursor.isG1Graphics = isG1Graphics;
+        savedCursor.isShiftedOut = isShiftedOut;
+        savedCursor.isOriginMode = getPrivateMode(Mode.DECOM);
+        savedCursor.isWrapPending = isWrapPending;
+    }
+
+    private void restoreCursor(final SavedCursor savedCursor) {
+        color = savedCursor.color;
+        style = savedCursor.style;
+        isG0Graphics = savedCursor.isG0Graphics;
+        isG1Graphics = savedCursor.isG1Graphics;
+        isShiftedOut = savedCursor.isShiftedOut;
+        if (savedCursor.isOriginMode) {
+            setMode(true, Mode.DECOM);
+        } else {
+            resetMode(true, Mode.DECOM);
+        }
+        setCursorPos(savedCursor.x, savedCursor.y);
+        isWrapPending = savedCursor.isWrapPending; // Placing the cursor cleared it.
+    }
+
     private int clampToLineEnd(final TerminalParser.Parameters parameters) {
         return Math.min(distance(parameters.get(0), WIDTH), WIDTH - x);
     }
@@ -711,6 +732,14 @@ public final class Terminal {
         switch (mode) {
             case Mode.DECOM -> setRelativeCursorPos(0, 0);
             case Mode.DECCOLM -> DECCOLM();
+            case Mode.ALT_BUFFER, Mode.ALT_BUFFER_CLEAR, Mode.ALT_BUFFER_AND_CURSOR -> updateAltBuffer();
+            case Mode.SAVE_CURSOR -> {
+                if (getPrivateMode(mode)) {
+                    DECSC();
+                } else {
+                    DECRC();
+                }
+            }
             default -> {
             }
         }
@@ -718,7 +747,7 @@ public final class Terminal {
 
     private void setMode(final boolean isPrivate, final int mode) {
         if (isPrivate && mode >= Integer.SIZE) {
-            final int bit = highPrivateModeBit(mode);
+            final int bit = highPrivateModeBitIndex(mode);
             if (bit >= 0) {
                 highPrivateModes |= 1 << bit;
             }
@@ -733,7 +762,7 @@ public final class Terminal {
 
     private void resetMode(final boolean isPrivate, final int mode) {
         if (isPrivate && mode >= Integer.SIZE) {
-            final int bit = highPrivateModeBit(mode);
+            final int bit = highPrivateModeBitIndex(mode);
             if (bit >= 0) {
                 highPrivateModes &= ~(1 << bit);
             }
@@ -746,11 +775,48 @@ public final class Terminal {
         }
     }
 
-    private static int highPrivateModeBit(final int mode) {
+    private static int highPrivateModeBitIndex(final int mode) {
         return switch (mode) {
             case Mode.BRACKETED_PASTE -> 0;
+            case Mode.ALT_BUFFER_CLEAR -> 1;
+            case Mode.ALT_BUFFER -> 2;
+            case Mode.SAVE_CURSOR -> 3;
+            case Mode.ALT_BUFFER_AND_CURSOR -> 4;
             default -> -1;
         };
+    }
+
+    private void updateAltBuffer() {
+        final boolean wantsAltScreen = getPrivateMode(Mode.ALT_BUFFER)
+            || getPrivateMode(Mode.ALT_BUFFER_CLEAR)
+            || getPrivateMode(Mode.ALT_BUFFER_AND_CURSOR);
+        boolean hasAltScreen = savedScreen != null;
+        if (wantsAltScreen == hasAltScreen) {
+            return;
+        }
+
+        if (wantsAltScreen) {
+            final var screen = new SavedScreen();
+            screen.buffer = buffer.clone();
+            screen.colors = colors.clone();
+            screen.styles = styles.clone();
+            if (getPrivateMode(Mode.ALT_BUFFER_AND_CURSOR)) {
+                screen.cursor = new SavedCursor();
+                saveCursor(screen.cursor);
+            }
+            savedScreen = screen;
+            clear();
+        } else {
+            final var screen = savedScreen;
+            savedScreen = null;
+            System.arraycopy(screen.buffer, 0, buffer, 0, buffer.length);
+            System.arraycopy(screen.colors, 0, colors, 0, colors.length);
+            System.arraycopy(screen.styles, 0, styles, 0, styles.length);
+            if (screen.cursor != null) {
+                restoreCursor(screen.cursor);
+            }
+            listeners.forEach(Listener::handleTerminalChanged);
+        }
     }
 
     private boolean getMode(final int mode) {
@@ -761,7 +827,7 @@ public final class Terminal {
         if (mode < Integer.SIZE) {
             return (privateModes & (1 << mode)) != 0;
         }
-        final int bit = highPrivateModeBit(mode);
+        final int bit = highPrivateModeBitIndex(mode);
         return bit >= 0 && (highPrivateModes & (1 << bit)) != 0;
     }
 

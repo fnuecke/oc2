@@ -1375,6 +1375,196 @@ public class TerminalTests {
         assertEquals(COLOR_RED, Terminal.getForegroundColorIndex(loaded.getCell(0)));
     }
 
+    @Test
+    public void theAltBufferIsInactiveByDefault() {
+        final Terminal terminal = new Terminal();
+
+        assertFalse(terminal.isAltBufferActive());
+    }
+
+    @Test
+    public void enteringTheAltBufferClearsTheScreen() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "shell");
+
+        write(terminal, "\033[?1049h");
+
+        assertTrue(terminal.isAltBufferActive());
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0));
+    }
+
+    @Test
+    public void leavingTheAltBufferRestoresTheScreen() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "shell");
+
+        write(terminal, "\033[?1049h");
+        write(terminal, "editor");
+        write(terminal, "\033[?1049l");
+
+        assertFalse(terminal.isAltBufferActive());
+        assertEquals("shell", read(terminal, 0, 5));
+    }
+
+    @Test
+    public void theLegacyAltBufferModeAlsoRestoresTheScreen() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "shell");
+
+        write(terminal, "\033[?47h");
+        assertTrue(terminal.isAltBufferActive());
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0));
+
+        write(terminal, "editor");
+        write(terminal, "\033[?47l");
+
+        assertEquals("shell", read(terminal, 0, 5));
+    }
+
+    @Test
+    public void theAltBufferRestoresColorsAndStyles() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[91;44mX\033[0m");
+
+        write(terminal, "\033[?1049h\033[?1049l");
+
+        assertTrue(Terminal.isForegroundBright(terminal.getCell(0)));
+        assertEquals(COLOR_BLUE, Terminal.getBackgroundColorIndex(terminal.getCell(0)));
+    }
+
+    @Test
+    public void theAltBufferWithCursorRestoresTheCursor() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "abc");
+
+        write(terminal, "\033[?1049h\033[10;10H\033[?1049l");
+
+        assertEquals(3, terminal.getCursorX());
+        assertEquals(0, terminal.getCursorY());
+    }
+
+    @Test
+    public void theLegacyAltBufferModeLeavesTheCursorAlone() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "abc");
+
+        write(terminal, "\033[?47h\033[10;10H\033[?47l");
+
+        assertEquals(9, terminal.getCursorX());
+        assertEquals(9, terminal.getCursorY());
+    }
+
+    @Test
+    public void overlappingAltBufferModesKeepOneSavedScreen() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "shell");
+
+        write(terminal, "\033[?1049h");
+        write(terminal, "\033[?1047h");
+        write(terminal, "\033[?1047l");
+        assertTrue(terminal.isAltBufferActive(), "1049 is still set, so the alt screen must stay up");
+
+        write(terminal, "\033[?1049l");
+
+        assertEquals("shell", read(terminal, 0, 5));
+    }
+
+    @Test
+    public void aResetLeavesTheAltBuffer() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?1049h");
+
+        write(terminal, "\033c");
+
+        assertFalse(terminal.isAltBufferActive());
+    }
+
+    @Test
+    public void theAltBufferSurvivesSaveAndLoad() {
+        final Terminal saved = new Terminal();
+        write(saved, "shell\033[?1049heditor");
+
+        final Terminal loaded = new Terminal();
+        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+
+        assertTrue(loaded.isAltBufferActive());
+        write(loaded, "\033[?1049l");
+        assertEquals("shell", read(loaded, 0, 5));
+    }
+
+    @Test
+    public void saveCursorModeRestoresTheCursorWithoutSwitchingScreens() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "abc");
+
+        write(terminal, "\033[?1048h\033[10;10H\033[?1048l");
+
+        assertFalse(terminal.isAltBufferActive());
+        assertEquals(3, terminal.getCursorX());
+    }
+
+    @Test
+    public void theClearingAltBufferModeAlsoRestoresTheScreen() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "shell");
+
+        write(terminal, "\033[?1047h");
+        assertTrue(terminal.isAltBufferActive());
+        write(terminal, "editor");
+        write(terminal, "\033[?1047l");
+
+        assertEquals("shell", read(terminal, 0, 5));
+    }
+
+    @Test
+    public void theCursorIsRestoredByWhicheverModeLeavesTheAltBuffer() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "abc");
+
+        write(terminal, "\033[?1049h\033[?1047h\033[10;10H");
+        write(terminal, "\033[?1049l\033[?1047l");
+
+        assertEquals(3, terminal.getCursorX(), "1049 saved the cursor, so leaving must restore it");
+        assertEquals(0, terminal.getCursorY());
+    }
+
+    @Test
+    public void aCursorIsOnlyRestoredIfTheAltBufferSavedOne() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "abc\0337\033[20;40Hxyz");
+
+        write(terminal, "\033[?1047h\033[?1049h\033[5;5H");
+        write(terminal, "\033[?1047l\033[?1049l");
+
+        assertEquals(4, terminal.getCursorX(), "1047 saved no cursor, so the guest's own save must be left alone");
+        assertEquals(4, terminal.getCursorY());
+    }
+
+    @Test
+    public void savingTheCursorInsideTheAltBufferDoesNotDisturbTheRestore() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "prompt$ ");
+
+        write(terminal, "\033[?1049h\033[12;40H\0337");
+        write(terminal, "\033[?1049l");
+
+        assertEquals(8, terminal.getCursorX(), "the guest's own save must not clobber the alt buffer's");
+        assertEquals(0, terminal.getCursorY());
+    }
+
+    @Test
+    public void theAltBufferContentsSurviveSaveAndLoad() {
+        final Terminal saved = new Terminal();
+        write(saved, "shell\033[?1049h\033[1;1Heditor");
+
+        final Terminal loaded = new Terminal();
+        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+
+        assertEquals("editor", read(loaded, 0, 6), "the alt screen itself must survive too");
+        write(loaded, "\033[?1049l");
+        assertEquals("shell", read(loaded, 0, 5));
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int cellCharacter(final Terminal terminal, final int index) {

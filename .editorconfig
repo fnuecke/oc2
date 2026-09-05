@@ -14,3 +14,6 @@ indent_size = 2
 
 [*.properties]
 ij_properties_keep_blank_lines = true
+
+[*.json]
+indent_size = 2

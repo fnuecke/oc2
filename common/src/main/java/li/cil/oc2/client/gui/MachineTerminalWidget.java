@@ -25,6 +25,9 @@ public final class MachineTerminalWidget {
     private static final int TERMINAL_WIDTH = Terminal.WIDTH * Terminal.CHAR_WIDTH / 2;
     private static final int TERMINAL_HEIGHT = Terminal.HEIGHT * Terminal.CHAR_HEIGHT / 2;
 
+    private static final int WHEEL_UP_BUTTON = 64;
+    private static final int WHEEL_DOWN_BUTTON = 65;
+
     private static final int MARGIN_SIZE = 8;
     private static final int TERMINAL_X = MARGIN_SIZE;
     private static final int TERMINAL_Y = MARGIN_SIZE;
@@ -93,6 +96,21 @@ public final class MachineTerminalWidget {
         }
     }
 
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        return putMouseEvent(mouseX, mouseY, toReportedButton(button), true);
+    }
+
+    public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
+        return putMouseEvent(mouseX, mouseY, toReportedButton(button), false);
+    }
+
+    public boolean mouseScrolled(final double mouseX, final double mouseY, final double delta) {
+        if (delta == 0) {
+            return false;
+        }
+        return putMouseEvent(mouseX, mouseY, delta > 0 ? WHEEL_UP_BUTTON : WHEEL_DOWN_BUTTON, true);
+    }
+
     public boolean charTyped(final char ch, final int modifier) {
         final boolean isControlChord = (modifier & GLFW.GLFW_MOD_CONTROL) != 0
             && (modifier & GLFW.GLFW_MOD_ALT) == 0;
@@ -148,6 +166,29 @@ public final class MachineTerminalWidget {
         for (final byte b : value.getBytes(StandardCharsets.UTF_8)) {
             terminal.putInput(b);
         }
+    }
+
+    private static int toReportedButton(final int button) {
+        return switch (button) {
+            case GLFW.GLFW_MOUSE_BUTTON_RIGHT -> 2;
+            case GLFW.GLFW_MOUSE_BUTTON_MIDDLE -> 1;
+            default -> button;
+        };
+    }
+
+    private boolean putMouseEvent(final double mouseX, final double mouseY, final int button, final boolean isPressed) {
+        if (!shouldCaptureInput() || !terminal.isMouseReportingEnabled()) {
+            return false;
+        }
+
+        final int column = ((int) mouseX - leftPos - TERMINAL_X) * 2 / Terminal.CHAR_WIDTH;
+        final int row = ((int) mouseY - topPos - TERMINAL_Y) * 2 / Terminal.CHAR_HEIGHT;
+        terminal.putMouseEvent(button,
+            Math.clamp(column, 0, Terminal.WIDTH - 1),
+            Math.clamp(row, 0, Terminal.HEIGHT - 1),
+            isPressed);
+
+        return true;
     }
 
     private boolean isMouseOverTerminal(final int mouseX, final int mouseY) {

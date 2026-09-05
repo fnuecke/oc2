@@ -1565,6 +1565,79 @@ public class TerminalTests {
         assertEquals("shell", read(loaded, 0, 5));
     }
 
+    @Test
+    public void mouseReportingIsOffByDefault() {
+        final Terminal terminal = new Terminal();
+
+        assertFalse(terminal.isMouseReportingEnabled());
+    }
+
+    @Test
+    public void mouseReportingCanBeToggled() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[?1000h");
+        assertTrue(terminal.isMouseReportingEnabled());
+
+        write(terminal, "\033[?1000l");
+        assertFalse(terminal.isMouseReportingEnabled());
+    }
+
+    @Test
+    public void mouseEventsUseTheLegacyEncodingByDefault() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?1000h");
+
+        terminal.putMouseEvent(0, 0, 0, true);
+
+        assertEquals("\033[M !!", readResponse(terminal), "the legacy encoding offsets button and position by 32");
+    }
+
+    @Test
+    public void theLegacyEncodingReportsOneCodeForEveryRelease() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?1000h");
+
+        terminal.putMouseEvent(2, 0, 0, false);
+
+        assertEquals("\033[M#!!", readResponse(terminal), "the legacy encoding cannot say which button came up");
+    }
+
+    @Test
+    public void theSgrEncodingKeepsPressAndReleaseApart() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?1000h\033[?1006h");
+
+        terminal.putMouseEvent(2, 9, 4, true);
+        assertEquals("\033[<2;10;5M", readResponse(terminal));
+
+        terminal.putMouseEvent(2, 9, 4, false);
+        assertEquals("\033[<2;10;5m", readResponse(terminal));
+    }
+
+    @Test
+    public void wheelEventsAreReportedAsHighButtonNumbers() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?1000h\033[?1006h");
+
+        terminal.putMouseEvent(64, 0, 0, true);
+
+        assertEquals("\033[<64;1;1M", readResponse(terminal));
+    }
+
+    @Test
+    public void mouseModesSurviveSaveAndLoad() {
+        final Terminal saved = new Terminal();
+        write(saved, "\033[?1000h\033[?1006h");
+
+        final Terminal loaded = new Terminal();
+        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+
+        assertTrue(loaded.isMouseReportingEnabled());
+        loaded.putMouseEvent(0, 0, 0, true);
+        assertEquals("\033[<0;1;1M", readResponse(loaded), "the SGR mode must survive too");
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int cellCharacter(final Terminal terminal, final int index) {

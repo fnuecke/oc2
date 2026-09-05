@@ -28,6 +28,8 @@ public final class Terminal {
     private static final char UNRENDERABLE = '?';
     private static final int MAX_EXPECTED_LISTENERS = 4;
     private static final int MAX_INPUT_SIZE = 4 * 1024;
+    // The legacy encoding cannot say which button came up, so every release reports the same code.
+    private static final int MOUSE_RELEASE_BUTTON = 3;
     private static final byte[] PASTE_START = "\033[200~".getBytes(StandardCharsets.US_ASCII);
     private static final byte[] PASTE_END = "\033[201~".getBytes(StandardCharsets.US_ASCII);
 
@@ -60,6 +62,8 @@ public final class Terminal {
         static final int ALT_BUFFER_CLEAR = 1047;
         static final int SAVE_CURSOR = 1048;
         static final int ALT_BUFFER_AND_CURSOR = 1049;
+        static final int MOUSE_TRACKING = 1000;
+        static final int MOUSE_SGR = 1006;
         static final int BRACKETED_PASTE = 2004;
     }
 
@@ -206,6 +210,10 @@ public final class Terminal {
         return getPrivateMode(Mode.BRACKETED_PASTE);
     }
 
+    public boolean isMouseReportingEnabled() {
+        return getPrivateMode(Mode.MOUSE_TRACKING);
+    }
+
     boolean isAltBufferActive() {
         return savedScreen != null;
     }
@@ -338,6 +346,23 @@ public final class Terminal {
         putInput(ByteBuffer.wrap(PASTE_START));
         putInput(ByteBuffer.wrap(bytes, 0, Math.min(bytes.length, free)));
         putInput(ByteBuffer.wrap(PASTE_END));
+    }
+
+    public synchronized void putMouseEvent(final int button, final int column, final int row, final boolean isPressed) {
+        if (getPrivateMode(Mode.MOUSE_SGR)) {
+            putInput(String.format(Locale.ROOT, "\033[<%d;%d;%d%c", button, column + 1, row + 1, isPressed ? 'M' : 'm'));
+        } else {
+            putInput("\033[M");
+            putInput((byte) (' ' + (isPressed ? button : MOUSE_RELEASE_BUTTON)));
+            putInput((byte) (' ' + column + 1));
+            putInput((byte) (' ' + row + 1));
+        }
+    }
+
+    private void putInput(final String value) {
+        for (int i = 0; i < value.length(); i++) {
+            putInput((byte) value.charAt(i));
+        }
     }
 
     public synchronized void putInput(final byte value) {
@@ -782,6 +807,8 @@ public final class Terminal {
             case Mode.ALT_BUFFER -> 2;
             case Mode.SAVE_CURSOR -> 3;
             case Mode.ALT_BUFFER_AND_CURSOR -> 4;
+            case Mode.MOUSE_TRACKING -> 5;
+            case Mode.MOUSE_SGR -> 6;
             default -> -1;
         };
     }

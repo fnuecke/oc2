@@ -73,6 +73,24 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     }
 
     @Override
+    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+        return terminalWidget.mouseClicked(mouseX, mouseY, button) ||
+            super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
+        return terminalWidget.mouseReleased(mouseX, mouseY, button) ||
+            super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseScrolled(final double mouseX, final double mouseY, final double deltaX, final double deltaY) {
+        return terminalWidget.mouseScrolled(mouseX, mouseY, deltaY) ||
+            super.mouseScrolled(mouseX, mouseY, deltaX, deltaY);
+    }
+
+    @Override
     public boolean charTyped(final char ch, final int modifiers) {
         return terminalWidget.charTyped(ch, modifiers) ||
             super.charTyped(ch, modifiers);

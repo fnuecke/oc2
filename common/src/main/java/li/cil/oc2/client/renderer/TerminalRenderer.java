@@ -186,8 +186,6 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         for (int col = 0, index = row * WIDTH; col < WIDTH; col++, index++) {
             final int cell = terminal.getCell(index);
 
-            if (isHidden(cell)) continue;
-
             final int background = resolveColor(getBackgroundColorIndex(cell), isBackgroundBright(cell), isDim(cell));
 
             final boolean hadBackground = backgroundStartX >= 0;
@@ -230,11 +228,11 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         for (int col = 0, index = row * WIDTH; col < WIDTH; col++, index++) {
             final int cell = terminal.getCell(index);
 
-            if (isHidden(cell)) continue;
+            if (isVisible(cell)) {
+                final int foreground = resolveColor(getForegroundColorIndex(cell), isForegroundBright(cell), isDim(cell));
 
-            final int foreground = resolveColor(getForegroundColorIndex(cell), isForegroundBright(cell), isDim(cell));
-
-            renderForeground(matrix, buffer, tx, getCharacter(cell), foreground, isBold(cell), isUnderline(cell));
+                renderForeground(matrix, buffer, tx, getCharacter(cell), foreground, isBold(cell), isUnderline(cell));
+            }
 
             tx += CHAR_WIDTH;
         }
@@ -309,7 +307,7 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
             .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 
         renderBackground(matrix, buffer, 0, CHAR_WIDTH, blockColor);
-        if (!isHidden(cell)) {
+        if (isVisible(cell)) {
             renderForeground(matrix, buffer, 0, getCharacter(cell), glyphColor, isBold(cell), isUnderline(cell));
         }
 

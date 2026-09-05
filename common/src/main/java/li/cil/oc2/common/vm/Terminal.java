@@ -92,12 +92,6 @@ public final class Terminal {
     // DEC special graphics covers _ through ~; the font holds those glyphs at ch - ACS_FIRST.
     private static final char ACS_FIRST = 0x5F, ACS_LAST = 0x7E;
 
-    private static final byte CAN = 0x18, SUB = 0x1A;
-    private static final char DEL = 0x7F;
-
-    // ECMA-48 byte ranges inside a control sequence. End on anything in 0x40 to 0x7E.
-    private static final char CSI_INTERMEDIATE_FIRST = 0x20, CSI_INTERMEDIATE_LAST = 0x2F;
-    private static final char CSI_UNHANDLED_PARAMETER_FIRST = 0x3A, CSI_UNHANDLED_PARAMETER_LAST = 0x3F;
 
     private static final int CELL_COLORS_SHIFT = 8;
     private static final int CELL_STYLE_SHIFT = 16;
@@ -255,7 +249,7 @@ public final class Terminal {
         return (cell >> CELL_STYLE_SHIFT & STYLE_UNDERLINE_MASK) != 0;
     }
 
-    public static boolean isHidden(final int cell) {
+    public static boolean isVisible(final int cell) {
         return (cell >> CELL_STYLE_SHIFT & STYLE_HIDDEN_MASK) != 0;
     }
 
@@ -743,7 +737,7 @@ public final class Terminal {
         return Math.min(distance(parameters.get(0), WIDTH), WIDTH - x);
     }
 
-    private boolean executeControl(final byte value) {
+    private void executeControl(final byte value) {
         switch (value) {
             case '\007' -> hasPendingBell = true;
             case '\016' -> isShiftedOut = true;  // SO – select G1 into GL
@@ -751,7 +745,7 @@ public final class Terminal {
 
             case (byte) '\r' /* 015 */ -> setCursorPos(0, y);
             case (byte) '\n' /* 012 */, '\013', '\014' -> {
-                if (getMode(Mode.LNM)) {
+                if (isNewLineMode()) {
                     NEL();
                 } else {
                     IND();
@@ -767,10 +761,8 @@ public final class Terminal {
             case (byte) '\b' /* 010 */ -> setCursorPos(x - 1, y);
 
             default -> {
-                return false;
             }
         }
-        return true;
     }
 
     private void applyModeSideEffects(final boolean isPrivate, final int mode) {

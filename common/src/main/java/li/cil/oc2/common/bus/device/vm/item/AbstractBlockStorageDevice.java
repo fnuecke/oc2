@@ -18,9 +18,12 @@ import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.Event;
 import li.cil.oc2.common.util.NBTTagIds;
+import li.cil.oc2.common.util.StorageItemUtils;
+import li.cil.oc2.common.util.StorageItemUtils.State;
 import li.cil.sedna.api.device.BlockDevice;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -222,11 +225,20 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     protected void handleDataAccess() {
     }
 
+    protected abstract ItemStack getStorageItem();
+
+    protected void handleStorageChanged() {
+    }
+
     protected void handleDataUnavailable() {
+        StorageItemUtils.setState(getStorageItem(), State.CORRUPTED);
+        handleStorageChanged();
     }
 
     protected boolean handleDataStale() {
-        return true;
+        final boolean isAccepted = StorageItemUtils.acceptStaleData(getStorageItem());
+        handleStorageChanged();
+        return isAccepted;
     }
 
     protected final BlockDevice withAccessListener(final BlockDevice block) {

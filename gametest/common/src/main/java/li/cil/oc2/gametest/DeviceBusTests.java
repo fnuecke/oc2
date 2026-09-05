@@ -125,7 +125,7 @@ public final class DeviceBusTests {
             .thenSucceed();
     }
 
-    public static void blockDeviceIsReachableFromItsMountingFaceOnly(final GameTestHelper helper) {
+    public static void blockVmDeviceIsReachableFromItsMountingFaceOnly(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
 
         // The drive sits on top of the first cable, so its mounting face is the one that cable's

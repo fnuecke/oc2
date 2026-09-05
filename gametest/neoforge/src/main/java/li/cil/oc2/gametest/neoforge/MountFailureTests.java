@@ -6,6 +6,7 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
+import li.cil.oc2.common.bus.device.vm.item.FlashStorageDevice;
 import li.cil.oc2.common.bus.device.vm.item.HardDriveDevice;
 import li.cil.oc2.common.bus.device.vm.item.MemoryDevice;
 import li.cil.oc2.common.item.Items;
@@ -158,6 +159,57 @@ public final class MountFailureTests {
             Config.maxBlobCount = maxBlobCount;
             Config.blobEvictionGraceHours = graceHours;
             StorageItemUtils.clearBlobData(stack);
+        }
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void staleFlashMemoryRefusesToMountUntilAcknowledged(final GameTestHelper helper) {
+        final UUID handle = BlobStorage.allocateHandle();
+        final ItemStack stack = new ItemStack(Items.FLASH_MEMORY.get());
+        try {
+            markStale(handle);
+
+            final FlashStorageDevice device = new FlashStorageDevice(stack, 4096);
+            device.deserializeNBT(tagReferencing(handle));
+
+            final VMDeviceBusAdapter refusing = adapter();
+            refusing.addDevices(List.of(device));
+
+            final VMDeviceLoadResult refused = refusing.mountDevices();
+            if (refused.wasSuccessful() || !refused.isPermanent()) {
+                throw new GameTestAssertException("A chip that was mapped when the process died must not "
+                    + "quietly mount, same as a hard drive");
+            }
+            if (StorageItemUtils.getState(stack) != State.INCONSISTENT) {
+                throw new GameTestAssertException("The item carries the warning; got "
+                    + StorageItemUtils.getState(stack));
+            }
+
+            StorageItemUtils.setState(stack, State.ACKNOWLEDGED);
+
+            final VMDeviceBusAdapter accepting = adapter();
+            final FlashStorageDevice retry = new FlashStorageDevice(stack, 4096);
+            retry.deserializeNBT(tagReferencing(handle));
+            accepting.addDevices(List.of(retry));
+
+            if (!accepting.mountDevices().wasSuccessful()) {
+                throw new GameTestAssertException("Once the player has accepted it, the chip mounts. Refusing "
+                    + "here strands the chip forever: the mount bails before the blob is ever opened, so the "
+                    + "marker is never cleared and the acknowledgement is overwritten every time");
+            }
+            if (StorageItemUtils.getState(stack) != State.OK) {
+                throw new GameTestAssertException("The acknowledgement is spent on the mount that uses it, so "
+                    + "a later crash asks again; got " + StorageItemUtils.getState(stack));
+            }
+
+            accepting.disposeDevices();
+        } catch (final IOException e) {
+            throw new GameTestAssertException("Unexpected failure: " + e);
+        } finally {
+            StorageItemUtils.clearBlobData(stack);
+            release(handle);
         }
 
         helper.succeed();

@@ -60,8 +60,7 @@ public class FlashStorageDevice extends IdentityProxy<ItemStack> implements VMDe
             return VMDeviceLoadResult.fail();
         }
 
-        if (BlobStorage.isStaleHandle(blobHandle)) {
-            flag(State.INCONSISTENT);
+        if (BlobStorage.isStaleHandle(blobHandle) && !StorageItemUtils.acceptStaleData(identity)) {
             return VMDeviceLoadResult.fail()
                 .withErrorMessage(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_INCONSISTENT))
                 .asPermanent();

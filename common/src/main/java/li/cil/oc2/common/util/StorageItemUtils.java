@@ -44,6 +44,12 @@ public final class StorageItemUtils {
         });
     }
 
+    public static boolean acceptStaleData(final ItemStack stack) {
+        final boolean isAcknowledged = getState(stack) == State.ACKNOWLEDGED;
+        setState(stack, isAcknowledged ? State.OK : State.INCONSISTENT);
+        return isAcknowledged;
+    }
+
     public static boolean needsRepair(final ItemStack stack) {
         final State state = getState(stack);
         return state == State.CORRUPTED || state == State.INCONSISTENT;

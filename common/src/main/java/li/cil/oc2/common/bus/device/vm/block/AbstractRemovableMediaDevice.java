@@ -5,7 +5,6 @@ package li.cil.oc2.common.bus.device.vm.block;
 import li.cil.oc2.common.bus.device.vm.item.AbstractBlockStorageDevice;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.ItemDeviceUtils;
-import li.cil.oc2.common.util.StorageItemUtils;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.nbt.CompoundTag;
@@ -127,8 +126,12 @@ public abstract class AbstractRemovableMediaDevice extends AbstractBlockStorageD
     }
 
     @Override
-    protected void handleDataUnavailable() {
-        StorageItemUtils.setState(identity.getMediaItemStack(), StorageItemUtils.State.CORRUPTED);
+    protected ItemStack getStorageItem() {
+        return identity.getMediaItemStack();
+    }
+
+    @Override
+    protected void handleStorageChanged() {
         identity.setChanged();
     }
 

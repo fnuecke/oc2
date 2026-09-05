@@ -27,6 +27,7 @@ public final class MachineTerminalWidget {
 
     private static final int WHEEL_UP_BUTTON = 64;
     private static final int WHEEL_DOWN_BUTTON = 65;
+    private static final int WHEEL_SCROLL_LINES = 3;
 
     private static final int MARGIN_SIZE = 8;
     private static final int TERMINAL_X = MARGIN_SIZE;
@@ -108,7 +109,12 @@ public final class MachineTerminalWidget {
         if (delta == 0) {
             return false;
         }
-        return putMouseEvent(mouseX, mouseY, delta > 0 ? WHEEL_UP_BUTTON : WHEEL_DOWN_BUTTON, true);
+
+        if (putMouseEvent(mouseX, mouseY, delta > 0 ? WHEEL_UP_BUTTON : WHEEL_DOWN_BUTTON, true)) {
+            return true;
+        }
+
+        return shouldCaptureInput() && terminal.putScroll(delta > 0, WHEEL_SCROLL_LINES);
     }
 
     public boolean charTyped(final char ch, final int modifier) {

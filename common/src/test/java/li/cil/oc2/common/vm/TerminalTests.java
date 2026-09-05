@@ -1638,6 +1638,63 @@ public class TerminalTests {
         assertEquals("\033[<0;1;1M", readResponse(loaded), "the SGR mode must survive too");
     }
 
+    @Test
+    public void theWheelDoesNothingOnTheNormalScreen() {
+        final Terminal terminal = new Terminal();
+
+        assertFalse(terminal.putScroll(true, 3), "there is no scrollback to move, so the GUI keeps the event");
+        assertEquals(0, drainInput(terminal));
+    }
+
+    @Test
+    public void theWheelSendsCursorKeysOnTheAltScreen() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?1049h");
+
+        assertTrue(terminal.putScroll(true, 3));
+
+        assertEquals("\033[A\033[A\033[A", readResponse(terminal));
+    }
+
+    @Test
+    public void theWheelSendsDownForNegativeScroll() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?1049h");
+
+        terminal.putScroll(false, 1);
+
+        assertEquals("\033[B", readResponse(terminal));
+    }
+
+    @Test
+    public void theWheelFollowsApplicationCursorKeyMode() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?1049h\033[?1h");
+
+        terminal.putScroll(true, 1);
+
+        assertEquals("\033OA", readResponse(terminal));
+    }
+
+    @Test
+    public void alternateScrollCanBeTurnedOff() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?1049h\033[?1007l");
+
+        assertFalse(terminal.putScroll(true, 3));
+        assertEquals(0, drainInput(terminal));
+    }
+
+    @Test
+    public void aResetTurnsAlternateScrollBackOn() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?1007l");
+
+        write(terminal, "\033c\033[?1049h");
+
+        assertTrue(terminal.putScroll(true, 1));
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int cellCharacter(final Terminal terminal, final int index) {

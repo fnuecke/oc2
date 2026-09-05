@@ -64,6 +64,7 @@ public final class Terminal {
         static final int ALT_BUFFER_AND_CURSOR = 1049;
         static final int MOUSE_TRACKING = 1000;
         static final int MOUSE_SGR = 1006;
+        static final int ALTERNATE_SCROLL = 1007;
         static final int BRACKETED_PASTE = 2004;
     }
 
@@ -348,6 +349,19 @@ public final class Terminal {
         putInput(ByteBuffer.wrap(PASTE_END));
     }
 
+    public synchronized boolean putScroll(final boolean isUp, final int lines) {
+        if (!getPrivateMode(Mode.ALTERNATE_SCROLL) || !isAltBufferActive()) {
+            return false;
+        }
+
+        final String sequence = (isCursorKeyApplicationMode() ? "\033O" : "\033[") + (isUp ? 'A' : 'B');
+        for (int i = 0; i < lines; i++) {
+            putInput(sequence);
+        }
+
+        return true;
+    }
+
     public synchronized void putMouseEvent(final int button, final int column, final int row, final boolean isPressed) {
         if (getPrivateMode(Mode.MOUSE_SGR)) {
             putInput(String.format(Locale.ROOT, "\033[<%d;%d;%d%c", button, column + 1, row + 1, isPressed ? 'M' : 'm'));
@@ -489,6 +503,7 @@ public final class Terminal {
         modes = 0;
         privateModes = DEFAULT_PRIVATE_MODES;
         highPrivateModes = 0;
+        setMode(true, Mode.ALTERNATE_SCROLL);
         savedScreen = null;
         color = DEFAULT_COLORS;
         style = DEFAULT_STYLE;
@@ -809,6 +824,7 @@ public final class Terminal {
             case Mode.ALT_BUFFER_AND_CURSOR -> 4;
             case Mode.MOUSE_TRACKING -> 5;
             case Mode.MOUSE_SGR -> 6;
+            case Mode.ALTERNATE_SCROLL -> 7;
             default -> -1;
         };
     }

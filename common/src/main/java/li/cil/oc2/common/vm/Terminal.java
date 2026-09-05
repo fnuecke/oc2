@@ -250,7 +250,7 @@ public final class Terminal {
     }
 
     public static boolean isVisible(final int cell) {
-        return (cell >> CELL_STYLE_SHIFT & STYLE_HIDDEN_MASK) != 0;
+        return (cell >> CELL_STYLE_SHIFT & STYLE_HIDDEN_MASK) == 0;
     }
 
     public static boolean isForegroundBright(final int cell) {

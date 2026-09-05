@@ -36,12 +36,23 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
     private static final int[] COLORS = {
         0x010101, // Black
         0xEE3322, // Red
-        0x33DD44, // Green
-        0xFFCC11, // Yellow
+        0x33CC44, // Green
+        0xDDBB11, // Yellow
         0x1188EE, // Blue
         0xDD33CC, // Magenta
-        0x22CCDD, // Cyan
-        0xEEEEEE, // White
+        0x22BBCC, // Cyan
+        0xCCCCCC, // White
+    };
+
+    private static final int[] BRIGHT_COLORS = {
+        0x555555, // Black
+        0xFF7766, // Red
+        0x66FF77, // Green
+        0xFFEE55, // Yellow
+        0x55BBFF, // Blue
+        0xFF88FF, // Magenta
+        0x66EEFF, // Cyan
+        0xFFFFFF, // White
     };
 
     private static final int[] DIM_COLORS = {
@@ -55,7 +66,7 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         0x777777, // White
     };
 
-    private static final int CURSOR_COLOR = COLORS[COLOR_WHITE];
+    private static final int CURSOR_COLOR = BRIGHT_COLORS[COLOR_WHITE];
 
     // --------------------------------------------------------------------- //
 
@@ -179,11 +190,10 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
 
             if (isHidden(cell)) continue;
 
-            final int[] palette = isDim(cell) ? DIM_COLORS : COLORS;
-            final int background = palette[getBackgroundColorIndex(cell)];
+            final int background = resolveColor(getBackgroundColorIndex(cell), isBackgroundBright(cell), isDim(cell));
 
             final boolean hadBackground = backgroundStartX >= 0;
-            final boolean hasBackground = background != palette[0];
+            final boolean hasBackground = background != resolveColor(0, false, isDim(cell));
             if (!hadBackground && hasBackground) {
                 backgroundStartX = tx;
                 backgroundColor = background;
@@ -224,13 +234,22 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
 
             if (isHidden(cell)) continue;
 
-            final int[] palette = isDim(cell) ? DIM_COLORS : COLORS;
-            final int foreground = palette[getForegroundColorIndex(cell)];
+            final int foreground = resolveColor(getForegroundColorIndex(cell), isForegroundBright(cell), isDim(cell));
 
             renderForeground(matrix, buffer, tx, getCharacter(cell), foreground, isBold(cell), isUnderline(cell));
 
             tx += CHAR_WIDTH;
         }
+    }
+
+    private static int resolveColor(final int index, final boolean isBright, final boolean isDim) {
+        if (isDim) {
+            return DIM_COLORS[index];
+        }
+        if (isBright) {
+            return BRIGHT_COLORS[index];
+        }
+        return COLORS[index];
     }
 
     private void renderForeground(final Matrix4f matrix, final BufferBuilder buffer, final float offset, final int character, final int color, final boolean isBold, final boolean isUnderline) {

@@ -1291,6 +1291,90 @@ public class TerminalTests {
             "a truncated paste must not strand the guest in paste mode");
     }
 
+    @Test
+    public void brightForegroundColorsAreFlagged() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[91mA\033[31mB");
+
+        assertTrue(Terminal.isForegroundBright(terminal.getCell(0)));
+        assertFalse(Terminal.isForegroundBright(terminal.getCell(1)));
+    }
+
+    @Test
+    public void brightBackgroundColorsAreFlagged() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[104mA\033[44mB");
+
+        assertTrue(Terminal.isBackgroundBright(terminal.getCell(0)));
+        assertFalse(Terminal.isBackgroundBright(terminal.getCell(1)));
+    }
+
+    @Test
+    public void brightnessFollowsInversion() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[90;7mA");
+
+        assertTrue(Terminal.isBackgroundBright(terminal.getCell(0)),
+            "the bright foreground becomes the background when inverted");
+        assertFalse(Terminal.isForegroundBright(terminal.getCell(0)));
+    }
+
+    @Test
+    public void brightBlackIsNotPlainBlack() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[90mA");
+
+        assertEquals(COLOR_BLACK, Terminal.getForegroundColorIndex(terminal.getCell(0)));
+        assertTrue(Terminal.isForegroundBright(terminal.getCell(0)),
+            "dimmed UI text must stay distinguishable from the background");
+    }
+
+    @Test
+    public void defaultColorsAreNotBright() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[91;104mA\033[39;49mB");
+
+        assertFalse(Terminal.isForegroundBright(terminal.getCell(1)));
+        assertFalse(Terminal.isBackgroundBright(terminal.getCell(1)));
+    }
+
+    @Test
+    public void aBrightBackgroundIsKeptWhenErasing() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[104m\033[2J");
+
+        assertTrue(Terminal.isBackgroundBright(terminal.getCell(0)));
+        assertEquals(COLOR_BLUE, Terminal.getBackgroundColorIndex(terminal.getCell(0)));
+    }
+
+    @Test
+    public void brightPaletteColorsAreFlagged() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[38;5;9mA\033[38;5;1mB");
+
+        assertTrue(Terminal.isForegroundBright(terminal.getCell(0)));
+        assertFalse(Terminal.isForegroundBright(terminal.getCell(1)));
+    }
+
+    @Test
+    public void aBrightForegroundSurvivesSaveAndLoad() {
+        final Terminal saved = new Terminal();
+        write(saved, "\033[91mA");
+
+        final Terminal loaded = new Terminal();
+        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+
+        assertTrue(Terminal.isForegroundBright(loaded.getCell(0)), "the bright bit is the color byte's sign bit");
+        assertEquals(COLOR_RED, Terminal.getForegroundColorIndex(loaded.getCell(0)));
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int cellCharacter(final Terminal terminal, final int index) {

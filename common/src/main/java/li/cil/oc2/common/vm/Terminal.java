@@ -65,6 +65,9 @@ public final class Terminal {
 
     private static final int COLOR_MASK = 0b111;
     private static final int COLOR_FOREGROUND_SHIFT = 3;
+    private static final int COLOR_BACKGROUND_BRIGHT_MASK = 1 << 6;
+    private static final int COLOR_FOREGROUND_BRIGHT_MASK = 1 << 7;
+    private static final int COLOR_BACKGROUND_MASK = COLOR_MASK | COLOR_BACKGROUND_BRIGHT_MASK;
 
     private static final int STYLE_BOLD_MASK = 1;
     private static final int STYLE_DIM_MASK = 1 << 1;
@@ -232,6 +235,22 @@ public final class Terminal {
 
     public static boolean isHidden(final int cell) {
         return (cell >> CELL_STYLE_SHIFT & STYLE_HIDDEN_MASK) != 0;
+    }
+
+    public static boolean isForegroundBright(final int cell) {
+        return isInverted(cell) ? backgroundBrightOf(cell) : foregroundBrightOf(cell);
+    }
+
+    public static boolean isBackgroundBright(final int cell) {
+        return isInverted(cell) ? foregroundBrightOf(cell) : backgroundBrightOf(cell);
+    }
+
+    private static boolean foregroundBrightOf(final int cell) {
+        return (cell >> CELL_COLORS_SHIFT & COLOR_FOREGROUND_BRIGHT_MASK) != 0;
+    }
+
+    private static boolean backgroundBrightOf(final int cell) {
+        return (cell >> CELL_COLORS_SHIFT & COLOR_BACKGROUND_BRIGHT_MASK) != 0;
     }
 
     private static boolean isInverted(final int cell) {
@@ -787,18 +806,17 @@ public final class Terminal {
             case 28 -> // Reveal conceal off
                 style &= ~STYLE_HIDDEN_MASK;
             case 30, 31, 32, 33, 34, 35, 36, 37 -> // Set foreground color
-                setColor(true, sgr - 30);
+                setColor(true, sgr - 30, false);
             case 39 -> // Default foreground color
-                setColor(true, Color.WHITE);
+                setColor(true, Color.WHITE, false);
             case 40, 41, 42, 43, 44, 45, 46, 47 -> //–47 Set background color
-                setColor(false, sgr - 40);
+                setColor(false, sgr - 40, false);
             case 49 -> // Default background color
-                setColor(false, Color.BLACK);
-            // We only have the one intensity, so the bright colors are the regular ones.
+                setColor(false, Color.BLACK, false);
             case 90, 91, 92, 93, 94, 95, 96, 97 -> // Set bright foreground color
-                setColor(true, sgr - 90);
+                setColor(true, sgr - 90, true);
             case 100, 101, 102, 103, 104, 105, 106, 107 -> // Set bright background color
-                setColor(false, sgr - 100);
+                setColor(false, sgr - 100, true);
         }
     }
 
@@ -813,14 +831,14 @@ public final class Terminal {
                 if (index + 2 >= parameters.count()) {
                     return parameters.count();
                 }
-                setColor(isForeground, paletteToColorIndex(parameters.get(index + 2)));
+                setColor(isForeground, paletteToColorIndex(parameters.get(index + 2)), paletteIsBright(parameters.get(index + 2)));
                 return index + 2;
             }
             case 2 -> { // ESC[38;2;r;g;b – 24 bit color
                 if (index + 4 >= parameters.count()) {
                     return parameters.count();
                 }
-                setColor(isForeground, rgbToColorIndex(parameters.get(index + 2), parameters.get(index + 3), parameters.get(index + 4)));
+                setColor(isForeground, rgbToColorIndex(parameters.get(index + 2), parameters.get(index + 3), parameters.get(index + 4)), false);
                 return index + 4;
             }
             default -> {
@@ -842,6 +860,10 @@ public final class Terminal {
         return palette - 232 < 12 ? Color.BLACK : Color.WHITE; // Grayscale ramp.
     }
 
+    private static boolean paletteIsBright(final int palette) {
+        return palette >= 8 && palette < 16;
+    }
+
     private static int rgbToColorIndex(final int r, final int g, final int b) {
         return channelToColorMask(r, 128, Color.RED)
             | channelToColorMask(g, 128, Color.GREEN)
@@ -852,11 +874,13 @@ public final class Terminal {
         return value >= threshold ? mask : 0;
     }
 
-    private void setColor(final boolean isForeground, final int value) {
+    private void setColor(final boolean isForeground, final int value, final boolean isBright) {
         if (isForeground) {
-            color = (byte) ((color & ~(COLOR_MASK << COLOR_FOREGROUND_SHIFT)) | (value << COLOR_FOREGROUND_SHIFT));
+            color = (byte) ((color & ~((COLOR_MASK << COLOR_FOREGROUND_SHIFT) | COLOR_FOREGROUND_BRIGHT_MASK))
+                | (value << COLOR_FOREGROUND_SHIFT) | (isBright ? COLOR_FOREGROUND_BRIGHT_MASK : 0));
         } else {
-            color = (byte) ((color & ~COLOR_MASK) | value);
+            color = (byte) ((color & ~COLOR_BACKGROUND_MASK)
+                | value | (isBright ? COLOR_BACKGROUND_BRIGHT_MASK : 0));
         }
     }
 
@@ -911,7 +935,7 @@ public final class Terminal {
     }
 
     private byte eraseColor() {
-        return (byte) ((DEFAULT_COLORS & ~COLOR_MASK) | (color & COLOR_MASK));
+        return (byte) ((DEFAULT_COLORS & ~COLOR_BACKGROUND_MASK) | (color & COLOR_BACKGROUND_MASK));
     }
 
     private void clear() {

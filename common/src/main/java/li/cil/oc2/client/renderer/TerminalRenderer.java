@@ -66,8 +66,6 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         0x777777, // White
     };
 
-    private static final int CURSOR_COLOR = BRIGHT_COLORS[COLOR_WHITE];
-
     // --------------------------------------------------------------------- //
 
     private final Terminal terminal;
@@ -280,32 +278,46 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
     }
 
     private void renderCursor(final PoseStack stack) {
+        ShaderInstance shader = ModShaders.getTerminalShader();
+        if (shader == null) {
+            shader = GameRenderer.getPositionTexColorShader();
+        }
+        if (shader == null) {
+            return;
+        }
+
         final int cursorX = terminal.getCursorX();
         final int cursorY = terminal.getCursorY();
+        final int cell = terminal.getCell(cursorY * WIDTH + cursorX);
+
+        final int blockColor = resolveColor(getForegroundColorIndex(cell), isForegroundBright(cell), isDim(cell));
+        final int glyphColor = resolveColor(getBackgroundColorIndex(cell), isBackgroundBright(cell), isDim(cell));
 
         RenderSystem.depthMask(false);
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShaderTexture(0, LOCATION_FONT_TEXTURE);
+
+        final ShaderInstance cursorShader = shader;
+        RenderSystem.setShader(() -> cursorShader);
 
         stack.pushPose();
         stack.translate(cursorX * CHAR_WIDTH, cursorY * CHAR_HEIGHT, 0);
 
         final Matrix4f matrix = stack.last().pose();
         final BufferBuilder buffer = Tesselator.getInstance()
-            .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+            .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 
-        final float r = ((CURSOR_COLOR >> 16) & 0xFF) / 255f;
-        final float g = ((CURSOR_COLOR >> 8) & 0xFF) / 255f;
-        final float b = (CURSOR_COLOR & 0xFF) / 255f;
-
-        buffer.addVertex(matrix, 0, CHAR_HEIGHT, 0).setColor(r, g, b, 1);
-        buffer.addVertex(matrix, CHAR_WIDTH, CHAR_HEIGHT, 0).setColor(r, g, b, 1);
-        buffer.addVertex(matrix, CHAR_WIDTH, 0, 0).setColor(r, g, b, 1);
-        buffer.addVertex(matrix, 0, 0, 0).setColor(r, g, b, 1);
+        renderBackground(matrix, buffer, 0, CHAR_WIDTH, blockColor);
+        if (!isHidden(cell)) {
+            renderForeground(matrix, buffer, 0, getCharacter(cell), glyphColor, isBold(cell), isUnderline(cell));
+        }
 
         BufferUploader.drawWithShader(buffer.buildOrThrow());
 
         stack.popPose();
 
+        RenderSystem.disableBlend();
         RenderSystem.depthMask(true);
     }
 

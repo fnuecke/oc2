@@ -56,6 +56,7 @@ public final class Terminal {
         static final int DECAWM = 7;  // Auto wrap
         static final int DECARM = 8;  // Auto-repeating
         static final int DECINLM = 9; // Interlace
+        static final int DECTCEM = 25; // Text cursor enable
     }
 
     private static final int COLOR_MASK = 0b111;
@@ -71,7 +72,7 @@ public final class Terminal {
     // Default style: no modifiers, white foreground, black background.
     private static final byte DEFAULT_COLORS = Color.WHITE << COLOR_FOREGROUND_SHIFT;
     private static final byte DEFAULT_STYLE = 0;
-    private static final int DEFAULT_PRIVATE_MODES = 1 << Mode.DECAWM;
+    private static final int DEFAULT_PRIVATE_MODES = 1 << Mode.DECAWM | 1 << Mode.DECTCEM;
 
     private static final int SGR_FOREGROUND_EXTENDED = 38;
     private static final int SGR_BACKGROUND_EXTENDED = 48;
@@ -179,6 +180,10 @@ public final class Terminal {
 
     public boolean isNewLineMode() {
         return getMode(Mode.LNM);
+    }
+
+    public boolean isCursorVisible() {
+        return getPrivateMode(Mode.DECTCEM);
     }
 
     public int getCursorX() {

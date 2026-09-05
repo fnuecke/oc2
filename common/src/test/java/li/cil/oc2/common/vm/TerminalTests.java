@@ -1160,6 +1160,45 @@ public class TerminalTests {
         assertEquals("abdef", read(terminal, 0, 5));
     }
 
+    @Test
+    public void theCursorIsVisibleByDefault() {
+        final Terminal terminal = new Terminal();
+
+        assertTrue(terminal.isCursorVisible());
+    }
+
+    @Test
+    public void theCursorCanBeHiddenAndShown() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[?25l");
+        assertFalse(terminal.isCursorVisible());
+
+        write(terminal, "\033[?25h");
+        assertTrue(terminal.isCursorVisible());
+    }
+
+    @Test
+    public void aResetMakesTheCursorVisibleAgain() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?25l");
+
+        write(terminal, "\033c");
+
+        assertTrue(terminal.isCursorVisible());
+    }
+
+    @Test
+    public void cursorVisibilitySurvivesSaveAndLoad() {
+        final Terminal saved = new Terminal();
+        write(saved, "\033[?25l");
+
+        final Terminal loaded = new Terminal();
+        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+
+        assertFalse(loaded.isCursorVisible());
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int cellCharacter(final Terminal terminal, final int index) {

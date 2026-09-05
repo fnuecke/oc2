@@ -82,7 +82,7 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         validateMesh();
         renderBuffer(stack, modelViewBase, projectionMatrix);
 
-        if ((System.currentTimeMillis() + terminal.hashCode()) % 1000 > 500) {
+        if (terminal.isCursorVisible() && (System.currentTimeMillis() + terminal.hashCode()) % 1000 > 500) {
             renderCursor(stack);
         }
     }

@@ -1,4 +1,5 @@
 import devices
+import harness
 
 bus = devices.bus
 robot = bus.find("robot")
@@ -16,3 +17,5 @@ assert data is not None, "event carried no data"
 assert data.get("actionId") == action_id, \
     "event was for action %s, expected %s" % (data.get("actionId"), action_id)
 assert data.get("result") == "SUCCESS", "action reported %s" % data.get("result")
+
+harness.report()

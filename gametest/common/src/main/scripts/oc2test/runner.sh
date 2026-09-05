@@ -48,6 +48,18 @@ run_file() {
 
     ran=$((ran + 1))
     if [ "$status" -eq 0 ]; then
+        count=$(printf '%s\n' "$output" | sed -n 's/^checks \([0-9][0-9]*\)$/\1/p' | tail -n 1)
+        if [ -z "$count" ]; then
+            failed=$((failed + 1))
+            emit "case FAIL $name"
+            emit_detail "exited without reporting; it returned before running its checks"
+            if [ -n "$output" ]; then
+                emit_detail "$output"
+            fi
+            return 0
+        fi
+
+        checks=$((checks + count))
         emit "case PASS $name"
         return 0
     fi
@@ -64,6 +76,7 @@ run_suite() {
     suite="$1"
     ran=0
     failed=0
+    checks=0
 
     if [ -z "$suite" ] || [ ! -d "$SUITES/$suite" ]; then
         failed=1
@@ -75,7 +88,7 @@ run_suite() {
         done
     fi
 
-    emit "end $ran $failed"
+    emit "end $ran $failed $checks"
 }
 
 PORT=$(find_port) || PORT=""

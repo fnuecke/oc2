@@ -30,6 +30,15 @@ expect("empty payload", invokeWithBlob("", 0), "")
 expect("two byte payload", invokeWithBlob("\1\2", 513), "\1\2")
 expect("reordering is detected as different", invokeWithBlob("\2\1", 258), "\2\1")
 
+-- The host folds the checksum to signed 32 bits, so the guest has to as well. Without the
+-- fold these two come back as 4294967295 and never match what the host announced.
+expect("all ones folds to a negative checksum",
+       invokeWithBlob("\255\255\255\255", -1), "\255\255\255\255")
+expect("and so does a zero-padded tail",
+       invokeWithBlob("\255\255\255\255\0", -1), "\255\255\255\255\0")
+expect("the high bit alone is the most negative checksum",
+       invokeWithBlob("\0\0\0\128", -2147483648), "\0\0\0\128")
+
 expect("payload split across reads",
        invokeWithBlob(PAYLOAD, 746590911,
                       { PAYLOAD:sub(1, 5), PAYLOAD:sub(6, 11), PAYLOAD:sub(12) }), PAYLOAD)

@@ -34,6 +34,15 @@ expect("empty payload", invoke_with_blob(b"", 0), b"")
 expect("two byte payload", invoke_with_blob(b"\1\2", 513), b"\1\2")
 expect("reordering is detected as different", invoke_with_blob(b"\2\1", 258), b"\2\1")
 
+# The host folds the checksum to signed 32 bits, so the guest has to as well. Without the
+# fold these two come back as 4294967295 and never match what the host announced.
+expect("all ones folds to a negative checksum",
+       invoke_with_blob(b"\xff\xff\xff\xff", -1), b"\xff\xff\xff\xff")
+expect("and so does a zero-padded tail",
+       invoke_with_blob(b"\xff\xff\xff\xff\x00", -1), b"\xff\xff\xff\xff\x00")
+expect("the high bit alone is the most negative checksum",
+       invoke_with_blob(b"\x00\x00\x00\x80", -2147483648), b"\x00\x00\x00\x80")
+
 expect("payload split across reads",
        invoke_with_blob(PAYLOAD, 746590911,
                         [PAYLOAD[:5], PAYLOAD[5:11], PAYLOAD[11:]]), PAYLOAD)

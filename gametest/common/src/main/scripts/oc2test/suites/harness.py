@@ -1,16 +1,20 @@
 import sys
 
 failures = 0
+checks = 0
 
 
 def _pass(name, detail):
+    global checks
+    checks += 1
     print("ok   %-52s %s" % (name, detail))
 
 
 def _fail(name, detail):
-    global failures
-    print("FAIL %-52s %s" % (name, detail))
+    global checks, failures
+    checks += 1
     failures += 1
+    print("FAIL %-52s %s" % (name, detail))
 
 
 def expect(name, got, want):
@@ -33,5 +37,6 @@ def raises(name, needle, fn):
 
 
 def report():
-    print("\nALL PASS" if failures == 0 else "\n%d FAILURE(S)" % failures)
+    print("\nchecks %d" % checks)
+    print("ALL PASS" if failures == 0 else "%d FAILURE(S)" % failures)
     sys.exit(0 if failures == 0 else 1)

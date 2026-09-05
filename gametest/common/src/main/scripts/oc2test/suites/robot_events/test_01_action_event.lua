@@ -12,3 +12,5 @@ local data = assert(event.data, "event carried no data")
 assert(data.actionId == actionId,
   string.format("event was for action %s, expected %s", tostring(data.actionId), tostring(actionId)))
 assert(data.result == "SUCCESS", "action reported " .. tostring(data.result))
+
+require("harness").report()

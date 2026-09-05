@@ -137,6 +137,27 @@ expect("find located a device by type", redstone and redstone.deviceId, "redston
 expect("methods resolve through the daemon", type(redstone.getRedstoneOutput), "function")
 expect("and invoking one returns the host's answer", redstone:getRedstoneOutput(), 15)
 
+-- Device.__index resolves through the cached method list, so repeated lookups on one device
+-- must not go back to the host. Counting the fetches is the only way to see the cache work.
+local realMethods = first.methods
+local methodListFetches = 0
+first.methods = function(self, deviceId)
+  methodListFetches = methodListFetches + 1
+  return realMethods(self, deviceId)
+end
+
+local cached = first:find("redstone")
+local _ = cached.getRedstoneOutput
+local _ = cached.setRedstoneOutput
+local _ = cached.getRedstoneOutput
+expect("the method list is fetched once per device", methodListFetches, 1)
+
+-- ...but a freshly resolved device starts with a cold cache of its own.
+local _ = first:find("redstone").getRedstoneOutput
+expect("and again for a device resolved anew", methodListFetches, 2)
+
+first.methods = nil
+
 -- Errors from the host arrive as errors, not as some transport failure.
 raises("a host error surfaces as an error", "the host said no",
        function() return first:invoke("redstone-1", "explode") end)

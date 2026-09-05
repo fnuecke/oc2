@@ -3,6 +3,10 @@ This index lists all documented blocks. If you're looking for an item, see the [
 
 To quickly access the manual entry for a block in the world, simply use this [manual](../item/manual.md) on the block.
 
+Note: most device blocks accept a bus connection on one face only, the one with a port on it; a [bus
+interface](bus_interface.md) on any other face will not see them. There are exceptions, such as the [redstone
+interface](redstone_interface.md), which connect from multiple sides.
+
 - [Bus Cable](bus_cable.md)
 - [Bus Interface](bus_interface.md)
 - [Charger](charger.md)

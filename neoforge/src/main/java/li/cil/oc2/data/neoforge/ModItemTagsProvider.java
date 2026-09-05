@@ -79,6 +79,7 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
             Items.CPU_RISCV.get(),
             Items.CPU_Z80.get(),
             Items.DISK_DRIVE.get(),
+            Items.FLASH_DRIVE.get(),
             Items.FLASH_MEMORY.get(),
             Items.HARD_DRIVE_SMALL.get(),
             Items.HARD_DRIVE_MEDIUM.get(),

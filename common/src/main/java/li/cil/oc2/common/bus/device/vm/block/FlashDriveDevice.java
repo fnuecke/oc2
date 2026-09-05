@@ -3,16 +3,11 @@
 package li.cil.oc2.common.bus.device.vm.block;
 
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
-import li.cil.oc2.api.bus.device.vm.ArchitectureType;
-import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.provider.item.FloppyItemDeviceProvider;
+import li.cil.oc2.common.bus.device.provider.item.FlashMemoryItemDeviceProvider;
 import li.cil.oc2.common.bus.device.vm.item.AbstractBlockStorageDevice;
-import li.cil.oc2.common.bus.device.vm.item.FloppyControllerStorage;
 import li.cil.oc2.common.bus.device.vm.item.FloppyMedia;
-import li.cil.oc2.common.bus.device.vm.item.MappedStorage;
-import li.cil.oc2.common.item.FloppyItem;
+import li.cil.oc2.common.item.FlashMemoryItem;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
@@ -25,48 +20,16 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> extends AbstractBlockStorageDevice<BlockDevice, T> {
+public final class FlashDriveDevice<T extends BlockEntity & FlashDriveContainer> extends AbstractBlockStorageDevice<BlockDevice, T> {
     private static final ByteBufferBlockDevice EMPTY_BLOCK_DEVICE = ByteBufferBlockDevice.create(0, false);
 
     // --------------------------------------------------------------------- //
 
-    private final ArchitectureType architectureType;
-
-    // --------------------------------------------------------------------- //
-
-    public DiskDriveDevice(final T container, final ArchitectureType architectureType) {
+    public FlashDriveDevice(final T container) {
         super(container, false);
-        this.architectureType = architectureType;
-    }
-
-    // --------------------------------------------------------------------- //
-
-    public ArchitectureType getArchitectureType() {
-        return architectureType;
-    }
-
-    @Override
-    protected MappedStorage createStorage(final VMContext context) {
-        return switch (architectureType) {
-            case RISCV -> super.createStorage(context);
-            case Z80 -> new FloppyControllerStorage();
-        };
-    }
-
-    // --------------------------------------------------------------------- //
-
-    @Override
-    public boolean equals(@Nullable final Object o) {
-        return super.equals(o) && architectureType == ((DiskDriveDevice<?>) o).architectureType;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), architectureType);
     }
 
     // --------------------------------------------------------------------- //
@@ -103,13 +66,13 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
 
     @Override
     protected int getMappedByteCount() {
-        return getMediumCapacity(identity.getDiskItemStack());
+        return getMediumCapacity(identity.getFlashItemStack());
     }
 
     @Override
     protected CompletableFuture<BlockDevice> createBlockDevice() throws IOException {
-        final ItemStack stack = identity.getDiskItemStack();
-        if (stack.isEmpty() || !(stack.getItem() instanceof final FloppyItem floppy)) {
+        final ItemStack stack = identity.getFlashItemStack();
+        if (stack.isEmpty() || !(stack.getItem() instanceof FlashMemoryItem)) {
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
         }
 
@@ -118,10 +81,8 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
         }
 
-        final BlockDeviceData data = floppy.getData(stack);
-
         if (!BlobStorage.isValidHandle(blobHandle)) {
-            importFromItemStack(ItemDeviceUtils.getDeviceData(stack, FloppyItemDeviceProvider.DEVICE_DATA_KEY));
+            importFromItemStack(ItemDeviceUtils.getDeviceData(stack, FlashMemoryItemDeviceProvider.DEVICE_DATA_KEY));
         }
 
         final boolean isNew = !BlobStorage.isValidHandle(blobHandle);
@@ -137,15 +98,12 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
 
         blobHandle = handle;
 
+        final BlockDeviceData data = ((FlashMemoryItem) stack.getItem()).getData(stack);
         return CompletableFuture.supplyAsync(() -> {
             try {
                 final ByteBufferBlockDevice medium = ByteBufferBlockDevice.createFromFileChannel(channel, capacity, false);
-                if (isNew) {
-                    if (data != null) {
-                        FloppyMedia.image(medium, data.getBlockDevice());
-                    } else {
-                        FloppyMedia.format(medium);
-                    }
+                if (isNew && data != null) {
+                    FloppyMedia.image(medium, data.getBlockDevice());
                 }
                 return medium;
             } catch (final IOException e) {
@@ -160,29 +118,19 @@ public final class DiskDriveDevice<T extends BlockEntity & DiskDriveContainer> e
     }
 
     @Override
-    protected void handleDataAccess() {
-        identity.handleDataAccess();
-    }
-
-    @Override
     protected void handleDataUnavailable() {
-        StorageItemUtils.setState(identity.getDiskItemStack(), StorageItemUtils.State.CORRUPTED);
+        StorageItemUtils.setState(identity.getFlashItemStack(), StorageItemUtils.State.CORRUPTED);
         identity.setChanged();
     }
 
     // --------------------------------------------------------------------- //
 
     private static int getMediumCapacity(final ItemStack stack) {
-        if (!(stack.getItem() instanceof final FloppyItem floppy)) {
-            return Math.min(Constants.FLOPPY_SIZE, Config.maxBlobCapacity);
+        if (!(stack.getItem() instanceof final FlashMemoryItem flash)) {
+            return 0;
         }
 
-        final BlockDeviceData data = floppy.getData(stack);
-        if (data != null) {
-            return (int) Math.max(data.getBlockDevice().getCapacity(), 0);
-        }
-
-        return Math.min(floppy.getCapacity(stack), Config.maxBlobCapacity);
+        return Math.min(flash.getCapacity(stack), Config.maxBlobCapacity);
     }
 
     private void setMedium(@Nullable final BlockDevice medium) throws IOException {

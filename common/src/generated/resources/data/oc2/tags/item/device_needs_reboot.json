@@ -3,6 +3,7 @@
     "oc2:cpu_riscv",
     "oc2:cpu_z80",
     "oc2:disk_drive",
+    "oc2:flash_drive",
     "oc2:flash_memory",
     "oc2:hard_drive_small",
     "oc2:hard_drive_medium",

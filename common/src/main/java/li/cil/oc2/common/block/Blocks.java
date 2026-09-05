@@ -18,6 +18,7 @@ public final class Blocks {
     public static final RegistrySupplier<ComputerBlock> COMPUTER = BLOCKS.register("computer", ComputerBlock::new);
     public static final RegistrySupplier<CreativeEnergyBlock> CREATIVE_ENERGY = BLOCKS.register("creative_energy", CreativeEnergyBlock::new);
     public static final RegistrySupplier<DiskDriveBlock> DISK_DRIVE = BLOCKS.register("disk_drive", DiskDriveBlock::new);
+    public static final RegistrySupplier<FlashDriveBlock> FLASH_DRIVE = BLOCKS.register("flash_drive", FlashDriveBlock::new);
     public static final RegistrySupplier<KeyboardBlock> KEYBOARD = BLOCKS.register("keyboard", KeyboardBlock::new);
     public static final RegistrySupplier<NetworkConnectorBlock> NETWORK_CONNECTOR = BLOCKS.register("network_connector", NetworkConnectorBlock::new);
     public static final RegistrySupplier<NetworkHubBlock> NETWORK_HUB = BLOCKS.register("network_hub", NetworkHubBlock::new);

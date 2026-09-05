@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.provider.item;
 
+import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
@@ -16,6 +17,11 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 public final class FlashMemoryItemDeviceProvider extends AbstractItemDeviceProvider {
+    public static final String NAME = "flash_memory";
+    public static final String DEVICE_DATA_KEY = API.MOD_ID + ":" + NAME;
+
+    // --------------------------------------------------------------------- //
+
     public FlashMemoryItemDeviceProvider() {
         super(FlashMemoryItem.class);
     }

@@ -36,6 +36,20 @@
       "oc2:floppy_insert"
     ]
   },
+  "flash_eject": {
+      "category": "block",
+      "subtitle": "subtitles.oc2.flash_eject",
+      "sounds": [
+          "oc2:flash_eject"
+      ]
+  },
+  "flash_insert": {
+      "category": "block",
+      "subtitle": "subtitles.oc2.flash_insert",
+      "sounds": [
+          "oc2:flash_insert"
+      ]
+  },
   "hdd_access": {
     "category": "block",
     "subtitle": "subtitles.oc2.hdd",

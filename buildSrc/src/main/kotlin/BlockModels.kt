@@ -24,6 +24,7 @@ private val blockModels = listOf(
     "charger",
     "computer",
     "disk_drive",
+    "flash_drive",
     "keyboard",
     "network_connector",
     "network_hub",

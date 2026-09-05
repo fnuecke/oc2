@@ -11,6 +11,7 @@ import li.cil.oc2.client.model.neoforge.BusCableModelLoader;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
 import li.cil.oc2.client.renderer.blockentity.ComputerRenderer;
 import li.cil.oc2.client.renderer.blockentity.DiskDriveRenderer;
+import li.cil.oc2.client.renderer.blockentity.FlashDriveRenderer;
 import li.cil.oc2.client.renderer.blockentity.neoforge.ChargerRendererNeoForge;
 import li.cil.oc2.client.renderer.blockentity.neoforge.ProjectorRendererNeoForge;
 import li.cil.oc2.client.renderer.color.BusCableBlockColor;
@@ -55,6 +56,7 @@ public final class ClientSetupNeoForge {
     public static void handleRegisterRenderers(final EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(BlockEntities.COMPUTER.get(), ComputerRenderer::new);
         event.registerBlockEntityRenderer(BlockEntities.DISK_DRIVE.get(), DiskDriveRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntities.FLASH_DRIVE.get(), FlashDriveRenderer::new);
         event.registerBlockEntityRenderer(BlockEntities.CHARGER.get(), ChargerRendererNeoForge::new);
         event.registerBlockEntityRenderer(BlockEntities.PROJECTOR.get(), ProjectorRendererNeoForge::new);
 

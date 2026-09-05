@@ -4,8 +4,10 @@ package li.cil.oc2.data.neoforge;
 
 import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.API;
+import li.cil.oc2.client.renderer.blockentity.FlashDriveRenderer;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
+import li.cil.oc2.common.block.FlashDriveBlock;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
@@ -14,6 +16,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
@@ -27,6 +30,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
     private static final ResourceLocation CHARGER_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/charger");
     private static final ResourceLocation COMPUTER_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/computer");
     private static final ResourceLocation DISK_DRIVE_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/disk_drive");
+    private static final ResourceLocation FLASH_DRIVE_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/flash_drive");
     private static final ResourceLocation KEYBOARD_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/keyboard");
     private static final ResourceLocation NETWORK_CONNECTOR_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/network_connector");
     private static final ResourceLocation NETWORK_HUB_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/network_hub");
@@ -43,6 +47,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
         horizontalBlock(Blocks.COMPUTER, Items.COMPUTER, COMPUTER_MODEL);
         simpleBlock(Blocks.CREATIVE_ENERGY, Items.CREATIVE_ENERGY);
         horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE, DISK_DRIVE_MODEL);
+        orientableBlock(Blocks.FLASH_DRIVE, Items.FLASH_DRIVE, FLASH_DRIVE_MODEL);
         horizontalBlock(Blocks.KEYBOARD, Items.KEYBOARD, KEYBOARD_MODEL);
         horizontalFaceBlock(Blocks.NETWORK_CONNECTOR, Items.NETWORK_CONNECTOR, NETWORK_CONNECTOR_MODEL)
             .transforms()
@@ -171,6 +176,16 @@ public final class ModBlockStateProvider extends BlockStateProvider {
             .translation(0, 0, 2)
             .scale(0.75f)
             .end();
+    }
+
+    private <T extends Block> ItemModelBuilder orientableBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item, final ResourceLocation modelFileLocation) {
+        final ModelFile model = models().getExistingFile(modelFileLocation);
+        getVariantBuilder(block.get()).forAllStates(state -> ConfiguredModel.builder()
+            .modelFile(model)
+            .rotationX(FlashDriveRenderer.getRotationX(state.getValue(FlashDriveBlock.FACING)))
+            .rotationY(FlashDriveRenderer.getRotationY(state.getValue(FlashDriveBlock.FACING), state.getValue(FlashDriveBlock.ROTATION)))
+            .build());
+        return itemModels().getBuilder(item.getId().getPath()).parent(model);
     }
 
     private <T extends Block> ItemModelBuilder horizontalBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item, final ResourceLocation modelFileLocation) {

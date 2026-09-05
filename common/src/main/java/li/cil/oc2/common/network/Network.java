@@ -55,6 +55,7 @@ public final class Network {
         registerMessage(OpenRobotTerminalMessage.class, OpenRobotTerminalMessage::new, NetworkManager.clientToServer());
 
         registerMessage(DiskDriveFloppyMessage.class, DiskDriveFloppyMessage::new, NetworkManager.serverToClient());
+        registerMessage(FlashDriveFlashMemoryMessage.class, FlashDriveFlashMemoryMessage::new, NetworkManager.serverToClient());
 
         registerMessage(BusInterfaceNameMessage.ToClient.class, BusInterfaceNameMessage.ToClient::new, NetworkManager.serverToClient());
         registerMessage(BusInterfaceNameMessage.ToServer.class, BusInterfaceNameMessage.ToServer::new, NetworkManager.clientToServer());

@@ -26,6 +26,7 @@ public final class BlockEntities {
     public static final RegistrySupplier<BlockEntityType<ComputerBlockEntity>> COMPUTER = register(Blocks.COMPUTER, ComputerBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<CreativeEnergyBlockEntity>> CREATIVE_ENERGY = register(Blocks.CREATIVE_ENERGY, CreativeEnergyBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<DiskDriveBlockEntity>> DISK_DRIVE = register(Blocks.DISK_DRIVE, DiskDriveBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<FlashDriveBlockEntity>> FLASH_DRIVE = register(Blocks.FLASH_DRIVE, FlashDriveBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<KeyboardBlockEntity>> KEYBOARD = register(Blocks.KEYBOARD, KeyboardBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<NetworkConnectorBlockEntity>> NETWORK_CONNECTOR = register(Blocks.NETWORK_CONNECTOR, NetworkConnectorBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<NetworkHubBlockEntity>> NETWORK_HUB = register(Blocks.NETWORK_HUB, NetworkHubBlockEntity::new);

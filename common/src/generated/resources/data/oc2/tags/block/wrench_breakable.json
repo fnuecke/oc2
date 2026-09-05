@@ -6,6 +6,7 @@
     "oc2:network_hub",
     "oc2:redstone_interface",
     "oc2:disk_drive",
+    "oc2:flash_drive",
     "oc2:charger",
     "oc2:projector"
   ]

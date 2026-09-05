@@ -15,6 +15,7 @@ import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
 import li.cil.oc2.client.renderer.blockentity.ChargerRenderer;
 import li.cil.oc2.client.renderer.blockentity.ComputerRenderer;
 import li.cil.oc2.client.renderer.blockentity.DiskDriveRenderer;
+import li.cil.oc2.client.renderer.blockentity.FlashDriveRenderer;
 import li.cil.oc2.client.renderer.blockentity.ProjectorRenderer;
 import li.cil.oc2.client.renderer.color.BusCableBlockColor;
 import li.cil.oc2.client.renderer.entity.RobotRenderer;
@@ -53,6 +54,7 @@ public final class ClientSetupFabric implements ClientModInitializer {
 
         BlockEntityRendererRegistry.register(BlockEntities.COMPUTER.get(), ComputerRenderer::new);
         BlockEntityRendererRegistry.register(BlockEntities.DISK_DRIVE.get(), DiskDriveRenderer::new);
+        BlockEntityRendererRegistry.register(BlockEntities.FLASH_DRIVE.get(), FlashDriveRenderer::new);
         BlockEntityRendererRegistry.register(BlockEntities.CHARGER.get(), ChargerRenderer::new);
         BlockEntityRendererRegistry.register(BlockEntities.PROJECTOR.get(), ProjectorRenderer::new);
 

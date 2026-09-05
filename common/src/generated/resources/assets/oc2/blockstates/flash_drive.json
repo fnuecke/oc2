@@ -1,0 +1,114 @@
+{
+  "variants": {
+    "facing=down,rotation=0": {
+      "model": "oc2:block/flash_drive",
+      "x": 180
+    },
+    "facing=down,rotation=1": {
+      "model": "oc2:block/flash_drive",
+      "x": 180,
+      "y": 90
+    },
+    "facing=down,rotation=2": {
+      "model": "oc2:block/flash_drive",
+      "x": 180,
+      "y": 180
+    },
+    "facing=down,rotation=3": {
+      "model": "oc2:block/flash_drive",
+      "x": 180,
+      "y": 270
+    },
+    "facing=east,rotation=0": {
+      "model": "oc2:block/flash_drive",
+      "x": 270,
+      "y": 270
+    },
+    "facing=east,rotation=1": {
+      "model": "oc2:block/flash_drive",
+      "x": 270,
+      "y": 270
+    },
+    "facing=east,rotation=2": {
+      "model": "oc2:block/flash_drive",
+      "x": 270,
+      "y": 270
+    },
+    "facing=east,rotation=3": {
+      "model": "oc2:block/flash_drive",
+      "x": 270,
+      "y": 270
+    },
+    "facing=north,rotation=0": {
+      "model": "oc2:block/flash_drive",
+      "x": 270,
+      "y": 180
+    },
+    "facing=north,rotation=1": {
+      "model": "oc2:block/flash_drive",
+      "x": 270,
+      "y": 180
+    },
+    "facing=north,rotation=2": {
+      "model": "oc2:block/flash_drive",
+      "x": 270,
+      "y": 180
+    },
+    "facing=north,rotation=3": {
+      "model": "oc2:block/flash_drive",
+      "x": 270,
+      "y": 180
+    },
+    "facing=south,rotation=0": {
+      "model": "oc2:block/flash_drive",
+      "x": 270
+    },
+    "facing=south,rotation=1": {
+      "model": "oc2:block/flash_drive",
+      "x": 270
+    },
+    "facing=south,rotation=2": {
+      "model": "oc2:block/flash_drive",
+      "x": 270
+    },
+    "facing=south,rotation=3": {
+      "model": "oc2:block/flash_drive",
+      "x": 270
+    },
+    "facing=up,rotation=0": {
+      "model": "oc2:block/flash_drive"
+    },
+    "facing=up,rotation=1": {
+      "model": "oc2:block/flash_drive",
+      "y": 90
+    },
+    "facing=up,rotation=2": {
+      "model": "oc2:block/flash_drive",
+      "y": 180
+    },
+    "facing=up,rotation=3": {
+      "model": "oc2:block/flash_drive",
+      "y": 270
+    },
+    "facing=west,rotation=0": {
+      "model": "oc2:block/flash_drive",
+      "x": 270,
+      "y": 90
+    },
+    "facing=west,rotation=1": {
+      "model": "oc2:block/flash_drive",
+      "x": 270,
+      "y": 90
+    },
+    "facing=west,rotation=2": {
+      "model": "oc2:block/flash_drive",
+      "x": 270,
+      "y": 90
+    },
+    "facing=west,rotation=3": {
+      "model": "oc2:block/flash_drive",
+      "x": 270,
+      "y": 90
+    }
+  }
+}

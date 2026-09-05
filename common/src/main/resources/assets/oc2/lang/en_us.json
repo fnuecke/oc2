@@ -14,6 +14,8 @@
   "block.oc2.redstone_interface.desc": "Emits and reads redstone signals.",
   "block.oc2.disk_drive": "Disk Drive",
   "block.oc2.disk_drive.desc": "Used to access Floppy Disks.",
+  "block.oc2.flash_drive": "Flash Drive",
+  "block.oc2.flash_drive.desc": "Used to access Flash Memory.",
   "block.oc2.charger": "Charger",
   "block.oc2.charger.desc": "Charges entities and items in containers on top of it.",
   "block.oc2.creative_energy": "Infinite Energy Cube",
@@ -146,5 +148,7 @@
   "subtitles.oc2.floppy": "Floppy access",
   "subtitles.oc2.floppy_eject": "Floppy ejected",
   "subtitles.oc2.floppy_insert": "Floppy inserted",
+  "subtitles.oc2.flash_eject": "Flash Memory ejected",
+  "subtitles.oc2.flash_insert": "Flash Memory inserted",
   "subtitles.oc2.hdd": "Hard drive access"
 }

@@ -11,7 +11,7 @@ ceres = "0.0.7"
 sedna = "4.0.1"
 sedna-buildroot = "0.2.2"
 sedna-cpm = "0.1.0"
-vox2mc = "1.0.0"
+vox2mc = "1.0.1"
 
 fabric-loader = "0.19.3"
 fabric-api = "0.116.15+1.21.1"

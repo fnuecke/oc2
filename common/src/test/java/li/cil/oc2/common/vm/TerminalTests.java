@@ -973,6 +973,193 @@ public class TerminalTests {
         assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0), "the whole screen should scroll");
     }
 
+    @Test
+    public void insertedCharactersShiftTheRestOfTheLineRight() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "abcdef\033[1;3H\033[2@");
+
+        assertEquals("ab  cdef", read(terminal, 0, 8));
+    }
+
+    @Test
+    public void deletedCharactersPullTheRestOfTheLineLeft() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "abcdef\033[1;3H\033[2P");
+
+        assertEquals("abef  ", read(terminal, 0, 6));
+    }
+
+    @Test
+    public void erasedCharactersDoNotShiftTheLine() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "abcdef\033[1;3H\033[2X");
+
+        assertEquals("ab  ef", read(terminal, 0, 6));
+    }
+
+    @Test
+    public void deletingMoreCharactersThanTheLineHoldsClearsIt() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "abc\033[1;1H\033[99P");
+
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0));
+    }
+
+    @Test
+    public void editingAtTheRightEdgeStaysInBounds() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[1;80HX\033[99@\033[99P\033[99X");
+
+        assertEquals(79, terminal.getCursorX());
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0));
+    }
+
+    @Test
+    public void insertedLinesShiftTheOnesBelowDown() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "one\r\ntwo\033[1;1H\033[L");
+
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0));
+        assertEquals("one", read(terminal, Terminal.WIDTH, 3));
+        assertEquals("two", read(terminal, 2 * Terminal.WIDTH, 3), "the lines must move, not be overwritten");
+    }
+
+    @Test
+    public void deletedLinesPullTheOnesBelowUp() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "one\r\ntwo\033[1;1H\033[M");
+
+        assertEquals("two", read(terminal, 0, 3));
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 1), "the vacated line must be cleared");
+    }
+
+    @Test
+    public void insertingALineMovesTheCursorToTheLineHome() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "abc\033[L");
+
+        assertEquals(0, terminal.getCursorX());
+    }
+
+    @Test
+    public void deletingMoreLinesThanTheRegionHoldsClearsIt() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "one\r\ntwo\r\nthree\033[1;2r\033[99M");
+
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0));
+        assertEquals("three", read(terminal, 2 * Terminal.WIDTH, 5),
+            "lines outside the scroll region must be untouched");
+    }
+
+    @Test
+    public void insertedLinesStopAtTheScrollRegionBottom() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[4;1Hfour\033[1;3r\033[1;1H\033[L");
+
+        assertEquals("four", read(terminal, 3 * Terminal.WIDTH, 4),
+            "lines below the region must not be pushed down");
+    }
+
+    @Test
+    public void insertingLinesOutsideTheScrollRegionDoesNothing() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[1;3r");
+        write(terminal, "\033[10;3Habc");
+
+        write(terminal, "\033[10;3H\033[L");
+
+        assertEquals("abc", read(terminal, 9 * Terminal.WIDTH + 2, 3));
+        assertEquals(2, terminal.getCursorX(), "a no-op must not move the cursor to the line home");
+    }
+
+    @Test
+    public void scrollUpMovesTheRegionWithoutMovingTheCursor() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "one\r\ntwo\033[S");
+
+        assertEquals("two", read(terminal, 0, 3));
+        assertEquals(3, terminal.getCursorX());
+        assertEquals(1, terminal.getCursorY());
+    }
+
+    @Test
+    public void scrollDownMovesTheRegion() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "one\033[T");
+
+        assertEquals("one", read(terminal, Terminal.WIDTH, 3));
+    }
+
+    @Test
+    public void scrollUpStaysInsideTheScrollRegion() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[4;1Hfour\033[1;3r\033[S");
+
+        assertEquals("four", read(terminal, 3 * Terminal.WIDTH, 4));
+    }
+
+    @Test
+    public void cursorCharacterAbsoluteSelectsTheColumn() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[10G");
+
+        assertEquals(9, terminal.getCursorX());
+    }
+
+    @Test
+    public void linePositionAbsoluteSelectsTheRow() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[10d");
+
+        assertEquals(9, terminal.getCursorY());
+    }
+
+    @Test
+    public void absolutePositioningDefaultsToTheFirstColumnAndRow() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[10;10H");
+
+        write(terminal, "\033[G");
+        assertEquals(9, terminal.getCursorY());
+        assertEquals(0, terminal.getCursorX());
+
+        write(terminal, "\033[d");
+        assertEquals(0, terminal.getCursorY());
+    }
+
+    @Test
+    public void omittedEditingParametersDefaultToOne() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "abcdef\033[1;3H\033[@");
+
+        assertEquals("ab cde", read(terminal, 0, 6));
+    }
+
+    @Test
+    public void zeroEditingParametersDefaultToOne() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "abcdef\033[1;3H\033[0P");
+
+        assertEquals("abdef", read(terminal, 0, 5));
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int cellCharacter(final Terminal terminal, final int index) {

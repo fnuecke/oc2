@@ -334,6 +334,15 @@ public final class Terminal {
                 case 'C' -> CUF(parameters);      // CUF – Cursor Forward
                 case 'D' -> CUB(parameters);      // CUB – Cursor Backward
                 case 'H', 'f' -> CUP(parameters); // CUP, HVP – Cursor Position
+                case 'G' -> CHA(parameters);      // CHA – Cursor Character Absolute
+                case 'd' -> VPA(parameters);      // VPA – Line Position Absolute
+                case '@' -> ICH(parameters);      // ICH – Insert Character
+                case 'P' -> DCH(parameters);      // DCH – Delete Character
+                case 'X' -> ECH(parameters);      // ECH – Erase Character
+                case 'L' -> IL(parameters);       // IL – Insert Line
+                case 'M' -> DL(parameters);       // DL – Delete Line
+                case 'S' -> SU(parameters);       // SU – Scroll Up
+                case 'T' -> SD(parameters);       // SD – Scroll Down
                 case 'm' -> SGR(parameters);      // SGR – Select Graphic Rendition
                 case 'K' -> EL(parameters);       // EL – Erase In Line
                 case 'J' -> ED(parameters);       // ED – Erase In Display
@@ -453,6 +462,50 @@ public final class Terminal {
         setRelativeCursorPos(Math.min(parameters.get(1), WIDTH) - 1, Math.min(parameters.get(0), HEIGHT) - 1);
     }
 
+    private void CHA(final TerminalParser.Parameters parameters) {
+        setCursorPos(Math.min(parameters.get(0), WIDTH) - 1, y);
+    }
+
+    private void VPA(final TerminalParser.Parameters parameters) {
+        setRelativeCursorPos(x, Math.min(parameters.get(0), HEIGHT) - 1);
+    }
+
+    private void ICH(final TerminalParser.Parameters parameters) {
+        shiftCells(clampToLineEnd(parameters));
+    }
+
+    private void DCH(final TerminalParser.Parameters parameters) {
+        shiftCells(-clampToLineEnd(parameters));
+    }
+
+    private void ECH(final TerminalParser.Parameters parameters) {
+        clearLine(y, x, x + clampToLineEnd(parameters));
+    }
+
+    private void IL(final TerminalParser.Parameters parameters) {
+        if (y < scrollFirst || y > scrollLast) {
+            return;
+        }
+        shiftRegion(y, scrollLast, distance(parameters.get(0), HEIGHT));
+        setCursorPos(0, y);
+    }
+
+    private void DL(final TerminalParser.Parameters parameters) {
+        if (y < scrollFirst || y > scrollLast) {
+            return;
+        }
+        shiftRegion(y, scrollLast, -distance(parameters.get(0), HEIGHT));
+        setCursorPos(0, y);
+    }
+
+    private void SU(final TerminalParser.Parameters parameters) {
+        shiftRegion(scrollFirst, scrollLast, -distance(parameters.get(0), HEIGHT));
+    }
+
+    private void SD(final TerminalParser.Parameters parameters) {
+        shiftRegion(scrollFirst, scrollLast, distance(parameters.get(0), HEIGHT));
+    }
+
     private void SGR(final TerminalParser.Parameters parameters) {
         for (int i = 0; i < parameters.count(); i++) {
             final int sgr = parameters.get(i);
@@ -565,6 +618,10 @@ public final class Terminal {
 
     private static int distance(final int argument, final int limit) {
         return Math.clamp(argument, 1, limit);
+    }
+
+    private int clampToLineEnd(final TerminalParser.Parameters parameters) {
+        return Math.min(distance(parameters.get(0), WIDTH), WIDTH - x);
     }
 
     private boolean executeControl(final byte value) {
@@ -831,6 +888,38 @@ public final class Terminal {
 
     private void shiftDownOne() {
         shiftLines(scrollFirst, scrollLast - 1, 1);
+    }
+
+    private void shiftCells(final int count) {
+        final int rowIndex = y * WIDTH;
+        final int moved = WIDTH - x - Math.abs(count);
+        if (count > 0) {
+            if (moved > 0) {
+                System.arraycopy(buffer, rowIndex + x, buffer, rowIndex + x + count, moved);
+                System.arraycopy(colors, rowIndex + x, colors, rowIndex + x + count, moved);
+                System.arraycopy(styles, rowIndex + x, styles, rowIndex + x + count, moved);
+            }
+            clearLine(y, x, x + count);
+        } else if (count < 0) {
+            if (moved > 0) {
+                System.arraycopy(buffer, rowIndex + x - count, buffer, rowIndex + x, moved);
+                System.arraycopy(colors, rowIndex + x - count, colors, rowIndex + x, moved);
+                System.arraycopy(styles, rowIndex + x - count, styles, rowIndex + x, moved);
+            }
+            clearLine(y, WIDTH + count, WIDTH);
+        }
+    }
+
+    private void shiftRegion(final int firstLine, final int lastLine, final int count) {
+        if (Math.abs(count) >= lastLine - firstLine + 1) {
+            for (int iy = firstLine; iy <= lastLine; iy++) {
+                clearLine(iy);
+            }
+        } else if (count > 0) {
+            shiftLines(firstLine, lastLine - count, count);
+        } else if (count < 0) {
+            shiftLines(firstLine - count, lastLine, count);
+        }
     }
 
     private void shiftLines(final int firstLine, final int lastLine, final int count) {

@@ -1695,6 +1695,33 @@ public class TerminalTests {
         assertTrue(terminal.putScroll(true, 1));
     }
 
+    @Test
+    public void theCursorShapeSequenceIsNotADeviceAttributesRequest() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[?25h\033[?0c"); // The linux terminfo's cnorm, sent on every refresh.
+
+        assertEquals(0, drainInput(terminal), "answering this would type the reply into whatever is running");
+    }
+
+    @Test
+    public void deviceAttributesStillAnswersThePlainForm() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[c");
+
+        assertEquals("\033[?1;0c", readResponse(terminal));
+    }
+
+    @Test
+    public void privateStatusRequestsAreIgnored() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[?6n");
+
+        assertEquals(0, drainInput(terminal));
+    }
+
     // --------------------------------------------------------------------- //
 
     private static int cellCharacter(final Terminal terminal, final int index) {

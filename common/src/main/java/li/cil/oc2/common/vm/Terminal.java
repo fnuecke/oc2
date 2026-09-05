@@ -452,7 +452,7 @@ public final class Terminal {
                 case 'h' -> SM(parameters);       // SM – Set Mode
                 case 'l' -> RM(parameters);       // RM – Reset Mode
                 case 'n' -> DSR(parameters);      // DSR – Device Status Report
-                case 'c' -> DA();                 // DA – Device Attributes
+                case 'c' -> DA(parameters);       // DA – Device Attributes
             }
         }
     }
@@ -674,6 +674,10 @@ public final class Terminal {
     }
 
     private void DSR(final TerminalParser.Parameters parameters) {
+        if (parameters.isPrivate()) {
+            return;
+        }
+
         switch (parameters.get(0)) {
             case 5 -> // Report console status
                 putResponse("\033[0n"); // Ready, No malfunctions detected
@@ -692,7 +696,11 @@ public final class Terminal {
         clear();
     }
 
-    private void DA() {
+    private void DA(final TerminalParser.Parameters parameters) {
+        if (parameters.isPrivate()) {
+            return;
+        }
+
         putResponse("\033[?1;0c"); // No options.
     }
 

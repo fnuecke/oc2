@@ -847,10 +847,10 @@ public class TerminalTests {
     }
 
     @Test
-    public void modeNumbersBeyondTheBitfieldAreIgnored() {
+    public void highModeNumbersDoNotAliasOntoLowOnes() {
         final Terminal terminal = new Terminal();
 
-        write(terminal, "\033[?2004h"); // Bracketed paste; 2004 mod 32 would alias onto LNM.
+        write(terminal, "\033[?2004h"); // Bracketed paste; a plain shift by 2004 would land on bit 20.
 
         write(terminal, "abc\n");
         assertEquals(3, terminal.getCursorX(), "a line feed must not have turned into a new line");
@@ -1197,6 +1197,98 @@ public class TerminalTests {
         NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
 
         assertFalse(loaded.isCursorVisible());
+    }
+
+    @Test
+    public void bracketedPasteIsOffByDefault() {
+        final Terminal terminal = new Terminal();
+
+        assertFalse(terminal.isBracketedPasteMode());
+    }
+
+    @Test
+    public void bracketedPasteCanBeToggled() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[?2004h");
+        assertTrue(terminal.isBracketedPasteMode());
+
+        write(terminal, "\033[?2004l");
+        assertFalse(terminal.isBracketedPasteMode());
+    }
+
+    @Test
+    public void bracketedPasteSurvivesSaveAndLoad() {
+        final Terminal saved = new Terminal();
+        write(saved, "\033[?2004h");
+
+        final Terminal loaded = new Terminal();
+        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+
+        assertTrue(loaded.isBracketedPasteMode());
+    }
+
+    @Test
+    public void aResetTurnsBracketedPasteOff() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?2004h");
+
+        write(terminal, "\033c");
+
+        assertFalse(terminal.isBracketedPasteMode());
+    }
+
+    @Test
+    public void unimplementedHighModesLeaveLowOnesAlone() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[?39l"); // A plain shift by 39 would land on DECAWM and turn wrapping off.
+
+        write(terminal, fill(Terminal.WIDTH + 5));
+
+        assertEquals(fill(5) + " ".repeat(Terminal.WIDTH - 5), readLine(terminal, 1));
+    }
+
+    @Test
+    public void aPasteIsBracketedWhenTheGuestAsksForIt() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?2004h");
+
+        terminal.putPaste("hi");
+
+        assertEquals("\033[200~hi\033[201~", readResponse(terminal));
+    }
+
+    @Test
+    public void aPasteIsPlainWhenTheGuestDidNotAskForBracketing() {
+        final Terminal terminal = new Terminal();
+
+        terminal.putPaste("hi");
+
+        assertEquals("hi", readResponse(terminal));
+    }
+
+    @Test
+    public void aPasteCannotCloseItsOwnBracket() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?2004h");
+
+        terminal.putPaste("a\033[201~evil");
+
+        assertEquals("\033[200~a[201~evil\033[201~", readResponse(terminal));
+    }
+
+    @Test
+    public void anOversizedPasteStillGetsItsTerminator() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[?2004h");
+
+        terminal.putPaste("x".repeat(maxInputSize() * 2));
+
+        final String input = readResponse(terminal);
+        assertTrue(input.startsWith("\033[200~"));
+        assertTrue(input.endsWith("\033[201~"),
+            "a truncated paste must not strand the guest in paste mode");
     }
 
     // --------------------------------------------------------------------- //

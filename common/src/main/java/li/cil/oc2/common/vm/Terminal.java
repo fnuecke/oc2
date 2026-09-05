@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
@@ -31,6 +32,8 @@ public final class Terminal {
     private static final char UNRENDERABLE = '?';
     private static final int MAX_EXPECTED_LISTENERS = 4;
     private static final int MAX_INPUT_SIZE = 4 * 1024;
+    private static final byte[] PASTE_START = "\033[200~".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] PASTE_END = "\033[201~".getBytes(StandardCharsets.US_ASCII);
 
     @SuppressWarnings("unused")
     private static final class Color {
@@ -57,6 +60,7 @@ public final class Terminal {
         static final int DECARM = 8;  // Auto-repeating
         static final int DECINLM = 9; // Interlace
         static final int DECTCEM = 25; // Text cursor enable
+        static final int BRACKETED_PASTE = 2004;
     }
 
     private static final int COLOR_MASK = 0b111;
@@ -119,7 +123,7 @@ public final class Terminal {
     private final boolean[] tabs = new boolean[WIDTH];
     private final TerminalParser parser = new TerminalParser();
     private boolean isG0Graphics, isG1Graphics, isShiftedOut;
-    private int modes, privateModes;
+    private int modes, privateModes, highPrivateModes;
     private int scrollFirst, scrollLast = HEIGHT - 1;
     private int x, y;
     private boolean isWrapPending;
@@ -184,6 +188,10 @@ public final class Terminal {
 
     public boolean isCursorVisible() {
         return getPrivateMode(Mode.DECTCEM);
+    }
+
+    public boolean isBracketedPasteMode() {
+        return getPrivateMode(Mode.BRACKETED_PASTE);
     }
 
     public int getCursorX() {
@@ -281,6 +289,23 @@ public final class Terminal {
         while (values.hasRemaining()) {
             putOutput(values.get());
         }
+    }
+
+    public synchronized void putPaste(final String value) {
+        final byte[] bytes = value.replace("\033", "").getBytes(StandardCharsets.UTF_8);
+        if (!isBracketedPasteMode()) {
+            putInput(ByteBuffer.wrap(bytes));
+            return;
+        }
+
+        final int free = MAX_INPUT_SIZE - input.size() - PASTE_START.length - PASTE_END.length;
+        if (free < 0) {
+            return;
+        }
+
+        putInput(ByteBuffer.wrap(PASTE_START));
+        putInput(ByteBuffer.wrap(bytes, 0, Math.min(bytes.length, free)));
+        putInput(ByteBuffer.wrap(PASTE_END));
     }
 
     public synchronized void putInput(final byte value) {
@@ -430,6 +455,7 @@ public final class Terminal {
         isWrapPending = false;
         modes = 0;
         privateModes = DEFAULT_PRIVATE_MODES;
+        highPrivateModes = 0;
         color = DEFAULT_COLORS;
         style = DEFAULT_STYLE;
         savedCursor.reset();
@@ -672,25 +698,40 @@ public final class Terminal {
     }
 
     private void setMode(final boolean isPrivate, final int mode) {
-        if (mode >= Integer.SIZE) {
-            return;
-        }
-        if (isPrivate) {
-            privateModes |= 1 << mode;
-        } else {
-            modes |= 1 << mode;
+        if (isPrivate && mode >= Integer.SIZE) {
+            final int bit = highPrivateModeBit(mode);
+            if (bit >= 0) {
+                highPrivateModes |= 1 << bit;
+            }
+        } else if (mode < Integer.SIZE) {
+            if (isPrivate) {
+                privateModes |= 1 << mode;
+            } else {
+                modes |= 1 << mode;
+            }
         }
     }
 
     private void resetMode(final boolean isPrivate, final int mode) {
-        if (mode >= Integer.SIZE) {
-            return;
+        if (isPrivate && mode >= Integer.SIZE) {
+            final int bit = highPrivateModeBit(mode);
+            if (bit >= 0) {
+                highPrivateModes &= ~(1 << bit);
+            }
+        } else if (mode < Integer.SIZE) {
+            if (isPrivate) {
+                privateModes &= ~(1 << mode);
+            } else {
+                modes &= ~(1 << mode);
+            }
         }
-        if (isPrivate) {
-            privateModes &= ~(1 << mode);
-        } else {
-            modes &= ~(1 << mode);
-        }
+    }
+
+    private static int highPrivateModeBit(final int mode) {
+        return switch (mode) {
+            case Mode.BRACKETED_PASTE -> 0;
+            default -> -1;
+        };
     }
 
     private boolean getMode(final int mode) {
@@ -698,7 +739,11 @@ public final class Terminal {
     }
 
     private boolean getPrivateMode(final int mode) {
-        return (privateModes & (1 << mode)) != 0;
+        if (mode < Integer.SIZE) {
+            return (privateModes & (1 << mode)) != 0;
+        }
+        final int bit = highPrivateModeBit(mode);
+        return bit >= 0 && (highPrivateModes & (1 << bit)) != 0;
     }
 
     private void putResponse(final String value) {

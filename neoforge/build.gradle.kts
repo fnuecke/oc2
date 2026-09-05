@@ -14,25 +14,25 @@ loom {
     accessWidenerPath.set(project(":common").loom.accessWidenerPath)
 
     runs {
-        named("client") { runDir = "run/client" }
-        named("server") { runDir = "run/server" }
+        named("client") { runDirectory.set(file("run/client")) }
+        named("server") { runDirectory.set(file("run/server")) }
 
         create("gameTestServer") {
             server()
-            runDir = "run/gametest"
-            property("neoforge.gameTestServer", "true")
-            property("neoforge.enabledGameTestNamespaces", "oc2_gametest")
-            property("oc2.gameTest.junitDir", gameTestResultsDir.get().asFile.absolutePath)
-            vmArg("-ea")
+            runDirectory.set(file("run/gametest"))
+            systemProperties.put("neoforge.gameTestServer", "true")
+            systemProperties.put("neoforge.enabledGameTestNamespaces", "oc2_gametest")
+            systemProperties.put("oc2.gameTest.junitDir", gameTestResultsDir.get().asFile.absolutePath)
+            jvmArguments.add("-ea")
         }
 
         create("data") {
             data()
-            programArgs("--all")
-            programArgs("--mod", modId)
-            programArgs("--output", project(":common").file("src/generated/resources").absolutePath)
-            programArgs("--existing", project(":common").file("src/main/resources").absolutePath)
-            programArgs("--existing", file("src/main/resources").absolutePath)
+            programArguments.add("--all")
+            programArguments.addAll("--mod", modId)
+            programArguments.addAll("--output", project(":common").file("src/generated/resources").absolutePath)
+            programArguments.addAll("--existing", project(":common").file("src/main/resources").absolutePath)
+            programArguments.addAll("--existing", file("src/main/resources").absolutePath)
         }
     }
 }

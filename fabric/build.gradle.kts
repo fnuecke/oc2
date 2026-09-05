@@ -15,15 +15,15 @@ loom {
     accessWidenerPath.set(project(":common").loom.accessWidenerPath)
 
     runs {
-        named("client") { runDir = "run/client" }
-        named("server") { runDir = "run/server" }
+        named("client") { runDirectory.set(file("run/client")) }
+        named("server") { runDirectory.set(file("run/server")) }
 
         create("gameTest") {
             server()
-            runDir = "run/gametest"
-            vmArg("-Dfabric-api.gametest")
-            vmArg("-Dfabric-api.gametest.report-file=${gameTestResultsDir.get().asFile.absolutePath}/fabric-game-tests.xml")
-            vmArg("-ea")
+            runDirectory.set(file("run/gametest"))
+            jvmArguments.add("-Dfabric-api.gametest")
+            jvmArguments.add("-Dfabric-api.gametest.report-file=${gameTestResultsDir.get().asFile.absolutePath}/fabric-game-tests.xml")
+            jvmArguments.add("-ea")
         }
     }
 }

@@ -93,23 +93,10 @@ public final class FlashDriveBlock extends Block implements EntityBlock {
     @Override
     protected ItemInteractionResult useItemOn(final ItemStack heldStack, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (!(blockEntity instanceof final FlashDriveBlockEntity drive)) {
-            return super.useItemOn(heldStack, state, level, pos, player, hand, hit);
-        }
-
-        if (player.isShiftKeyDown()) {
-            if (drive.canEject()) {
-                if (!level.isClientSide()) {
-                    drive.eject(player);
-                }
-                return ItemInteractionResult.sidedSuccess(level.isClientSide());
-            }
-        } else {
-            if (drive.canInsert(heldStack)) {
-                if (!level.isClientSide()) {
-                    player.setItemInHand(hand, drive.insert(heldStack, player));
-                }
-                return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        if (blockEntity instanceof final FlashDriveBlockEntity drive) {
+            final ItemInteractionResult result = drive.useWith(level, heldStack, player, hand);
+            if (result != ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION) {
+                return result;
             }
         }
 
@@ -119,11 +106,11 @@ public final class FlashDriveBlock extends Block implements EntityBlock {
     @Override
     protected InteractionResult useWithoutItem(final BlockState state, final Level level, final BlockPos pos, final Player player, final BlockHitResult hit) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof final FlashDriveBlockEntity drive && player.isShiftKeyDown() && drive.canEject()) {
-            if (!level.isClientSide()) {
-                drive.eject(player);
+        if (blockEntity instanceof final FlashDriveBlockEntity drive) {
+            final InteractionResult result = drive.useWithoutItem(level, player);
+            if (result != InteractionResult.PASS) {
+                return result;
             }
-            return InteractionResult.sidedSuccess(level.isClientSide());
         }
 
         return super.useWithoutItem(state, level, pos, player, hit);
@@ -151,7 +138,7 @@ public final class FlashDriveBlock extends Block implements EntityBlock {
         if (!state.is(newState.getBlock())) {
             final BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof final FlashDriveBlockEntity drive) {
-                drive.dropFlashMemory();
+                drive.dropMedia();
             }
         }
 

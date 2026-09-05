@@ -36,7 +36,7 @@ public final class FlashDriveRenderer implements BlockEntityRenderer<FlashDriveB
 
     @Override
     public void render(final FlashDriveBlockEntity flashDrive, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
-        final ItemStack flashMemory = flashDrive.getFlashMemory();
+        final ItemStack flashMemory = flashDrive.getMedia();
         if (flashMemory.isEmpty()) {
             return;
         }

@@ -32,9 +32,9 @@ public final class DiskDriveDeviceProvider implements BlockDeviceProvider {
             return Invalidatable.empty();
         }
 
-        DiskDriveDevice<DiskDriveBlockEntity> device = drive.getDevice();
+        var device = drive.getDevice();
         if (device == null || device.getArchitectureType() != architectureType.get()) {
-            device = new DiskDriveDevice<>(drive, architectureType.get());
+            device = new DiskDriveDevice(drive, architectureType.get());
             drive.setDevice(device);
         }
 

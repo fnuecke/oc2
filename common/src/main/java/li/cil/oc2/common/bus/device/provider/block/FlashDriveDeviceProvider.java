@@ -18,9 +18,9 @@ public final class FlashDriveDeviceProvider implements BlockDeviceProvider {
             return Invalidatable.empty();
         }
 
-        FlashDriveDevice<FlashDriveBlockEntity> device = drive.getDevice();
+        var device = drive.getDevice();
         if (device == null) {
-            device = new FlashDriveDevice<>(drive);
+            device = new FlashDriveDevice(drive);
             drive.setDevice(device);
         }
 

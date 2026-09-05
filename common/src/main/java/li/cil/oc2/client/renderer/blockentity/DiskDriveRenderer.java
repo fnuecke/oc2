@@ -30,7 +30,7 @@ public final class DiskDriveRenderer implements BlockEntityRenderer<DiskDriveBlo
 
     @Override
     public void render(final DiskDriveBlockEntity diskDrive, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
-        final ItemStack floppy = diskDrive.getFloppy();
+        final ItemStack floppy = diskDrive.getMedia();
         final Direction blockFacing = diskDrive.getBlockState().getValue(DiskDriveBlock.FACING);
         final int neighborLight = LevelRenderer.getLightColor(renderer.level, diskDrive.getBlockPos().relative(blockFacing));
         final ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();

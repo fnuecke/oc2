@@ -55,23 +55,10 @@ public final class DiskDriveBlock extends HorizontalDirectionalBlock implements 
     @Override
     protected ItemInteractionResult useItemOn(final ItemStack heldStack, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (!(blockEntity instanceof final DiskDriveBlockEntity diskDrive)) {
-            return super.useItemOn(heldStack, state, level, pos, player, hand, hit);
-        }
-
-        if (player.isShiftKeyDown()) {
-            if (diskDrive.canEject()) {
-                if (!level.isClientSide()) {
-                    diskDrive.eject(player);
-                }
-                return ItemInteractionResult.sidedSuccess(level.isClientSide());
-            }
-        } else {
-            if (diskDrive.canInsert(heldStack)) {
-                if (!level.isClientSide()) {
-                    player.setItemInHand(hand, diskDrive.insert(heldStack, player));
-                }
-                return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        if (blockEntity instanceof final DiskDriveBlockEntity diskDrive) {
+            final ItemInteractionResult result = diskDrive.useWith(level, heldStack, player, hand);
+            if (result != ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION) {
+                return result;
             }
         }
 
@@ -81,11 +68,11 @@ public final class DiskDriveBlock extends HorizontalDirectionalBlock implements 
     @Override
     protected InteractionResult useWithoutItem(final BlockState state, final Level level, final BlockPos pos, final Player player, final BlockHitResult hit) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof final DiskDriveBlockEntity diskDrive && player.isShiftKeyDown() && diskDrive.canEject()) {
-            if (!level.isClientSide()) {
-                diskDrive.eject(player);
+        if (blockEntity instanceof final DiskDriveBlockEntity diskDrive) {
+            final InteractionResult result = diskDrive.useWithoutItem(level, player);
+            if (result != InteractionResult.PASS) {
+                return result;
             }
-            return InteractionResult.sidedSuccess(level.isClientSide());
         }
 
         return super.useWithoutItem(state, level, pos, player, hit);
@@ -113,7 +100,7 @@ public final class DiskDriveBlock extends HorizontalDirectionalBlock implements 
         if (!state.is(newState.getBlock())) {
             final BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof final DiskDriveBlockEntity drive) {
-                drive.dropFloppy();
+                drive.dropMedia();
             }
         }
 

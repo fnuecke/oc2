@@ -50,7 +50,7 @@ public final class DiskDriveFixture {
     }
 
     public ItemStack floppy() {
-        return blockEntity().getFloppy();
+        return blockEntity().getMedia();
     }
 
     // --------------------------------------------------------------------- //

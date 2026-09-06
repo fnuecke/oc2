@@ -3,9 +3,8 @@
 [![build](https://img.shields.io/github/actions/workflow/status/fnuecke/oc2/build.yml?label=build)](https://github.com/fnuecke/oc2/actions/workflows/build.yml)
 [![game tests](https://img.shields.io/github/actions/workflow/status/fnuecke/oc2/test-report.yml?label=game%20tests)](https://github.com/fnuecke/oc2/actions/workflows/test-report.yml)
 [![curseforge](https://img.shields.io/curseforge/dt/437654?label=curseforge&color=f16436&logo=curseforge&logoColor=white)](https://www.curseforge.com/minecraft/mc-mods/oc2)
+[![modrinth](https://img.shields.io/modrinth/dt/opencomputers-ii?label=modrinth&color=1bd96a&logo=modrinth&logoColor=white)](https://modrinth.com/project/opencomputers-ii)
 ![loaders](https://img.shields.io/badge/loaders-Fabric%20%7C%20NeoForge-blueviolet)
-
-<!-- [![modrinth](https://img.shields.io/modrinth/dt/opencomputers-ii?label=modrinth&color=1bd96a&logo=modrinth&logoColor=white)](https://modrinth.com/project/opencomputers-ii) -->
 
 OpenComputers II is a Minecraft mod adding virtual computers to the game. These computers run a virtual machine emulating a 64-bit **RISC-V** architecture capable of booting **Linux**, or an 8-bit **Z80** architecture running **CP/M 2.2**. On top of this, a high-level Lua API ([HLAPI]) is provided to communicate with various devices in the game world; on the Z80, a mid-level API ([MLAPI]) serves the same purpose but on an assembly level. This enables adding virtual devices using a simple, Java-friendly API, without having to implement actual kernel drivers.
 

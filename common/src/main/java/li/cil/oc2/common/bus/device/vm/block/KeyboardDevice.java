@@ -96,6 +96,10 @@ public final class KeyboardDevice<T> extends IdentityProxy<T> implements VMDevic
 
     @Override
     public void unmount() {
+        if (device != null) {
+            deviceTag = NBTSerialization.serialize(device);
+        }
+
         device = null;
         users.clear();
     }

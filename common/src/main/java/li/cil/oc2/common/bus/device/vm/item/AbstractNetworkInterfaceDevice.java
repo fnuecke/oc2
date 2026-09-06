@@ -86,6 +86,10 @@ public abstract class AbstractNetworkInterfaceDevice extends IdentityProxy<ItemS
 
     @Override
     public void unmount() {
+        if (device != null) {
+            deviceTag = NBTSerialization.serialize(device);
+        }
+
         device = null;
         isRunning = false;
     }

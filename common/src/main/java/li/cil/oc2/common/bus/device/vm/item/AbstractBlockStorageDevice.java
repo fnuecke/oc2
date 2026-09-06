@@ -108,6 +108,10 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
     @Override
     public void unmount() {
+        if (storage != null) {
+            deviceTag = NBTSerialization.serialize(storage.getDevice());
+        }
+
         closeDevice();
 
         if (blobHandle != null) {

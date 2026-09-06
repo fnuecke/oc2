@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.inet.l4;
 
-import li.cil.oc2.common.inet.InetUtils;
+import li.cil.oc2.common.inet.util.InternetUtils;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -329,7 +329,7 @@ public final class TransportLayer {
         data.putShort(start + 4, key.identity());
         data.putShort(start + 6, (short) echo.getSequenceNumber());
 
-        final short checksum = InetUtils.rfc1071Checksum(data);
+        final short checksum = InternetUtils.rfc1071Checksum(data);
         data.putShort(start + 2, checksum);
         data.position(start);
 
@@ -382,7 +382,7 @@ public final class TransportLayer {
         final int checksumOffset
     ) {
         final int start = data.position();
-        final short checksum = InetUtils.transportRfc1071Checksum(data, sourceIpAddress, destinationIpAddress, protocol);
+        final short checksum = InternetUtils.transportRfc1071Checksum(data, sourceIpAddress, destinationIpAddress, protocol);
         data.putShort(start + checksumOffset, checksum);
         data.position(start);
     }

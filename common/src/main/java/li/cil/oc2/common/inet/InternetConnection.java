@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class InternetConnection {
     public static final int FRAME_QUEUE_SIZE = 64;
+    public static final int MAX_FRAME_SIZE = LinkLocalLayer.FRAME_SIZE;
 
     private static final Logger LOGGER = LogManager.getLogger();
     private static final int MIN_ETHERNET_FRAME_SIZE = 42; // avoid bursts of tiny packages
@@ -23,7 +24,7 @@ public final class InternetConnection {
     private final LinkLocalLayer stack;
     private final BlockingQueue<byte[]> toDevice = new ArrayBlockingQueue<>(FRAME_QUEUE_SIZE);
     private final BlockingQueue<byte[]> toInternet = new ArrayBlockingQueue<>(FRAME_QUEUE_SIZE);
-    private final ByteBuffer receiveBuffer = ByteBuffer.allocate(LinkLocalLayer.FRAME_SIZE);
+    private final ByteBuffer receiveBuffer = ByteBuffer.allocate(MAX_FRAME_SIZE);
     private final AtomicBoolean stopRequested = new AtomicBoolean();
     private final AtomicBoolean shutdownQueued = new AtomicBoolean();
     private boolean shutDown;

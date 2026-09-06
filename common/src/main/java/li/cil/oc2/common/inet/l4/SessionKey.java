@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.inet.l4;
 
-import li.cil.oc2.common.inet.InetUtils;
+import li.cil.oc2.common.inet.util.InternetUtils;
 
 public sealed interface SessionKey {
     int destinationIpAddress();
@@ -11,9 +11,9 @@ public sealed interface SessionKey {
         @Override
         public String toString() {
             final StringBuilder builder = new StringBuilder("icmp ");
-            InetUtils.ipv4AddressToString(builder, sourceIpAddress);
+            InternetUtils.ipv4AddressToString(builder, sourceIpAddress);
             builder.append(" -> ");
-            InetUtils.ipv4AddressToString(builder, destinationIpAddress);
+            InternetUtils.ipv4AddressToString(builder, destinationIpAddress);
             return builder.append(" id=").append(Short.toUnsignedInt(identity)).toString();
         }
     }
@@ -23,9 +23,9 @@ public sealed interface SessionKey {
         @Override
         public String toString() {
             final StringBuilder builder = new StringBuilder("udp ");
-            InetUtils.socketAddressToString(builder, sourceIpAddress, sourcePort);
+            InternetUtils.socketAddressToString(builder, sourceIpAddress, sourcePort);
             builder.append(" -> ");
-            InetUtils.socketAddressToString(builder, destinationIpAddress, destinationPort);
+            InternetUtils.socketAddressToString(builder, destinationIpAddress, destinationPort);
             return builder.toString();
         }
     }
@@ -35,9 +35,9 @@ public sealed interface SessionKey {
         @Override
         public String toString() {
             final StringBuilder builder = new StringBuilder("tcp ");
-            InetUtils.socketAddressToString(builder, sourceIpAddress, sourcePort);
+            InternetUtils.socketAddressToString(builder, sourceIpAddress, sourcePort);
             builder.append(" -> ");
-            InetUtils.socketAddressToString(builder, destinationIpAddress, destinationPort);
+            InternetUtils.socketAddressToString(builder, destinationIpAddress, destinationPort);
             return builder.toString();
         }
     }

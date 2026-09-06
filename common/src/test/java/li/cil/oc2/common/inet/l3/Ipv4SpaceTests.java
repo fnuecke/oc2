@@ -2,8 +2,8 @@
 
 package li.cil.oc2.common.inet.l3;
 
-import li.cil.oc2.common.inet.AddressParseException;
-import li.cil.oc2.common.inet.InetUtils;
+import li.cil.oc2.common.inet.util.AddressParseException;
+import li.cil.oc2.common.inet.util.InternetUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class Ipv4SpaceTests {
     private static long ip(final String address) {
         try {
-            return InetUtils.toUnsigned(InetUtils.parseIpv4Address(address));
+            return InternetUtils.toUnsigned(InternetUtils.parseIpv4Address(address));
         } catch (final AddressParseException e) {
             throw new AssertionError(e);
         }
@@ -171,7 +171,7 @@ public class Ipv4SpaceTests {
 
             for (long address = origin - 5; address <= origin + 250; ++address) {
                 assertEquals(model.contains(address), space.contains(address),
-                    "disagreement at " + InetUtils.ipv4AddressToString((int) address));
+                    "disagreement at " + InternetUtils.ipv4AddressToString((int) address));
             }
             assertEquals(model.size(), space.size(), "merged ranges should cover the same addresses");
         }

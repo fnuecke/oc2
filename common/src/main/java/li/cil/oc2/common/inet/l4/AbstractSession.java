@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.inet.l4;
 
-import li.cil.oc2.common.inet.InetUtils;
+import li.cil.oc2.common.inet.util.InternetUtils;
 
 import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
@@ -24,7 +24,7 @@ public abstract class AbstractSession {
 
     protected AbstractSession(final int ipAddress, final short port) {
         destination = new InetSocketAddress(
-            InetUtils.toJavaInetAddress(ipAddress), Short.toUnsignedInt(port));
+            InternetUtils.toJavaInetAddress(ipAddress), Short.toUnsignedInt(port));
     }
 
     // --------------------------------------------------------------------- //

@@ -1,13 +1,13 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.inet;
+package li.cil.oc2.common.inet.util;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
-public final class InetUtils {
+public final class InternetUtils {
     public static short rfc1071Checksum(final ByteBuffer buffer, final int size) {
         return foldChecksum(sumWords(buffer, size));
     }
@@ -128,6 +128,6 @@ public final class InetUtils {
 
     // --------------------------------------------------------------------- //
 
-    private InetUtils() {
+    private InternetUtils() {
     }
 }

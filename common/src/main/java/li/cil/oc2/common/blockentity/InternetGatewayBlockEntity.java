@@ -10,7 +10,6 @@ import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.inet.InternetAdapter;
 import li.cil.oc2.common.inet.InternetConnection;
 import li.cil.oc2.common.inet.InternetManager;
-import li.cil.oc2.common.inet.l2.LinkLocalLayer;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.InternetGatewayStateMessage;
 import li.cil.oc2.common.util.ChunkUtils;
@@ -149,7 +148,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
     // --------------------------------------------------------------------- //
 
     private void enqueue(final Deque<byte[]> queue, final byte[] frame) {
-        if (frame.length > LinkLocalLayer.FRAME_SIZE) {
+        if (frame.length > InternetConnection.MAX_FRAME_SIZE) {
             return;
         }
         if (queue.size() >= InternetConnection.FRAME_QUEUE_SIZE) {

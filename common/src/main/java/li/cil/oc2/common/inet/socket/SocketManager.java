@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.inet.l5;
+package li.cil.oc2.common.inet.socket;
 
 import li.cil.oc2.common.inet.l4.AbstractSession;
 import org.apache.logging.log4j.LogManager;

@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.inet.l3;
 
-import li.cil.oc2.common.inet.InetUtils;
+import li.cil.oc2.common.inet.util.InternetUtils;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -106,10 +106,10 @@ public final class Ipv4Space {
             if (builder.length() > 1) {
                 builder.append(", ");
             }
-            InetUtils.ipv4AddressToString(builder, (int) (long) range.getKey());
+            InternetUtils.ipv4AddressToString(builder, (int) (long) range.getKey());
             if (!range.getKey().equals(range.getValue())) {
                 builder.append('-');
-                InetUtils.ipv4AddressToString(builder, (int) (long) range.getValue());
+                InternetUtils.ipv4AddressToString(builder, (int) (long) range.getValue());
             }
         }
         return builder.append(']').toString();

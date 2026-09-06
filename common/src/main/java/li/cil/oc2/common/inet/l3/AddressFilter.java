@@ -2,8 +2,8 @@
 
 package li.cil.oc2.common.inet.l3;
 
-import li.cil.oc2.common.inet.AddressParseException;
-import li.cil.oc2.common.inet.InetUtils;
+import li.cil.oc2.common.inet.util.AddressParseException;
+import li.cil.oc2.common.inet.util.InternetUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -66,7 +66,7 @@ public final class AddressFilter {
     // --------------------------------------------------------------------- //
 
     public boolean isAllowed(final int ipAddress) {
-        final long address = InetUtils.toUnsigned(ipAddress);
+        final long address = InternetUtils.toUnsigned(ipAddress);
         if (staticDenied.contains(address) || resolvedDenied.contains(address)
             || localDenied.contains(address)) {
             return false;
@@ -135,22 +135,22 @@ public final class AddressFilter {
             final String low = rule.substring(0, dash).trim();
             final String high = rule.substring(dash + 1).trim();
             if (isDottedQuad(low) && isDottedQuad(high)) {
-                space.add(InetUtils.toUnsigned(InetUtils.parseIpv4Address(low)),
-                    InetUtils.toUnsigned(InetUtils.parseIpv4Address(high)));
+                space.add(InternetUtils.toUnsigned(InternetUtils.parseIpv4Address(low)),
+                    InternetUtils.toUnsigned(InternetUtils.parseIpv4Address(high)));
                 return true;
             }
         }
 
         final int slash = rule.indexOf('/');
         if (slash > 0) {
-            final long address = InetUtils.toUnsigned(InetUtils.parseIpv4Address(rule.substring(0, slash).trim()));
+            final long address = InternetUtils.toUnsigned(InternetUtils.parseIpv4Address(rule.substring(0, slash).trim()));
             final int prefix = Integer.parseInt(rule.substring(slash + 1).trim());
             space.addSubnet(address, prefix);
             return true;
         }
 
         if (isDottedQuad(rule)) {
-            space.add(InetUtils.toUnsigned(InetUtils.parseIpv4Address(rule)));
+            space.add(InternetUtils.toUnsigned(InternetUtils.parseIpv4Address(rule)));
             return true;
         }
 
@@ -159,7 +159,7 @@ public final class AddressFilter {
 
     private static boolean isDottedQuad(final String rule) {
         try {
-            InetUtils.parseIpv4Address(rule);
+            InternetUtils.parseIpv4Address(rule);
             return true;
         } catch (final AddressParseException e) {
             return false;
@@ -185,7 +185,7 @@ public final class AddressFilter {
                     continue;
                 }
                 space.addSubnet(
-                    InetUtils.toUnsigned(InetUtils.javaInetAddressToIpAddress(inet4Address)), prefix);
+                    InternetUtils.toUnsigned(InternetUtils.javaInetAddressToIpAddress(inet4Address)), prefix);
             }
         }
     }
@@ -210,7 +210,7 @@ public final class AddressFilter {
         final Ipv4Space space = new Ipv4Space();
         for (final String hostName : hostNames) {
             for (final int address : resolve(hostName)) {
-                space.add(InetUtils.toUnsigned(address));
+                space.add(InternetUtils.toUnsigned(address));
             }
         }
         return space;
@@ -221,7 +221,7 @@ public final class AddressFilter {
             final List<Integer> addresses = new ArrayList<>();
             for (final InetAddress address : InetAddress.getAllByName(hostName)) {
                 if (address instanceof final Inet4Address inet4Address) {
-                    addresses.add(InetUtils.javaInetAddressToIpAddress(inet4Address));
+                    addresses.add(InternetUtils.javaInetAddressToIpAddress(inet4Address));
                 }
             }
             lastResolved.put(hostName, addresses);

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.inet;
+package li.cil.oc2.common.inet.util;
 
 import li.cil.oc2.common.inet.l3.Ipv4Space;
 import org.junit.jupiter.api.Test;
@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class InetUtilsTests {
+public class InternetUtilsTests {
     private static ByteBuffer bytes(final int... values) {
         final ByteBuffer buffer = ByteBuffer.allocate(values.length);
         for (final int value : values) {
@@ -27,7 +27,7 @@ public class InetUtilsTests {
             0x45, 0x00, 0x00, 0x73, 0x00, 0x00, 0x40, 0x00, 0x40, 0x11, 0x00, 0x00,
             0xc0, 0xa8, 0x00, 0x01, 0xc0, 0xa8, 0x00, 0xc7);
 
-        assertEquals((short) 0xb861, InetUtils.rfc1071Checksum(header));
+        assertEquals((short) 0xb861, InternetUtils.rfc1071Checksum(header));
     }
 
     @Test
@@ -37,7 +37,7 @@ public class InetUtilsTests {
             0xc0, 0xa8, 0x00, 0x01, 0xc0, 0xa8, 0x00, 0xc7);
 
         // Summing a message that already carries its checksum is the standard way to verify one.
-        assertEquals((short) 0, InetUtils.rfc1071Checksum(header));
+        assertEquals((short) 0, InternetUtils.rfc1071Checksum(header));
     }
 
     @Test
@@ -45,7 +45,7 @@ public class InetUtilsTests {
         final ByteBuffer even = bytes(0x12, 0x34, 0x56, 0x00);
         final ByteBuffer odd = bytes(0x12, 0x34, 0x56);
 
-        assertEquals(InetUtils.rfc1071Checksum(even), InetUtils.rfc1071Checksum(odd));
+        assertEquals(InternetUtils.rfc1071Checksum(even), InternetUtils.rfc1071Checksum(odd));
     }
 
     @Test
@@ -67,31 +67,31 @@ public class InetUtilsTests {
         message.putInt(0xDEADBEEF); // Payload.
         message.flip();
 
-        final short checksum = InetUtils.transportRfc1071Checksum(message, source, destination, protocol);
+        final short checksum = InternetUtils.transportRfc1071Checksum(message, source, destination, protocol);
         message.position(0);
         message.putShort(16, checksum);
 
-        assertEquals((short) 0, InetUtils.transportRfc1071Checksum(message, source, destination, protocol));
+        assertEquals((short) 0, InternetUtils.transportRfc1071Checksum(message, source, destination, protocol));
     }
 
     @Test
     public void addressesRoundTripThroughText() throws AddressParseException {
         for (final String address : new String[]{"0.0.0.0", "1.2.3.4", "127.0.0.1", "255.255.255.255", "169.254.169.254"}) {
-            assertEquals(address, InetUtils.ipv4AddressToString(InetUtils.parseIpv4Address(address)));
+            assertEquals(address, InternetUtils.ipv4AddressToString(InternetUtils.parseIpv4Address(address)));
         }
     }
 
     @Test
     public void addressesAboveTheSignedRangeParse() throws AddressParseException {
-        assertEquals(0xFFFFFFFF, InetUtils.parseIpv4Address("255.255.255.255"));
-        assertEquals(0x80000000, InetUtils.parseIpv4Address("128.0.0.0"));
-        assertEquals(Ipv4Space.MAX_ADDRESS, InetUtils.toUnsigned(InetUtils.parseIpv4Address("255.255.255.255")));
+        assertEquals(0xFFFFFFFF, InternetUtils.parseIpv4Address("255.255.255.255"));
+        assertEquals(0x80000000, InternetUtils.parseIpv4Address("128.0.0.0"));
+        assertEquals(Ipv4Space.MAX_ADDRESS, InternetUtils.toUnsigned(InternetUtils.parseIpv4Address("255.255.255.255")));
     }
 
     @Test
     public void malformedAddressesAreRejected() {
         for (final String address : new String[]{"", "1.2.3", "1.2.3.4.5", "1.2.3.256", "1.2.3.-1", "a.b.c.d", "1.2.3.", "1..3.4"}) {
-            assertThrows(AddressParseException.class, () -> InetUtils.parseIpv4Address(address),
+            assertThrows(AddressParseException.class, () -> InternetUtils.parseIpv4Address(address),
                 "should have rejected \"" + address + "\"");
         }
     }

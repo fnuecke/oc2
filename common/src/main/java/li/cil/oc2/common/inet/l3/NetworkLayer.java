@@ -2,9 +2,9 @@
 
 package li.cil.oc2.common.inet.l3;
 
-import li.cil.oc2.common.inet.InetUtils;
 import li.cil.oc2.common.inet.l4.TransportLayer;
 import li.cil.oc2.common.inet.l4.TransportMessage;
+import li.cil.oc2.common.inet.util.InternetUtils;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
@@ -166,7 +166,7 @@ public final class NetworkLayer {
         packet.putInt(destinationIpAddress);
 
         packet.position(start);
-        final short checksum = InetUtils.rfc1071Checksum(packet, IPv4_HEADER_SIZE);
+        final short checksum = InternetUtils.rfc1071Checksum(packet, IPv4_HEADER_SIZE);
         packet.putShort(start + 10, checksum);
         packet.position(start);
     }
@@ -218,7 +218,7 @@ public final class NetworkLayer {
         packet.limit(packet.position());
 
         packet.position(bodyStart);
-        final short checksum = InetUtils.rfc1071Checksum(packet);
+        final short checksum = InternetUtils.rfc1071Checksum(packet);
         packet.putShort(bodyStart + 2, checksum);
 
         writeIpv4Header(packet, start, PROTOCOL_ICMP,

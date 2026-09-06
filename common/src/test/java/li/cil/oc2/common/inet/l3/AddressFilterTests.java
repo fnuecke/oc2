@@ -3,8 +3,8 @@
 package li.cil.oc2.common.inet.l3;
 
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.inet.AddressParseException;
-import li.cil.oc2.common.inet.InetUtils;
+import li.cil.oc2.common.inet.util.AddressParseException;
+import li.cil.oc2.common.inet.util.InternetUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class AddressFilterTests {
     private static int ip(final String address) {
         try {
-            return InetUtils.parseIpv4Address(address);
+            return InternetUtils.parseIpv4Address(address);
         } catch (final AddressParseException e) {
             throw new AssertionError(e);
         }

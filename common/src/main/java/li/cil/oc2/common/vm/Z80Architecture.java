@@ -49,7 +49,7 @@ public final class Z80Architecture extends AbstractArchitecture {
         this.uart = new UART16550A();
         this.ioAdapter = new IODeviceBusAdapter(config.runtime());
 
-        board.getCpu().setFrequency(Constants.Z80_CPU_FREQUENCY);
+        board.getCpu().setFrequency(li.cil.oc2.common.Config.z80CycleBudgetPerSecond);
 
         final ByteBuffer romData = ByteBuffer.wrap(bootRom).order(ByteOrder.LITTLE_ENDIAN);
         board.setBootRom(new FlashMemoryDevice(romData, true));

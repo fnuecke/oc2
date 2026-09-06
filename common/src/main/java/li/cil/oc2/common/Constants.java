@@ -26,9 +26,6 @@ public final class Constants {
 
     public static final int FLOPPY_SIZE = 512 * KILOBYTE;
 
-    public static final int R5_CPU_FREQUENCY = 25_000_000;
-    public static final int Z80_CPU_FREQUENCY = 4_000_000;
-
     // The largest binary payload a VM accepts from a guest in one RPC call.
     public static final int RPC_MAX_PAYLOAD_SIZE = 512 * KILOBYTE;
 

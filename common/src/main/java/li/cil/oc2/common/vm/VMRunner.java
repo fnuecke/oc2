@@ -6,6 +6,7 @@ import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
 import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
 import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
+import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
@@ -23,9 +24,7 @@ public class VMRunner implements Runnable {
 
     private static final int TICKS_PER_SECOND = 20;
     private static final int TIMESLICE_IN_MS = 500 / TICKS_PER_SECOND;
-
-    private static final ExecutorService VM_RUNNERS = Executors.newFixedThreadPool(
-        Math.max(1, Runtime.getRuntime().availableProcessors()), WorkerThread::new);
+    private static ExecutorService vmRunners;
 
     // --------------------------------------------------------------------- //
 
@@ -67,7 +66,7 @@ public class VMRunner implements Runnable {
         final int timeQuota = timeQuotaInMillis.updateAndGet(x -> Math.min(x + TIMESLICE_IN_MS, TIMESLICE_IN_MS));
         final boolean needsScheduling = lastSchedule == null || lastSchedule.isDone() || lastSchedule.isCancelled();
         if (cycleLimit > 0 && timeQuota > 0 && needsScheduling) {
-            lastSchedule = VM_RUNNERS.submit(this);
+            lastSchedule = getOrCreateRunners().submit(this);
         }
     }
 
@@ -137,6 +136,18 @@ public class VMRunner implements Runnable {
     }
 
     // --------------------------------------------------------------------- //
+
+    private static synchronized ExecutorService getOrCreateRunners() {
+        if (vmRunners == null) {
+            final int configured = Config.workerCount;
+            final int count = Math.max(1, configured > 0
+                ? configured
+                : (Runtime.getRuntime().availableProcessors() - 2));
+            LOGGER.info("Running virtual machines on {} worker thread(s).", count);
+            vmRunners = Executors.newFixedThreadPool(count, WorkerThread::new);
+        }
+        return vmRunners;
+    }
 
     private void runUntilBudgetExhausted() {
         do {

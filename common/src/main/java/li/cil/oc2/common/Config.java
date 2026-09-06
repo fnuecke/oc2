@@ -16,6 +16,25 @@ public final class Config {
     @Path("vm")
     public static long maxAllocatedMemory = 2L * 1024 * Constants.MEGABYTE;
 
+    @Path("vm")
+    @Min(0)
+    @Comment({
+        "Number of worker threads used to run virtual machines.",
+        "Leave zero for automatic. Controls overall machine load. Server tick is not measurably",
+        "impacted by virtual machines, this just controls overall maximum machine load."
+    })
+    public static int workerCount;
+
+    @Path("vm")
+    @Min(1)
+    @Comment("Cycles a RISC-V computer may retire per second, i.e. its clock speed.")
+    public static int riscvCycleBudgetPerSecond = 25_000_000;
+
+    @Path("vm")
+    @Min(1)
+    @Comment("Cycles a Z80 computer may retire per second, i.e. its clock speed.")
+    public static int z80CycleBudgetPerSecond = 4_000_000;
+
     @Path("energy.blocks")
     public static double busCableEnergyPerTick = 0.1;
     @Path("energy.blocks")

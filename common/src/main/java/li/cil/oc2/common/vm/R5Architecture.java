@@ -40,7 +40,7 @@ public final class R5Architecture extends AbstractArchitecture {
         builtinDevices.rtcMinecraft.setGameTimeSource(config.gameTimeProvider());
         this.rpcAdapter = new RPCDeviceBusAdapter(builtinDevices.getRpcPort(), builtinDevices.getBlobPort(), builtinDevices.getEventPort());
 
-        board.getCpu().setFrequency(Constants.R5_CPU_FREQUENCY);
+        board.getCpu().setFrequency(li.cil.oc2.common.Config.riscvCycleBudgetPerSecond);
         board.setBootArguments("root=/dev/vda rw");
         board.setStandardOutputDevice(builtinDevices.uart);
         board.setFirmwareSize(Constants.FLASH_MEMORY_SIZE);

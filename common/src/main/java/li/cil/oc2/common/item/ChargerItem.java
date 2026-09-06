@@ -16,7 +16,7 @@ public final class ChargerItem extends ModBlockItem implements CreativeTabItemPr
 
     @Override
     public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
-        if (Config.chargerUseEnergy()) {
+        if (Config.chargersUseEnergy()) {
             output.accept(new ItemStack(this));
         }
     }

@@ -59,14 +59,61 @@ while true do
     end
 end
 
+local defaultGateway = ipA .. "." .. ipB .. "." .. ipC .. ".254"
+local gateway
+while true do
+    io.write("Internet gateway address, '-' for none [" .. defaultGateway .. "]: ")
+    io.flush()
+    local input = io.read()
+    if not input or input == "" then
+        gateway = defaultGateway
+        break
+    elseif input == "-" then
+        gateway = ""
+        break
+    elseif input:match("^%d+%.%d+%.%d+%.%d+$") then
+        gateway = input
+        break
+    else
+        io.write("Invalid IP address format. Enter '-' for none.\n")
+    end
+end
+
+local nameServer
+if gateway ~= "" then
+    while true do
+        io.write("Name server [1.1.1.1]: ")
+        io.flush()
+        nameServer = io.read()
+        if not nameServer or nameServer == "" then
+            nameServer = "1.1.1.1"
+        end
+
+        if not nameServer:match("^%d+%.%d+%.%d+%.%d+$") then
+            io.write("Invalid IP address format.\n")
+        else
+            break
+        end
+    end
+end
+
 local file = assert(io.open("/etc/network/interfaces", "a"))
 file:write("\n")
 file:write("auto eth0\n")
 file:write("iface eth0 inet static\n")
 file:write("  address " .. ip .. "\n")
 file:write("  netmask " .. mask .. "\n")
+if gateway ~= "" then
+    file:write("  gateway " .. gateway .. "\n")
+end
 
 assert(file:close())
+
+if nameServer then
+    local resolv = assert(io.open("/etc/resolv.conf", "w"))
+    resolv:write("nameserver " .. nameServer .. "\n")
+    assert(resolv:close())
+end
 
 os.execute("ifup eth0")
 
@@ -109,8 +156,13 @@ if dhcpServer == "y" or dhcpServer == "Y" then
     local file = assert(io.open("/etc/dnsmasq.conf", "a"))
     file:write("dhcp-range="..dhcpRangeStart..","..dhcpRangeEnd..","..mask..",12h\n")
     file:write("dhcp-authoritative\n")
+    if gateway ~= "" then
+        file:write("dhcp-option=3,"..gateway.."\n")
+        file:write("dhcp-option=6,"..ip.."\n")
+    end
 
     assert(file:close())
 
-    os.execute("/etc/init.d/*dnsmasq start")
+    os.execute("if [ -f /etc/init.d/dnsmasq ]; then mv /etc/init.d/dnsmasq /etc/init.d/S80dnsmasq; fi")
+    os.execute("/etc/init.d/S80dnsmasq start")
 end

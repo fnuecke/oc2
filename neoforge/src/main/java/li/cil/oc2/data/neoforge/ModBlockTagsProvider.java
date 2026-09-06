@@ -35,6 +35,7 @@ public final class ModBlockTagsProvider extends BlockTagsProvider {
             BUS_CABLE.get(),
             NETWORK_CONNECTOR.get(),
             NETWORK_HUB.get(),
+            INTERNET_GATEWAY.get(),
             REDSTONE_INTERFACE.get(),
             DISK_DRIVE.get(),
             FLASH_DRIVE.get(),

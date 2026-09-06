@@ -80,6 +80,19 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ShapedRecipeBuilder
+            .shaped(RecipeCategory.MISC, Items.INTERNET_GATEWAY.get())
+            .pattern("IGI")
+            .pattern("XTX")
+            .pattern("IBI")
+            .define('I', Tags.Items.INGOTS_GOLD)
+            .define('G', Items.NETWORK_CONNECTOR.get())
+            .define('X', Items.BUS_INTERFACE.get())
+            .define('T', Items.TRANSISTOR.get())
+            .define('B', Items.CIRCUIT_BOARD.get())
+            .unlockedBy("has_network_connector", inventoryChange(Items.NETWORK_CONNECTOR.get()))
+            .save(consumer);
+
+        ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.REDSTONE_INTERFACE.get())
             .pattern("ICI")
             .pattern("XTX")

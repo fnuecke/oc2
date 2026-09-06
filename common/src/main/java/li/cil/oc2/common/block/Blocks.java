@@ -22,6 +22,7 @@ public final class Blocks {
     public static final RegistrySupplier<KeyboardBlock> KEYBOARD = BLOCKS.register("keyboard", KeyboardBlock::new);
     public static final RegistrySupplier<NetworkConnectorBlock> NETWORK_CONNECTOR = BLOCKS.register("network_connector", NetworkConnectorBlock::new);
     public static final RegistrySupplier<NetworkHubBlock> NETWORK_HUB = BLOCKS.register("network_hub", NetworkHubBlock::new);
+    public static final RegistrySupplier<InternetGatewayBlock> INTERNET_GATEWAY = BLOCKS.register("internet_gateway", InternetGatewayBlock::new);
     public static final RegistrySupplier<ProjectorBlock> PROJECTOR = BLOCKS.register("projector", ProjectorBlock::new);
     public static final RegistrySupplier<RedstoneInterfaceBlock> REDSTONE_INTERFACE = BLOCKS.register("redstone_interface", RedstoneInterfaceBlock::new);
 

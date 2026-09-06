@@ -60,6 +60,7 @@ public final class Constants {
     public static final String TOOLTIP_DATA_CORRUPTED_HINT = key("tooltip.{mod}.data_corrupted.hint");
     public static final String TOOLTIP_DATA_INCONSISTENT = key("tooltip.{mod}.data_inconsistent");
     public static final String TOOLTIP_DATA_INCONSISTENT_HINT = key("tooltip.{mod}.data_inconsistent.hint");
+    public static final String TOOLTIP_INTERNET_DISABLED = key("tooltip.{mod}.internet_disabled");
     public static final String TOOLTIP_CONFIRM = key("tooltip.{mod}.confirm");
     public static final String TOOLTIP_CANCEL = key("tooltip.{mod}.cancel");
 

@@ -21,6 +21,11 @@ Once you have a network setup running, with multiple computers in one network, y
 
 Note that `scp` and `ssh` are the client tools. Reaching a computer *from* elsewhere needs a server running on it. See the "Daemons" section below.
 
+## The Internet
+To reach a world outside this dimension, a network needs an [internet gateway](block/internet_gateway.md) on it. Computers then use their ordinary [network interface cards](item/network_interface_card.md) and route through it.
+
+There is no DHCP and no name server on the far side, so set an address, a route and a name server yourself. See the [internet gateway](block/internet_gateway.md) entry for an example.
+
 ## Daemons
 To keep idle computers cheap, the network daemons are shipped but not started at boot. Start the one you need by hand:
 

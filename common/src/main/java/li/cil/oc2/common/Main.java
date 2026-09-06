@@ -14,6 +14,7 @@ import li.cil.oc2.common.bus.device.rpc.RPCTypeAdapters;
 import li.cil.oc2.common.bus.device.vm.item.NetworkTunnelDevice;
 import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
+import li.cil.oc2.common.inet.InternetManager;
 import li.cil.oc2.common.item.ItemGroup;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.RecipeSerializers;
@@ -72,6 +73,7 @@ public final class Main {
         FileSystems.initialize();
         RPCItemStackTagFilters.initialize();
         NetworkTunnelDevice.TunnelManager.initialize();
+        InternetManager.initialize();
     }
 
     private Main() {

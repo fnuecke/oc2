@@ -6,6 +6,8 @@ import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.common.config.*;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @WorldRestart
@@ -28,6 +30,10 @@ public final class Config {
     public static int projectorEnergyPerTick = 20;
     @Path("energy.blocks")
     public static int projectorEnergyStorage = 2000;
+    @Path("energy.blocks")
+    public static int internetGatewayEnergyPerPacket = 20;
+    @Path("energy.blocks")
+    public static int internetGatewayEnergyStorage = 2000;
 
     @Path("energy.entities")
     public static double robotCpuEnergyMultiplier = 0.5;
@@ -83,6 +89,84 @@ public final class Config {
     @Path("admin.virtual_network")
     public static int hubEthernetFramesPerTick = 32;
 
+    @Path("admin.internet")
+    @Comment({
+        "Whether computers may open connections to the outside world.",
+        "Traffic leaves from this server's address, so anything a computer reaches sees the",
+        "connection as coming from the server, not from the player. The address and port filters",
+        "below decide what is reachable; turn this off to refuse everything."
+    })
+    public static boolean internetEnabled = true;
+
+    @Path("admin.internet")
+    @Comment({
+        "Addresses computers may NOT reach, as address (1.2.3.4), CIDR block (10.0.0.0/8),",
+        "inclusive range (1.2.3.4-1.2.3.9), local interface (@eth0 or @2), or host name.",
+        "Host names are re-resolved periodically.",
+        "The defaults cover loopback, the private ranges, and the link-local range that carries",
+        "cloud instance metadata. They cannot cover this server's own public address, which",
+        "behind NAT is on none of its interfaces: add it by hand if computers must not dial",
+        "back into services this machine hosts."
+    })
+    @ItemType(String.class)
+    public static List<String> internetDeniedHosts = new ArrayList<>(List.of(
+        "0.0.0.0/8",
+        "10.0.0.0/8",
+        "100.64.0.0/10",
+        "127.0.0.0/8",
+        "169.254.0.0/16",
+        "172.16.0.0/12",
+        "192.0.0.0/24",
+        "192.168.0.0/16",
+        "198.18.0.0/15",
+        "192.88.99.0/24",
+        "224.0.0.0/4",
+        "240.0.0.0/4"
+    ));
+
+    @Path("admin.internet")
+    @Comment({
+        "Addresses computers MAY reach, in the same syntax as the denied list.",
+        "Empty allows everything that is not denied. With any entry present, only listed addresses",
+        "are permitted, minus anything the denied list covers."
+    })
+    @ItemType(String.class)
+    public static List<String> internetAllowedHosts = new ArrayList<>();
+
+    @Path("admin.internet")
+    @Comment({
+        "Deny every subnet this server's own network interfaces sit on.",
+        "Re-resolved periodically so interfaces brought up later are covered, too."
+    })
+    public static boolean internetDenyLocalSubnets = true;
+
+    @Path("admin.internet")
+    @Comment("Ports computers may NOT connect to, as single ports or inclusive from-to ranges.")
+    @ItemType(String.class)
+    public static List<String> internetDeniedPorts = new ArrayList<>(List.of(
+        "25", "465", "587",
+        "137-139", "445",
+        "1900",
+        "3389",
+        "11211"
+    ));
+
+    @Path("admin.internet")
+    @Comment("Concurrent connections across the whole server.")
+    @Min(1)
+    @Max(4096)
+    public static int internetSessionsTotal = 128;
+
+    @Path("admin.internet")
+    @Comment("Maximum throughput for one gateway, in bytes per second, each way.")
+    @Min(30280)
+    public static int internetBytesPerSecond = 64 * 1024;
+
+    @Path("admin.internet")
+    @Comment("Maximum throughput across all gateways on the server, in bytes per second, each way.")
+    @Min(30280)
+    public static int internetBytesPerSecondTotal = 512 * 1024;
+
     public static int cpuEnergyPerTick(@Nullable final ArchitectureType architecture) {
         if (architecture == null) {
             return 0;
@@ -101,7 +185,7 @@ public final class Config {
         return computerEnergyStorage > 0;
     }
 
-    public static boolean chargerUseEnergy() {
+    public static boolean chargersUseEnergy() {
         return chargerEnergyPerTick > 0 && chargerEnergyStorage > 0;
     }
 
@@ -111,5 +195,9 @@ public final class Config {
 
     public static boolean robotsUseEnergy() {
         return robotEnergyStorage > 0;
+    }
+
+    public static boolean internetGatewaysUseEnergy() {
+        return internetGatewayEnergyPerPacket > 0 && internetGatewayEnergyStorage > 0;
     }
 }

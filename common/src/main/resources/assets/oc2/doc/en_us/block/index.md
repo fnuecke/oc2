@@ -12,6 +12,7 @@ interface](redstone_interface.md), which connect from multiple sides.
 - [Charger](charger.md)
 - [Computer](computer.md)
 - [Disk Drive](disk_drive.md)
+- [Internet Gateway](internet_gateway.md)
 - [Flash Drive](flash_drive.md)
 - [Keyboard](keyboard.md)
 - [Network Connector](network_connector.md)

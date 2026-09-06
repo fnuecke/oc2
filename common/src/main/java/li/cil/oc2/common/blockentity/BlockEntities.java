@@ -30,6 +30,7 @@ public final class BlockEntities {
     public static final RegistrySupplier<BlockEntityType<KeyboardBlockEntity>> KEYBOARD = register(Blocks.KEYBOARD, KeyboardBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<NetworkConnectorBlockEntity>> NETWORK_CONNECTOR = register(Blocks.NETWORK_CONNECTOR, NetworkConnectorBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<NetworkHubBlockEntity>> NETWORK_HUB = register(Blocks.NETWORK_HUB, NetworkHubBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<InternetGatewayBlockEntity>> INTERNET_GATEWAY = register(Blocks.INTERNET_GATEWAY, InternetGatewayBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<ProjectorBlockEntity>> PROJECTOR = register(Blocks.PROJECTOR, ProjectorBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<RedstoneInterfaceBlockEntity>> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE, RedstoneInterfaceBlockEntity::new);
 

@@ -32,6 +32,7 @@ public final class Items {
     public static final RegistrySupplier<Item> KEYBOARD = register(Blocks.KEYBOARD);
     public static final RegistrySupplier<Item> NETWORK_CONNECTOR = register(Blocks.NETWORK_CONNECTOR);
     public static final RegistrySupplier<Item> NETWORK_HUB = register(Blocks.NETWORK_HUB);
+    public static final RegistrySupplier<Item> INTERNET_GATEWAY = register(Blocks.INTERNET_GATEWAY);
     public static final RegistrySupplier<Item> PROJECTOR = register(Blocks.PROJECTOR);
     public static final RegistrySupplier<Item> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE);
 

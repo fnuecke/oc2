@@ -42,6 +42,7 @@ public final class Network {
         registerMessage(OpenComputerTerminalMessage.class, OpenComputerTerminalMessage::new, NetworkManager.clientToServer());
 
         registerMessage(NetworkConnectorConnectionsMessage.class, NetworkConnectorConnectionsMessage::new, NetworkManager.serverToClient());
+        registerMessage(InternetGatewayStateMessage.class, InternetGatewayStateMessage::new, NetworkManager.serverToClient());
 
         registerMessage(RobotTerminalOutputMessage.class, RobotTerminalOutputMessage::new, NetworkManager.serverToClient());
         registerMessage(RobotTerminalInputMessage.class, RobotTerminalInputMessage::new, NetworkManager.clientToServer());

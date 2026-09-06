@@ -82,10 +82,7 @@ public final class NetworkCableRenderer {
 
         final Vec3 eye = camera.getPosition();
 
-        final Matrix4f viewMatrix = new Matrix4f(modelViewMatrix)
-            .translate((float) -eye.x, (float) -eye.y, (float) -eye.z);
-
-        renderCables(level, viewMatrix, eye, connections, frustum::isVisible);
+        renderCables(level, modelViewMatrix, eye, connections, frustum::isVisible);
     }
 
     private static void renderCables(final BlockAndTintGetter level, final Matrix4f viewMatrix, final Vec3 eye, final ArrayList<Connection> connections, final Predicate<AABB> filter) {
@@ -154,12 +151,13 @@ public final class NetworkCableRenderer {
                 level.getBrightness(LightLayer.SKY, cablePos));
 
             final int o = i * 3;
-            cableLeft[o] = (float) (p.x - n.x);
-            cableLeft[o + 1] = (float) (p.y - n.y);
-            cableLeft[o + 2] = (float) (p.z - n.z);
-            cableRight[o] = (float) (p.x + n.x);
-            cableRight[o + 1] = (float) (p.y + n.y);
-            cableRight[o + 2] = (float) (p.z + n.z);
+            final double x = p.x - eye.x, y = p.y - eye.y, z = p.z - eye.z;
+            cableLeft[o] = (float) (x - n.x);
+            cableLeft[o + 1] = (float) (y - n.y);
+            cableLeft[o + 2] = (float) (z - n.z);
+            cableRight[o] = (float) (x + n.x);
+            cableRight[o + 1] = (float) (y + n.y);
+            cableRight[o + 2] = (float) (z + n.z);
         }
     }
 

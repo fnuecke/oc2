@@ -21,7 +21,7 @@ ip route add default via 10.0.0.1
 
 The gateway answers to whichever address you point the default route at. There is no name server behind it either, so set one in `/etc/resolv.conf`. Name lookups then travel as ordinary traffic, and are subject to the same address restrictions as everything else.
 
-`setup-network.lua` does all of this for you, and will offer to run a DHCP server on the computer as well. Every other computer on the network then needs no setup at all: it asks the DHCP server for an address, the route out and a name server.
+The commands above last until the next reboot. `setup-network.lua` does all of this for you and writes it to `/etc/network/interfaces`, so it comes back on its own. It will also offer to run a DHCP server on the computer. Every other computer on the network then needs no setup at all: it asks the DHCP server for an address, the route out and a name server.
 
 TCP, UDP and ping are supported. Connections can only be opened outwards: nothing on the internet can reach a computer.
 

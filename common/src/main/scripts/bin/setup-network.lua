@@ -106,14 +106,11 @@ file:write("  netmask " .. mask .. "\n")
 if gateway ~= "" then
     file:write("  gateway " .. gateway .. "\n")
 end
+if nameServer then
+    file:write("  up echo 'nameserver " .. nameServer .. "' > /etc/resolv.conf\n")
+end
 
 assert(file:close())
-
-if nameServer then
-    local resolv = assert(io.open("/etc/resolv.conf", "w"))
-    resolv:write("nameserver " .. nameServer .. "\n")
-    assert(resolv:close())
-end
 
 os.execute("ifup eth0")
 

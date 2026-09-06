@@ -4,7 +4,9 @@ package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.item.NetworkInterfaceCardItem;
 import li.cil.oc2.common.util.ItemStackUtils;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -22,6 +24,40 @@ public final class ItemDataTests {
     private static final String KEY = "test_key";
 
     // --------------------------------------------------------------------- //
+
+    @GameTest(template = TEMPLATE)
+    public static void networkCardSideConfigurationPersists(final GameTestHelper helper) {
+        final ItemStack card = new ItemStack(Items.NETWORK_INTERFACE_CARD.get());
+
+        for (final Direction side : Direction.values()) {
+            if (!NetworkInterfaceCardItem.getSideConfiguration(card, side)) {
+                throw new GameTestAssertException("a fresh card should enable every side, but " + side + " was off");
+            }
+        }
+        if (NetworkInterfaceCardItem.hasConfiguration(card)) {
+            throw new GameTestAssertException("a fresh card should not report a configuration");
+        }
+
+        NetworkInterfaceCardItem.setSideConfiguration(card, Direction.UP, false);
+
+        if (NetworkInterfaceCardItem.getSideConfiguration(card, Direction.UP)) {
+            throw new GameTestAssertException("disabling a side did not persist on the stack");
+        }
+        if (!NetworkInterfaceCardItem.getSideConfiguration(card, Direction.NORTH)) {
+            throw new GameTestAssertException("disabling one side must not disable the others");
+        }
+        if (!NetworkInterfaceCardItem.hasConfiguration(card)) {
+            throw new GameTestAssertException("a configured card should report that it is configured");
+        }
+
+        NetworkInterfaceCardItem.setSideConfiguration(card, Direction.UP, true);
+
+        if (!NetworkInterfaceCardItem.getSideConfiguration(card, Direction.UP)) {
+            throw new GameTestAssertException("re-enabling a side did not persist on the stack");
+        }
+
+        helper.succeed();
+    }
 
     @GameTest(template = TEMPLATE)
     public static void modDataMutationPersists(final GameTestHelper helper) {

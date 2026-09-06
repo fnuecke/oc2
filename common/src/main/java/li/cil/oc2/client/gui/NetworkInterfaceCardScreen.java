@@ -197,17 +197,10 @@ public final class NetworkInterfaceCardScreen extends Screen {
         private final ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
         private final BakedModel model = itemRenderer.getModel(computerItemStack, null, null, 0);
 
-        private static Quaternionf fromXYZDegrees(final Vector3f degrees) {
-            return new Quaternionf().rotationXYZ(
-                (float) Math.toRadians(degrees.x()),
-                (float) Math.toRadians(degrees.y()),
-                (float) Math.toRadians(degrees.z()));
-        }
-
         @Nullable
         private Direction getFocusedSide(final float mouseX, final float mouseY, final Vector3f rotation) {
             // Rotate ray inversely around block to represent visual block rotation.
-            final Quaternionf quaternion = fromXYZDegrees(rotation);
+            final Quaternionf quaternion = fromXYZDegrees(toRenderRotation(rotation));
             quaternion.conjugate();
 
             // Move ray in screen space to mouse position.
@@ -236,8 +229,7 @@ public final class NetworkInterfaceCardScreen extends Screen {
             RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             RenderSystem.setShaderColor(1, 1, 1, 1);
 
-            final Vector3f renderRotation = new Vector3f(rotation);
-            renderRotation.add(0, 180, 0);
+            final Vector3f renderRotation = toRenderRotation(rotation);
 
             final Matrix4fStack stack = RenderSystem.getModelViewStack();
             stack.pushMatrix();
@@ -304,6 +296,17 @@ public final class NetworkInterfaceCardScreen extends Screen {
             buffer.addVertex(poseStack.last().pose(), 0, 1, 0).setUv(0, 1);
             buffer.addVertex(poseStack.last().pose(), 1, 1, 0).setUv(1, 1);
             buffer.addVertex(poseStack.last().pose(), 1, 0, 0).setUv(1, 0);
+        }
+
+        private static Vector3f toRenderRotation(final Vector3f rotation) {
+            return new Vector3f(rotation).add(0, 180, 0);
+        }
+
+        private static Quaternionf fromXYZDegrees(final Vector3f degrees) {
+            return new Quaternionf().rotationXYZ(
+                (float) Math.toRadians(degrees.x()),
+                (float) Math.toRadians(degrees.y()),
+                (float) Math.toRadians(degrees.z()));
         }
     }
 }

@@ -37,19 +37,20 @@ public final class NetworkInterfaceCardItem extends ModItem {
     public static void setSideConfiguration(final ItemStack stack, final Direction side, final boolean enabled) {
         final int index = side.get3DDataValue();
 
-        final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
-        final byte[] values;
-        if (tag.contains(SIDE_CONFIGURATION_TAG_NAME, NBTTagIds.TAG_BYTE_ARRAY) &&
-            tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME).length == Constants.BLOCK_FACE_COUNT) {
-            values = tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME);
-        } else {
-            values = new byte[Constants.BLOCK_FACE_COUNT];
-            Arrays.fill(values, (byte) 1);
-        }
+        ItemStackUtils.modifyModDataTag(stack, tag -> {
+            final byte[] values;
+            if (tag.contains(SIDE_CONFIGURATION_TAG_NAME, NBTTagIds.TAG_BYTE_ARRAY) &&
+                tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME).length == Constants.BLOCK_FACE_COUNT) {
+                values = tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME);
+            } else {
+                values = new byte[Constants.BLOCK_FACE_COUNT];
+                Arrays.fill(values, (byte) 1);
+            }
 
-        values[index] = (byte) (enabled ? 1 : 0);
+            values[index] = (byte) (enabled ? 1 : 0);
 
-        tag.putByteArray(SIDE_CONFIGURATION_TAG_NAME, values);
+            tag.putByteArray(SIDE_CONFIGURATION_TAG_NAME, values);
+        });
     }
 
     public static boolean getSideConfiguration(final ItemStack stack, @Nullable final Direction side) {

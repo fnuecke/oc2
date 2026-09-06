@@ -42,8 +42,9 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
         return CODEC;
     }
 
-    private static final VoxelShape NEG_Z_SHAPE = Shapes.or(Block.box(0, 0, 0, 16, 8, 16), // main body
-        Block.box(0, 8, 8, 16, 12, 16) // top
+    private static final VoxelShape NEG_Z_SHAPE = Shapes.or(
+        Block.box(0, 0, 0, 16, 8, 16), // main body
+        Block.box(0, 8, 8, 16, 11, 16) // top
     );
     private static final VoxelShape NEG_X_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_Z_SHAPE);
     private static final VoxelShape POS_Z_SHAPE = VoxelShapeUtils.rotateHorizontalClockwise(NEG_X_SHAPE);

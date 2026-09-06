@@ -6,7 +6,6 @@ public final class EchoSession extends AbstractSession {
     private final SessionKey.Echo key;
     private SessionState state = SessionState.NEW;
     private int sequenceNumber;
-    private int timeToLive;
 
     // --------------------------------------------------------------------- //
 
@@ -51,14 +50,6 @@ public final class EchoSession extends AbstractSession {
 
     public void setSequenceNumber(final short sequenceNumber) {
         this.sequenceNumber = Short.toUnsignedInt(sequenceNumber);
-    }
-
-    public int getTimeToLive() {
-        return timeToLive;
-    }
-
-    public void setTimeToLive(final byte timeToLive) {
-        this.timeToLive = Byte.toUnsignedInt(timeToLive);
     }
 
     @Override

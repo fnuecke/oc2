@@ -82,7 +82,7 @@ public final class TransportLayer {
         final ByteBuffer data = message.getData();
 
         switch (protocol) {
-            case PROTOCOL_ICMP -> sendIcmp(message, data, sourceIpAddress, destinationIpAddress);
+            case PROTOCOL_ICMP -> sendIcmp(data, sourceIpAddress, destinationIpAddress);
             case PROTOCOL_UDP -> sendUdp(data, sourceIpAddress, destinationIpAddress);
             case PROTOCOL_TCP -> sendTcp(data, sourceIpAddress, destinationIpAddress);
             default -> {
@@ -108,7 +108,6 @@ public final class TransportLayer {
     // --------------------------------------------------------------------- //
 
     private void sendIcmp(
-        final TransportMessage message,
         final ByteBuffer data,
         final int sourceIpAddress,
         final int destinationIpAddress
@@ -135,7 +134,6 @@ public final class TransportLayer {
 
         session.touch();
         session.setSequenceNumber(sequence);
-        session.setTimeToLive(message.getTimeToLive());
         sessionLayer.sendSession(session, data);
         afterSend(session);
     }

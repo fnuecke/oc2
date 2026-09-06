@@ -4,12 +4,7 @@ package li.cil.oc2.common.inet.socket;
 
 import li.cil.oc2.common.inet.l2.LinkLocalLayer;
 import li.cil.oc2.common.inet.l3.NetworkLayer;
-import li.cil.oc2.common.inet.l4.AbstractSession;
-import li.cil.oc2.common.inet.l4.DatagramSession;
-import li.cil.oc2.common.inet.l4.EchoSession;
-import li.cil.oc2.common.inet.l4.SessionLayer;
-import li.cil.oc2.common.inet.l4.StreamSession;
-import li.cil.oc2.common.inet.l4.TransportLayer;
+import li.cil.oc2.common.inet.l4.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,7 +22,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class SocketSessionLayer implements SessionLayer {
@@ -41,8 +35,7 @@ public final class SocketSessionLayer implements SessionLayer {
     private final SocketManager socketManager;
     private final String originDescription;
     private final SocketManager.ReadySessions ready = new SocketManager.ReadySessions();
-    private final Executor echoExecutor;
-    private final int echoTimeoutMs;
+    private final ReachabilityProbe reachabilityProbe;
     private final Set<AbstractSession> pendingWrites = new LinkedHashSet<>();
     private final Set<AbstractSession> openSessions = new LinkedHashSet<>();
     private final AtomicReference<EchoResponse> echoResponse = new AtomicReference<>();
@@ -52,13 +45,11 @@ public final class SocketSessionLayer implements SessionLayer {
     public SocketSessionLayer(
         final String originDescription,
         final SocketManager socketManager,
-        final Executor echoExecutor,
-        final int echoTimeoutMs
+        final ReachabilityProbe reachabilityProbe
     ) {
         this.originDescription = originDescription;
         this.socketManager = socketManager;
-        this.echoExecutor = echoExecutor;
-        this.echoTimeoutMs = echoTimeoutMs;
+        this.reachabilityProbe = reachabilityProbe;
     }
 
     // --------------------------------------------------------------------- //
@@ -256,18 +247,10 @@ public final class SocketSessionLayer implements SessionLayer {
         final byte[] payload = new byte[length];
         data.duplicate().get(payload);
         final InetAddress address = session.getDestination().getAddress();
-        final int timeToLive = session.getTimeToLive();
         final int sequenceNumber = session.getSequenceNumber();
 
-        echoExecutor.execute(() -> {
-            try {
-                if (address.isReachable(null, timeToLive, echoTimeoutMs)) {
-                    echoResponse.set(new EchoResponse(session, sequenceNumber, payload));
-                }
-            } catch (final IOException e) {
-                // Unreachable is an answer; the guest sees the probe time out.
-            }
-        });
+        reachabilityProbe.probe(address, () ->
+            echoResponse.set(new EchoResponse(session, sequenceNumber, payload)));
     }
 
     private void sendDatagram(final DatagramSession session, @Nullable final ByteBuffer data) {

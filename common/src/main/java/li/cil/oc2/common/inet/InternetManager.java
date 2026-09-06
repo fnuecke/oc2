@@ -13,6 +13,7 @@ import li.cil.oc2.common.inet.l4.SessionLayer;
 import li.cil.oc2.common.inet.l4.SessionLimits;
 import li.cil.oc2.common.inet.l4.StreamSession;
 import li.cil.oc2.common.inet.l4.TransportLayer;
+import li.cil.oc2.common.inet.socket.ReachabilityProbe;
 import li.cil.oc2.common.inet.socket.SocketManager;
 import li.cil.oc2.common.inet.socket.SocketSessionLayer;
 import li.cil.oc2.common.util.TickUtils;
@@ -50,6 +51,7 @@ public final class InternetManager {
     private final SocketManager socketManager;
     private final ExecutorService internetThread;
     private final ExecutorService echoExecutor;
+    private final ReachabilityProbe reachabilityProbe;
 
     @Nullable
     private final ScheduledExecutorService maintenanceExecutor;
@@ -75,6 +77,7 @@ public final class InternetManager {
             30, TimeUnit.SECONDS, new SynchronousQueue<>(),
             runnable -> daemon(runnable, "OC2 Internet Probe"),
             new ThreadPoolExecutor.DiscardPolicy());
+        reachabilityProbe = new ReachabilityProbe(echoExecutor, ECHO_TIMEOUT_MS);
 
         final int ticksPerSecond = TickUtils.toTicks(Duration.ofSeconds(1));
         bytesPerTick = Math.max(LinkLocalLayer.FRAME_SIZE, Config.internetBytesPerSecond / ticksPerSecond);
@@ -194,8 +197,7 @@ public final class InternetManager {
     }
 
     private LinkLocalLayer buildStack(final String originDescription) {
-        final SessionLayer sessionLayer = new SocketSessionLayer(originDescription, socketManager, echoExecutor,
-            ECHO_TIMEOUT_MS);
+        final SessionLayer sessionLayer = new SocketSessionLayer(originDescription, socketManager, reachabilityProbe);
         final TransportLayer transportLayer = new TransportLayer(sessionLayer, portFilter, limits,
             connections::size,
             StreamSession.TcpConfig.DEFAULT,

@@ -11,6 +11,7 @@ import li.cil.oc2.common.inet.l4.SessionLimits;
 import li.cil.oc2.common.inet.l4.StreamSession;
 import li.cil.oc2.common.inet.l4.TcpHeader;
 import li.cil.oc2.common.inet.l4.TransportLayer;
+import li.cil.oc2.common.inet.socket.ReachabilityProbe;
 import li.cil.oc2.common.inet.socket.SocketManager;
 import li.cil.oc2.common.inet.socket.SocketSessionLayer;
 import org.junit.jupiter.api.AfterEach;
@@ -33,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class InternetStackIntegrationTests {
     private static final short ETHERTYPE_ARP = 0x0806;
     private static final short ETHERTYPE_IPv4 = 0x0800;
+    private static final byte PROTOCOL_ICMP = 1;
     private static final byte PROTOCOL_TCP = 6;
     private static final byte PROTOCOL_UDP = 17;
 
@@ -432,6 +434,32 @@ public class InternetStackIntegrationTests {
         blocked.onStop();
     }
 
+    @Test
+    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    public void anIcmpEchoRequestIsAnsweredWithAnEchoReply() throws Exception {
+        resolveGateway();
+
+        final byte[] payload = "abcdefgh".getBytes(StandardCharsets.UTF_8);
+        send(icmpEchoRequest((short) 0x1234, (short) 7, payload));
+
+        final byte[] reply = pumpUntilEtherType(ETHERTYPE_IPv4);
+
+        final ByteBuffer buffer = ByteBuffer.wrap(reply);
+        final int ipStart = LinkLocalLayer.FRAME_HEADER_SIZE;
+        assertEquals(PROTOCOL_ICMP, buffer.get(ipStart + 9), "expected an ICMP packet");
+
+        final int icmpStart = ipStart + (Byte.toUnsignedInt(buffer.get(ipStart)) & 0xF) * 4;
+        assertEquals(0, buffer.get(icmpStart), "expected an echo reply");
+        assertEquals(0, buffer.get(icmpStart + 1), "an echo reply carries code zero");
+        assertEquals((short) 0x1234, buffer.getShort(icmpStart + 4), "the identifier should come back");
+        assertEquals((short) 7, buffer.getShort(icmpStart + 6), "the sequence number should come back");
+
+        final byte[] echoed = new byte[payload.length];
+        buffer.position(icmpStart + 8);
+        buffer.get(echoed);
+        assertArrayEquals(payload, echoed, "the payload should come back unchanged");
+    }
+
     // --------------------------------------------------------------------- //
 
     private LinkLocalLayer buildStack(final AddressFilter filter, final long timeoutNanos, final SessionLimits limits) {
@@ -441,7 +469,7 @@ public class InternetStackIntegrationTests {
     private LinkLocalLayer buildStack(final AddressFilter filter, final PortFilter ports,
                                       final long timeoutNanos, final SessionLimits limits) {
         final SessionLayer sessionLayer =
-            new SocketSessionLayer("test", socketManager, Runnable::run, 100);
+            new SocketSessionLayer("test", socketManager, new ReachabilityProbe(Runnable::run, 100));
         final TransportLayer transportLayer = new TransportLayer(sessionLayer,
             ports, limits, () -> 1,
             new StreamSession.TcpConfig(8192, 100, 1000), timeoutNanos);
@@ -554,6 +582,31 @@ public class InternetStackIntegrationTests {
         buffer.put(payload);
 
         assertEquals(ipStart + ipLength, buffer.position());
+        return buffer.array();
+    }
+
+    private byte[] icmpEchoRequest(final short identity, final short sequenceNumber, final byte[] payload) {
+        final int icmpLength = 8 + payload.length;
+        final int ipLength = 20 + icmpLength;
+        final ByteBuffer buffer = frame(gatewayMac, GUEST_MAC, ETHERTYPE_IPv4, ipLength);
+
+        buffer.put((byte) 0x45);
+        buffer.put((byte) 0);
+        buffer.putShort((short) ipLength);
+        buffer.putShort((short) 0);
+        buffer.putShort((short) 0x4000);
+        buffer.put((byte) 64);
+        buffer.put(PROTOCOL_ICMP);
+        buffer.putShort((short) 0); // Header checksum; the stack does not verify it.
+        buffer.putInt(GUEST_IP);
+        buffer.putInt(0x7F000001);
+
+        buffer.put((byte) 8); // Echo request.
+        buffer.put((byte) 0);
+        buffer.putShort((short) 0); // Checksum; the stack does not verify it.
+        buffer.putShort(identity);
+        buffer.putShort(sequenceNumber);
+        buffer.put(payload);
         return buffer.array();
     }
 

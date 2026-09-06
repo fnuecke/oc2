@@ -65,7 +65,6 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public VoxelShape getShape(final BlockState state, final BlockGetter level, final BlockPos pos, final CollisionContext context) {
         return switch (state.getValue(FACING)) {

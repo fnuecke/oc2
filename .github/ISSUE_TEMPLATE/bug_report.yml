@@ -1,0 +1,95 @@
+name: Bug report
+description: Report an issue of the mod crashing or behaving in an unexpected way
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: To reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Singleplayer or multiplayer?
+        2. Go to '....'
+        3. Do '....'
+        4. See error '...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: input
+    id: logs
+    attributes:
+      label: Log files
+      description: >-
+        Upload your client and server logs, and the crash report if there is one, to a
+        gist and link them here. Do not paste them into the issue.
+      placeholder: https://gist.github.com/...
+    validations:
+      required: true
+
+  - type: input
+    id: minecraft-version
+    attributes:
+      label: Minecraft version
+      placeholder: "1.21.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: loader
+    attributes:
+      label: Mod loader
+      options:
+        - NeoForge
+        - Fabric
+    validations:
+      required: true
+
+  - type: input
+    id: loader-version
+    attributes:
+      label: Mod loader version
+      placeholder: "21.1.248"
+    validations:
+      required: true
+
+  - type: input
+    id: mod-version
+    attributes:
+      label: OpenComputers II version
+      placeholder: "0.3.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Other mods
+      description: >-
+        The modpack you are using, or the other mods installed alongside this one. Say
+        "none" if you are running the mod on its own.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots or any other context that helps explain the problem.
+    validations:
+      required: false

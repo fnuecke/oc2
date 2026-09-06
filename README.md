@@ -50,12 +50,6 @@ When adding a new block/item, document it (on-device as well as ingame manual). 
 
 By contributing, you accept that the code is licensed under the MIT license.
 
-## License
-
-The code of the mod is licensed under [MIT](LICENSE). The art assets are public domain.
-
-The mod vendors JCodec for sending the projector's frame buffer to clients, which is licensed under the [BSD 2-Clause](LICENSE-JCODEC).
-
 
 [OpenComputers]: https://github.com/MightyPirates/OpenComputers
 [RPC Device]: common/src/main/java/li/cil/oc2/api/bus/device/rpc/RPCDevice.java

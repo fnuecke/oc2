@@ -14,11 +14,11 @@ public final class TransportLayer {
     public static final byte PROTOCOL_ICMP = 1;
     public static final byte PROTOCOL_TCP = 6;
     public static final byte PROTOCOL_UDP = 17;
+    public static final int ICMP_HEADER_SIZE = 8;
 
     private static final byte ICMP_TYPE_ECHO_REPLY = 0;
     private static final byte ICMP_TYPE_ECHO_REQUEST = 8;
     private static final short PORT_ECHO = 7;
-    public static final int ICMP_HEADER_SIZE = 8;
     private static final int UDP_HEADER_SIZE = 8;
     private static final int UDP_CHECKSUM_OFFSET = 6;
     private static final int REPLY_HEADER_SIZE = 8;

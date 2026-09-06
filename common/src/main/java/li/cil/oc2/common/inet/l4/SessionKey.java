@@ -3,6 +3,7 @@
 package li.cil.oc2.common.inet.l4;
 
 import li.cil.oc2.common.inet.InetUtils;
+
 public sealed interface SessionKey {
     int destinationIpAddress();
 

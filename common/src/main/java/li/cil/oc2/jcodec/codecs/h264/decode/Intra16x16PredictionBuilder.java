@@ -111,6 +111,7 @@ public final class Intra16x16PredictionBuilder {
             pixOut[i] = (byte) MathUtil.clip(residual[LUMA_4x4_BLOCK_LUT[i]][LUMA_4x4_POS_LUT[i]] + s0, -128, 127);
     }
 
+    @SuppressWarnings("lossy-conversions")
     public static void lumaDCPred(final boolean leftAvailable, final boolean topAvailable, final byte[] leftRow, final byte[] topLine, final int x,
                                   final byte[][] pred) {
         final int s0 = getDC(leftAvailable, topAvailable, leftRow, topLine, x);

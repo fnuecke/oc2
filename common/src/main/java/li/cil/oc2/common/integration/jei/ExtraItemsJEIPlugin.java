@@ -87,6 +87,7 @@ public class ExtraItemsJEIPlugin implements IModPlugin {
             return getInfo(ingredient);
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public final String getLegacyStringSubtypeInfo(final ItemStack ingredient, final UidContext context) {
             final String info = getInfo(ingredient);

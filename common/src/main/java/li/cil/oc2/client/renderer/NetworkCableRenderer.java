@@ -2,7 +2,6 @@
 
 package li.cil.oc2.client.renderer;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import net.minecraft.client.Camera;
@@ -67,8 +66,7 @@ public final class NetworkCableRenderer {
         removeConnectors(connector -> connector.getLevel() == level);
     }
 
-    public static void render(final PoseStack poseStack, final Camera camera,
-                              final Matrix4f modelViewMatrix, final Frustum frustum) {
+    public static void render(final Camera camera, final Matrix4f modelViewMatrix, final Frustum frustum) {
         validateConnectors();
         validatePairs();
 
@@ -82,22 +80,15 @@ public final class NetworkCableRenderer {
             return;
         }
 
-        final PoseStack stack = poseStack;
-
         final Vec3 eye = camera.getPosition();
 
-        stack.pushPose();
-        stack.mulPose(modelViewMatrix);
-        stack.translate(-eye.x, -eye.y, -eye.z);
+        final Matrix4f viewMatrix = new Matrix4f(modelViewMatrix)
+            .translate((float) -eye.x, (float) -eye.y, (float) -eye.z);
 
-        renderCables(level, stack, eye, connections, frustum::isVisible);
-
-        stack.popPose();
+        renderCables(level, viewMatrix, eye, connections, frustum::isVisible);
     }
 
-    private static void renderCables(final BlockAndTintGetter level, final PoseStack stack, final Vec3 eye, final ArrayList<Connection> connections, final Predicate<AABB> filter) {
-        final Matrix4f viewMatrix = stack.last().pose();
-
+    private static void renderCables(final BlockAndTintGetter level, final Matrix4f viewMatrix, final Vec3 eye, final ArrayList<Connection> connections, final Predicate<AABB> filter) {
         final RenderType renderType = ModRenderType.getNetworkCable();
         final MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
         final VertexConsumer consumer = bufferSource.getBuffer(renderType);

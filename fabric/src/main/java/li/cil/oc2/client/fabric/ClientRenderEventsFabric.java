@@ -11,8 +11,7 @@ import net.minecraft.client.Minecraft;
 public final class ClientRenderEventsFabric {
     public static void initialize() {
         WorldRenderEvents.BEFORE_ENTITIES.register(context ->
-            NetworkCableRenderer.render(context.matrixStack(), context.camera(),
-                context.positionMatrix(), context.frustum()));
+            NetworkCableRenderer.render(context.camera(), context.positionMatrix(), context.frustum()));
 
         WorldRenderEvents.AFTER_TRANSLUCENT.register(context ->
             BusInterfaceNameRenderer.INSTANCE.render(context.matrixStack()));

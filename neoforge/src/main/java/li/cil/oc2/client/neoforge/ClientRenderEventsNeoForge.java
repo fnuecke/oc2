@@ -22,8 +22,7 @@ public final class ClientRenderEventsNeoForge {
     @SubscribeEvent
     public static void handleRenderLevelStage(final RenderLevelStageEvent event) {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) {
-            NetworkCableRenderer.render(event.getPoseStack(), event.getCamera(),
-                event.getModelViewMatrix(), event.getFrustum());
+            NetworkCableRenderer.render(event.getCamera(), event.getModelViewMatrix(), event.getFrustum());
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
             BusInterfaceNameRenderer.INSTANCE.render(event.getPoseStack());
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {

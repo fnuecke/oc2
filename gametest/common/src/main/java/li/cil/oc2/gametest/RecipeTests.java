@@ -17,13 +17,7 @@ import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.block.Blocks;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static li.cil.oc2.gametest.TestSupport.*;
@@ -49,7 +43,7 @@ public final class RecipeTests {
 
         final List<Item> modItems = BuiltInRegistries.ITEM.entrySet().stream()
             .filter(entry -> entry.getKey().location().getNamespace().equals(API.MOD_ID))
-            .map(java.util.Map.Entry::getValue)
+            .map(Map.Entry::getValue)
             .toList();
 
         assertTrue(helper, "expected the mod to register items, found none", !modItems.isEmpty());
@@ -239,16 +233,21 @@ public final class RecipeTests {
 
     @Nullable
     private static Layout layoutOf(final CraftingRecipe recipe) {
+        if (recipe.getIngredients().stream().anyMatch(RecipeTests::isUnsatisfiable)) {
+            return null;
+        }
+
         if (recipe instanceof final ShapedRecipe shaped) {
             return new Layout(shaped.getWidth(), shaped.getHeight(),
                 shaped.getIngredients().stream().map(RecipeTests::itemsOf).toList());
         }
 
-        final List<Set<Item>> ingredients = recipe.getIngredients().stream()
-            .map(RecipeTests::itemsOf)
-            .filter(items -> !items.isEmpty())
-            .toList();
+        final List<Set<Item>> ingredients = recipe.getIngredients().stream().map(RecipeTests::itemsOf).toList();
         return ingredients.isEmpty() ? null : new Layout(0, 0, ingredients);
+    }
+
+    private static boolean isUnsatisfiable(final Ingredient ingredient) {
+        return !ingredient.isEmpty() && ingredient.getItems().length == 0;
     }
 
     private static Set<Item> itemsOf(final Ingredient ingredient) {

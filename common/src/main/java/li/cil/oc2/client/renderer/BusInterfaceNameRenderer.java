@@ -30,7 +30,7 @@ public enum BusInterfaceNameRenderer {
 
     // --------------------------------------------------------------------- //
 
-    public void render(final PoseStack poseStack) {
+    public void render(final PoseStack stack) {
         final Minecraft mc = Minecraft.getInstance();
         final Player player = mc.player;
         if (player == null) {
@@ -63,7 +63,6 @@ public enum BusInterfaceNameRenderer {
             return;
         }
 
-        final PoseStack stack = poseStack;
         stack.pushPose();
 
         final Vec3 camera = mc.gameRenderer.getMainCamera().getPosition();

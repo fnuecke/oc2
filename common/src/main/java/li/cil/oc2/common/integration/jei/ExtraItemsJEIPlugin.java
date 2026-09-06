@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.integration.jei;
 
-import com.google.common.base.Strings;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.ItemStackUtils;
@@ -11,7 +10,7 @@ import li.cil.oc2.common.util.StorageItemUtils;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter;
+import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.nbt.CompoundTag;
@@ -41,28 +40,10 @@ public class ExtraItemsJEIPlugin implements IModPlugin {
         registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.FLOPPY.get(), new ImageSubtypeInterpreter());
     }
 
-    private static final class ComputerSubtypeInterpreter implements IIngredientSubtypeInterpreter<ItemStack> {
-        @Override
-        public String apply(final ItemStack ingredient, final UidContext context) {
-            final CompoundTag itemsTag = NBTUtils.getChildTag(ItemStackUtils.getBlockEntityDataTag(ingredient), ITEMS_TAG_NAME);
-            return itemsTag.isEmpty() ? NONE : stableTagToString(itemsTag);
-        }
-    }
-
-    private static final class RobotSubtypeInterpreter implements IIngredientSubtypeInterpreter<ItemStack> {
-        @Override
-        public String apply(final ItemStack ingredient, final UidContext context) {
-            final CompoundTag itemsTag = NBTUtils.getChildTag(ItemStackUtils.getModDataTag(ingredient), ITEMS_TAG_NAME);
-            return itemsTag.isEmpty() ? NONE : stableTagToString(itemsTag);
-        }
-    }
-
-    private static final class ImageSubtypeInterpreter implements IIngredientSubtypeInterpreter<ItemStack> {
-        @Override
-        public String apply(final ItemStack ingredient, final UidContext context) {
-            final String registryName = ItemStackUtils.getModDataTag(ingredient).getString(StorageItemUtils.IMAGE_TAG_NAME);
-            return Strings.isNullOrEmpty(registryName) ? NONE : registryName;
-        }
+    @Nullable
+    private static String itemsInfo(final CompoundTag rootTag) {
+        final CompoundTag itemsTag = NBTUtils.getChildTag(rootTag, ITEMS_TAG_NAME);
+        return itemsTag.isEmpty() ? null : stableTagToString(itemsTag);
     }
 
     private static String stableTagToString(@Nullable final Tag tag) {
@@ -96,6 +77,48 @@ public class ExtraItemsJEIPlugin implements IModPlugin {
             stringBuilder.append(numericTag.getAsNumber());
         } else {
             stringBuilder.append(tag);
+        }
+    }
+
+    private abstract static class SubtypeInterpreter implements ISubtypeInterpreter<ItemStack> {
+        @Nullable
+        @Override
+        public final Object getSubtypeData(final ItemStack ingredient, final UidContext context) {
+            return getInfo(ingredient);
+        }
+
+        @Override
+        public final String getLegacyStringSubtypeInfo(final ItemStack ingredient, final UidContext context) {
+            final String info = getInfo(ingredient);
+            return info == null ? "" : info;
+        }
+
+        @Nullable
+        protected abstract String getInfo(final ItemStack stack);
+    }
+
+    private static final class ComputerSubtypeInterpreter extends SubtypeInterpreter {
+        @Nullable
+        @Override
+        protected String getInfo(final ItemStack stack) {
+            return itemsInfo(ItemStackUtils.getBlockEntityDataTag(stack));
+        }
+    }
+
+    private static final class RobotSubtypeInterpreter extends SubtypeInterpreter {
+        @Nullable
+        @Override
+        protected String getInfo(final ItemStack stack) {
+            return itemsInfo(ItemStackUtils.getModDataTag(stack));
+        }
+    }
+
+    private static final class ImageSubtypeInterpreter extends SubtypeInterpreter {
+        @Nullable
+        @Override
+        protected String getInfo(final ItemStack stack) {
+            final String registryName = ItemStackUtils.getModDataTag(stack).getString(StorageItemUtils.IMAGE_TAG_NAME);
+            return registryName.isEmpty() ? null : registryName;
         }
     }
 }

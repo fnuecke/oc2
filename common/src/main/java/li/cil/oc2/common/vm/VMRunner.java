@@ -190,7 +190,7 @@ public class VMRunner implements Runnable {
 
     private static final class WorkerThread extends Thread {
         private WorkerThread(final Runnable runnable) {
-            super(runnable, "VirtualMachine Runner");
+            super(runnable, "OC2 VM Runner");
             setDaemon(true);
         }
     }

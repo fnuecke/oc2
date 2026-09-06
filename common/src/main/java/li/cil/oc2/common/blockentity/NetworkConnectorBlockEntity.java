@@ -400,6 +400,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         public static final NetworkInterface INSTANCE = new NullNetworkInterface();
 
         @Override
+        @Nullable
         public byte[] readEthernetFrame() {
             return null;
         }
@@ -411,6 +412,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
 
     private final class NetworkConnectorNetworkInterface implements NetworkInterface {
         @Override
+        @Nullable
         public byte[] readEthernetFrame() {
             return null;
         }

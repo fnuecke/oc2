@@ -156,6 +156,12 @@ public final class LinkLocalLayer {
             return;
         }
 
+        if (guestMacAddresses.containsKey(targetIpAddress)) {
+            // Another machine on the segment holds this address. Answering would take its identity
+            // over, and would latch us onto an address that is not ours.
+            return;
+        }
+
         if (hasGatewayIpAddress && targetIpAddress != gatewayIpAddress) {
             // The guest is looking for some other host on its subnet, which is not us.
             return;
@@ -176,6 +182,12 @@ public final class LinkLocalLayer {
             // The unspecified address, as a DHCP client uses until it has a lease. It identifies
             // nobody, so remembering it would only cost a real entry its place.
             return;
+        }
+
+        if (hasGatewayIpAddress && ipAddress == gatewayIpAddress) {
+            // We answered for this address before its owner spoke up. It is theirs, so let go of it
+            // and take the next address a guest asks us for instead.
+            hasGatewayIpAddress = false;
         }
 
         guestMacAddresses.remove(ipAddress);

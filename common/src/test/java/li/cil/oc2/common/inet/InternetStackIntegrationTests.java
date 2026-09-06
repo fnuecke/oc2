@@ -460,6 +460,46 @@ public class InternetStackIntegrationTests {
         assertArrayEquals(payload, echoed, "the payload should come back unchanged");
     }
 
+    @Test
+    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    public void theGatewayReleasesAnAddressItClaimedBeforeItsOwnerSpokeUp() throws Exception {
+        gatewayMac = new byte[]{0x02, 0x00, 0x00, 0x00, 0x00, 0x7F};
+
+        // Nobody has spoken yet, so the gateway cannot know the address is taken, and answers.
+        send(arpRequest(OTHER_GUEST_MAC, OTHER_GUEST_IP, GUEST_IP));
+        pumpUntilEtherType(ETHERTYPE_ARP);
+
+        // Then the machine that owns it turns up.
+        send(udpFrame(GUEST_MAC, GUEST_IP, (short) 40001, (short) 9, new byte[0]));
+        pump();
+
+        send(arpRequest(OTHER_GUEST_MAC, OTHER_GUEST_IP, GATEWAY_IP));
+        assertEquals(GATEWAY_IP, arpSenderIpOf(pumpUntilEtherType(ETHERTYPE_ARP)),
+            "the gateway should let go of an address that turned out to belong to a guest");
+    }
+
+    @Test
+    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    public void theGatewayDoesNotClaimAnAddressAGuestHolds() throws Exception {
+        gatewayMac = new byte[]{0x02, 0x00, 0x00, 0x00, 0x00, 0x7F};
+
+        // The first guest is on the air, so its address is known to belong to a real machine.
+        send(udpFrame(GUEST_MAC, GUEST_IP, (short) 40001, (short) 9, new byte[0]));
+        pump();
+
+        // The second guest looks the first one up, as it would for a DNS server on its segment.
+        send(arpRequest(OTHER_GUEST_MAC, OTHER_GUEST_IP, GUEST_IP));
+        for (final byte[] frame : pump()) {
+            assertNotEquals(ETHERTYPE_ARP, ByteBuffer.wrap(frame).getShort(12),
+                "the gateway must not answer for an address a guest holds");
+        }
+
+        // Having seen that, the gateway must still answer for its own address.
+        send(arpRequest(OTHER_GUEST_MAC, OTHER_GUEST_IP, GATEWAY_IP));
+        assertEquals(GATEWAY_IP, arpSenderIpOf(pumpUntilEtherType(ETHERTYPE_ARP)),
+            "the gateway stopped answering for its own address");
+    }
+
     // --------------------------------------------------------------------- //
 
     private LinkLocalLayer buildStack(final AddressFilter filter, final long timeoutNanos, final SessionLimits limits) {
@@ -694,6 +734,11 @@ public class InternetStackIntegrationTests {
 
     private static byte[] destinationMacOf(final byte[] frame) {
         return java.util.Arrays.copyOf(frame, 6);
+    }
+
+    private static int arpSenderIpOf(final byte[] frame) {
+        // Sender protocol address, which in a reply is the address being answered for.
+        return ByteBuffer.wrap(frame).getInt(LinkLocalLayer.FRAME_HEADER_SIZE + 14);
     }
 
     private static int arpTargetIpOf(final byte[] frame) {

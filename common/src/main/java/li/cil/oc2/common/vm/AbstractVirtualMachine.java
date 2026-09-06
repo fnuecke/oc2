@@ -246,7 +246,8 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             }
         }
 
-        final ArchitectureType architectureType = findArchitecture(tag.getString(ARCHITECTURE_TAG_NAME));
+        final ArchitectureType architectureType = tag.contains(ARCHITECTURE_TAG_NAME, NBTTagIds.TAG_STRING)
+            ? findArchitecture(tag.getString(ARCHITECTURE_TAG_NAME)) : null;
         pending = architectureType != null && tag.contains(STATE_TAG_NAME, NBTTagIds.TAG_COMPOUND)
             ? new PendingState(architectureType, tag.getCompound(STATE_TAG_NAME), runnerTag)
             : null;

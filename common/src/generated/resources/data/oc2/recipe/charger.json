@@ -6,7 +6,7 @@
       "tag": "c:ingots/iron"
     },
     "P": {
-      "item": "minecraft:light_weighted_pressure_plate"
+      "item": "minecraft:copper_trapdoor"
     },
     "R": {
       "tag": "c:storage_blocks/redstone"

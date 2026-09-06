@@ -5,8 +5,8 @@
     "B": {
       "item": "oc2:circuit_board"
     },
-    "I": {
-      "tag": "c:ingots/iron"
+    "C": {
+      "tag": "c:ingots/copper"
     },
     "R": {
       "tag": "c:dusts/redstone"
@@ -16,7 +16,7 @@
     }
   },
   "pattern": [
-    "ITI",
+    "CTC",
     "RBR"
   ],
   "result": {

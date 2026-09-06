@@ -5,19 +5,19 @@
     "B": {
       "item": "oc2:circuit_board"
     },
-    "I": {
-      "tag": "c:ingots/iron"
-    },
     "Q": {
       "tag": "c:gems/quartz"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
     },
     "T": {
       "item": "oc2:transistor"
     }
   },
   "pattern": [
-    "ITI",
-    "QBQ"
+    "QTQ",
+    "RBR"
   ],
   "result": {
     "count": 1,

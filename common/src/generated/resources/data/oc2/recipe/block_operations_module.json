@@ -5,8 +5,8 @@
     "B": {
       "item": "oc2:circuit_board"
     },
-    "G": {
-      "tag": "c:ingots/gold"
+    "C": {
+      "tag": "c:ingots/copper"
     },
     "P": {
       "item": "minecraft:diamond_pickaxe"
@@ -16,7 +16,7 @@
     }
   },
   "pattern": [
-    "TPG",
+    "TPC",
     " B "
   ],
   "result": {

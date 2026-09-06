@@ -5,18 +5,18 @@
     "B": {
       "item": "oc2:circuit_board"
     },
-    "I": {
-      "tag": "c:ingots/iron"
+    "C": {
+      "tag": "c:ingots/copper"
     },
     "S": {
       "item": "minecraft:note_block"
     },
-    "T": {
-      "item": "oc2:transistor"
+    "X": {
+      "item": "oc2:bus_interface"
     }
   },
   "pattern": [
-    "IST",
+    "CSX",
     " B "
   ],
   "result": {

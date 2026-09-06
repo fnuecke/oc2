@@ -8,16 +8,16 @@
     "D": {
       "tag": "c:gems/diamond"
     },
-    "E": {
-      "tag": "c:gems/emerald"
+    "I": {
+      "tag": "c:ingots/iron"
     },
     "T": {
       "item": "oc2:transistor"
     }
   },
   "pattern": [
-    "DTD",
-    "EBE"
+    "ITI",
+    "DBD"
   ],
   "result": {
     "count": 1,

@@ -5,22 +5,22 @@
     "B": {
       "item": "oc2:circuit_board"
     },
+    "E": {
+      "tag": "c:ender_pearls"
+    },
     "G": {
       "item": "oc2:network_connector"
     },
     "I": {
-      "tag": "c:ingots/gold"
+      "tag": "c:ingots/iron"
     },
     "T": {
       "item": "oc2:transistor"
-    },
-    "X": {
-      "item": "oc2:bus_interface"
     }
   },
   "pattern": [
     "IGI",
-    "XTX",
+    "ETE",
     "IBI"
   ],
   "result": {

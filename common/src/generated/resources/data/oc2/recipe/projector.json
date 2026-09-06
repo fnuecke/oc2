@@ -8,8 +8,8 @@
     "D": {
       "tag": "c:gems/diamond"
     },
-    "G": {
-      "tag": "c:ingots/gold"
+    "I": {
+      "tag": "c:ingots/iron"
     },
     "L": {
       "item": "minecraft:redstone_lamp"
@@ -22,9 +22,9 @@
     }
   },
   "pattern": [
-    "GLG",
+    "ILI",
     "XTD",
-    "GBG"
+    "IBI"
   ],
   "result": {
     "count": 1,

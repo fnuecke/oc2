@@ -6,17 +6,17 @@
       "item": "oc2:circuit_board"
     },
     "C": {
-      "tag": "c:chests/wooden"
+      "tag": "c:ingots/copper"
     },
-    "G": {
-      "tag": "c:ingots/gold"
+    "H": {
+      "tag": "c:chests/wooden"
     },
     "T": {
       "item": "oc2:transistor"
     }
   },
   "pattern": [
-    "TCG",
+    "THC",
     " B "
   ],
   "result": {

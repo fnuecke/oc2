@@ -8,15 +8,15 @@
     "E": {
       "tag": "c:gems/emerald"
     },
-    "G": {
-      "tag": "c:ingots/gold"
+    "I": {
+      "tag": "c:ingots/iron"
     },
     "T": {
       "item": "oc2:transistor"
     }
   },
   "pattern": [
-    "GTG",
+    "ITI",
     "EBE"
   ],
   "result": {

@@ -5,16 +5,16 @@
     "B": {
       "item": "oc2:circuit_board"
     },
-    "I": {
-      "tag": "c:ingots/iron"
+    "C": {
+      "tag": "c:ingots/copper"
     },
     "T": {
       "item": "oc2:transistor"
     }
   },
   "pattern": [
-    "ITI",
-    " B "
+    "CTC",
+    "BBB"
   ],
   "result": {
     "count": 2,

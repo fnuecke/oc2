@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "tag": "c:ingots/gold"
+      "tag": "c:ingots/copper"
     },
     {
       "item": "minecraft:clay_ball"

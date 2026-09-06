@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "G": {
-      "tag": "c:ingots/gold"
+    "C": {
+      "tag": "c:ingots/copper"
     },
     "I": {
       "tag": "c:ingots/iron"
@@ -14,7 +14,7 @@
   },
   "pattern": [
     "III",
-    "GTG",
+    "CTC",
     "III"
   ],
   "result": {

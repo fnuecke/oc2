@@ -5,18 +5,18 @@
     "B": {
       "item": "oc2:circuit_board"
     },
+    "C": {
+      "tag": "c:ingots/copper"
+    },
     "E": {
       "tag": "c:ender_pearls"
-    },
-    "G": {
-      "tag": "c:ingots/gold"
     },
     "T": {
       "item": "oc2:transistor"
     }
   },
   "pattern": [
-    "TEG",
+    "TEC",
     " B "
   ],
   "result": {

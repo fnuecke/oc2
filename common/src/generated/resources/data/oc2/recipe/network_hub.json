@@ -13,14 +13,11 @@
     },
     "T": {
       "item": "oc2:transistor"
-    },
-    "X": {
-      "item": "oc2:bus_interface"
     }
   },
   "pattern": [
     "ICI",
-    "XTX",
+    "CTC",
     "IBI"
   ],
   "result": {

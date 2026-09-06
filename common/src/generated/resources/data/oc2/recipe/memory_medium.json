@@ -5,15 +5,15 @@
     "B": {
       "item": "oc2:circuit_board"
     },
-    "I": {
-      "tag": "c:ingots/iron"
+    "G": {
+      "tag": "c:ingots/gold"
     },
     "T": {
       "item": "oc2:transistor"
     }
   },
   "pattern": [
-    "ITI",
+    "GTG",
     "BBB"
   ],
   "result": {

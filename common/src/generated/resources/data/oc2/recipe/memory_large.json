@@ -5,15 +5,15 @@
     "B": {
       "item": "oc2:circuit_board"
     },
-    "G": {
-      "tag": "c:ingots/gold"
+    "D": {
+      "tag": "c:gems/diamond"
     },
     "T": {
       "item": "oc2:transistor"
     }
   },
   "pattern": [
-    "GTG",
+    "DTD",
     "BBB"
   ],
   "result": {

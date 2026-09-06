@@ -255,9 +255,9 @@ public final class ModRecipesProvider extends RecipeProvider {
 
         ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.MEMORY_MEDIUM.get(), 2)
-            .pattern("ITI")
+            .pattern("GTG")
             .pattern("BBB")
-            .define('I', Tags.Items.INGOTS_IRON)
+            .define('G', Tags.Items.INGOTS_GOLD)
             .define('T', Items.TRANSISTOR.get())
             .define('B', Items.CIRCUIT_BOARD.get())
             .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
@@ -266,9 +266,9 @@ public final class ModRecipesProvider extends RecipeProvider {
 
         ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.MEMORY_LARGE.get(), 2)
-            .pattern("GTG")
+            .pattern("DTD")
             .pattern("BBB")
-            .define('G', Tags.Items.INGOTS_GOLD)
+            .define('D', Tags.Items.GEMS_DIAMOND)
             .define('T', Items.TRANSISTOR.get())
             .define('B', Items.CIRCUIT_BOARD.get())
             .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
@@ -290,11 +290,11 @@ public final class ModRecipesProvider extends RecipeProvider {
         ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.HARD_DRIVE_MEDIUM.get())
             .pattern("ITI")
-            .pattern("EBE")
+            .pattern("QBQ")
             .define('I', Tags.Items.INGOTS_IRON)
             .define('T', Items.TRANSISTOR.get())
             .define('B', Items.CIRCUIT_BOARD.get())
-            .define('E', Tags.Items.GEMS_EMERALD)
+            .define('Q', Tags.Items.GEMS_QUARTZ)
             .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
             .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
             .save(consumer);
@@ -484,7 +484,7 @@ public final class ModRecipesProvider extends RecipeProvider {
             .define('I', Tags.Items.INGOTS_IRON)
             .define('R', Tags.Items.DUSTS_REDSTONE)
             .define('C', net.minecraft.world.item.Items.COMPARATOR)
-            .unlockedBy("has_gold", inventoryChange(net.minecraft.world.item.Items.GOLD_INGOT))
+            .unlockedBy("has_comparator", inventoryChange(net.minecraft.world.item.Items.COMPARATOR))
             .save(consumer);
 
         ShapelessRecipeBuilder

@@ -16,9 +16,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.block.Blocks;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static li.cil.oc2.gametest.TestSupport.*;
 
@@ -95,6 +101,48 @@ public final class RecipeTests {
 
         for (final RecipeHolder<?> holder : modRecipes) {
             craft(helper, level, holder);
+        }
+
+        helper.succeed();
+    }
+
+    public static void noRecipeShadowsAnother(final GameTestHelper helper) {
+        final ServerLevel level = helper.getLevel();
+        final RecipeManager recipes = level.getServer().getRecipeManager();
+
+        final Map<ResourceLocation, Layout> layouts = new LinkedHashMap<>();
+        for (final RecipeHolder<?> holder : recipes.getRecipes()) {
+            if (!(holder.value() instanceof final CraftingRecipe recipe) || recipe.isSpecial()) {
+                continue;
+            }
+            final Layout layout = layoutOf(recipe);
+            if (layout != null) {
+                layouts.put(holder.id(), layout);
+            }
+        }
+
+        final List<ResourceLocation> modRecipes = layouts.keySet().stream()
+            .filter(id -> id.getNamespace().equals(API.MOD_ID))
+            .toList();
+
+        assertTrue(helper, "expected the mod to contribute recipes, found none", !modRecipes.isEmpty());
+
+        final List<String> conflicts = new ArrayList<>();
+        for (final ResourceLocation id : modRecipes) {
+            final Layout layout = layouts.get(id);
+            for (final Map.Entry<ResourceLocation, Layout> entry : layouts.entrySet()) {
+                final ResourceLocation otherId = entry.getKey();
+                if (otherId.equals(id) || (otherId.getNamespace().equals(API.MOD_ID) && otherId.compareTo(id) < 0)) {
+                    continue;
+                }
+                if (overlaps(layout, entry.getValue())) {
+                    conflicts.add(id + " <-> " + otherId);
+                }
+            }
+        }
+
+        if (!conflicts.isEmpty()) {
+            throw failure(helper, "recipes accept the same grid, so only the first one registered is craftable: " + conflicts);
         }
 
         helper.succeed();
@@ -189,8 +237,91 @@ public final class RecipeTests {
         return inputs.stream().map(stack -> stack.isEmpty() ? "-" : stack.getItem().toString()).toList().toString();
     }
 
+    @Nullable
+    private static Layout layoutOf(final CraftingRecipe recipe) {
+        if (recipe instanceof final ShapedRecipe shaped) {
+            return new Layout(shaped.getWidth(), shaped.getHeight(),
+                shaped.getIngredients().stream().map(RecipeTests::itemsOf).toList());
+        }
+
+        final List<Set<Item>> ingredients = recipe.getIngredients().stream()
+            .map(RecipeTests::itemsOf)
+            .filter(items -> !items.isEmpty())
+            .toList();
+        return ingredients.isEmpty() ? null : new Layout(0, 0, ingredients);
+    }
+
+    private static Set<Item> itemsOf(final Ingredient ingredient) {
+        return ingredient.isEmpty()
+            ? Set.of()
+            : Arrays.stream(ingredient.getItems()).map(ItemStack::getItem).collect(Collectors.toSet());
+    }
+
+    private static boolean overlaps(final Layout a, final Layout b) {
+        if (!a.isShapeless() && !b.isShapeless()) {
+            // Shaped recipes match mirrored as well, so both orientations have to be ruled out.
+            return shapedOverlaps(a, b, false) || shapedOverlaps(a, b, true);
+        }
+        return anyOrderOverlaps(a.occupiedCells(), b.occupiedCells());
+    }
+
+    private static boolean shapedOverlaps(final Layout a, final Layout b, final boolean mirrored) {
+        if (a.width() != b.width() || a.height() != b.height()) {
+            return false;
+        }
+
+        for (int y = 0; y < a.height(); y++) {
+            for (int x = 0; x < a.width(); x++) {
+                final Set<Item> cellA = a.cells().get(y * a.width() + x);
+                final Set<Item> cellB = b.cells().get(y * b.width() + (mirrored ? b.width() - 1 - x : x));
+                if (cellA.isEmpty() != cellB.isEmpty() || (!cellA.isEmpty() && Collections.disjoint(cellA, cellB))) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean anyOrderOverlaps(final List<Set<Item>> a, final List<Set<Item>> b) {
+        return a.size() == b.size() && pairsUp(a, b, 0, new boolean[b.size()]);
+    }
+
+    private static boolean pairsUp(final List<Set<Item>> a, final List<Set<Item>> b, final int index, final boolean[] taken) {
+        if (index == a.size()) {
+            return true;
+        }
+
+        for (int i = 0; i < b.size(); i++) {
+            if (taken[i] || Collections.disjoint(a.get(index), b.get(i))) {
+                continue;
+            }
+            taken[i] = true;
+            if (pairsUp(a, b, index + 1, taken)) {
+                return true;
+            }
+            taken[i] = false;
+        }
+
+        return false;
+    }
+
     // --------------------------------------------------------------------- //
 
     private RecipeTests() {
+    }
+
+    // --------------------------------------------------------------------- //
+
+    // Cells hold the items each grid slot accepts; an empty set is an empty slot. Shapeless
+    // recipes have no dimensions and carry only their ingredients.
+    private record Layout(int width, int height, List<Set<Item>> cells) {
+        boolean isShapeless() {
+            return width == 0;
+        }
+
+        List<Set<Item>> occupiedCells() {
+            return cells.stream().filter(cell -> !cell.isEmpty()).toList();
+        }
     }
 }

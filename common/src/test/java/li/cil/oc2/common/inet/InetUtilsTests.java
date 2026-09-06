@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.inet;
 
+import li.cil.oc2.common.inet.l3.Ipv4Space;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;

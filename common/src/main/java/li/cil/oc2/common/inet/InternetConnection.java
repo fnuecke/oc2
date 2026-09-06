@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.inet;
 
+import li.cil.oc2.common.inet.l2.LinkLocalLayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

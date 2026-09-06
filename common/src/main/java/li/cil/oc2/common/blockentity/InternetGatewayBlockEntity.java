@@ -10,7 +10,7 @@ import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.inet.InternetAdapter;
 import li.cil.oc2.common.inet.InternetConnection;
 import li.cil.oc2.common.inet.InternetManager;
-import li.cil.oc2.common.inet.LinkLocalLayer;
+import li.cil.oc2.common.inet.l2.LinkLocalLayer;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.InternetGatewayStateMessage;
 import li.cil.oc2.common.util.ChunkUtils;

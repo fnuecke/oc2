@@ -11,6 +11,7 @@
       "li.cil.oc2.gametest.fabric.GameTestsFabric"
     ],
     "fabric-gametest": [
+      "li.cil.oc2.gametest.fabric.ChunkUnloadTestsFabric",
       "li.cil.oc2.gametest.fabric.DeviceBusTestsFabric",
       "li.cil.oc2.gametest.fabric.EntityCapabilityTestsFabric",
       "li.cil.oc2.gametest.fabric.NetworkConnectorTestsFabric",

@@ -91,6 +91,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
     public void suspend() {
         joinWorkerThread();
         if (architecture != null) {
+            pending = capturePendingState(architecture);
             architecture.unmountDevices();
         }
     }
@@ -356,6 +357,13 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             architecture = null;
             runner = null;
         }
+    }
+
+    private PendingState capturePendingState(final AbstractArchitecture architecture) {
+        return new PendingState(
+            architecture.getType(),
+            NBTSerialization.serialize(architecture),
+            runner != null ? NBTSerialization.serialize(runner) : null);
     }
 
     private void applyPendingState(final AbstractArchitecture architecture) {

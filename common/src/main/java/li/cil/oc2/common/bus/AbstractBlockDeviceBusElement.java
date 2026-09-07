@@ -84,6 +84,15 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
             return;
         }
 
+        // Without a controller we have no architecture, which can result in some
+        // providers returning nothing or something inconsistent with what's saved.
+        // In this state, we might discard persisted data of devices that don't get
+        // provided in the current state. When a controller is added, we re-run this
+        // anyway, so it's fine to just skip it for now.
+        if (getControllers().isEmpty()) {
+            return;
+        }
+
         final int index = side.get3DDataValue();
         collectDevices(level, getPosition().relative(side), side).ifPresentOrElse(
             queryResult -> setEntriesForGroup(index, queryResult),

@@ -138,21 +138,25 @@ public final class CapabilitiesImpl {
             return Invalidatable.empty();
         }
 
-        return watcher.watch(adapter.apply(value));
+        return watcher.watch(adapter.apply(value), cache);
     }
 
     private static final class Watcher<T> implements BooleanSupplier, Runnable {
         @Nullable
         private Invalidatable<T> value;
+        @Nullable
+        private BlockCapabilityCache<?, Direction> cache;
 
-        Invalidatable<T> watch(final T value) {
+        Invalidatable<T> watch(final T value, final BlockCapabilityCache<?, Direction> cache) {
             this.value = Invalidatable.of(value);
+            this.value.addListener(this::release); // value keeps us alive
+            this.cache = cache; // we keep the cache alive, neoforge doesn't
             return this.value;
         }
 
         @Override
         public boolean getAsBoolean() {
-            return value != null && value.isPresent();
+            return cache != null;
         }
 
         @Override
@@ -160,6 +164,10 @@ public final class CapabilitiesImpl {
             if (value != null) {
                 value.invalidate();
             }
+        }
+
+        private void release(final Invalidatable<T> unused) {
+            cache = null;
         }
     }
 

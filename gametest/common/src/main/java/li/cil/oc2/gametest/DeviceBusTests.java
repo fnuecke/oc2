@@ -14,6 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
+import java.lang.ref.WeakReference;
+
 import static li.cil.oc2.gametest.TestSupport.*;
 
 public final class DeviceBusTests {
@@ -81,6 +83,7 @@ public final class DeviceBusTests {
                             + ", attached=" + attached[0] + ")");
                 }
             })
+            .thenExecute(() -> collectGarbage(helper))
             .thenExecute(() -> helper.getLevel().setBlock(helper.absolutePos(DEVICE_POS),
                 Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS))
             .thenWaitUntil(() -> {
@@ -173,6 +176,14 @@ public final class DeviceBusTests {
 
     private static void placeDevice(final GameTestHelper helper) {
         place(helper, fakePlayer(helper), new ItemStack(Items.REDSTONE_INTERFACE.get()), DEVICE_POS);
+    }
+
+    private static void collectGarbage(final GameTestHelper helper) {
+        final WeakReference<Object> canary = new WeakReference<>(new Object());
+        for (int attempt = 0; attempt < 10 && canary.get() != null; attempt++) {
+            System.gc();
+        }
+        assertTrue(helper, "gc didn't want to run, but we need it to for this test", canary.get() == null);
     }
 
     // --------------------------------------------------------------------- //

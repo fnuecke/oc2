@@ -20,7 +20,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class VMRunner implements Runnable {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(VMRunner.class);
 
     private static final int TICKS_PER_SECOND = 20;
     private static final int TIMESLICE_IN_MS = 500 / TICKS_PER_SECOND;

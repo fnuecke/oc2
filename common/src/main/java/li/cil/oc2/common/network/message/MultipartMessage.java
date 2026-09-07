@@ -31,7 +31,7 @@ import static java.util.Objects.requireNonNull;
  * Utility wrapper message for client to server messages exceeding the regular custom payload size.
  */
 public final class MultipartMessage extends AbstractMessage {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(MultipartMessage.class);
 
     private static final int MAX_MULTIPART_MESSAGE_SIZE = 1024 * Constants.KILOBYTE;
     private static final int MAX_PAYLOAD_SIZE = ServerboundCustomPayloadPacket.MAX_PAYLOAD_SIZE;

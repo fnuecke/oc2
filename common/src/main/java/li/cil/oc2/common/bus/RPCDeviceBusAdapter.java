@@ -27,7 +27,7 @@ import java.util.*;
 import java.util.concurrent.Semaphore;
 
 public final class RPCDeviceBusAdapter implements Steppable {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(RPCDeviceBusAdapter.class);
     private static final ThrottledLogger THROTTLED_LOGGER = new ThrottledLogger(LOGGER, Duration.ofMinutes(1));
 
     private static final int DEFAULT_MAX_MESSAGE_SIZE = 4 * Constants.KILOBYTE;

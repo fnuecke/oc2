@@ -7,11 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.nio.channels.DatagramChannel;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -36,7 +32,7 @@ public final class SocketManager implements AutoCloseable {
 
     // --------------------------------------------------------------------- //
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(SocketManager.class);
 
     // --------------------------------------------------------------------- //
 
@@ -116,7 +112,7 @@ public final class SocketManager implements AutoCloseable {
 
     // --------------------------------------------------------------------- //
 
-    private static void closeQuietly(final java.nio.channels.Channel channel) {
+    private static void closeQuietly(final Channel channel) {
         try {
             channel.close();
         } catch (final IOException e) {

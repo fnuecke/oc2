@@ -26,7 +26,7 @@ import java.nio.channels.FileChannel;
 import java.util.UUID;
 
 public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(MemoryDevice.class);
 
     private static final String BLOB_HANDLE_TAG_NAME = "blob";
     private static final String ADDRESS_TAG_NAME = "address";

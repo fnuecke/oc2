@@ -18,7 +18,7 @@ import java.nio.ByteBuffer;
 import java.util.function.Supplier;
 
 public final class BuiltinBlockDeviceData implements BlockDeviceData {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(BuiltinBlockDeviceData.class);
 
     // --------------------------------------------------------------------- //
 

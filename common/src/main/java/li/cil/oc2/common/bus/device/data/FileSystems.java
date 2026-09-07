@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public final class FileSystems {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(FileSystems.class);
 
     private static final String DIRECTORY = "file_systems";
     private static final String ARCHIVE_EXTENSION = ".zip";

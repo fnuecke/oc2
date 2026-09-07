@@ -18,7 +18,7 @@ public final class StreamSession extends AbstractSession {
 
     // --------------------------------------------------------------------- //
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(StreamSession.class);
 
     public static final int DEFAULT_MAX_SEGMENT_SIZE =
         LinkLocalLayer.DEFAULT_MTU - NetworkLayer.IPv4_HEADER_SIZE - TcpHeader.MIN_HEADER_SIZE;

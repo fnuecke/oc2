@@ -26,7 +26,7 @@ import java.nio.channels.FileChannel;
 import java.util.UUID;
 
 public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements VMDevice {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(ProjectorDevice.class);
 
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String BLOB_HANDLE_TAG_NAME = "blob";

@@ -36,7 +36,7 @@ import java.util.stream.Stream;
  * Blobs that are currently open, i.e. in use by a loaded virtual machine, are never evicted.
  */
 public final class BlobStorage {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(BlobStorage.class);
 
     // --------------------------------------------------------------------- //
 

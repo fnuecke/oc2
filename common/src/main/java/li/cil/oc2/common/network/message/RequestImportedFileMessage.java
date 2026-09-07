@@ -20,7 +20,7 @@ import java.nio.file.Path;
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class RequestImportedFileMessage extends AbstractMessage {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(RequestImportedFileMessage.class);
     private static final MutableComponent FILE_TOO_LARGE_TEXT = text("message.{mod}.import_file.file_too_large");
 
     // --------------------------------------------------------------------- //

@@ -27,7 +27,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class SocketSessionLayer implements SessionLayer {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(SocketSessionLayer.class);
 
     private static final int MAX_ECHO_PAYLOAD =
         LinkLocalLayer.DEFAULT_MTU - NetworkLayer.IPv4_HEADER_SIZE - TransportLayer.ICMP_HEADER_SIZE;

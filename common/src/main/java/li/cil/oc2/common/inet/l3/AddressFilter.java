@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class AddressFilter {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(AddressFilter.class);
 
     // Nothing a guest could legitimately reach; denied regardless of configuration.
     private static final List<String> BUILT_IN_DENIED = List.of(

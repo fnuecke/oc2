@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class GameTestReporting {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(GameTestReporting.class);
 
     private static final long SHUTDOWN_GRACE_MILLIS = 60_000L;
 

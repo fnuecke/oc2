@@ -25,7 +25,7 @@ import java.util.Optional;
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class FileChooserScreen extends Screen {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(FileChooserScreen.class);
 
     // --------------------------------------------------------------------- //
 
@@ -346,28 +346,28 @@ public final class FileChooserScreen extends Screen {
         }
 
         @Override
-        public void setSelected(@Nullable final FileChooserScreen.FileList.FileEntry entry) {
+        public void setSelected(@Nullable final FileEntry entry) {
             super.setSelected(entry);
             updateButtons();
         }
 
-        private FileList.FileEntry createFileEntry(final Path file) {
-            return new FileList.FileEntry(file, Component.literal(file.getFileName().toString()));
+        private FileEntry createFileEntry(final Path file) {
+            return new FileEntry(file, Component.literal(file.getFileName().toString()));
         }
 
-        private FileList.FileEntry createDirectoryEntry(final Path path) {
+        private FileEntry createDirectoryEntry(final Path path) {
             return createDirectoryEntry(path, path.getFileName().toString() + path.getFileSystem().getSeparator());
         }
 
-        private FileList.FileEntry createDirectoryEntry(@Nullable final Path path, final String displayName) {
+        private FileEntry createDirectoryEntry(@Nullable final Path path, final String displayName) {
             final TextColor color = path != null && Files.exists(path)
                 ? TextColor.fromRgb(0xA0A0FF)
                 : TextColor.fromLegacyFormat(ChatFormatting.GRAY);
-            return new FileList.FileEntry(path, Component.literal(displayName)
+            return new FileEntry(path, Component.literal(displayName)
                 .withStyle(s -> s.withColor(color)));
         }
 
-        private final class FileEntry extends ObjectSelectionList.Entry<FileEntry> {
+        private final class FileEntry extends Entry<FileEntry> {
             @Nullable
             private final Path file;
             private final Component displayName;

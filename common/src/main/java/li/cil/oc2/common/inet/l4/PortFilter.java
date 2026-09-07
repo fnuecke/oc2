@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 
 public final class PortFilter {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(PortFilter.class);
 
     private static final int PORT_COUNT = 65536;
 

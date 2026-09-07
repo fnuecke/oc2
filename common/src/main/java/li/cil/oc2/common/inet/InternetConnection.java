@@ -17,7 +17,7 @@ public final class InternetConnection {
     public static final int FRAME_QUEUE_SIZE = 64;
     public static final int MAX_FRAME_SIZE = LinkLocalLayer.FRAME_SIZE;
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(InternetConnection.class);
     private static final ThrottledLogger THROTTLED_LOGGER = new ThrottledLogger(LOGGER, Duration.ofMinutes(1));
     private static final int MIN_ETHERNET_FRAME_SIZE = 42; // avoid bursts of tiny packages
 

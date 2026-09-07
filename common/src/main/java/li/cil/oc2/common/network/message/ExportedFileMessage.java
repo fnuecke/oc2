@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 public final class ExportedFileMessage extends AbstractMessage {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(ExportedFileMessage.class);
 
     // --------------------------------------------------------------------- //
 

@@ -34,7 +34,7 @@ public final class InternetManager {
     private static final int ECHO_TIMEOUT_MS = 1000;
     private static final int ECHO_THREADS = 4;
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(InternetManager.class);
 
     // --------------------------------------------------------------------- //
 

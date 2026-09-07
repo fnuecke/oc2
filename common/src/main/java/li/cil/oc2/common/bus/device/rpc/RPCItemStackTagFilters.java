@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public final class RPCItemStackTagFilters {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(RPCItemStackTagFilters.class);
     private static final ArrayList<RPCItemStackTagFilter> FILTERS = new ArrayList<>();
 
     // --------------------------------------------------------------------- //

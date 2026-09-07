@@ -25,7 +25,7 @@ import java.time.Duration;
 import java.util.*;
 
 public final class IODeviceBusAdapter implements MemoryMappedDevice {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(IODeviceBusAdapter.class);
     private static final ThrottledLogger THROTTLED_LOGGER = new ThrottledLogger(LOGGER, Duration.ofMinutes(1));
 
     public static final int LENGTH = 4;

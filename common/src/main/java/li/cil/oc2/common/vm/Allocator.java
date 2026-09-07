@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * allocated memory associated with the claim will be garbage collected.
  */
 public final class Allocator {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(Allocator.class);
 
     // --------------------------------------------------------------------- //
 

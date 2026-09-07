@@ -24,7 +24,7 @@ import java.time.Duration;
 import java.util.function.LongSupplier;
 
 public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualMachineClientState {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(AbstractVirtualMachine.class);
 
     // --------------------------------------------------------------------- //
 

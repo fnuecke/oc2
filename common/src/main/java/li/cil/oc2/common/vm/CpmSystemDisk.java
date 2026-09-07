@@ -26,7 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public final class CpmSystemDisk {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(CpmSystemDisk.class);
 
     private static final String DIRECTORY = "cpm";
     private static final int END_OF_FILE = 0x1A;

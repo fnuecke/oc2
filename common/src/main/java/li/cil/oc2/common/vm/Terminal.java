@@ -17,7 +17,7 @@ import java.util.*;
 // VT100 emulation: https://vt100.net/docs/vt100-ug/chapter3.html
 @Serialized
 public final class Terminal {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(Terminal.class);
 
     public static final int WIDTH = 80, HEIGHT = 24;
     public static final int CHAR_WIDTH = 8;

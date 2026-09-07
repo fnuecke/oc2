@@ -30,7 +30,7 @@ import static java.util.Objects.requireNonNull;
  * @see li.cil.oc2.api.bus.device.io.IOCallbacks
  */
 public final class Callbacks {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(Callbacks.class);
 
     // --------------------------------------------------------------------- //
 

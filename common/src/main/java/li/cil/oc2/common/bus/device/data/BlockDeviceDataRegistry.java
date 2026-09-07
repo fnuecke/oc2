@@ -38,7 +38,7 @@ import java.util.stream.Stream;
 import static li.cil.oc2.common.util.TextFormatUtils.formatSize;
 
 public final class BlockDeviceDataRegistry {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(BlockDeviceDataRegistry.class);
 
     private static final String DIRECTORY = "block_devices";
     private static final String HARD_DRIVE_MEDIUM = "hdd";
@@ -198,7 +198,7 @@ public final class BlockDeviceDataRegistry {
         public static final ReloadListener INSTANCE = new ReloadListener();
 
         @Override
-        public CompletableFuture<Void> reload(final PreparableReloadListener.PreparationBarrier stage, final ResourceManager resourceManager, final ProfilerFiller preparationsProfiler, final ProfilerFiller reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
+        public CompletableFuture<Void> reload(final PreparationBarrier stage, final ResourceManager resourceManager, final ProfilerFiller preparationsProfiler, final ProfilerFiller reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
             return CompletableFuture
                 .runAsync(() -> BlockDeviceDataRegistry.reload(resourceManager), backgroundExecutor)
                 .thenCompose(stage::wait);

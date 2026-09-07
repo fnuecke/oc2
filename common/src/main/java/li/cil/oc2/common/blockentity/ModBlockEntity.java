@@ -64,7 +64,7 @@ public abstract class ModBlockEntity extends BlockEntity {
         }
     }
 
-    public void onChunkUnloaded() {
+    public void handleChunkUnloaded() {
         Capabilities.invalidate(this);
         onUnload(false);
         isUnloaded = true;

@@ -4,6 +4,7 @@
     "package": "li.cil.oc2.common.mixin",
     "compatibilityLevel": "JAVA_21",
     "mixins": [
+        "LevelChunkMixin",
         "MinecraftServerMixin",
         "ServerChunkCacheMixin"
     ],

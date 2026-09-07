@@ -40,7 +40,7 @@ public class ModBlockEntityUnloadTests {
     @Test
     public void chunkUnloadFollowedByRemovalUnloadsOnlyOnce() {
         withBlockEntity(blockEntity -> {
-            blockEntity.onChunkUnloaded();
+            blockEntity.handleChunkUnloaded();
             blockEntity.setRemoved();
 
             assertEquals(1, blockEntity.unloadCount);

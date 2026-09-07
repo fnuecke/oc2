@@ -58,7 +58,8 @@ public final class InternetManager {
     private final AtomicBoolean stopped = new AtomicBoolean();
     private final int bytesPerTick;
     private final int sharedBytesPerTick;
-    private int connectionRoundRobin;
+    private int serverRoundRobin;
+    private int workerRoundRobin;
 
     // --------------------------------------------------------------------- //
 
@@ -138,7 +139,7 @@ public final class InternetManager {
 
     public void onServerTick() {
         final Budget shared = new Budget(sharedBytesPerTick);
-        for (final InternetConnection connection : inRotation()) {
+        for (final InternetConnection connection : inRotation(serverRoundRobin++)) {
             if (connection.isStopped()) {
                 if (connection.markShutdownQueued()) {
                     commands.add(connection::shutdown);
@@ -209,7 +210,7 @@ public final class InternetManager {
             runCommands();
 
             final Budget shared = new Budget(sharedBytesPerTick);
-            for (final InternetConnection connection : inRotation()) {
+            for (final InternetConnection connection : inRotation(workerRoundRobin++)) {
                 connection.process(bytesPerTick, shared);
             }
         } catch (final Throwable t) {
@@ -217,12 +218,12 @@ public final class InternetManager {
         }
     }
 
-    private List<InternetConnection> inRotation() {
+    private List<InternetConnection> inRotation(final int rotation) {
         final List<InternetConnection> snapshot = List.copyOf(connections);
         if (snapshot.size() < 2) {
             return snapshot;
         }
-        final int offset = Math.floorMod(connectionRoundRobin++, snapshot.size());
+        final int offset = Math.floorMod(rotation, snapshot.size());
         final List<InternetConnection> rotated = new ArrayList<>(snapshot.size());
         rotated.addAll(snapshot.subList(offset, snapshot.size()));
         rotated.addAll(snapshot.subList(0, offset));

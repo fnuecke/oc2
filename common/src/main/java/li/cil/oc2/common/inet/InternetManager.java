@@ -63,7 +63,7 @@ public final class InternetManager {
     // --------------------------------------------------------------------- //
 
     private InternetManager() throws IOException {
-        addressFilter = new AddressFilter(
+        addressFilter = AddressFilter.withBuiltInDenials(
             Config.internetAllowedHosts, Config.internetDeniedHosts, Config.internetDenyLocalSubnets);
         portFilter = new PortFilter(Config.internetDeniedPorts);
         limits = new SessionLimits(SESSIONS_PER_GATEWAY, Config.internetSessionsTotal);

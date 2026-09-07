@@ -29,9 +29,22 @@ public class AddressFilterTests {
     }
 
     @Test
+    public void loopbackMulticastAndBroadcastAreDeniedWithoutAnyRules() {
+        final AddressFilter filter = AddressFilter.withBuiltInDenials(List.of("0.0.0.0/0"), List.of(), false);
+
+        for (final String address : new String[]{"0.0.0.0", "0.1.2.3", "127.0.0.1", "127.255.255.255",
+            "169.254.169.254", "224.0.0.1", "239.255.255.250", "240.0.0.1", "255.255.255.255"}) {
+            assertFalse(filter.isAllowed(ip(address)), address + " must be denied even when everything is allowed");
+        }
+        assertTrue(filter.isAllowed(ip("8.8.8.8")));
+        assertTrue(filter.isAllowed(ip("10.0.0.1")), "the built-in rules cover nothing beyond their own ranges");
+        assertTrue(filter.isAllowed(ip("169.254.0.1")), "only the metadata address is built in, not all of link-local");
+    }
+
+    @Test
     public void theShippedDefaultsBlockEverythingTheyClaimTo() {
         final AddressFilter filter =
-            new AddressFilter(Config.internetAllowedHosts, Config.internetDeniedHosts, false);
+            AddressFilter.withBuiltInDenials(Config.internetAllowedHosts, Config.internetDeniedHosts, false);
 
         final String[] mustBeBlocked = {
             "127.0.0.1",       // Loopback: anything this server itself is listening on.

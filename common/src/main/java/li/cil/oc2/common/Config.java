@@ -122,25 +122,21 @@ public final class Config {
         "Addresses computers may NOT reach, as address (1.2.3.4), CIDR block (10.0.0.0/8),",
         "inclusive range (1.2.3.4-1.2.3.9), local interface (@eth0 or @2), or host name.",
         "Host names are re-resolved periodically.",
-        "The defaults cover loopback, the private ranges, and the link-local range that carries",
-        "cloud instance metadata. They cannot cover this server's own public address, which",
-        "behind NAT is on none of its interfaces: add it by hand if computers must not dial",
-        "back into services this machine hosts."
+        "Loopback, multicast, broadcast and the cloud instance metadata address are always denied.",
+        "The defaults add the private and link-local ranges. They cannot cover this server's own",
+        "public address, which behind NAT is on none of its interfaces: add it by hand if computers",
+        "must not dial back into services this machine hosts."
     })
     @ItemType(String.class)
     public static List<String> internetDeniedHosts = new ArrayList<>(List.of(
-        "0.0.0.0/8",
         "10.0.0.0/8",
         "100.64.0.0/10",
-        "127.0.0.0/8",
         "169.254.0.0/16",
         "172.16.0.0/12",
         "192.0.0.0/24",
         "192.168.0.0/16",
         "198.18.0.0/15",
-        "192.88.99.0/24",
-        "224.0.0.0/4",
-        "240.0.0.0/4"
+        "192.88.99.0/24"
     ));
 
     @Path("admin.internet")

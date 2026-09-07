@@ -14,6 +14,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class AddressFilter {
     private static final Logger LOGGER = LogManager.getLogger();
 
+    // Nothing a guest could legitimately reach; denied regardless of configuration.
+    private static final List<String> BUILT_IN_DENIED = List.of(
+        "0.0.0.0/8",         // "This" network; connecting to it lands on loopback.
+        "127.0.0.0/8",       // Loopback.
+        "169.254.169.254",   // Cloud instance metadata, which hands out the host's cloud credentials.
+        "224.0.0.0/4",       // Multicast, which the OS would send onto the local segment.
+        "240.0.0.0/4"        // Reserved, including the limited broadcast.
+    );
+
     // --------------------------------------------------------------------- //
 
     private final Ipv4Space staticAllowed = new Ipv4Space();
@@ -64,6 +73,16 @@ public final class AddressFilter {
     }
 
     // --------------------------------------------------------------------- //
+
+    public static AddressFilter withBuiltInDenials(
+        final Collection<String> allowedRules,
+        final Collection<String> deniedRules,
+        final boolean denyLocalInterfaceSubnets
+    ) {
+        final List<String> denied = new ArrayList<>(BUILT_IN_DENIED);
+        denied.addAll(deniedRules);
+        return new AddressFilter(allowedRules, denied, denyLocalInterfaceSubnets);
+    }
 
     public boolean isAllowed(final int ipAddress) {
         final long address = InternetUtils.toUnsigned(ipAddress);

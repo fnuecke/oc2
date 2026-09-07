@@ -255,14 +255,16 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
     }
 
     private void saveGroup(final int index) {
-        final CompoundTag devicesTag = new CompoundTag();
+        // We merge into what's already present instead of replacing it, because we might be saving
+        // before we had a chance to do a full scan (something triggered a chunk save immediately
+        // after its load for example). In that case we might end up dropping saved data here, which
+        // would then be missing on the next load+scan. Any stale data we accumulate this way will
+        // be cleaned up in the next controller scan.
+        final CompoundTag devicesTag = groupData[index];
         for (final TEntry entry : groups.get(index)) {
-            entry.getDeviceDataKey().ifPresent(key -> {
-                // Always store, even if the data is empty, so we know an device by this provider existed.
-                devicesTag.put(key, entry.getDevice().serializeNBT());
-            });
+            entry.getDeviceDataKey().ifPresent(key ->
+                // Always store, even if the data is empty, so we know a device by this provider existed.
+                devicesTag.put(key, entry.getDevice().serializeNBT()));
         }
-
-        groupData[index] = devicesTag;
     }
 }

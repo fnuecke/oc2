@@ -84,20 +84,27 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
             return;
         }
 
+        final int index = side.get3DDataValue();
+        final BlockPos neighborPos = getPosition().relative(side);
+
         // Without a controller we have no architecture, which can result in some
-        // providers returning nothing or something inconsistent with what's saved.
+        // providers returning nothing or something different to what's saved.
         // In this state, we might discard persisted data of devices that don't get
         // provided in the current state. When a controller is added, we re-run this
         // anyway, so it's fine to just skip it for now.
         if (getControllers().isEmpty()) {
-            return;
+            // BUT! If this is a neighbor chunk unloading, we have to save the device
+            // state of the devices in it, or we'll lose it .
+            final ChunkPos neighborChunk = new ChunkPos(neighborPos);
+            if (!level.hasChunk(neighborChunk.x, neighborChunk.z)) {
+                setEntriesForGroupUnloaded(index);
+            }
+        } else {
+            collectDevices(level, neighborPos, side).ifPresentOrElse(
+                queryResult -> setEntriesForGroup(index, queryResult),
+                () -> setEntriesForGroupUnloaded(index)
+            );
         }
-
-        final int index = side.get3DDataValue();
-        collectDevices(level, getPosition().relative(side), side).ifPresentOrElse(
-            queryResult -> setEntriesForGroup(index, queryResult),
-            () -> setEntriesForGroupUnloaded(index)
-        );
     }
 
     public void setRemoved() {

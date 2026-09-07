@@ -4,6 +4,7 @@ package li.cil.oc2.common.bus;
 
 import dev.architectury.registry.registries.Registrar;
 import li.cil.oc2.api.API;
+import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.ItemDevice;
@@ -164,13 +165,47 @@ public class BlockDeviceBusControllerTests {
         final BlockPos devicePos = elementPos.west();
         final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
 
+        busElementInfo.attachController();
+
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
-        assertTrue(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        assertTrue(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
 
         fakeLevel.setChunkLoaded(new ChunkPos(devicePos), false);
 
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
-        assertFalse(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        assertFalse(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
+    }
+
+    @Test
+    public void deviceStateSurvivesChunkCycleWithoutController() {
+        final BlockPos elementPos = new BlockPos(8, 0, 8);
+        final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
+        final TestBlockDeviceBusElement busElement = busElementInfo.getBusElement();
+
+        final BlockPos devicePos = elementPos.west();
+        final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
+        final ObjectDevice objectDevice = spy(deviceBlockEntity.getObjectDevice());
+        deviceBlockEntity.setObjectDevice(objectDevice);
+
+        final DeviceBusController controller = busElementInfo.attachController();
+        busElement.updateDevicesForNeighbor(Direction.WEST);
+        assertTrue(busElement.getLocalDevices().contains(objectDevice));
+
+        busElement.removeController(controller);
+        fakeLevel.setChunkLoaded(new ChunkPos(devicePos), false);
+        busElement.updateDevicesForNeighbor(Direction.WEST);
+
+        verify(objectDevice, times(1)).serializeNBT();
+
+        fakeLevel.setChunkLoaded(new ChunkPos(devicePos), true);
+        final TestDeviceBlockEntity reloadedDeviceBlockEntity = new TestDeviceBlockEntity(devicePos);
+        final ObjectDevice reloadedObjectDevice = spy(reloadedDeviceBlockEntity.getObjectDevice());
+        reloadedDeviceBlockEntity.setObjectDevice(reloadedObjectDevice);
+
+        busElementInfo.attachController();
+
+        assertTrue(busElement.getLocalDevices().contains(reloadedObjectDevice));
+        verify(reloadedObjectDevice, times(1)).deserializeNBT(any());
     }
 
     @Test
@@ -182,9 +217,11 @@ public class BlockDeviceBusControllerTests {
         final BlockPos devicePos = elementPos.east();
         final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
 
+        busElementInfo.attachController();
+
         busElement.updateDevicesForNeighbor(Direction.EAST);
         verify(busElement, atLeastOnce()).setEntriesForGroup(eq(Direction.EAST.get3DDataValue()), any());
-        assertTrue(busElement.getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        assertTrue(busElement.getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
     }
 
     @Test
@@ -196,17 +233,19 @@ public class BlockDeviceBusControllerTests {
         final BlockPos devicePos = elementPos.east();
         final TestDeviceBlockEntity deviceBlockEntity = new TestDeviceBlockEntity(devicePos);
 
+        busElementInfo.attachController();
+
         busElement.updateDevicesForNeighbor(Direction.EAST);
 
-        assertTrue(busElement.getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        assertTrue(busElement.getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
 
         final ObjectDevice equalDevice = new ObjectDevice(deviceBlockEntity.getTestDevice());
         deviceBlockEntity.setObjectDevice(equalDevice);
 
         busElement.updateDevicesForNeighbor(Direction.EAST);
 
-        assertTrue(busElement.getDevices().contains(deviceBlockEntity.getObjectDevice()));
-        assertNotSame(busElement.getDevices().stream().findFirst().orElseThrow(), equalDevice);
+        assertTrue(busElement.getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
+        assertNotSame(busElement.getLocalDevices().stream().findFirst().orElseThrow(), equalDevice);
     }
 
     @Test
@@ -310,7 +349,7 @@ public class BlockDeviceBusControllerTests {
 
     // Loaded: [ ] Controller, [ ] Element, [x] Device
     //  -> Removing Device:
-    //      -> Provider#dispose() when Element is loaded.
+    //      -> Provider#dispose() when Element is loaded and has a controller again.
 
     @Test
     public void providerDisposeIsCalledWhenDeviceIsRemovedWhileElementIsUnloaded() {
@@ -323,9 +362,11 @@ public class BlockDeviceBusControllerTests {
         final ObjectDevice objectDevice = spy(deviceBlockEntity.getObjectDevice());
         deviceBlockEntity.setObjectDevice(objectDevice);
 
+        busElementInfo.attachController();
+
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
 
-        assertTrue(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        assertTrue(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
         verify(objectDevice, never()).mount();
         verify(objectDevice, never()).unmount();
         verify(objectDevice, never()).dispose();
@@ -343,6 +384,8 @@ public class BlockDeviceBusControllerTests {
         fakeLevel.setChunkLoaded(new ChunkPos(elementPos), true);
         busElementInfo = new TestBusElementBlockEntity(elementPos);
         busElementInfo.getBusElement().load(data);
+
+        busElementInfo.attachController();
 
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
 
@@ -365,18 +408,22 @@ public class BlockDeviceBusControllerTests {
         final ObjectDevice objectDevice = spy(deviceBlockEntity.getObjectDevice());
         deviceBlockEntity.setObjectDevice(objectDevice);
 
+        final DeviceBusController controller = busElementInfo.attachController();
+
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
 
-        assertTrue(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        assertTrue(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
         verify(objectDevice, never()).mount();
         verify(objectDevice, never()).unmount();
         verify(objectDevice, never()).dispose();
         verify(objectDevice, never()).serializeNBT();
         verify(objectDevice, never()).deserializeNBT(any());
 
+        busElementInfo.getBusElement().removeController(controller);
+
         fakeLevel.setChunkLoaded(new ChunkPos(devicePos), false);
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
-        assertFalse(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        assertFalse(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
         verify(objectDevice, never()).mount();
         verify(objectDevice, never()).unmount();
         verify(objectDevice, never()).dispose();
@@ -405,14 +452,18 @@ public class BlockDeviceBusControllerTests {
         final ObjectDevice objectDevice = spy(deviceBlockEntity.getObjectDevice());
         deviceBlockEntity.setObjectDevice(objectDevice);
 
+        final DeviceBusController controller = busElementInfo.attachController();
+
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
 
-        assertTrue(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        assertTrue(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
         verify(objectDevice, never()).mount();
         verify(objectDevice, never()).unmount();
         verify(objectDevice, never()).dispose();
         verify(objectDevice, never()).serializeNBT();
         verify(objectDevice, never()).deserializeNBT(any());
+
+        busElementInfo.getBusElement().removeController(controller);
 
         fakeLevel.removeBlockEntity(elementPos);
         busElementInfo.getBusElement().setRemoved();
@@ -424,7 +475,9 @@ public class BlockDeviceBusControllerTests {
     }
 
     //  -> Removing Device:
-    //      -> Device#dispose()
+    //      -> Device#dispose(), once a controller is back. Without one the element does not
+    //         query providers, so it cannot tell a device that is gone from one its provider
+    //         currently does not offer.
 
     @Test
     public void deviceIsDisposedWhenDeviceIsRemoved() {
@@ -437,17 +490,25 @@ public class BlockDeviceBusControllerTests {
         final ObjectDevice objectDevice = spy(deviceBlockEntity.getObjectDevice());
         deviceBlockEntity.setObjectDevice(objectDevice);
 
+        final DeviceBusController controller = busElementInfo.attachController();
+
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
 
-        assertTrue(busElementInfo.getBusElement().getDevices().contains(deviceBlockEntity.getObjectDevice()));
+        assertTrue(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
         verify(objectDevice, never()).mount();
         verify(objectDevice, never()).unmount();
         verify(objectDevice, never()).dispose();
         verify(objectDevice, never()).serializeNBT();
         verify(objectDevice, never()).deserializeNBT(any());
 
+        busElementInfo.getBusElement().removeController(controller);
+
         fakeLevel.removeBlockEntity(devicePos);
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
+
+        verify(objectDevice, never()).dispose();
+
+        busElementInfo.attachController();
 
         verify(objectDevice, times(1)).dispose();
 
@@ -608,6 +669,15 @@ public class BlockDeviceBusControllerTests {
 
         public TestBlockDeviceBusElement getBusElement() {
             return busElement;
+        }
+
+        // Bus elements only track devices while a controller has them; without one they
+        // cannot know the architecture to query providers with.
+        public DeviceBusController attachController() {
+            final DeviceBusController controller = mock(DeviceBusController.class);
+            when(controller.getArchitectureType()).thenReturn(Optional.of(ArchitectureType.RISCV));
+            busElement.addController(controller);
+            return controller;
         }
 
         public void setSideEnabled(final Direction side, final boolean value) {

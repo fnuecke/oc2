@@ -68,6 +68,18 @@ public class StreamSessionTests {
     }
 
     @Test
+    public void aSegmentHalfTheSequenceSpaceAwayIsDroppedWithAnAck() {
+        establish();
+
+        fromGuest(TcpHeader.FLAG_ACK, guestSequence + 0x80000000, sessionSequence, 8192, new byte[10]);
+
+        final Segment ack = expectSegment();
+        assertTrue(ack.header().ack);
+        assertEquals(guestSequence, ack.header().acknowledgmentNumber);
+        assertEquals(0, ack.payload().length);
+    }
+
+    @Test
     public void peerMaximumSegmentSizeIsHonoured() {
         final TcpHeader syn = new TcpHeader();
         syn.clear();

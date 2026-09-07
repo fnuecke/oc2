@@ -384,12 +384,13 @@ public final class StreamSession extends AbstractSession {
 
         final int segmentStart = header.sequenceNumber;
         if (TcpSequence.lt(segmentStart, receiveNext)) {
-            // Overlaps data we already took; skip the part we have.
-            final int alreadyHave = receiveNext - segmentStart;
-            if (alreadyHave >= length) {
+            if (!TcpSequence.gt(segmentStart + length, receiveNext)) {
+                // Entirely old data, or so far back it wraps around: nothing new in it.
                 ackDue = true;
                 return;
             }
+            // Overlaps data we already took; skip the part we have.
+            final int alreadyHave = receiveNext - segmentStart;
             payload.position(payload.position() + alreadyHave);
             length -= alreadyHave;
         } else if (segmentStart != receiveNext) {

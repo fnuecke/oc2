@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public final class ReachabilityProbe {
@@ -43,13 +44,20 @@ public final class ReachabilityProbe {
             return;
         }
 
-        executor.execute(() -> {
-            final boolean reachable = connect(address);
-            complete(address, reachable);
-            if (reachable) {
-                onReachable.run();
+        try {
+            executor.execute(() -> {
+                final boolean reachable = connect(address);
+                complete(address, reachable);
+                if (reachable) {
+                    onReachable.run();
+                }
+            });
+        } catch (final RejectedExecutionException e) {
+            // Too busy, drop it; address would stay pending and unanswerable until evicted otherwise.
+            synchronized (results) {
+                results.remove(address);
             }
-        });
+        }
     }
 
     // --------------------------------------------------------------------- //

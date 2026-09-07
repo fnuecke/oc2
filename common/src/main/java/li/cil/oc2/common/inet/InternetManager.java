@@ -72,8 +72,7 @@ public final class InternetManager {
         internetThread = Executors.newSingleThreadExecutor(runnable -> daemon(runnable, "OC2 Internet"));
         echoExecutor = new ThreadPoolExecutor(0, ECHO_THREADS,
             30, TimeUnit.SECONDS, new SynchronousQueue<>(),
-            runnable -> daemon(runnable, "OC2 Internet Probe"),
-            new ThreadPoolExecutor.DiscardPolicy());
+            runnable -> daemon(runnable, "OC2 Internet Probe"));
         reachabilityProbe = new ReachabilityProbe(echoExecutor, ECHO_TIMEOUT_MS);
 
         final int ticksPerSecond = TickUtils.toTicks(Duration.ofSeconds(1));

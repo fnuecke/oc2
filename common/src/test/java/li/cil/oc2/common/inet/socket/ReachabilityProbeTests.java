@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,13 +50,33 @@ public class ReachabilityProbeTests {
         assertEquals(1, answered.get(), "only the request that started the probe gets a reply");
     }
 
+    @Test
+    public void aRejectedProbeDoesNotLeaveTheAddressPending() {
+        final CountingExecutor executor = new CountingExecutor();
+        final ReachabilityProbe probe = new ReachabilityProbe(executor, 500);
+
+        final AtomicInteger answered = new AtomicInteger();
+        executor.rejecting = true;
+        probe.probe(LOOPBACK, answered::incrementAndGet);
+        assertEquals(0, answered.get(), "a rejected probe cannot answer");
+
+        executor.rejecting = false;
+        probe.probe(LOOPBACK, answered::incrementAndGet);
+        assertEquals(1, executor.count, "the next request should probe again");
+        assertEquals(1, answered.get(), "and be answered once the probe ran");
+    }
+
     // --------------------------------------------------------------------- //
 
     private static final class CountingExecutor implements Executor {
+        private boolean rejecting;
         private int count;
 
         @Override
         public void execute(final Runnable command) {
+            if (rejecting) {
+                throw new RejectedExecutionException();
+            }
             ++count;
             command.run();
         }

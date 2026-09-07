@@ -12,10 +12,7 @@ import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.EnergyStorage;
 import li.cil.oc2.common.tags.ItemTags;
-import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.util.NBTUtils;
-import li.cil.oc2.common.util.StorageItemUtils;
+import li.cil.oc2.common.util.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup;
@@ -28,7 +25,6 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.StreamSupport;
@@ -38,17 +34,11 @@ import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
 
 public final class TooltipUtils {
-    private static final MutableComponent DEVICE_NEEDS_REBOOT =
-        Component.translatable(Constants.TOOLTIP_DEVICE_NEEDS_REBOOT)
-            .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.YELLOW)));
+    private static final MutableComponent DEVICE_NEEDS_REBOOT = Component.translatable(Constants.TOOLTIP_DEVICE_NEEDS_REBOOT).withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.YELLOW)));
 
-    private static final MutableComponent DATA_CORRUPTED =
-        Component.translatable(Constants.TOOLTIP_DATA_CORRUPTED)
-            .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.RED)));
+    private static final MutableComponent DATA_CORRUPTED = Component.translatable(Constants.TOOLTIP_DATA_CORRUPTED).withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.RED)));
 
-    private static final MutableComponent DATA_INCONSISTENT =
-        Component.translatable(Constants.TOOLTIP_DATA_INCONSISTENT)
-            .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.YELLOW)));
+    private static final MutableComponent DATA_INCONSISTENT = Component.translatable(Constants.TOOLTIP_DATA_INCONSISTENT).withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.YELLOW)));
 
     private static final ThreadLocal<List<ItemStack>> ITEM_STACKS = ThreadLocal.withInitial(ArrayList::new);
     private static final ThreadLocal<IntList> ITEM_STACKS_SIZES = ThreadLocal.withInitial(IntArrayList::new);
@@ -72,8 +62,7 @@ public final class TooltipUtils {
         }
 
         final int energyConsumption;
-        if (stack.getItem() instanceof BlockItem blockItem &&
-            blockItem.getBlock() instanceof EnergyConsumingBlock energyConsumingBlock) {
+        if (stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof EnergyConsumingBlock energyConsumingBlock) {
             energyConsumption = energyConsumingBlock.getEnergyConsumption();
         } else {
             final ItemDeviceQuery query = Devices.makeQuery(stack);
@@ -114,13 +103,7 @@ public final class TooltipUtils {
 
         for (int i = 0; i < itemStacks.size(); i++) {
             final ItemStack itemStack = itemStacks.get(i);
-            tooltip.add(Component.literal("- ")
-                .append(itemStack.getDisplayName())
-                .withStyle(style -> style.withColor(TextColor.fromLegacyFormat(ChatFormatting.GRAY)))
-                .append(Component.literal(" x")
-                    .append(String.valueOf(itemStackSizes.getInt(i)))
-                    .withStyle(style -> style.withColor(TextColor.fromLegacyFormat(ChatFormatting.DARK_GRAY))))
-            );
+            tooltip.add(Component.literal("- ").append(itemStack.getDisplayName()).withStyle(style -> style.withColor(TextColor.fromLegacyFormat(ChatFormatting.GRAY))).append(Component.literal(" x").append(String.valueOf(itemStackSizes.getInt(i))).withStyle(style -> style.withColor(TextColor.fromLegacyFormat(ChatFormatting.DARK_GRAY)))));
         }
     }
 
@@ -136,8 +119,14 @@ public final class TooltipUtils {
 
     public static void addEnergyConsumption(final double value, final List<Component> tooltip) {
         if (value > 0) {
-            tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION, withFormat(new DecimalFormat("#.##").format(value), ChatFormatting.GREEN)), ChatFormatting.GRAY));
+            final var formattedValue = withFormat(TextFormatUtils.formatNumber(value), ChatFormatting.GREEN);
+            tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION, formattedValue), ChatFormatting.GRAY));
         }
+    }
+
+    public static void addEnergyConsumption(final double minValue, final double maxValue, final List<Component> tooltip) {
+        final var formattedValue = withFormat(TextFormatUtils.formatNumber(minValue) + "-" + TextFormatUtils.formatNumber(maxValue), ChatFormatting.GREEN);
+        tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION, formattedValue), ChatFormatting.GRAY));
     }
 
     public static void addDataCorrupted(final ItemStack stack, final List<Component> tooltip) {
@@ -162,9 +151,7 @@ public final class TooltipUtils {
     // --------------------------------------------------------------------- //
 
     private static String[] getDeviceTypeNames() {
-        return StreamSupport.stream(DeviceTypeRegistry.REGISTRY.spliterator(), false)
-            .map(DeviceTypeRegistry::key)
-            .toArray(String[]::new);
+        return StreamSupport.stream(DeviceTypeRegistry.REGISTRY.spliterator(), false).map(DeviceTypeRegistry::key).toArray(String[]::new);
     }
 
     private static void collectItemStacks(final CompoundTag tag, final List<ItemStack> stacks, final IntList stackSizes) {

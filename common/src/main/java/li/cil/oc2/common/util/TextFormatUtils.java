@@ -7,9 +7,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
 
+import java.text.DecimalFormat;
+
 public final class TextFormatUtils {
     private static final int SIZE_STEP = 1024;
     private static final String[] SIZE_FORMAT = {"%dB", "%dKB", "%dMB", "%dGB", "%dTB"};
+    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.##");
 
     public static String formatSize(long size) {
         int index = 0;
@@ -18,6 +21,10 @@ public final class TextFormatUtils {
             index++;
         }
         return String.format(SIZE_FORMAT[index], size);
+    }
+
+    public static String formatNumber(final double value) {
+        return DECIMAL_FORMAT.format(value);
     }
 
     public static MutableComponent withFormat(final String value, final ChatFormatting formatting) {

@@ -124,26 +124,30 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
     }
 
     private void chargeBlockEntity(final BlockEntity blockEntity) {
-        final EnergyStorage energyStorage = Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, Direction.DOWN);
+        charge(Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, Direction.DOWN), Capabilities.get(blockEntity, Capabilities.ITEM_HANDLER, Direction.DOWN));
+    }
+
+    private void chargeEntity(final Entity entity) {
+        charge(Capabilities.get(entity, Capabilities.ENERGY_STORAGE, Direction.DOWN), Capabilities.get(entity, Capabilities.ITEM_HANDLER, Direction.DOWN));
+    }
+
+    private void charge(@Nullable EnergyStorage energyStorage, @Nullable ItemHandler itemHandler) {
         if (energyStorage != null) {
-            charge(energyStorage);
+            chargeStorage(energyStorage);
         }
 
-        final ItemHandler itemHandler = Capabilities.get(blockEntity, Capabilities.ITEM_HANDLER, Direction.DOWN);
         if (itemHandler != null) {
             chargeItems(itemHandler);
         }
     }
 
-    private void chargeEntity(final Entity entity) {
-        final EnergyStorage energyStorage = Capabilities.get(entity, Capabilities.ENERGY_STORAGE, Direction.DOWN);
-        if (energyStorage != null) {
-            charge(energyStorage);
-        }
+    private void chargeStorage(final EnergyStorage energyStorage) {
+        assert level != null;
 
-        final ItemHandler itemHandler = Capabilities.get(entity, Capabilities.ITEM_HANDLER, Direction.DOWN);
-        if (itemHandler != null) {
-            chargeItems(itemHandler);
+        final long amount = Math.min(energy.getEnergyStored(), Config.chargerEnergyPerTick);
+        final boolean simulate = level.isClientSide;
+        if (energy.extractEnergy(energyStorage.receiveEnergy(amount, simulate), simulate) > 0) {
+            isCharging = true;
         }
     }
 
@@ -153,19 +157,9 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
             if (!stack.isEmpty()) {
                 final EnergyStorage stackEnergy = Capabilities.get(stack, Capabilities.ENERGY_STORAGE);
                 if (stackEnergy != null) {
-                    charge(stackEnergy);
+                    chargeStorage(stackEnergy);
                 }
             }
-        }
-    }
-
-    private void charge(final EnergyStorage energyStorage) {
-        assert level != null;
-
-        final long amount = Math.min(energy.getEnergyStored(), Config.chargerEnergyPerTick);
-        final boolean simulate = level.isClientSide;
-        if (energy.extractEnergy(energyStorage.receiveEnergy(amount, simulate), simulate) > 0) {
-            isCharging = true;
         }
     }
 

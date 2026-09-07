@@ -8,6 +8,8 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.InternetGatewayBlockEntity;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
+import li.cil.oc2.common.inet.InternetConnection;
+import li.cil.oc2.common.item.TooltipUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -69,6 +71,9 @@ public final class InternetGatewayBlock extends HorizontalDirectionalBlock imple
     @Override
     public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip, final TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
+        if (Config.internetGatewaysUseEnergy()) {
+            TooltipUtils.addEnergyConsumption(0, InternetConnection.FRAME_QUEUE_SIZE * Config.internetGatewayEnergyPerPacket, tooltip);
+        }
         if (!Config.internetEnabled) {
             tooltip.add(Component.translatable(Constants.TOOLTIP_INTERNET_DISABLED)
                 .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.RED))));

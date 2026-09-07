@@ -50,6 +50,7 @@ public class CommonDeviceBusController implements DeviceBusController {
     private final IntSupplier baseEnergyConsumption;
 
     private final Set<DeviceBusElement> elements = new HashSet<>();
+    private final HashMap<DeviceBusElement, Invalidatable.ListenerToken> elementListeners = new HashMap<>();
     private final HashSet<Device> devices = new HashSet<>();
     private final HashMap<Device, Set<UUID>> deviceIds = new HashMap<>();
 
@@ -75,6 +76,7 @@ public class CommonDeviceBusController implements DeviceBusController {
     public void dispose() {
         for (final DeviceBusElement element : elements) {
             element.removeController(this);
+            removeElementListener(element);
 
             // Let other controllers on the bus know we're gone, so they can quickly recover.
             for (final DeviceBusController controller : element.getControllers()) {
@@ -186,9 +188,8 @@ public class CommonDeviceBusController implements DeviceBusController {
             // Don't have an optional for our root element, so skip that.
             addedElements.remove(root);
             for (final DeviceBusElement element : addedElements) {
-                // Rescan if any bus element gets invalidated. Don't have bus elements keep this instance alive,
-                // only notify us on change if we still exist.
-                optionals.get(element).addListener(ignored -> scheduleBusScan(ScanReason.BUS_CHANGE));
+                elementListeners.put(element, optionals.get(element)
+                    .addListener(ignored -> scheduleBusScan(ScanReason.BUS_CHANGE)));
             }
 
             updateArchitecture();
@@ -238,11 +239,19 @@ public class CommonDeviceBusController implements DeviceBusController {
     private void clearElements() {
         for (final DeviceBusElement element : elements) {
             element.removeController(this);
+            removeElementListener(element);
         }
 
         elements.clear();
 
         scanDevices();
+    }
+
+    private void removeElementListener(final DeviceBusElement element) {
+        final var token = elementListeners.remove(element);
+        if (token != null) {
+            token.removeListener();
+        }
     }
 
     private Optional<HashMap<DeviceBusElement, Invalidatable<DeviceBusElement>>> collectBusElements() {
@@ -307,6 +316,7 @@ public class CommonDeviceBusController implements DeviceBusController {
 
         for (final DeviceBusElement removedElement : removedElements) {
             removedElement.removeController(this);
+            removeElementListener(removedElement);
 
             // Let other controllers on the bus know we're gone, so they can quickly recover.
             for (final DeviceBusController controller : removedElement.getControllers()) {

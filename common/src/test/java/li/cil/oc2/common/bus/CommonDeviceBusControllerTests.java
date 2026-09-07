@@ -87,6 +87,24 @@ public class CommonDeviceBusControllerTests {
     }
 
     @Test
+    public void disposedControllerStopsListeningToItsElements() {
+        final DeviceBusElement busElement = mock(DeviceBusElement.class);
+        final Invalidatable<DeviceBusElement> neighbor = Invalidatable.of(busElement);
+
+        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(neighbor)));
+        when(busElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busControllerBusElement))));
+
+        busController.scan();
+        assertEquals(CommonDeviceBusController.BusState.READY, busController.getState());
+
+        busController.dispose();
+        neighbor.invalidate();
+
+        assertEquals(CommonDeviceBusController.BusState.READY, busController.getState(),
+            "a disposed controller must not be called by an element it owned");
+    }
+
+    @Test
     public void scanSuccessfulWithMultipleElements() {
         // topology: controller <-> element 1 <-> element 2
 

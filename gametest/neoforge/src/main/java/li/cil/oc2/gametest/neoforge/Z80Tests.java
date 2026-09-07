@@ -15,9 +15,12 @@ import static li.cil.oc2.gametest.TestSupport.*;
 @PrefixGameTestTemplate(false)
 public final class Z80Tests {
     private static final int BOOT_TIMEOUT_TICKS = 20000;
-    private static final String BATCH = "oc2_z80";
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    private static final String BOOT_BATCH = "oc2_z80_boot";
+    private static final String SYSTEM_DISK_BATCH = "oc2_z80_system_disk";
+    private static final String DEVS_BATCH = "oc2_z80_devs";
+
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BOOT_BATCH)
     public static void z80BootsToTheCpmPrompt(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -30,7 +33,7 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SYSTEM_DISK_BATCH)
     public static void theSystemDiskCarriesTheFilesOc2Ships(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -53,7 +56,7 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = DEVS_BATCH)
     public static void devsListsTheMidLevelApiDevice(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);

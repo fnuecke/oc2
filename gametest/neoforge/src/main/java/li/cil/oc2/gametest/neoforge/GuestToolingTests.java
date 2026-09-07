@@ -19,12 +19,15 @@ import static li.cil.oc2.gametest.TestSupport.*;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class GuestToolingTests {
-    private static final String BATCH = "oc2_guest_tooling";
+    private static final String GEOMETRY_BATCH = "oc2_guest_tooling_geometry";
+    private static final String KEYMAP_BATCH = "oc2_guest_tooling_keymap";
+    private static final String SWAP_BATCH = "oc2_guest_tooling_swap";
+
     private static final String PROMPT = "# "; // Shell is up, as opposed to login still reading input.
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = GEOMETRY_BATCH)
     public static void guestReportsUsableDriveGeometry(final GameTestHelper helper) {
         final ComputerFixture computer = machine(helper);
 
@@ -49,7 +52,7 @@ public final class GuestToolingTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = KEYMAP_BATCH)
     public static void guestLoadsShippedKeymaps(final GameTestHelper helper) {
         final ComputerFixture computer = machine(helper);
 
@@ -71,7 +74,7 @@ public final class GuestToolingTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SWAP_BATCH)
     public static void guestCanUseASecondDriveAsSwap(final GameTestHelper helper) {
         final ComputerFixture computer = machine(helper);
 

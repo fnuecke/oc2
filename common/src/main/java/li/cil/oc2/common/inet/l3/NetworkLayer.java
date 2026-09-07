@@ -127,6 +127,11 @@ public final class NetworkLayer {
         }
 
         if (!addressFilter.isAllowed(destinationIpAddress)) {
+            if (!isUnicast(destinationIpAddress)) {
+                // Broadcasts and multicasts are the guests talking among themselves, and RFC 1122
+                // forbids answering them with errors anyway.
+                return;
+            }
             queueIcmpError(packet, start, headerSize, totalLength,
                 ICMP_TYPE_DESTINATION_UNREACHABLE, ICMP_CODE_ADMINISTRATIVELY_PROHIBITED,
                 sourceIpAddress, destinationIpAddress);
@@ -142,6 +147,11 @@ public final class NetworkLayer {
     }
 
     // --------------------------------------------------------------------- //
+
+    private static boolean isUnicast(final int ipAddress) {
+        // Everything from 224.0.0.0 up is multicast, reserved, or the limited broadcast.
+        return (ipAddress & 0xE0000000) != 0xE0000000;
+    }
 
     private static void writeIpv4Header(
         final ByteBuffer packet,

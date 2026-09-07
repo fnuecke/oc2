@@ -14,6 +14,8 @@ public final class LinkLocalLayer {
     public static final int FRAME_SIZE = FRAME_HEADER_SIZE + DEFAULT_MTU;
 
     private static final short MAC_PREFIX = 0x0242;
+    private static final short BROADCAST_MAC_PREFIX = (short) 0xFFFF;
+    private static final int BROADCAST_MAC_ADDRESS = 0xFFFFFFFF;
     private static final short PROTOCOL_ARP = 0x0806;
     private static final short HW_TYPE_ETHERNET = 0x0001;
     private static final int ARP_MESSAGE_SIZE = 28;
@@ -91,11 +93,17 @@ public final class LinkLocalLayer {
             return;
         }
 
-        frame.getShort(); // Destination MAC; we answer to whatever the guest addresses.
-        frame.getInt();
+        final short destinationMacPrefix = frame.getShort();
+        final int destinationMacAddress = frame.getInt();
         final short sourceMacPrefix = frame.getShort();
         final int sourceMacAddress = frame.getInt();
         final short protocol = frame.getShort();
+
+        if (!isAddressedToUs(destinationMacPrefix, destinationMacAddress)) {
+            // The hub floods every frame on the segment to us, including what guests say to each
+            // other. Proxying that would leak their conversation to the outside world.
+            return;
+        }
 
         if (protocol == PROTOCOL_ARP) {
             handleArpRequest(frame, sourceMacPrefix, sourceMacAddress);
@@ -114,6 +122,12 @@ public final class LinkLocalLayer {
 
     private static MacAddress randomMacAddress() {
         return new MacAddress(MAC_PREFIX, ThreadLocalRandom.current().nextInt());
+    }
+
+    private boolean isAddressedToUs(final short macPrefix, final int macAddress) {
+        final boolean broadcast = macPrefix == BROADCAST_MAC_PREFIX && macAddress == BROADCAST_MAC_ADDRESS;
+        return broadcast
+            || (macPrefix == gatewayMacAddress.prefix() && macAddress == gatewayMacAddress.address());
     }
 
     private void handleArpRequest(final ByteBuffer frame, final short sourceMacPrefix, final int sourceMacAddress) {

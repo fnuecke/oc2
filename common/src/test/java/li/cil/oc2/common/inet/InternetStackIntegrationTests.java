@@ -5,12 +5,7 @@ package li.cil.oc2.common.inet;
 import li.cil.oc2.common.inet.l2.LinkLocalLayer;
 import li.cil.oc2.common.inet.l3.AddressFilter;
 import li.cil.oc2.common.inet.l3.NetworkLayer;
-import li.cil.oc2.common.inet.l4.PortFilter;
-import li.cil.oc2.common.inet.l4.SessionLayer;
-import li.cil.oc2.common.inet.l4.SessionLimits;
-import li.cil.oc2.common.inet.l4.StreamSession;
-import li.cil.oc2.common.inet.l4.TcpHeader;
-import li.cil.oc2.common.inet.l4.TransportLayer;
+import li.cil.oc2.common.inet.l4.*;
 import li.cil.oc2.common.inet.socket.ReachabilityProbe;
 import li.cil.oc2.common.inet.socket.SocketManager;
 import li.cil.oc2.common.inet.socket.SocketSessionLayer;
@@ -31,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings({"SameParameterValue", "BusyWait"})
 public class InternetStackIntegrationTests {
     private static final short ETHERTYPE_ARP = 0x0806;
     private static final short ETHERTYPE_IPv4 = 0x0800;
@@ -241,6 +237,40 @@ public class InternetStackIntegrationTests {
 
     @Test
     @Timeout(30)
+    public void aFrameAddressedToAnotherMachineIsIgnored() throws Exception {
+        resolveGateway();
+
+        try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
+            peer.setSoTimeout(200);
+            send(udpFrame(OTHER_GUEST_MAC, GUEST_MAC, GUEST_IP, 0x7F000001,
+                (short) 40004, (short) peer.getLocalPort(), "not for you".getBytes(StandardCharsets.UTF_8)));
+
+            for (int i = 0; i < 20; ++i) {
+                assertTrue(pump().isEmpty(), "a frame for another machine must not be answered");
+                Thread.sleep(2);
+            }
+            assertThrows(SocketTimeoutException.class,
+                () -> peer.receive(new DatagramPacket(new byte[64], 64)),
+                "a frame for another machine must not be proxied");
+        }
+    }
+
+    @Test
+    @Timeout(30)
+    public void aBroadcastIsNotAnsweredWithAnError() throws Exception {
+        resolveGateway();
+
+        send(udpFrame(new byte[]{-1, -1, -1, -1, -1, -1}, GUEST_MAC, GUEST_IP, 0xFFFFFFFF,
+            (short) 68, (short) 67, "dhcp discover".getBytes(StandardCharsets.UTF_8)));
+
+        for (int i = 0; i < 20; ++i) {
+            assertTrue(pump().isEmpty(), "a broadcast must be dropped silently");
+            Thread.sleep(2);
+        }
+    }
+
+    @Test
+    @Timeout(30)
     public void anIdleUdpSocketProducesNoFrames() throws Exception {
         resolveGateway();
 
@@ -413,6 +443,7 @@ public class InternetStackIntegrationTests {
         blocked.sendEthernetFrame(ByteBuffer.wrap(arpRequest(GUEST_IP, GATEWAY_IP)));
         final ByteBuffer buffer = ByteBuffer.allocate(LinkLocalLayer.FRAME_SIZE);
         assertTrue(blocked.receiveEthernetFrame(buffer), "the ARP reply should still come back");
+        buffer.get(6, gatewayMac); // This stack has a MAC of its own.
 
         final int portBefore = server.getLocalPort();
         blocked.sendEthernetFrame(ByteBuffer.wrap(
@@ -463,14 +494,12 @@ public class InternetStackIntegrationTests {
     @Test
     @Timeout(value = 30, unit = TimeUnit.SECONDS)
     public void theGatewayReleasesAnAddressItClaimedBeforeItsOwnerSpokeUp() throws Exception {
-        gatewayMac = new byte[]{0x02, 0x00, 0x00, 0x00, 0x00, 0x7F};
-
         // Nobody has spoken yet, so the gateway cannot know the address is taken, and answers.
         send(arpRequest(OTHER_GUEST_MAC, OTHER_GUEST_IP, GUEST_IP));
         pumpUntilEtherType(ETHERTYPE_ARP);
 
         // Then the machine that owns it turns up.
-        send(udpFrame(GUEST_MAC, GUEST_IP, (short) 40001, (short) 9, new byte[0]));
+        send(arpRequest(GUEST_MAC, GUEST_IP, GUEST_IP));
         pump();
 
         send(arpRequest(OTHER_GUEST_MAC, OTHER_GUEST_IP, GATEWAY_IP));
@@ -481,10 +510,8 @@ public class InternetStackIntegrationTests {
     @Test
     @Timeout(value = 30, unit = TimeUnit.SECONDS)
     public void theGatewayDoesNotClaimAnAddressAGuestHolds() throws Exception {
-        gatewayMac = new byte[]{0x02, 0x00, 0x00, 0x00, 0x00, 0x7F};
-
-        // The first guest is on the air, so its address is known to belong to a real machine.
-        send(udpFrame(GUEST_MAC, GUEST_IP, (short) 40001, (short) 9, new byte[0]));
+        // The first guest comes on the air, so its address is known to belong to a real machine.
+        send(arpRequest(GUEST_MAC, GUEST_IP, GUEST_IP));
         pump();
 
         // The second guest looks the first one up, as it would for a DNS server on its segment.
@@ -543,7 +570,7 @@ public class InternetStackIntegrationTests {
         for (int i = 0; i < 200; ++i) {
             final List<byte[]> frames = pump();
             if (!frames.isEmpty()) {
-                return frames.get(0);
+                return frames.getFirst();
             }
             Thread.sleep(5);
         }
@@ -656,9 +683,14 @@ public class InternetStackIntegrationTests {
 
     private byte[] udpFrame(final byte[] sourceMac, final int sourceIp,
                             final short sourcePort, final short destinationPort, final byte[] payload) {
+        return udpFrame(gatewayMac, sourceMac, sourceIp, 0x7F000001, sourcePort, destinationPort, payload);
+    }
+
+    private byte[] udpFrame(final byte[] destinationMac, final byte[] sourceMac, final int sourceIp, final int destinationIp,
+                            final short sourcePort, final short destinationPort, final byte[] payload) {
         final int udpLength = 8 + payload.length;
         final int ipLength = 20 + udpLength;
-        final ByteBuffer buffer = frame(gatewayMac, sourceMac, ETHERTYPE_IPv4, ipLength);
+        final ByteBuffer buffer = frame(destinationMac, sourceMac, ETHERTYPE_IPv4, ipLength);
 
         buffer.put((byte) 0x45);
         buffer.put((byte) 0);
@@ -669,7 +701,7 @@ public class InternetStackIntegrationTests {
         buffer.put(PROTOCOL_UDP);
         buffer.putShort((short) 0); // Header checksum; the stack does not verify it.
         buffer.putInt(sourceIp);
-        buffer.putInt(0x7F000001);
+        buffer.putInt(destinationIp);
 
         buffer.putShort(sourcePort);
         buffer.putShort(destinationPort);

@@ -538,7 +538,7 @@ public class InternetStackIntegrationTests {
         final SessionLayer sessionLayer =
             new SocketSessionLayer("test", socketManager, new ReachabilityProbe(Runnable::run, 100));
         final TransportLayer transportLayer = new TransportLayer(sessionLayer,
-            ports, limits, () -> 1,
+            ports, limits, new TokenBucket(1024, 1024), () -> 1,
             new StreamSession.TcpConfig(8192, 100, 1000), timeoutNanos);
         final NetworkLayer networkLayer = new NetworkLayer(transportLayer, filter);
         return new LinkLocalLayer(networkLayer);

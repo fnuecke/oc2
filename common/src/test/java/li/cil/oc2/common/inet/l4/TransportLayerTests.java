@@ -29,11 +29,7 @@ public class TransportLayerTests {
     @BeforeEach
     public void setUp() {
         sessionLayer = new ScriptedSessionLayer();
-        transport = new TransportLayer(sessionLayer,
-            new PortFilter(List.of()),
-            new SessionLimits(8, 32), () -> 1,
-            new StreamSession.TcpConfig(8192, 100, 1000),
-            TimeUnit.SECONDS.toNanos(60));
+        transport = newTransport(new TokenBucket(1024, 1024));
     }
 
     // --------------------------------------------------------------------- //
@@ -98,7 +94,42 @@ public class TransportLayerTests {
         assertTrue(resets > 0, "at least one reset should still go out");
     }
 
+    @Test
+    public void newSessionsBeyondTheRateAreRefusedWithAReset() {
+        final SessionLimits limits = new SessionLimits(8, 32);
+        transport = newTransport(limits, new TokenBucket(2, 0));
+
+        sendTcp((short) 40001, TcpHeader.FLAG_SYN, guestSequence, 0);
+        sendTcp((short) 40002, TcpHeader.FLAG_SYN, guestSequence, 0);
+        assertEquals(2, limits.getUsed());
+
+        sessionLayer.lastStream = null;
+        sendTcp((short) 40003, TcpHeader.FLAG_SYN, guestSequence, 0);
+        assertNull(sessionLayer.lastStream, "the third connection must not be opened");
+        assertEquals(2, limits.getUsed(), "a refused connection must not hold a slot");
+
+        final Received received = receive();
+        assertEquals(TransportLayer.PROTOCOL_TCP, received.protocol());
+        received.buffer().getShort();
+        assertEquals((short) 40003, received.buffer().getShort(), "the reset should go to the refused connection");
+        final TcpHeader header = new TcpHeader();
+        assertTrue(header.read(received.buffer()));
+        assertTrue(header.rst);
+    }
+
     // --------------------------------------------------------------------- //
+
+    private TransportLayer newTransport(final TokenBucket sessionRate) {
+        return newTransport(new SessionLimits(8, 32), sessionRate);
+    }
+
+    private TransportLayer newTransport(final SessionLimits limits, final TokenBucket sessionRate) {
+        return new TransportLayer(sessionLayer,
+            new PortFilter(List.of()),
+            limits, sessionRate, () -> 1,
+            new StreamSession.TcpConfig(8192, 100, 1000),
+            TimeUnit.SECONDS.toNanos(60));
+    }
 
     private ByteBuffer newMessageBuffer() {
         final ByteBuffer buffer = ByteBuffer.allocate(LinkLocalLayer.FRAME_SIZE);
@@ -107,8 +138,12 @@ public class TransportLayerTests {
     }
 
     private void sendTcp(final int flags, final int sequenceNumber, final int acknowledgmentNumber) {
+        sendTcp(GUEST_PORT, flags, sequenceNumber, acknowledgmentNumber);
+    }
+
+    private void sendTcp(final short sourcePort, final int flags, final int sequenceNumber, final int acknowledgmentNumber) {
         final ByteBuffer buffer = ByteBuffer.allocate(64);
-        buffer.putShort(GUEST_PORT);
+        buffer.putShort(sourcePort);
         buffer.putShort(REMOTE_PORT);
         buffer.putInt(sequenceNumber);
         buffer.putInt(acknowledgmentNumber);

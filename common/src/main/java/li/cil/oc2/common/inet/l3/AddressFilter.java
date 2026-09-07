@@ -114,6 +114,7 @@ public final class AddressFilter {
     @Override
     public String toString() {
         return "AddressFilter{allowed=" + staticAllowed + ", denied=" + staticDenied
+            + ", localSubnets=" + localDenied
             + ", allowedHosts=" + allowedHostNames + ", deniedHosts=" + deniedHostNames + "}";
     }
 

@@ -237,6 +237,36 @@ public class InternetStackIntegrationTests {
 
     @Test
     @Timeout(30)
+    public void aSpoofedSourceAddressDoesNotRedirectAnotherGuestsReplies() throws Exception {
+        resolveGateway();
+
+        try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
+            peer.setSoTimeout(10000);
+            final short peerPort = (short) peer.getLocalPort();
+
+            send(udpFrame(GUEST_MAC, GUEST_IP, (short) 40001, peerPort, "ping".getBytes(StandardCharsets.UTF_8)));
+            pump();
+
+            final DatagramPacket incoming = new DatagramPacket(new byte[64], 64);
+            peer.receive(incoming);
+
+            // A second machine sends an IP frame claiming the first one's address. Only ARP teaches
+            // the gateway who holds an address, so this must not rebind it.
+            send(udpFrame(gatewayMac, OTHER_GUEST_MAC, GUEST_IP, 0x7F000001,
+                (short) 40002, peerPort, "spoof".getBytes(StandardCharsets.UTF_8)));
+            pump();
+
+            final byte[] response = "pong".getBytes(StandardCharsets.UTF_8);
+            peer.send(new DatagramPacket(response, response.length, incoming.getSocketAddress()));
+
+            final byte[] reply = pumpUntilEtherType(ETHERTYPE_IPv4);
+            assertArrayEquals(GUEST_MAC, destinationMacOf(reply),
+                "the reply belongs to the first guest and a spoofed frame must not steal it");
+        }
+    }
+
+    @Test
+    @Timeout(30)
     public void aFrameAddressedToAnotherMachineIsIgnored() throws Exception {
         resolveGateway();
 

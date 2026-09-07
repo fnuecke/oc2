@@ -108,12 +108,9 @@ public final class LinkLocalLayer {
         if (protocol == PROTOCOL_ARP) {
             handleArpRequest(frame, sourceMacPrefix, sourceMacAddress);
         } else {
-            if (protocol == NetworkLayer.PROTOCOL_IPv4
-                && frame.remaining() >= NetworkLayer.IPv4_SOURCE_OFFSET + 4) {
-                // An IP packet without a preceding ARP still says who holds the source address.
-                learnGuest(frame.getInt(frame.position() + NetworkLayer.IPv4_SOURCE_OFFSET),
-                    new MacAddress(sourceMacPrefix, sourceMacAddress));
-            }
+            // Addresses are learned from ARP only. An IP frame's source could name any address the
+            // guest likes, and learning from it would let one guest redirect another's replies.
+            // A guest cannot reach us with an IP frame without first ARPing for us anyway.
             networkLayer.sendPacket(protocol, frame);
         }
     }

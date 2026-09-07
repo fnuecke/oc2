@@ -75,17 +75,17 @@ public final class ProjectorBlock extends HorizontalDirectionalBlock implements 
     }
 
     @Override
+    @Nullable
     public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
         return BlockEntities.PROJECTOR.get().create(pos, state);
     }
 
-    @Nullable
     @Override
+    @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(final Level level, final BlockState state, final BlockEntityType<T> type) {
         return TickableBlockEntity.createServerTicker(level, type, BlockEntities.PROJECTOR.get());
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public VoxelShape getShape(final BlockState state, final BlockGetter level, final BlockPos blockPos, final CollisionContext context) {
         return switch (state.getValue(FACING)) {

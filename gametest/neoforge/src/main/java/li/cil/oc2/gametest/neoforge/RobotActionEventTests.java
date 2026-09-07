@@ -21,7 +21,6 @@ import static li.cil.oc2.gametest.TestSupport.*;
 @PrefixGameTestTemplate(false)
 public final class RobotActionEventTests {
     private static final BlockPos ROBOT_POS = new BlockPos(20, WORK_Y, 2);
-    private static final int BOOT_TIMEOUT_TICKS = 150000;
 
     private static final String BATCH = "oc2_robot_events";
     private static final String SUITE = "robot_events";

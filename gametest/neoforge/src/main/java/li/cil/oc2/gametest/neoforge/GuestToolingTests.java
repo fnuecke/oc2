@@ -19,7 +19,6 @@ import static li.cil.oc2.gametest.TestSupport.*;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class GuestToolingTests {
-    private static final int BOOT_TIMEOUT_TICKS = 150000;
     private static final String BATCH = "oc2_guest_tooling";
     private static final String PROMPT = "# "; // Shell is up, as opposed to login still reading input.
 

@@ -28,6 +28,8 @@ public final class TestSupport {
     public static final BlockPos CABLE_POS = new BlockPos(3, WORK_Y, 2);
     public static final BlockPos DEVICE_POS = new BlockPos(4, WORK_Y, 2);
 
+    public static final int BOOT_TIMEOUT_TICKS = 1_000_000;
+
     public static GameTestAssertException failure(final GameTestHelper helper, final String message) {
         return new GameTestAssertException(message);
     }

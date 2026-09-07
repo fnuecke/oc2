@@ -20,8 +20,6 @@ import static li.cil.oc2.gametest.TestSupport.*;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class GuestLibraryTests {
-    private static final int BOOT_TIMEOUT_TICKS = 300000;
-
     private static final String BATCH = "oc2_guest_libraries";
     private static final String SUITE = "guest_libraries";
 

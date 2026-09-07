@@ -20,8 +20,6 @@ import static li.cil.oc2.gametest.TestSupport.*;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class RpcRoundtripTests {
-    private static final int BOOT_TIMEOUT_TICKS = 150000;
-
     private static final String BATCH = "oc2_rpc_roundtrip";
     private static final String SUITE = "rpc_roundtrip";
 

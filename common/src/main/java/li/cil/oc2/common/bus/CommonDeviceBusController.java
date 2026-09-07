@@ -111,8 +111,6 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     @Override
     public void scanDevices() {
-        onBeforeDeviceScan();
-
         final HashSet<Device> newDevices = new HashSet<>();
         final HashMap<Device, Set<UUID>> newDeviceIds = new HashMap<>();
         for (final DeviceBusElement element : elements) {
@@ -125,30 +123,32 @@ public class CommonDeviceBusController implements DeviceBusController {
 
         final HashSet<Device> removedDevices = new HashSet<>(devices);
         removedDevices.removeAll(newDevices);
-        onDevicesRemoved(removedDevices);
 
         final HashSet<Device> addedDevices = new HashSet<>(newDevices);
         addedDevices.removeAll(devices);
-        onDevicesAdded(addedDevices);
 
         final boolean didDevicesChange = !removedDevices.isEmpty() || !addedDevices.isEmpty();
-        final boolean didDeviceIdsChange;
+        final boolean didDeviceIdsChange = didDevicesChange || deviceIds.entrySet().stream().anyMatch(entry ->
+            !Objects.equals(entry.getValue(), newDeviceIds.get(entry.getKey())));
+
+        if (!didDeviceIdsChange) {
+            return;
+        }
+
+        onBeforeDeviceScan();
+
+        onDevicesRemoved(removedDevices);
+        onDevicesAdded(addedDevices);
+
         if (didDevicesChange) {
             devices.clear();
             devices.addAll(newDevices);
-
-            didDeviceIdsChange = true;
-        } else {
-            didDeviceIdsChange = deviceIds.entrySet().stream().anyMatch(entry ->
-                !Objects.equals(entry.getValue(), newDeviceIds.get(entry.getKey())));
         }
 
-        if (didDeviceIdsChange) {
-            deviceIds.clear();
-            deviceIds.putAll(newDeviceIds);
-        }
+        deviceIds.clear();
+        deviceIds.putAll(newDeviceIds);
 
-        onAfterDeviceScan(didDevicesChange || didDeviceIdsChange);
+        onAfterDeviceScan(true);
     }
 
     @Override

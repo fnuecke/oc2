@@ -61,6 +61,32 @@ public class CommonDeviceBusControllerTests {
     }
 
     @Test
+    public void deviceScanWithoutChangesNotifiesNobody() {
+        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.emptyList()));
+
+        final RPCDevice device = mock(RPCDevice.class);
+        when(busControllerBusElement.getLocalDevices()).thenReturn(singletonList(device));
+
+        busController.scan();
+
+        final int[] beforeCount = new int[1];
+        final int[] afterCount = new int[1];
+        busController.onBeforeDeviceScan.add(() -> beforeCount[0]++);
+        busController.onAfterDeviceScan.add(event -> afterCount[0]++);
+
+        busController.scanDevices();
+
+        assertEquals(0, beforeCount[0], "a scan finding the same devices must not pause the machine");
+        assertEquals(0, afterCount[0], "a scan finding the same devices must not report a change");
+
+        when(busControllerBusElement.getLocalDevices()).thenReturn(emptyList());
+        busController.scanDevices();
+
+        assertEquals(1, beforeCount[0]);
+        assertEquals(1, afterCount[0]);
+    }
+
+    @Test
     public void scanSuccessfulWithMultipleElements() {
         // topology: controller <-> element 1 <-> element 2
 

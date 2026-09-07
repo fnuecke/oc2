@@ -405,8 +405,8 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
     }
 
-    private void handleAfterDeviceScan(final CommonDeviceBusController.AfterDeviceScanEvent event) {
-        if (event.didDevicesChange() && level != null && !level.isClientSide()) {
+    private void handleAfterDeviceScan() {
+        if (level != null && !level.isClientSide()) {
             Capabilities.invalidate(this);
         }
     }

@@ -123,10 +123,8 @@ public final class Z80Architecture extends AbstractArchitecture {
     // --------------------------------------------------------------------- //
 
     @Override
-    public void handleAfterDeviceScan(final DeviceBusController controller, final boolean didDevicesChange) {
-        if (didDevicesChange) {
-            ioAdapter.rebuild(controller);
-        }
+    public void handleAfterDeviceScan(final DeviceBusController controller) {
+        ioAdapter.rebuild(controller);
     }
 
     @Override

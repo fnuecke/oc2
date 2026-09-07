@@ -347,7 +347,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         applyPendingState(architecture);
 
         architecture.addDevices(busController.getDevices());
-        architecture.handleAfterDeviceScan(busController, true);
+        architecture.handleAfterDeviceScan(busController);
     }
 
     private void disposeArchitecture() {
@@ -510,9 +510,9 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         }
     }
 
-    private void handleAfterDeviceScan(final CommonDeviceBusController.AfterDeviceScanEvent event) {
+    private void handleAfterDeviceScan() {
         if (architecture != null) {
-            architecture.handleAfterDeviceScan(busController, event.didDevicesChange());
+            architecture.handleAfterDeviceScan(busController);
         }
     }
 

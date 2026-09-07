@@ -145,8 +145,8 @@ public final class R5Architecture extends AbstractArchitecture {
     }
 
     @Override
-    public void handleAfterDeviceScan(final DeviceBusController controller, final boolean didDevicesChange) {
-        rpcAdapter.resume(controller, didDevicesChange);
+    public void handleAfterDeviceScan(final DeviceBusController controller) {
+        rpcAdapter.resume(controller);
     }
 
     @Override

@@ -52,7 +52,7 @@ public final class RPCBlobChannelTests {
         when(busController.getDevices()).thenReturn(devices);
         when(busController.getDeviceIdentifiers(any()))
             .then(invocation -> identifiers.get(invocation.getArgument(0)));
-        adapter.resume(busController, true);
+        adapter.resume(busController);
     }
 
     // --------------------------------------------------------------------- //

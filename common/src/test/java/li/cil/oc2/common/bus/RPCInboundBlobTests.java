@@ -53,7 +53,7 @@ public final class RPCInboundBlobTests {
         when(busController.getDevices()).thenReturn(devices);
         when(busController.getDeviceIdentifiers(any()))
             .then(invocation -> identifiers.get(invocation.getArgument(0)));
-        adapter.resume(busController, true);
+        adapter.resume(busController);
     }
 
     // --------------------------------------------------------------------- //
@@ -247,7 +247,7 @@ public final class RPCInboundBlobTests {
         serialDevice = new TestSerialDevice();
         blobDevice = new TestSerialDevice(Integer.MAX_VALUE, 64);
         adapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice);
-        adapter.resume(busController, true);
+        adapter.resume(busController);
 
         int offered = 0;
         for (int i = 0; i < 1000 && offered < large.length; i++) {

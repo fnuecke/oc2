@@ -72,7 +72,7 @@ public class CommonDeviceBusControllerTests {
         final int[] beforeCount = new int[1];
         final int[] afterCount = new int[1];
         busController.onBeforeDeviceScan.add(() -> beforeCount[0]++);
-        busController.onAfterDeviceScan.add(event -> afterCount[0]++);
+        busController.onAfterDeviceScan.add(() -> afterCount[0]++);
 
         busController.scanDevices();
 

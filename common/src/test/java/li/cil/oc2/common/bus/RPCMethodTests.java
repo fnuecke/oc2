@@ -122,7 +122,7 @@ public final class RPCMethodTests {
         when(busController.getDeviceIdentifiers(device)).thenReturn(singleton(deviceId));
 
         // trigger device cache rebuild
-        rpcAdapter.resume(busController, true);
+        rpcAdapter.resume(busController);
     }
 
     private JsonObject invokeMethodRaw(final UUID deviceId, final String name, final Object... parameters) {

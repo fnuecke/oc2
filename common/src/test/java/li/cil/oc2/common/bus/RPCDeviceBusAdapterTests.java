@@ -45,7 +45,7 @@ public final class RPCDeviceBusAdapterTests {
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
             serial, new TestSerialDevice(), new TestSerialDevice());
         addDevice();
-        busAdapter.resume(controller, true);
+        busAdapter.resume(controller);
 
         serial.putAsVM("{\"type\":\"list\",\"id\":4711}");
         busAdapter.step(0);
@@ -62,7 +62,7 @@ public final class RPCDeviceBusAdapterTests {
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
             serial, new TestSerialDevice(), new TestSerialDevice());
         addDevice();
-        busAdapter.resume(controller, true);
+        busAdapter.resume(controller);
 
         serial.putAsVM("{\"type\":\"list\",\"id\":11}");
         busAdapter.step(0);
@@ -83,7 +83,7 @@ public final class RPCDeviceBusAdapterTests {
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
             serial, new TestSerialDevice(), new TestSerialDevice());
         addDevice();
-        busAdapter.resume(controller, true);
+        busAdapter.resume(controller);
 
         serial.putAsVM("{\"type\":\"list\"}");
         busAdapter.step(0);
@@ -99,7 +99,7 @@ public final class RPCDeviceBusAdapterTests {
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
             serial, new TestSerialDevice(), new TestSerialDevice());
         addDevice();
-        busAdapter.resume(controller, true);
+        busAdapter.resume(controller);
 
         serial.putAsVM("{\"type\":\"list\",\"id\":\"not a number\"}");
         busAdapter.step(0);
@@ -115,7 +115,7 @@ public final class RPCDeviceBusAdapterTests {
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
             serial, new TestSerialDevice(), new TestSerialDevice());
         addDevice();
-        busAdapter.resume(controller, true);
+        busAdapter.resume(controller);
 
         final StringBuilder tooLong = new StringBuilder("{\"type\":\"list\",\"pad\":\"");
         while (tooLong.length() < 8 * Constants.KILOBYTE) {
@@ -146,7 +146,7 @@ public final class RPCDeviceBusAdapterTests {
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
             serial, new TestSerialDevice(), new TestSerialDevice());
         addDevice(new ObjectDevice(new Pingable(), "pingable"), second, first);
-        busAdapter.resume(controller, true);
+        busAdapter.resume(controller);
 
         serial.putAsVM("{\"type\":\"list\"}");
         busAdapter.step(0);
@@ -159,7 +159,7 @@ public final class RPCDeviceBusAdapterTests {
         assertEquals(chosen.toString(),
             listed.get(0).getAsJsonObject().get("deviceId").getAsString());
 
-        busAdapter.resume(controller, true);
+        busAdapter.resume(controller);
         serial.putAsVM("{\"type\":\"list\"}");
         busAdapter.step(0);
         assertEquals(chosen.toString(), JsonParser.parseString(serial.readMessageAsVM())
@@ -172,14 +172,14 @@ public final class RPCDeviceBusAdapterTests {
     public void resumeDoesNotMountDirectly() {
         final RPCDevice device1 = addDevice();
 
-        adapter.resume(controller, true);
+        adapter.resume(controller);
         verify(device1, never()).mount();
     }
 
     @Test
     public void emptyDevicesAreNotMounted() {
         final RPCDevice device = addEmptyDevice();
-        adapter.resume(controller, true);
+        adapter.resume(controller);
 
         adapter.mountDevices();
         verify(device, never()).mount();
@@ -188,7 +188,7 @@ public final class RPCDeviceBusAdapterTests {
     @Test
     public void addedDevicesHaveMountCalled() {
         final RPCDevice device = addDevice();
-        adapter.resume(controller, true);
+        adapter.resume(controller);
 
         adapter.mountDevices();
         verify(device).mount();
@@ -197,11 +197,11 @@ public final class RPCDeviceBusAdapterTests {
     @Test
     public void mountedDevicesAreUnmountedWhenRemoved() {
         final RPCDevice device = addDevice();
-        adapter.resume(controller, true);
+        adapter.resume(controller);
         adapter.mountDevices();
 
         removeDevice(device);
-        adapter.resume(controller, true);
+        adapter.resume(controller);
         verify(device).unmount();
         verify(device, never()).dispose();
     }
@@ -209,10 +209,10 @@ public final class RPCDeviceBusAdapterTests {
     @Test
     public void unmountedDevicesAreSilentlyRemoved() {
         final RPCDevice device = addDevice();
-        adapter.resume(controller, true);
+        adapter.resume(controller);
 
         removeDevice(device);
-        adapter.resume(controller, true);
+        adapter.resume(controller);
         verify(device, never()).unmount();
         verify(device, never()).dispose();
     }
@@ -220,7 +220,7 @@ public final class RPCDeviceBusAdapterTests {
     @Test
     public void mountedDevicesAreUnmountedButNotDisposedOnGlobalUnmount() {
         final RPCDevice device = addDevice();
-        adapter.resume(controller, true);
+        adapter.resume(controller);
         adapter.mountDevices();
 
         adapter.unmountDevices();
@@ -231,7 +231,7 @@ public final class RPCDeviceBusAdapterTests {
     @Test
     public void unmountedDevicesAreNotUnmountedAndNotDisposedOnGlobalUnmount() {
         final RPCDevice device = addDevice();
-        adapter.resume(controller, true);
+        adapter.resume(controller);
 
         adapter.unmountDevices();
         verify(device, never()).unmount();
@@ -241,7 +241,7 @@ public final class RPCDeviceBusAdapterTests {
     @Test
     public void mountedDevicesAreUnmountedAndDisposedOnGlobalDispose() {
         final RPCDevice device = addDevice();
-        adapter.resume(controller, true);
+        adapter.resume(controller);
         adapter.mountDevices();
 
         adapter.disposeDevices();
@@ -252,7 +252,7 @@ public final class RPCDeviceBusAdapterTests {
     @Test
     public void unmountedDevicesAreNotUnmountedButDisposedOnGlobalDispose() {
         final RPCDevice device = addDevice();
-        adapter.resume(controller, true);
+        adapter.resume(controller);
 
         adapter.disposeDevices();
         verify(device, never()).unmount();
@@ -262,7 +262,7 @@ public final class RPCDeviceBusAdapterTests {
     @Test
     public void devicesHaveMountCalledAfterGlobalUnmount() {
         final RPCDevice device = addDevice();
-        adapter.resume(controller, true);
+        adapter.resume(controller);
         adapter.mountDevices();
         adapter.unmountDevices();
 
@@ -279,7 +279,7 @@ public final class RPCDeviceBusAdapterTests {
         when(device2.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
         addDevice(listDevice);
 
-        adapter.resume(controller, true);
+        adapter.resume(controller);
         verify(device1, never()).mount();
         verify(device2, never()).mount();
 
@@ -287,7 +287,7 @@ public final class RPCDeviceBusAdapterTests {
         verify(device1).mount();
         verify(device2).mount();
 
-        adapter.resume(controller, true);
+        adapter.resume(controller);
 
         verify(device1, never()).unmount();
         verify(device2, never()).unmount();

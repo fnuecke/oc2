@@ -57,7 +57,7 @@ public final class RPCEventChannelTests {
     @Test
     public void deviceChangeIsAnnounced() {
         addDevice("redstone");
-        adapter.resume(busController, true);
+        adapter.resume(busController);
         adapter.step(0);
 
         final JsonObject event = event();
@@ -67,26 +67,13 @@ public final class RPCEventChannelTests {
     }
 
     @Test
-    public void nothingIsAnnouncedWhenNothingChanged() {
-        addDevice("redstone");
-        adapter.resume(busController, true);
-        adapter.step(0);
-        eventDevice.drainAsVM();
-
-        adapter.resume(busController, false);
-        adapter.step(0);
-
-        assertNull(eventDevice.readMessageAsVM(), "a resume that changed nothing must be silent");
-    }
-
-    @Test
     public void everyChangeIsAnnouncedInOrder() {
         addDevice("redstone");
-        adapter.resume(busController, true);
+        adapter.resume(busController);
         addDevice("inventory");
-        adapter.resume(busController, true);
+        adapter.resume(busController);
         addDevice("energy");
-        adapter.resume(busController, true);
+        adapter.resume(busController);
         adapter.step(0);
 
         int previous = 0;
@@ -184,7 +171,7 @@ public final class RPCEventChannelTests {
         final TestSerialDevice slow = new TestSerialDevice(256); // room for a frame, not for many
         adapter = newAdapter(slow);
         addDevice("redstone");
-        adapter.resume(busController, true);
+        adapter.resume(busController);
 
         boolean refused = false;
         for (int i = 0; i < 4000 && !refused; i++) {
@@ -215,7 +202,7 @@ public final class RPCEventChannelTests {
     @Test
     public void eventsNeverAppearOnTheRpcChannel() {
         addDevice("redstone");
-        adapter.resume(busController, true);
+        adapter.resume(busController);
         adapter.step(0);
 
         assertNull(serialDevice.readMessageAsVM(), "an unsolicited message reached the RPC port");
@@ -227,10 +214,10 @@ public final class RPCEventChannelTests {
         final TestSerialDevice deafEvents = new TestSerialDevice(0);
         adapter = newAdapter(deafEvents);
         addDevice("redstone");
-        adapter.resume(busController, true);
+        adapter.resume(busController);
 
         for (int i = 0; i < 500; i++) {
-            adapter.resume(busController, true);
+            adapter.resume(busController);
             adapter.step(0);
         }
 
@@ -243,7 +230,7 @@ public final class RPCEventChannelTests {
     @Test
     public void resetDropsAPendingEvent() {
         addDevice("redstone");
-        adapter.resume(busController, true);
+        adapter.resume(busController);
 
         // Before any step, so the event is still queued rather than already written.
         adapter.reset();
@@ -257,7 +244,7 @@ public final class RPCEventChannelTests {
         final TestSerialDevice trickle = new TestSerialDevice(4);
         adapter = newAdapter(trickle);
         addDevice("redstone");
-        adapter.resume(busController, true);
+        adapter.resume(busController);
         adapter.step(0);
 
         assertTrue(trickle.drainAsVM().length > 0, "precondition: some of the frame went out");
@@ -273,7 +260,7 @@ public final class RPCEventChannelTests {
     @Test
     public void eventsUseTheSameFramingAsReplies() {
         addDevice("redstone");
-        adapter.resume(busController, true);
+        adapter.resume(busController);
         adapter.step(0);
 
         final byte[] raw = eventDevice.drainAsVM();
@@ -287,7 +274,7 @@ public final class RPCEventChannelTests {
         final TestSerialDevice trickle = new TestSerialDevice(1);
         adapter = newAdapter(trickle);
         addDevice("redstone");
-        adapter.resume(busController, true);
+        adapter.resume(busController);
 
         final StringBuilder message = new StringBuilder();
         for (int i = 0; i < 4096; i++) {
@@ -312,7 +299,7 @@ public final class RPCEventChannelTests {
         eventDevice.putRawAsVM("nonsense from a confused guest".getBytes(StandardCharsets.UTF_8));
 
         addDevice("redstone");
-        adapter.resume(busController, true);
+        adapter.resume(busController);
         adapter.step(0);
 
         assertEquals(-1, eventDevice.read(), "the guest's bytes were left sitting in the queue");

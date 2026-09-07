@@ -127,7 +127,7 @@ public abstract class AbstractArchitecture {
     public void handleBeforeDeviceScan() {
     }
 
-    public void handleAfterDeviceScan(DeviceBusController controller, boolean didDevicesChange) {
+    public void handleAfterDeviceScan(DeviceBusController controller) {
     }
 
     public void startDevicesLayer() {

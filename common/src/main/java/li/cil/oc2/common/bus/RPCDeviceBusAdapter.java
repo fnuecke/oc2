@@ -119,12 +119,10 @@ public final class RPCDeviceBusAdapter implements Steppable {
         pauseLock.release();
     }
 
-    public void resume(final DeviceBusController controller, final boolean didDevicesChange) {
+    public void resume(final DeviceBusController controller) {
         try {
-            if (didDevicesChange) {
-                registry.rebuild(controller);
-                sendEvent(Message.MESSAGE_TYPE_DEVICES_CHANGED, null);
-            }
+            registry.rebuild(controller);
+            sendEvent(Message.MESSAGE_TYPE_DEVICES_CHANGED, null);
         } finally {
             isPaused = false;
         }

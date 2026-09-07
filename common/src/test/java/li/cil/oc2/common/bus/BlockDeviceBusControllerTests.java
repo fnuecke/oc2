@@ -285,7 +285,7 @@ public class BlockDeviceBusControllerTests {
 
         final RPCDeviceBusAdapter rpcDeviceBusAdapter = new RPCDeviceBusAdapter(mock(SerialDevice.class), mock(SerialDevice.class), mock(SerialDevice.class));
         busController.onBeforeDeviceScan.add(rpcDeviceBusAdapter::pause);
-        busController.onAfterDeviceScan.add(event -> rpcDeviceBusAdapter.resume(busController, event.didDevicesChange()));
+        busController.onAfterDeviceScan.add(() -> rpcDeviceBusAdapter.resume(busController));
 
         busController.scan();
 

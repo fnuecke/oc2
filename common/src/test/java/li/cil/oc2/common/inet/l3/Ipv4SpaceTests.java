@@ -13,12 +13,16 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class Ipv4SpaceTests {
-    private static long ip(final String address) {
-        try {
-            return InternetUtils.toUnsigned(InternetUtils.parseIpv4Address(address));
-        } catch (final AddressParseException e) {
-            throw new AssertionError(e);
-        }
+    @Test
+    public void rangesPrintAsCidrBlocksWhereTheyAreOne() {
+        final Ipv4Space space = new Ipv4Space();
+        space.addSubnet(0x0A000000L, 8);
+        space.addSubnet(0xE0000000L, 4);
+        space.addSubnet(0xF0000000L, 4);
+        space.add(0xAC110000L, 0xAC12FFFFL);
+        space.add(0xC0A80001L);
+
+        assertEquals("[10.0.0.0/8, 172.17.0.0-172.18.255.255, 192.168.0.1, 224.0.0.0/3]", space.toString());
     }
 
     @Test
@@ -183,5 +187,15 @@ public class Ipv4SpaceTests {
 
         assertThrows(IllegalArgumentException.class, () -> space.addSubnet(ip("1.2.3.4"), 33));
         assertThrows(IllegalArgumentException.class, () -> space.addSubnet(ip("1.2.3.4"), -1));
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static long ip(final String address) {
+        try {
+            return InternetUtils.toUnsigned(InternetUtils.parseIpv4Address(address));
+        } catch (final AddressParseException e) {
+            throw new AssertionError(e);
+        }
     }
 }

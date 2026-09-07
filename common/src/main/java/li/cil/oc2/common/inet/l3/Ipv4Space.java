@@ -4,11 +4,7 @@ package li.cil.oc2.common.inet.l3;
 
 import li.cil.oc2.common.inet.util.InternetUtils;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
+import java.util.*;
 
 public final class Ipv4Space {
     public static final long MAX_ADDRESS = 0xFFFFFFFFL;
@@ -106,16 +102,32 @@ public final class Ipv4Space {
             if (builder.length() > 1) {
                 builder.append(", ");
             }
-            InternetUtils.ipv4AddressToString(builder, (int) (long) range.getKey());
-            if (!range.getKey().equals(range.getValue())) {
+            final long begin = range.getKey();
+            final long end = range.getValue();
+            InternetUtils.ipv4AddressToString(builder, (int) begin);
+            if (begin == end) {
+                continue;
+            }
+            final int prefix = prefixLengthOf(begin, end);
+            if (prefix >= 0) {
+                builder.append('/').append(prefix);
+            } else {
                 builder.append('-');
-                InternetUtils.ipv4AddressToString(builder, (int) (long) range.getValue());
+                InternetUtils.ipv4AddressToString(builder, (int) end);
             }
         }
         return builder.append(']').toString();
     }
 
     // --------------------------------------------------------------------- //
+
+    private static int prefixLengthOf(final long begin, final long end) {
+        final long size = end - begin + 1;
+        if (Long.bitCount(size) != 1 || (begin & (size - 1)) != 0) {
+            return -1;
+        }
+        return 32 - Long.numberOfTrailingZeros(size);
+    }
 
     private void flatten() {
         if (starts.length != ranges.size()) {

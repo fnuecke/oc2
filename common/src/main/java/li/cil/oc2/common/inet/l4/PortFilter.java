@@ -40,7 +40,8 @@ public final class PortFilter {
             // Same reasoning as the address deny list: a port rule that silently does nothing is dangerous.
             throw new IllegalArgumentException(
                 "Internet port rules that cannot be enforced: " + rejected
-                    + ". Fix or remove them; refusing to enable internet access with an incomplete filter.");
+                    + ". Fix or remove them, or set admin.internet.internetEnabled to false; "
+                    + "the server will not start with an incomplete filter.");
         }
         hasRules = any;
     }

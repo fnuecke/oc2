@@ -52,7 +52,8 @@ public final class AddressFilter {
         if (!rejected.isEmpty()) {
             throw new IllegalArgumentException(
                 "Internet deny rules that cannot be enforced: " + rejected
-                    + ". Fix or remove them; refusing to enable internet access with an incomplete filter.");
+                    + ". Fix or remove them, or set admin.internet.internetEnabled to false; "
+                    + "the server will not start with an incomplete filter.");
         }
 
         hasAllowRules = countMeaningfulRules(allowedRules) > 0;
@@ -67,7 +68,8 @@ public final class AddressFilter {
             if (lastResolved.get(hostName) == null) {
                 throw new IllegalArgumentException(
                     "Internet deny rule host \"" + hostName + "\" does not resolve. "
-                        + "Refusing to enable internet access with an unenforceable deny rule.");
+                        + "Fix or remove it, or set admin.internet.internetEnabled to false; "
+                        + "the server will not start with an unenforceable deny rule.");
             }
         }
     }
@@ -220,7 +222,8 @@ public final class AddressFilter {
             // saying so scrolls away, so treat it as a reason not to run at all.
             throw new IllegalStateException(
                 "Could not enumerate local network interfaces, so the subnets this server sits on "
-                    + "cannot be blocked. Refusing to enable internet access.", e);
+                    + "cannot be blocked. Set admin.internet.internetDenyLocalSubnets or "
+                    + "admin.internet.internetEnabled to false; the server will not start otherwise.", e);
         }
         return space;
     }

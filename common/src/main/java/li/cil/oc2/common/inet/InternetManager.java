@@ -8,11 +8,7 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.inet.l2.LinkLocalLayer;
 import li.cil.oc2.common.inet.l3.AddressFilter;
 import li.cil.oc2.common.inet.l3.NetworkLayer;
-import li.cil.oc2.common.inet.l4.PortFilter;
-import li.cil.oc2.common.inet.l4.SessionLayer;
-import li.cil.oc2.common.inet.l4.SessionLimits;
-import li.cil.oc2.common.inet.l4.StreamSession;
-import li.cil.oc2.common.inet.l4.TransportLayer;
+import li.cil.oc2.common.inet.l4.*;
 import li.cil.oc2.common.inet.socket.ReachabilityProbe;
 import li.cil.oc2.common.inet.socket.SocketManager;
 import li.cil.oc2.common.inet.socket.SocketSessionLayer;
@@ -32,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class InternetManager {
     private static final int SESSIONS_PER_GATEWAY = 16;
+    private static final double NEW_SESSIONS_PER_SECOND = 4;
     private static final int HOST_REFRESH_SECONDS = 300;
     private static final int SESSION_TIMEOUT_MS = 60 * 1000;
     private static final int ECHO_TIMEOUT_MS = 1000;
@@ -199,6 +196,7 @@ public final class InternetManager {
     private LinkLocalLayer buildStack(final String originDescription) {
         final SessionLayer sessionLayer = new SocketSessionLayer(originDescription, socketManager, reachabilityProbe);
         final TransportLayer transportLayer = new TransportLayer(sessionLayer, portFilter, limits,
+            new TokenBucket(SESSIONS_PER_GATEWAY, NEW_SESSIONS_PER_SECOND),
             connections::size,
             StreamSession.TcpConfig.DEFAULT,
             TimeUnit.MILLISECONDS.toNanos(SESSION_TIMEOUT_MS));

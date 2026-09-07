@@ -5,6 +5,7 @@ package li.cil.oc2.common.inet.socket;
 import li.cil.oc2.common.inet.l2.LinkLocalLayer;
 import li.cil.oc2.common.inet.l3.NetworkLayer;
 import li.cil.oc2.common.inet.l4.*;
+import li.cil.oc2.common.util.ThrottledLogger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SocketChannel;
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -29,6 +31,7 @@ public final class SocketSessionLayer implements SessionLayer {
 
     private static final int MAX_ECHO_PAYLOAD =
         LinkLocalLayer.DEFAULT_MTU - NetworkLayer.IPv4_HEADER_SIZE - TransportLayer.ICMP_HEADER_SIZE;
+    private static final ThrottledLogger THROTTLED_LOGGER = new ThrottledLogger(LOGGER, Duration.ofSeconds(1));
 
     // --------------------------------------------------------------------- //
 
@@ -261,7 +264,7 @@ public final class SocketSessionLayer implements SessionLayer {
                     session.attach(channel);
                     openSessions.add(session);
                     channel.connect(session.getDestination());
-                    LOGGER.info("Internet gateway at {} opening datagram socket to {}.",
+                    THROTTLED_LOGGER.info("Internet gateway at {} opening datagram socket to {}.",
                         originDescription, session.getDestination());
                     writeDatagram(channel, data);
                 }
@@ -294,7 +297,7 @@ public final class SocketSessionLayer implements SessionLayer {
                         final SocketChannel channel = socketManager.openSocketChannel(stream, ready);
                         stream.attach(channel);
                         openSessions.add(stream);
-                        LOGGER.info("Internet gateway at {} connecting to {}.",
+                        THROTTLED_LOGGER.info("Internet gateway at {} connecting to {}.",
                             originDescription, stream.getDestination());
                         if (channel.connect(stream.getDestination())) {
                             stream.connect();

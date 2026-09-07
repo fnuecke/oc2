@@ -30,6 +30,7 @@ public final class TransportLayer {
     private final SessionLayer sessionLayer;
     private final PortFilter portFilter;
     private final SessionLimits limits;
+    private final TokenBucket sessionRate;
     private final IntSupplier gatewayCount;
     private final StreamSession.TcpConfig tcpConfig;
     private final long sessionTimeoutNanos;
@@ -45,6 +46,7 @@ public final class TransportLayer {
         final SessionLayer sessionLayer,
         final PortFilter portFilter,
         final SessionLimits limits,
+        final TokenBucket sessionRate,
         final IntSupplier gatewayCount,
         final StreamSession.TcpConfig tcpConfig,
         final long sessionTimeoutNanos
@@ -52,6 +54,7 @@ public final class TransportLayer {
         this.sessionLayer = sessionLayer;
         this.portFilter = portFilter;
         this.limits = limits;
+        this.sessionRate = sessionRate;
         this.gatewayCount = gatewayCount;
         this.tcpConfig = tcpConfig;
         this.sessionTimeoutNanos = sessionTimeoutNanos;
@@ -396,6 +399,10 @@ public final class TransportLayer {
             return (S) existing;
         }
         if (!limits.tryAcquire(sessions.size(), gatewayCount.getAsInt())) {
+            return null;
+        }
+        if (!sessionRate.tryAcquire(System.nanoTime())) {
+            limits.release();
             return null;
         }
         final S session = factory.apply(key);

@@ -9,6 +9,7 @@ import li.cil.oc2.api.bus.device.io.IOCallback;
 import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.api.bus.device.vm.context.VMRuntime;
+import li.cil.oc2.common.util.ThrottledLogger;
 import li.cil.sedna.api.Sizes;
 import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.device.bus.DeviceClass;
@@ -20,10 +21,12 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.Duration;
 import java.util.*;
 
 public final class IODeviceBusAdapter implements MemoryMappedDevice {
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final ThrottledLogger THROTTLED_LOGGER = new ThrottledLogger(LOGGER, Duration.ofMinutes(1));
 
     public static final int LENGTH = 4;
     public static final DeviceClass DEVICE_CLASS = new DeviceClass(DeviceClass.THIRD_PARTY_BASE);
@@ -104,7 +107,6 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
     private transient List<Binding> bindings = List.of();
     private transient Map<UUID, Binding> bindingsById = Map.of();
     private transient List<DeviceDescription> descriptions = List.of();
-    private final transient Set<Class<?>> loggedInvocationErrors = new HashSet<>();
 
     // --------------------------------------------------------------------- //
 
@@ -391,9 +393,7 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
             return ERROR_INVALID_ARGUMENTS;
         } catch (final Throwable e) {
             resultCount = 0;
-            if (loggedInvocationErrors.add(e.getClass())) {
-                LOGGER.error("Device function invocation failed.", e);
-            }
+            THROTTLED_LOGGER.error("Device function invocation failed.", e);
             return ERROR_INTERNAL;
         }
     }

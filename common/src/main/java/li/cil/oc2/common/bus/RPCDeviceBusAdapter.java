@@ -12,6 +12,7 @@ import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceWithIdentifier;
 import li.cil.oc2.common.bus.device.rpc.RPCTypeAdapters;
 import li.cil.oc2.common.serialization.gson.*;
+import li.cil.oc2.common.util.ThrottledLogger;
 import li.cil.sedna.api.device.Steppable;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import org.apache.logging.log4j.LogManager;
@@ -21,11 +22,13 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 
 public final class RPCDeviceBusAdapter implements Steppable {
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final ThrottledLogger THROTTLED_LOGGER = new ThrottledLogger(LOGGER, Duration.ofMinutes(1));
 
     private static final int DEFAULT_MAX_MESSAGE_SIZE = 4 * Constants.KILOBYTE;
 
@@ -62,7 +65,6 @@ public final class RPCDeviceBusAdapter implements Steppable {
     private final RPCBlobJsonSerializer blobs = new RPCBlobJsonSerializer();
     private final Semaphore pauseLock = new Semaphore(1); // for tryAcquire in step()
     private volatile boolean isPaused; // server thread -> worker thread
-    private final transient Set<Class<?>> loggedInvocationErrors = new HashSet<>(); // avoid client-driven log spam
 
     // --------------------------------------------------------------------- //
 
@@ -363,9 +365,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
             return;
         }
 
-        if (loggedInvocationErrors.add(e.getClass())) {
-            LOGGER.error("Device method invocation failed.", e);
-        }
+        THROTTLED_LOGGER.error("Device method invocation failed.", e);
 
         writeError(ERROR_INTERNAL);
     }

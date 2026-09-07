@@ -3,10 +3,12 @@
 package li.cil.oc2.common.inet;
 
 import li.cil.oc2.common.inet.l2.LinkLocalLayer;
+import li.cil.oc2.common.util.ThrottledLogger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,6 +18,7 @@ public final class InternetConnection {
     public static final int MAX_FRAME_SIZE = LinkLocalLayer.FRAME_SIZE;
 
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final ThrottledLogger THROTTLED_LOGGER = new ThrottledLogger(LOGGER, Duration.ofMinutes(1));
     private static final int MIN_ETHERNET_FRAME_SIZE = 42; // avoid bursts of tiny packages
 
     // --------------------------------------------------------------------- //
@@ -105,7 +108,7 @@ public final class InternetConnection {
                 }
             }
         } catch (final Exception e) {
-            LOGGER.error("Uncaught exception processing an internet connection.", e);
+            THROTTLED_LOGGER.error("Uncaught exception processing an internet connection.", e);
         }
     }
 

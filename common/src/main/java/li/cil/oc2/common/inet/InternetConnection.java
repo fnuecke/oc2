@@ -66,13 +66,12 @@ public final class InternetConnection {
         }
 
         budget = byteBudget;
-        while (budget > 0 && shared.hasRemaining() && (frame = adapter.readInternetFrame()) != null) {
+        while (budget > 0 && shared.hasRemaining() && toInternet.remainingCapacity() > 0
+            && (frame = adapter.readInternetFrame()) != null) {
             final int cost = Math.max(frame.length, MIN_ETHERNET_FRAME_SIZE);
             budget -= cost;
             shared.charge(cost);
-            if (!toInternet.offer(frame)) {
-                break;
-            }
+            toInternet.add(frame); // Only this thread adds, so the capacity check above holds.
         }
     }
 

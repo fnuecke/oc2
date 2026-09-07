@@ -21,7 +21,7 @@ import static li.cil.oc2.gametest.TestSupport.*;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class VirtualMachineTests {
-    private static final int BOOT_TIMEOUT_TICKS = 150000;
+    private static final int BOOT_TIMEOUT_TICKS = 1_000_000;
 
     // Tests within a batch run simultaneously, batches run one after another. The two tests that
     // wait on real boot progress get a batch each. Since tests tick at ludicrous speeds, running

@@ -9,6 +9,7 @@
         "ServerChunkCacheMixin"
     ],
     "client": [
+        "FogRendererMixin",
         "FrustumMixin",
         "LevelRendererMixin",
         "MinecraftMixin"

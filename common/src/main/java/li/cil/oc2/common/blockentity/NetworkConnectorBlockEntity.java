@@ -10,6 +10,7 @@ import li.cil.oc2.common.block.NetworkConnectorBlock;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
+import li.cil.oc2.common.network.message.NetworkConnectorAdjacentInterfaceMessage;
 import li.cil.oc2.common.network.message.NetworkConnectorConnectionsMessage;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
@@ -52,6 +53,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     }
 
     private static final String CONNECTIONS_TAG_NAME = "connections";
+    private static final String HAS_ADJACENT_INTERFACE_TAG_NAME = "has_adjacent_interface";
     private static final String IS_OWNER_TAG_NAME = "is_owner";
     private static final String POSITION_TAG_NAME = "position";
 
@@ -67,6 +69,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     private final NetworkConnectorNetworkInterface networkInterface = new NetworkConnectorNetworkInterface();
 
     private Invalidatable<NetworkInterface> adjacentInterface = Invalidatable.empty();
+    private boolean hasAdjacentInterface; // == adjacentInterface.isPresent() for client
     private boolean isAdjacentInterfaceDirty = true;
 
     private final HashSet<BlockPos> connectorPositions = new HashSet<>();
@@ -165,15 +168,24 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         return connectorPositions;
     }
 
-    public void setNeighborChanged() {
-        isAdjacentInterfaceDirty = true;
-    }
-
     @Environment(EnvType.CLIENT)
     public void setConnectedPositionsClient(final ArrayList<BlockPos> positions) {
         connectorPositions.clear();
         connectorPositions.addAll(positions);
         NetworkCableRenderer.invalidateConnections();
+    }
+
+    public void scheduleAdjacentInterfaceCheck() {
+        isAdjacentInterfaceDirty = true;
+    }
+
+    public boolean hasAdjacentInterface() {
+        return hasAdjacentInterface;
+    }
+
+    @Environment(EnvType.CLIENT)
+    public void setHasAdjacentInterfaceClient(final boolean value) {
+        hasAdjacentInterface = value;
     }
 
     @Override
@@ -185,6 +197,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         if (isAdjacentInterfaceDirty) {
             isAdjacentInterfaceDirty = false;
             resolveLocalInterface();
+            setHasAdjacentInterface(adjacentInterface.isPresent());
         }
 
         if (!dirtyConnectors.isEmpty()) {
@@ -217,6 +230,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         }
         tag.put(CONNECTIONS_TAG_NAME, connections);
 
+        tag.putBoolean(HAS_ADJACENT_INTERFACE_TAG_NAME, hasAdjacentInterface);
+
         return tag;
     }
 
@@ -240,6 +255,8 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     @Override
     protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+
+        hasAdjacentInterface = tag.getBoolean(HAS_ADJACENT_INTERFACE_TAG_NAME);
 
         final ListTag connections = tag.getList(CONNECTIONS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
         for (int i = 0; i < Math.min(connections.size(), MAX_CONNECTION_COUNT); i++) {
@@ -314,12 +331,12 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         final BlockPos sourcePos = getBlockPos().relative(facing.getOpposite());
 
         if (!level.isLoaded(sourcePos)) {
-            ServerScheduler.schedule(level, this::setNeighborChanged, RETRY_UNLOADED_CHUNK_INTERVAL);
+            ServerScheduler.schedule(level, this::scheduleAdjacentInterfaceCheck, RETRY_UNLOADED_CHUNK_INTERVAL);
             return;
         }
 
         adjacentInterface = Capabilities.watch(level, sourcePos, facing, Capabilities.NETWORK_INTERFACE);
-        adjacentInterface.addListener(unused -> setNeighborChanged());
+        adjacentInterface.addListener(unused -> scheduleAdjacentInterfaceCheck());
     }
 
     private void resolveConnectedInterface(final BlockPos connectedPosition) {
@@ -385,6 +402,17 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
 
         return hitAB.getType() != HitResult.Type.MISS ||
             hitBA.getType() != HitResult.Type.MISS;
+    }
+
+    private void setHasAdjacentInterface(final boolean value) {
+        if (value == hasAdjacentInterface) {
+            return;
+        }
+
+        hasAdjacentInterface = value;
+
+        final NetworkConnectorAdjacentInterfaceMessage message = new NetworkConnectorAdjacentInterfaceMessage(this);
+        Network.sendToClientsTrackingBlockEntity(message, this);
     }
 
     private void onConnectedPositionsChanged() {

@@ -30,6 +30,20 @@ public abstract class ModRenderType extends RenderType {
             .setLightmapState(LIGHTMAP)
             .createCompositeState(false));
 
+    private static final RenderType CONNECTOR_INDICATOR = create(
+        API.MOD_ID + "/connector_indicator",
+        DefaultVertexFormat.POSITION_COLOR,
+        VertexFormat.Mode.TRIANGLE_STRIP,
+        256,
+        false,
+        false,
+        CompositeState.builder()
+            .setShaderState(POSITION_COLOR_SHADER)
+            .setTextureState(NO_TEXTURE)
+            .setTransparencyState(NO_TRANSPARENCY)
+            .setLayeringState(POLYGON_OFFSET_LAYERING)
+            .createCompositeState(false));
+
     private static final RenderType PROJECTOR_LIGHT = create(
         API.MOD_ID + "/projector_light",
         DefaultVertexFormat.POSITION_COLOR,
@@ -75,6 +89,10 @@ public abstract class ModRenderType extends RenderType {
 
     public static RenderType getNetworkCable() {
         return NETWORK_CABLE;
+    }
+
+    public static RenderType getConnectorIndicator() {
+        return CONNECTOR_INDICATOR;
     }
 
     public static RenderType getProjectorLight() {

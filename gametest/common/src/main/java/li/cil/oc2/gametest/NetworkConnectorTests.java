@@ -6,6 +6,8 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity.ConnectionResult;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.gametest.fixture.ComputerFixture;
+import li.cil.oc2.gametest.fixture.ConnectorFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -18,7 +20,7 @@ import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.*;
 
 public final class NetworkConnectorTests {
     private static final BlockPos CONNECTOR_A = new BlockPos(2, WORK_Y, 2);
@@ -47,16 +49,6 @@ public final class NetworkConnectorTests {
         requireCanSurvive(helper, MIDAIR, false);
 
         helper.succeed();
-    }
-
-    private static void requireCanSurvive(final GameTestHelper helper, final BlockPos pos, final boolean expected) {
-        final BlockState state = li.cil.oc2.common.block.Blocks.NETWORK_CONNECTOR.get().defaultBlockState()
-            .setValue(FaceAttachedHorizontalDirectionalBlock.FACE, AttachFace.FLOOR)
-            .setValue(FaceAttachedHorizontalDirectionalBlock.FACING, Direction.NORTH);
-        if (state.canSurvive(helper.getLevel(), helper.absolutePos(pos)) != expected) {
-            throw new GameTestAssertException("a connector standing on [" + helper.getBlockState(pos.below())
-                + "] should " + (expected ? "" : "not ") + "survive");
-        }
     }
 
     public static void connectorsLinkWithClearLineOfSight(final GameTestHelper helper) {
@@ -190,6 +182,16 @@ public final class NetworkConnectorTests {
     }
 
     // --------------------------------------------------------------------- //
+
+    private static void requireCanSurvive(final GameTestHelper helper, final BlockPos pos, final boolean expected) {
+        final BlockState state = li.cil.oc2.common.block.Blocks.NETWORK_CONNECTOR.get().defaultBlockState()
+            .setValue(FaceAttachedHorizontalDirectionalBlock.FACE, AttachFace.FLOOR)
+            .setValue(FaceAttachedHorizontalDirectionalBlock.FACING, Direction.NORTH);
+        if (state.canSurvive(helper.getLevel(), helper.absolutePos(pos)) != expected) {
+            throw new GameTestAssertException("a connector standing on [" + helper.getBlockState(pos.below())
+                + "] should " + (expected ? "" : "not ") + "survive");
+        }
+    }
 
     private NetworkConnectorTests() {
     }

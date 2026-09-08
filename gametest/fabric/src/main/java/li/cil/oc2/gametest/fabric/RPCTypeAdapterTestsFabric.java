@@ -6,7 +6,7 @@ import li.cil.oc2.gametest.RPCTypeAdapterTests;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
-import static li.cil.oc2.gametest.fabric.FabricTestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.fabric.util.FabricTestSupport.TEMPLATE;
 
 public final class RPCTypeAdapterTestsFabric {
     @GameTest(template = TEMPLATE)

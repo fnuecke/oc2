@@ -7,7 +7,7 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import net.minecraft.world.item.Item;
 
-import static li.cil.oc2.gametest.TestSupport.MOD_ID;
+import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
 
 public final class GuestTestDevices {
     private static final String NAME = "guest_test_port";

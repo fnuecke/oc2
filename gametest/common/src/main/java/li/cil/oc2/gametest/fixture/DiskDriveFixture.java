@@ -1,17 +1,18 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.gametest;
+package li.cil.oc2.gametest.fixture;
 
 import li.cil.oc2.common.blockentity.DiskDriveBlockEntity;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.gametest.util.TestSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-import static li.cil.oc2.gametest.TestSupport.DEVICE_POS;
-import static li.cil.oc2.gametest.TestSupport.fakePlayer;
+import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
+import static li.cil.oc2.gametest.util.TestSupport.fakePlayer;
 
 public final class DiskDriveFixture {
     private final GameTestHelper helper;

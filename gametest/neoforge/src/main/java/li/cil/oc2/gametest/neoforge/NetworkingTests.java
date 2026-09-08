@@ -2,8 +2,8 @@
 
 package li.cil.oc2.gametest.neoforge;
 
-import li.cil.oc2.gametest.ConnectorFixture;
-import li.cil.oc2.gametest.HubFixture;
+import li.cil.oc2.gametest.fixture.ConnectorFixture;
+import li.cil.oc2.gametest.fixture.HubFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -13,7 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -104,10 +104,6 @@ public final class NetworkingTests {
 
     // --------------------------------------------------------------------- //
 
-    private record Link(HubFixture hubA, HubFixture hubB,
-                        ConnectorFixture connectorA, ConnectorFixture connectorB) {
-    }
-
     private static Link placeLink(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final HubFixture hubA = HubFixture.place(helper, player, HUB_A);
@@ -125,5 +121,11 @@ public final class NetworkingTests {
     // --------------------------------------------------------------------- //
 
     private NetworkingTests() {
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private record Link(HubFixture hubA, HubFixture hubB,
+                        ConnectorFixture connectorA, ConnectorFixture connectorB) {
     }
 }

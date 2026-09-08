@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.*;
 
 public final class RecipeTests {
     private static final BlockPos TABLE = new BlockPos(1, WORK_Y, 1);

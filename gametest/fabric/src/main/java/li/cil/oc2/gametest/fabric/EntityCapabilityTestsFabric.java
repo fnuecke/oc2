@@ -11,7 +11,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 
 import java.util.function.Predicate;
 
-import static li.cil.oc2.gametest.fabric.FabricTestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.fabric.util.FabricTestSupport.TEMPLATE;
 
 public final class EntityCapabilityTestsFabric {
     private static final Predicate<Robot> HAS_ITEM_HANDLER = robot -> ItemStorage.ENTITY.find(robot, null) != null;

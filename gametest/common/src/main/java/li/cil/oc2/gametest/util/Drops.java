@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.gametest;
+package li.cil.oc2.gametest.util;
 
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;

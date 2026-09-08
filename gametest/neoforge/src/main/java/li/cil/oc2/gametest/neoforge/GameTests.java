@@ -2,13 +2,13 @@
 
 package li.cil.oc2.gametest.neoforge;
 
-import li.cil.oc2.gametest.GameTestReporting;
 import li.cil.oc2.gametest.device.GuestTestDevices;
+import li.cil.oc2.gametest.util.GameTestReporting;
 import net.neoforged.fml.common.Mod;
 
 import java.io.File;
 
-import static li.cil.oc2.gametest.TestSupport.MOD_ID;
+import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
 
 @Mod(MOD_ID)
 public final class GameTests {

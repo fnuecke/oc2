@@ -17,7 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.*;
 
 public final class InternetGatewayTests {
     private static final BlockPos GATEWAY_POS = new BlockPos(2, WORK_Y, 2);
@@ -169,6 +169,23 @@ public final class InternetGatewayTests {
             .thenSucceed();
     }
 
+    public static void gatewayReleasesItsCapabilitiesWhenBroken(final GameTestHelper helper) {
+        final Player player = fakePlayer(helper);
+        place(helper, player, new ItemStack(Items.INTERNET_GATEWAY.get()), GATEWAY_POS);
+
+        breakBlock(helper, GATEWAY_POS);
+
+        assertTrue(helper, "the block should be gone", helper.getBlockState(GATEWAY_POS).isAir());
+        // Straight to the level: the helper's accessor throws for a missing block entity rather
+        // than reporting one.
+        assertTrue(helper, "no block entity should remain",
+            helper.getLevel().getBlockEntity(helper.absolutePos(GATEWAY_POS)) == null);
+
+        helper.succeed();
+    }
+
+    // --------------------------------------------------------------------- //
+
     /**
      * @return the previous setting, to hand back to {@link #restoreInternetAccess}
      */
@@ -188,23 +205,6 @@ public final class InternetGatewayTests {
             InternetManager.start();
         }
     }
-
-    public static void gatewayReleasesItsCapabilitiesWhenBroken(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        place(helper, player, new ItemStack(Items.INTERNET_GATEWAY.get()), GATEWAY_POS);
-
-        breakBlock(helper, GATEWAY_POS);
-
-        assertTrue(helper, "the block should be gone", helper.getBlockState(GATEWAY_POS).isAir());
-        // Straight to the level: the helper's accessor throws for a missing block entity rather
-        // than reporting one.
-        assertTrue(helper, "no block entity should remain",
-            helper.getLevel().getBlockEntity(helper.absolutePos(GATEWAY_POS)) == null);
-
-        helper.succeed();
-    }
-
-    // --------------------------------------------------------------------- //
 
     private InternetGatewayTests() {
     }

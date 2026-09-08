@@ -6,7 +6,7 @@ import li.cil.oc2.gametest.WrenchTests;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
-import static li.cil.oc2.gametest.fabric.FabricTestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.fabric.util.FabricTestSupport.TEMPLATE;
 
 public final class WrenchTestsFabric {
     @GameTest(template = TEMPLATE)

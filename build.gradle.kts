@@ -199,10 +199,18 @@ spotless {
         indentWithSpaces()
         importOrder("", "javax|java", "\\#")
     }
+
+    format("packageInfo") {
+        target("**/src/*/java/li/cil/**/package-info.java")
+        targetExclude("**/src/*/java/li/cil/oc2/jcodec/**/package-info.java")
+
+        licenseHeader("/* SPDX-License-Identifier: MIT */\n\n", "(/\\*\\*|//|@|package )")
+    }
 }
 
 serializeArchitecturyTransforms()
 registerGameTestTask()
+registerPackageInfoTask("**/src/*/java/li/cil/oc2/jcodec/**")
 registerLintTask()
 registerApiJarTask(minecraftVersion)
 configureMavenPublishing(minecraftVersion, "https://github.com/fnuecke/oc2")

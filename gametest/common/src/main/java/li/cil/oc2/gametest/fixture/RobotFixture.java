@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.gametest;
+package li.cil.oc2.gametest.fixture;
 
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.inventory.ItemHandler;
@@ -25,8 +25,8 @@ import net.minecraft.world.phys.AABB;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static li.cil.oc2.gametest.TestSupport.fakePlayer;
-import static li.cil.oc2.gametest.TestSupport.useOn;
+import static li.cil.oc2.gametest.util.TestSupport.fakePlayer;
+import static li.cil.oc2.gametest.util.TestSupport.useOn;
 
 public final class RobotFixture {
     private final GameTestHelper helper;

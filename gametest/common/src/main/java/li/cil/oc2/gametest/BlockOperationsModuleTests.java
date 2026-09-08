@@ -5,13 +5,14 @@ package li.cil.oc2.gametest;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.bus.device.rpc.item.BlockOperationsModuleDevice;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 
-import static li.cil.oc2.gametest.TestSupport.WORK_Y;
+import static li.cil.oc2.gametest.util.TestSupport.WORK_Y;
 
 public final class BlockOperationsModuleTests {
     public static final BlockPos ROBOT_POS = new BlockPos(12, WORK_Y, 2);

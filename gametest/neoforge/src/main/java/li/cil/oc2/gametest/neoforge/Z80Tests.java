@@ -2,14 +2,14 @@
 
 package li.cil.oc2.gametest.neoforge;
 
-import li.cil.oc2.gametest.Z80Fixture;
+import li.cil.oc2.gametest.fixture.Z80Fixture;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -70,5 +70,10 @@ public final class Z80Tests {
             .thenWaitUntil(() -> z80.assertScreenContains("REDSTN",
                 "the redstone card should enumerate through the device API port"))
             .thenSucceed();
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private Z80Tests() {
     }
 }

@@ -5,6 +5,8 @@ package li.cil.oc2.gametest;
 import li.cil.oc2.common.blockentity.FlashDriveBlockEntity;
 import li.cil.oc2.common.bus.device.vm.block.FlashDriveDevice;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.gametest.fixture.ComputerFixture;
+import li.cil.oc2.gametest.util.BusCables;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -16,7 +18,7 @@ import net.minecraft.world.level.block.Blocks;
 
 import java.lang.ref.WeakReference;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.*;
 
 public final class DeviceBusTests {
     public static void busTracksNeighborLifecycle(final GameTestHelper helper) {

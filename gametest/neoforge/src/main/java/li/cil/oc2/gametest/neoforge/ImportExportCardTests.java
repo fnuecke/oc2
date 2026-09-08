@@ -7,9 +7,9 @@ import li.cil.oc2.common.blockentity.KeyboardBlockEntity;
 import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.bus.device.vm.block.KeyboardDevice;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.gametest.BusCables;
-import li.cil.oc2.gametest.ComputerFixture;
-import li.cil.oc2.gametest.Levels;
+import li.cil.oc2.gametest.fixture.ComputerFixture;
+import li.cil.oc2.gametest.util.BusCables;
+import li.cil.oc2.gametest.util.Levels;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -22,7 +22,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.lang.reflect.Field;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)

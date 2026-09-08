@@ -10,8 +10,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import static li.cil.oc2.gametest.TestSupport.assertEquals;
-import static li.cil.oc2.gametest.TestSupport.assertTrue;
+import static li.cil.oc2.gametest.util.TestSupport.assertEquals;
+import static li.cil.oc2.gametest.util.TestSupport.assertTrue;
 
 public final class RPCTypeAdapterTests {
     public static void directionAdapterIsApplied(final GameTestHelper helper) {

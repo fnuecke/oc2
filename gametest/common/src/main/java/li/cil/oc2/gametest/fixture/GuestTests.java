@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.gametest;
+package li.cil.oc2.gametest.fixture;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.common.vm.AbstractVirtualMachine;
@@ -14,17 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class GuestTests {
-    private record Case(String name, boolean passed, List<String> detail) {
-    }
-
-    // --------------------------------------------------------------------- //
-
-    public static GuestTests of(final VirtualMachine virtualMachine) {
-        return new GuestTests((AbstractVirtualMachine) virtualMachine);
-    }
-
-    // --------------------------------------------------------------------- //
-
     private final AbstractVirtualMachine virtualMachine;
     private final List<Case> cases = new ArrayList<>();
     private final List<String> unexpected = new ArrayList<>();
@@ -32,6 +21,12 @@ public final class GuestTests {
     private boolean ready;
     private boolean finished;
     private int failed;
+
+    // --------------------------------------------------------------------- //
+
+    public static GuestTests of(final VirtualMachine virtualMachine) {
+        return new GuestTests((AbstractVirtualMachine) virtualMachine);
+    }
 
     // --------------------------------------------------------------------- //
 
@@ -153,5 +148,10 @@ public final class GuestTests {
 
     private GuestTests(final AbstractVirtualMachine virtualMachine) {
         this.virtualMachine = virtualMachine;
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private record Case(String name, boolean passed, List<String> detail) {
     }
 }

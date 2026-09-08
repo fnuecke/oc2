@@ -5,7 +5,7 @@ package li.cil.oc2.gametest;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import net.minecraft.gametest.framework.GameTestHelper;
 
-import static li.cil.oc2.gametest.TestSupport.assertNotNull;
+import static li.cil.oc2.gametest.util.TestSupport.assertNotNull;
 
 public final class RegistrationTests {
     public static void deviceTypesAreRegistered(final GameTestHelper helper) {

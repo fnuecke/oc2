@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.gametest;
+package li.cil.oc2.gametest.util;
 
 import net.minecraft.gametest.framework.*;
 import org.apache.logging.log4j.LogManager;
@@ -79,6 +79,11 @@ public final class GameTestReporting {
 
     // --------------------------------------------------------------------- //
 
+    private GameTestReporting() {
+    }
+
+    // --------------------------------------------------------------------- //
+
     private static final class WatchdogTestReporter implements TestReporter {
         private final List<TestReporter> reporters;
         private boolean anyFailed;
@@ -103,10 +108,5 @@ public final class GameTestReporting {
             reporters.forEach(TestReporter::finish);
             startShutdownWatchdog(anyFailed ? 1 : 0);
         }
-    }
-
-    // --------------------------------------------------------------------- //
-
-    private GameTestReporting() {
     }
 }

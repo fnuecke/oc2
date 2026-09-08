@@ -8,6 +8,7 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.EnergyStorage;
 import li.cil.oc2.common.entity.Robot;
+import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -19,7 +20,7 @@ import net.minecraft.world.level.block.Blocks;
 
 import java.util.function.Predicate;
 
-import static li.cil.oc2.gametest.TestSupport.WORK_Y;
+import static li.cil.oc2.gametest.util.TestSupport.WORK_Y;
 
 public final class EntityCapabilityTests {
     private static final BlockPos ROBOT_POS = new BlockPos(6, WORK_Y, 2);

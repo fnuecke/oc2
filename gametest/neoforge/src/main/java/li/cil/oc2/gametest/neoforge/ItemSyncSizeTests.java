@@ -8,9 +8,9 @@ import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.vm.VMRunState;
-import li.cil.oc2.gametest.BusCables;
-import li.cil.oc2.gametest.ComputerFixture;
-import li.cil.oc2.gametest.DiskDriveFixture;
+import li.cil.oc2.gametest.fixture.ComputerFixture;
+import li.cil.oc2.gametest.fixture.DiskDriveFixture;
+import li.cil.oc2.gametest.util.BusCables;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.gametest.framework.GameTest;
@@ -24,7 +24,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.network.connection.ConnectionType;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)

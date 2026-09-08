@@ -8,8 +8,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import static li.cil.oc2.gametest.TestSupport.MOD_ID;
-import static li.cil.oc2.gametest.TestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)

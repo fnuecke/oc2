@@ -19,7 +19,7 @@ import li.cil.oc2.common.util.StorageItemUtils.State;
 import li.cil.oc2.common.vm.VMDeviceBusAdapter;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
-import li.cil.oc2.gametest.ComputerFixture;
+import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.sedna.riscv.R5Board;
 import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTest;
@@ -45,7 +45,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.UUID;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -450,5 +450,10 @@ public final class MountFailureTests {
 
     private static boolean isCorrupted(final ItemStack stack) {
         return StorageItemUtils.getState(stack) == State.CORRUPTED;
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private MountFailureTests() {
     }
 }

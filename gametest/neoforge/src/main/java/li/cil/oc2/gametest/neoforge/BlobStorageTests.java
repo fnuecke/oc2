@@ -37,8 +37,8 @@ import java.nio.file.attribute.FileTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static li.cil.oc2.gametest.TestSupport.MOD_ID;
-import static li.cil.oc2.gametest.TestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -776,6 +776,13 @@ public final class BlobStorageTests {
     private static boolean isCorrupted(final ItemStack stack) {
         return StorageItemUtils.getState(stack) == State.CORRUPTED;
     }
+
+    // --------------------------------------------------------------------- //
+
+    private BlobStorageTests() {
+    }
+
+    // --------------------------------------------------------------------- //
 
     private record ConfigSnapshot(int maxBlobCount, int maxTrashedBlobCount, int blobEvictionGraceHours) {
         static ConfigSnapshot take() {

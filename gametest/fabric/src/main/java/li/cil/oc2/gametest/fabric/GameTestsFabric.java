@@ -3,8 +3,8 @@
 package li.cil.oc2.gametest.fabric;
 
 import li.cil.oc2.api.platform.FabricRegistrationInitializer;
-import li.cil.oc2.gametest.GameTestReporting;
 import li.cil.oc2.gametest.device.GuestTestDevices;
+import li.cil.oc2.gametest.util.GameTestReporting;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
 import java.io.File;

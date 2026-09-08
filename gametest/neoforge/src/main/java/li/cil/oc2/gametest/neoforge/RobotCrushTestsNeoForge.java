@@ -3,7 +3,7 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.gametest.RobotCrushTests;
-import li.cil.oc2.gametest.RobotFixture;
+import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -19,8 +19,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import static li.cil.oc2.gametest.RobotCrushTests.ROBOT_CHECK_GRACE_PERIOD;
 import static li.cil.oc2.gametest.RobotCrushTests.ROBOT_POS;
 import static li.cil.oc2.gametest.RobotCrushTests.putBlockInsideTheRobot;
-import static li.cil.oc2.gametest.TestSupport.MOD_ID;
-import static li.cil.oc2.gametest.TestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)

@@ -19,8 +19,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.function.Function;
 
-import static li.cil.oc2.gametest.TestSupport.DEVICE_POS;
-import static li.cil.oc2.gametest.fabric.FabricTestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.fabric.util.FabricTestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
 
 public final class CapabilityAdapterTestsFabric {
     private static final Function<GameTestHelper, EnergyStorage> ENERGY = helper -> {

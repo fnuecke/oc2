@@ -18,8 +18,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.stream.Stream;
 
-import static li.cil.oc2.gametest.TestSupport.MOD_ID;
-import static li.cil.oc2.gametest.TestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)

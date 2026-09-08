@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.gametest;
+package li.cil.oc2.gametest.util;
 
 import li.cil.oc2.common.item.Items;
 import net.minecraft.core.BlockPos;
@@ -9,8 +9,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-import static li.cil.oc2.gametest.TestSupport.place;
-import static li.cil.oc2.gametest.TestSupport.useOn;
+import static li.cil.oc2.gametest.util.TestSupport.place;
+import static li.cil.oc2.gametest.util.TestSupport.useOn;
 
 public final class BusCables {
     public static void placeCable(final GameTestHelper helper, final Player player, final BlockPos pos) {

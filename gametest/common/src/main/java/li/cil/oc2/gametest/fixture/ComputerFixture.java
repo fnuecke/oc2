@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.gametest;
+package li.cil.oc2.gametest.fixture;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceType;
@@ -14,6 +14,7 @@ import li.cil.oc2.common.vm.AbstractVirtualMachine;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.common.vm.VirtualMachine;
+import li.cil.oc2.gametest.util.TestSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
@@ -27,8 +28,8 @@ import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-import static li.cil.oc2.gametest.TestSupport.COMPUTER_POS;
-import static li.cil.oc2.gametest.TestSupport.fakePlayer;
+import static li.cil.oc2.gametest.util.TestSupport.COMPUTER_POS;
+import static li.cil.oc2.gametest.util.TestSupport.fakePlayer;
 
 public final class ComputerFixture {
     private final GameTestHelper helper;

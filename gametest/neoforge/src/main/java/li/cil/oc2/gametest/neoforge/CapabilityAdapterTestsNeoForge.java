@@ -16,9 +16,9 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.function.Function;
 
-import static li.cil.oc2.gametest.TestSupport.DEVICE_POS;
-import static li.cil.oc2.gametest.TestSupport.MOD_ID;
-import static li.cil.oc2.gametest.TestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
+import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)

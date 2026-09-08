@@ -7,6 +7,7 @@ import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.vm.VMRunState;
+import li.cil.oc2.gametest.fixture.ComputerFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -16,7 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.*;
 
 public final class ChunkUnloadTests {
     public static void runningMachineSurvivesChunkUnload(final GameTestHelper helper) {

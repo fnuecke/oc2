@@ -5,7 +5,7 @@ package li.cil.oc2.gametest.neoforge;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.gametest.ComputerFixture;
+import li.cil.oc2.gametest.fixture.ComputerFixture;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -14,7 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import static li.cil.oc2.gametest.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)

@@ -2,7 +2,7 @@
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package li.cil.oc2.common.network.message;
+package li.cil.oc2.common.vm.device;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 

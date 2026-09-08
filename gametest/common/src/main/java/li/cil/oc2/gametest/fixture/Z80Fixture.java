@@ -1,17 +1,18 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.gametest;
+package li.cil.oc2.gametest.fixture;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.gametest.util.BusCables;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-import static li.cil.oc2.gametest.TestSupport.CABLE_POS;
-import static li.cil.oc2.gametest.TestSupport.DEVICE_POS;
+import static li.cil.oc2.gametest.util.TestSupport.CABLE_POS;
+import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
 
 public final class Z80Fixture {
     private final ComputerFixture computer;

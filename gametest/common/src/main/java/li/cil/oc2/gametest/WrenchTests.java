@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import static li.cil.oc2.gametest.TestSupport.DEVICE_POS;
+import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
 
 public final class WrenchTests {
     public static void rotatesOnTopFace(final GameTestHelper helper) {

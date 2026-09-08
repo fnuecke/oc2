@@ -8,7 +8,7 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.rpc.*;
 import li.cil.oc2.common.bus.device.rpc.RPCTypeAdapters;
 import li.cil.oc2.common.vm.AbstractVirtualMachine;
-import li.cil.oc2.gametest.RobotFixture;
+import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -22,8 +22,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import java.util.Optional;
 
 import static li.cil.oc2.gametest.BlockOperationsModuleTests.ROBOT_POS;
-import static li.cil.oc2.gametest.TestSupport.MOD_ID;
-import static li.cil.oc2.gametest.TestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)

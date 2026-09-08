@@ -356,13 +356,8 @@ public final class ProjectorDepthRenderer {
     }
 
     private static int getNextDepthTargetSlotToRender(final int projectorCount) {
-        for (int i = 0; i < ModShaders.MAX_PROJECTORS; i++) {
-            refreshSlot = (refreshSlot + 1) % ModShaders.MAX_PROJECTORS;
-            if (refreshSlot < projectorCount) {
-                return refreshSlot;
-            }
-        }
-        return -1;
+        refreshSlot = (refreshSlot + 1) % ModShaders.MAX_PROJECTORS;
+        return refreshSlot < projectorCount ? refreshSlot : -1;
     }
 
     private static void prepareDepthBufferRendering(final Minecraft minecraft, final ClientLevel level, final float partialTicks) {
@@ -482,7 +477,7 @@ public final class ProjectorDepthRenderer {
      * into the existing main render target output.
      */
     private static void renderProjectorColors(final Minecraft minecraft, final Matrix4f modelViewMatrix, final Matrix4f projectionMatrix, final int renderCount) {
-        prepareColorBufferRendering();
+        prepareColorBufferRendering(minecraft);
         try {
             prepareOrthographicRendering(minecraft);
 
@@ -502,7 +497,9 @@ public final class ProjectorDepthRenderer {
         }
     }
 
-    private static void prepareColorBufferRendering() {
+    private static void prepareColorBufferRendering(final Minecraft minecraft) {
+        minecraft.getMainRenderTarget().bindWrite(true);
+
         RenderSystem.backupProjectionMatrix();
         RenderSystem.getModelViewStack().pushMatrix();
 

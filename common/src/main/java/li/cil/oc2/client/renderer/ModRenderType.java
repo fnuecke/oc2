@@ -68,7 +68,6 @@ public abstract class ModRenderType extends RenderType {
         CompositeState.builder()
             .setShaderState(POSITION_TEX_SHADER)
             .setTextureState(new TextureStateShard(location, false, true))
-            .setOutputState(TRANSLUCENT_TARGET)
             .setTransparencyState(ADDITIVE_TRANSPARENCY)
             .createCompositeState(false)));
 

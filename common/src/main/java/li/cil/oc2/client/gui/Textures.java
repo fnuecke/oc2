@@ -9,7 +9,7 @@ public final class Textures {
     public static final Texture ROBOT_CONTAINER_TEXTURE = new Texture("textures/gui/widget/robot_container.png", 176, 197);
     public static final Texture TERMINAL_SCREEN_TEXTURE = new Texture("textures/gui/widget/terminal_screen.png", 336, 208);
     public static final Texture BUS_INTERFACE_SCREEN_TEXTURE = new Texture("textures/gui/widget/bus_interface_screen.png", 240, 30);
-    public static final Texture NETWORK_INTERFACE_CARD_SCREEN_TEXTURE = new Texture("textures/gui/widget/network_interface_card_screen.png", 176, 130);
+    public static final Texture NETWORK_INTERFACE_CARD_SCREEN_TEXTURE = new Texture("textures/gui/widget/network_interface_card_screen.png", 176, 150);
     public static final Texture NETWORK_TUNNEL_SCREEN_TEXTURE = new Texture("textures/gui/widget/network_tunnel_screen.png", 176, 197);
 
     public static final Texture TERMINAL_FOCUSED_TEXTURE = new Texture("textures/gui/overlay/terminal_focused.png", 336, 208);

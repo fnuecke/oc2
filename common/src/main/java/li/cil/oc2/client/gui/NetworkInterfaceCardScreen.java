@@ -50,9 +50,9 @@ public final class NetworkInterfaceCardScreen extends Screen {
     public static final int UI_WIDTH = Sprites.NETWORK_INTERFACE_CARD_SCREEN.width;
     public static final int UI_HEIGHT = Sprites.NETWORK_INTERFACE_CARD_SCREEN.height;
     public static final int BLOCK_LEFT = UI_WIDTH / 2;
-    public static final int BLOCK_TOP = 53;
+    public static final int BLOCK_TOP = 61;
     public static final int INFO_TEXT_LEFT = 8;
-    public static final int INFO_TEXT_TOP = 104;
+    public static final int INFO_TEXT_TOP = 122;
     public static final int INFO_TEXT_WIDTH = UI_WIDTH - 16;
     public static final int MAX_BLOCK_PITCH = 30;
 
@@ -218,7 +218,7 @@ public final class NetworkInterfaceCardScreen extends Screen {
             // Intersect rotated ray with bounding box representing block.
             final AABB aabb = new AABB(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5);
             return aabb.clip(new Vec3(source), new Vec3(target))
-                .map(hit -> Direction.getNearest(hit.x, -hit.y(), hit.z()))
+                .map(hit -> Direction.getNearest(-hit.x, -hit.y(), -hit.z()))
                 .filter(side -> side != Direction.SOUTH)
                 .orElse(null);
         }
@@ -233,7 +233,7 @@ public final class NetworkInterfaceCardScreen extends Screen {
 
             final Matrix4fStack stack = RenderSystem.getModelViewStack();
             stack.pushMatrix();
-            stack.translate(x, y, 0);
+            stack.translate(x, y, BLOCK_RENDER_SIZE);
             stack.rotate(fromXYZDegrees(renderRotation));
             stack.scale(BLOCK_RENDER_SIZE, -BLOCK_RENDER_SIZE, BLOCK_RENDER_SIZE);
             RenderSystem.applyModelViewMatrix();

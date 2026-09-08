@@ -21,6 +21,7 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
     private final ByteBuffer buffer;
     private int length;
     private final BitSet dirtyLines;
+    private volatile boolean hasDirtyLines;
     private final BitSet snapshotLines;
     private final ByteBuffer snapshot;
     private final int[][] conversionBuffer = new int[4][3];
@@ -39,6 +40,7 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
         this.buffer = buffer.order(ByteOrder.LITTLE_ENDIAN);
         this.dirtyLines = new BitSet(height / 2);
         this.dirtyLines.set(0, height / 2);
+        this.hasDirtyLines = true;
         this.snapshotLines = new BitSet(height / 2);
         this.snapshot = ByteBuffer.allocate(length).order(ByteOrder.LITTLE_ENDIAN);
     }
@@ -49,6 +51,7 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
         synchronized (buffer) {
             length = 0;
             dirtyLines.clear();
+            hasDirtyLines = false;
             DirectByteBufferUtils.release(buffer);
         }
     }
@@ -62,9 +65,7 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
     }
 
     public boolean hasChanges() {
-        synchronized (buffer) {
-            return !dirtyLines.isEmpty();
-        }
+        return hasDirtyLines;
     }
 
     public boolean applyChanges(final Picture picture) {
@@ -76,6 +77,7 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
             }
 
             dirtyLines.clear();
+            hasDirtyLines = false;
 
             final int halfRowLength = width * STRIDE * 2;
             for (int halfRow = snapshotLines.nextSetBit(0); halfRow >= 0; halfRow = snapshotLines.nextSetBit(halfRow + 1)) {
@@ -169,5 +171,8 @@ public final class SimpleFramebufferDevice implements MemoryMappedDevice {
     private void setDirty(final int offset) {
         final int pixelY = offset / (width * STRIDE);
         dirtyLines.set(pixelY / 2);
+        if (!hasDirtyLines) {
+            hasDirtyLines = true;
+        }
     }
 }

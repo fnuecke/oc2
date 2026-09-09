@@ -12,9 +12,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.stream.Stream;
 
 public final class NetworkHubBlockEntity extends ModBlockEntity implements NetworkInterface {
     private static final int TTL_COST = 1;
@@ -40,6 +37,7 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
     }
 
     @Override
+    @Nullable
     public byte[] readEthernetFrame() {
         return null;
     }
@@ -63,11 +61,18 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
             frameCount++;
         }
 
-        getAdjacentInterfaces().forEach(adjacentInterface -> {
+        validateAdjacentBlocks();
+
+        for (final Invalidatable<?> adjacent : adjacentBlockInterfaces) {
+            if (adjacent == null || !adjacent.isPresent()) {
+                continue;
+            }
+
+            final NetworkInterface adjacentInterface = (NetworkInterface) adjacent.get();
             if (adjacentInterface != source) {
                 adjacentInterface.writeEthernetFrame(this, frame, timeToLive - TTL_COST);
             }
-        });
+        }
     }
 
     // --------------------------------------------------------------------- //
@@ -78,14 +83,6 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
     }
 
     // --------------------------------------------------------------------- //
-
-    private Stream<NetworkInterface> getAdjacentInterfaces() {
-        validateAdjacentBlocks();
-        return Arrays.stream(adjacentBlockInterfaces)
-            .filter(Objects::nonNull)
-            .filter(Invalidatable::isPresent)
-            .map(adjacent -> (NetworkInterface) adjacent.get());
-    }
 
     private void validateAdjacentBlocks() {
         if (!isValid() || !haveAdjacentBlocksChanged) {

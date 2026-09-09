@@ -51,6 +51,7 @@ public final class Constants {
 
     public static final String TOOLTIP_DESCRIPTION_SUFFIX = ".desc";
     public static final String TOOLTIP_DEVICE_NEEDS_REBOOT = key("tooltip.{mod}.device_needs_reboot");
+    public static final String TOOLTIP_CAN_BE_CONFIGURED = key("tooltip.{mod}.can_be_configured");
     public static final String TOOLTIP_ENERGY = key("tooltip.{mod}.energy");
     public static final String TOOLTIP_ENERGY_CONSUMPTION = key("tooltip.{mod}.energyConsumption");
     public static final String TOOLTIP_DATA_CORRUPTED = key("tooltip.{mod}.data_corrupted");

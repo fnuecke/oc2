@@ -49,7 +49,19 @@ public final class NetworkInterfaceCardItem extends ModItem {
 
             values[index] = (byte) (enabled ? 1 : 0);
 
-            tag.putByteArray(SIDE_CONFIGURATION_TAG_NAME, values);
+            boolean anyNonDefault = false;
+            for (final byte value : values) {
+                if (value == 0) {
+                    anyNonDefault = true;
+                    break;
+                }
+            }
+
+            if (anyNonDefault) {
+                tag.putByteArray(SIDE_CONFIGURATION_TAG_NAME, values);
+            } else {
+                tag.remove(SIDE_CONFIGURATION_TAG_NAME);
+            }
         });
     }
 
@@ -72,14 +84,7 @@ public final class NetworkInterfaceCardItem extends ModItem {
     }
 
     public static boolean hasConfiguration(final ItemStack stack) {
-        final byte[] values = ItemStackUtils.getModDataTag(stack).getByteArray(SIDE_CONFIGURATION_TAG_NAME);
-        for (final byte value : values) {
-            if (value == 0) {
-                return true;
-            }
-        }
-
-        return false;
+        return ItemStackUtils.getModDataTag(stack).contains(SIDE_CONFIGURATION_TAG_NAME);
     }
 
     // --------------------------------------------------------------------- //

@@ -35,9 +35,8 @@ import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
 
 public final class TooltipUtils {
     private static final MutableComponent DEVICE_NEEDS_REBOOT = Component.translatable(Constants.TOOLTIP_DEVICE_NEEDS_REBOOT).withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.YELLOW)));
-
+    private static final MutableComponent CAN_BE_CONFIGURED = Component.translatable(Constants.TOOLTIP_CAN_BE_CONFIGURED).withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.DARK_GRAY)));
     private static final MutableComponent DATA_CORRUPTED = Component.translatable(Constants.TOOLTIP_DATA_CORRUPTED).withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.RED)));
-
     private static final MutableComponent DATA_INCONSISTENT = Component.translatable(Constants.TOOLTIP_DATA_INCONSISTENT).withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.YELLOW)));
 
     private static final ThreadLocal<List<ItemStack>> ITEM_STACKS = ThreadLocal.withInitial(ArrayList::new);
@@ -72,6 +71,10 @@ public final class TooltipUtils {
         if (energyConsumption > 0) {
             final MutableComponent energy = withFormat(String.valueOf(energyConsumption), ChatFormatting.GREEN);
             tooltip.add(withFormat(Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION, energy), ChatFormatting.GRAY));
+        }
+
+        if (stack.is(ItemTags.CONFIGURABLE) && !ItemStackUtils.hasModDataTag(stack)) {
+            tooltip.add(CAN_BE_CONFIGURED);
         }
     }
 

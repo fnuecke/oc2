@@ -75,6 +75,12 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
 
         tag(WRENCHES).add(Items.WRENCH.get());
 
+        tag(CONFIGURABLE).add(
+            Items.NETWORK_INTERFACE_CARD.get(),
+            Items.NETWORK_TUNNEL_CARD.get(),
+            Items.NETWORK_TUNNEL_MODULE.get()
+        );
+
         tag(DEVICE_NEEDS_REBOOT).add(
             Items.CPU_RISCV.get(),
             Items.CPU_Z80.get(),

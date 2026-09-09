@@ -22,6 +22,7 @@ public final class ItemTags {
     public static final TagKey<Item> CABLES = tag("cables");
     public static final TagKey<Item> WRENCHES = tag("wrenches");
     public static final TagKey<Item> DEVICE_NEEDS_REBOOT = tag("device_needs_reboot");
+    public static final TagKey<Item> CONFIGURABLE = tag("configurable");
 
     // --------------------------------------------------------------------- //
 

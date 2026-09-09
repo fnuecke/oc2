@@ -30,6 +30,10 @@ public final class ItemStackUtils {
         return NBTUtils.getChildTag(stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag(), MOD_TAG_NAME);
     }
 
+    public static boolean hasModDataTag(final ItemStack stack) {
+        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).contains(MOD_TAG_NAME);
+    }
+
     public static void modifyModDataTag(final ItemStack stack, final Consumer<CompoundTag> modifier) {
         if (stack.isEmpty()) {
             return;

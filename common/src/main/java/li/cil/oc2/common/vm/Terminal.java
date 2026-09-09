@@ -150,6 +150,8 @@ public final class Terminal {
     private final transient Set<Listener> listeners = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private transient boolean displayOnly; // Set on client to not send responses to status requests.
     private transient boolean hasPendingBell;
+    private transient boolean isDeferringChangeNotification;
+    private transient boolean hasDeferredChanges;
 
     private final transient TerminalParser.Sink sink = new ParserSink();
 
@@ -321,8 +323,17 @@ public final class Terminal {
     }
 
     public synchronized void putOutput(final ByteBuffer values) {
-        while (values.hasRemaining()) {
-            putOutput(values.get());
+        isDeferringChangeNotification = true;
+        try {
+            while (values.hasRemaining()) {
+                putOutput(values.get());
+            }
+        } finally {
+            isDeferringChangeNotification = false;
+            if (hasDeferredChanges) {
+                hasDeferredChanges = false;
+                notifyChanged();
+            }
         }
     }
 
@@ -404,7 +415,7 @@ public final class Terminal {
                 case '#' -> {
                     if (finalByte == '8') { // DECALN – Screen Alignment Display
                         Arrays.fill(buffer, (byte) 'E');
-                        listeners.forEach(Listener::handleTerminalChanged);
+                        notifyChanged();
                     }
                 }
                 default -> {
@@ -706,6 +717,15 @@ public final class Terminal {
         return set == '0' || set == '2';
     }
 
+    private void notifyChanged() {
+        if (isDeferringChangeNotification) {
+            hasDeferredChanges = true;
+            return;
+        }
+
+        listeners.forEach(Listener::handleTerminalChanged);
+    }
+
     private void saveCursor(final SavedCursor savedCursor) {
         savedCursor.x = x;
         savedCursor.y = y;
@@ -858,7 +878,7 @@ public final class Terminal {
             if (screen.cursor != null) {
                 restoreCursor(screen.cursor);
             }
-            listeners.forEach(Listener::handleTerminalChanged);
+            notifyChanged();
         }
     }
 
@@ -1040,7 +1060,7 @@ public final class Terminal {
         buffer[index] = (byte) ch;
         colors[index] = color;
         styles[index] = style;
-        listeners.forEach(Listener::handleTerminalChanged);
+        notifyChanged();
     }
 
     private byte eraseColor() {
@@ -1051,7 +1071,7 @@ public final class Terminal {
         Arrays.fill(buffer, (byte) ' ');
         Arrays.fill(colors, eraseColor());
         Arrays.fill(styles, DEFAULT_STYLE);
-        listeners.forEach(Listener::handleTerminalChanged);
+        notifyChanged();
     }
 
     private void clearLine(final int y) {
@@ -1062,7 +1082,7 @@ public final class Terminal {
         Arrays.fill(buffer, y * WIDTH + fromIndex, y * WIDTH + toIndex, (byte) ' ');
         Arrays.fill(colors, y * WIDTH + fromIndex, y * WIDTH + toIndex, eraseColor());
         Arrays.fill(styles, y * WIDTH + fromIndex, y * WIDTH + toIndex, DEFAULT_STYLE);
-        listeners.forEach(Listener::handleTerminalChanged);
+        notifyChanged();
     }
 
     private void shiftUpOne() {
@@ -1123,6 +1143,6 @@ public final class Terminal {
         Arrays.fill(colors, clearIndex, clearIndex + clearCount, eraseColor());
         Arrays.fill(styles, clearIndex, clearIndex + clearCount, DEFAULT_STYLE);
 
-        listeners.forEach(Listener::handleTerminalChanged);
+        notifyChanged();
     }
 }

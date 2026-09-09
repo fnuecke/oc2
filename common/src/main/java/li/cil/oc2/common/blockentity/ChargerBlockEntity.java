@@ -10,6 +10,8 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.EnergyStorage;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
+import li.cil.oc2.common.network.Network;
+import li.cil.oc2.common.network.message.ChargerStateMessage;
 import li.cil.oc2.common.util.ChunkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,6 +32,8 @@ import java.util.function.Predicate;
 import static java.util.Collections.singletonList;
 
 public final class ChargerBlockEntity extends ModBlockEntity implements NamedDevice, TickableBlockEntity {
+    private static final String HAS_ENERGY_TAG_NAME = "has_energy";
+
     private static final Predicate<Entity> ENTITY_PREDICATE =
         EntitySelector.NO_SPECTATORS
             .and(EntitySelector.ENTITY_STILL_ALIVE);
@@ -37,6 +41,7 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
     // --------------------------------------------------------------------- //
 
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.chargerEnergyStorage);
+    private boolean hasEnergy;
     private boolean isCharging;
     private final AABB renderBoundingBox;
 
@@ -44,10 +49,23 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
 
     ChargerBlockEntity(final BlockPos pos, final BlockState state) {
         super(BlockEntities.CHARGER.get(), pos, state);
-        renderBoundingBox = new AABB(pos.above());
+        renderBoundingBox = new AABB(pos).expandTowards(0, 1, 0);
     }
 
     // --------------------------------------------------------------------- //
+
+    public boolean hasEnergy() {
+        return hasEnergy;
+    }
+
+    public void setHasEnergyClient(final boolean value) {
+        hasEnergy = value;
+    }
+
+    @Callback
+    public boolean isCharging() {
+        return isCharging;
+    }
 
     @Override
     public void serverTick() {
@@ -56,12 +74,29 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
         }
 
         isCharging = false;
-        chargeBlock();
-        chargeEntities();
+        final boolean hasEnergy = energy.getEnergyStored() > 0;
+        if (hasEnergy) {
+            chargeBlock();
+            chargeEntities();
+        }
+
+        if (hasEnergy != this.hasEnergy) {
+            this.hasEnergy = hasEnergy;
+            Network.sendToClientsTrackingBlockEntity(new ChargerStateMessage(this, this.hasEnergy), this);
+        }
 
         if (isCharging) {
             ChunkUtils.setLazyUnsaved(level, getBlockPos());
         }
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
+        final CompoundTag tag = super.getUpdateTag(registries);
+
+        tag.putBoolean(HAS_ENERGY_TAG_NAME, hasEnergy);
+
+        return tag;
     }
 
     @Override
@@ -76,11 +111,7 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
         super.loadAdditional(tag, registries);
 
         energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
-    }
-
-    @Callback
-    public boolean isCharging() {
-        return isCharging;
+        hasEnergy = tag.getBoolean(HAS_ENERGY_TAG_NAME);
     }
 
     @Override
@@ -100,10 +131,6 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
     private void chargeBlock() {
         assert level != null;
 
-        if (energy.getEnergyStored() == 0) {
-            return;
-        }
-
         final BlockEntity blockEntity = level.getBlockEntity(getBlockPos().above());
         if (blockEntity != null) {
             chargeBlockEntity(blockEntity);
@@ -112,10 +139,6 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
 
     private void chargeEntities() {
         assert level != null;
-
-        if (energy.getEnergyStored() == 0) {
-            return;
-        }
 
         final List<Entity> entities = level.getEntities((Entity) null, new AABB(getBlockPos().above()), ENTITY_PREDICATE);
         for (final Entity entity : entities) {

@@ -5,6 +5,7 @@ package li.cil.oc2.client.renderer.blockentity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import li.cil.oc2.api.API;
+import li.cil.oc2.client.renderer.IndicatorRenderer;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.common.blockentity.ChargerBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -15,7 +16,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> {
     public static final ResourceLocation EFFECT_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/charger/effect");
@@ -28,6 +31,11 @@ public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> 
     private static final float EFFECT_SCALE_START = 0.6f;
     private static final float EFFECT_SCALE_END = 0.8f;
 
+    private static final Vector3f INDICATOR_COLOR = new Vector3f(1f, 0.8f, 0.3f);
+    private static final Vector3f INDICATOR_COLOR_BRIGHT = new Vector3f(1f, 1f, 0.7f);
+
+    private static final AABB INDICATOR_BOUNDS = new AABB(1 / 16.0, 12 / 16.0, 1 / 16.0, 15 / 16.0, 15 / 16.0, 15 / 16.0);
+
     // --------------------------------------------------------------------- //
 
     public ChargerRenderer(final BlockEntityRendererProvider.Context ignoredContext) {
@@ -37,9 +45,15 @@ public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> 
 
     @Override
     public void render(final ChargerBlockEntity charger, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
+        if (!charger.hasEnergy()) {
+            return;
+        }
+
         final Level level = charger.getLevel();
-        final float time = level != null ? level.getGameTime() + partialTicks : 0;
-        final float offset = time * EFFECT_SPEED / 20f % (float) (Math.PI * 2);
+        final long gameTime = level != null ? level.getGameTime() : 0;
+        final float offset = (gameTime + partialTicks) * EFFECT_SPEED / 20f % (float) (Math.PI * 2);
+
+        IndicatorRenderer.render(stack, bufferSource, INDICATOR_BOUNDS, INDICATOR_COLOR, INDICATOR_COLOR_BRIGHT, gameTime, partialTicks);
 
         stack.pushPose();
         stack.translate(0.5, 1.1, 0.5);

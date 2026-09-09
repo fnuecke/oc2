@@ -3,16 +3,13 @@
 package li.cil.oc2.client.renderer.blockentity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import li.cil.oc2.client.renderer.ModRenderType;
+import li.cil.oc2.client.renderer.IndicatorRenderer;
 import li.cil.oc2.common.block.NetworkConnectorBlock;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import org.joml.Vector3f;
@@ -20,7 +17,6 @@ import org.joml.Vector3f;
 public final class NetworkConnectorRenderer implements BlockEntityRenderer<NetworkConnectorBlockEntity> {
     private static final Vector3f INDICATOR_COLOR = new Vector3f(0.35f, 0.95f, 1f);
     private static final Vector3f INDICATOR_COLOR_BRIGHT = new Vector3f(0.6f, 1f, 1f);
-    private static final int INDICATOR_PULSE_TICKS = 40;
 
     private static final double CAP_SIDE_MIN = 6 / 16.0;
     private static final double CAP_SIDE_MAX = 10 / 16.0;
@@ -44,18 +40,9 @@ public final class NetworkConnectorRenderer implements BlockEntityRenderer<Netwo
 
         final Level level = connector.getLevel();
         final long gameTime = level != null ? level.getGameTime() : 0;
-        final float phase = (gameTime % INDICATOR_PULSE_TICKS + partialTicks) / INDICATOR_PULSE_TICKS;
-
-        final Vector3f color = new Vector3f();
-        color.set(INDICATOR_COLOR).lerp(INDICATOR_COLOR_BRIGHT,
-            (1 + Mth.sin(phase * (float) (Math.PI * 2))) * 0.5f);
-
         final AABB bounds = INDICATOR_BOUNDS[NetworkConnectorBlock.getFacing(connector.getBlockState()).ordinal()];
-        final VertexConsumer consumer = bufferSource.getBuffer(ModRenderType.getConnectorIndicator());
 
-        LevelRenderer.addChainedFilledBoxVertices(stack, consumer,
-            bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.maxY, bounds.maxZ,
-            color.x(), color.y(), color.z(), 1f);
+        IndicatorRenderer.render(stack, bufferSource, bounds, INDICATOR_COLOR, INDICATOR_COLOR_BRIGHT, gameTime, partialTicks);
     }
 
     // --------------------------------------------------------------------- //

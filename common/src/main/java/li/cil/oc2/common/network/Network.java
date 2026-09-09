@@ -41,6 +41,7 @@ public final class Network {
         registerMessage(OpenComputerInventoryMessage.class, OpenComputerInventoryMessage::new, NetworkManager.clientToServer());
         registerMessage(OpenComputerTerminalMessage.class, OpenComputerTerminalMessage::new, NetworkManager.clientToServer());
 
+        registerMessage(ChargerStateMessage.class, ChargerStateMessage::new, NetworkManager.serverToClient());
         registerMessage(NetworkConnectorConnectionsMessage.class, NetworkConnectorConnectionsMessage::new, NetworkManager.serverToClient());
         registerMessage(NetworkConnectorAdjacentInterfaceMessage.class, NetworkConnectorAdjacentInterfaceMessage::new, NetworkManager.serverToClient());
         registerMessage(InternetGatewayStateMessage.class, InternetGatewayStateMessage::new, NetworkManager.serverToClient());

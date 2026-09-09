@@ -30,10 +30,10 @@ public abstract class ModRenderType extends RenderType {
             .setLightmapState(LIGHTMAP)
             .createCompositeState(false));
 
-    private static final RenderType CONNECTOR_INDICATOR = create(
-        API.MOD_ID + "/connector_indicator",
+    private static final RenderType INDICATOR = create(
+        API.MOD_ID + "/indicator",
         DefaultVertexFormat.POSITION_COLOR,
-        VertexFormat.Mode.TRIANGLE_STRIP,
+        VertexFormat.Mode.QUADS,
         256,
         false,
         false,
@@ -91,8 +91,8 @@ public abstract class ModRenderType extends RenderType {
         return NETWORK_CABLE;
     }
 
-    public static RenderType getConnectorIndicator() {
-        return CONNECTOR_INDICATOR;
+    public static RenderType getIndicator() {
+        return INDICATOR;
     }
 
     public static RenderType getProjectorLight() {

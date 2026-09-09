@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus;
 
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.common.util.NBTTagIds;
@@ -35,6 +36,7 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
 
     protected final int groupCount;
     protected final ArrayList<HashSet<TEntry>> groups;
+    private final Object2IntOpenHashMap<Device> deviceGroups = new Object2IntOpenHashMap<>();
 
     // --------------------------------------------------------------------- //
 
@@ -48,6 +50,8 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         this.groups = new ArrayList<>(groupCount);
         this.groupIds = new UUID[groupCount];
         this.groupData = new CompoundTag[groupCount];
+
+        deviceGroups.defaultReturnValue(-1);
 
         for (int i = 0; i < groupCount; i++) {
             groups.add(new HashSet<>());
@@ -108,13 +112,9 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
 
     @Override
     public Optional<UUID> getDeviceIdentifier(final Device device) {
-        for (int i = 0; i < groupCount; i++) {
-            final HashSet<TEntry> group = groups.get(i);
-            for (final TEntry deviceInfo : group) {
-                if (Objects.equals(device, deviceInfo.getDevice())) {
-                    return Optional.of(groupIds[i]);
-                }
-            }
+        final int index = deviceGroups.getInt(device);
+        if (index >= 0) {
+            return Optional.of(groupIds[index]);
         }
         return super.getDeviceIdentifier(device);
     }
@@ -132,6 +132,7 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
 
         for (final TEntry entry : oldEntries) {
             devices.removeInt(entry.getDevice());
+            deviceGroups.removeInt(entry.getDevice());
             onEntryRemoved(entry);
         }
 
@@ -172,6 +173,7 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         removedEntries.removeAll(newEntries);
         for (final TEntry entry : removedEntries) {
             devices.removeInt(entry.getDevice());
+            deviceGroups.removeInt(entry.getDevice());
             onEntryRemoved(entry);
         }
 
@@ -179,6 +181,7 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         addedEntries.removeAll(entries);
         for (final TEntry entry : addedEntries) {
             devices.put(entry.getDevice(), entry.getDeviceEnergyConsumption().orElse(0));
+            deviceGroups.put(entry.getDevice(), index);
             onEntryAdded(entry);
         }
 

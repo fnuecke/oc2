@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.sedna.api.device.serial.SerialDevice;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -77,32 +78,49 @@ public abstract class AbstractTerminalVMRunner extends VMRunner {
     protected void handleAfterRun() {
         super.handleAfterRun();
 
-        final ByteBuffer output = ByteBuffer.allocate(outputBuffer.size());
-        while (!outputBuffer.isEmpty()) {
-            output.put(outputBuffer.dequeueByte());
+        if (outputBuffer.isEmpty()) {
+            return;
         }
 
-        output.flip();
-        putTerminalOutput(output);
+        final byte[] output = new byte[outputBuffer.size()];
+        for (int i = 0; i < output.length; i++) {
+            output[i] = outputBuffer.dequeueByte();
+        }
+
+        terminal.putOutput(ByteBuffer.wrap(output));
+        pendingOutput.add(output);
     }
 
     // --------------------------------------------------------------------- //
 
-    private void putTerminalOutput(final ByteBuffer output) {
-        if (output.hasRemaining()) {
-            terminal.putOutput(output);
-
-            output.flip();
-            final byte[] bytes = new byte[output.remaining()];
-            output.get(bytes);
-            pendingOutput.add(bytes);
-        }
-    }
-
     private void flushPendingOutput() {
-        byte[] output;
-        while ((output = pendingOutput.poll()) != null) {
-            sendTerminalUpdateToClient(ByteBuffer.wrap(output));
+        final byte[] first = pendingOutput.poll();
+        if (first == null) {
+            return;
         }
+
+        if (pendingOutput.isEmpty()) {
+            sendTerminalUpdateToClient(ByteBuffer.wrap(first));
+            return;
+        }
+
+        final ArrayList<byte[]> chunks = new ArrayList<>();
+        chunks.add(first);
+
+        int length = first.length;
+        byte[] chunk;
+        while ((chunk = pendingOutput.poll()) != null) {
+            chunks.add(chunk);
+            length += chunk.length;
+        }
+
+        final byte[] merged = new byte[length];
+        int offset = 0;
+        for (final byte[] value : chunks) {
+            System.arraycopy(value, 0, merged, offset, value.length);
+            offset += value.length;
+        }
+
+        sendTerminalUpdateToClient(ByteBuffer.wrap(merged));
     }
 }

@@ -87,6 +87,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
     private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockDeviceBusController(busElement, this::cpuEnergyPerTick, this, deviceItems::getArchitectureType), deviceItems::getDeviceLocation);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
+    private final List<CapabilityProvider> capabilityProviders = new ArrayList<>();
     private volatile List<ServerPlayer> terminalRecipients = List.of(); // Players to send live terminal updates to.
     private int terminalRecipientRefreshCountdown;
 
@@ -179,12 +180,10 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
 
         final Direction localSide = HorizontalBlockUtils.toLocal(getBlockState(), side);
-        for (final Device device : virtualMachine.getBusController().getDevices()) {
-            if (device instanceof final CapabilityProvider capabilityProvider) {
-                final T value = capabilityProvider.getCapability(capability, localSide);
-                if (value != null) {
-                    return value;
-                }
+        for (final CapabilityProvider capabilityProvider : capabilityProviders) {
+            final T value = capabilityProvider.getCapability(capability, localSide);
+            if (value != null) {
+                return value;
             }
         }
 
@@ -406,6 +405,13 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     }
 
     private void handleAfterDeviceScan() {
+        capabilityProviders.clear();
+        for (final Device device : virtualMachine.getBusController().getDevices()) {
+            if (device instanceof final CapabilityProvider capabilityProvider) {
+                capabilityProviders.add(capabilityProvider);
+            }
+        }
+
         if (level != null && !level.isClientSide()) {
             Capabilities.invalidate(this);
         }

@@ -116,12 +116,13 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final AnimationState animationState = new AnimationState();
     private final RobotActionProcessor actionProcessor = new RobotActionProcessor();
     private final Terminal terminal = new Terminal();
-    private final RobotVirtualMachine virtualMachine;
     private final RobotBusElement busElement = new RobotBusElement();
     private final RobotItemStackHandlers deviceItems = new RobotItemStackHandlers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.robotEnergyStorage);
+    private final RobotVirtualMachine virtualMachine = new RobotVirtualMachine(new CommonDeviceBusController(busElement, this::cpuEnergyPerTick, deviceItems::getArchitectureType));
     private final ItemStackHandler inventory = new FixedSizeItemStackHandler(INVENTORY_SIZE);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
+    private final List<CapabilityProvider> capabilityProviders = new ArrayList<>();
     private volatile List<ServerPlayer> terminalRecipients = List.of(); // Copy for threaded send.
     private long lastPistonMovement;
 
@@ -136,9 +137,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             terminal.setDisplayOnly(true);
         }
 
-        final CommonDeviceBusController busController = new CommonDeviceBusController(busElement, this::cpuEnergyPerTick, deviceItems::getArchitectureType);
-        virtualMachine = new RobotVirtualMachine(busController);
         virtualMachine.setGameTimeSource(LevelUtils.gameTimeSupplier(world));
+        virtualMachine.getBusController().onAfterDeviceScan.add(this::handleAfterDeviceScan);
     }
 
     // --------------------------------------------------------------------- //
@@ -195,12 +195,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             return (T) this;
         }
 
-        for (final Device device : virtualMachine.getBusController().getDevices()) {
-            if (device instanceof final CapabilityProvider capabilityProvider) {
-                final T value = capabilityProvider.getCapability(capability, side);
-                if (value != null) {
-                    return value;
-                }
+        for (final CapabilityProvider capabilityProvider : capabilityProviders) {
+            final T value = capabilityProvider.getCapability(capability, side);
+            if (value != null) {
+                return value;
             }
         }
 
@@ -486,6 +484,15 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         unregisterListeners();
         virtualMachine.suspend();
         virtualMachine.dispose();
+    }
+
+    private void handleAfterDeviceScan() {
+        capabilityProviders.clear();
+        for (final Device device : virtualMachine.getBusController().getDevices()) {
+            if (device instanceof final CapabilityProvider capabilityProvider) {
+                capabilityProviders.add(capabilityProvider);
+            }
+        }
     }
 
     private void updateTerminalRecipients() {

@@ -186,9 +186,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     private void acceptMessage(final byte[] messageData) {
+        final JsonElement parsed;
         final BlobReference reference;
         try {
-            reference = peekBlobReference(messageData);
+            parsed = JsonParser.parseReader(new InputStreamReader(new ByteArrayInputStream(messageData), StandardCharsets.UTF_8));
+            reference = peekBlobReference(parsed);
         } catch (final Throwable e) {
             payloads.discard();
             writeError(ERROR_MALFORMED_MESSAGE);
@@ -197,7 +199,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
         if (reference == null) {
             payloads.discard(); // Just in case, so the next message doesn't break.
-            processMessage(messageData);
+            processMessage(parsed);
             return;
         }
 
@@ -209,15 +211,14 @@ public final class RPCDeviceBusAdapter implements Steppable {
         }
 
         try {
-            processMessage(messageData);
+            processMessage(parsed);
         } finally {
             blobs.setReceived(null);
         }
     }
 
     @Nullable
-    private BlobReference peekBlobReference(final byte[] messageData) {
-        final JsonElement parsed = JsonParser.parseString(new String(messageData, StandardCharsets.UTF_8));
+    private BlobReference peekBlobReference(final JsonElement parsed) {
         if (!parsed.isJsonObject()) {
             return null;
         }
@@ -264,14 +265,13 @@ public final class RPCDeviceBusAdapter implements Steppable {
         return 0;
     }
 
-    private void processMessage(final byte[] messageData) {
-        if (new String(messageData, StandardCharsets.UTF_8).trim().isEmpty()) {
+    private void processMessage(final JsonElement parsed) {
+        if (parsed.isJsonNull()) {
             return;
         }
 
-        final InputStreamReader stream = new InputStreamReader(new ByteArrayInputStream(messageData), StandardCharsets.UTF_8);
         try {
-            final Message message = gson.fromJson(stream, Message.class);
+            final Message message = gson.fromJson(parsed, Message.class);
             currentRequestId = message.id;
             switch (message.type) {
                 case Message.MESSAGE_TYPE_LIST -> writeDeviceList();

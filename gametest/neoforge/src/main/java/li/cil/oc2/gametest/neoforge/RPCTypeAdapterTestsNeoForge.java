@@ -24,6 +24,11 @@ public final class RPCTypeAdapterTestsNeoForge {
         RPCTypeAdapterTests.itemStackAdapterIsApplied(helper);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void itemStackCarriesFilteredComponents(final GameTestHelper helper) {
+        RPCTypeAdapterTests.itemStackCarriesFilteredComponents(helper);
+    }
+
     // --------------------------------------------------------------------- //
 
     private RPCTypeAdapterTestsNeoForge() {

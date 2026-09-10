@@ -18,4 +18,9 @@ public final class RPCTypeAdapterTestsFabric {
     public void itemStackAdapterIsApplied(final GameTestHelper helper) {
         RPCTypeAdapterTests.itemStackAdapterIsApplied(helper);
     }
+
+    @GameTest(template = TEMPLATE)
+    public void itemStackCarriesFilteredComponents(final GameTestHelper helper) {
+        RPCTypeAdapterTests.itemStackCarriesFilteredComponents(helper);
+    }
 }

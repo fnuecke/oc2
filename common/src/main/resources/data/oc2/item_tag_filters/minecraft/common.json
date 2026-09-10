@@ -1,9 +1,11 @@
 {
   "tags": [
     "id",
-    "Count",
-    "tag.display",
-    "tag.Enchantments",
-    "tag.RepairCost"
+    "components.minecraft:custom_name",
+    "components.minecraft:lore",
+    "components.minecraft:dyed_color",
+    "components.minecraft:damage",
+    "components.minecraft:enchantments",
+    "components.minecraft:repair_cost"
   ]
 }

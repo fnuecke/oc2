@@ -10,7 +10,7 @@ Lua is very relevant when it comes to interacting with high-level API ([HLAPI](h
 
 On the other end of the scale are native devices, such as [hard drives](item/hard_drive.md) and the [network interface card](item/network_interface_card.md). These devices are controlled by native Linux drivers and will require a restart of the system when added or removed. Most devices you will encounter will be HLAPI devices, however.
 
-For the more adventurous, there is the [Z80 architecture](item/cpu_z80.md), which offers a much cheaper, but also much more limited environment with CP/M as its OS. It interacts with mid-level ([MLAPI](mlapi.md)) devices, such as the [redstone interface block](block/redstone_interface.md). With this OS as well come some utilities, in particular the `DEVLIB.INC` and `OCLIB.INC` libraries.
+For the more adventurous, there is the [Z80 architecture](item/cpu_z80.md), which offers a much cheaper, but also much more limited environment with CP/M as its OS. It interacts with mid-level ([MLAPI](mlapi.md)) devices, such as the [redstone interface block](block/redstone_interface.md). With this OS as well come some utilities, in particular the `DEVLIB.INC` and `OCAPI.INC` libraries.
 
 ## Getting Started
 If you just want to get running quickly, read the [getting started guide](getting_started.md). It contains a step-by-step description on how to build your first computer and how to start working with it. To learn more about some topic in particular, see the referenced topical pages in the "Reference" section. 

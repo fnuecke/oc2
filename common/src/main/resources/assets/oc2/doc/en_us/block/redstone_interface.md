@@ -5,12 +5,12 @@ The redstone interface provides an omnidirectional bus to receive and emit redst
 
 Use this to interact with primitive devices, such as doors and lamps, or other machinery offering a redstone based protocol.
 
-This is a high level device. It must be controlled using the high level device API. The default Linux distribution offers Lua libraries for this API. For example:  
+It can be controlled from Lua using the [high-level API](../hlapi.md), and from a [Z80](../item/cpu_z80.md) using the [mid-level API](../mlapi.md). The default Linux distribution offers Lua libraries for the former. For example:  
 `local d = require("devices")`  
 `local r = d:find("redstone")`  
 `r:setRedstoneOutput("up", 15)`
 
-## API
+## High-level API
 Device name: `redstone`
 
 ### Sides
@@ -40,3 +40,21 @@ Sides may also be given as a number instead of a name. Numbers are relative: `0`
 `getRedstoneOutput(side):number` gets the emitted redstone signal for the specified side.
 - `side` is a string representing the side to get the output on. See the "Sides" section.
 - Returns the number representing the current output signal strength.
+
+## Mid-level API
+Device name: `REDSTN`
+
+Sides are numbered as in the "Sides" section above, and levels are in [0, 15].
+
+`1 getRedstoneInput(side)` reads the level received on that side.
+- Takes one byte, the side.
+- Returns one byte, the level.
+
+`2 getRedstoneOutput(side)` reads the level currently being sent on that side.
+- Takes one byte, the side.
+- Returns one byte, the level.
+
+`3 setRedstoneOutput(side, level)` sets the level sent on that side.
+- Takes two bytes, the side and the level.
+
+`REDSTN.Z80` on the CP/M boot disk is an example consumer of the API. The [mid-level API](../mlapi.md) entry explains how to build and run it.

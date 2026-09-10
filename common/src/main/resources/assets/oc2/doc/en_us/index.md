@@ -26,5 +26,6 @@ If you're interested in a particular topic, there are some overview entries for 
 - [Basics](basics.md)
 - [High-level API](hlapi.md)
 - [Mid-level API](mlapi.md)
+- [Inventories](inventories.md)
 - [Robotics](robotics.md)
 - [Networking](networking.md)

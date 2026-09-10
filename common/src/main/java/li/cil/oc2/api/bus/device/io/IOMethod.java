@@ -44,8 +44,9 @@ public interface IOMethod {
      * <p>
      * Reading past the end of {@code arguments} yields {@code -1}, as usual; implementations are
      * responsible for validating that they got the arguments they need. Throwing
-     * {@link IllegalArgumentException} or {@link IllegalStateException} tells the guest it called
-     * the method wrong; anything else is reported as an internal error.
+     * {@link java.io.EOFException}, {@link IllegalArgumentException} or {@link IllegalStateException}
+     * tells the guest it called the method wrong; anything else is reported as an internal error.
+     * The readers on {@link IOInputStream} throw {@link java.io.EOFException} for you.
      *
      * @param arguments the bytes the guest wrote for this call.
      * @param results   the bytes to hand back to the guest.

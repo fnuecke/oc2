@@ -148,18 +148,29 @@ public final class IOCallbacks {
             if (parameters.length == 0) {
                 return NONE;
             }
-            if (parameters.length == 1 && parameters[0] == InputStream.class) {
+            if (parameters.length == 1 && isValidInArgument(parameters[0])) {
                 return ARGUMENTS;
             }
-            if (parameters.length == 1 && parameters[0] == OutputStream.class) {
+            if (parameters.length == 1 && isValidOutArgument(parameters[0])) {
                 return RESULTS;
             }
-            if (parameters.length == 2 && parameters[0] == InputStream.class && parameters[1] == OutputStream.class) {
+            if (parameters.length == 2 && isValidInArgument(parameters[0]) && isValidOutArgument(parameters[1])) {
                 return ARGUMENTS_AND_RESULTS;
             }
 
             throw new IllegalArgumentException("Method [" + method + "] must take no parameters, " +
-                "an InputStream, an OutputStream, or an InputStream and an OutputStream.");
+                "arguments, results, or arguments and results. Arguments are an " +
+                IOInputStream.class.getSimpleName() + " or a plain " + InputStream.class.getSimpleName() +
+                "; results an " + IOOutputStream.class.getSimpleName() + " or a plain " +
+                OutputStream.class.getSimpleName() + ".");
+        }
+
+        private static boolean isValidInArgument(final Class<?> type) {
+            return type == IOInputStream.class || type == InputStream.class;
+        }
+
+        private static boolean isValidOutArgument(final Class<?> type) {
+            return type == IOOutputStream.class || type == OutputStream.class;
         }
     }
 
@@ -194,10 +205,18 @@ public final class IOCallbacks {
         public void invoke(final InputStream arguments, final OutputStream results) throws Throwable {
             switch (signature) {
                 case NONE -> handle.invoke();
-                case ARGUMENTS -> handle.invoke(arguments);
-                case RESULTS -> handle.invoke(results);
-                case ARGUMENTS_AND_RESULTS -> handle.invoke(arguments, results);
+                case ARGUMENTS -> handle.invoke(wrap(arguments));
+                case RESULTS -> handle.invoke(wrap(results));
+                case ARGUMENTS_AND_RESULTS -> handle.invoke(wrap(arguments), wrap(results));
             }
+        }
+
+        private static IOInputStream wrap(final InputStream stream) {
+            return stream instanceof final IOInputStream wrapped ? wrapped : new IOInputStream(stream);
+        }
+
+        private static IOOutputStream wrap(final OutputStream stream) {
+            return stream instanceof final IOOutputStream wrapped ? wrapped : new IOOutputStream(stream);
         }
 
         @Override

@@ -19,6 +19,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Duration;
@@ -54,7 +55,7 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
     private static final int STATE_RUNNING = 2;
     private static final int STATE_DONE = 3;
 
-    private static final int BUFFER_SIZE = 256;
+    private static final int BUFFER_SIZE = IOCallback.MAX_DATA_SIZE;
     private static final int MAX_DEVICES = 256;
 
     // --------------------------------------------------------------------- //
@@ -388,7 +389,7 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
         try {
             function.invoke(new ByteArrayInputStream(arguments, 0, argumentCount), new ResultStream());
             return ERROR_NONE;
-        } catch (final IllegalArgumentException | IllegalStateException e) {
+        } catch (final EOFException | IllegalArgumentException | IllegalStateException e) {
             resultCount = 0;
             return ERROR_INVALID_ARGUMENTS;
         } catch (final Throwable e) {

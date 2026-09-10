@@ -6,15 +6,22 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.util.BusCables;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 
 import static li.cil.oc2.gametest.util.TestSupport.CABLE_POS;
 import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
+import static net.minecraft.world.item.Items.IRON_PICKAXE;
+import static net.minecraft.world.item.Items.REDSTONE;
 
 public final class Z80Fixture {
+    private final GameTestHelper helper;
+    private final Player player;
     private final ComputerFixture computer;
     private final DiskDriveFixture drive;
 
@@ -24,7 +31,7 @@ public final class Z80Fixture {
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.EAST);
         player.setYRot(90);
-        return new Z80Fixture(computer, DiskDriveFixture.place(helper, player, DEVICE_POS));
+        return new Z80Fixture(helper, player, computer, DiskDriveFixture.place(helper, player, DEVICE_POS));
     }
 
     // --------------------------------------------------------------------- //
@@ -41,13 +48,24 @@ public final class Z80Fixture {
         return this;
     }
 
-    public DiskDriveFixture drive() {
-        return drive;
+    public Z80Fixture withInventory() {
+        final BlockPos pos = CABLE_POS.above();
+        BusCables.placeInterface(helper, player, CABLE_POS, Direction.UP);
+        helper.setBlock(pos, Blocks.CHEST);
+
+        final ChestBlockEntity chest = helper.getBlockEntity(pos);
+        chest.setItem(0, new ItemStack(REDSTONE, 42));
+        chest.setItem(2, new ItemStack(IRON_PICKAXE));
+        return this;
     }
 
     public Z80Fixture withRedstoneCard() {
         computer.install(DeviceTypes.CARD.get(), new ItemStack(Items.REDSTONE_INTERFACE_CARD.get()));
         return this;
+    }
+
+    public DiskDriveFixture drive() {
+        return drive;
     }
 
     public void start() {
@@ -68,7 +86,9 @@ public final class Z80Fixture {
 
     // --------------------------------------------------------------------- //
 
-    private Z80Fixture(final ComputerFixture computer, final DiskDriveFixture drive) {
+    private Z80Fixture(final GameTestHelper helper, final Player player, final ComputerFixture computer, final DiskDriveFixture drive) {
+        this.helper = helper;
+        this.player = player;
         this.computer = computer;
         this.drive = drive;
     }

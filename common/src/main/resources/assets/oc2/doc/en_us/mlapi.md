@@ -35,25 +35,13 @@ When `OCERR` is set in the status, the call failed and `OCDAT` gives the reason:
 
 The registers hold one selection and one call between them, so keep to one at a time and leave them out of interrupt handlers.
 
-## Redstone
-The [redstone interface](block/redstone_interface.md), block or card, answers to the name `REDSTN` and offers three functions. Sides are numbered 0 down, 1 up, 2 north, 3 south, 4 west and 5 east, and levels run 0 to 15.
-
-`1 getRedstoneInput(side)` reads the level received on that side.
-- Takes one byte, the side.
-- Gives one byte, the level.
-
-`2 getRedstoneOutput(side)` reads the level currently being sent on that side.
-- Takes one byte, the side.
-- Gives one byte, the level.
-
-`3 setRedstoneOutput(side, level)` sets the level sent on that side.
-- Takes two bytes, the side and the level.
-- Gives nothing back.
-
-Sides are relative to how the device is facing, the same as for [RPC](hlapi.md).
+## Devices
+Each device's own entry lists the API it offers:
+- [Redstone interface](block/redstone_interface.md), block or card, as `REDSTN`
+- [Inventories](inventories.md), such as chests, as `ITEMS`
 
 ## Example
-`REDSTN.Z80` on the boot disk does all of the above, and is commented alongside the C it would be, if that reads more easily. Writing to a floppy needs a [disk drive](block/disk_drive.md). Build it while staying on `A:`:  
+`REDSTN.Z80` on the boot disk drives a [redstone interface](block/redstone_interface.md), and is commented alongside the C it would be, if that reads more easily. Writing to a floppy needs a [disk drive](block/disk_drive.md). Build it while staying on `A:`:  
 `ZMAC REDSTN /OB:REDSTN /E`  
 `ZML B:REDSTN`
 

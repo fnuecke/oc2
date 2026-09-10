@@ -2,10 +2,7 @@
 
 package li.cil.oc2.common.bus;
 
-import li.cil.oc2.api.bus.device.io.IOCallback;
-import li.cil.oc2.api.bus.device.io.IOCallbacks;
-import li.cil.oc2.api.bus.device.io.IOMethod;
-import li.cil.oc2.api.bus.device.io.IOName;
+import li.cil.oc2.api.bus.device.io.*;
 import li.cil.oc2.api.util.Side;
 import net.minecraft.core.Direction;
 import org.junit.jupiter.api.Test;
@@ -96,6 +93,29 @@ public final class IOCallbacksTests {
         assertThrows(IllegalArgumentException.class, () -> Side.byIndex(6));
     }
 
+    @Test
+    public void richStreamSignaturesAreAccepted() throws Throwable {
+        final RichSignatures target = new RichSignatures();
+        assertEquals(3, IOCallbacks.collectMethods(target).size());
+
+        invoke(function(target, 1), new byte[]{0x34, 0x12});
+        assertEquals(0x1234, target.readArgument, "arguments should read low byte first");
+
+        assertArrayEquals(new byte[]{0x78, 0x56}, invoke(function(target, 2), new byte[0]),
+            "results should write low byte first");
+        assertArrayEquals("hi".getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+            invoke(function(target, 3), "hi".getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
+    }
+
+    @Test
+    public void plainStreamSignaturesStillGetTheRicherType() throws Throwable {
+        // Existing devices declare plain streams; they must keep working, and the object handed
+        // over is the richer one either way.
+        final AllSignatures target = new AllSignatures();
+        invoke(function(target, 2), new byte[]{42});
+        assertEquals(42, target.readArgument);
+    }
+
     // --------------------------------------------------------------------- //
 
     private static IOMethod function(final Object target, final int code) {
@@ -111,6 +131,26 @@ public final class IOCallbacksTests {
     }
 
     // --------------------------------------------------------------------- //
+
+    @IOName("RICH")
+    public static final class RichSignatures {
+        public int readArgument = -1;
+
+        @IOCallback(1)
+        public void argumentsOnly(final IOInputStream arguments) throws Exception {
+            readArgument = arguments.readU16();
+        }
+
+        @IOCallback(2)
+        public void resultsOnly(final IOOutputStream results) throws Exception {
+            results.writeU16(0x5678);
+        }
+
+        @IOCallback(3)
+        public void bothStreams(final IOInputStream arguments, final IOOutputStream results) throws Exception {
+            results.writeString(arguments.readString());
+        }
+    }
 
     @IOName("TEST")
     public static final class AllSignatures {

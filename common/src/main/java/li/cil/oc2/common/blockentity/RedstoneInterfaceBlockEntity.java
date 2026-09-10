@@ -3,7 +3,9 @@
 package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.bus.device.io.IOCallback;
+import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOName;
+import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
@@ -21,8 +23,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Collection;
 
 import static java.util.Collections.singletonList;
@@ -159,23 +159,19 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
     // --------------------------------------------------------------------- //
 
     @IOCallback(GET_REDSTONE_INPUT_CODE)
-    public void getRedstoneInputIO(final InputStream arguments, final OutputStream results) throws IOException {
-        results.write(getRedstoneInput(Side.byIndex(arguments.read())));
+    public void getRedstoneInputIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(getRedstoneInput(Side.byIndex(arguments.readU8())));
     }
 
     @IOCallback(value = GET_REDSTONE_OUTPUT_CODE, synchronize = false)
-    public void getRedstoneOutputIO(final InputStream arguments, final OutputStream results) throws IOException {
-        results.write(getRedstoneOutput(Side.byIndex(arguments.read())));
+    public void getRedstoneOutputIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(getRedstoneOutput(Side.byIndex(arguments.readU8())));
     }
 
     @IOCallback(SET_REDSTONE_OUTPUT_CODE)
-    public void setRedstoneOutputIO(final InputStream arguments) throws IOException {
-        final Side side = Side.byIndex(arguments.read());
-        final int value = arguments.read();
-        if (value < 0) {
-            throw new IllegalArgumentException("Missing output level.");
-        }
-        setRedstoneOutput(side, value);
+    public void setRedstoneOutputIO(final IOInputStream arguments) throws IOException {
+        final Side side = Side.byIndex(arguments.readU8());
+        setRedstoneOutput(side, arguments.readU8());
     }
 
     // --------------------------------------------------------------------- //

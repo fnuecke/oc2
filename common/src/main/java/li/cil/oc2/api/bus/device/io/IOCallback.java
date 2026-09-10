@@ -16,10 +16,17 @@ import java.lang.annotation.Target;
  * Intended to be used in classes instances of which are used as a target of {@link ObjectDevice}.
  * <p>
  * Annotated methods must return {@code void} and accept one of four parameter lists:
- * {@code ()}, {@code (InputStream)}, {@code (OutputStream)} or {@code (InputStream, OutputStream)}.
- * Arguments are read from the {@link java.io.InputStream}, results written to the
- * {@link java.io.OutputStream}; either may be omitted when unused. As such, the guest
- * must be aware of the device's protocol to use it correctly.
+ * {@code ()}, {@code (arguments)}, {@code (results)} or {@code (arguments, results)}. Either may be
+ * omitted when unused. As such, the guest must be aware of the device's protocol to use it correctly.
+ * <p>
+ * Arguments are an {@link IOInputStream} and results an {@link IOOutputStream}, which allow reading
+ * and writing values with the appropriate byte order for the backing architecture. Plain {@link java.io.InputStream}
+ * and {@link java.io.OutputStream} is also possible, if you only need raw byte access or don't mind
+ * taking care of correct endianness yourself.
+ * <p>
+ * Note that {@link java.io.DataInputStream} and {@link java.io.DataOutputStream} are <em>not</em>
+ * right here, since they're explicitly big-endian, which may not match the underlying architecture.
+ * For example, the Z80 needs little-endian.
  * <p>
  * The declaring class must carry an {@link IOName}, since the guest sees devices by name.
  * <p>
@@ -51,6 +58,13 @@ public @interface IOCallback {
      * The method code the register layout reserves; writing it always faults.
      */
     int RESERVED_CODE = 0xFF;
+
+    /**
+     * The maximum size of the argument and result buffers, in bytes.
+     * <p>
+     * Arguments past this are rejected, and a method writing more results than this fails.
+     */
+    int MAX_DATA_SIZE = 256;
 
     /**
      * Allows automatically moving method invocation into the main thread.

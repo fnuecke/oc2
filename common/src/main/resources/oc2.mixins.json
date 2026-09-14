@@ -12,6 +12,7 @@
         "FogRendererMixin",
         "FrustumMixin",
         "LevelRendererMixin",
+        "LibraryMixin",
         "MinecraftMixin"
     ],
     "injectors": {

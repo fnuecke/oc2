@@ -550,7 +550,8 @@ public final class BlobStorageTests {
             Config.maxTrashedBlobCount = 0;
             Config.maxBlobCount = Math.max(1, BlobStorage.getBlobCount());
 
-            final VMDeviceBusAdapter adapter = new VMDeviceBusAdapter(new GlobalVMContext(new R5Board(), () -> {
+            final R5Board board = new R5Board();
+            final VMDeviceBusAdapter adapter = new VMDeviceBusAdapter(new GlobalVMContext(board, board.getCpu(), () -> {
             }, null), unused -> OptionalLong.empty());
             adapter.addDevices(List.of(new HardDriveDevice(stack, 4096, false, Optional::empty)));
 

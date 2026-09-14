@@ -1,23 +1,12 @@
 # Sound Card
 ![Less sound of silence](item:oc2:sound_card)
 
-The sound card enables playing back various sound effects from its vast library of life-like samples. Due to internal engineering constraints, playback of sequential effects requires a small pause. Attempts to play back additional effects in this time window will have no effect.
+The sound card provides a means for computers to emit arbitrary audio signals.
 
-This is a high level device. It must be controlled using the high level device API. The default Linux distribution offers Lua libraries for this API. For example:  
-`local d = require("devices")`  
-`local s = d:find("sound")`  
-`s:playSound("entity.creeper.primed")`
+On a Linux system, sound cards will typically appear as `/dev/dsp` devices. To send data to the sounds card, it is possible to write to this device. The simplest way to play audio is to write raw samples to `/dev/dsp` like so: `cat sound.raw > /dev/dsp`
 
-## API
-Device name: `sound`
+Opened like this, `/dev/dsp` expects mono audio at 8000 samples per second, one unsigned byte per sample. Audio in any other format has to be converted first, or the program playing it has to configure the device to match.
 
-### Methods
-`playSound(name:string[,volume:float,pitch:float])` plays back the sound effect with the specified name.
-- `name` is the name of the effect to play.
-- `volume` is the volume at which to play the effect in the range from `0` to `1`, with `1` being the normal volume. Optional, defaulting to `1`.
-- `pitch` is the pitch at which to play the effect in the range from `0.5` to `2`, with `1` being the normal pitch. Optional, defaulting to `1`.
-- Throws if the specified name is invalid.
+The card supports mono audio at up to 22050 samples per second.
 
-`findSound(name:string):table` returns a list of available sound effects matching the given name. Note that the number of results is limited, so overly generic queries will result in truncated results.
-- `name` the name query to search for.
-- Returns a list of sound effect names matching the query string.
+Computers have to be shut down before installing or removing this component. Installing it while the computer is running will have no effect, removing it may lead to system errors.

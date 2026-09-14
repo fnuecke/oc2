@@ -34,7 +34,7 @@ public final class R5Architecture extends AbstractArchitecture {
     }
 
     private R5Architecture(final R5Board board, final Config config) {
-        super(board, config);
+        super(board, board.getCpu(), config);
         this.board = board;
         this.builtinDevices = new BuiltinDevices(getContext());
         builtinDevices.rtcMinecraft.setGameTimeSource(config.gameTimeProvider());

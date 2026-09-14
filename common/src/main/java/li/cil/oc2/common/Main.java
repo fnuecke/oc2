@@ -19,6 +19,7 @@ import li.cil.oc2.common.item.ItemGroup;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.RecipeSerializers;
 import li.cil.oc2.common.network.ProjectorLoadBalancer;
+import li.cil.oc2.common.network.SoundCardLoadBalancer;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.serialization.ceres.Serializers;
 import li.cil.oc2.common.tags.BlockTags;
@@ -70,6 +71,7 @@ public final class Main {
         Allocator.initialize();
         BlobStorage.initialize();
         ProjectorLoadBalancer.initialize();
+        SoundCardLoadBalancer.initialize();
         FileSystems.initialize();
         RPCItemStackTagFilters.initialize();
         NetworkTunnelDevice.TunnelManager.initialize();

@@ -4,6 +4,7 @@ package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
+import li.cil.oc2.common.bus.device.vm.item.SoundCardDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import net.minecraft.gametest.framework.GameTest;
@@ -22,6 +23,7 @@ public final class GuestToolingTests {
     private static final String GEOMETRY_BATCH = "oc2_guest_tooling_geometry";
     private static final String KEYMAP_BATCH = "oc2_guest_tooling_keymap";
     private static final String SWAP_BATCH = "oc2_guest_tooling_swap";
+    private static final String SOUND_BATCH = "oc2_guest_tooling_sound";
 
     private static final String PROMPT = "# "; // Shell is up, as opposed to login still reading input.
 
@@ -98,6 +100,36 @@ public final class GuestToolingTests {
             .thenSucceed();
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SOUND_BATCH)
+    public static void guestPlaysThroughTheSoundCard(final GameTestHelper helper) {
+        final ComputerFixture computer = machine(helper);
+
+        helper.startSequence()
+            .thenExecuteAfter(20, () -> installHardware(computer)
+                .install(DeviceTypes.CARD.get(), new ItemStack(Items.SOUND_CARD.get())))
+            .thenExecuteAfter(20, computer::start)
+            .thenWaitUntil(() -> requireScreen(computer, "login:"))
+            .thenExecute(() -> {
+                if (computer.devices().stream().noneMatch(SoundCardDevice.class::isInstance)) {
+                    throw new GameTestAssertException("the sound card was not detected by a RISC-V machine");
+                }
+                computer.type("root\n");
+            })
+            .thenWaitUntil(() -> requireScreen(computer, PROMPT))
+            .thenExecuteAfter(20, () -> computer.type(
+                "head -c 8000 /dev/urandom > /tmp/noise.raw; ls /dev/dsp /dev/snd/pcmC0D0p && echo DEVICES''-OK\n"))
+            .thenWaitUntil(() -> requireScreen(computer, "DEVICES-OK", "No such file"))
+            .thenExecute(() -> requireContains(computer.screen(), "DEVICES-OK", "the guest has no sound card"))
+            .thenExecute(() -> computer.type("cat /tmp/noise.raw > /dev/dsp; echo FIRST''-RC=$?\n"))
+            .thenWaitUntil(() -> requireScreen(computer, "FIRST-RC="))
+            .thenExecute(() -> requireContains(computer.screen(), "FIRST-RC=0", "playback failed"))
+            .thenExecute(() -> requireAudioReachedTheCard(computer))
+            .thenExecute(() -> computer.type("cat /tmp/noise.raw > /dev/dsp; echo SECOND''-RC=$?\n"))
+            .thenWaitUntil(() -> requireScreen(computer, "SECOND-RC="))
+            .thenExecute(() -> requireContains(computer.screen(), "SECOND-RC=0", "playing a second time failed"))
+            .thenSucceed();
+    }
+
     // --------------------------------------------------------------------- //
 
     private static ComputerFixture machine(final GameTestHelper helper) {
@@ -124,6 +156,19 @@ public final class GuestToolingTests {
         }
         throw new GameTestAssertException("waiting for " + String.join(" or ", anyOf)
             + "; " + computer.describe() + "\n" + screen);
+    }
+
+    private static void requireAudioReachedTheCard(final ComputerFixture computer) {
+        final SoundCardDevice card = computer.devices().stream()
+            .filter(SoundCardDevice.class::isInstance)
+            .map(SoundCardDevice.class::cast)
+            .findFirst()
+            .orElseThrow(() -> new GameTestAssertException("the sound card is no longer on the bus"));
+
+        final SoundCardDevice.Chunk chunk = card.getStream().poll();
+        if (chunk == null || chunk.samples().length == 0) {
+            throw new GameTestAssertException("the guest played audio, but none of it reached the sound card");
+        }
     }
 
     private static void requireContains(final String screen, final String marker, final String what) {

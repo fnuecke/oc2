@@ -4,6 +4,7 @@ package li.cil.oc2.client.neoforge;
 
 import dev.architectury.registry.client.rendering.ColorHandlerRegistry;
 import li.cil.oc2.api.API;
+import li.cil.oc2.client.audio.SoundCardAudio;
 import li.cil.oc2.client.gui.*;
 import li.cil.oc2.client.item.CustomItemColors;
 import li.cil.oc2.client.item.CustomItemModelProperties;
@@ -44,6 +45,7 @@ public final class ClientSetupNeoForge {
     public static void handleSetupEvent(final FMLClientSetupEvent event) {
         ComputerRenderer.initialize();
         ProjectorDepthRenderer.initialize();
+        SoundCardAudio.initialize();
 
         event.enqueueWork(() -> {
             CustomItemModelProperties.initialize();

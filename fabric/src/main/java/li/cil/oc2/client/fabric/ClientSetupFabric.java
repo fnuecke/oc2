@@ -7,6 +7,7 @@ import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.client.rendering.ColorHandlerRegistry;
 import dev.architectury.registry.menu.MenuRegistry;
+import li.cil.oc2.client.audio.SoundCardAudio;
 import li.cil.oc2.client.gui.*;
 import li.cil.oc2.client.item.CustomItemColors;
 import li.cil.oc2.client.item.CustomItemModelProperties;
@@ -43,6 +44,7 @@ public final class ClientSetupFabric implements ClientModInitializer {
     public void onInitializeClient() {
         ComputerRenderer.initialize();
         ProjectorDepthRenderer.initialize();
+        SoundCardAudio.initialize();
         ModShadersFabric.initialize();
         ClientLevelEventsFabric.initialize();
         ClientRenderEventsFabric.initialize();

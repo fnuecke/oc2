@@ -6,6 +6,7 @@ import li.cil.oc2.api.bus.device.vm.context.*;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.vm.context.VMContextManagerCollection;
 import li.cil.sedna.api.device.InterruptController;
+import li.cil.sedna.api.device.rtc.RealTimeCounter;
 import li.cil.sedna.api.memory.MemoryMap;
 
 import java.util.OptionalLong;
@@ -21,6 +22,7 @@ public final class ManagedVMContext implements VMContext {
     private final ManagedMemoryAllocator memoryAllocator;
     private final Invalidatable<VMRuntime> runtime;
     private final ManagedEventBus eventBus;
+    private final RealTimeCounter clock;
 
     // --------------------------------------------------------------------- //
 
@@ -33,6 +35,7 @@ public final class ManagedVMContext implements VMContext {
         this.memoryAllocator = new ManagedMemoryAllocator();
         this.runtime = parent.getRuntime().mapWithDependency(Function.identity());
         this.eventBus = new ManagedEventBus(parent.getEventBus(), managers.getEventManager());
+        this.clock = parent.getClock();
     }
 
     // --------------------------------------------------------------------- //
@@ -89,6 +92,11 @@ public final class ManagedVMContext implements VMContext {
     @Override
     public Invalidatable<VMRuntime> getRuntime() {
         return runtime;
+    }
+
+    @Override
+    public RealTimeCounter getClock() {
+        return clock;
     }
 
     @Override

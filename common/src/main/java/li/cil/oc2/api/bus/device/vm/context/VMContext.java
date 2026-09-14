@@ -7,6 +7,7 @@ import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.sedna.api.device.InterruptController;
 import li.cil.sedna.api.device.MemoryMappedDevice;
+import li.cil.sedna.api.device.rtc.RealTimeCounter;
 import li.cil.sedna.api.memory.MemoryMap;
 
 /**
@@ -113,6 +114,24 @@ public interface VMContext {
      * @return the runtime of the virtual machine.
      */
     Invalidatable<VMRuntime> getRuntime();
+
+    /**
+     * The primary clock/time source of the virtual machine.
+     * <p>
+     * This is linked to the VM's execution time, i.e. typically it reflects elapsed cycles, which
+     * usually means it advances by {@link RealTimeCounter#getFrequency()} per <em>second of guest
+     * time</em>. Doesn't advance while the VM is paused or unloaded. Restarts at zero when the VM
+     * resets. Devices whose guest-visible behavior is timed, such as audio playback, should use
+     * it to drive logic (such as pumping audio buffers). This ensures that they stay in sync with
+     * guest-driven timeouts, regardless of VM speed compared to real-world time.
+     * <p>
+     * Thread safety: must only be read from the VM's worker thread or from the server thread while
+     * the machine has no active worker thread running, e.g. in {@link VMDevice#mount(VMContext)},
+     * or right after {@link VMRuntime#join()} was called.
+     *
+     * @return the clock of the virtual machine.
+     */
+    RealTimeCounter getClock();
 
     /**
      * Allows registering to VM lifecycle events.

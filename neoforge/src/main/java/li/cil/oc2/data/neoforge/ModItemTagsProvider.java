@@ -97,7 +97,8 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
             Items.NETWORK_INTERFACE_CARD.get(),
             Items.NETWORK_TUNNEL_CARD.get(),
             Items.NETWORK_TUNNEL_MODULE.get(),
-            Items.PROJECTOR.get()
+            Items.PROJECTOR.get(),
+            Items.SOUND_CARD.get()
         );
     }
 }

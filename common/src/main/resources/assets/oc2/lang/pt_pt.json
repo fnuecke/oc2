@@ -55,7 +55,6 @@
 	"item.oc2.block_operations_module": "Módulo de Operações com Blocos",
 	"item.oc2.block_operations_module.desc": "Quebra e coloca blocos.",
 	"item.oc2.sound_card": "Cartão de Som",
-	"item.oc2.sound_card.desc": "Toca vários sons do seu altamente realista banco de sons.",
 	"item.oc2.network_tunnel_module": "Módulo de Túnel de Rede",
 	"item.oc2.network_tunnel_module.desc": "Envia e recebe pacotes de rede de um dispositivo conectado.",
   

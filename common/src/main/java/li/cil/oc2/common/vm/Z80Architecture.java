@@ -44,7 +44,7 @@ public final class Z80Architecture extends AbstractArchitecture {
     }
 
     private Z80Architecture(final Z80Board board, final Config config) {
-        super(board, config, board.getPortBus());
+        super(board, board.getCpu(), config, board.getPortBus());
         this.board = board;
         this.uart = new UART16550A();
         this.ioAdapter = new IODeviceBusAdapter(config.runtime());

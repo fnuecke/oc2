@@ -82,9 +82,6 @@ public final class Config {
     @Path("energy.items")
     public static int networkTunnelEnergyPerTick = 2;
 
-    @Path("gameplay")
-    public static long soundCardCoolDownSeconds = 2;
-
     @Path("admin")
     public static UUID fakePlayerUUID = UUID.fromString("e39dd9a7-514f-4a2d-aa5e-b6030621416d");
 
@@ -103,6 +100,8 @@ public final class Config {
 
     @Path("admin.network")
     public static int projectorAverageMaxBytesPerSecond = 160 * 1024;
+    @Path("admin.network")
+    public static int soundCardAverageMaxBytesPerSecond = 96 * 1024;
     @Path("admin.virtual_network")
     public static int ethernetFrameTimeToLive = 12;
     @Path("admin.virtual_network")

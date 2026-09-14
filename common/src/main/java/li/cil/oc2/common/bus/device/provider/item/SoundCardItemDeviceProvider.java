@@ -4,9 +4,10 @@ package li.cil.oc2.common.bus.device.provider.item;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
-import li.cil.oc2.common.bus.device.rpc.item.SoundCardItemDevice;
+import li.cil.oc2.common.bus.device.vm.item.SoundCardDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.LocationSupplierUtils;
 
@@ -21,7 +22,11 @@ public final class SoundCardItemDeviceProvider extends AbstractItemDeviceProvide
 
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
-        return Optional.of(new SoundCardItemDevice(query.getItemStack(), LocationSupplierUtils.of(query)));
+        if (query.getArchitectureType().filter(type -> type == ArchitectureType.RISCV).isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new SoundCardDevice(query.getItemStack(), LocationSupplierUtils.of(query)));
     }
 
     @Override

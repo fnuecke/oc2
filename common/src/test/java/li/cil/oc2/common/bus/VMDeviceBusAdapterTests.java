@@ -11,6 +11,7 @@ import li.cil.sedna.api.Board;
 import li.cil.sedna.api.DeviceBus;
 import li.cil.sedna.api.device.InterruptController;
 import li.cil.sedna.api.device.MemoryMappedDevice;
+import li.cil.sedna.api.device.rtc.RealTimeCounter;
 import li.cil.sedna.api.memory.MemoryMap;
 import li.cil.sedna.api.memory.MemoryRangeAllocationStrategy;
 import li.cil.sedna.memory.SimpleMemoryMap;
@@ -61,7 +62,7 @@ public final class VMDeviceBusAdapterTests {
         when(board.getInterruptController()).thenReturn(interruptController);
         when(board.getInterruptCount()).thenReturn(16);
 
-        context = new GlobalVMContext(board, () -> {
+        context = new GlobalVMContext(board, mock(RealTimeCounter.class), () -> {
         }, null);
         adapter = new VMDeviceBusAdapter(context, unused -> OptionalLong.empty());
     }

@@ -42,10 +42,9 @@ public record BlockLocation(WeakReference<LevelAccessor> level, BlockPos blockPo
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof BlockLocation that) {
+        if (obj instanceof BlockLocation(WeakReference<LevelAccessor> thatLevel, BlockPos thatBlockPos)) {
             final LevelAccessor thisLevel = level.get();
-            final LevelAccessor thatLevel = that.level.get();
-            return Objects.equals(thisLevel, thatLevel) && Objects.equals(blockPos, that.blockPos);
+            return Objects.equals(thisLevel, thatLevel) && Objects.equals(blockPos, thatBlockPos);
         }
         return false;
     }

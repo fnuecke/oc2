@@ -413,7 +413,8 @@ public final class MountFailureTests {
     }
 
     private static VMDeviceBusAdapter adapter() {
-        return new VMDeviceBusAdapter(new GlobalVMContext(new R5Board(), () -> {
+        final R5Board board = new R5Board();
+        return new VMDeviceBusAdapter(new GlobalVMContext(board, board.getCpu(), () -> {
         }, null), unused -> OptionalLong.empty());
     }
 

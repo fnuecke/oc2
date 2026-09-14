@@ -12,6 +12,7 @@ import li.cil.oc2.common.vm.context.VMContextManagerCollection;
 import li.cil.sedna.api.Board;
 import li.cil.sedna.api.DeviceBus;
 import li.cil.sedna.api.device.InterruptController;
+import li.cil.sedna.api.device.rtc.RealTimeCounter;
 import li.cil.sedna.api.memory.MemoryMap;
 
 import javax.annotation.Nullable;
@@ -27,6 +28,7 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     private final GlobalMemoryAllocator memoryAllocator;
     private final GlobalEventBus eventBus;
     private final Invalidatable<VMRuntime> runtime;
+    private final RealTimeCounter clock;
 
     // --------------------------------------------------------------------- //
 
@@ -49,7 +51,7 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
 
     // --------------------------------------------------------------------- //
 
-    public GlobalVMContext(final Board board, final VMRuntime runtime, @Nullable final DeviceBus deviceBus) {
+    public GlobalVMContext(final Board board, final RealTimeCounter clock, final VMRuntime runtime, @Nullable final DeviceBus deviceBus) {
         this.hasSeparateDeviceBus = deviceBus != null;
         this.memoryMap = new GlobalMemoryMap(board.getMemoryMap());
         this.memoryRangeAllocator = new GlobalMemoryRangeAllocator(board.getDeviceBus(), reservedMemoryRanges);
@@ -61,6 +63,7 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
         this.memoryAllocator = new GlobalMemoryAllocator();
         this.runtime = Invalidatable.of(runtime);
         this.eventBus = new GlobalEventBus();
+        this.clock = clock;
     }
 
     // --------------------------------------------------------------------- //
@@ -125,6 +128,11 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     @Override
     public Invalidatable<VMRuntime> getRuntime() {
         return runtime;
+    }
+
+    @Override
+    public RealTimeCounter getClock() {
+        return clock;
     }
 
     @Override

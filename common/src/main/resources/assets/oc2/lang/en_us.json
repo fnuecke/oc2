@@ -64,7 +64,7 @@
   "item.oc2.block_operations_module": "Block Operations Module",
   "item.oc2.block_operations_module.desc": "Breaks and places blocks.",
   "item.oc2.sound_card": "Sound Card",
-  "item.oc2.sound_card.desc": "Plays various sounds from its highly realistic sound bank.",
+  "item.oc2.sound_card.desc": "Lets a computer do the beeps and boops.",
   "item.oc2.network_tunnel_module": "Network Tunnel Module",
   "item.oc2.network_tunnel_module.desc": "Sends and receives network packets to a linked device.",
 

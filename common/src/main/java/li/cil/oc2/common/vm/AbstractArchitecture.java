@@ -11,6 +11,7 @@ import li.cil.oc2.api.bus.device.vm.context.VMRuntime;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.Board;
 import li.cil.sedna.api.DeviceBus;
+import li.cil.sedna.api.device.rtc.RealTimeCounter;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import li.cil.sedna.api.memory.MemoryAccessException;
 
@@ -32,16 +33,17 @@ public abstract class AbstractArchitecture {
 
     // --------------------------------------------------------------------- //
 
-    protected AbstractArchitecture(final Board board, final Config config) {
-        this(board, config, null);
+    protected AbstractArchitecture(final Board board, final RealTimeCounter clock, final Config config) {
+        this(board, clock, config, null);
     }
 
     protected AbstractArchitecture(
         final Board board,
+        final RealTimeCounter clock,
         final Config config,
         @Nullable final DeviceBus deviceBus
     ) {
-        context = new GlobalVMContext(board, config.runtime(), deviceBus);
+        context = new GlobalVMContext(board, clock, config.runtime(), deviceBus);
         vmAdapter = new VMDeviceBusAdapter(context, device -> getDeviceAddress(config.deviceLocationProvider().getDeviceLocation(device)));
     }
 

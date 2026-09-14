@@ -12,74 +12,29 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Mostly round-robin load balancer for allowing projectors to send data to clients.
- * <p>
- * We try to satisfy two limits here:
- * <ul>
- * <li>
- * Server side, limiting overall bandwidth consumed by projectors.
- * </li>
- * <li>
- * Client side, limiting per-client bandwidth consumed by projectors.
- * </li>
- * </ul>
- * <p>
- * To achieve this, there's a global budget and a per-projector skip count. The global budget
- * controls overall data sent from the server. The skip counts modulate the round-robin behavior
- * of the load balancer. For example, projectors further away from their closest player will get
- * a penalty, as will projectors with a large number of players watching them.
- */
 public final class ProjectorLoadBalancer {
-    private static final long CACHE_EXPIRES_AFTER = 2000; /* In milliseconds */
+    private static final int SENDS_PER_TICK = 1; // we encode full frames, so a new one replaces an older one.
+    private static final double PENALTY_DISTANCE = 16;
 
-    /**
-     * Maps projectors to their specific info, i.e. players watching them and sending state.
-     * <p>
-     * This is used to let projectors register new frames to be sent, and to register new players
-     * with already being tracked projectors.
-     * <p>
-     * Player watching state is expired manually, by checking the last update time for players in
-     * the info instance every tick. This is required in case two players start watching a projector
-     * but then only one keeps watching it. In that case, we want to still remove the other player
-     * from the projector info, but keep the info for the still watching player.
-     */
-    private static final Map<ProjectorBlockEntity, ProjectorInfo> PROJECTOR_INFO = new HashMap<>();
-
-    /**
-     * Global byte budget for sending stuff to clients. This is filled up every tick and consumed
-     * when sending packets to clients. We only send stuff when budget is non-negative.
-     */
-    private static final AtomicInteger BUDGET = new AtomicInteger(getMaxBudget());
-
-    /**
-     * Pointer into our circular projector linked list pointing to the projector we last sent a packet for.
-     * <p>
-     * At the same time represents the head of our doubly-linked, circular list of projectors. This list is
-     * used to do the round-robin load balancing, by advancing it to the next projector until we find one
-     * that can send something every tick.
-     */
-    @Nullable
-    private static ProjectorInfo lastSender;
+    private static final Balancer BALANCER = new Balancer();
 
     // --------------------------------------------------------------------- //
+
+    public static void initialize() {
+        TickEvent.SERVER_PRE.register(server -> BALANCER.tick());
+        LifecycleEvent.SERVER_STOPPED.register(server -> BALANCER.clear());
+    }
 
     /**
      * Updates timestamp of a player currently watching a projector.
      */
     public static void updateWatcher(final ProjectorBlockEntity projector, final ServerPlayer player) {
-        final ProjectorInfo info = PROJECTOR_INFO
-            .computeIfAbsent(projector, ProjectorLoadBalancer::addProjectorInfo);
-        final boolean startedWatching = info.handleWatchedBy(player);
-        if (startedWatching) {
-            projector.setRequiresKeyframe();
-        }
+        BALANCER.update(projector, player);
     }
 
     /**
@@ -88,101 +43,26 @@ public final class ProjectorLoadBalancer {
      * Ignored if there are no players watching the projector.
      */
     public static void offerFrame(final ProjectorBlockEntity projector, final ProjectorBlockEntity.FrameSupplier frameSupplier) {
-        final ProjectorInfo info = PROJECTOR_INFO.get(projector);
-        if (info != null) {
-            info.nextFrameSupplier = frameSupplier;
-        }
-    }
-
-    /**
-     * Expires cached values. Checks if we can send something, and if so starts async
-     * generation of the package to send.
-     */
-    public static void initialize() {
-        TickEvent.SERVER_PRE.register(server -> handleServerTick());
-        LifecycleEvent.SERVER_STOPPED.register(server -> PROJECTOR_INFO.clear());
-    }
-
-    private static void handleServerTick() {
-        updateCache();
-
-        if (BUDGET.updateAndGet(ProjectorLoadBalancer::replenishBudget) > 0) {
-            sendNextReadyPacket();
+        final ProjectorEntry entry = BALANCER.getEntry(projector);
+        if (entry != null) {
+            entry.nextFrameSupplier = frameSupplier;
         }
     }
 
     // --------------------------------------------------------------------- //
 
-    private static int getMaxBudget() {
-        // We allow over-budgeting projectors to some degree, to allow short bursts of larger frame changes.
-        // Otherwise, this would be divided by twenty, since we attempt to send every tick.
-        return Config.projectorAverageMaxBytesPerSecond / 2;
-    }
+    private static final class Balancer extends StreamingLoadBalancer<ProjectorBlockEntity, ProjectorEntry> {
+        Balancer() {
+            super(() -> Config.projectorAverageMaxBytesPerSecond, SENDS_PER_TICK, PENALTY_DISTANCE, System::currentTimeMillis);
+        }
 
-    private static int replenishBudget(final int budget) {
-        return Math.min(getMaxBudget(), budget + Math.max(1, Config.projectorAverageMaxBytesPerSecond / 20));
-    }
-
-    private static void updateCache() {
-        final Iterator<ProjectorInfo> iterator = PROJECTOR_INFO.values().iterator();
-        while (iterator.hasNext()) {
-            final ProjectorInfo info = iterator.next();
-            info.removeExpiredPlayers();
-            if (info.isNoLongerWatched()) {
-                iterator.remove();
-
-                removeProjectorInfo(info);
-            }
+        @Override
+        protected ProjectorEntry createEntry(final ProjectorBlockEntity projector) {
+            return new ProjectorEntry(projector);
         }
     }
 
-    private static ProjectorInfo addProjectorInfo(final ProjectorBlockEntity projector) {
-        final ProjectorInfo info = new ProjectorInfo(projector.getBlockPos());
-        if (lastSender == null) {
-            // No sender yet, start the circle.
-            lastSender = info;
-        } else {
-            // Just add after last sender.
-            lastSender.add(info);
-        }
-        return info;
-    }
-
-    private static void removeProjectorInfo(final ProjectorInfo info) {
-        if (lastSender == info) {
-            if (lastSender.next == lastSender) {
-                // Last element in list, clear list.
-                lastSender = null;
-            } else {
-                // Shift current entry to next.
-                lastSender = info.next;
-            }
-        }
-        info.remove();
-    }
-
-    private static void sendNextReadyPacket() {
-        if (lastSender == null) {
-            return;
-        }
-
-        final ProjectorInfo start = lastSender;
-        do {
-            lastSender = lastSender.next;
-            if (lastSender.sendIfReady()) {
-                return;
-            }
-        } while (lastSender != start);
-    }
-
-    // --------------------------------------------------------------------- //
-
-    /**
-     * Tracks info for a single projector. This class is an entry in a circular double linked list,
-     * i.e. the last entry will always point back to the first entry, which makes looping over it
-     * for the round-robin load-balancing more comfortable.
-     */
-    private static class ProjectorInfo {
+    private static final class ProjectorEntry extends StreamingLoadBalancer.Entry {
         private static final ExecutorService ENCODER_WORKERS = Executors.newCachedThreadPool(r -> {
             final Thread thread = new Thread(r);
             thread.setDaemon(true);
@@ -190,98 +70,43 @@ public final class ProjectorLoadBalancer {
             return thread;
         });
 
-        /**
-         * Pointers to next and previous entries in linked list. May point to this if it's the only entry.
-         */
-        private ProjectorInfo next, previous;
-
-        /**
-         * Position of the projector this info is for in the world.
-         */
+        private final ProjectorBlockEntity projector;
         private final BlockPos projectorPos;
-
-        /**
-         * The players watching this projector, to know where to send the data and how strongly to penalize.
-         */
-        private final WeakHashMap<ServerPlayer, Long> players = new WeakHashMap<>();
-
-        /**
-         * The current penalty, in the form of rounds in the round-robin to skip.
-         */
-        private int skipCount;
 
         @Nullable
         private ProjectorBlockEntity.FrameSupplier nextFrameSupplier;
         @Nullable
         private Future<?> runningEncode;
 
-        public ProjectorInfo(final BlockPos projectorPos) {
-            next = previous = this;
-            this.projectorPos = projectorPos;
+        ProjectorEntry(final ProjectorBlockEntity projector) {
+            this.projector = projector;
+            this.projectorPos = projector.getBlockPos();
         }
 
-        public void add(final ProjectorInfo info) {
-            info.next = next;
-            next.previous = info;
-            next = info;
-            info.previous = this;
+        @Override
+        protected Vec3 getPosition() {
+            return Vec3.atCenterOf(projectorPos);
         }
 
-        public void remove() {
-            if (previous == null) {
-                return;
-            }
-
-            previous.next = next;
-            next.previous = previous;
-
-            previous = null;
-            next = null;
+        @Override
+        protected boolean isReady() {
+            return nextFrameSupplier != null && (runningEncode == null || runningEncode.isDone());
         }
 
-        public boolean handleWatchedBy(final ServerPlayer player) {
-            return players.put(player, System.currentTimeMillis()) == null;
-        }
-
-        public void removeExpiredPlayers() {
-            players.entrySet().removeIf(entry -> System.currentTimeMillis() - entry.getValue() > CACHE_EXPIRES_AFTER);
-        }
-
-        public boolean isNoLongerWatched() {
-            return players.isEmpty();
-        }
-
-        public boolean sendIfReady() {
-            if (skipCount > 0) {
-                skipCount--;
-                return false;
-            }
-
-            final boolean isReady = !players.isEmpty() && nextFrameSupplier != null && (runningEncode == null || runningEncode.isDone());
-            if (isReady) {
-                sendAsync();
-                updateSkipCount();
-            }
-
-            return isReady;
-        }
-
-        private void sendAsync() {
+        @Override
+        protected void send(final List<ServerPlayer> recipients) {
             assert nextFrameSupplier != null;
             final var frameSupplier = nextFrameSupplier;
             nextFrameSupplier = null;
 
             final boolean forceKeyframe = frameSupplier.consumeRequiresKeyframe();
-            final List<ServerPlayer> recipients = List.copyOf(players.keySet());
-            assert runningEncode == null || runningEncode.isDone();
             runningEncode = ENCODER_WORKERS.submit(() -> {
                 final byte[] frame = frameSupplier.encode(forceKeyframe);
                 if (frame == null) {
                     return;
                 }
 
-                final int budgetCost = frame.length * recipients.size();
-                BUDGET.accumulateAndGet(budgetCost, (budget, cost) -> budget - cost);
+                BALANCER.consumeBudget(frame.length * recipients.size());
 
                 final ProjectorFramebufferMessage message = new ProjectorFramebufferMessage(projectorPos, frame);
                 for (final ServerPlayer player : recipients) {
@@ -290,21 +115,14 @@ public final class ProjectorLoadBalancer {
             });
         }
 
-        private void updateSkipCount() {
-            skipCount = 0;
-
-            double closestPlayerDistanceSqr = Double.MAX_VALUE;
-            final Vec3 blockCenter = Vec3.atCenterOf(projectorPos);
-            for (final ServerPlayer player : players.keySet()) {
-                skipCount++;
-                final double distance = player.distanceToSqr(blockCenter);
-                closestPlayerDistanceSqr = Math.min(closestPlayerDistanceSqr, distance);
-            }
-
-            final double closestPlayerDistance = Math.sqrt(closestPlayerDistanceSqr);
-            if (closestPlayerDistance > 16) {
-                skipCount++;
-            }
+        @Override
+        protected void onPlayerAdded() {
+            projector.setRequiresKeyframe();
         }
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private ProjectorLoadBalancer() {
     }
 }

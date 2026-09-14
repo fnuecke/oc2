@@ -55,7 +55,6 @@
   "item.oc2.block_operations_module": "Модуль управления блоками",
   "item.oc2.block_operations_module.desc": "Ломает и ставит блоки.",
   "item.oc2.sound_card": "Звуковая карта",
-  "item.oc2.sound_card.desc": "Проигрывает разные звуки из своих высококачественных звуковых банков.",
   "item.oc2.network_tunnel_module": "Сетевой туннельный модуль",
   "item.oc2.network_tunnel_module.desc": "Отсылает и принимает пакеты с привязанного устройства.",
 

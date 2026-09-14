@@ -3,6 +3,7 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
+import li.cil.oc2.common.bus.device.data.BlockDeviceDataClientView;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.FlashMemoryItem;
 import li.cil.oc2.common.item.FloppyItem;
@@ -11,11 +12,14 @@ import li.cil.oc2.common.item.Items;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
@@ -122,7 +126,36 @@ public final class DatapackDataTests {
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void datapackDataHasPriorityOverSyncedData(final GameTestHelper helper) {
+        BlockDeviceDataRegistry.setClientViews(List.of(syncedFloppy(1)));
+        try {
+            requireHasContents(BlockDeviceDataRegistry.getValue(FLOPPY), "lookup");
+            requireHasContents(BlockDeviceDataRegistry.floppyValues()
+                .filter(data -> FLOPPY.equals(BlockDeviceDataRegistry.getKey(data)))
+                .findFirst().orElse(null), "creative tab listing");
+        } finally {
+            BlockDeviceDataRegistry.setClientViews(List.of());
+        }
+
+        helper.succeed();
+    }
+
     // --------------------------------------------------------------------- //
+
+    private static BlockDeviceDataClientView syncedFloppy(final long capacity) {
+        return new BlockDeviceDataClientView(FLOPPY, capacity, Component.literal("Synced"), DyeColor.WHITE);
+    }
+
+    private static void requireHasContents(@Nullable final BlockDeviceData data, final String what) {
+        if (data == null) {
+            throw new GameTestAssertException(FLOPPY + " did not resolve for the " + what);
+        }
+        if (data instanceof BlockDeviceDataClientView) {
+            throw new GameTestAssertException("data synced to the client replaced the server's own "
+                + "datapack data in the " + what + ", leaving it without contents");
+        }
+    }
 
     private static void requireOffered(final Stream<BlockDeviceData> values,
                                        final ResourceLocation location,
@@ -158,7 +191,7 @@ public final class DatapackDataTests {
         }
     }
 
-    private static void requireColor(final BlockDeviceData data, final DyeColor expected, final String what) {
+    private static void requireColor(@Nullable final BlockDeviceData data, final DyeColor expected, final String what) {
         if (data == null) {
             throw new GameTestAssertException("datapack " + what + " did not resolve");
         }

@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.bus.device.data;
 
-import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.network.chat.Component;
@@ -14,7 +13,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 
-public final class DatapackBlockDeviceData implements BlockDeviceData, AutoCloseable {
+public final class DatapackBlockDeviceData implements BlockDeviceDataResource, AutoCloseable {
     private final ResourceLocation location;
     private final String name;
     @Nullable
@@ -29,6 +28,7 @@ public final class DatapackBlockDeviceData implements BlockDeviceData, AutoClose
         this.blockDevice = ByteBufferBlockDevice.createFromStream(stream, true);
     }
 
+    @Override
     public ResourceLocation getLocation() {
         return location;
     }

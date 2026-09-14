@@ -5,6 +5,7 @@ package li.cil.oc2.common.bus.device.data;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.architectury.event.events.common.LifecycleEvent;
+import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.registry.ReloadListenerRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.Registrar;
@@ -12,6 +13,8 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.util.Registries;
+import li.cil.oc2.common.network.Network;
+import li.cil.oc2.common.network.message.BlockDeviceDataMessage;
 import li.cil.oc2.common.util.RegistryUtils;
 import li.cil.oc2.common.vm.CpmSystemDisk;
 import li.cil.sedna.buildroot.Buildroot;
@@ -28,8 +31,9 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.io.Reader;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -50,7 +54,8 @@ public final class BlockDeviceDataRegistry {
     private static final Registrar<BlockDeviceData> REGISTRY = RegistryUtils.builder(Registries.BLOCK_DEVICE_DATA).build();
     private static final DeferredRegister<BlockDeviceData> INITIALIZER = RegistryUtils.getInitializerFor(Registries.BLOCK_DEVICE_DATA);
 
-    private static final Map<ResourceLocation, BlockDeviceData> DATAPACK_DATA = new HashMap<>();
+    private static volatile Map<ResourceLocation, DatapackBlockDeviceData> datapackData = Map.of();
+    private static volatile Map<ResourceLocation, BlockDeviceDataClientView> clientViews = Map.of();
 
     // --------------------------------------------------------------------- //
 
@@ -75,12 +80,14 @@ public final class BlockDeviceDataRegistry {
         ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
             ResourceLocation.fromNamespaceAndPath(API.MOD_ID, DIRECTORY));
         LifecycleEvent.SERVER_STOPPED.register(server -> reset());
+        PlayerEvent.PLAYER_JOIN.register(player ->
+            Network.sendToClientIfSupported(new BlockDeviceDataMessage(datapackData.values()), player));
     }
 
     @Nullable
     public static ResourceLocation getKey(final BlockDeviceData data) {
-        if (data instanceof final DatapackBlockDeviceData datapackData) {
-            return datapackData.getLocation();
+        if (data instanceof final BlockDeviceDataResource resource) {
+            return resource.getLocation();
         }
 
         return REGISTRY.getId(data);
@@ -88,8 +95,21 @@ public final class BlockDeviceDataRegistry {
 
     @Nullable
     public static BlockDeviceData getValue(final ResourceLocation location) {
-        final BlockDeviceData data = DATAPACK_DATA.get(location);
-        return data != null ? data : REGISTRY.get(location);
+        final BlockDeviceData data = datapackData.get(location);
+        if (data != null) {
+            return data;
+        }
+
+        final BlockDeviceData synced = clientViews.get(location);
+        return synced != null ? synced : REGISTRY.get(location);
+    }
+
+    public static void setClientViews(final List<BlockDeviceDataClientView> views) {
+        final Map<ResourceLocation, BlockDeviceDataClientView> values = new LinkedHashMap<>();
+        for (final BlockDeviceDataClientView view : views) {
+            values.put(view.getLocation(), view);
+        }
+        clientViews = Collections.unmodifiableMap(values);
     }
 
     public static Stream<BlockDeviceData> hardDriveValues() {
@@ -129,27 +149,29 @@ public final class BlockDeviceDataRegistry {
                 values.put(id, data);
             }
         }
-        DATAPACK_DATA.forEach((location, data) -> {
-            if (medium.equals(getMedium(location))) {
-                values.put(location, data);
-            }
-        });
+        putValues(values, clientViews, medium);
+        putValues(values, datapackData, medium);
         return values.values().stream();
     }
 
-    private static void reset() {
-        for (final BlockDeviceData data : DATAPACK_DATA.values()) {
-            try {
-                ((DatapackBlockDeviceData) data).close();
-            } catch (final Exception e) {
-                LOGGER.error(e);
+    private static void putValues(final Map<ResourceLocation, BlockDeviceData> values, final Map<ResourceLocation, ? extends BlockDeviceData> data, final String medium) {
+        data.forEach((location, value) -> {
+            if (medium.equals(getMedium(location))) {
+                values.put(location, value);
             }
-        }
-        DATAPACK_DATA.clear();
+        });
+    }
+
+    private static void sendToPlayers() {
+        Network.sendToAllClients(new BlockDeviceDataMessage(datapackData.values()));
+    }
+
+    private static void reset() {
+        setDatapackData(Map.of());
     }
 
     private static void reload(final ResourceManager resourceManager) {
-        reset();
+        final Map<ResourceLocation, DatapackBlockDeviceData> values = new LinkedHashMap<>();
 
         LOGGER.info("Searching for datapack block devices...");
         final Map<ResourceLocation, Resource> descriptors = resourceManager
@@ -181,8 +203,23 @@ public final class BlockDeviceDataRegistry {
 
                 LOGGER.info("  Adding [{}] with id [{}] and a size of [{}].",
                     name, location, formatSize(data.getCapacity()));
-                DATAPACK_DATA.put(location, data);
+                values.put(location, data);
             } catch (final Throwable e) {
+                LOGGER.error(e);
+            }
+        }
+
+        setDatapackData(values);
+    }
+
+    private static void setDatapackData(Map<ResourceLocation, DatapackBlockDeviceData> values) {
+        final var previous = datapackData;
+        datapackData = Collections.unmodifiableMap(values);
+
+        for (final DatapackBlockDeviceData value : previous.values()) {
+            try {
+                value.close();
+            } catch (final Exception e) {
                 LOGGER.error(e);
             }
         }
@@ -202,7 +239,8 @@ public final class BlockDeviceDataRegistry {
         public CompletableFuture<Void> reload(final PreparationBarrier stage, final ResourceManager resourceManager, final ProfilerFiller preparationsProfiler, final ProfilerFiller reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
             return CompletableFuture
                 .runAsync(() -> BlockDeviceDataRegistry.reload(resourceManager), backgroundExecutor)
-                .thenCompose(stage::wait);
+                .thenCompose(stage::wait)
+                .thenRun(BlockDeviceDataRegistry::sendToPlayers);
         }
     }
 

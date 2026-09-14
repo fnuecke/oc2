@@ -5,6 +5,7 @@ package li.cil.oc2.common.network;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.platform.Platform;
 import dev.architectury.utils.Env;
+import dev.architectury.utils.GameInstance;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.network.message.*;
 import net.minecraft.core.BlockPos;
@@ -13,6 +14,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -41,11 +43,6 @@ public final class Network {
         registerMessage(OpenComputerInventoryMessage.class, OpenComputerInventoryMessage::new, NetworkManager.clientToServer());
         registerMessage(OpenComputerTerminalMessage.class, OpenComputerTerminalMessage::new, NetworkManager.clientToServer());
 
-        registerMessage(ChargerStateMessage.class, ChargerStateMessage::new, NetworkManager.serverToClient());
-        registerMessage(NetworkConnectorConnectionsMessage.class, NetworkConnectorConnectionsMessage::new, NetworkManager.serverToClient());
-        registerMessage(NetworkConnectorAdjacentInterfaceMessage.class, NetworkConnectorAdjacentInterfaceMessage::new, NetworkManager.serverToClient());
-        registerMessage(InternetGatewayStateMessage.class, InternetGatewayStateMessage::new, NetworkManager.serverToClient());
-
         registerMessage(RobotTerminalOutputMessage.class, RobotTerminalOutputMessage::new, NetworkManager.serverToClient());
         registerMessage(RobotTerminalInputMessage.class, RobotTerminalInputMessage::new, NetworkManager.clientToServer());
         registerMessage(RobotRunStateMessage.class, RobotRunStateMessage::new, NetworkManager.serverToClient());
@@ -57,6 +54,10 @@ public final class Network {
         registerMessage(OpenRobotInventoryMessage.class, OpenRobotInventoryMessage::new, NetworkManager.clientToServer());
         registerMessage(OpenRobotTerminalMessage.class, OpenRobotTerminalMessage::new, NetworkManager.clientToServer());
 
+        registerMessage(ChargerStateMessage.class, ChargerStateMessage::new, NetworkManager.serverToClient());
+        registerMessage(NetworkConnectorConnectionsMessage.class, NetworkConnectorConnectionsMessage::new, NetworkManager.serverToClient());
+        registerMessage(NetworkConnectorAdjacentInterfaceMessage.class, NetworkConnectorAdjacentInterfaceMessage::new, NetworkManager.serverToClient());
+        registerMessage(InternetGatewayStateMessage.class, InternetGatewayStateMessage::new, NetworkManager.serverToClient());
         registerMessage(DiskDriveFloppyMessage.class, DiskDriveFloppyMessage::new, NetworkManager.serverToClient());
         registerMessage(FlashDriveFlashMemoryMessage.class, FlashDriveFlashMemoryMessage::new, NetworkManager.serverToClient());
 
@@ -77,11 +78,12 @@ public final class Network {
         registerMessage(ProjectorRequestFramebufferMessage.class, ProjectorRequestFramebufferMessage::new, NetworkManager.clientToServer());
         registerMessage(ProjectorFramebufferMessage.class, ProjectorFramebufferMessage::new, NetworkManager.serverToClient());
         registerMessage(ProjectorStateMessage.class, ProjectorStateMessage::new, NetworkManager.serverToClient());
-
         registerMessage(SoundCardAudioMessage.class, SoundCardAudioMessage::new, NetworkManager.serverToClient());
 
         registerMessage(KeyboardKeepAliveMessage.class, KeyboardKeepAliveMessage::new, NetworkManager.clientToServer());
         registerMessage(KeyboardInputMessage.class, KeyboardInputMessage::new, NetworkManager.clientToServer());
+
+        registerMessage(BlockDeviceDataMessage.class, BlockDeviceDataMessage::new, NetworkManager.serverToClient());
 
         registerMessage(MultipartMessage.class, MultipartMessage::new, NetworkManager.clientToServer());
 
@@ -105,6 +107,26 @@ public final class Network {
 
     public static void sendToClient(final AbstractMessage message, final ServerPlayer player) {
         NetworkManager.sendToPlayer(player, message);
+    }
+
+    public static void sendToAllClients(final AbstractMessage message) {
+        final MinecraftServer server = GameInstance.getServer();
+        if (server == null) {
+            return;
+        }
+
+        for (final ServerPlayer player : server.getPlayerList().getPlayers()) {
+            sendToClientIfSupported(message, player);
+        }
+    }
+
+    /**
+     * For messages sent unprompted, where the connection may not know the payload.
+     */
+    public static void sendToClientIfSupported(final AbstractMessage message, final ServerPlayer player) {
+        if (NetworkManager.canPlayerReceive(player, message.type())) {
+            NetworkManager.sendToPlayer(player, message);
+        }
     }
 
     public static void sendToClientsTrackingChunk(final AbstractMessage message, final LevelChunk chunk) {

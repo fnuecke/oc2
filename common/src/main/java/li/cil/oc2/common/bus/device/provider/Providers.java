@@ -14,6 +14,7 @@ import li.cil.oc2.common.bus.device.rpc.block.BlockEntityObjectDeviceProvider;
 import li.cil.oc2.common.bus.device.rpc.block.BlockStateObjectDeviceProvider;
 import li.cil.oc2.common.bus.device.rpc.block.EnergyStorageBlockDeviceProvider;
 import li.cil.oc2.common.bus.device.rpc.block.ItemHandlerBlockDeviceProvider;
+import li.cil.oc2.common.bus.device.rpc.block.NoteBlockDeviceProvider;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
@@ -61,6 +62,7 @@ public final class Providers {
         registry.accept("flash_drive", FlashDriveDeviceProvider::new);
         registry.accept("energy_storage", EnergyStorageBlockDeviceProvider::new);
         registry.accept("item_handler", ItemHandlerBlockDeviceProvider::new);
+        registry.accept("note_block", NoteBlockDeviceProvider::new);
 
         registerPlatformBlockDeviceProviders(registry);
     }

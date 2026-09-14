@@ -2,6 +2,7 @@
 
 package li.cil.oc2.gametest;
 
+import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.blockentity.FlashDriveBlockEntity;
 import li.cil.oc2.common.bus.device.vm.block.FlashDriveDevice;
 import li.cil.oc2.common.item.Items;
@@ -163,6 +164,25 @@ public final class DeviceBusTests {
             .thenSucceed();
     }
 
+    public static void noteBlockJoinsAndLeavesTheBus(final GameTestHelper helper) {
+        final ComputerFixture computer = placeComputerAndCable(helper);
+        helper.setBlock(DEVICE_POS, Blocks.NOTE_BLOCK);
+
+        helper.startSequence()
+            .thenWaitUntil(() -> {
+                if (countNoteBlocks(computer) != 1) {
+                    throw new GameTestAssertException("the note block is not on the bus: " + computer.describe());
+                }
+            })
+            .thenExecute(() -> breakBlock(helper, DEVICE_POS))
+            .thenWaitUntil(() -> {
+                if (countNoteBlocks(computer) != 0) {
+                    throw new GameTestAssertException("the removed note block is still on the bus: " + computer.describe());
+                }
+            })
+            .thenSucceed();
+    }
+
     // --------------------------------------------------------------------- //
 
     private static ComputerFixture placeComputerAndCable(final GameTestHelper helper) {
@@ -174,6 +194,12 @@ public final class DeviceBusTests {
 
     private static long countFlashDrives(final ComputerFixture computer) {
         return computer.devices().stream().filter(FlashDriveDevice.class::isInstance).count();
+    }
+
+    private static long countNoteBlocks(final ComputerFixture computer) {
+        return computer.devices().stream()
+            .filter(device -> device instanceof final RPCDevice rpcDevice && rpcDevice.getTypeNames().contains("note_block"))
+            .count();
     }
 
     private static void placeDevice(final GameTestHelper helper) {

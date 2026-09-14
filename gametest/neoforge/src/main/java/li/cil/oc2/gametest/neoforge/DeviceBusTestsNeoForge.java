@@ -39,6 +39,11 @@ public final class DeviceBusTestsNeoForge {
         DeviceBusTests.blockVmDeviceIsReachableFromItsMountingFaceOnly(helper);
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 600)
+    public static void noteBlockJoinsAndLeavesTheBus(final GameTestHelper helper) {
+        DeviceBusTests.noteBlockJoinsAndLeavesTheBus(helper);
+    }
+
     // --------------------------------------------------------------------- //
 
     private DeviceBusTestsNeoForge() {

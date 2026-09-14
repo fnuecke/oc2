@@ -21,6 +21,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -89,6 +90,14 @@ public final class ComputerFixture {
         if (vm.getRunState() != expected) {
             throw new GameTestAssertException(what + ": computer is " + vm.getRunState()
                 + ", expected " + expected + ", bootError=" + vm.getBootError());
+        }
+    }
+
+    public void assertBootError(final String key, final String what) {
+        final Component expected = Component.translatable(key);
+        if (!expected.equals(virtualMachine().getBootError())) {
+            throw new GameTestAssertException(what + ": computer reports boot error "
+                + virtualMachine().getBootError() + ", expected " + expected);
         }
     }
 

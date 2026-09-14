@@ -62,6 +62,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
     public AbstractVirtualMachine(final CommonDeviceBusController busController) {
         this.busController = busController;
 
+        busController.onArchitectureChanged.add(this::handleArchitectureChanged);
         busController.onBeforeDeviceScan.add(this::handleBeforeDeviceScan);
         busController.onAfterDeviceScan.add(this::handleAfterDeviceScan);
         busController.onDevicesAdded.add(this::handleDevicesAdded);
@@ -496,6 +497,16 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
     private void setBootError(@Nullable final Component value) {
         bootError = value;
         handleBootErrorChanged(value);
+    }
+
+    private void handleArchitectureChanged(@Nullable final ArchitectureType type) {
+        if (architecture == null || runState == VMRunState.STOPPED) {
+            return;
+        }
+
+        error(Component.translatable(type == null
+            ? Constants.COMPUTER_ERROR_MISSING_CPU
+            : Constants.COMPUTER_ERROR_STATE_LOST));
     }
 
     private void handleBeforeDeviceScan() {

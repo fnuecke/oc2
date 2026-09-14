@@ -37,11 +37,12 @@ public class CommonDeviceBusController implements DeviceBusController {
     // --------------------------------------------------------------------- //
 
     public final Event onAfterBusScan = new Event();
+    public final ParameterizedEvent<ArchitectureType> onArchitectureChanged = new ParameterizedEvent<>();
     public final Event onBeforeDeviceScan = new Event();
-    public final Event onSaving = new Event();
     public final Event onAfterDeviceScan = new Event();
     public final ParameterizedEvent<DevicesChangedEvent> onDevicesAdded = new ParameterizedEvent<>();
     public final ParameterizedEvent<DevicesChangedEvent> onDevicesRemoved = new ParameterizedEvent<>();
+    public final Event onSaving = new Event();
 
     private final DeviceBusElement root;
     private final Supplier<Optional<ArchitectureType>> architectureType;
@@ -214,6 +215,10 @@ public class CommonDeviceBusController implements DeviceBusController {
         onAfterBusScan.run();
     }
 
+    protected void onArchitectureChanged(@Nullable final ArchitectureType architecture) {
+        onArchitectureChanged.accept(architecture);
+    }
+
     protected void onBeforeDeviceScan() {
         onBeforeDeviceScan.run();
     }
@@ -306,6 +311,8 @@ public class CommonDeviceBusController implements DeviceBusController {
         for (final DeviceBusElement element : elements) {
             element.invalidateDevices();
         }
+
+        onArchitectureChanged(currentArchitecture);
     }
 
     private HashSet<DeviceBusElement> updateElements(final Set<DeviceBusElement> newElements) {

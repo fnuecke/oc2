@@ -9,9 +9,8 @@ import li.cil.oc2.api.util.Invalidatable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import javax.annotation.Nullable;
+import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -22,6 +21,8 @@ import static org.mockito.Mockito.*;
 public class CommonDeviceBusControllerTests {
     private CommonDeviceBusController busController;
     private DeviceBusElement busControllerBusElement;
+    @Nullable
+    private ArchitectureType architectureType;
 
     @BeforeEach
     public void setupEach() {
@@ -29,7 +30,9 @@ public class CommonDeviceBusControllerTests {
         when(busControllerBusElement.getLocalDevices()).thenReturn(emptyList());
         when(busControllerBusElement.getNeighbors()).thenReturn(Optional.empty());
 
-        busController = new CommonDeviceBusController(busControllerBusElement, () -> 0, () -> Optional.of(ArchitectureType.RISCV));
+        architectureType = ArchitectureType.RISCV;
+
+        busController = new CommonDeviceBusController(busControllerBusElement, () -> 0, () -> Optional.ofNullable(architectureType));
     }
 
     @Test
@@ -84,6 +87,34 @@ public class CommonDeviceBusControllerTests {
 
         assertEquals(1, beforeCount[0]);
         assertEquals(1, afterCount[0]);
+    }
+
+    @Test
+    public void architectureChangesAreReported() {
+        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.emptyList()));
+
+        final ArrayList<ArchitectureType> reported = new ArrayList<>();
+        busController.onArchitectureChanged.add(reported::add);
+
+        // The first scan reports a change, coming from no architecture at all. Machines
+        // restoring their state rely on this not being mistaken for a cpu swap.
+        busController.scan();
+        assertEquals(singletonList(ArchitectureType.RISCV), reported);
+
+        busController.scheduleBusScan();
+        busController.scan();
+        assertEquals(1, reported.size(), "a scan finding the same architecture must not report a change");
+
+        architectureType = null;
+        busController.scheduleBusScan();
+        busController.scan();
+        assertEquals(Arrays.asList(ArchitectureType.RISCV, null), reported, "removing the cpu must report a change");
+
+        architectureType = ArchitectureType.Z80;
+        busController.scheduleBusScan();
+        busController.scan();
+        assertEquals(Arrays.asList(ArchitectureType.RISCV, null, ArchitectureType.Z80), reported,
+            "swapping the cpu must report a change");
     }
 
     @Test

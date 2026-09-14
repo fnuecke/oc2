@@ -3,6 +3,7 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.vm.VMRunState;
@@ -62,6 +63,43 @@ public final class VirtualMachineTests {
             .thenExecuteAfter(20, computer::start)
             .thenExecuteAfter(300, () -> computer.assertRunState(VMRunState.RUNNING, "once a processor is installed"))
             .thenExecute(computer::stop)
+            .thenSucceed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 900)
+    public static void removingProcessorStopsComputer(final GameTestHelper helper) {
+        final ComputerFixture computer = placeMachine(helper);
+
+        helper.startSequence()
+            .thenExecuteAfter(20, () -> installHardware(computer))
+            .thenExecuteAfter(20, computer::start)
+            .thenExecuteAfter(300, () -> {
+                computer.assertRunState(VMRunState.RUNNING, "precondition");
+                computer.uninstall(DeviceTypes.CPU.get());
+            })
+            .thenExecuteAfter(60, () -> {
+                computer.assertRunState(VMRunState.STOPPED, "after the processor was removed");
+                computer.assertBootError(Constants.COMPUTER_ERROR_MISSING_CPU, "a machine losing its processor must say so");
+            })
+            .thenSucceed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 900)
+    public static void swappingProcessorStopsComputer(final GameTestHelper helper) {
+        final ComputerFixture computer = placeMachine(helper);
+
+        helper.startSequence()
+            .thenExecuteAfter(20, () -> installHardware(computer))
+            .thenExecuteAfter(20, computer::start)
+            .thenExecuteAfter(300, () -> {
+                computer.assertRunState(VMRunState.RUNNING, "precondition");
+                computer.uninstall(DeviceTypes.CPU.get());
+                computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_Z80.get()));
+            })
+            .thenExecuteAfter(60, () -> {
+                computer.assertRunState(VMRunState.STOPPED, "after the processor was swapped");
+                computer.assertBootError(Constants.COMPUTER_ERROR_STATE_LOST, "a machine losing its state to a new architecture must say so");
+            })
             .thenSucceed();
     }
 

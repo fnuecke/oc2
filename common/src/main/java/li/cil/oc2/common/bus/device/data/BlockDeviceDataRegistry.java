@@ -59,7 +59,8 @@ public final class BlockDeviceDataRegistry {
             BuiltinBlockDeviceData.readOnce(Buildroot::getRootFilesystem), "Sedna Linux", DyeColor.GREEN));
     public static final RegistrySupplier<BlockDeviceData> CPM =
         INITIALIZER.register(path(FLOPPY_MEDIUM, "cpm"), () -> new BuiltinBlockDeviceData(
-            BuiltinBlockDeviceData.readEachTime(CpmSystemDisk::getImage), "CP/M 2.2", DyeColor.ORANGE));
+            BuiltinBlockDeviceData.readEachTime(CpmSystemDisk::getImage),
+            Cpm.DiskGeometry::getImageSize, "CP/M 2.2", DyeColor.ORANGE));
 
     public static final RegistrySupplier<BlockDeviceData> FIRMWARE_RISCV =
         INITIALIZER.register(path(FLASH_MEDIUM, "riscv"), () -> new BuiltinBlockDeviceData(
@@ -179,7 +180,7 @@ public final class BlockDeviceDataRegistry {
                 final DatapackBlockDeviceData data = new DatapackBlockDeviceData(resourceManager, location, name, color);
 
                 LOGGER.info("  Adding [{}] with id [{}] and a size of [{}].",
-                    name, location, formatSize(data.getBlockDevice().getCapacity()));
+                    name, location, formatSize(data.getCapacity()));
                 DATAPACK_DATA.put(location, data);
             } catch (final Throwable e) {
                 LOGGER.error(e);

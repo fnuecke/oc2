@@ -36,6 +36,16 @@ public interface BlockDeviceData {
     BlockDevice getBlockDevice();
 
     /**
+     * The size of the block device this implementation describes.
+     * <p>
+     * Used where only the size is relevant, such as tooltips and item listings,
+     * and as such is also called on the client.
+     *
+     * @return the size of the block device, in bytes.
+     */
+    long getCapacity();
+
+    /**
      * The display name of this block device base. May be shown in the tooltip
      * of item devices using this base.
      *

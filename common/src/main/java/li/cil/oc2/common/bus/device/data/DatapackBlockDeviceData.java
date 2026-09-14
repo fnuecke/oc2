@@ -44,6 +44,11 @@ public final class DatapackBlockDeviceData implements BlockDeviceData, AutoClose
     }
 
     @Override
+    public long getCapacity() {
+        return blockDevice.getCapacity();
+    }
+
+    @Override
     public Component getDisplayName() {
         return Component.literal(name);
     }

@@ -33,6 +33,14 @@ public final class CpmImageTests {
     }
 
     @Test
+    public void composingDoesNotChangeTheImageSize() throws IOException {
+        assertEquals(Cpm.DiskGeometry.getImageSize(), CpmSystemDisk.compose(Map.of()).length,
+            "the CP/M floppy reports the geometry size as its capacity without composing");
+        assertEquals(Cpm.DiskGeometry.getImageSize(), composeShippedRomDrive().length,
+            "the CP/M floppy reports the geometry size as its capacity without composing");
+    }
+
+    @Test
     public void addedFilesReadBackByteForByte() throws IOException {
         final Map<String, byte[]> files = listFiles(composeShippedRomDrive());
 

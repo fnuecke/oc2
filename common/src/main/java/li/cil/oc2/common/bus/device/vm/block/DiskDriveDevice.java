@@ -63,7 +63,7 @@ public final class DiskDriveDevice extends AbstractRemovableMediaDevice {
 
         final BlockDeviceData data = floppy.getData(stack);
         if (data != null) {
-            return (int) Math.max(data.getBlockDevice().getCapacity(), 0);
+            return (int) Math.max(data.getCapacity(), 0);
         }
 
         return Math.min(floppy.getCapacity(stack), Config.maxBlobCapacity);

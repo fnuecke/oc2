@@ -15,6 +15,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 public final class BuiltinBlockDeviceData implements BlockDeviceData {
@@ -23,13 +24,19 @@ public final class BuiltinBlockDeviceData implements BlockDeviceData {
     // --------------------------------------------------------------------- //
 
     private final Supplier<BlockDevice> blockDevice;
+    private final LongSupplier capacity;
     private final Component displayName;
     private final DyeColor color;
 
     // --------------------------------------------------------------------- //
 
     public BuiltinBlockDeviceData(final Supplier<BlockDevice> blockDevice, final String name, final DyeColor color) {
+        this(blockDevice, () -> blockDevice.get().getCapacity(), name, color);
+    }
+
+    public BuiltinBlockDeviceData(final Supplier<BlockDevice> blockDevice, final LongSupplier capacity, final String name, final DyeColor color) {
         this.blockDevice = blockDevice;
+        this.capacity = capacity;
         this.displayName = Component.literal(name);
         this.color = color;
     }
@@ -54,6 +61,11 @@ public final class BuiltinBlockDeviceData implements BlockDeviceData {
     @Override
     public BlockDevice getBlockDevice() {
         return blockDevice.get();
+    }
+
+    @Override
+    public long getCapacity() {
+        return capacity.getAsLong();
     }
 
     @Override

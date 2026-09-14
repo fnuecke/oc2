@@ -70,7 +70,7 @@ public final class FloppyItemDeviceProvider extends AbstractItemDeviceProvider {
         final ItemStack stack = query.getItemStack();
         final BlockDeviceData data = getData(query);
         if (data != null) {
-            return (int) Math.max(data.getBlockDevice().getCapacity(), 0);
+            return (int) Math.max(data.getCapacity(), 0);
         }
 
         final FloppyItem item = (FloppyItem) stack.getItem();

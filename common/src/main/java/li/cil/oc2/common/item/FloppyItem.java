@@ -66,7 +66,7 @@ public final class FloppyItem extends AbstractStorageItem implements ColoredItem
         final int capacity = getCapacity(new ItemStack(this));
         BlockDeviceDataRegistry.floppyValues().forEach(data -> {
             final ResourceLocation key = BlockDeviceDataRegistry.getKey(data);
-            if (key == null || data.getBlockDevice().getCapacity() > capacity) {
+            if (key == null || data.getCapacity() > capacity) {
                 return;
             }
 

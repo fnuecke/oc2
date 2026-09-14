@@ -59,7 +59,7 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
         final ItemStack stack = query.getItemStack();
         final BlockDeviceData data = getData(query);
         if (data != null) {
-            return (int) Math.max(data.getBlockDevice().getCapacity(), 0);
+            return (int) Math.max(data.getCapacity(), 0);
         }
 
         final HardDriveItem item = (HardDriveItem) stack.getItem();

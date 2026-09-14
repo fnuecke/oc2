@@ -144,7 +144,7 @@ public final class DatapackDataTests {
     }
 
     private static void requireDrive(final HardDriveItem drive, final BlockDeviceData data, final boolean expected) {
-        final long size = data.getBlockDevice().getCapacity();
+        final long size = data.getCapacity();
         if (drive.isSmallestDriveFor(size) != expected) {
             throw new GameTestAssertException("an image of " + size + " bytes is "
                 + (expected ? "not " : "") + "offered on " + drive + ", but should " + (expected ? "" : "not ") + "be");

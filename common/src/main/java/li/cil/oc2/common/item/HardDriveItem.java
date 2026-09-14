@@ -85,7 +85,7 @@ public final class HardDriveItem extends AbstractStorageItem implements ColoredI
 
         BlockDeviceDataRegistry.hardDriveValues().forEach(data -> {
             final ResourceLocation key = BlockDeviceDataRegistry.getKey(data);
-            if (key == null || !isSmallestDriveFor(data.getBlockDevice().getCapacity())) {
+            if (key == null || !isSmallestDriveFor(data.getCapacity())) {
                 return;
             }
 

@@ -9,18 +9,15 @@ import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
 import li.cil.oc2.common.network.message.ProjectorFramebufferMessage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public final class ProjectorLoadBalancer {
     private static final int SENDS_PER_TICK = 1; // we encode full frames, so a new one replaces an older one.
-    private static final double PENALTY_DISTANCE = 16;
 
     private static final Balancer BALANCER = new Balancer();
 
@@ -31,18 +28,10 @@ public final class ProjectorLoadBalancer {
         LifecycleEvent.SERVER_STOPPED.register(server -> BALANCER.clear());
     }
 
-    /**
-     * Updates timestamp of a player currently watching a projector.
-     */
-    public static void updateWatcher(final ProjectorBlockEntity projector, final ServerPlayer player) {
+    public static void update(final ProjectorBlockEntity projector, final ServerPlayer player) {
         BALANCER.update(projector, player);
     }
 
-    /**
-     * Notifies the load balancer that a projector has data to send.
-     * <p>
-     * Ignored if there are no players watching the projector.
-     */
     public static void offerFrame(final ProjectorBlockEntity projector, final ProjectorBlockEntity.FrameSupplier frameSupplier) {
         final ProjectorEntry entry = BALANCER.getEntry(projector);
         if (entry != null) {
@@ -67,7 +56,7 @@ public final class ProjectorLoadBalancer {
 
     private static final class Balancer extends StreamingLoadBalancer<ProjectorBlockEntity, ProjectorEntry> {
         Balancer() {
-            super(() -> Config.projectorAverageMaxBytesPerSecond, SENDS_PER_TICK, PENALTY_DISTANCE, System::currentTimeMillis);
+            super(() -> Config.projectorAverageMaxBytesPerSecond, SENDS_PER_TICK, System::currentTimeMillis);
         }
 
         @Override
@@ -77,12 +66,13 @@ public final class ProjectorLoadBalancer {
     }
 
     private static final class ProjectorEntry extends StreamingLoadBalancer.Entry {
-        private static final ExecutorService ENCODER_WORKERS = Executors.newCachedThreadPool(r -> {
-            final Thread thread = new Thread(r);
-            thread.setDaemon(true);
-            thread.setName("Projector Frame Encoder");
-            return thread;
-        });
+        private static final ExecutorService ENCODER_WORKERS = Executors.newFixedThreadPool(
+            Math.clamp(Runtime.getRuntime().availableProcessors() / 2, 2, 4), r -> {
+                final Thread thread = new Thread(r);
+                thread.setDaemon(true);
+                thread.setName("Projector Frame Encoder");
+                return thread;
+            });
 
         private final ProjectorBlockEntity projector;
         private final BlockPos projectorPos;
@@ -95,11 +85,6 @@ public final class ProjectorLoadBalancer {
         ProjectorEntry(final ProjectorBlockEntity projector) {
             this.projector = projector;
             this.projectorPos = projector.getBlockPos();
-        }
-
-        @Override
-        protected Vec3 getPosition() {
-            return Vec3.atCenterOf(projectorPos);
         }
 
         @Override

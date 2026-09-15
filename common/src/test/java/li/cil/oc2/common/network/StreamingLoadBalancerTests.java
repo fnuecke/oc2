@@ -5,7 +5,6 @@ package li.cil.oc2.common.network;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,9 +15,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public final class StreamingLoadBalancerTests {
     private static final int PLENTY_OF_BUDGET = 1024 * 1024;
@@ -167,7 +164,19 @@ public final class StreamingLoadBalancerTests {
     }
 
     @Test
-    public void sourcesWithMorePlayersSendLessOften() {
+    public void aSingleWatcherCostsASourceNothing() {
+        final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
+        balancer.update("a", playerAtOrigin());
+
+        for (int i = 0; i < 20; i++) {
+            balancer.tick();
+        }
+
+        assertEquals(20, sent.size(), "a source nobody else watches must send on every tick");
+    }
+
+    @Test
+    public void eachWatcherPastTheFirstCostsARound() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
         balancer.update("one", playerAtOrigin());
         balancer.update("two", playerAtOrigin());
@@ -179,7 +188,68 @@ public final class StreamingLoadBalancerTests {
 
         final int oneCount = Collections.frequency(sent, "one");
         final int twoCount = Collections.frequency(sent, "two");
-        assertTrue(oneCount > twoCount, "one player sent " + oneCount + " times, two players " + twoCount);
+        assertEquals(30, oneCount + twoCount, "a turn was taken every tick");
+        assertEquals(2 * twoCount, oneCount,
+            "the second watcher costs a round, so that source gets half the turns: " + sent);
+    }
+
+    @Test
+    public void everyWatcherIsChargedForWhatItReceives() {
+        // Budget caps at 225, and 22 comes back per tick, so nothing lands exactly on zero.
+        final TestBalancer balancer = new TestBalancer(450, 1);
+        balancer.update("a", playerAtOrigin());
+        balancer.update("a", playerAtOrigin());
+        balancer.entry("a").payloadSize = 100; // 200 a send, with two watchers to send to
+
+        balancer.tick(); // sends
+        balancer.tick(); // the second watcher's skipped round
+        balancer.tick(); // sends again, overdrawing the budget
+        assertEquals(2, sent.size(), "the budget covers two sends before it goes negative");
+        assertEquals(2, balancer.entry("a").recipients.get(0).size(), "both watchers were sent to");
+
+        for (int tick = 4; tick <= 9; tick++) {
+            balancer.tick();
+        }
+        assertEquals(2, sent.size(), "two watchers overdrew it by 131, and a skipped round follows");
+
+        balancer.tick();
+        assertEquals(3, sent.size(), "and then sending resumes");
+    }
+
+    @Test
+    public void pausingForBudgetKeepsEverySourceInTheRotation() {
+        final TestBalancer balancer = new TestBalancer(450, 1);
+        final ServerPlayer player = playerAtOrigin();
+        for (final String key : List.of("a", "b", "c")) {
+            balancer.update(key, player);
+            balancer.entry(key).payloadSize = 150; // overdraws repeatedly, so sending keeps pausing
+        }
+
+        for (int i = 0; i < 60; i++) {
+            balancer.tick();
+        }
+
+        final int a = Collections.frequency(sent, "a");
+        final int b = Collections.frequency(sent, "b");
+        final int c = Collections.frequency(sent, "c");
+        assertTrue(a > 0 && b > 0 && c > 0, "a budget pause must not starve a source: " + sent);
+        assertTrue(Math.max(a, Math.max(b, c)) - Math.min(a, Math.min(b, c)) <= 1,
+            "and the rotation must resume where it left off, not restart: " + sent);
+    }
+
+    @Test
+    public void aChargeLandingAfterTheSendStillPausesIt() {
+        // Projectors charge from their encoder thread, well after the send was decided.
+        final TestBalancer balancer = new TestBalancer(450, 1);
+        balancer.update("a", playerAtOrigin());
+        balancer.entry("a").payloadSize = 0;
+
+        balancer.tick();
+        assertEquals(1, sent.size());
+
+        balancer.consumeBudget(1000); // the encode finishes and settles up
+        balancer.tick();
+        assertEquals(1, sent.size(), "a charge that lands late still has to stop the next send");
     }
 
     @Test
@@ -201,23 +271,6 @@ public final class StreamingLoadBalancerTests {
             balancer.tick();
         }
         assertEquals(2, sent.size(), "and then sending resumes");
-    }
-
-    @Test
-    public void sourcesFarFromTheirPlayersSendLessOften() {
-        final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        final ServerPlayer player = playerAtOrigin();
-        balancer.update("near", player);
-        balancer.update("far", player);
-        balancer.entry("far").position = new Vec3(100, 0, 0);
-
-        for (int i = 0; i < 30; i++) {
-            balancer.tick();
-        }
-
-        final int nearCount = Collections.frequency(sent, "near");
-        final int farCount = Collections.frequency(sent, "far");
-        assertTrue(nearCount > farCount, "near sent " + nearCount + " times, far " + farCount);
     }
 
     @Test
@@ -268,7 +321,6 @@ public final class StreamingLoadBalancerTests {
 
     private ServerPlayer playerAtOrigin() {
         final ServerPlayer player = mock(ServerPlayer.class);
-        when(player.distanceToSqr(any(Vec3.class))).thenAnswer(invocation -> invocation.<Vec3>getArgument(0).lengthSqr());
         players.add(player);
         return player;
     }
@@ -277,7 +329,7 @@ public final class StreamingLoadBalancerTests {
 
     private final class TestBalancer extends StreamingLoadBalancer<String, TestEntry> {
         TestBalancer(final int averageMaxBytesPerSecond, final int maxSendsPerTick) {
-            super(() -> averageMaxBytesPerSecond, maxSendsPerTick, 16, now::get);
+            super(() -> averageMaxBytesPerSecond, maxSendsPerTick, now::get);
         }
 
         TestEntry entry(final String key) {
@@ -298,17 +350,11 @@ public final class StreamingLoadBalancerTests {
         private final List<List<ServerPlayer>> recipients = new ArrayList<>();
         private boolean ready = true;
         private int payloadSize = 1;
-        private Vec3 position = Vec3.ZERO;
         private int playersAdded;
 
         TestEntry(final TestBalancer balancer, final String key) {
             this.balancer = balancer;
             this.key = key;
-        }
-
-        @Override
-        protected Vec3 getPosition() {
-            return position;
         }
 
         @Override

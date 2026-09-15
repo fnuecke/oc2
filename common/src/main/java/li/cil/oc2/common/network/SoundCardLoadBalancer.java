@@ -20,7 +20,6 @@ import java.util.Set;
 
 public final class SoundCardLoadBalancer {
     private static final int SENDS_PER_TICK = 4; // audio is sequential, so we need to buffer.
-    private static final double PENALTY_DISTANCE = 16;
     private static final int LISTENER_REFRESH_INTERVAL_TICKS = 10;
 
     private static final Balancer BALANCER = new Balancer();
@@ -84,7 +83,7 @@ public final class SoundCardLoadBalancer {
 
     private static final class Balancer extends StreamingLoadBalancer<SoundCardDevice.Stream, SoundEntry> {
         Balancer() {
-            super(() -> Config.soundCardAverageMaxBytesPerSecond, SENDS_PER_TICK, PENALTY_DISTANCE, System::currentTimeMillis);
+            super(() -> Config.soundCardAverageMaxBytesPerSecond, SENDS_PER_TICK, System::currentTimeMillis);
         }
 
         @Override
@@ -98,11 +97,6 @@ public final class SoundCardLoadBalancer {
 
         SoundEntry(final SoundCardDevice.Stream stream) {
             this.stream = stream;
-        }
-
-        @Override
-        protected Vec3 getPosition() {
-            return stream.getLocation().map(location -> Vec3.atCenterOf(location.blockPos())).orElse(Vec3.ZERO);
         }
 
         @Override

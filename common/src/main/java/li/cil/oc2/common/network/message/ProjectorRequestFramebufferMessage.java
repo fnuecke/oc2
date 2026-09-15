@@ -40,6 +40,6 @@ public final class ProjectorRequestFramebufferMessage extends AbstractMessage {
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withNearbyServerBlockEntity(context, pos, ProjectorBlockEntity.class,
             ProjectorBlockEntity.MAX_WATCH_DISTANCE,
-            (player, projector) -> ProjectorLoadBalancer.updateWatcher(projector, player));
+            (player, projector) -> ProjectorLoadBalancer.update(projector, player));
     }
 }

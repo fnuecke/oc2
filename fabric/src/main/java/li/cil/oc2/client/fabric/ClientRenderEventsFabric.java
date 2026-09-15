@@ -17,7 +17,7 @@ public final class ClientRenderEventsFabric {
             BusInterfaceNameRenderer.INSTANCE.render(context.matrixStack()));
 
         WorldRenderEvents.LAST.register(context ->
-            ProjectorDepthRenderer.prepareProjectorRendering(context.positionMatrix(), context.projectionMatrix(),
+            ProjectorDepthRenderer.onAfterParticles(context.positionMatrix(), context.projectionMatrix(),
                 Minecraft.getInstance().getTimer()));
     }
 

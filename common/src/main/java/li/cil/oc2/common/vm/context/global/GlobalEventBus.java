@@ -11,7 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 final class GlobalEventBus implements VMLifecycleEventBus, EventManager {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(GlobalEventBus.class);
 
     // --------------------------------------------------------------------- //
 

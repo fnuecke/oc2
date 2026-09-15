@@ -8,9 +8,9 @@ import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderBuffers;
-import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.RenderType;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -30,22 +30,17 @@ public abstract class LevelRendererMixin {
     private RenderBuffers renderBuffers;
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiling/ProfilerFiller;popPush(Ljava/lang/String;)V", args = {"ldc=destroyProgress"}))
-    private void captureDepthBeforeTransparency(final CallbackInfo ci) {
-        if (!Minecraft.useShaderTransparency()) {
-            return;
-        }
-
-        final MultiBufferSource.BufferSource bufferSource = renderBuffers.bufferSource();
-        bufferSource.endBatch(Sheets.translucentCullBlockSheet());
-        bufferSource.endBatch(Sheets.bannerSheet());
-        bufferSource.endBatch(Sheets.shieldSheet());
-
-        ProjectorDepthRenderer.tryCaptureMainCameraDepth();
+    private void onBeforeTransparencyChain(final CallbackInfo ci) {
+        ProjectorDepthRenderer.onBeforeTransparencyChain(renderBuffers.bufferSource());
     }
 
-    /**
-     * Make sure weather effects are rendered with depth, so they cause "shadows" in our projection.
-     */
+    @Inject(method = "renderSectionLayer", at = @At("HEAD"))
+    private void onBeforeTranslucentTerrain(final RenderType renderType, final double cameraX, final double cameraY, final double cameraZ, final Matrix4f frustumMatrix, final Matrix4f projectionMatrix, final CallbackInfo ci) {
+        if (renderType == RenderType.translucent()) {
+            ProjectorDepthRenderer.onBeforeTranslucentTerrain(frustumMatrix, projectionMatrix, minecraft.getTimer());
+        }
+    }
+
     @Inject(method = "renderSnowAndRain", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;depthMask(Z)V", shift = At.Shift.AFTER, remap = false))
     private void enableDepthForWeatherInDepthBuffer(final CallbackInfo ci) {
         if (ProjectorDepthRenderer.isRenderingProjectorDepth()

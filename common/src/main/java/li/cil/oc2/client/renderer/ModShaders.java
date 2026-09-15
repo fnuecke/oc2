@@ -44,10 +44,12 @@ public final class ModShaders {
         final DynamicTexture[] colors,
         final RenderTarget[] depths,
         final Matrix4f[] projectorCameraMatrices,
-        final int count
+        final int count,
+        final float emissiveStrength
     ) {
         final int projectorCount = Math.min(count, MAX_PROJECTORS);
         projectorsShader.safeGetUniform("Count").set(projectorCount);
+        projectorsShader.safeGetUniform("EmissiveStrength").set(emissiveStrength);
 
         projectorsShader.setSampler("MainCameraDepth", target.getDepthTextureId());
         projectorsShader.safeGetUniform("InverseMainCamera").set(inverseCameraMatrix);

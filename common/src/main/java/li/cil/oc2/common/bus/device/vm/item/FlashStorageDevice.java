@@ -30,7 +30,7 @@ import java.nio.channels.FileChannel;
 import java.util.UUID;
 
 public class FlashStorageDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, FirmwareLoader {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(FlashStorageDevice.class);
 
     private static final String BLOB_HANDLE_TAG_NAME = "blob";
 

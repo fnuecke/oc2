@@ -3,6 +3,7 @@
 #version 150
 
 uniform int Count;
+uniform float EmissiveStrength;
 
 // Main camera depth buffer.
 uniform sampler2D MainCameraDepth;
@@ -130,5 +131,5 @@ void main() {
         colorAcc += color;
     }
 
-    fragColor = vec4(colorAcc, 1);
+    fragColor = vec4(colorAcc * EmissiveStrength, 1);
 }

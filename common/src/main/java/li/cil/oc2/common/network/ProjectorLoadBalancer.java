@@ -13,9 +13,10 @@ import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public final class ProjectorLoadBalancer {
     private static final int SENDS_PER_TICK = 1; // we encode full frames, so a new one replaces an older one.
@@ -49,6 +50,19 @@ public final class ProjectorLoadBalancer {
         }
     }
 
+    @Nullable
+    public static CompletableFuture<?> stop(final ProjectorBlockEntity projector) {
+        final ProjectorEntry entry = BALANCER.getEntry(projector);
+        if (entry == null) {
+            return null;
+        }
+
+        entry.nextFrameSupplier = null;
+        BALANCER.remove(projector);
+
+        return entry.runningEncode;
+    }
+
     // --------------------------------------------------------------------- //
 
     private static final class Balancer extends StreamingLoadBalancer<ProjectorBlockEntity, ProjectorEntry> {
@@ -76,7 +90,7 @@ public final class ProjectorLoadBalancer {
         @Nullable
         private ProjectorBlockEntity.FrameSupplier nextFrameSupplier;
         @Nullable
-        private Future<?> runningEncode;
+        private CompletableFuture<?> runningEncode;
 
         ProjectorEntry(final ProjectorBlockEntity projector) {
             this.projector = projector;
@@ -100,7 +114,7 @@ public final class ProjectorLoadBalancer {
             nextFrameSupplier = null;
 
             final boolean forceKeyframe = frameSupplier.consumeRequiresKeyframe();
-            runningEncode = ENCODER_WORKERS.submit(() -> {
+            runningEncode = CompletableFuture.runAsync(() -> {
                 final byte[] frame = frameSupplier.encode(forceKeyframe);
                 if (frame == null) {
                     return;
@@ -112,7 +126,7 @@ public final class ProjectorLoadBalancer {
                 for (final ServerPlayer player : recipients) {
                     Network.sendToClient(message, player);
                 }
-            });
+            }, ENCODER_WORKERS);
         }
 
         @Override

@@ -287,12 +287,10 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         final CompletableFuture<?> decode = runningDecode;
         runningDecode = null; // will stay null because unloaded -> !isValid() in applyNextFrameClient.
 
-        // Await in-flight decode if necessary to not kill its native buffer while in use.
-        if (decode != null) {
-            decode.whenComplete((result, error) -> endCodecs());
-        } else {
-            endCodecs();
-        }
+        // Await both in-flight codecs if necessary to not kill their native memory while in use.
+        final CompletableFuture<?> encode = ProjectorLoadBalancer.stop(this);
+        CompletableFuture.allOf(handled(decode), handled(encode))
+            .whenComplete((result, error) -> endCodecs());
     }
 
     private void endCodecs() {
@@ -338,6 +336,10 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
             Network.sendToClientsTrackingBlockEntity(new ProjectorStateMessage(this, isMounted, hasEnergy), this);
         }
+    }
+
+    private static CompletableFuture<?> handled(@Nullable final CompletableFuture<?> future) {
+        return future == null ? CompletableFuture.completedFuture(null) : future.handle((result, error) -> null);
     }
 
     private final class FrameSupplierImpl implements FrameSupplier {

@@ -11,9 +11,11 @@
     "client": [
         "FogRendererMixin",
         "FrustumMixin",
+        "GameRendererMixin",
         "LevelRendererMixin",
         "LibraryMixin",
-        "MinecraftMixin"
+        "MinecraftMixin",
+        "ShaderChunkRendererMixin"
     ],
     "injectors": {
         "defaultRequire": 1

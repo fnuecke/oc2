@@ -16,6 +16,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class FogRendererMixin {
     @Inject(method = "setupFog", at = @At("TAIL"))
     private static void disableFogWhileRenderingProjectorDepth(final CallbackInfo ci) {
-        ProjectorDepthRenderer.handleFog();
+        if (ProjectorDepthRenderer.isRenderingProjectorDepth()) {
+            FogRenderer.setupNoFog();
+        }
     }
 }

@@ -7,6 +7,7 @@ import li.cil.oc2.client.renderer.BusInterfaceNameRenderer;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.FogRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -26,7 +27,7 @@ public final class ClientRenderEventsNeoForge {
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
             BusInterfaceNameRenderer.INSTANCE.render(event.getPoseStack());
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
-            ProjectorDepthRenderer.renderProjectors(event.getModelViewMatrix(), event.getProjectionMatrix(), Minecraft.getInstance().getTimer());
+            ProjectorDepthRenderer.prepareProjectorRendering(event.getModelViewMatrix(), event.getProjectionMatrix(), Minecraft.getInstance().getTimer());
         }
     }
 
@@ -39,14 +40,16 @@ public final class ClientRenderEventsNeoForge {
 
     @SubscribeEvent
     public static void handleRenderNameTag(final RenderNameTagEvent event) {
-        if (ProjectorDepthRenderer.shouldSuppressNameplates()) {
+        if (ProjectorDepthRenderer.isRenderingProjectorDepth()) {
             event.setCanRender(TriState.FALSE);
         }
     }
 
     @SubscribeEvent
     public static void handleRenderFog(final ViewportEvent.RenderFog event) {
-        ProjectorDepthRenderer.handleFog();
+        if (ProjectorDepthRenderer.isRenderingProjectorDepth()) {
+            FogRenderer.setupNoFog();
+        }
     }
 
     private ClientRenderEventsNeoForge() {

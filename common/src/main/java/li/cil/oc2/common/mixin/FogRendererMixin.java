@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class FogRendererMixin {
     @Inject(method = "setupColor", at = @At("HEAD"), cancellable = true)
     private static void skipFogColorSetup(final CallbackInfo ci) {
-        if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {
+        if (ProjectorDepthRenderer.isRenderingProjectorDepth()) {
             ci.cancel();
         }
     }

@@ -19,7 +19,7 @@ public abstract class FrustumMixin {
      */
     @Inject(method = "offsetToFullyIncludeCameraCube", at = @At("HEAD"), cancellable = true)
     private void skipOffset(final CallbackInfoReturnable<Frustum> ci) {
-        if (ProjectorDepthRenderer.isIsRenderingProjectorDepth()) {
+        if (ProjectorDepthRenderer.isRenderingProjectorDepth()) {
             ci.setReturnValue((Frustum) (Object) this);
         }
     }

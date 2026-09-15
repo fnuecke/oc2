@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class EntityRendererMixin {
     @Inject(method = "renderNameTag", at = @At("HEAD"), cancellable = true)
     private void skipNameTagsWhileRenderingProjectorDepth(final CallbackInfo ci) {
-        if (ProjectorDepthRenderer.shouldSuppressNameplates()) {
+        if (ProjectorDepthRenderer.isRenderingProjectorDepth()) {
             ci.cancel();
         }
     }

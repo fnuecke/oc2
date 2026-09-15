@@ -9,3 +9,7 @@ accessible	field	net/minecraft/world/item/crafting/ShapelessRecipe	result	Lnet/m
 accessible	field	net/minecraft/client/gui/screens/inventory/AbstractContainerScreen	leftPos	I
 accessible	field	net/minecraft/client/gui/screens/inventory/AbstractContainerScreen	topPos	I
 accessible	field	net/minecraft/client/gui/screens/inventory/AbstractContainerScreen	hoveredSlot	Lnet/minecraft/world/inventory/Slot;
+accessible	method	net/minecraft/client/renderer/LevelRenderer	setupRender	(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/culling/Frustum;ZZ)V
+accessible	method	net/minecraft/client/renderer/LevelRenderer	renderSectionLayer	(Lnet/minecraft/client/renderer/RenderType;DDDLorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V
+accessible	method	net/minecraft/client/renderer/LevelRenderer	renderEntity	(Lnet/minecraft/world/entity/Entity;DDDFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V
+accessible	method	net/minecraft/client/renderer/LevelRenderer	renderSnowAndRain	(Lnet/minecraft/client/renderer/LightTexture;FDDD)V

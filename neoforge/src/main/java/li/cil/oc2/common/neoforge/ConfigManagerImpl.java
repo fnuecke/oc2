@@ -38,11 +38,12 @@ public final class ConfigManagerImpl extends ConfigManager {
         CONFIGS.forEach((spec, config) -> {
             final Type typeAnnotation = config.instance().getClass().getAnnotation(Type.class);
             final ConfigType configType = typeAnnotation != null ? typeAnnotation.value() : ConfigType.COMMON;
-            MainNeoForge.MOD_CONTAINER.registerConfig(switch (configType) {
+            final ModConfig.Type platformType = switch (configType) {
                 case COMMON -> ModConfig.Type.COMMON;
                 case CLIENT -> ModConfig.Type.CLIENT;
                 case SERVER -> ModConfig.Type.SERVER;
-            }, spec);
+            };
+            MainNeoForge.MOD_CONTAINER.registerConfig(platformType, spec);
         });
     }
 
@@ -56,8 +57,6 @@ public final class ConfigManagerImpl extends ConfigManager {
         }
 
         if (event instanceof ModConfigEvent.Unloading) {
-            // The values are gone by now, and reading one throws. Fall back to what we shipped with, so we
-            // neither blow up here nor keep serving the settings of a server we have just left.
             config.applyDefaults();
         } else {
             config.apply();

@@ -33,32 +33,31 @@ public final class ConfigManagerImpl extends ConfigManager {
     }
 
     public static void initialize() {
+        NeoForgeModConfigEvents.loading(API.MOD_ID).register(config -> handleModConfigEvent(config, false));
+        NeoForgeModConfigEvents.reloading(API.MOD_ID).register(config -> handleModConfigEvent(config, false));
+        NeoForgeModConfigEvents.unloading(API.MOD_ID).register(config -> handleModConfigEvent(config, true));
+
         CONFIGS.forEach((spec, config) -> {
             final Type typeAnnotation = config.instance().getClass().getAnnotation(Type.class);
             final ConfigType configType = typeAnnotation != null ? typeAnnotation.value() : ConfigType.COMMON;
-            NeoForgeConfigRegistry.INSTANCE.register(API.MOD_ID, switch (configType) {
+            final ModConfig.Type platformType = switch (configType) {
                 case COMMON -> ModConfig.Type.COMMON;
                 case CLIENT -> ModConfig.Type.CLIENT;
                 case SERVER -> ModConfig.Type.SERVER;
-            }, spec);
+            };
+            NeoForgeConfigRegistry.INSTANCE.register(API.MOD_ID, platformType, spec);
         });
-
-        NeoForgeModConfigEvents.loading(API.MOD_ID).register(config -> apply(config, false));
-        NeoForgeModConfigEvents.reloading(API.MOD_ID).register(config -> apply(config, false));
-        NeoForgeModConfigEvents.unloading(API.MOD_ID).register(config -> apply(config, true));
     }
 
     // --------------------------------------------------------------------- //
 
-    private static void apply(final ModConfig modConfig, final boolean isUnloading) {
-        final ConfigDefinition config = CONFIGS.get(modConfig.getSpec());
+    private static void handleModConfigEvent(final ModConfig eventConfig, final boolean isUnloading) {
+        final ConfigDefinition config = CONFIGS.get(eventConfig.getSpec());
         if (config == null) {
             return;
         }
 
         if (isUnloading) {
-            // The values are gone by now, and reading one throws. Fall back to what we shipped with, so we
-            // neither blow up here nor keep serving the settings of a server we have just left.
             config.applyDefaults();
         } else {
             config.apply();

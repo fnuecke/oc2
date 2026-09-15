@@ -105,7 +105,7 @@ public class CommonDeviceBusControllerTests {
         busController.scan();
         assertEquals(1, reported.size(), "a scan finding the same architecture must not report a change");
 
-        architectureType = null;
+        architectureType = null; //NOPMD - read by the scan below, through the supplier captured in setUp
         busController.scheduleBusScan();
         busController.scan();
         assertEquals(Arrays.asList(ArchitectureType.RISCV, null), reported, "removing the cpu must report a change");

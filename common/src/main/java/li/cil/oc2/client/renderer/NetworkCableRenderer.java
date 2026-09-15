@@ -2,14 +2,16 @@
 
 package li.cil.oc2.client.renderer;
 
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.Tesselator;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.*;
@@ -33,6 +35,7 @@ public final class NetworkCableRenderer {
     private static final float CABLE_HANG_MAX = 0.5f;
     private static final float CABLE_MAX_LENGTH = 8f;
     private static final Vector3f CABLE_COLOR = new Vector3f(0.0f, 0.33f, 0.4f);
+    private static final float WHITE_U = 0.5f, WHITE_V = 0.5f;
 
     private static final Set<NetworkConnectorBlockEntity> connectors = Collections.newSetFromMap(new WeakHashMap<>());
     private static int lastKnownConnectorCount;
@@ -87,8 +90,7 @@ public final class NetworkCableRenderer {
 
     private static void renderCables(final BlockAndTintGetter level, final Matrix4f viewMatrix, final Vec3 eye, final ArrayList<Connection> connections, final Predicate<AABB> filter) {
         final RenderType renderType = ModRenderType.getNetworkCable();
-        final MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        final VertexConsumer consumer = bufferSource.getBuffer(renderType);
+        final BufferBuilder consumer = Tesselator.getInstance().begin(renderType.mode(), renderType.format());
 
         final float r = CABLE_COLOR.x();
         final float g = CABLE_COLOR.y();
@@ -121,20 +123,35 @@ public final class NetworkCableRenderer {
 
                 consumer.addVertex(viewMatrix, cableLeft[i0], cableLeft[i0 + 1], cableLeft[i0 + 2])
                     .setColor(r, g, b, 1f)
-                    .setLight(light);
+                    .setUv(WHITE_U, WHITE_V)
+                    .setOverlay(OverlayTexture.NO_OVERLAY)
+                    .setLight(light)
+                    .setNormal(0, 1, 0);
                 consumer.addVertex(viewMatrix, cableRight[i0], cableRight[i0 + 1], cableRight[i0 + 2])
                     .setColor(r, g, b, 1f)
-                    .setLight(light);
+                    .setUv(WHITE_U, WHITE_V)
+                    .setOverlay(OverlayTexture.NO_OVERLAY)
+                    .setLight(light)
+                    .setNormal(0, 1, 0);
                 consumer.addVertex(viewMatrix, cableRight[i1], cableRight[i1 + 1], cableRight[i1 + 2])
                     .setColor(r, g, b, 1f)
-                    .setLight(light);
+                    .setUv(WHITE_U, WHITE_V)
+                    .setOverlay(OverlayTexture.NO_OVERLAY)
+                    .setLight(light)
+                    .setNormal(0, 1, 0);
                 consumer.addVertex(viewMatrix, cableLeft[i1], cableLeft[i1 + 1], cableLeft[i1 + 2])
                     .setColor(r, g, b, 1f)
-                    .setLight(light);
+                    .setUv(WHITE_U, WHITE_V)
+                    .setOverlay(OverlayTexture.NO_OVERLAY)
+                    .setLight(light)
+                    .setNormal(0, 1, 0);
             }
         }
 
-        bufferSource.endBatch(renderType);
+        final MeshData mesh = consumer.build();
+        if (mesh != null) {
+            renderType.draw(mesh);
+        }
     }
 
     private static void buildCableOutline(final BlockAndTintGetter level, final Vec3 eye, final Vec3 forward,

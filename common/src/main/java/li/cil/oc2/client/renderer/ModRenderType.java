@@ -15,20 +15,7 @@ import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
 public abstract class ModRenderType extends RenderType {
-    private static final RenderType NETWORK_CABLE = create(
-        API.MOD_ID + "/network_cable",
-        DefaultVertexFormat.POSITION_COLOR_LIGHTMAP,
-        VertexFormat.Mode.QUADS,
-        256,
-        false,
-        false,
-        CompositeState.builder()
-            .setShaderState(POSITION_COLOR_LIGHTMAP_SHADER)
-            .setTextureState(NO_TEXTURE)
-            .setTransparencyState(NO_TRANSPARENCY)
-            .setCullState(NO_CULL)
-            .setLightmapState(LIGHTMAP)
-            .createCompositeState(false));
+    private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/misc/white.png");
 
     private static final RenderType INDICATOR = create(
         API.MOD_ID + "/indicator",
@@ -88,7 +75,7 @@ public abstract class ModRenderType extends RenderType {
     // --------------------------------------------------------------------- //
 
     public static RenderType getNetworkCable() {
-        return NETWORK_CABLE;
+        return entityCutoutNoCull(WHITE_TEXTURE);
     }
 
     public static RenderType getIndicator() {

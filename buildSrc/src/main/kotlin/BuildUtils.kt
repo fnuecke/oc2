@@ -23,6 +23,14 @@ fun Project.gitRef(): String =
         isIgnoreExitValue = true
     }.standardOutput.asText.get().trim()
 
+fun Project.devPlayerArgs(): List<String> {
+    fun arg(name: String, propertyName: String): List<String> =
+        providers.gradleProperty(propertyName).orNull?.takeIf { it.isNotBlank() }
+            ?.let { listOf(name, it) } ?: emptyList()
+
+    return arg("--username", "devPlayerName") + arg("--uuid", "devPlayerUuid")
+}
+
 fun Project.configureJava() {
     extensions.configure<JavaPluginExtension> {
         toolchain.languageVersion.set(JavaLanguageVersion.of(21))

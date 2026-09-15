@@ -85,6 +85,12 @@ for (platform in enabledPlatforms.split(',')) {
             loader(platform)
         }
 
+        configure<LoomGradleExtensionAPI> {
+            runs {
+                named("client") { programArguments.addAll(devPlayerArgs()) }
+            }
+        }
+
         val common: Configuration by configurations.creating
         val shadowBundle: Configuration by configurations.creating
 

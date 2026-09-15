@@ -91,7 +91,7 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         validateMesh();
         renderBuffer(stack, modelViewBase, projectionMatrix);
 
-        if (terminal.isCursorVisible() && (System.currentTimeMillis() + terminal.hashCode()) % 1000 > 500) {
+        if (shouldRenderCursor(terminal)) {
             renderCursor(stack);
         }
     }
@@ -317,6 +317,10 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
 
         RenderSystem.disableBlend();
         RenderSystem.depthMask(true);
+    }
+
+    static boolean shouldRenderCursor(final Terminal terminal) {
+        return terminal.isCursorVisible() && (System.currentTimeMillis() + terminal.hashCode()) % 1000 > 500;
     }
 
     static boolean isPrintableCharacter(final char ch) {

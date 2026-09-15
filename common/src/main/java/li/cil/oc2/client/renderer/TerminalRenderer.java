@@ -88,12 +88,16 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
     // --------------------------------------------------------------------- //
 
     public void render(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
-        validateMesh();
-        renderBuffer(stack, modelViewBase, projectionMatrix);
+        renderBody(stack, modelViewBase, projectionMatrix);
 
         if (shouldRenderCursor(terminal)) {
             renderCursor(stack);
         }
+    }
+
+    public void renderBody(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
+        validateMesh();
+        renderBuffer(stack, modelViewBase, projectionMatrix);
     }
 
     @Override
@@ -284,13 +288,6 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
             return;
         }
 
-        final int cursorX = terminal.getCursorX();
-        final int cursorY = terminal.getCursorY();
-        final int cell = terminal.getCell(cursorY * WIDTH + cursorX);
-
-        final int blockColor = resolveColor(getForegroundColorIndex(cell), isForegroundBright(cell), isDim(cell));
-        final int glyphColor = resolveColor(getBackgroundColorIndex(cell), isBackgroundBright(cell), isDim(cell));
-
         RenderSystem.depthMask(false);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -299,24 +296,33 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         final ShaderInstance cursorShader = shader;
         RenderSystem.setShader(() -> cursorShader);
 
-        stack.pushPose();
-        stack.translate(cursorX * CHAR_WIDTH, cursorY * CHAR_HEIGHT, 0);
-
-        final Matrix4f matrix = stack.last().pose();
         final BufferBuilder buffer = Tesselator.getInstance()
             .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-
-        renderBackground(matrix, buffer, 0, CHAR_WIDTH, blockColor);
-        if (isVisible(cell)) {
-            renderForeground(matrix, buffer, 0, getCharacter(cell), glyphColor, isBold(cell), isUnderline(cell));
-        }
-
+        buildCursor(stack.last().pose(), buffer);
         BufferUploader.drawWithShader(buffer.buildOrThrow());
-
-        stack.popPose();
 
         RenderSystem.disableBlend();
         RenderSystem.depthMask(true);
+    }
+
+    void buildCursor(final Matrix4f matrix, final BufferBuilder builder) {
+        final int cursorX = terminal.getCursorX();
+        final int cursorY = terminal.getCursorY();
+        final int cell = terminal.getCell(cursorY * WIDTH + cursorX);
+
+        final int blockColor = resolveColor(getForegroundColorIndex(cell), isForegroundBright(cell), isDim(cell));
+        final int glyphColor = resolveColor(getBackgroundColorIndex(cell), isBackgroundBright(cell), isDim(cell));
+
+        rowMatrix.set(matrix).translate(cursorX * CHAR_WIDTH, cursorY * CHAR_HEIGHT, 0);
+
+        renderBackground(rowMatrix, builder, 0, CHAR_WIDTH, blockColor);
+        if (isVisible(cell)) {
+            renderForeground(rowMatrix, builder, 0, getCharacter(cell), glyphColor, isBold(cell), isUnderline(cell));
+        }
+    }
+
+    static ResourceLocation getFontTexture() {
+        return LOCATION_FONT_TEXTURE;
     }
 
     static boolean shouldRenderCursor(final Terminal terminal) {

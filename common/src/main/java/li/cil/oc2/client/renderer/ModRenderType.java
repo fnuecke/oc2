@@ -2,12 +2,15 @@
 
 package li.cil.oc2.client.renderer;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import li.cil.oc2.api.API;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.Util;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
@@ -72,6 +75,32 @@ public abstract class ModRenderType extends RenderType {
             .setTransparencyState(ADDITIVE_TRANSPARENCY)
             .createCompositeState(false)));
 
+    private static final TransparencyStateShard PREMULTIPLIED_TRANSPARENCY = new TransparencyStateShard(
+        API.MOD_ID + ":premultiplied_transparency",
+        () -> {
+            RenderSystem.enableBlend();
+            RenderSystem.blendFuncSeparate(
+                GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+                GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        },
+        () -> {
+            RenderSystem.disableBlend();
+            RenderSystem.defaultBlendFunc();
+        });
+
+    private static final RenderType TERMINAL_SCREEN = create(
+        API.MOD_ID + "/terminal_screen",
+        DefaultVertexFormat.POSITION_TEX_COLOR,
+        VertexFormat.Mode.QUADS,
+        256,
+        false,
+        false,
+        CompositeState.builder()
+            .setShaderState(new ShaderStateShard(GameRenderer::getPositionTexColorShader))
+            .setTextureState(NO_TEXTURE)
+            .setTransparencyState(PREMULTIPLIED_TRANSPARENCY)
+            .createCompositeState(false));
+
     // --------------------------------------------------------------------- //
 
     public static RenderType getNetworkCable() {
@@ -92,6 +121,10 @@ public abstract class ModRenderType extends RenderType {
 
     public static RenderType getOverlay(final ResourceLocation location) {
         return OVERLAY.apply(location);
+    }
+
+    public static RenderType getTerminalScreen() {
+        return TERMINAL_SCREEN;
     }
 
     // --------------------------------------------------------------------- //

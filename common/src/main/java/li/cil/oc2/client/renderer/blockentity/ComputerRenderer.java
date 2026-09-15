@@ -5,14 +5,13 @@ package li.cil.oc2.client.renderer.blockentity;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import dev.architectury.event.events.client.ClientTickEvent;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.ModRenderType;
-import li.cil.oc2.client.renderer.TerminalRenderer;
+import li.cil.oc2.client.renderer.TerminalTexture;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.vm.Terminal;
@@ -47,10 +46,19 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     private static final Material TEXTURE_STATUS = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_STATUS_LOCATION);
     private static final Material TEXTURE_TERMINAL = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_TERMINAL_LOCATION);
 
-    private static final Cache<Terminal, TerminalRenderer> terminalRenderers = CacheBuilder.newBuilder()
+    private static final Cache<Terminal, TerminalTexture> terminalTextures = CacheBuilder.newBuilder()
         .expireAfterAccess(Duration.ofSeconds(5))
         .removalListener(ComputerRenderer::handleNoLongerRendering)
         .build();
+
+    // --------------------------------------------------------------------- //
+
+    public static void initialize() {
+        ClientTickEvent.CLIENT_POST.register(minecraft -> {
+            terminalTextures.cleanUp();
+            terminalTextures.asMap().values().forEach(TerminalTexture::refresh);
+        });
+    }
 
     // --------------------------------------------------------------------- //
 
@@ -154,13 +162,9 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
 
             stack.scale(scale, scale, 1f);
 
-            // TODO Make terminal renderer use buffer+rendertype.
-            RenderSystem.enableBlend();
-            RenderSystem.enableDepthTest();
-
             try {
-                terminalRenderers.get(terminal, () -> new TerminalRenderer(terminal))
-                    .render(stack, RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix());
+                final TerminalTexture texture = terminalTextures.get(terminal, () -> new TerminalTexture(terminal));
+                texture.draw(stack);
             } catch (final ExecutionException e) {
                 throw new RuntimeException(e);
             }
@@ -252,12 +256,8 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         consumer.setUv(1, 0);
     }
 
-    public static void initialize() {
-        ClientTickEvent.CLIENT_POST.register(minecraft -> terminalRenderers.cleanUp());
-    }
-
-    private static void handleNoLongerRendering(final RemovalNotification<Terminal, TerminalRenderer> notification) {
-        final TerminalRenderer value = notification.getValue();
+    private static void handleNoLongerRendering(final RemovalNotification<Terminal, TerminalTexture> notification) {
+        final TerminalTexture value = notification.getValue();
         if (value != null) {
             value.close();
         }

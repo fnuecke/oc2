@@ -97,6 +97,8 @@ public final class SerialPortTests {
             .thenExecute(() -> computer.type("root\n"))
             .thenWaitUntil(() -> computer.assertScreenContains("#", "root should get a shell"))
             .thenExecute(() -> {
+                // One card per side here, so the capability is the card's own interface; with more
+                // than one it would be a fresh CompoundNetworkInterface per lookup.
                 final Direction[] sides = {Direction.UP, Direction.EAST};
                 for (int i = 0; i < sides.length; i++) {
                     final Object resolved = connectors[i].adjacentInterface();
@@ -116,6 +118,82 @@ public final class SerialPortTests {
             .thenWaitUntil(() -> computer.assertScreenContains("COLL=0",
                 "collisions() should read the card's transmit error counter"))
             .thenSucceed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    public static void cardsSharingASideDoNotShadowEachOther(final GameTestHelper helper) {
+        final Player player = fakePlayer(helper);
+        final ComputerFixture computer = ComputerFixture.place(helper, player);
+        placePower(helper, player);
+
+        // The computer's facing rotates world sides into card sides, so the peer takes every side but up.
+        final ItemStack[] cards = {
+            upOnlyCard(3),
+            upOnlyCard(7),
+            allButUpCard(11),
+        };
+
+        final ConnectorFixture[] connectors = new ConnectorFixture[3];
+
+        helper.startSequence()
+            .thenExecuteAfter(20, () -> {
+                computer
+                    .install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
+                    .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
+                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
+                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
+                    .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
+                    .install(DeviceTypes.CARD.get(), new ItemStack(Items.NETWORK_INTERFACE_CARD.get())) // every side, so it used to hide the rest
+                    .install(DeviceTypes.CARD.get(), cards[0])
+                    .install(DeviceTypes.CARD.get(), cards[1])
+                    .install(DeviceTypes.CARD.get(), cards[2]);
+
+                HubFixture.place(helper, player, RELAY);
+
+                player.setXRot(90);
+                connectors[0] = ConnectorFixture.place(helper, player, computer.pos().above());
+                connectors[2] = ConnectorFixture.place(helper, player, RELAY.above());
+                player.setXRot(0);
+                player.setYRot(90);
+                connectors[1] = ConnectorFixture.place(helper, player, computer.pos().east());
+                connectors[0].linkTo(connectors[2]);
+                connectors[1].linkTo(connectors[2]);
+            })
+            .thenExecuteAfter(40, computer::start)
+            .thenWaitUntil(() -> computer.assertScreenContains("login:", "the guest should reach its login prompt"))
+            .thenExecute(() -> computer.type("root\n"))
+            .thenWaitUntil(() -> computer.assertScreenContains("#", "root should get a shell"))
+            .thenExecute(() -> computer.type("micropython -c \"from oc2 import serial as s;" +
+                "p={l.address:l for l in [s.open('/dev/ttyS%d'%i,9600) for i in (1,2,3)]};" +
+                "p[11].broadcast(b'hi');print('RX'+'-OK',p[3].receive(5000)[1],p[7].receive(5000)[1])\"\n"))
+            .thenWaitUntil(() -> computer.assertScreenContains("RX-OK b'hi' b'hi'",
+                "both cards on the shared side should hear the broadcast, next to a network card"))
+            .thenExecute(() -> computer.type("micropython -c \"from oc2 import serial as s;" +
+                "p={l.address:l for l in [s.open('/dev/ttyS%d'%i,9600) for i in (1,2,3)]};" +
+                "p[3].broadcast(b'a');p[7].broadcast(b'b');" +
+                "print('TX'+'-OK',p[7].receive(5000)[1],p[3].receive(5000)[1]," +
+                "sorted([p[11].receive(5000)[1],p[11].receive(5000)[1]]))\"\n"))
+            .thenWaitUntil(() -> computer.assertScreenContains("TX-OK b'a' b'b' [b'a', b'b']",
+                "a side is one wire, so the two cards hear each other, and both bursts reach the peer"))
+            .thenSucceed();
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static ItemStack upOnlyCard(final int address) {
+        final ItemStack stack = new ItemStack(Items.SERIAL_INTERFACE_CARD.get());
+        for (final Direction side : Direction.values()) {
+            SerialInterfaceCardItem.setSideConfiguration(stack, side, side == Direction.UP);
+        }
+        SerialInterfaceCardItem.setAddress(stack, address);
+        return stack;
+    }
+
+    private static ItemStack allButUpCard(final int address) {
+        final ItemStack stack = new ItemStack(Items.SERIAL_INTERFACE_CARD.get());
+        SerialInterfaceCardItem.setSideConfiguration(stack, Direction.UP, false);
+        SerialInterfaceCardItem.setAddress(stack, address);
+        return stack;
     }
 
     // --------------------------------------------------------------------- //

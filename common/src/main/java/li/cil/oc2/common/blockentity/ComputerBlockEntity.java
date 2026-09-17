@@ -20,6 +20,7 @@ import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityProvider;
 import li.cil.oc2.common.capabilities.CapabilityType;
+import li.cil.oc2.common.capabilities.CompoundNetworkInterface;
 import li.cil.oc2.common.container.ComputerInventoryContainer;
 import li.cil.oc2.common.container.ComputerTerminalContainer;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
@@ -169,6 +170,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     @Nullable
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T getCapability(final CapabilityType<T> capability, @Nullable final Direction side) {
         if (!isValid()) {
             return null;
@@ -180,6 +182,10 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
 
         final Direction localSide = HorizontalBlockUtils.toLocal(getBlockState(), side);
+        if (capability == Capabilities.NETWORK_INTERFACE) {
+            return (T) CompoundNetworkInterface.of(capabilityProviders, localSide);
+        }
+
         for (final CapabilityProvider capabilityProvider : capabilityProviders) {
             final T value = capabilityProvider.getCapability(capability, localSide);
             if (value != null) {

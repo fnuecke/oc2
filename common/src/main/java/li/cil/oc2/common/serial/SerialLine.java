@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.LongSupplier;
 
 // Simulates serial behavior to some degree. In no way "realistic", but close enough for our
-// purposes for now. Data accumulates for a full tick so we can use the that window to determine
+// purposes for now. Data accumulates for a full tick so we can use that window to determine
 // whether the data written could theoretically have fit inside our baud rate. If this interface
 // sent something in such an overloaded tick will then be flagged for a tx error as well.
 @Serialized

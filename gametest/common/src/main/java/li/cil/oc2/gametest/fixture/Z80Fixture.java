@@ -59,6 +59,11 @@ public final class Z80Fixture {
         return this;
     }
 
+    public Z80Fixture withSerialCard() {
+        computer.install(DeviceTypes.CARD.get(), new ItemStack(Items.SERIAL_INTERFACE_CARD.get()));
+        return this;
+    }
+
     public Z80Fixture withRedstoneCard() {
         computer.install(DeviceTypes.CARD.get(), new ItemStack(Items.REDSTONE_INTERFACE_CARD.get()));
         return this;

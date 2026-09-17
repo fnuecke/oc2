@@ -51,7 +51,10 @@
   "item.oc2.redstone_interface_card.desc": "Emits and reads redstone signals through the Computer.",
   "item.oc2.network_interface_card": "Network Interface Card",
   "item.oc2.network_interface_card.desc": "Sends and receives network packets via attached Network Connectors.",
-  "item.oc2.network_interface_card.is_configured": "Has connectivity configuration.",
+  "item.oc2.sided_device.is_configured": "Has connectivity configuration.",
+  "item.oc2.serial_interface_card": "Serial Interface Card",
+  "item.oc2.serial_interface_card.desc": "Sends and receives serial communication via attached Network Connectors.",
+  "item.oc2.serial_interface_card.configuration": "Address: %s",
   "item.oc2.network_tunnel_card": "Network Tunnel Card",
   "item.oc2.network_tunnel_card.desc": "Sends and receives network packets to a linked device.",
   "item.oc2.file_import_export_card": "File Import/Export Card",
@@ -113,10 +116,12 @@
   "gui.oc2.file_chooser.confirm_button.overwrite": "Overwrite",
   "gui.oc2.file_chooser.cancel_button": "Cancel",
 
-  "gui.oc2.network_interface_card.side_state": "Connectivity: %s",
-  "gui.oc2.network_interface_card.connectivity.enabled": "Enabled",
-  "gui.oc2.network_interface_card.connectivity.disabled": "Disabled",
-  "gui.oc2.network_interface_card.info": "Drag to rotate. Click faces to toggle connectivity.",
+  "gui.oc2.sided_device.side_state": "Connectivity: %s",
+  "gui.oc2.sided_device.connectivity.enabled": "Enabled",
+  "gui.oc2.sided_device.connectivity.disabled": "Disabled",
+  "gui.oc2.sided_device.help": "Drag to rotate. Click faces to toggle connectivity.",
+
+  "gui.oc2.serial_interface_card.address": "Address",
 
   "gui.oc2.keyboard.close_info": "Right click to close.",
 

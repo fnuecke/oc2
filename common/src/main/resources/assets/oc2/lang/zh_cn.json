@@ -43,7 +43,7 @@
   "item.oc2.redstone_interface_card.desc": "通过计算机发出和读取红石信号。",
   "item.oc2.network_interface_card": "网卡",
   "item.oc2.network_interface_card.desc": "通过附加的网络接口发送和接收网络数据包。",
-  "item.oc2.network_interface_card.is_configured": "已配置。",
+  "item.oc2.sided_device.is_configured": "已配置。",
   "item.oc2.network_tunnel_card": "网络隧道卡",
   "item.oc2.network_tunnel_card.desc": "向链接设备发送和接收网络数据包。",
   "item.oc2.file_import_export_card": "文件导入/导出卡",
@@ -94,10 +94,10 @@
   "gui.oc2.file_chooser.confirm_button.overwrite": "覆盖",
   "gui.oc2.file_chooser.cancel_button": "取消",
   
-  "gui.oc2.network_interface_card.side_state": "状态：%s",
-  "gui.oc2.network_interface_card.connectivity.enabled": "已启用",
-  "gui.oc2.network_interface_card.connectivity.disabled": "已禁用",
-  "gui.oc2.network_interface_card.info": "拖动以旋转，点击面以切换状态。",
+  "gui.oc2.sided_device.side_state": "状态：%s",
+  "gui.oc2.sided_device.connectivity.enabled": "已启用",
+  "gui.oc2.sided_device.connectivity.disabled": "已禁用",
+  "gui.oc2.sided_device.help": "拖动以旋转，点击面以切换状态。",
 
   "gui.oc2.keyboard.close_info": "右键以关闭。",
 

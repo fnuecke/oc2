@@ -73,6 +73,7 @@ public final class Items {
         new FloppyItem(Constants.FLOPPY_SIZE));
 
     public static final RegistrySupplier<Item> REDSTONE_INTERFACE_CARD = register("redstone_interface_card");
+    public static final RegistrySupplier<Item> SERIAL_INTERFACE_CARD = register("serial_interface_card", SerialInterfaceCardItem::new);
     public static final RegistrySupplier<Item> NETWORK_INTERFACE_CARD = register("network_interface_card", NetworkInterfaceCardItem::new);
     public static final RegistrySupplier<Item> NETWORK_TUNNEL_CARD = register("network_tunnel_card", NetworkTunnelItem::new);
     public static final RegistrySupplier<Item> FILE_IMPORT_EXPORT_CARD = register("file_import_export_card");

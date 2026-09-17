@@ -43,7 +43,7 @@
   "item.oc2.redstone_interface_card.desc": "Подает и считывает редстоун сигналы от блока компьютера.",
   "item.oc2.network_interface_card": "Сетевая интерфейсная карта",
   "item.oc2.network_interface_card.desc": "Отсылает и принимает пакеты через сетевой разъем.",
-  "item.oc2.network_interface_card.is_configured": "Установлены настройки соединения.",
+  "item.oc2.sided_device.is_configured": "Установлены настройки соединения.",
   "item.oc2.network_tunnel_card": "Сетевая туннельная карта",
   "item.oc2.network_tunnel_card.desc": "Отсылает и принимает пакеты с привязанного устройства.",
   "item.oc2.file_import_export_card": "Карта импорта/экспорта файлов",
@@ -94,10 +94,10 @@
   "gui.oc2.file_chooser.confirm_button.overwrite": "Перезаписать",
   "gui.oc2.file_chooser.cancel_button": "Отмена",
 
-  "gui.oc2.network_interface_card.side_state": "Соединение: %s",
-  "gui.oc2.network_interface_card.connectivity.enabled": "Включено",
-  "gui.oc2.network_interface_card.connectivity.disabled": "Выключено",
-  "gui.oc2.network_interface_card.info": "Потяните для поворота. Клик на сторону переключит соединение.",
+  "gui.oc2.sided_device.side_state": "Соединение: %s",
+  "gui.oc2.sided_device.connectivity.enabled": "Включено",
+  "gui.oc2.sided_device.connectivity.disabled": "Выключено",
+  "gui.oc2.sided_device.help": "Потяните для поворота. Клик на сторону переключит соединение.",
 
   "gui.oc2.keyboard.close_info": "Для закрытия нажмите ПКМ.",
 

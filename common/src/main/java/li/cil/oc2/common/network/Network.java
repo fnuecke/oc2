@@ -72,6 +72,7 @@ public final class Network {
 
         registerMessage(BusCableFacadeMessage.class, BusCableFacadeMessage::new, NetworkManager.serverToClient());
 
+        registerMessage(SerialInterfaceCardConfigurationMessage.class, SerialInterfaceCardConfigurationMessage::new, NetworkManager.clientToServer());
         registerMessage(NetworkInterfaceCardConfigurationMessage.class, NetworkInterfaceCardConfigurationMessage::new, NetworkManager.clientToServer());
         registerMessage(NetworkTunnelLinkMessage.class, NetworkTunnelLinkMessage::new, NetworkManager.clientToServer());
 

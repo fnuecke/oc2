@@ -388,6 +388,17 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ShapedRecipeBuilder
+            .shaped(RecipeCategory.MISC, Items.SERIAL_INTERFACE_CARD.get())
+            .pattern("CSX")
+            .pattern(" B ")
+            .define('S', Tags.Items.STRINGS)
+            .define('C', Tags.Items.INGOTS_COPPER)
+            .define('X', Items.BUS_INTERFACE.get())
+            .define('B', Items.CIRCUIT_BOARD.get())
+            .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+            .save(consumer);
+
+        ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.NETWORK_INTERFACE_CARD.get())
             .pattern("CGX")
             .pattern(" B ")

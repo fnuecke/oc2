@@ -3,6 +3,7 @@
 package li.cil.oc2.common.serialization.ceres;
 
 import com.google.gson.JsonArray;
+import it.unimi.dsi.fastutil.shorts.ShortArrayFIFOQueue;
 import li.cil.ceres.Ceres;
 import li.cil.oc2.common.vm.context.global.MemoryRangeList;
 import li.cil.sedna.api.memory.MemoryRange;
@@ -26,5 +27,6 @@ public final class Serializers {
         Ceres.putSerializer(Component.class, new TextComponentSerializer());
         Ceres.putSerializer(MemoryRange.class, new MemoryRangeSerializer());
         Ceres.putSerializer(MemoryRangeList.class, new MemoryRangeListSerializer());
+        Ceres.putSerializer(ShortArrayFIFOQueue.class, new ShortArrayFIFOQueueSerializer());
     }
 }

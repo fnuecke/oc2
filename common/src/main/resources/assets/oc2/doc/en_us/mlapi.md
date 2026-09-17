@@ -35,11 +35,6 @@ When `OCERR` is set in the status, the call failed and `OCDAT` gives the reason:
 
 The registers hold one selection and one call between them, so keep to one at a time and leave them out of interrupt handlers.
 
-## Devices
-Each device's own entry lists the API it offers:
-- [Redstone interface](block/redstone_interface.md), block or card, as `REDSTN`
-- [Inventories](inventories.md), such as chests, as `ITEMS`
-
 ## Example
 `REDSTN.Z80` on the boot disk drives a [redstone interface](block/redstone_interface.md), and is commented alongside the C it would be, if that reads more easily. Writing to a floppy needs a [disk drive](block/disk_drive.md). Build it while staying on `A:`:  
 `ZMAC REDSTN /OB:REDSTN /E`  

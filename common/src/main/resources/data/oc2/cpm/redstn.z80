@@ -2,23 +2,10 @@
 ;
 ; REDSTN -- drive a redstone interface.
 ;
-; An example.
-;
 ;	REDSTN <side>		 print that side's levels
 ;	REDSTN <side> <level>	 set that side's output level
 ;
 ; Sides are 0 down, 1 up, 2 north, 3 south, 4 west, 5 east. Levels are 0 to 15.
-;
-; Build it with the assembler and linker on this disk. You need a disk drive
-; with a floppy in it, because A: is read only and the output has to go
-; somewhere. Stay on A: while you build:
-;
-;	ZMAC REDSTN /OB:REDSTN /E	; A:REDSTN.Z80 -> B:REDSTN.REL
-;	ZML B:REDSTN			; -> B:REDSTN.COM
-;	B:REDSTN
-;
-; /O puts the object file on B:. /E turns off the error log, which would
-; otherwise be written beside the source, on the drive that is read only.
 ;
 ; Each block below is introduced by the C it would be, if you find that easier
 ; to read than the assembly.

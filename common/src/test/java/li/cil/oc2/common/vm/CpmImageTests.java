@@ -28,8 +28,11 @@ public final class CpmImageTests {
 
         assertTrue(files.containsKey("DEVS.COM"), "the emulator's own files must survive: " + files.keySet());
         assertTrue(files.containsKey("DEVLIB.INC"), "the emulator's own files must survive: " + files.keySet());
+        assertTrue(files.containsKey("SERIAL.INC"), "the emulator's own files must survive: " + files.keySet());
+        assertTrue(files.containsKey("TERM.COM"), "the emulator's own files must survive: " + files.keySet());
         assertTrue(files.containsKey("OCAPI.INC"), "oc2 must add its library: " + files.keySet());
         assertTrue(files.containsKey("REDSTN.Z80"), "oc2 must add its example: " + files.keySet());
+        assertTrue(files.containsKey("SERCHAT.Z80"), "oc2 must add its example: " + files.keySet());
     }
 
     @Test
@@ -46,6 +49,14 @@ public final class CpmImageTests {
 
         assertContentMatches(SHIPPED + "ocapi.inc", files.get("OCAPI.INC"));
         assertContentMatches(SHIPPED + "redstn.z80", files.get("REDSTN.Z80"));
+        assertContentMatches(SHIPPED + "serchat.z80", files.get("SERCHAT.Z80"));
+    }
+
+    @Test
+    public void theSerialExampleReferencesTheLibraryTheDiskCarries() throws IOException {
+        final String example = new String(resource(SHIPPED + "serchat.z80"), StandardCharsets.US_ASCII);
+        assertTrue(example.contains("SEROPEN"), "the example should use the library it ships beside");
+        assertTrue(example.contains("SERIAL.INC"), "the example should include the library");
     }
 
     @Test
@@ -132,7 +143,7 @@ public final class CpmImageTests {
      */
     private static byte[] composeShippedRomDrive() throws IOException {
         final Map<String, byte[]> files = new LinkedHashMap<>();
-        for (final String name : List.of("ocapi.inc", "redstn.z80")) {
+        for (final String name : List.of("ocapi.inc", "redstn.z80", "serchat.z80")) {
             files.put(name, resource(SHIPPED + name));
         }
         return CpmSystemDisk.compose(files);

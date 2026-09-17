@@ -11,7 +11,7 @@ public final class Sprites {
     public static final Sprite ROBOT_CONTAINER = new Sprite(ROBOT_CONTAINER_TEXTURE);
     public static final Sprite TERMINAL_SCREEN = new Sprite(TERMINAL_SCREEN_TEXTURE);
     public static final Sprite BUS_INTERFACE_SCREEN = new Sprite(BUS_INTERFACE_SCREEN_TEXTURE);
-    public static final Sprite NETWORK_INTERFACE_CARD_SCREEN = new Sprite(NETWORK_INTERFACE_CARD_SCREEN_TEXTURE);
+    public static final Sprite SIDED_DEVICE_SCREEN = new Sprite(SIDED_DEVICE_SCREEN_TEXTURE);
     public static final Sprite NETWORK_TUNNEL_SCREEN = new Sprite(NETWORK_TUNNEL_SCREEN_TEXTURE);
 
     public static final Sprite TERMINAL_FOCUSED = new Sprite(TERMINAL_FOCUSED_TEXTURE);

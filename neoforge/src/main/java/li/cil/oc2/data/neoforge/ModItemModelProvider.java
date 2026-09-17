@@ -43,10 +43,11 @@ public final class ModItemModelProvider extends ItemModelProvider {
             .texture("layer1", "item/floppy_tint");
 
         simple(Items.REDSTONE_INTERFACE_CARD);
+        simple(Items.SERIAL_INTERFACE_CARD);
         simple(Items.NETWORK_INTERFACE_CARD);
+        simple(Items.NETWORK_TUNNEL_CARD);
         simple(Items.FILE_IMPORT_EXPORT_CARD);
         simple(Items.SOUND_CARD);
-        simple(Items.NETWORK_TUNNEL_CARD);
 
         simple(Items.INVENTORY_OPERATIONS_MODULE);
         simple(Items.BLOCK_OPERATIONS_MODULE);

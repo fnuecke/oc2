@@ -26,3 +26,14 @@ Drive `A:` is the floppy you booted from, and you can write to it. Add another [
 A [robot](robot.md) has a floppy slot of its own, so it can carry its system disk without a disk drive.
 
 You can now add more devices, depending on what you want to use your computer for. For information on how to control devices, and how to build and run the worked example, have a look at the [MLAPI](../mlapi.md) manual entry.
+
+## Building Programs
+You can compile programs using the included `ZMAC` (assembler) and `ZML` (linker) programs.
+
+To compile to a secondary drive, while staying on A:, you can do the following:
+
+`ZMAC REDSTN /OB:REDSTN /E`
+`ZML B:REDSTN`
+`B:REDSTN`
+
+`/O` puts the object file on `B:`. `/E` turns off the error log.

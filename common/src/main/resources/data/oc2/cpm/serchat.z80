@@ -1,0 +1,467 @@
+; MIT licensed, see LICENSE.
+;
+;	SERCHAT <peer>		chat with endpoint <peer>
+;
+; Type a line and press return to send it. Press return on an empty line to quit.
+; Uses the suggested frame format:
+;
+;	01h  to  from  length  payload...  checksum
+;
+; The checksum is to + from + length + payload, kept to eight bits.
+;
+
+BDOS	equ	0005h
+TAIL	equ	0080h		; command tail: a length byte, then the text
+DIRECT	equ	6		; direct console i/o, in both directions
+
+SOH	equ	01h		; a frame starts here
+BCAST	equ	255		; the address every endpoint listens to
+MAXPAY	equ	200		; as much as this example puts in one frame
+CR	equ	0Dh
+LF	equ	0Ah
+BS	equ	08h
+
+	CSEG
+
+;	p = TAIL + 1; p[TAIL[0]] = '\0';
+	ld	hl,TAIL
+	ld	e,(hl)
+	ld	d,0
+	inc	hl
+	push	hl
+	add	hl,de
+	ld	(hl),0
+	pop	hl
+
+;	peer = getnum(&p);
+	call	SKIPSP
+	call	GETNUM
+	jp	c,USAGE
+	ld	(PEER),a
+
+;	if (!seropen()) { puts("no card"); return; }
+	ld	b,0
+	call	SEROPEN
+	jp	c,NOCARD
+
+;	me = getAddress() of the card whose getBaseAddress() is that port
+	xor	a
+	ld	(CARDIX),a
+FINDC:	ld	a,(CARDIX)
+	ld	b,a
+	ld	hl,SERNAM
+	call	OCFIND
+	jp	c,NOCARD
+	ld	(OCPORT),a
+	ld	a,e
+	ld	(OCSUB),a
+	ld	a,7		; getBaseAddress
+	call	OCCALL
+	jp	c,NOCARD
+	ld	hl,SERPRT
+	cp	(hl)
+	jr	z,FOUNDC
+	ld	hl,CARDIX
+	inc	(hl)
+	jr	FINDC
+FOUNDC:	ld	a,1		; getAddress
+	call	OCCALL
+	jp	c,NOCARD
+	ld	(MYADDR),a
+
+	ld	hl,MME
+	call	PUTS
+	ld	a,(MYADDR)
+	call	PDEC
+	ld	hl,MHELLO
+	call	PUTS
+
+;	for (;;) { drain the line; handle a key }
+LOOP:	call	RECV
+	call	KEY
+	jr	z,LOOP
+	cp	CR
+	jr	z,LINEND
+	cp	BS
+	jr	z,RUBOUT
+	cp	' '
+	jr	c,LOOP
+	ld	hl,LINCNT
+	ld	a,(hl)
+	cp	MAXPAY
+	jr	nc,LOOP
+	inc	(hl)
+	ld	hl,(LINPTR)
+	call	KEYGET
+	ld	(hl),a
+	inc	hl
+	ld	(LINPTR),hl
+	call	ECHO
+	jr	LOOP
+
+RUBOUT:	ld	a,(LINCNT)
+	or	a
+	jr	z,LOOP
+	dec	a
+	ld	(LINCNT),a
+	ld	hl,(LINPTR)
+	dec	hl
+	ld	(LINPTR),hl
+	ld	hl,MRUB
+	call	PUTS
+	jr	LOOP
+
+LINEND:	ld	hl,CRLF
+	call	PUTS
+	ld	a,(LINCNT)
+	or	a
+	jr	z,BYE
+	call	SEND
+	call	LINRST
+	jr	LOOP
+
+BYE:	jp	0
+
+NOCARD:	ld	hl,MNOCRD
+	call	PUTS
+	jp	0
+
+USAGE:	ld	hl,MUSAGE
+	call	PUTS
+	jp	0
+
+;	Sends LINBUF to PEER as one frame.
+SEND:	ld	a,SOH
+	call	PUT
+	xor	a
+	ld	(SUM),a
+	ld	a,(PEER)
+	call	PUTSUM
+	ld	a,(MYADDR)
+	call	PUTSUM
+	ld	a,(LINCNT)
+	call	PUTSUM
+	ld	hl,LINBUF
+	ld	(SPTR),hl
+	ld	a,(LINCNT)
+	ld	(SCNT),a
+SEND1:	ld	a,(SCNT)
+	or	a
+	jr	z,SEND2
+	dec	a
+	ld	(SCNT),a
+	ld	hl,(SPTR)
+	ld	a,(hl)
+	inc	hl
+	ld	(SPTR),hl
+	call	PUTSUM
+	jr	SEND1
+SEND2:	ld	a,(SUM)
+	jp	PUT
+
+;	Sends A and adds it to the running checksum.
+PUTSUM:	call	ADDSUM
+PUT:	push	bc
+	ld	c,a
+	call	SEROUT
+	pop	bc
+	ret
+
+;	Takes everything the line has right now, a byte at a time, and prints any frame that
+;	completes. RSTATE says how far into a frame we are.
+RECV:	call	SERST
+	ret	z
+	call	SERIN
+	jp	c,RESET
+	ld	b,a
+	ld	a,(RSTATE)
+	or	a
+	jr	z,RHUNT
+	dec	a
+	jr	z,RTOB
+	dec	a
+	jr	z,RFROMB
+	dec	a
+	jr	z,RLENB
+	dec	a
+	jr	z,RPAY
+	jr	RSUM
+
+RHUNT:	ld	a,b
+	cp	SOH
+	jp	nz,RECV
+	xor	a
+	ld	(SUM),a
+	ld	a,1
+	ld	(RSTATE),a
+	jp	RECV
+
+RTOB:	ld	a,b
+	ld	(RTO),a
+	call	ADDSUM
+	ld	a,2
+	ld	(RSTATE),a
+	jp	RECV
+
+RFROMB:	ld	a,b
+	ld	(RFROM),a
+	call	ADDSUM
+	ld	a,3
+	ld	(RSTATE),a
+	jp	RECV
+
+RLENB:	ld	a,b
+	cp	MAXPAY+1
+	jp	nc,RESET
+	ld	(RCNT),a
+	ld	(RLEN),a
+	ld	a,b
+	call	ADDSUM
+	ld	hl,RBUF
+	ld	(RPTR),hl
+	ld	a,(RCNT)
+	or	a
+	ld	a,5
+	jr	z,RLEN1
+	ld	a,4
+RLEN1:	ld	(RSTATE),a
+	jp	RECV
+
+RPAY:	ld	hl,(RPTR)
+	ld	(hl),b
+	inc	hl
+	ld	(RPTR),hl
+	ld	a,b
+	call	ADDSUM
+	ld	hl,RCNT
+	dec	(hl)
+	jp	nz,RECV
+	ld	a,5
+	ld	(RSTATE),a
+	jp	RECV
+
+RSUM:	ld	a,(SUM)
+	cp	b
+	call	z,SHOW
+RESET:	xor	a
+	ld	(RSTATE),a
+	jp	RECV
+
+;	Prints the frame in RBUF if it was addressed to us.
+SHOW:	ld	a,(RTO)
+	ld	hl,MYADDR
+	cp	(hl)
+	jr	z,SHOW1
+	cp	BCAST
+	ret	nz
+SHOW1:	ld	hl,MFROM
+	call	PUTS
+	ld	a,(RFROM)
+	call	PDEC
+	ld	hl,MSEP
+	call	PUTS
+	ld	hl,RBUF
+	ld	(SPTR),hl
+	ld	a,(RLEN)
+	ld	(SCNT),a
+SHOW2:	ld	a,(SCNT)
+	or	a
+	jr	z,SHOW3
+	dec	a
+	ld	(SCNT),a
+	ld	hl,(SPTR)
+	ld	a,(hl)
+	inc	hl
+	ld	(SPTR),hl
+	call	ECHO
+	jr	SHOW2
+SHOW3:	ld	hl,CRLF
+	jp	PUTS
+
+;	Adds A to the running checksum, keeping A.
+ADDSUM:	push	af
+	push	hl
+	ld	hl,SUM
+	add	a,(hl)
+	ld	(hl),a
+	pop	hl
+	pop	af
+	ret
+
+;	Runs function A on the device at OCPORT/OCSUB. Carry on error, otherwise A is the first
+;	result byte.
+OCCALL:	push	af
+	ld	a,(OCPORT)
+	ld	c,a
+	ld	a,(OCSUB)
+	out	(c),a		; OCSEL
+	inc	c
+	pop	af
+	out	(c),a		; OCFUN
+	inc	c
+	inc	c
+	ld	a,OCEXEC
+	out	(c),a		; OCSTA
+OCCAL1:	in	a,(c)
+	and	OCBUSY
+	jr	nz,OCCAL1
+	in	a,(c)
+	and	OCERR
+	scf
+	ret	nz
+	dec	c
+	in	a,(c)		; OCDAT
+	or	a		; clears carry
+	ret
+
+;	Reads a key without waiting. Z when nothing was typed, otherwise A holds it.
+KEY:	push	bc
+	push	de
+	push	hl
+	ld	e,0FFh
+	ld	c,DIRECT
+	call	BDOS
+	pop	hl
+	pop	de
+	pop	bc
+	ld	(KEYVAL),a
+	or	a
+	ret
+
+KEYGET:	ld	a,(KEYVAL)
+	ret
+
+;	Prints A.
+ECHO:	push	bc
+	push	de
+	push	hl
+	ld	e,a
+	ld	c,DIRECT
+	call	BDOS
+	pop	hl
+	pop	de
+	pop	bc
+	ret
+
+;	Prints the zero terminated string at HL.
+PUTS:	ld	a,(hl)
+	or	a
+	ret	z
+	push	hl
+	call	ECHO
+	pop	hl
+	inc	hl
+	jr	PUTS
+
+;	Prints A as a decimal number, without leading zeros.
+PDEC:	ld	c,0
+	ld	b,100
+	call	PDIG
+	ld	b,10
+	call	PDIG
+	add	a,'0'
+	jp	ECHO
+
+;	Divides A by B, printing the digit unless it is a leading zero. A keeps the remainder.
+PDIG:	ld	d,0
+PDIG1:	cp	b
+	jr	c,PDIG2
+	sub	b
+	inc	d
+	jr	PDIG1
+PDIG2:	ld	e,a
+	ld	a,d
+	or	a
+	jr	nz,PDIG3
+	ld	a,c
+	or	a
+	ld	a,e
+	ret	z
+PDIG3:	ld	c,1
+	ld	a,d
+	add	a,'0'
+	call	ECHO
+	ld	a,e
+	ret
+
+;	Skips spaces at HL.
+SKIPSP:	ld	a,(hl)
+	cp	' '
+	ret	nz
+	inc	hl
+	jr	SKIPSP
+
+;	Reads a decimal number at HL into A. Carry when there is none, or it does not fit a byte.
+GETNUM:	ld	a,(hl)
+	sub	'0'
+	ret	c		; below '0', so not a number
+	cp	10
+	ccf
+	ret	c		; above '9', same
+	ld	c,0
+GETN1:	ld	a,(hl)
+	sub	'0'
+	jr	c,GETN2
+	cp	10
+	jr	nc,GETN2
+	ld	b,a
+	ld	a,c
+	cp	26
+	ccf
+	ret	c		; another digit cannot fit in a byte
+	add	a,a		; c * 2
+	ld	c,a
+	add	a,a		; c * 4
+	add	a,a		; c * 8
+	add	a,c		; c * 10
+	add	a,b
+	ret	c		; the last digit pushed it over 255
+	ld	c,a
+	inc	hl
+	jr	GETN1
+GETN2:	ld	a,c
+	or	a
+	ret
+
+;	Starts a fresh line.
+LINRST:	xor	a
+	ld	(LINCNT),a
+	ld	hl,LINBUF
+	ld	(LINPTR),hl
+	ret
+
+MYADDR:	db	0
+CARDIX:	db	0
+OCPORT:	db	0
+OCSUB:	db	0
+PEER:	db	0
+SUM:	db	0
+SPTR:	dw	0
+SCNT:	db	0
+KEYVAL:	db	0
+LINCNT:	db	0
+LINPTR:	dw	LINBUF
+RSTATE:	db	0
+RTO:	db	0
+RFROM:	db	0
+RLEN:	db	0
+RCNT:	db	0
+RPTR:	dw	0
+LINBUF:	ds	MAXPAY
+RBUF:	ds	MAXPAY
+
+MME:	db	'This is endpoint ',0
+MHELLO:	db	'. Type a line to send it. Empty line quits.',CR,LF,0
+MFROM:	db	'endpoint ',0
+MSEP:	db	': ',0
+MRUB:	db	BS,' ',BS,0
+CRLF:	db	CR,LF,0
+MNOCRD:	db	'No serial interface card on this machine.',CR,LF,0
+SERNAM:	db	'SERIAL',0
+MUSAGE:	db	'Usage: SERCHAT <peer 0-255>',CR,LF,0
+
+	INCLUDE	DEVLIB.INC
+	INCLUDE	OCAPI.INC
+	INCLUDE	SERIAL.INC
+
+	END

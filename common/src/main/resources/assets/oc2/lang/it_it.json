@@ -43,7 +43,7 @@
   "item.oc2.redstone_interface_card.desc": "Emette e rileva segnali redstone tramite il Computer.",
   "item.oc2.network_interface_card": "Scheda di Interfaccia Rete",
   "item.oc2.network_interface_card.desc": "Invia e riceve pacchetti di rete tramite i Connettori di Rete connessi.",
-  "item.oc2.network_interface_card.is_configured": "Ha una configurazione di connettività.",
+  "item.oc2.sided_device.is_configured": "Ha una configurazione di connettività.",
   "item.oc2.network_tunnel_card": "Scheda di Tunnel di Rete",
   "item.oc2.network_tunnel_card.desc": "Invia e riceve pacchetti di rete a un dispositivo associato.",
   "item.oc2.file_import_export_card": "Scheda di Trasferimento File",
@@ -94,10 +94,10 @@
   "gui.oc2.file_chooser.confirm_button.overwrite": "Sovrascrivi",
   "gui.oc2.file_chooser.cancel_button": "Annulla",
 
-  "gui.oc2.network_interface_card.side_state": "Connettività: %s",
-  "gui.oc2.network_interface_card.connectivity.enabled": "Attivata",
-  "gui.oc2.network_interface_card.connectivity.disabled": "Disattivata",
-  "gui.oc2.network_interface_card.info": "Trascina per ruotare. Clicca le facce per cambiare la connettività.",
+  "gui.oc2.sided_device.side_state": "Connettività: %s",
+  "gui.oc2.sided_device.connectivity.enabled": "Attivata",
+  "gui.oc2.sided_device.connectivity.disabled": "Disattivata",
+  "gui.oc2.sided_device.help": "Trascina per ruotare. Clicca le facce per cambiare la connettività.",
 
   "gui.oc2.keyboard.close_info": "Tasto destro per chiudere.",
 

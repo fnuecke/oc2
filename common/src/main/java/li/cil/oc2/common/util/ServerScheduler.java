@@ -18,7 +18,6 @@ public final class ServerScheduler {
     private static final WeakHashMap<LevelAccessor, SimpleScheduler> levelUnloadSchedulers = new WeakHashMap<>();
     private static final WeakHashMap<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> chunkLoadSchedulers = new WeakHashMap<>();
     private static final WeakHashMap<LevelAccessor, HashMap<ChunkPos, ListenerCollection>> chunkUnloadSchedulers = new WeakHashMap<>();
-    private static final WeakHashMap<LevelAccessor, ChunkListenerCollection> anyChunkUnloadObservers = new WeakHashMap<>();
 
     // --------------------------------------------------------------------- //
 
@@ -83,25 +82,6 @@ public final class ServerScheduler {
         unsubscribe(level, chunkPos, listener, chunkUnloadSchedulers);
     }
 
-    public static void subscribeOnAnyChunkUnload(final LevelAccessor level, final Consumer<ChunkPos> listener) {
-        runOnServerThread(level, () -> anyChunkUnloadObservers
-            .computeIfAbsent(level, unused -> new ChunkListenerCollection())
-            .add(listener));
-    }
-
-    public static void unsubscribeOnAnyChunkUnload(@Nullable final LevelAccessor level, final Consumer<ChunkPos> listener) {
-        if (level == null) {
-            return;
-        }
-
-        runOnServerThread(level, () -> {
-            final ChunkListenerCollection listeners = anyChunkUnloadObservers.get(level);
-            if (listeners != null) {
-                listeners.remove(listener);
-            }
-        });
-    }
-
     // --------------------------------------------------------------------- //
 
     public static void initialize() {
@@ -111,14 +91,12 @@ public final class ServerScheduler {
             levelUnloadSchedulers.clear();
             chunkLoadSchedulers.clear();
             chunkUnloadSchedulers.clear();
-            anyChunkUnloadObservers.clear();
         });
 
         LifecycleEvent.SERVER_LEVEL_UNLOAD.register(level -> {
             levelTickSchedulers.remove(level);
             chunkLoadSchedulers.remove(level);
             chunkUnloadSchedulers.remove(level);
-            anyChunkUnloadObservers.remove(level);
 
             final SimpleScheduler scheduler = levelUnloadSchedulers.remove(level);
             if (scheduler != null) {
@@ -173,11 +151,6 @@ public final class ServerScheduler {
     public static void onChunkUnload(final LevelAccessor level, final ChunkPos chunkPos) {
         validateServerThread();
         runChunkListeners(chunkUnloadSchedulers, level, chunkPos);
-
-        final ChunkListenerCollection observers = anyChunkUnloadObservers.get(level);
-        if (observers != null) {
-            observers.run(chunkPos);
-        }
     }
 
     private static void validateServerThread() {
@@ -286,12 +259,6 @@ public final class ServerScheduler {
     private static final class ListenerCollection extends Listeners<Runnable> {
         public void run() {
             super.run(Runnable::run);
-        }
-    }
-
-    private static final class ChunkListenerCollection extends Listeners<Consumer<ChunkPos>> {
-        public void run(final ChunkPos chunkPos) {
-            super.run(consumer -> consumer.accept(chunkPos));
         }
     }
 }

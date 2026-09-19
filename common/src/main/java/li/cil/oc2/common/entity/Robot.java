@@ -35,7 +35,10 @@ import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.vm.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.core.*;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Cursor3D;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
@@ -57,6 +60,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.entity.EntityInLevelCallback;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
@@ -67,7 +71,6 @@ import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.*;
-import java.util.function.Consumer;
 
 import static java.util.Collections.singleton;
 import static li.cil.oc2.common.Constants.ENERGY_TAG_NAME;
@@ -102,7 +105,6 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     // --------------------------------------------------------------------- //
 
     private final Runnable unloadListener = this::handleUnload;
-    private final Consumer<ChunkPos> chunkUnloadListener = this::handleChunkUnload;
     private final BlockPos.MutableBlockPos mutablePosition = new BlockPos.MutableBlockPos();
 
     @Nullable
@@ -323,13 +325,18 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     @Override
-    public void remove(final RemovalReason reason) {
-        super.remove(reason);
+    public void setLevelCallback(final EntityInLevelCallback callback) {
+        super.setLevelCallback(callback);
 
         if (!level().isClientSide()) {
-            // Full unload to release out-of-nbt persisted runtime-only data such as ram.
-            virtualMachine.stop();
-            virtualMachine.dispose();
+            final RemovalReason reason = getRemovalReason();
+            if (callback == EntityInLevelCallback.NULL && reason != null) {
+                if (reason.shouldDestroy()) {
+                    handleDestroy();
+                } else {
+                    handleUnload();
+                }
+            }
         }
     }
 
@@ -455,26 +462,21 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     private void registerListeners() {
         ServerScheduler.scheduleOnUnload(level(), unloadListener);
-        ServerScheduler.subscribeOnAnyChunkUnload(level(), chunkUnloadListener);
     }
 
     private void unregisterListeners() {
         ServerScheduler.cancelOnUnload(level(), unloadListener);
-        ServerScheduler.unsubscribeOnAnyChunkUnload(level(), chunkUnloadListener);
-    }
-
-    private void handleChunkUnload(final ChunkPos chunkPos) {
-        if (chunkPos.x != SectionPos.blockToSectionCoord(getBlockX()) ||
-            chunkPos.z != SectionPos.blockToSectionCoord(getBlockZ())) {
-            return;
-        }
-
-        handleUnload();
     }
 
     private void handleUnload() {
         unregisterListeners();
         virtualMachine.suspend();
+        virtualMachine.dispose();
+    }
+
+    private void handleDestroy() {
+        unregisterListeners();
+        virtualMachine.stop();
         virtualMachine.dispose();
     }
 

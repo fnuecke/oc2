@@ -10,7 +10,7 @@ manual = "1.2.7"
 ceres = "0.0.7"
 sedna = "4.0.3"
 sedna-buildroot = "0.2.7"
-sedna-cpm = "0.1.1"
+sedna-cpm = "0.1.2"
 vox2mc = "1.0.1"
 
 fabric-loader = "0.19.3"

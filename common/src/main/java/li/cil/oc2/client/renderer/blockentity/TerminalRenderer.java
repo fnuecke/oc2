@@ -58,7 +58,10 @@ public final class TerminalRenderer implements BlockEntityRenderer<TerminalBlock
         TerminalOverlayRenderer.renderTerminal(terminal.getBlockPos(), terminal.getTerminal(), stack, bufferSource, cameraPosition);
 
         stack.translate(0, 0, -0.1f);
-        BlockOverlays.renderPower(stack.last().pose(), bufferSource);
+
+        if (terminal.isConnected()) {
+            BlockOverlays.renderPower(stack.last().pose(), bufferSource);
+        }
 
         if (terminal.hasRecentFrameError()) {
             BlockOverlays.renderStatus(stack.last().pose(), bufferSource);

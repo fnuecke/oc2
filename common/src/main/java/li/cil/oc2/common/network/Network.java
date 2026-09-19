@@ -81,6 +81,7 @@ public final class Network {
         registerMessage(ProjectorStateMessage.class, ProjectorStateMessage::new, NetworkManager.serverToClient());
         registerMessage(SoundCardAudioMessage.class, SoundCardAudioMessage::new, NetworkManager.serverToClient());
 
+        registerMessage(TerminalStateMessage.class, TerminalStateMessage::new, NetworkManager.serverToClient());
         registerMessage(TerminalKeepAliveMessage.class, TerminalKeepAliveMessage::new, NetworkManager.clientToServer());
         registerMessage(TerminalConfigurationMessage.ToClient.class, TerminalConfigurationMessage.ToClient::new, NetworkManager.serverToClient());
         registerMessage(TerminalConfigurationMessage.ToServer.class, TerminalConfigurationMessage.ToServer::new, NetworkManager.clientToServer());

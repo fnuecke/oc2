@@ -39,7 +39,7 @@ public final class TerminalTests {
     // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
-    public static void aTerminalAndAGuestTalkOverTheWire(final GameTestHelper helper) {
+    public static void terminalAndAGuestTalkOverTheWire(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);
@@ -119,7 +119,30 @@ public final class TerminalTests {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 200, batch = BATCH)
-    public static void aTerminalAtAnotherRateHearsNoise(final GameTestHelper helper) {
+    public static void terminalIsConnectedWhileAConnectorPollsIt(final GameTestHelper helper) {
+        final Player player = fakePlayer(helper);
+
+        final BlockPos firstPos = COMPUTER_POS.east(2);
+        final BlockPos secondPos = COMPUTER_POS.east(6);
+        final BlockPos lonePos = COMPUTER_POS.east(4);
+
+        helper.startSequence()
+            .thenExecute(() -> {
+                linkTerminals(helper, player, firstPos, secondPos);
+                placeTerminal(helper, player, lonePos, Direction.NORTH);
+            })
+            .thenExecuteAfter(20, () -> {
+                assertConnected(helper, firstPos, true, "a terminal with a connector at its back is connected");
+                assertConnected(helper, lonePos, false, "a terminal without one is not");
+                helper.destroyBlock(firstPos.east());
+            })
+            .thenExecuteAfter(20, () -> assertConnected(helper, firstPos, false,
+                "a terminal whose connector was removed is no longer connected"))
+            .thenSucceed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 200, batch = BATCH)
+    public static void terminalAtAnotherRateHearsNoise(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
 
         final BlockPos firstPos = COMPUTER_POS.east(2);
@@ -186,6 +209,12 @@ public final class TerminalTests {
             throw new GameTestAssertException("no connector at " + connectorPos);
         }
         return ConnectorFixture.at(helper, connectorPos);
+    }
+
+    private static void assertConnected(final GameTestHelper helper, final BlockPos pos, final boolean expected, final String what) {
+        if (terminal(helper, pos).isConnected() != expected) {
+            throw new GameTestAssertException(what);
+        }
     }
 
     private static TerminalBlockEntity terminal(final GameTestHelper helper, final BlockPos pos) {

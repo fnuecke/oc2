@@ -9,6 +9,7 @@ import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.AbstractMessage;
 import li.cil.oc2.common.network.message.TerminalConfigurationMessage;
 import li.cil.oc2.common.network.message.TerminalOutputMessage;
+import li.cil.oc2.common.network.message.TerminalStateMessage;
 import li.cil.oc2.common.serial.BufferedSerialDevice;
 import li.cil.oc2.common.serial.SerialFrame;
 import li.cil.oc2.common.serial.SerialLine;
@@ -35,14 +36,13 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.*;
 
-import static java.util.Objects.requireNonNull;
-
 public final class TerminalBlockEntity extends ModBlockEntity implements TickableBlockEntity {
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String PORT_TAG_NAME = "port";
     private static final String LINE_TAG_NAME = "line";
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String BAUD_RATE_TAG_NAME = "baudRate";
+    private static final String IS_CONNECTED_TAG_NAME = "isConnected";
 
     public static final long CLIENT_KEEPALIVE_EVERY_MILLIS = 1000;
     private static final long CLIENT_EXPIRES_AFTER_MILLIS = 2000;
@@ -55,15 +55,17 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
 
     private static final byte FRAME_ERROR_CHAR = '~';
     private static final long FRAME_ERROR_DISPLAY_MILLIS = 100;
+    private static final int CONNECTED_TIMEOUT_TICKS = 10;
 
     // --------------------------------------------------------------------- //
 
     private final Terminal terminal = new Terminal();
     private final BufferedSerialDevice port = new BufferedSerialDevice();
-    private final NetworkInterface networkInterface = new TerminalNetworkInterface();
+    private final TerminalNetworkInterface networkInterface = new TerminalNetworkInterface();
     private final Map<Player, Long> users = new WeakHashMap<>();
     private List<ServerPlayer> recipients = List.of();
     private int recipientRefreshCountdown;
+    private boolean isConnected;
     private long lastFrameErrorAt;
 
     private int address = SerialFrame.getRandomAddress();
@@ -122,6 +124,14 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
         this.baudRate = baudRate;
     }
 
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public void setConnectedClient(final boolean value) {
+        isConnected = value;
+    }
+
     public boolean hasRecentFrameError() {
         return System.currentTimeMillis() - lastFrameErrorAt < FRAME_ERROR_DISPLAY_MILLIS;
     }
@@ -143,6 +153,8 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
 
         receive();
         transmit();
+
+        updateConnected();
     }
 
     // --------------------------------------------------------------------- //
@@ -161,6 +173,7 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
         }
         tag.putInt(ADDRESS_TAG_NAME, address);
         tag.putInt(BAUD_RATE_TAG_NAME, baudRate);
+        tag.putBoolean(IS_CONNECTED_TAG_NAME, isConnected);
 
         return tag;
     }
@@ -189,6 +202,7 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
         address = tag.getInt(ADDRESS_TAG_NAME);
         baudRate = tag.getInt(BAUD_RATE_TAG_NAME);
         lineTag = tag.contains(LINE_TAG_NAME) ? tag.getCompound(LINE_TAG_NAME) : null;
+        isConnected = tag.getBoolean(IS_CONNECTED_TAG_NAME);
     }
 
     // --------------------------------------------------------------------- //
@@ -208,6 +222,14 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
     }
 
     // --------------------------------------------------------------------- //
+
+    private void updateConnected() {
+        final boolean isConnected = networkInterface.lastReadTick >= level.getGameTime() - CONNECTED_TIMEOUT_TICKS;
+        if (isConnected != this.isConnected) {
+            this.isConnected = isConnected;
+            Network.sendToClientsTrackingBlockEntity(new TerminalStateMessage(this, isConnected), this);
+        }
+    }
 
     private void receive() {
         byte[] output = new byte[0];
@@ -248,7 +270,7 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
     private SerialLine getLine() {
         SerialLine result = line;
         if (result == null) {
-            result = new SerialLine(port, LevelUtils.gameTimeSupplier(requireNonNull(level)), SerialFrame.macOf(address));
+            result = new SerialLine(port, LevelUtils.gameTimeSupplier(level), SerialFrame.macOf(address));
             if (lineTag != null) {
                 NBTSerialization.deserialize(lineTag, result);
                 lineTag = null;
@@ -300,7 +322,7 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
     // --------------------------------------------------------------------- //
 
     private final class TerminalNetworkInterface implements NetworkInterface {
-        private long servedTick = Long.MIN_VALUE;
+        private long lastReadTick = Long.MIN_VALUE;
 
         @Nullable
         @Override
@@ -308,11 +330,11 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
             final SerialLine line = getLine();
 
             final long tick = line.currentTick();
-            if (tick == servedTick) {
+            if (tick == lastReadTick) {
                 return null;
             }
 
-            servedTick = tick;
+            lastReadTick = tick;
             return line.frameForTick();
         }
 

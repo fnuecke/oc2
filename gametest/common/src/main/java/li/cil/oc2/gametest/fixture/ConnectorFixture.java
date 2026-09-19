@@ -36,6 +36,10 @@ public final class ConnectorFixture {
         return new ConnectorFixture(helper, pos);
     }
 
+    public static ConnectorFixture at(final GameTestHelper helper, final BlockPos pos) {
+        return new ConnectorFixture(helper, pos);
+    }
+
     // --------------------------------------------------------------------- //
 
     public BlockPos pos() {

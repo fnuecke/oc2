@@ -134,8 +134,6 @@ public final class DeviceBusTests {
     public static void blockVmDeviceIsReachableFromItsMountingFaceOnly(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
 
-        // The drive sits on top of the first cable, so its mounting face is the one that cable's
-        // interface touches. The second cable is diagonal to the first, i.e. a separate bus.
         final BlockPos drivePos = CABLE_POS.above();
         final BlockPos otherCable = drivePos.east();
 

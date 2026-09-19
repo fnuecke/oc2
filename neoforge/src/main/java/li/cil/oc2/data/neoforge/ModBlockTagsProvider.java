@@ -40,7 +40,8 @@ public final class ModBlockTagsProvider extends BlockTagsProvider {
             DISK_DRIVE.get(),
             FLASH_DRIVE.get(),
             CHARGER.get(),
-            PROJECTOR.get()
+            PROJECTOR.get(),
+            TERMINAL.get()
         );
     }
 }

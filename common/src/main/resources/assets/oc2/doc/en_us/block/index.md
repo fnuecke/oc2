@@ -19,3 +19,4 @@ interface](redstone_interface.md), which connect from multiple sides.
 - [Network Hub](network_hub.md)
 - [Projector](projector.md)
 - [Redstone Interface](redstone_interface.md)
+- [Terminal](terminal.md)

@@ -15,14 +15,13 @@ import li.cil.sedna.device.serial.UART16550A;
 
 import javax.annotation.Nullable;
 
-// Wrapper for UART with a larger buffer because we only pump on the server thread tick.
 @Serialized
 public final class BufferedSerialDevice implements MemoryMappedDevice, Steppable, Resettable, InterruptSource {
     public static final int PORT_COUNT = 8;
+    public static final int FRAME_ERROR_FLAG = 0x100;
 
     private static final int RX_BACKLOG_TICKS = 2;
     private static final int TX_BACKLOG_TICKS = 2;
-    private static final int GARBLED = 0x100;
 
     // --------------------------------------------------------------------- //
 
@@ -38,18 +37,46 @@ public final class BufferedSerialDevice implements MemoryMappedDevice, Steppable
         return uart.getInterrupt();
     }
 
-    public int getBaudRate() {
-        return uart.getBaudRate();
-    }
-
     public int getBaudDivisor() {
         return uart.getBaudDivisor();
     }
 
+    public int getBaudRate() {
+        return uart.getBaudRate();
+    }
+
+    public void setBaudRate(final int value) {
+        uart.setBaudRate(value);
+    }
+
+    // --------------------------------------------------------------------- //
+    // For direct interaction, e.g. terminal block stepped on server tick
+
+    public boolean canSend() {
+        synchronized (lock) {
+            return txQueue.size() < backlogCapacity();
+        }
+    }
+
+    public void send(final byte value) {
+        synchronized (lock) {
+            txQueue.enqueue(value);
+        }
+    }
+
+    public int receive() {
+        synchronized (lock) {
+            return rxQueue.isEmpty() ? -1 : rxQueue.dequeueShort() & 0xFFFF;
+        }
+    }
+
+    // --------------------------------------------------------------------- //
+    // For indirect interaction, e.g. serial card stepped on worker thread
+
     public int offer(final byte[] values, final boolean garbled) {
         synchronized (lock) {
             final int count = Math.clamp(RX_BACKLOG_TICKS * SerialLine.bytesPerTick(uart.getBaudRate()) - rxQueue.size(), 0, values.length);
-            final int flag = garbled ? GARBLED : 0;
+            final int flag = garbled ? FRAME_ERROR_FLAG : 0;
             for (int i = 0; i < count; i++) {
                 rxQueue.enqueue((short) ((values[i] & 0xFF) | flag));
             }
@@ -80,16 +107,15 @@ public final class BufferedSerialDevice implements MemoryMappedDevice, Steppable
         synchronized (lock) {
             while (!rxQueue.isEmpty() && uart.canPutByte()) {
                 final int value = rxQueue.dequeueShort() & 0xFFFF;
-                if ((value & GARBLED) != 0) {
+                if ((value & FRAME_ERROR_FLAG) != 0) {
                     uart.putFrameError((byte) value);
                 } else {
                     uart.putByte((byte) value);
                 }
             }
 
-            final int capacity = Math.max(1, TX_BACKLOG_TICKS * uart.getBaudRate() / (Constants.SECONDS_TO_TICKS * SerialLine.BITS_PER_BYTE));
             int value;
-            while (txQueue.size() < capacity && (value = uart.read()) >= 0) {
+            while (txQueue.size() < backlogCapacity() && (value = uart.read()) >= 0) {
                 txQueue.enqueue((byte) value);
             }
         }
@@ -130,5 +156,11 @@ public final class BufferedSerialDevice implements MemoryMappedDevice, Steppable
     @Override
     public void store(final int offset, final long value, final int sizeLog2) {
         uart.store(offset, value, sizeLog2);
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private int backlogCapacity() {
+        return Math.max(1, TX_BACKLOG_TICKS * uart.getBaudRate() / (Constants.SECONDS_TO_TICKS * SerialLine.BITS_PER_BYTE));
     }
 }

@@ -196,6 +196,8 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
     }
 
+    // --------------------------------------------------------------------- //
+
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);

@@ -23,6 +23,7 @@ import li.cil.oc2.common.capabilities.CapabilityProvider;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.item.SerialInterfaceCardItem;
 import li.cil.oc2.common.serial.BufferedSerialDevice;
+import li.cil.oc2.common.serial.SerialFrame;
 import li.cil.oc2.common.serial.SerialLine;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.BlockLocation;
@@ -37,7 +38,6 @@ import net.minecraft.world.level.Level;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
@@ -130,11 +130,11 @@ public final class SerialInterfaceCardDevice extends AbstractItemRPCDevice imple
         }
 
         if (!SerialInterfaceCardItem.hasAddress(identity)) {
-            SerialInterfaceCardItem.setAddress(identity, ThreadLocalRandom.current().nextInt(SerialInterfaceCardItem.MAX_ADDRESS + 1));
+            SerialInterfaceCardItem.setAddress(identity, SerialFrame.getRandomAddress());
         }
 
         cardAddress = SerialInterfaceCardItem.getAddress(identity);
-        final SerialLine newLine = new SerialLine(device, gameTime.get(), macOf(cardAddress));
+        final SerialLine newLine = new SerialLine(device, gameTime.get(), SerialFrame.macOf(cardAddress));
         if (lineTag != null) {
             NBTSerialization.deserialize(lineTag, newLine);
         }
@@ -321,10 +321,6 @@ public final class SerialInterfaceCardDevice extends AbstractItemRPCDevice imple
 
     private static int clampToU16(final int value) {
         return Math.min(value, 0xFFFF);
-    }
-
-    private static byte[] macOf(final int address) {
-        return new byte[]{0x02, 0x6F, 0x63, 0, 0, (byte) address}; // locally administered, unicast
     }
 
     // --------------------------------------------------------------------- //

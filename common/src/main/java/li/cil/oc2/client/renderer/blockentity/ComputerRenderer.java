@@ -2,19 +2,11 @@
 
 package li.cil.oc2.client.renderer.blockentity;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalNotification;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import dev.architectury.event.events.client.ClientTickEvent;
-import li.cil.oc2.api.API;
-import li.cil.oc2.client.renderer.ModRenderType;
-import li.cil.oc2.client.renderer.TerminalTexture;
+import li.cil.oc2.client.renderer.TerminalOverlayRenderer;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
-import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LightTexture;
@@ -22,46 +14,17 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
-import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlockEntity> {
-    public static final ResourceLocation OVERLAY_POWER_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/computer/computer_overlay_power");
-    public static final ResourceLocation OVERLAY_STATUS_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/computer/computer_overlay_status");
-    public static final ResourceLocation OVERLAY_TERMINAL_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/computer/computer_overlay_terminal");
-
-    private static final Material TEXTURE_POWER = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_POWER_LOCATION);
-    private static final Material TEXTURE_STATUS = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_STATUS_LOCATION);
-    private static final Material TEXTURE_TERMINAL = new Material(InventoryMenu.BLOCK_ATLAS, OVERLAY_TERMINAL_LOCATION);
-
-    private static final Cache<Terminal, TerminalTexture> terminalTextures = CacheBuilder.newBuilder()
-        .expireAfterAccess(Duration.ofSeconds(5))
-        .removalListener(ComputerRenderer::handleNoLongerRendering)
-        .build();
-
-    // --------------------------------------------------------------------- //
-
-    public static void initialize() {
-        ClientTickEvent.CLIENT_POST.register(minecraft -> {
-            terminalTextures.cleanUp();
-            terminalTextures.asMap().values().forEach(TerminalTexture::refresh);
-        });
-    }
-
-    // --------------------------------------------------------------------- //
-
     private final BlockEntityRenderDispatcher renderer;
 
     // --------------------------------------------------------------------- //
@@ -102,7 +65,7 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         stack.scale(pixelScale, pixelScale, pixelScale);
 
         if (computer.getVirtualMachine().isRunning()) {
-            renderTerminal(computer, stack, bufferSource, cameraPosition);
+            TerminalOverlayRenderer.renderTerminal(computer.getBlockPos(), computer.getTerminal(), stack, bufferSource, cameraPosition);
         } else {
             renderStatusText(computer, stack, bufferSource, cameraPosition);
         }
@@ -113,23 +76,23 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         switch (computer.getVirtualMachine().getBusState()) {
             case SCAN_PENDING:
             case INCOMPLETE:
-                renderStatus(matrix, bufferSource);
+                BlockOverlays.renderStatus(matrix, bufferSource);
                 break;
             case TOO_COMPLEX:
-                renderStatus(matrix, bufferSource, 1000);
+                BlockOverlays.renderStatus(matrix, bufferSource, 1000);
                 break;
             case MULTIPLE_CONTROLLERS:
-                renderStatus(matrix, bufferSource, 250);
+                BlockOverlays.renderStatus(matrix, bufferSource, 250);
                 break;
             case READY:
                 switch (computer.getVirtualMachine().getRunState()) {
                     case STOPPED:
                         break;
                     case LOADING_DEVICES:
-                        renderStatus(matrix, bufferSource);
+                        BlockOverlays.renderStatus(matrix, bufferSource);
                         break;
                     case RUNNING:
-                        renderPower(matrix, bufferSource);
+                        BlockOverlays.renderPower(matrix, bufferSource);
                         break;
                 }
                 break;
@@ -139,47 +102,6 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     }
 
     // --------------------------------------------------------------------- //
-
-    private void renderTerminal(final ComputerBlockEntity computer, final PoseStack stack, final MultiBufferSource bufferSource, final Vec3 cameraPosition) {
-        // Render terminal content if close enough.
-        if (Vec3.atCenterOf(computer.getBlockPos()).closerThan(cameraPosition, 6f)) {
-            stack.pushPose();
-            stack.translate(2, 2, -0.9f);
-
-            // Scale to make terminal fit fully.
-            final Terminal terminal = computer.getTerminal();
-            final float textScaleX = 12f / terminal.getWidth();
-            final float textScaleY = 7f / terminal.getHeight();
-            final float scale = Math.min(textScaleX, textScaleY) * 0.95f;
-
-            // Center it on both axes.
-            final float scaleDeltaX = textScaleX - scale;
-            final float scaleDeltaY = textScaleY - scale;
-            stack.translate(
-                terminal.getWidth() * scaleDeltaX * 0.5f,
-                terminal.getHeight() * scaleDeltaY * 0.5f,
-                0f);
-
-            stack.scale(scale, scale, 1f);
-
-            try {
-                final TerminalTexture texture = terminalTextures.get(terminal, () -> new TerminalTexture(terminal));
-                texture.draw(stack);
-            } catch (final ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-
-            stack.popPose();
-        } else {
-            stack.pushPose();
-            stack.translate(0, 0, -0.9f);
-
-            final Matrix4f matrix = stack.last().pose();
-            renderQuad(matrix, TEXTURE_TERMINAL.buffer(bufferSource, ModRenderType::getUnlitBlock));
-
-            stack.popPose();
-        }
-    }
 
     private void renderStatusText(final ComputerBlockEntity computer, final PoseStack stack, final MultiBufferSource bufferSource, final Vec3 cameraPosition) {
         if (!Vec3.atCenterOf(computer.getBlockPos()).closerThan(cameraPosition, 12f)) {
@@ -224,42 +146,5 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
                                      final Matrix4f matrix, final MultiBufferSource bufferSource) {
         font.drawInBatch(text, x, y, 0xFFEE3322, false, matrix, bufferSource,
             Font.DisplayMode.NORMAL, 0, LightTexture.pack(15, 15));
-    }
-
-    private void renderStatus(final Matrix4f matrix, final MultiBufferSource bufferSource) {
-        renderStatus(matrix, bufferSource, 0);
-    }
-
-    private void renderStatus(final Matrix4f matrix, final MultiBufferSource bufferSource, final int frequency) {
-        if (frequency <= 0 || (System.currentTimeMillis() + hashCode()) / frequency % 2 == 1) {
-            renderQuad(matrix, TEXTURE_STATUS.buffer(bufferSource, ModRenderType::getUnlitBlock));
-        }
-    }
-
-    private void renderPower(final Matrix4f matrix, final MultiBufferSource bufferSource) {
-        renderQuad(matrix, TEXTURE_POWER.buffer(bufferSource, ModRenderType::getUnlitBlock));
-    }
-
-    private static void renderQuad(final Matrix4f matrix, final VertexConsumer consumer) {
-        // Not chained: vanilla's SpriteCoordinateExpander.addVertex returns the delegate, so a
-        // chained setUv would bypass the sprite remap (NeoForge patches this, Fabric does not).
-        consumer.addVertex(matrix, 0, 0, 0);
-        consumer.setUv(0, 0);
-
-        consumer.addVertex(matrix, 0, 16, 0);
-        consumer.setUv(0, 1);
-
-        consumer.addVertex(matrix, 16, 16, 0);
-        consumer.setUv(1, 1);
-
-        consumer.addVertex(matrix, 16, 0, 0);
-        consumer.setUv(1, 0);
-    }
-
-    private static void handleNoLongerRendering(final RemovalNotification<Terminal, TerminalTexture> notification) {
-        final TerminalTexture value = notification.getValue();
-        if (value != null) {
-            value.close();
-        }
     }
 }

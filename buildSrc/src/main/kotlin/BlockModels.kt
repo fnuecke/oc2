@@ -31,6 +31,7 @@ private val blockModels = listOf(
     "network_hub",
     "projector",
     "redstone_interface",
+    "terminal",
 )
 
 private val renderTypeOverrides = mapOf(

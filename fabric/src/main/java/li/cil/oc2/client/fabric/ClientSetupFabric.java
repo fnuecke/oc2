@@ -13,12 +13,14 @@ import li.cil.oc2.client.item.CustomItemColors;
 import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.fabric.BusCableModelLoader;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
+import li.cil.oc2.client.renderer.TerminalTextures;
 import li.cil.oc2.client.renderer.blockentity.ChargerRenderer;
 import li.cil.oc2.client.renderer.blockentity.ComputerRenderer;
 import li.cil.oc2.client.renderer.blockentity.DiskDriveRenderer;
 import li.cil.oc2.client.renderer.blockentity.FlashDriveRenderer;
 import li.cil.oc2.client.renderer.blockentity.NetworkConnectorRenderer;
 import li.cil.oc2.client.renderer.blockentity.ProjectorRenderer;
+import li.cil.oc2.client.renderer.blockentity.TerminalRenderer;
 import li.cil.oc2.client.renderer.color.BusCableBlockColor;
 import li.cil.oc2.client.renderer.entity.RobotRenderer;
 import li.cil.oc2.client.renderer.entity.RobotWithoutLevelRenderer;
@@ -42,7 +44,7 @@ import net.minecraft.world.phys.HitResult;
 public final class ClientSetupFabric implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        ComputerRenderer.initialize();
+        TerminalTextures.initialize();
         ProjectorDepthRenderer.initialize();
         SoundCardAudio.initialize();
         ModShadersFabric.initialize();
@@ -61,6 +63,7 @@ public final class ClientSetupFabric implements ClientModInitializer {
         BlockEntityRendererRegistry.register(BlockEntities.CHARGER.get(), ChargerRenderer::new);
         BlockEntityRendererRegistry.register(BlockEntities.PROJECTOR.get(), ProjectorRenderer::new);
         BlockEntityRendererRegistry.register(BlockEntities.NETWORK_CONNECTOR.get(), NetworkConnectorRenderer::new);
+        BlockEntityRendererRegistry.register(BlockEntities.TERMINAL.get(), TerminalRenderer::new);
 
         EntityRendererRegistry.register(Entities.ROBOT, RobotRenderer::new);
         EntityModelLayerRegistry.register(RobotModel.ROBOT_MODEL_LAYER, RobotModel::createRobotLayer);

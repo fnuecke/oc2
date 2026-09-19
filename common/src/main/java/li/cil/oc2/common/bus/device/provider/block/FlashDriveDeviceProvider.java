@@ -6,7 +6,7 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.util.Invalidatable;
-import li.cil.oc2.common.block.FlashDriveBlock;
+import li.cil.oc2.common.block.OrientableBlock;
 import li.cil.oc2.common.blockentity.FlashDriveBlockEntity;
 import li.cil.oc2.common.bus.device.vm.block.FlashDriveDevice;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -19,7 +19,7 @@ public final class FlashDriveDeviceProvider implements BlockDeviceProvider {
             return Invalidatable.empty();
         }
 
-        final boolean isMountingSide = query.getQuerySide() == drive.getBlockState().getValue(FlashDriveBlock.FACING).getOpposite();
+        final boolean isMountingSide = query.getQuerySide() == drive.getBlockState().getValue(OrientableBlock.FACING).getOpposite();
         if (!isMountingSide) {
             return Invalidatable.empty();
         }

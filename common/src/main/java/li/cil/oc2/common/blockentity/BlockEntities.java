@@ -33,6 +33,7 @@ public final class BlockEntities {
     public static final RegistrySupplier<BlockEntityType<InternetGatewayBlockEntity>> INTERNET_GATEWAY = register(Blocks.INTERNET_GATEWAY, InternetGatewayBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<ProjectorBlockEntity>> PROJECTOR = register(Blocks.PROJECTOR, ProjectorBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<RedstoneInterfaceBlockEntity>> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE, RedstoneInterfaceBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<TerminalBlockEntity>> TERMINAL = register(Blocks.TERMINAL, TerminalBlockEntity::new);
 
     // --------------------------------------------------------------------- //
 

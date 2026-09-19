@@ -21,6 +21,7 @@ public final class Textures {
     public static final Texture BLOCK_FACE_DISABLED_TEXTURE = new Texture("textures/gui/overlay/block_face_disabled.png", 16, 16);
 
     public static final Texture HOTBAR_TEXTURE = new Texture("textures/gui/widget/hotbar.png", 224, 26);
+    public static final Texture SIDEBAR_1_TEXTURE = new Texture("textures/gui/widget/sidebar_1.png", 19, 20);
     public static final Texture SIDEBAR_2_TEXTURE = new Texture("textures/gui/widget/sidebar_2.png", 19, 34);
     public static final Texture SIDEBAR_3_TEXTURE = new Texture("textures/gui/widget/sidebar_3.png", 19, 48);
 
@@ -30,5 +31,8 @@ public final class Textures {
     public static final Texture POWER_BUTTON_TEXTURE = new Texture("textures/gui/widget/power_button.png", 42, 14);
     public static final Texture INPUT_BUTTON_TEXTURE = new Texture("textures/gui/widget/input_button.png", 42, 14);
     public static final Texture INVENTORY_BUTTON_TEXTURE = new Texture("textures/gui/widget/inventory_button.png", 28, 14);
+    public static final Texture GENERIC_SCREEN_TEXTURE = new Texture("textures/gui/widget/generic_screen.png", 176, 197);
+    public static final Texture GENERIC_BUTTON_TEXTURE = new Texture("textures/gui/widget/generic_button.png", 80, 40);
+    public static final Texture CONFIG_BUTTON_TEXTURE = new Texture("textures/gui/widget/config_button.png", 28, 14);
     public static final Texture NETWORK_TUNNEL_LINK_BUTTON_TEXTURE = new Texture("textures/gui/widget/network_tunnel_link_button.png", 80, 40);
 }

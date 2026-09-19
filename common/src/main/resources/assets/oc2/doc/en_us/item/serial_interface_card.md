@@ -17,25 +17,28 @@ Computers *have to be shut down* before installing or removing this component. I
 
 The card is a plain serial port. The first one in a machine is `/dev/ttyS1`, because `ttyS0` is the built-in terminal. Set the rate endpoints on the segment should commonly use:
 
-```
-stty -F /dev/ttyS1 9600 raw -echo -crtscts
-microcom -s 9600 /dev/ttyS1
-```
+`stty -F /dev/ttyS1 9600 raw \`
+`   -echo -crtscts`
+`microcom -s 9600 /dev/ttyS1`
 
 The `oc2.serial` library wraps that, and also reads the address of the card via the HLAPI:
 
-```lua
-local serial = require("oc2.serial")
-local line = assert(serial.open(nil, 9600)) -- baud rate is optional
-line:send(7, "status?")
-local from, message = line:receive(5000)
-```
+`local serial =`
+`  require("oc2.serial")`
+`local line = assert(`
+`  serial.open(nil, 9600))`
+`line:send(7, "status?")`
+`local from, message =`
+`  line:receive(5000)`
 
 There is also a MicroPython version with the same API.
 
 ## CP/M
 
 The first card will be adopted as CP/M's reader and punch, so BDOS functions 3 and 4 will go through it.
+
+`STAT CON:=TTY:` switches to the first card as the console, for example to use the computer from a [terminal](../block/terminal.md).  
+`STAT CON:=CRT:` goes back to the built-in one.
 
 `SERBAUD` sets another rate from a divisor: 384 is 300 baud, 96 is 1200, 12 is 9600, 6 is 19200, 1 is 115200.
 
@@ -49,9 +52,7 @@ The first card will be adopted as CP/M's reader and punch, so BDOS functions 3 a
 
 The serial port reads and writes raw bytes from and to the bus. To associate data with endpoints, the library expects the following framing:
 
-```
-01h  to  from  length  payload...  checksum
-```
+`01h  to  from  length  payload...  checksum`
 
 The checksum is `to + from + length` plus every payload byte, overflowing. Address 255 means everyone.
 

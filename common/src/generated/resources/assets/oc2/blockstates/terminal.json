@@ -1,0 +1,102 @@
+{
+  "variants": {
+    "facing=down,rotation=0": {
+      "model": "oc2:block/terminal",
+      "x": 90
+    },
+    "facing=down,rotation=1": {
+      "model": "oc2:block/terminal",
+      "x": 90,
+      "y": 90
+    },
+    "facing=down,rotation=2": {
+      "model": "oc2:block/terminal",
+      "x": 90,
+      "y": 180
+    },
+    "facing=down,rotation=3": {
+      "model": "oc2:block/terminal",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east,rotation=0": {
+      "model": "oc2:block/terminal",
+      "y": 90
+    },
+    "facing=east,rotation=1": {
+      "model": "oc2:block/terminal",
+      "y": 90
+    },
+    "facing=east,rotation=2": {
+      "model": "oc2:block/terminal",
+      "y": 90
+    },
+    "facing=east,rotation=3": {
+      "model": "oc2:block/terminal",
+      "y": 90
+    },
+    "facing=north,rotation=0": {
+      "model": "oc2:block/terminal"
+    },
+    "facing=north,rotation=1": {
+      "model": "oc2:block/terminal"
+    },
+    "facing=north,rotation=2": {
+      "model": "oc2:block/terminal"
+    },
+    "facing=north,rotation=3": {
+      "model": "oc2:block/terminal"
+    },
+    "facing=south,rotation=0": {
+      "model": "oc2:block/terminal",
+      "y": 180
+    },
+    "facing=south,rotation=1": {
+      "model": "oc2:block/terminal",
+      "y": 180
+    },
+    "facing=south,rotation=2": {
+      "model": "oc2:block/terminal",
+      "y": 180
+    },
+    "facing=south,rotation=3": {
+      "model": "oc2:block/terminal",
+      "y": 180
+    },
+    "facing=up,rotation=0": {
+      "model": "oc2:block/terminal",
+      "x": 270
+    },
+    "facing=up,rotation=1": {
+      "model": "oc2:block/terminal",
+      "x": 270,
+      "y": 90
+    },
+    "facing=up,rotation=2": {
+      "model": "oc2:block/terminal",
+      "x": 270,
+      "y": 180
+    },
+    "facing=up,rotation=3": {
+      "model": "oc2:block/terminal",
+      "x": 270,
+      "y": 270
+    },
+    "facing=west,rotation=0": {
+      "model": "oc2:block/terminal",
+      "y": 270
+    },
+    "facing=west,rotation=1": {
+      "model": "oc2:block/terminal",
+      "y": 270
+    },
+    "facing=west,rotation=2": {
+      "model": "oc2:block/terminal",
+      "y": 270
+    },
+    "facing=west,rotation=3": {
+      "model": "oc2:block/terminal",
+      "y": 270
+    }
+  }
+}

@@ -5,7 +5,6 @@ package li.cil.oc2.client.gui;
 import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.client.renderer.TerminalRenderer;
-import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import li.cil.oc2.common.vm.Terminal;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -21,7 +20,19 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 @Environment(EnvType.CLIENT)
-public final class MachineTerminalWidget {
+public final class TerminalWidget {
+    public interface Parent {
+        int getWidth();
+
+        int getHeight();
+
+        boolean shouldRenderTerminal();
+
+        void sendTerminalInputToServer(final ByteBuffer input);
+    }
+
+    // --------------------------------------------------------------------- //
+
     private static final int TERMINAL_WIDTH = Terminal.WIDTH * Terminal.CHAR_WIDTH / 2;
     private static final int TERMINAL_HEIGHT = Terminal.HEIGHT * Terminal.CHAR_HEIGHT / 2;
 
@@ -38,8 +49,7 @@ public final class MachineTerminalWidget {
 
     // --------------------------------------------------------------------- //
 
-    private final AbstractMachineTerminalScreen<?> parent;
-    private final AbstractMachineTerminalContainer container;
+    private final Parent parent;
     private final Terminal terminal;
     private int leftPos, topPos;
     private boolean isMouseOverTerminal;
@@ -47,10 +57,9 @@ public final class MachineTerminalWidget {
 
     // --------------------------------------------------------------------- //
 
-    public MachineTerminalWidget(final AbstractMachineTerminalScreen<?> parent) {
+    public TerminalWidget(final Parent parent, final Terminal terminal) {
         this.parent = parent;
-        this.container = this.parent.getMenu();
-        this.terminal = this.container.getTerminal();
+        this.terminal = terminal;
     }
 
     public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY) {
@@ -64,7 +73,7 @@ public final class MachineTerminalWidget {
     }
 
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, @Nullable final Component error) {
-        if (container.getVirtualMachine().isRunning()) {
+        if (parent.shouldRenderTerminal()) {
             final PoseStack terminalStack = new PoseStack();
             terminalStack.translate(leftPos + TERMINAL_X, topPos + TERMINAL_Y, 0);
             terminalStack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
@@ -73,7 +82,7 @@ public final class MachineTerminalWidget {
                 terminalRenderer = new TerminalRenderer(terminal);
             }
 
-            final Matrix4f projectionMatrix = new Matrix4f().setOrtho(0, parent.width, parent.height, 0, -10, 10f);
+            final Matrix4f projectionMatrix = new Matrix4f().setOrtho(0, parent.getWidth(), parent.getHeight(), 0, -10, 10f);
             terminalRenderer.render(terminalStack, new Matrix4f(), projectionMatrix);
         } else {
             final Font font = getClient().font;
@@ -93,7 +102,7 @@ public final class MachineTerminalWidget {
     public void tick() {
         final ByteBuffer input = terminal.getInput();
         if (input != null) {
-            container.sendTerminalInputToServer(input);
+            parent.sendTerminalInputToServer(input);
         }
     }
 
@@ -146,8 +155,8 @@ public final class MachineTerminalWidget {
     }
 
     public void init() {
-        this.leftPos = (parent.width - WIDTH) / 2;
-        this.topPos = (parent.height - HEIGHT) / 2;
+        this.leftPos = (parent.getWidth() - WIDTH) / 2;
+        this.topPos = (parent.getHeight() - HEIGHT) / 2;
     }
 
     public void onClose() {
@@ -164,8 +173,8 @@ public final class MachineTerminalWidget {
     }
 
     private boolean shouldCaptureInput() {
-        return isMouseOverTerminal && AbstractMachineTerminalScreen.isInputCaptureEnabled() &&
-            container.getVirtualMachine().isRunning();
+        return isMouseOverTerminal && InputCapture.isEnabled() &&
+            parent.shouldRenderTerminal();
     }
 
     private void putInput(final String value) {
@@ -198,8 +207,11 @@ public final class MachineTerminalWidget {
     }
 
     private boolean isMouseOverTerminal(final int mouseX, final int mouseY) {
-        return parent.isMouseOver(mouseX, mouseY,
-            MachineTerminalWidget.TERMINAL_X, MachineTerminalWidget.TERMINAL_Y,
-            MachineTerminalWidget.TERMINAL_WIDTH, MachineTerminalWidget.TERMINAL_HEIGHT);
+        final int localMouseX = mouseX - leftPos - TERMINAL_X;
+        final int localMouseY = mouseY - topPos - TERMINAL_Y;
+        return localMouseX >= 0 &&
+            localMouseX < TERMINAL_WIDTH &&
+            localMouseY >= 0 &&
+            localMouseY < TERMINAL_HEIGHT;
     }
 }

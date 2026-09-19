@@ -12,8 +12,8 @@ import net.minecraft.world.entity.player.Inventory;
 
 @Environment(EnvType.CLIENT)
 public final class RobotTerminalScreen extends AbstractMachineTerminalScreen<RobotTerminalContainer> {
-    private static final int SLOTS_X = (MachineTerminalWidget.WIDTH - Sprites.HOTBAR.width) / 2;
-    private static final int SLOTS_Y = MachineTerminalWidget.HEIGHT - 1;
+    private static final int SLOTS_X = (TerminalWidget.WIDTH - Sprites.HOTBAR.width) / 2;
+    private static final int SLOTS_Y = TerminalWidget.HEIGHT - 1;
 
     // --------------------------------------------------------------------- //
 

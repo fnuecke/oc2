@@ -10,10 +10,8 @@ import li.cil.oc2.client.item.CustomItemColors;
 import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.neoforge.BusCableModelLoader;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
-import li.cil.oc2.client.renderer.blockentity.ComputerRenderer;
-import li.cil.oc2.client.renderer.blockentity.DiskDriveRenderer;
-import li.cil.oc2.client.renderer.blockentity.FlashDriveRenderer;
-import li.cil.oc2.client.renderer.blockentity.NetworkConnectorRenderer;
+import li.cil.oc2.client.renderer.TerminalTextures;
+import li.cil.oc2.client.renderer.blockentity.*;
 import li.cil.oc2.client.renderer.blockentity.neoforge.ChargerRendererNeoForge;
 import li.cil.oc2.client.renderer.blockentity.neoforge.ProjectorRendererNeoForge;
 import li.cil.oc2.client.renderer.color.BusCableBlockColor;
@@ -43,7 +41,7 @@ import javax.annotation.Nullable;
 public final class ClientSetupNeoForge {
     @SubscribeEvent
     public static void handleSetupEvent(final FMLClientSetupEvent event) {
-        ComputerRenderer.initialize();
+        TerminalTextures.initialize();
         ProjectorDepthRenderer.initialize();
         SoundCardAudio.initialize();
 
@@ -63,6 +61,7 @@ public final class ClientSetupNeoForge {
         event.registerBlockEntityRenderer(BlockEntities.CHARGER.get(), ChargerRendererNeoForge::new);
         event.registerBlockEntityRenderer(BlockEntities.PROJECTOR.get(), ProjectorRendererNeoForge::new);
         event.registerBlockEntityRenderer(BlockEntities.NETWORK_CONNECTOR.get(), NetworkConnectorRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntities.TERMINAL.get(), TerminalRenderer::new);
 
         event.registerEntityRenderer(Entities.ROBOT.get(), RobotRenderer::new);
     }

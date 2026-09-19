@@ -4,10 +4,9 @@ package li.cil.oc2.data.neoforge;
 
 import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.API;
-import li.cil.oc2.client.renderer.blockentity.FlashDriveRenderer;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
-import li.cil.oc2.common.block.FlashDriveBlock;
+import li.cil.oc2.common.block.OrientableBlock;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
@@ -15,11 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
-import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
+import net.neoforged.neoforge.client.model.generators.*;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 public final class ModBlockStateProvider extends BlockStateProvider {
@@ -37,6 +32,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
     private static final ResourceLocation INTERNET_GATEWAY_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/internet_gateway");
     private static final ResourceLocation PROJECTOR_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/projector");
     private static final ResourceLocation REDSTONE_INTERFACE_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/redstone_interface");
+    private static final ResourceLocation TERMINAL_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/terminal");
 
     public ModBlockStateProvider(final PackOutput output, final ExistingFileHelper existingFileHelper) {
         super(output, API.MOD_ID, existingFileHelper);
@@ -67,6 +63,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
         horizontalBlock(Blocks.INTERNET_GATEWAY, Items.INTERNET_GATEWAY, INTERNET_GATEWAY_MODEL);
         horizontalBlock(Blocks.PROJECTOR, Items.PROJECTOR, PROJECTOR_MODEL);
         horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE, REDSTONE_INTERFACE_MODEL);
+        orientableBlock(Blocks.TERMINAL, Items.TERMINAL, TERMINAL_MODEL);
 
         registerCableStates();
     }
@@ -180,12 +177,12 @@ public final class ModBlockStateProvider extends BlockStateProvider {
             .end();
     }
 
-    private <T extends Block> ItemModelBuilder orientableBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item, final ResourceLocation modelFileLocation) {
+    private <T extends OrientableBlock> ItemModelBuilder orientableBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item, final ResourceLocation modelFileLocation) {
         final ModelFile model = models().getExistingFile(modelFileLocation);
         getVariantBuilder(block.get()).forAllStates(state -> ConfiguredModel.builder()
             .modelFile(model)
-            .rotationX(FlashDriveRenderer.getRotationX(state.getValue(FlashDriveBlock.FACING)))
-            .rotationY(FlashDriveRenderer.getRotationY(state.getValue(FlashDriveBlock.FACING), state.getValue(FlashDriveBlock.ROTATION)))
+            .rotationX(OrientableBlock.getRotationX(state))
+            .rotationY(OrientableBlock.getRotationY(state))
             .build());
         return itemModels().getBuilder(item.getId().getPath()).parent(model);
     }

@@ -3,6 +3,7 @@
 package li.cil.oc2.common.serial;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.ThreadLocalRandom;
 
 // Serial over ethernet, because it's easy to do over what we already have. Might want splitting out, we'll see.
 // Uses the experimental ethertype for local use: https://www.iana.org/assignments/ieee-802-numbers
@@ -10,6 +11,7 @@ public record SerialFrame(byte[] sourceMac, int baudDivisor, byte[] data) {
     public static final int ETHER_TYPE = 0x88B5; // IEEE Std 802 - Local Experimental Ethertype
     public static final int MAX_DATA_SIZE = 1024;
     public static final int MAC_SIZE = 6;
+    public static final int MAX_ADDRESS = 254; // 255 is broadcast
 
     private static final int ETHERNET_HEADER_SIZE = 14;
     private static final int MAGIC = 0x4F43; // "OC"
@@ -32,6 +34,14 @@ public record SerialFrame(byte[] sourceMac, int baudDivisor, byte[] data) {
     }
 
     // --------------------------------------------------------------------- //
+
+    public static int getRandomAddress() {
+        return ThreadLocalRandom.current().nextInt(MAX_ADDRESS + 1);
+    }
+
+    public static byte[] macOf(final int address) {
+        return new byte[]{0x02, 0x6F, 0x63, 0, 0, (byte) address}; // locally administered, unicast
+    }
 
     public byte[] toEthernetFrame() {
         final byte[] frame = new byte[OFFSET_DATA + data.length];

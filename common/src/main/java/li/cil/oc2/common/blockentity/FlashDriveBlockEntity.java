@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.blockentity;
 
-import li.cil.oc2.common.block.FlashDriveBlock;
+import li.cil.oc2.common.block.OrientableBlock;
 import li.cil.oc2.common.bus.device.vm.block.FlashDriveDevice;
 import li.cil.oc2.common.network.message.AbstractMessage;
 import li.cil.oc2.common.network.message.FlashDriveFlashMemoryMessage;
@@ -24,7 +24,7 @@ public final class FlashDriveBlockEntity extends AbstractRemovableMediaBlockEnti
 
     @Override
     protected Direction getEjectDirection() {
-        return getBlockState().getValue(FlashDriveBlock.FACING);
+        return getBlockState().getValue(OrientableBlock.FACING);
     }
 
     @Override

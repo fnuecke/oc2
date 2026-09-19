@@ -8,15 +8,15 @@
     "C": {
       "tag": "c:ingots/copper"
     },
-    "S": {
-      "tag": "c:strings"
+    "N": {
+      "item": "oc2:network_cable"
     },
     "X": {
       "item": "oc2:bus_interface"
     }
   },
   "pattern": [
-    "CSX",
+    "CNX",
     " B "
   ],
   "result": {

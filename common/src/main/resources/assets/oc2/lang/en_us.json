@@ -18,6 +18,8 @@
   "block.oc2.disk_drive.desc": "Used to access Floppy Disks.",
   "block.oc2.flash_drive": "Flash Drive",
   "block.oc2.flash_drive.desc": "Used to access Flash Memory.",
+  "block.oc2.terminal": "Terminal",
+  "block.oc2.terminal.desc": "User input and output over a serial bus.",
   "block.oc2.charger": "Charger",
   "block.oc2.charger.desc": "Charges entities and items in containers on top of it.",
   "block.oc2.creative_energy": "Infinite Energy Cube",
@@ -121,11 +123,16 @@
   "gui.oc2.sided_device.connectivity.disabled": "Disabled",
   "gui.oc2.sided_device.help": "Drag to rotate. Click faces to toggle connectivity.",
 
+  "gui.oc2.terminal.address": "Address",
+  "gui.oc2.terminal.baud_rate": "Baud Rate",
+
   "gui.oc2.serial_interface_card.address": "Address",
 
   "gui.oc2.keyboard.close_info": "Right click to close.",
 
   "gui.oc2.network_tunnel.link": "Link",
+
+  "gui.oc2.open_configuration.capt": "Settings",
 
   "manual.oc2.home": "Home",
   "manual.oc2.blocks": "Blocks",

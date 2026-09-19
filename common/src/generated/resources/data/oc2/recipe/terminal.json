@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "oc2:circuit_board"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "T": {
+      "item": "oc2:transistor"
+    },
+    "U": {
+      "tag": "minecraft:buttons"
+    },
+    "X": {
+      "item": "oc2:network_cable"
+    }
+  },
+  "pattern": [
+    "IUI",
+    "XTG",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:terminal"
+  }
+}

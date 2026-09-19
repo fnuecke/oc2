@@ -18,6 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.world.entity.player.Inventory;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,24 +30,38 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     private static final int CONTROLS_TOP = 8;
     private static final int ENERGY_TOP = CONTROLS_TOP + Sprites.SIDEBAR_3.height + 4;
 
-    private static boolean isInputCaptureEnabled;
-
-    private final MachineTerminalWidget terminalWidget;
+    private final TerminalWidget terminalWidget;
 
     // --------------------------------------------------------------------- //
 
     protected AbstractMachineTerminalScreen(final T container, final Inventory playerInventory, final Component title) {
         super(container, playerInventory, title);
-        this.terminalWidget = new MachineTerminalWidget(this);
+        this.terminalWidget = new TerminalWidget(new TerminalWidget.Parent() {
+            @Override
+            public int getWidth() {
+                return width;
+            }
+
+            @Override
+            public int getHeight() {
+                return height;
+            }
+
+            @Override
+            public boolean shouldRenderTerminal() {
+                return container.getVirtualMachine().isRunning();
+            }
+
+            @Override
+            public void sendTerminalInputToServer(ByteBuffer input) {
+                getMenu().sendTerminalInputToServer(input);
+            }
+        }, getMenu().getTerminal());
         imageWidth = Sprites.TERMINAL_SCREEN.width;
         imageHeight = Sprites.TERMINAL_SCREEN.height;
     }
 
     // --------------------------------------------------------------------- //
-
-    public static boolean isInputCaptureEnabled() {
-        return isInputCaptureEnabled;
-    }
 
     public List<Rect2i> getExtraAreas() {
         final List<Rect2i> list = new ArrayList<>();
@@ -152,12 +167,12 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
             @Override
             public void onPress() {
                 super.onPress();
-                isInputCaptureEnabled = !isInputCaptureEnabled;
+                InputCapture.toggle();
             }
 
             @Override
             public boolean isToggled() {
-                return isInputCaptureEnabled;
+                return InputCapture.isEnabled();
             }
         }).withTooltip(
             Component.translatable(Constants.TERMINAL_CAPTURE_INPUT_CAPTION),

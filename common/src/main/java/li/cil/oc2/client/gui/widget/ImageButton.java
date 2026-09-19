@@ -26,8 +26,8 @@ public abstract class ImageButton extends AbstractButton {
 
     // --------------------------------------------------------------------- //
 
-    private final Sprite baseImage;
-    private final Sprite pressedImage;
+    private final Background baseImage;
+    private final Background pressedImage;
     private List<Component> tooltip = emptyList();
     private long lastPressedAt;
     private long hoveringStartedAt;
@@ -35,6 +35,16 @@ public abstract class ImageButton extends AbstractButton {
     // --------------------------------------------------------------------- //
 
     protected ImageButton(final int x, final int y, final int width, final int height, final Sprite baseImage, final Sprite pressedImage) {
+        this(x, y, width, height,
+            (graphics, bx, by, bw, bh) -> baseImage.draw(graphics, bx, by),
+            (graphics, bx, by, bw, bh) -> pressedImage.draw(graphics, bx, by));
+    }
+
+    protected ImageButton(final int x, final int y, final int width, final int height, final NineSliceSprite baseImage, final NineSliceSprite pressedImage) {
+        this(x, y, width, height, baseImage::draw, pressedImage::draw);
+    }
+
+    private ImageButton(final int x, final int y, final int width, final int height, final Background baseImage, final Background pressedImage) {
         super(x, y, width, height, CommonComponents.EMPTY);
         this.baseImage = baseImage;
         this.pressedImage = pressedImage;
@@ -68,14 +78,11 @@ public abstract class ImageButton extends AbstractButton {
         renderTooltipIfHovered(graphics, mouseX, mouseY);
     }
 
-    // AbstractWidget.renderToolTip is gone in 1.21.1; the button draws its own tooltip.
     private void renderTooltipIfHovered(final GuiGraphics graphics, final int mouseX, final int mouseY) {
         if (tooltip.isEmpty()) {
             return;
         }
 
-        // Hover only, not isHoveredOrFocused: clicking focuses the button, and a focused button
-        // would keep drawing this tooltip at the cursor after the click.
         if (isHovered()) {
             if (hoveringStartedAt == 0) {
                 hoveringStartedAt = System.currentTimeMillis();
@@ -91,7 +98,7 @@ public abstract class ImageButton extends AbstractButton {
 
     @Override
     protected void updateWidgetNarration(final NarrationElementOutput element) {
-        this.defaultButtonNarrationText(element);
+        defaultButtonNarrationText(element);
     }
 
     // --------------------------------------------------------------------- //
@@ -99,17 +106,20 @@ public abstract class ImageButton extends AbstractButton {
     protected void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         RenderSystem.enableDepthTest();
 
-        Sprite background = baseImage;
-        if ((System.currentTimeMillis() - lastPressedAt) < PRESS_DURATION) {
-            background = pressedImage;
-        }
-
-        background.draw(graphics, getX(), getY());
+        final boolean isPressed = (System.currentTimeMillis() - lastPressedAt) < PRESS_DURATION;
+        (isPressed ? pressedImage : baseImage).draw(graphics, getX(), getY(), width, height);
 
         if (!Objects.equals(getMessage(), CommonComponents.EMPTY)) {
             graphics.drawCenteredString(Minecraft.getInstance().font, getMessage(),
                 getX() + width / 2, getY() + (height - 8) / 2,
                 (active ? 0xFFFFFF : 0xA0A0A0) | Mth.ceil(alpha * 255) << 24);
         }
+    }
+
+    // --------------------------------------------------------------------- //
+
+    @FunctionalInterface
+    private interface Background {
+        void draw(GuiGraphics graphics, int x, int y, int width, int height);
     }
 }

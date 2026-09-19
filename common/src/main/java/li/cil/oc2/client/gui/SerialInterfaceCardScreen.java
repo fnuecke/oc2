@@ -2,10 +2,12 @@
 
 package li.cil.oc2.client.gui;
 
+import li.cil.oc2.client.gui.util.GuiUtils;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.SerialInterfaceCardItem;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.SerialInterfaceCardConfigurationMessage;
+import li.cil.oc2.common.serial.SerialFrame;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.core.Direction;
@@ -29,6 +31,10 @@ public final class SerialInterfaceCardScreen extends AbstractSideConfigurationSc
 
     // --------------------------------------------------------------------- //
 
+    private EditBox addressBox;
+
+    // --------------------------------------------------------------------- //
+
     public SerialInterfaceCardScreen(final Player player, final InteractionHand hand) {
         super(player, hand, Items.SERIAL_INTERFACE_CARD.get());
     }
@@ -39,10 +45,9 @@ public final class SerialInterfaceCardScreen extends AbstractSideConfigurationSc
     protected void init() {
         super.init();
 
-        final var addressBox = addRenderableWidget(new EditBox(font,
+        addressBox = addRenderableWidget(new EditBox(font,
             left + addressLeft(), top + CONTROLS_TOP, ADDRESS_WIDTH, CONTROLS_HEIGHT, ADDRESS_TEXT));
-        addressBox.setMaxLength(3);
-        addressBox.setFilter(SerialInterfaceCardScreen::isAddress);
+        addressBox.setFilter(SerialInterfaceCardScreen::isNumber);
         addressBox.setValue(Integer.toString(SerialInterfaceCardItem.getAddress(getCard())));
         addressBox.setResponder(this::sendAddress);
     }
@@ -68,11 +73,8 @@ public final class SerialInterfaceCardScreen extends AbstractSideConfigurationSc
 
     // --------------------------------------------------------------------- //
 
-    private static boolean isAddress(final String value) {
-        if (!value.chars().allMatch(Character::isDigit)) {
-            return false;
-        }
-        return value.isEmpty() || Integer.parseInt(value) <= SerialInterfaceCardItem.MAX_ADDRESS;
+    private static boolean isNumber(final String value) {
+        return value.chars().allMatch(Character::isDigit);
     }
 
     private int labelLeft() {
@@ -90,6 +92,10 @@ public final class SerialInterfaceCardScreen extends AbstractSideConfigurationSc
     private void sendAddress(final String value) {
         if (value.isEmpty()) {
             return;
+        }
+
+        if (GuiUtils.clampToRange(addressBox, 0, SerialFrame.MAX_ADDRESS)) {
+            return; // setting the value calls this again
         }
 
         final int address = Integer.parseInt(value);

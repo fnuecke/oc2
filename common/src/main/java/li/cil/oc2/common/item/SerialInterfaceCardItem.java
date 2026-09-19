@@ -4,6 +4,7 @@ package li.cil.oc2.common.item;
 
 import li.cil.oc2.client.gui.SerialInterfaceCardScreen;
 import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.serial.SerialFrame;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import net.fabricmc.api.EnvType;
@@ -29,7 +30,6 @@ import static li.cil.oc2.common.util.TranslationUtils.key;
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class SerialInterfaceCardItem extends ModItem {
-    public static final int MAX_ADDRESS = 254; // 255 is broadcast
 
     private static final String CONFIGURATION_TEXT = key("item.{mod}.serial_interface_card.configuration");
     private static final Component IS_CONFIGURED_TEXT = withFormat(text("item.{mod}.sided_device.is_configured"), ChatFormatting.GREEN);
@@ -99,7 +99,7 @@ public final class SerialInterfaceCardItem extends ModItem {
     public static int getAddress(final ItemStack stack) {
         final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
         if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_INT)) {
-            return Math.clamp(tag.getInt(ADDRESS_TAG_NAME), 0, MAX_ADDRESS);
+            return Math.clamp(tag.getInt(ADDRESS_TAG_NAME), 0, SerialFrame.MAX_ADDRESS);
         }
 
         return 0;
@@ -107,7 +107,7 @@ public final class SerialInterfaceCardItem extends ModItem {
 
     public static void setAddress(final ItemStack stack, final int address) {
         ItemStackUtils.modifyModDataTag(stack, tag ->
-            tag.putInt(ADDRESS_TAG_NAME, Math.clamp(address, 0, MAX_ADDRESS)));
+            tag.putInt(ADDRESS_TAG_NAME, Math.clamp(address, 0, SerialFrame.MAX_ADDRESS)));
     }
 
     // --------------------------------------------------------------------- //

@@ -133,6 +133,20 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ShapedRecipeBuilder
+            .shaped(RecipeCategory.MISC, Items.TERMINAL.get())
+            .pattern("IUI")
+            .pattern("XTG")
+            .pattern("IBI")
+            .define('I', Tags.Items.INGOTS_IRON)
+            .define('U', ItemTags.BUTTONS)
+            .define('T', Items.TRANSISTOR.get())
+            .define('X', Items.NETWORK_CABLE.get())
+            .define('G', net.minecraft.world.item.Items.GLASS_PANE)
+            .define('B', Items.CIRCUIT_BOARD.get())
+            .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+            .save(consumer);
+
+        ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.KEYBOARD.get())
             .pattern("UUU")
             .pattern("XTU")
@@ -389,9 +403,9 @@ public final class ModRecipesProvider extends RecipeProvider {
 
         ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.SERIAL_INTERFACE_CARD.get())
-            .pattern("CSX")
+            .pattern("CNX")
             .pattern(" B ")
-            .define('S', Tags.Items.STRINGS)
+            .define('N', Items.NETWORK_CABLE.get())
             .define('C', Tags.Items.INGOTS_COPPER)
             .define('X', Items.BUS_INTERFACE.get())
             .define('B', Items.CIRCUIT_BOARD.get())

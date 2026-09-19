@@ -375,22 +375,19 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
             return;
         }
 
-        // Players in range who might be looking at the computer.
         final AABB bounds = AABB.ofSize(Vec3.atCenterOf(getBlockPos()),
             TERMINAL_VIEW_DISTANCE * 2, TERMINAL_VIEW_DISTANCE * 2, TERMINAL_VIEW_DISTANCE * 2);
-        final Set<ServerPlayer> recipients = new LinkedHashSet<>(serverLevel.getEntitiesOfClass(ServerPlayer.class, bounds));
+        final Set<ServerPlayer> players = new LinkedHashSet<>(serverLevel.getEntitiesOfClass(ServerPlayer.class, bounds));
 
-        // Players who have the UI open. Don't ask me how they'd be out of range, but hey, paranoia.
         for (final Player player : terminalUsers) {
             if (player instanceof final ServerPlayer serverPlayer) {
-                recipients.add(serverPlayer);
+                players.add(serverPlayer);
             }
         }
 
         final List<ServerPlayer> previous = terminalRecipients;
-        terminalRecipients = List.copyOf(recipients);
+        terminalRecipients = List.copyOf(players);
 
-        // Send full update to new ones.
         for (final ServerPlayer player : terminalRecipients) {
             if (!previous.contains(player)) {
                 player.connection.send(ClientboundBlockEntityDataPacket.create(this));

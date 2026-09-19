@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 
 public final class ComputerTerminalInputMessage extends AbstractTerminalBlockMessage {
     public ComputerTerminalInputMessage(final ComputerBlockEntity computer, final ByteBuffer data) {
-        super(computer, data);
+        super(computer.getBlockPos(), data);
     }
 
     public ComputerTerminalInputMessage(final RegistryFriendlyByteBuf buffer) {

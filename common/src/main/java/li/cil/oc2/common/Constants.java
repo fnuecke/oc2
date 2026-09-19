@@ -84,6 +84,7 @@ public final class Constants {
     public static final String COMPUTER_ERROR_NOT_ENOUGH_ENERGY = key("gui.{mod}.computer.error.not_enough_energy");
     public static final String MACHINE_OPEN_INVENTORY_CAPTION = key("gui.{mod}.machine.open_inventory.capt");
     public static final String MACHINE_OPEN_TERMINAL_CAPTION = key("gui.{mod}.machine.open_terminal.capt");
+    public static final String OPEN_CONFIGURATION_CAPTION = key("gui.{mod}.open_configuration.capt");
 
     // --------------------------------------------------------------------- //
 

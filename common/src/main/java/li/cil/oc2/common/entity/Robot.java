@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.entity;
 
-import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
@@ -40,12 +39,9 @@ import net.minecraft.core.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -269,11 +265,6 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                 requestInitialState();
             } else {
                 registerListeners();
-                RobotActions.initializeData(this);
-                final AbstractRobotAction currentAction = actionProcessor.action;
-                if (currentAction != null) {
-                    currentAction.initialize(this);
-                }
             }
         }
 
@@ -329,11 +320,6 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         return InteractionResult.sidedSuccess(level().isClientSide());
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket(final ServerEntity serverEntity) {
-        return NetworkManager.createAddEntityPacket(this, serverEntity);
     }
 
     @Override
@@ -433,6 +419,12 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
         inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG_NAME));
         setSelectedSlot(tag.getByte(SELECTED_SLOT_TAG_NAME));
+
+        RobotActions.initializeData(this);
+        final AbstractRobotAction currentAction = actionProcessor.action;
+        if (currentAction != null) {
+            currentAction.initialize(this);
+        }
     }
 
     @Override

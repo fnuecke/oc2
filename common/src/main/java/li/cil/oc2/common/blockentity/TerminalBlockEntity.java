@@ -54,6 +54,7 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
     private static final double VIEW_DISTANCE = 8;
 
     private static final byte FRAME_ERROR_CHAR = '~';
+    private static final long FRAME_ERROR_DISPLAY_MILLIS = 100;
 
     // --------------------------------------------------------------------- //
 
@@ -63,6 +64,7 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
     private final Map<Player, Long> users = new WeakHashMap<>();
     private List<ServerPlayer> recipients = List.of();
     private int recipientRefreshCountdown;
+    private long lastFrameErrorAt;
 
     private int address = SerialFrame.getRandomAddress();
     private int baudRate = DEFAULT_BAUD_RATE;
@@ -118,6 +120,18 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
     public void setConfigurationClient(final int address, final int baudRate) {
         this.address = address;
         this.baudRate = baudRate;
+    }
+
+    public boolean hasRecentFrameError() {
+        return System.currentTimeMillis() - lastFrameErrorAt < FRAME_ERROR_DISPLAY_MILLIS;
+    }
+
+    public void handleFrameErrorClient() {
+        // Intentional flicker instead of permanent on if we have consistent errors.
+        final long now = System.currentTimeMillis();
+        if (now - lastFrameErrorAt > FRAME_ERROR_DISPLAY_MILLIS) {
+            lastFrameErrorAt = now;
+        }
     }
 
     @Override
@@ -198,13 +212,19 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
     private void receive() {
         byte[] output = new byte[0];
         int count = 0;
+        boolean hasFrameError = false;
 
         int value;
         while ((value = port.receive()) >= 0) {
             if (count == output.length) {
                 output = Arrays.copyOf(output, Math.max(16, output.length * 2));
             }
-            output[count++] = (value & BufferedSerialDevice.FRAME_ERROR_FLAG) != 0 ? FRAME_ERROR_CHAR : (byte) value;
+            if ((value & BufferedSerialDevice.FRAME_ERROR_FLAG) != 0) {
+                output[count++] = FRAME_ERROR_CHAR;
+                hasFrameError = true;
+            } else {
+                output[count++] = (byte) value;
+            }
         }
 
         if (count == 0) {
@@ -215,7 +235,7 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
         terminal.putOutput(received.duplicate());
         setChanged();
 
-        sendToRecipients(new TerminalOutputMessage(this, received));
+        sendToRecipients(new TerminalOutputMessage(this, received, hasFrameError));
     }
 
     private void transmit() {

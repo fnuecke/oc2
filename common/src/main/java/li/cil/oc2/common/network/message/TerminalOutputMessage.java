@@ -10,8 +10,13 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import java.nio.ByteBuffer;
 
 public final class TerminalOutputMessage extends AbstractTerminalBlockMessage {
-    public TerminalOutputMessage(final TerminalBlockEntity terminal, final ByteBuffer data) {
+    private boolean hasFrameError;
+
+    // --------------------------------------------------------------------- //
+
+    public TerminalOutputMessage(final TerminalBlockEntity terminal, final ByteBuffer data, final boolean hasFrameError) {
         super(terminal.getBlockPos(), data);
+        this.hasFrameError = hasFrameError;
     }
 
     public TerminalOutputMessage(final RegistryFriendlyByteBuf buffer) {
@@ -21,8 +26,26 @@ public final class TerminalOutputMessage extends AbstractTerminalBlockMessage {
     // --------------------------------------------------------------------- //
 
     @Override
+    public void fromBytes(final RegistryFriendlyByteBuf buffer) {
+        super.fromBytes(buffer);
+        hasFrameError = buffer.readBoolean();
+    }
+
+    @Override
+    public void toBytes(final RegistryFriendlyByteBuf buffer) {
+        super.toBytes(buffer);
+        buffer.writeBoolean(hasFrameError);
+    }
+
+    // --------------------------------------------------------------------- //
+
+    @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
-        MessageUtils.withClientBlockEntityAt(pos, TerminalBlockEntity.class,
-            terminal -> terminal.getTerminal().putOutput(ByteBuffer.wrap(data)));
+        MessageUtils.withClientBlockEntityAt(pos, TerminalBlockEntity.class, terminal -> {
+            terminal.getTerminal().putOutput(ByteBuffer.wrap(data));
+            if (hasFrameError) {
+                terminal.handleFrameErrorClient();
+            }
+        });
     }
 }
